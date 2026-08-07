@@ -1,5 +1,5 @@
 /*!\mainpage PPLib-Dokumentation
-\image html resource/ppl7-icon-256x256.png
+\image html resource/pplib-icon-256x256.png
 \section Einleitung
 PPL steht für "Patrick's Programming Library" und ist eine Sammlung nützlicher
 Funktionen und Klassen für C++-Anwendungen, geschrieben von Patrick Fedick <patrick@pfp.de>.
@@ -35,12 +35,12 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
 \section Inhalt
 
 - \subpage Installation
-- \subpage ppl7_usage "Verwendung"
+- \subpage pplib_usage "Verwendung"
 - \subpage PPLGroupDataTypes "Die speziellen Datentypen von PPLib"
-- \subpage ppl7 "PPL7 Namespace"
+- \subpage pplib "PPLIB Namespace"
 - <a class="el" href="classes.html">Die Klassen</a>
 - <a class="el" href="modules.html">Übersicht der Module</a>
-	- \subpage PPL7_Features
+	- \subpage PPLIB_Features
     - \subpage Errors
     - \subpage PPLGroupThreads
     - \subpage PPLGroupMemory
@@ -53,8 +53,8 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
     - \subpage PPLGroupSound
     - \subpage PPLGroupInternet
     - \subpage PPLGroupDatabases
-    - \subpage PPL7_CRYPT
-    - \subpage PPL7_COMPRESSION
+    - \subpage PPLIB_CRYPT
+    - \subpage PPLIB_COMPRESSION
     
     
 - Sonstiges
@@ -70,11 +70,11 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
 - \subpage pplPageLicense
 
 
-\image html resource/ppl7-icon-48x48.png
+\image html resource/pplib-icon-48x48.png
 */
 
 /*!\page pplPageLicense Copyright
-PPL7 steht unter der "2-Klausel BSD Lizenz". BSD-Lizenz bezeichnet eine Gruppe von Lizenzen aus
+PPLIB steht unter der "2-Klausel BSD Lizenz". BSD-Lizenz bezeichnet eine Gruppe von Lizenzen aus
 dem Open-Source-Bereich. Der Urtyp der Lizenz stammt von der University of California,
 Berkeley, worauf das Akronym BSD hinweist: Berkeley Software Distribution.
 
@@ -98,7 +98,7 @@ Der Wortlaut der Lizenz lautet folgendermassen:
 
 Übersetzung:
 \code
-  Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+  Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
   All rights reserved.
  
   Weiterverbreitung und Verwendung in nichtkompilierter oder kompilierter Form,
@@ -131,20 +131,20 @@ Der Wortlaut der Lizenz lautet folgendermassen:
 */
 
 /*!
-\namespace ppl7
+\namespace pplib
 \brief Der Namensraum der PPLib-Library
 
-ppl7 ist der Namensraum für alle in der PPLib-Library Version 7 enthaltenen Funktionen und Klassen.
+pplib ist der Namensraum für alle in der PPLib-Library Version 7 enthaltenen Funktionen und Klassen.
 */
 
-/*!\namespace ppl7::grafix
+/*!\namespace pplib::grafix
 \ingroup PPLGroupGrafik
 \brief Namensraum der Grafik-Funktionen
 
-Im Namespace ppl7::grafix sind alle Grafikfunktionen der Library enthalten.
+Im Namespace pplib::grafix sind alle Grafikfunktionen der Library enthalten.
 */
 
-/*!\namespace ppl7::tk
+/*!\namespace pplib::tk
 \ingroup PPLGroupGrafik
 \brief Namensraum des Grafik-Toolkits
 

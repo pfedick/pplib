@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -38,16 +38,16 @@
 #include <errno.h>
 #include <limits.h>
 
-#include "config_ppl7.h"
+#include "config_pplib.h"
 
 #include <vector>
 
-#include <ppl7/types/bytearray.h>
-#include <ppl7/types/array.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/core/iconv.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/array.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/iconv.h>
 
-namespace ppl7
+namespace pplib
 {
 
 /*
@@ -586,8 +586,8 @@ String ToHex(const ByteArrayPtr& bin)
  *
  * \example
  * \code
- * ppl7::String text=L"Hallo Welt! 1+1=2";
- * printf("%s\n",(const char*)ppl7::UrlEncode(text));
+ * pplib::String text=L"Hallo Welt! 1+1=2";
+ * printf("%s\n",(const char*)pplib::UrlEncode(text));
  * \endcode
  * ergibt:
  * \verbatim
@@ -648,8 +648,8 @@ static char HexPairValue(const char* code)
  *
  * \example
  * \code
- * ppl7::String text=L"Hallo+Welt!+1%2B1%3D2";
- * printf("%s\n",(const char*)ppl7::UrlDecode(text));
+ * pplib::String text=L"Hallo+Welt!+1%2B1%3D2";
+ * printf("%s\n",(const char*)pplib::UrlDecode(text));
  * \endcode
  * ergibt:
  * \verbatim
@@ -695,9 +695,9 @@ String Transcode(const char* str, size_t size, const String& fromEncoding, const
 #ifndef HAVE_ICONV
     throw UnsupportedFeatureException("Iconv");
 #else
-    ppl7::Iconv iconv(fromEncoding, toEncoding);
-    ppl7::ByteArrayPtr source(str, size);
-    ppl7::ByteArray target;
+    pplib::Iconv iconv(fromEncoding, toEncoding);
+    pplib::ByteArrayPtr source(str, size);
+    pplib::ByteArray target;
     iconv.transcode(source, target);
     return String((const char*)target.ptr(), target.size());
 #endif
@@ -708,11 +708,11 @@ String Transcode(const String& str, const String& fromEncoding, const String& to
 #ifndef HAVE_ICONV
     throw UnsupportedFeatureException("Iconv");
 #else
-    ppl7::Iconv iconv(fromEncoding, toEncoding);
+    pplib::Iconv iconv(fromEncoding, toEncoding);
     String to;
     iconv.transcode(str, to);
     return to;
 #endif
 }
 
-} // namespace ppl7
+} // namespace pplib

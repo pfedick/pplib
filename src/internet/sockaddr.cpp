@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -51,9 +51,9 @@
 #endif
 
 #ifdef _WIN32
-    #include <winsock2.h>
-	#include <Ws2tcpip.h>
-	#include <windows.h>
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
 #else
 
 #ifdef HAVE_SYS_SOCKET_H
@@ -74,19 +74,19 @@
 
 #endif
 
+#include "pplib.h"
+#include "pplib-inet.h"
+// #include "socket.h"
 
-#include "ppl7.h"
-#include "ppl7-inet.h"
-//#include "socket.h"
-
-namespace ppl7 {
+namespace pplib
+{
 
 /*!\class SockAddr
  * \ingroup PPLGroupInternet
  *
  * \brief Klasse zum Speichern eine Socket-Adresse
  *
- * \header \#include <ppl7-inet.h>
+ * \header \#include <pplib-inet.h>
  *
  * \desc
  * Diese Klasse kann zum Speichern eine Socket-Adresse verwendet werden und unterstützt sowohl IPv4
@@ -95,7 +95,7 @@ namespace ppl7 {
  *
  * \example Verwendung in der Socket-Funktion "connect"
  * \code
- * ppl7::SockAddr addr=ppl7::SockAddr::fromString("127.0.0.1")
+ * pplib::SockAddr addr=pplib::SockAddr::fromString("127.0.0.1")
  * struct sockaddr_in* in_addr=(struct sockaddr_in*)addr.addr();
  * in_addr->sin_port=7;
  * connect(sockfd,(struct sockaddr *)in_addr, in_addr->sin_len);
@@ -117,8 +117,8 @@ namespace ppl7 {
  */
 SockAddr::SockAddr()
 {
-	saddr=NULL;
-	addrlen=0;
+    saddr = NULL;
+    addrlen = 0;
 }
 
 /*!\brief Copy-Konstruktor
@@ -126,17 +126,17 @@ SockAddr::SockAddr()
  * Copy-Konstruktor
  * @param other Anderes SockAddr-Objekt, von dem Kopiert werden soll
  */
-SockAddr::SockAddr(const SockAddr &other)
+SockAddr::SockAddr(const SockAddr& other)
 {
-	if (other.saddr!=NULL) {
-		saddr=malloc(other.addrlen);
-		if (!saddr) throw OutOfMemoryException();
-		memcpy(saddr,other.saddr,other.addrlen);
-		addrlen=other.addrlen;
-	} else {
-		saddr=NULL;
-		addrlen=0;
-	}
+    if (other.saddr != NULL) {
+        saddr = malloc(other.addrlen);
+        if (!saddr) throw OutOfMemoryException();
+        memcpy(saddr, other.saddr, other.addrlen);
+        addrlen = other.addrlen;
+    } else {
+        saddr = NULL;
+        addrlen = 0;
+    }
 }
 
 /*!\brief Kopieren aus einer sockaddr-Structure
@@ -146,15 +146,15 @@ SockAddr::SockAddr(const SockAddr &other)
  * @param addr Muss ein Pointer auf eine struct sockaddr, sockaddr_in oder sockaddr_in6 sein
  * @param addrlen Länge der Struktur
  */
-SockAddr::SockAddr(const void *addr, size_t addrlen)
+SockAddr::SockAddr(const void* addr, size_t addrlen)
 {
-	this->saddr=NULL;
-	this->addrlen=0;
-	if (!addr) throw ppl7::IllegalArgumentException();
-	saddr=malloc(addrlen);
-	if (!saddr) throw OutOfMemoryException();
-	memcpy(saddr,addr,addrlen);
-	this->addrlen=addrlen;
+    this->saddr = NULL;
+    this->addrlen = 0;
+    if (!addr) throw pplib::IllegalArgumentException();
+    saddr = malloc(addrlen);
+    if (!saddr) throw OutOfMemoryException();
+    memcpy(saddr, addr, addrlen);
+    this->addrlen = addrlen;
 }
 
 /*!\brief Kopieren aus IPAddress und Port
@@ -164,16 +164,16 @@ SockAddr::SockAddr(const void *addr, size_t addrlen)
  * @param addr Muss ein Pointer auf eine struct sockaddr, sockaddr_in oder sockaddr_in6 sein
  * @param addrlen Länge der Struktur
  */
-SockAddr::SockAddr(const IPAddress &addr, int port)
+SockAddr::SockAddr(const IPAddress& addr, int port)
 {
-	saddr=NULL;
-	addrlen=0;
-	setAddr(addr,port);
+    saddr = NULL;
+    addrlen = 0;
+    setAddr(addr, port);
 }
 
 SockAddr::~SockAddr()
 {
-	free(saddr);
+    free(saddr);
 }
 
 /*!\brief Adresse der Socket-Struktur auslesen
@@ -182,9 +182,9 @@ SockAddr::~SockAddr()
  * Adresse der Socket-Struktur auslesen
  * @return Pointer auf eine Socket-Struktur
  */
-void *SockAddr::addr() const
+void* SockAddr::addr() const
 {
-	return saddr;
+    return saddr;
 }
 
 /*!\brief Länge der Socket-Struktur auslesen
@@ -196,7 +196,7 @@ void *SockAddr::addr() const
  */
 size_t SockAddr::size() const
 {
-	return addrlen;
+    return addrlen;
 }
 
 /*!\brief Inhalt einer anderen Variablen zuweisen
@@ -207,22 +207,21 @@ size_t SockAddr::size() const
  * @param other
  * @return
  */
-SockAddr &SockAddr::operator=(const SockAddr &other)
+SockAddr& SockAddr::operator=(const SockAddr& other)
 {
-	free(saddr);
-	addrlen=0;
-	if (other.saddr!=NULL) {
-		saddr=malloc(other.addrlen);
-		if (!saddr) throw OutOfMemoryException();
-		memcpy(saddr,other.saddr,other.addrlen);
-		addrlen=other.addrlen;
-	} else {
-		saddr=NULL;
-		addrlen=0;
-	}
-	return *this;
+    free(saddr);
+    addrlen = 0;
+    if (other.saddr != NULL) {
+        saddr = malloc(other.addrlen);
+        if (!saddr) throw OutOfMemoryException();
+        memcpy(saddr, other.saddr, other.addrlen);
+        addrlen = other.addrlen;
+    } else {
+        saddr = NULL;
+        addrlen = 0;
+    }
+    return *this;
 }
-
 
 /*!\brief Kopieren aus einer sockaddr-Structure
  *
@@ -232,16 +231,16 @@ SockAddr &SockAddr::operator=(const SockAddr &other)
  * @param addr Muss ein Pointer auf eine struct sockaddr, sockaddr_in oder sockaddr_in6 sein
  * @param addrlen Länge der Struktur
  */
-void SockAddr::setAddr(const void *addr, size_t addrlen)
+void SockAddr::setAddr(const void* addr, size_t addrlen)
 {
-	free(saddr);
-	saddr=NULL;
-	this->addrlen=0;
-	if (!addr) throw ppl7::IllegalArgumentException();
-	saddr=malloc(addrlen);
-	if (!saddr) throw OutOfMemoryException();
-	memcpy(saddr,addr,addrlen);
-	this->addrlen=addrlen;
+    free(saddr);
+    saddr = NULL;
+    this->addrlen = 0;
+    if (!addr) throw pplib::IllegalArgumentException();
+    saddr = malloc(addrlen);
+    if (!saddr) throw OutOfMemoryException();
+    memcpy(saddr, addr, addrlen);
+    this->addrlen = addrlen;
 }
 
 /*!\brief Setzt den Inhalt der Socket.Struktur anhand eines Strings mkit einer IP-Adresse
@@ -252,40 +251,39 @@ void SockAddr::setAddr(const void *addr, size_t addrlen)
  * @param ip String mit der IP-Adresse
  * @return Gibt ein neues SockAddr-Objekt zurück
  */
-void SockAddr::setAddr(const IPAddress &ip)
+void SockAddr::setAddr(const IPAddress& ip)
 {
-	free(saddr);
-	saddr=NULL;
-	if (ip.family()==4) {
-		addrlen=sizeof(struct sockaddr_in);
-		saddr=calloc(1, addrlen);
-		struct sockaddr_in *s=(struct sockaddr_in*)saddr;
-		s->sin_family=AF_INET;
-		memcpy(&s->sin_addr,ip.addr(),ip.addr_len());
-	} else if (ip.family()==6) {
-		addrlen=sizeof(struct sockaddr_in6);
-		saddr=calloc(1, addrlen);
-		struct sockaddr_in6 *s=(struct sockaddr_in6*)saddr;
-		s->sin6_family=AF_INET6;
-		memcpy(&s->sin6_addr,ip.addr(),ip.addr_len());
-	} else {
-		throw InvalidIpAddressException();
-	}
+    free(saddr);
+    saddr = NULL;
+    if (ip.family() == 4) {
+        addrlen = sizeof(struct sockaddr_in);
+        saddr = calloc(1, addrlen);
+        struct sockaddr_in* s = (struct sockaddr_in*)saddr;
+        s->sin_family = AF_INET;
+        memcpy(&s->sin_addr, ip.addr(), ip.addr_len());
+    } else if (ip.family() == 6) {
+        addrlen = sizeof(struct sockaddr_in6);
+        saddr = calloc(1, addrlen);
+        struct sockaddr_in6* s = (struct sockaddr_in6*)saddr;
+        s->sin6_family = AF_INET6;
+        memcpy(&s->sin6_addr, ip.addr(), ip.addr_len());
+    } else {
+        throw InvalidIpAddressException();
+    }
 }
 
 int SockAddr::version() const
 {
-	if (!saddr) return 0;
-	if (((struct sockaddr_in*)saddr)->sin_family==AF_INET) return 4;
-	return 6;
+    if (!saddr) return 0;
+    if (((struct sockaddr_in*)saddr)->sin_family == AF_INET) return 4;
+    return 6;
 }
 
-void SockAddr::setAddr(const IPAddress &ip, int port)
+void SockAddr::setAddr(const IPAddress& ip, int port)
 {
-	setAddr(ip);
-	setPort(port);
+    setAddr(ip);
+    setPort(port);
 }
-
 
 /*!\brief Port setzen
  *
@@ -296,14 +294,13 @@ void SockAddr::setAddr(const IPAddress &ip, int port)
  */
 void SockAddr::setPort(int port)
 {
-	if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
-	if (((struct sockaddr_in*)saddr)->sin_family==AF_INET) {
-		((struct sockaddr_in*)saddr)->sin_port=htons(port);
-	} else if (((struct sockaddr_in*)saddr)->sin_family==AF_INET6) {
-		((struct sockaddr_in6*)saddr)->sin6_port=htons(port);
-	}
+    if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
+    if (((struct sockaddr_in*)saddr)->sin_family == AF_INET) {
+        ((struct sockaddr_in*)saddr)->sin_port = htons(port);
+    } else if (((struct sockaddr_in*)saddr)->sin_family == AF_INET6) {
+        ((struct sockaddr_in6*)saddr)->sin6_port = htons(port);
+    }
 }
-
 
 /*!\brief Port auslesen
  *
@@ -313,26 +310,24 @@ void SockAddr::setPort(int port)
  */
 int SockAddr::port() const
 {
-	if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
-	if (((struct sockaddr_in*)saddr)->sin_family==AF_INET) {
-		return ntohs(((struct sockaddr_in*)saddr)->sin_port);
-	} else if (((struct sockaddr_in*)saddr)->sin_family==AF_INET6) {
-		return ntohs(((struct sockaddr_in6*)saddr)->sin6_port);
-	}
-	throw InvalidIpAddressException("No valid IP-Address");
+    if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
+    if (((struct sockaddr_in*)saddr)->sin_family == AF_INET) {
+        return ntohs(((struct sockaddr_in*)saddr)->sin_port);
+    } else if (((struct sockaddr_in*)saddr)->sin_family == AF_INET6) {
+        return ntohs(((struct sockaddr_in6*)saddr)->sin6_port);
+    }
+    throw InvalidIpAddressException("No valid IP-Address");
 }
 
 IPAddress SockAddr::toIPAddress() const
 {
-	if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
-	if (((struct sockaddr_in*)saddr)->sin_family==AF_INET) {
-		return IPAddress(IPAddress::IPv4,
-				&((struct sockaddr_in*)saddr)->sin_addr,4);
-	} else if (((struct sockaddr_in*)saddr)->sin_family==AF_INET6) {
-		return IPAddress(IPAddress::IPv6,
-				&((struct sockaddr_in6*)saddr)->sin6_addr,16);
-	}
-	throw InvalidIpAddressException("No valid IP-Address");
+    if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
+    if (((struct sockaddr_in*)saddr)->sin_family == AF_INET) {
+        return IPAddress(IPAddress::IPv4, &((struct sockaddr_in*)saddr)->sin_addr, 4);
+    } else if (((struct sockaddr_in*)saddr)->sin_family == AF_INET6) {
+        return IPAddress(IPAddress::IPv6, &((struct sockaddr_in6*)saddr)->sin6_addr, 16);
+    }
+    throw InvalidIpAddressException("No valid IP-Address");
 }
 
-}	// EOF namespace ppl7
+} // namespace pplib

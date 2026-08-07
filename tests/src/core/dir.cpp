@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,356 +27,323 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <pplib.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
-namespace {
+namespace
+{
 
-class DirTest : public ::testing::Test {
-	protected:
-	size_t	expectedNum;
-	DirTest() {
-		/*
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-		*/
-		if (setlocale(LC_ALL,"")==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-		//printf ("current locale: %s\n",setlocale(LC_ALL,NULL));
+class DirTest : public ::testing::Test
+{
+protected:
+    size_t expectedNum;
+    DirTest()
+    {
+        /*
+        if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+            printf ("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+        */
+        if (setlocale(LC_ALL, "") == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+        // printf ("current locale: %s\n",setlocale(LC_ALL,NULL));
 
-        expectedNum=12;
-		if (ppl7::File::exists("testdata/dirwalk/.svn")) expectedNum++;
-		//if (ppl7::File::exists("testdata/dirwalk/.")) expectedNum++;
-		//if (ppl7::File::exists("testdata/dirwalk/..")) expectedNum++;
-
-	}
-	virtual ~DirTest() {
-
-	}
+        expectedNum = 12;
+        if (pplib::File::exists("testdata/dirwalk/.svn")) expectedNum++;
+        // if (pplib::File::exists("testdata/dirwalk/.")) expectedNum++;
+        // if (pplib::File::exists("testdata/dirwalk/..")) expectedNum++;
+    }
+    virtual ~DirTest()
+    {
+    }
 };
 
-
-TEST_F(DirTest, ConstructorSimple) {
-	ASSERT_NO_THROW({
-		ppl7::Dir d1;
-	}
-	);
-}
-
-TEST_F(DirTest, ConstructorWithDir) {
-	ASSERT_NO_THROW({
-		ppl7::Dir d1("testdata");
-	}
-	);
-}
-
-TEST_F(DirTest, open) {
-	ppl7::Dir d1;
-	ASSERT_NO_THROW({
-		d1.open("testdata");
-	}
-	);
-}
-
-TEST_F(DirTest, count) {
-	ppl7::Dir d1("testdata/dirwalk");
-	ASSERT_EQ(expectedNum,d1.count());
-}
-
-TEST_F(DirTest, clear) {
-	ppl7::Dir d1("testdata");
-	ASSERT_NO_THROW({
-		d1.clear();
-	});
-	ASSERT_EQ((size_t)0,d1.count());
-}
-
-
-TEST_F(DirTest, print) {
-	ppl7::Dir d1("testdata");
-	ASSERT_NO_THROW({
-		d1.print();
-	}
-	);
-}
-
-TEST_F(DirTest, resortByFilenameIgnoreCase) {
-	ppl7::Dir d1("testdata");
-	ASSERT_NO_THROW({
-		d1.resort(ppl7::Dir::SORT_FILENAME);
-	});
-}
-
-TEST_F(DirTest, resortByMTime) {
-	ppl7::Dir d1("testdata");
-	ASSERT_NO_THROW({
-		d1.resort(ppl7::Dir::SORT_MTIME);
-	});
-}
-
-TEST_F(DirTest, resortBySize) {
-	ppl7::Dir d1("testdata");
-	ASSERT_NO_THROW({
-		d1.resort(ppl7::Dir::SORT_SIZE);
-	});
-}
-
-TEST_F(DirTest, dirWalkFilename) {
-	//printf ("äöü => %s\n",ppl7::String::getGlobalEncoding());
-	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
-	ppl7::Dir::Iterator it;
-	//d1.print();
-	d1.reset(it);
-	ppl7::DirEntry e;
-	while (1) {
-		e=d1.getNext(it);
-		if (e.Filename!="." && e.Filename!=".." && e.Filename!=".svn") break;
-	}
-
-	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename);
-	ASSERT_EQ((size_t)1330,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
-	ASSERT_EQ((size_t)13040,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("file1.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("file2.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("file3.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	e=d1.getNext(it);
-	//printf ("%s\n",(const char*)e.Filename);
-	ASSERT_EQ(ppl7::WideString(L"file4äöü.txt"),ppl7::WideString(e.Filename));
-	ASSERT_EQ((size_t)5281,e.Size);
-
-	e=d1.getNext(it);
-	//printf ("%s\n",(const char*)e.Filename);
-	ASSERT_EQ(ppl7::WideString(L"file4✼.txt"),ppl7::WideString(e.Filename));
-	ASSERT_EQ((size_t)5281,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
-	ASSERT_EQ((size_t)1592096,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename);
-	ASSERT_EQ((size_t)9819,e.Size);
-
-    e=d1.getNext(it);
-    ASSERT_EQ(ppl7::WideString(L"èxôtíŒ.txt"),ppl7::WideString(e.Filename));
-    ASSERT_EQ((size_t)1356,e.Size);
-
-
-	// We expect an EndOfListException next
-	ASSERT_THROW(e=d1.getNext(it), ppl7::EndOfListException);
-
-}
-
-
-ppl7::DirEntry getNextFile(const ppl7::Dir &d, ppl7::Dir::Iterator &it)
+TEST_F(DirTest, ConstructorSimple)
 {
-	ppl7::DirEntry e;
-	while (1) {
-		e=d.getNext(it);
-		if (e.Filename!="." && e.Filename!=".." && e.Filename!=".svn") break;
-	}
-	return e;
+    ASSERT_NO_THROW({ pplib::Dir d1; });
 }
 
-TEST_F(DirTest, dirWalkSize) {
-	ppl7::Dir d1;
-	ASSERT_NO_THROW({
-		d1.open("testdata/dirwalk", ppl7::Dir::SORT_SIZE);
-	});
-	ppl7::Dir::Iterator it;
-	//d1.print();
-	d1.reset(it);
-	ppl7::DirEntry e;
-	ASSERT_NO_THROW({
-		e=getNextFile(d1,it);
-	});
-	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename )<< "Real Filename 1: "<<e.Filename;
-	ASSERT_EQ((size_t)1330,e.Size);
-
-
-    ASSERT_NO_THROW(e=getNextFile(d1,it));
-    ASSERT_EQ(ppl7::WideString(L"èxôtíŒ.txt"),ppl7::WideString(e.Filename));
-    ASSERT_EQ((size_t)1356,e.Size);
-
-    ASSERT_NO_THROW(e=getNextFile(d1,it));
-    ASSERT_EQ(ppl7::WideString(L"file4✼.txt"),ppl7::WideString(e.Filename));
-    ASSERT_EQ((size_t)5281,e.Size);
-
-    ASSERT_NO_THROW(e=getNextFile(d1,it));
-	ASSERT_EQ(ppl7::WideString(L"file4äöü.txt"),ppl7::WideString(e.Filename) )<< "Real Filename 2: "<<e.Filename;
-	ASSERT_EQ((size_t)5281,e.Size);
-
-	ASSERT_NO_THROW(e=getNextFile(d1,it));
-	ASSERT_TRUE(ppl7::RegEx::match("/^file[123].txt$/", e.Filename)) << "Real Filename 3: "<<e.Filename;
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	ASSERT_NO_THROW({
-		e=getNextFile(d1,it);
-	});
-	ASSERT_TRUE(ppl7::RegEx::match("/^file[123].txt$/", e.Filename)) << "Real Filename 4: "<<e.Filename;
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	ASSERT_NO_THROW({
-		e=getNextFile(d1,it);
-	});
-	ASSERT_TRUE(ppl7::RegEx::match("/^file[123].txt$/", e.Filename)) << "Real Filename 5: "<<e.Filename;
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	ASSERT_NO_THROW({
-		e=getNextFile(d1,it);
-	});
-	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename) << "Real Filename 6: "<<e.Filename;
-	ASSERT_EQ((size_t)9819,e.Size);
-
-	ASSERT_NO_THROW({
-		e=getNextFile(d1,it);
-	});
-	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
-	ASSERT_EQ((size_t)13040,e.Size);
-
-	ASSERT_NO_THROW({
-		e=getNextFile(d1,it);
-	});
-	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
-	ASSERT_EQ((size_t)1592096,e.Size);
-
-	// We expect an EndOfListException next
-	ASSERT_THROW(e=getNextFile(d1,it);, ppl7::EndOfListException);
+TEST_F(DirTest, ConstructorWithDir)
+{
+    ASSERT_NO_THROW({ pplib::Dir d1("testdata"); });
 }
 
-
-TEST_F(DirTest, patternWalk) {
-	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
-	ppl7::Dir::Iterator it;
-	//d1.print();
-	d1.reset(it);
-	ppl7::DirEntry e;
-	e=d1.getNextPattern(it,"file*");
-	ASSERT_EQ(ppl7::String("file1.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	e=d1.getNextPattern(it,"file*");
-	ASSERT_EQ(ppl7::String("file2.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	e=d1.getNextPattern(it,"file*");
-	ASSERT_EQ(ppl7::String("file3.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	e=d1.getNextPattern(it,"file*");
-	ASSERT_EQ(ppl7::WideString(L"file4äöü.txt"),ppl7::WideString(e.Filename));
-	ASSERT_EQ((size_t)5281,e.Size);
-
-	e=d1.getNextPattern(it,"file*");
-	ASSERT_EQ(ppl7::WideString(L"file4✼.txt"),ppl7::WideString(e.Filename));
-	ASSERT_EQ((size_t)5281,e.Size);
-
-	// We expect an EndOfListException next
-	ASSERT_THROW(e=d1.getNextPattern(it,"file*"), ppl7::EndOfListException);
-
+TEST_F(DirTest, open)
+{
+    pplib::Dir d1;
+    ASSERT_NO_THROW({ d1.open("testdata"); });
 }
 
-
-TEST_F(DirTest, patternWalk2) {
-	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
-	ppl7::Dir::Iterator it;
-	//d1.print();
-	d1.reset(it);
-	ppl7::DirEntry e;
-	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
-	ASSERT_EQ(ppl7::String("file1.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
-	ASSERT_EQ(ppl7::String("file2.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
-	ASSERT_EQ(ppl7::String("file3.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
-	ASSERT_EQ(ppl7::WideString(L"file4äöü.txt"),ppl7::WideString(e.Filename));
-	ASSERT_EQ((size_t)5281,e.Size);
-
-	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
-	ASSERT_EQ(ppl7::WideString(L"file4✼.txt"),ppl7::WideString(e.Filename));
-	ASSERT_EQ((size_t)5281,e.Size);
-
-	// We expect an EndOfListException next
-	ASSERT_FALSE(d1.getNextPattern(e,it,"file*"));
-
+TEST_F(DirTest, count)
+{
+    pplib::Dir d1("testdata/dirwalk");
+    ASSERT_EQ(expectedNum, d1.count());
 }
 
-TEST_F(DirTest, regExpWalk) {
-	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
-	ppl7::Dir::Iterator it;
-	ppl7::String expr("/^.file.*/i");
-	//d1.print();
-	d1.reset(it);
-	ppl7::DirEntry e;
-	e=d1.getNextRegExp(it,expr);
-	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
-	ASSERT_EQ((size_t)13040,e.Size);
-
-	e=d1.getNextRegExp(it,expr);
-	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename);
-	ASSERT_EQ((size_t)9819,e.Size);
-
-
-	// We expect an EndOfListException next
-	ASSERT_THROW(e=d1.getNextRegExp(it,"file*"), ppl7::EndOfListException);
-
+TEST_F(DirTest, clear)
+{
+    pplib::Dir d1("testdata");
+    ASSERT_NO_THROW({ d1.clear(); });
+    ASSERT_EQ((size_t)0, d1.count());
 }
 
-TEST_F(DirTest, regExpWalk2) {
-	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
-	ppl7::Dir::Iterator it;
-	ppl7::String expr("/^.file.*/i");
-	//d1.print();
-	d1.reset(it);
-	ppl7::DirEntry e;
-	ASSERT_TRUE(d1.getNextRegExp(e,it,expr));
-	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
-	ASSERT_EQ((size_t)13040,e.Size);
-
-	ASSERT_TRUE(d1.getNextRegExp(e,it,expr));
-	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename);
-	ASSERT_EQ((size_t)9819,e.Size);
-
-
-	// We expect an EndOfListException next
-	ASSERT_FALSE(d1.getNextRegExp(e,it,expr));
-
+TEST_F(DirTest, print)
+{
+    pplib::Dir d1("testdata");
+    ASSERT_NO_THROW({ d1.print(); });
 }
 
+TEST_F(DirTest, resortByFilenameIgnoreCase)
+{
+    pplib::Dir d1("testdata");
+    ASSERT_NO_THROW({ d1.resort(pplib::Dir::SORT_FILENAME); });
 }
 
+TEST_F(DirTest, resortByMTime)
+{
+    pplib::Dir d1("testdata");
+    ASSERT_NO_THROW({ d1.resort(pplib::Dir::SORT_MTIME); });
+}
+
+TEST_F(DirTest, resortBySize)
+{
+    pplib::Dir d1("testdata");
+    ASSERT_NO_THROW({ d1.resort(pplib::Dir::SORT_SIZE); });
+}
+
+TEST_F(DirTest, dirWalkFilename)
+{
+    // printf ("äöü => %s\n",pplib::String::getGlobalEncoding());
+    pplib::Dir d1("testdata/dirwalk", pplib::Dir::SORT_FILENAME);
+    pplib::Dir::Iterator it;
+    // d1.print();
+    d1.reset(it);
+    pplib::DirEntry e;
+    while (1) {
+        e = d1.getNext(it);
+        if (e.Filename != "." && e.Filename != ".." && e.Filename != ".svn") break;
+    }
+
+    ASSERT_EQ(pplib::String("LICENSE.TXT"), e.Filename);
+    ASSERT_EQ((size_t)1330, e.Size);
+
+    e = d1.getNext(it);
+    ASSERT_EQ(pplib::String("afile.txt"), e.Filename);
+    ASSERT_EQ((size_t)13040, e.Size);
+
+    e = d1.getNext(it);
+    ASSERT_EQ(pplib::String("file1.txt"), e.Filename);
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    e = d1.getNext(it);
+    ASSERT_EQ(pplib::String("file2.txt"), e.Filename);
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    e = d1.getNext(it);
+    ASSERT_EQ(pplib::String("file3.txt"), e.Filename);
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    e = d1.getNext(it);
+    // printf ("%s\n",(const char*)e.Filename);
+    ASSERT_EQ(pplib::WideString(L"file4äöü.txt"), pplib::WideString(e.Filename));
+    ASSERT_EQ((size_t)5281, e.Size);
+
+    e = d1.getNext(it);
+    // printf ("%s\n",(const char*)e.Filename);
+    ASSERT_EQ(pplib::WideString(L"file4✼.txt"), pplib::WideString(e.Filename));
+    ASSERT_EQ((size_t)5281, e.Size);
+
+    e = d1.getNext(it);
+    ASSERT_EQ(pplib::String("testfile.txt"), e.Filename);
+    ASSERT_EQ((size_t)1592096, e.Size);
+
+    e = d1.getNext(it);
+    ASSERT_EQ(pplib::String("zfile.txt"), e.Filename);
+    ASSERT_EQ((size_t)9819, e.Size);
+
+    e = d1.getNext(it);
+    ASSERT_EQ(pplib::WideString(L"èxôtíŒ.txt"), pplib::WideString(e.Filename));
+    ASSERT_EQ((size_t)1356, e.Size);
+
+    // We expect an EndOfListException next
+    ASSERT_THROW(e = d1.getNext(it), pplib::EndOfListException);
+}
+
+pplib::DirEntry getNextFile(const pplib::Dir& d, pplib::Dir::Iterator& it)
+{
+    pplib::DirEntry e;
+    while (1) {
+        e = d.getNext(it);
+        if (e.Filename != "." && e.Filename != ".." && e.Filename != ".svn") break;
+    }
+    return e;
+}
+
+TEST_F(DirTest, dirWalkSize)
+{
+    pplib::Dir d1;
+    ASSERT_NO_THROW({ d1.open("testdata/dirwalk", pplib::Dir::SORT_SIZE); });
+    pplib::Dir::Iterator it;
+    // d1.print();
+    d1.reset(it);
+    pplib::DirEntry e;
+    ASSERT_NO_THROW({ e = getNextFile(d1, it); });
+    ASSERT_EQ(pplib::String("LICENSE.TXT"), e.Filename) << "Real Filename 1: " << e.Filename;
+    ASSERT_EQ((size_t)1330, e.Size);
+
+    ASSERT_NO_THROW(e = getNextFile(d1, it));
+    ASSERT_EQ(pplib::WideString(L"èxôtíŒ.txt"), pplib::WideString(e.Filename));
+    ASSERT_EQ((size_t)1356, e.Size);
+
+    ASSERT_NO_THROW(e = getNextFile(d1, it));
+    ASSERT_EQ(pplib::WideString(L"file4✼.txt"), pplib::WideString(e.Filename));
+    ASSERT_EQ((size_t)5281, e.Size);
+
+    ASSERT_NO_THROW(e = getNextFile(d1, it));
+    ASSERT_EQ(pplib::WideString(L"file4äöü.txt"), pplib::WideString(e.Filename)) << "Real Filename 2: " << e.Filename;
+    ASSERT_EQ((size_t)5281, e.Size);
+
+    ASSERT_NO_THROW(e = getNextFile(d1, it));
+    ASSERT_TRUE(pplib::RegEx::match("/^file[123].txt$/", e.Filename)) << "Real Filename 3: " << e.Filename;
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    ASSERT_NO_THROW({ e = getNextFile(d1, it); });
+    ASSERT_TRUE(pplib::RegEx::match("/^file[123].txt$/", e.Filename)) << "Real Filename 4: " << e.Filename;
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    ASSERT_NO_THROW({ e = getNextFile(d1, it); });
+    ASSERT_TRUE(pplib::RegEx::match("/^file[123].txt$/", e.Filename)) << "Real Filename 5: " << e.Filename;
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    ASSERT_NO_THROW({ e = getNextFile(d1, it); });
+    ASSERT_EQ(pplib::String("zfile.txt"), e.Filename) << "Real Filename 6: " << e.Filename;
+    ASSERT_EQ((size_t)9819, e.Size);
+
+    ASSERT_NO_THROW({ e = getNextFile(d1, it); });
+    ASSERT_EQ(pplib::String("afile.txt"), e.Filename);
+    ASSERT_EQ((size_t)13040, e.Size);
+
+    ASSERT_NO_THROW({ e = getNextFile(d1, it); });
+    ASSERT_EQ(pplib::String("testfile.txt"), e.Filename);
+    ASSERT_EQ((size_t)1592096, e.Size);
+
+    // We expect an EndOfListException next
+    ASSERT_THROW(e = getNextFile(d1, it);, pplib::EndOfListException);
+}
+
+TEST_F(DirTest, patternWalk)
+{
+    pplib::Dir d1("testdata/dirwalk", pplib::Dir::SORT_FILENAME);
+    pplib::Dir::Iterator it;
+    // d1.print();
+    d1.reset(it);
+    pplib::DirEntry e;
+    e = d1.getNextPattern(it, "file*");
+    ASSERT_EQ(pplib::String("file1.txt"), e.Filename);
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    e = d1.getNextPattern(it, "file*");
+    ASSERT_EQ(pplib::String("file2.txt"), e.Filename);
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    e = d1.getNextPattern(it, "file*");
+    ASSERT_EQ(pplib::String("file3.txt"), e.Filename);
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    e = d1.getNextPattern(it, "file*");
+    ASSERT_EQ(pplib::WideString(L"file4äöü.txt"), pplib::WideString(e.Filename));
+    ASSERT_EQ((size_t)5281, e.Size);
+
+    e = d1.getNextPattern(it, "file*");
+    ASSERT_EQ(pplib::WideString(L"file4✼.txt"), pplib::WideString(e.Filename));
+    ASSERT_EQ((size_t)5281, e.Size);
+
+    // We expect an EndOfListException next
+    ASSERT_THROW(e = d1.getNextPattern(it, "file*"), pplib::EndOfListException);
+}
+
+TEST_F(DirTest, patternWalk2)
+{
+    pplib::Dir d1("testdata/dirwalk", pplib::Dir::SORT_FILENAME);
+    pplib::Dir::Iterator it;
+    // d1.print();
+    d1.reset(it);
+    pplib::DirEntry e;
+    ASSERT_TRUE(d1.getNextPattern(e, it, "file*"));
+    ASSERT_EQ(pplib::String("file1.txt"), e.Filename);
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    ASSERT_TRUE(d1.getNextPattern(e, it, "file*"));
+    ASSERT_EQ(pplib::String("file2.txt"), e.Filename);
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    ASSERT_TRUE(d1.getNextPattern(e, it, "file*"));
+    ASSERT_EQ(pplib::String("file3.txt"), e.Filename);
+    ASSERT_EQ((size_t)6519, e.Size);
+
+    ASSERT_TRUE(d1.getNextPattern(e, it, "file*"));
+    ASSERT_EQ(pplib::WideString(L"file4äöü.txt"), pplib::WideString(e.Filename));
+    ASSERT_EQ((size_t)5281, e.Size);
+
+    ASSERT_TRUE(d1.getNextPattern(e, it, "file*"));
+    ASSERT_EQ(pplib::WideString(L"file4✼.txt"), pplib::WideString(e.Filename));
+    ASSERT_EQ((size_t)5281, e.Size);
+
+    // We expect an EndOfListException next
+    ASSERT_FALSE(d1.getNextPattern(e, it, "file*"));
+}
+
+TEST_F(DirTest, regExpWalk)
+{
+    pplib::Dir d1("testdata/dirwalk", pplib::Dir::SORT_FILENAME);
+    pplib::Dir::Iterator it;
+    pplib::String expr("/^.file.*/i");
+    // d1.print();
+    d1.reset(it);
+    pplib::DirEntry e;
+    e = d1.getNextRegExp(it, expr);
+    ASSERT_EQ(pplib::String("afile.txt"), e.Filename);
+    ASSERT_EQ((size_t)13040, e.Size);
+
+    e = d1.getNextRegExp(it, expr);
+    ASSERT_EQ(pplib::String("zfile.txt"), e.Filename);
+    ASSERT_EQ((size_t)9819, e.Size);
+
+    // We expect an EndOfListException next
+    ASSERT_THROW(e = d1.getNextRegExp(it, "file*"), pplib::EndOfListException);
+}
+
+TEST_F(DirTest, regExpWalk2)
+{
+    pplib::Dir d1("testdata/dirwalk", pplib::Dir::SORT_FILENAME);
+    pplib::Dir::Iterator it;
+    pplib::String expr("/^.file.*/i");
+    // d1.print();
+    d1.reset(it);
+    pplib::DirEntry e;
+    ASSERT_TRUE(d1.getNextRegExp(e, it, expr));
+    ASSERT_EQ(pplib::String("afile.txt"), e.Filename);
+    ASSERT_EQ((size_t)13040, e.Size);
+
+    ASSERT_TRUE(d1.getNextRegExp(e, it, expr));
+    ASSERT_EQ(pplib::String("zfile.txt"), e.Filename);
+    ASSERT_EQ((size_t)9819, e.Size);
+
+    // We expect an EndOfListException next
+    ASSERT_FALSE(d1.getNextRegExp(e, it, expr));
+}
+
+} // namespace

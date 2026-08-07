@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,114 +37,123 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
-#include <ppl7-inet.h>
+#include <pplib.h>
+#include <pplib-inet.h>
 #include <gtest/gtest.h>
 #include <list>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class InetTest : public ::testing::Test {
-	protected:
-	InetTest() {
-		if (setlocale(LC_CTYPE,"")==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-	}
-	virtual ~InetTest() {
-
-	}
+class InetTest : public ::testing::Test
+{
+protected:
+    InetTest()
+    {
+        if (setlocale(LC_CTYPE, "") == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+    }
+    virtual ~InetTest()
+    {
+    }
 };
 
-TEST_F(InetTest, Idn2AceUtf8) {
-	ASSERT_NO_THROW({
-		ppl7::String idn=ppl7::Iconv::Utf8ToLocal("tästmé.de");
-		try {
-			ppl7::String ace=ppl7::Idn2Ace(idn);
-			ASSERT_EQ(ppl7::String("xn--tstm-loa7a.de"),ace) << "Convertion failed";
-		} catch (const ppl7::Exception &exp) {
-			exp.print();
-			throw;
-		}
-	}
-	);
+TEST_F(InetTest, Idn2AceUtf8)
+{
+    ASSERT_NO_THROW({
+        pplib::String idn = pplib::Iconv::Utf8ToLocal("tästmé.de");
+        try {
+            pplib::String ace = pplib::Idn2Ace(idn);
+            ASSERT_EQ(pplib::String("xn--tstm-loa7a.de"), ace) << "Convertion failed";
+        }
+        catch (const pplib::Exception& exp) {
+            exp.print();
+            throw;
+        }
+    });
 }
 
-TEST_F(InetTest, Ace2IdnUtf8) {
-	ASSERT_NO_THROW({
-		ppl7::String ace="xn--tstm-loa7a.de";
-		ppl7::String idn=ppl7::Ace2Idn(ace);
-		ASSERT_EQ(ppl7::String(ppl7::Iconv::Utf8ToLocal("tästmé.de")),idn) << "Convertion failed";
-	}
-	);
+TEST_F(InetTest, Ace2IdnUtf8)
+{
+    ASSERT_NO_THROW({
+        pplib::String ace = "xn--tstm-loa7a.de";
+        pplib::String idn = pplib::Ace2Idn(ace);
+        ASSERT_EQ(pplib::String(pplib::Iconv::Utf8ToLocal("tästmé.de")), idn) << "Convertion failed";
+    });
 }
 
-TEST_F(InetTest, Idn2AceWideString) {
-	ASSERT_NO_THROW({
-		ppl7::WideString idn=L"tästmé.de";
-		ppl7::WideString ace=ppl7::Idn2Ace(idn);
-		ASSERT_EQ(ppl7::WideString(L"xn--tstm-loa7a.de"),ace) << "Convertion failed";
-	}
-	);
+TEST_F(InetTest, Idn2AceWideString)
+{
+    ASSERT_NO_THROW({
+        pplib::WideString idn = L"tästmé.de";
+        pplib::WideString ace = pplib::Idn2Ace(idn);
+        ASSERT_EQ(pplib::WideString(L"xn--tstm-loa7a.de"), ace) << "Convertion failed";
+    });
 }
 
-TEST_F(InetTest, Ace2IdnWideString) {
-	ASSERT_NO_THROW({
-		ppl7::WideString ace=L"xn--tstm-loa7a.de";
-		ppl7::WideString idn=ppl7::Ace2Idn(ace);
-		ASSERT_EQ(ppl7::WideString(L"tästmé.de"),idn) << "Convertion failed";
-	}
-	);
+TEST_F(InetTest, Ace2IdnWideString)
+{
+    ASSERT_NO_THROW({
+        pplib::WideString ace = L"xn--tstm-loa7a.de";
+        pplib::WideString idn = pplib::Ace2Idn(ace);
+        ASSERT_EQ(pplib::WideString(L"tästmé.de"), idn) << "Convertion failed";
+    });
 }
 
-TEST_F(InetTest, Ntohl) {
-	if (ppl7::IsLittleEndian()) {
-		ASSERT_EQ((uint32_t)0x44332211,ppl7::Ntohl(0x11223344));
-	} else {
-		ASSERT_EQ((uint32_t)0x11223344,ppl7::Ntohl(0x11223344));
-	}
+TEST_F(InetTest, Ntohl)
+{
+    if (pplib::IsLittleEndian()) {
+        ASSERT_EQ((uint32_t)0x44332211, pplib::Ntohl(0x11223344));
+    } else {
+        ASSERT_EQ((uint32_t)0x11223344, pplib::Ntohl(0x11223344));
+    }
 }
 
-TEST_F(InetTest, Ntohs) {
-	if (ppl7::IsLittleEndian()) {
-		ASSERT_EQ((uint32_t)0x2211,ppl7::Ntohs(0x1122));
-	} else {
-		ASSERT_EQ((uint32_t)0x1122,ppl7::Ntohs(0x1122));
-	}
+TEST_F(InetTest, Ntohs)
+{
+    if (pplib::IsLittleEndian()) {
+        ASSERT_EQ((uint32_t)0x2211, pplib::Ntohs(0x1122));
+    } else {
+        ASSERT_EQ((uint32_t)0x1122, pplib::Ntohs(0x1122));
+    }
 }
 
-TEST_F(InetTest, Htonl) {
-	if (ppl7::IsLittleEndian()) {
-		ASSERT_EQ((uint32_t)0x44332211,ppl7::Htonl(0x11223344));
-	} else {
-		ASSERT_EQ((uint32_t)0x11223344,ppl7::Htonl(0x11223344));
-	}
+TEST_F(InetTest, Htonl)
+{
+    if (pplib::IsLittleEndian()) {
+        ASSERT_EQ((uint32_t)0x44332211, pplib::Htonl(0x11223344));
+    } else {
+        ASSERT_EQ((uint32_t)0x11223344, pplib::Htonl(0x11223344));
+    }
 }
 
-TEST_F(InetTest, Htons) {
-	if (ppl7::IsLittleEndian()) {
-		ASSERT_EQ((uint32_t)0x2211,ppl7::Htons(0x1122));
-	} else {
-		ASSERT_EQ((uint32_t)0x1122,ppl7::Htons(0x1122));
-	}
+TEST_F(InetTest, Htons)
+{
+    if (pplib::IsLittleEndian()) {
+        ASSERT_EQ((uint32_t)0x2211, pplib::Htons(0x1122));
+    } else {
+        ASSERT_EQ((uint32_t)0x1122, pplib::Htons(0x1122));
+    }
 }
 
-TEST_F(InetTest, IsBigEndian) {
-	bool isBigE=false;
-	if (ppl7::Htonl(0x11223344)==0x11223344) isBigE=true;
-	ASSERT_EQ(isBigE,ppl7::IsBigEndian());
-	ASSERT_EQ(!isBigE,ppl7::IsLittleEndian());
+TEST_F(InetTest, IsBigEndian)
+{
+    bool isBigE = false;
+    if (pplib::Htonl(0x11223344) == 0x11223344) isBigE = true;
+    ASSERT_EQ(isBigE, pplib::IsBigEndian());
+    ASSERT_EQ(!isBigE, pplib::IsLittleEndian());
 }
 
-TEST_F(InetTest, IsLittleEndian) {
-	bool isLittleE=true;
-	if (ppl7::Htonl(0x11223344)==0x11223344) isLittleE=false;
-	ASSERT_EQ(isLittleE,ppl7::IsLittleEndian());
-	ASSERT_EQ(!isLittleE,ppl7::IsBigEndian());
+TEST_F(InetTest, IsLittleEndian)
+{
+    bool isLittleE = true;
+    if (pplib::Htonl(0x11223344) == 0x11223344) isLittleE = false;
+    ASSERT_EQ(isLittleE, pplib::IsLittleEndian());
+    ASSERT_EQ(!isLittleE, pplib::IsBigEndian());
 }
 
-}
-
+} // namespace

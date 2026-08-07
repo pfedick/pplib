@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -44,13 +44,13 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-db.h"
+#include "pplib.h"
+#include "pplib-db.h"
 
+namespace pplib
+{
+namespace db
+{
 
-namespace ppl7 {
-namespace db {
-
-
-}	// EOF namespace db
-}	// EOF namespace ppl7
+} // namespace db
+} // namespace pplib

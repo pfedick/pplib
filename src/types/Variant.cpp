@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,18 +27,18 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/types/variant.h>
-#include <ppl7/types/pointer.h>
-#include <ppl7/types/bytearrayptr.h>
-#include <ppl7/types/bytearray.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/array.h>
-#include <ppl7/types/assocarray.h>
-#include <ppl7/types/datetime.h>
-#include <ppl7/exceptions.h>
+#include <pplib/types/variant.h>
+#include <pplib/types/pointer.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/types/assocarray.h>
+#include <pplib/types/datetime.h>
+#include <pplib/exceptions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 Variant::Variant()
@@ -561,4 +561,4 @@ Pointer& Variant::toPointer()
 
 #pragma GCC diagnostic pop
 
-} // namespace ppl7
+} // namespace pplib

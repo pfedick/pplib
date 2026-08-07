@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,14 +27,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/fileobject.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/bytearrayptr.h>
-#include <ppl7/types/bytearray.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/exceptions.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/types/bytearray.h>
 
-namespace ppl7
+namespace pplib
 {
 
 #define COPYBYTES_BUFFERSIZE 1024 * 1024
@@ -108,7 +108,7 @@ FileObject::~FileObject()
 
 /*!\brief Dateiname festlegen
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird der interne Dateiname festgelegt, der z.B. mit
  * GetFilename ausgelesen werden kann. Die Funktion wird intern auch von den
@@ -128,7 +128,7 @@ void FileObject::setFilename(const char* filename)
 
 /*!\brief Dateiname festlegen
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird der interne Dateiname festgelegt, der z.B. mit
  * GetFilename ausgelesen werden kann. Die Funktion wird intern auch von den
@@ -143,7 +143,7 @@ void FileObject::setFilename(const String& filename)
 
 /*!\brief Dateiname auslesen
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird der interne Dateiname ausgelesen. Dieser wird über
  * die Open-Funktionen oder die Funktion SetFilename festgelegt.
@@ -955,7 +955,7 @@ void FileObject::truncate(uint64_t length)
 
 /*!\brief Prüfen, ob eine Datei geöffnet ist
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion kann geprüft werden, ob die mit diesem Objekt
  * assoziierte Datei gerade geöffnet ist.
@@ -1094,4 +1094,4 @@ void FileObject::unmap()
     throw UnimplementedVirtualFunctionException();
 }
 
-} // end of namespace ppl7
+} // end of namespace pplib

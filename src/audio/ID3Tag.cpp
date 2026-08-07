@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,16 +27,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include <ppl7.h>
-#include <ppl7-audio.h>
+#include <pplib.h>
+#include <pplib-audio.h>
 
 // #define ID3DEBUG
 
-namespace ppl7
+namespace pplib
 {
 
 static const char* genres[] = {"Blues", // 0
@@ -250,7 +250,7 @@ void ID3Tag::copyAndDecodeText(String& s, const ID3Frame* frame, int offset) con
     }
 }
 
-void ID3Tag::copyAndDecodeText(String& s, const ID3Frame* frame, int offset, const ppl7::String& charset)
+void ID3Tag::copyAndDecodeText(String& s, const ID3Frame* frame, int offset, const pplib::String& charset)
 {
     if (!frame || frame->isEmpty()) {
         s.clear();
@@ -270,7 +270,7 @@ int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& targ
     return ID3Tag::decode(frame, offset, encoding, target, localCharset);
 }
 
-int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& target, const ppl7::String& charset)
+int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& target, const pplib::String& charset)
 {
     size_t size = 0;
     const char* data = frame->dataPtr() + offset;
@@ -398,7 +398,7 @@ ID3Tag::AudioFormat ID3Tag::identAudioFormat(FileObject& File)
     const char* adr = File.map(0, 12);
     if (!adr) return AF_UNKNOWN;
     // HexDump((void*)adr,12);
-    // printf ("PeekN32(adr+4)=%ud, File.Size=%d\n",ppl7::PeekN32(adr+4), (uint32_t)File.size() );
+    // printf ("PeekN32(adr+4)=%ud, File.Size=%d\n",pplib::PeekN32(adr+4), (uint32_t)File.size() );
     if (PeekN32(adr + 4) < File.size() && PeekN32(adr + 0) == 0x464F524D && PeekN32(adr + 8) == 0x41494646) return AF_AIFF;
     if (Peek32(adr + 4) <= File.size() - 8 && strncmp(adr + 0, "RIFF", 4) == 0 && strncmp(adr + 8, "WAVE", 4) == 0) return AF_WAVE;
 
@@ -410,7 +410,7 @@ uint64_t ID3Tag::findId3Tag(FileObject& File)
 {
     myAudioFormat = identAudioFormat(File);
     if (myAudioFormat == AF_UNKNOWN)
-        throw ppl7::UnsupportedAudioFormatException();
+        throw pplib::UnsupportedAudioFormatException();
     else if (myAudioFormat == AF_MP3)
         return 0;
     else if (myAudioFormat == AF_AIFF) {
@@ -484,7 +484,7 @@ void ID3Tag::load(FileObject& file)
     }
     const char* adr = file.map(p, 10);
 #ifdef ID3DEBUG
-    ppl7::HexDump(adr, 10);
+    pplib::HexDump(adr, 10);
 #endif
     if (strncmp(adr, "ID3", 3) != 0) {
         return;
@@ -524,7 +524,7 @@ void ID3Tag::load(FileObject& file)
     Size |= s << 21;
 
     // Read Tag into Memory
-    ppl7::ByteArray buffer;
+    pplib::ByteArray buffer;
     file.seek(p);
     file.read(buffer, Size + 10);
     p = 10;
@@ -710,7 +710,7 @@ static void toUtf16LE(const String& localCharset, const String& text, ByteArray&
     Iconv iconv(localCharset, "UTF-16LE");
     iconv.transcode(ByteArrayPtr(text), buffer);
     char* b = (char*)enc.malloc(2 + buffer.size());
-    if (!b) throw ppl7::OutOfMemoryException();
+    if (!b) throw pplib::OutOfMemoryException();
     b[0] = 0xff;
     b[1] = 0xfe;
     memcpy(b + 2, buffer.ptr(), buffer.size());
@@ -1531,7 +1531,7 @@ void ID3Tag::getAllPopularimeters(std::map<String, unsigned char>& data) const
         if (frame.ID == "POPM") {
             String email = getNullPaddedString(frame, 0);
             if (email.notEmpty()) {
-                unsigned char rating = ppl7::Peek8(frame.dataPtr() + email.size() + 1);
+                unsigned char rating = pplib::Peek8(frame.dataPtr() + email.size() + 1);
                 data.insert(std::pair<String, unsigned char>(email, rating));
             }
         }
@@ -1559,7 +1559,7 @@ unsigned char ID3Tag::getPopularimeter(const String& email) const
         if (frame.ID == "POPM") {
             String existingemail = getNullPaddedString(frame, 0);
             if (existingemail == email) {
-                return ppl7::Peek8(frame.dataPtr() + existingemail.size() + 1);
+                return pplib::Peek8(frame.dataPtr() + existingemail.size() + 1);
             }
         }
     }
@@ -1571,7 +1571,7 @@ unsigned char ID3Tag::getPopularimeter() const
     for (const auto& frame : frames) {
         if (frame.ID == "POPM") {
             String existingemail = getNullPaddedString(frame, 0);
-            return ppl7::Peek8(frame.dataPtr() + existingemail.size() + 1);
+            return pplib::Peek8(frame.dataPtr() + existingemail.size() + 1);
         }
     }
     return 0;
@@ -1728,4 +1728,4 @@ void ID3Tag::saveWave()
     File::rename(tmpfile, Filename);
 }
 
-} // namespace ppl7
+} // namespace pplib

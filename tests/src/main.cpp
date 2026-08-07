@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,80 +32,81 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#define PPL7TESTSUITEMAIN
+#define PPLIBTESTSUITEMAIN
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <pplib.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-extern const char *wordlist;
+extern const char* wordlist;
 
-ppl7::Array Wordlist;
-ppl7::ConfigParser PPL7TestConfig;
-ppl7::AssocArray TestAssocArray;
+pplib::Array Wordlist;
+pplib::ConfigParser PPLIBTestConfig;
+pplib::AssocArray TestAssocArray;
 
 void help()
 {
-	printf ("PPL7 Testsuite configuration options:\n"
-			"-c CONFIG   Configuration-file for ppl7 testsuite\n"
-			"\n"
-			"Test-Framework options:\n");
-
+    printf("PPLIB Testsuite configuration options:\n"
+           "-c CONFIG   Configuration-file for pplib testsuite\n"
+           "\n"
+           "Test-Framework options:\n");
 }
 
 static void setupTestAssocArray()
 {
-	TestAssocArray.set("key1","Dieser Wert geht über\nmehrere Zeilen");
-	TestAssocArray.set("key2","value6");
-	TestAssocArray.set("array1/unterkey1","value2");
-	TestAssocArray.set("array1/unterkey2","value3");
-	TestAssocArray.set("array1/noch ein array/unterkey1","value4");
-	TestAssocArray.set("array1/unterkey2","value5");
-	TestAssocArray.set("key2","value7");
-	TestAssocArray.set("array2/unterkey1","value7");
-	TestAssocArray.set("array2/unterkey2","value8");
-	TestAssocArray.set("array2/unterkey1","value9");
+    TestAssocArray.set("key1", "Dieser Wert geht über\nmehrere Zeilen");
+    TestAssocArray.set("key2", "value6");
+    TestAssocArray.set("array1/unterkey1", "value2");
+    TestAssocArray.set("array1/unterkey2", "value3");
+    TestAssocArray.set("array1/noch ein array/unterkey1", "value4");
+    TestAssocArray.set("array1/unterkey2", "value5");
+    TestAssocArray.set("key2", "value7");
+    TestAssocArray.set("array2/unterkey1", "value7");
+    TestAssocArray.set("array2/unterkey2", "value8");
+    TestAssocArray.set("array2/unterkey1", "value9");
 }
 
-int main (int argc, char**argv)
+int main(int argc, char** argv)
 {
-	if (ppl7::HaveArgv(argc,argv,"-h") || ppl7::HaveArgv(argc,argv,"--help")) help();
-	try {
-		if ((ppl7::HaveArgv(argc,argv,"-c"))) {
-			PPL7TestConfig.load(ppl7::GetArgv(argc,argv,"-c"));
-		} else {
-			PPL7TestConfig.load("test.conf");
-		}
-	} catch (const ppl7::Exception &e) {
-		printf ("ERROR: Failed to load test configuration-file\n");
-		e.print();
-		throw;
-		return 1;
-	}
-	::testing::InitGoogleTest(&argc, argv);
-	if (ppl7::HaveArgv(argc,argv,"-h") || ppl7::HaveArgv(argc,argv,"--help")) return 0;
+    if (pplib::HaveArgv(argc, argv, "-h") || pplib::HaveArgv(argc, argv, "--help")) help();
+    try {
+        if ((pplib::HaveArgv(argc, argv, "-c"))) {
+            PPLIBTestConfig.load(pplib::GetArgv(argc, argv, "-c"));
+        } else {
+            PPLIBTestConfig.load("test.conf");
+        }
+    }
+    catch (const pplib::Exception& e) {
+        printf("ERROR: Failed to load test configuration-file\n");
+        e.print();
+        throw;
+        return 1;
+    }
+    ::testing::InitGoogleTest(&argc, argv);
+    if (pplib::HaveArgv(argc, argv, "-h") || pplib::HaveArgv(argc, argv, "--help")) return 0;
 
+    pplib::PrintDebugTime("Wortliste in String laden\n");
+    pplib::String w(wordlist);
+    Wordlist.reserve(130000);
+    pplib::PrintDebugTime("Wortliste in Array laden\n");
+    Wordlist.explode(w, "\n");
+    pplib::PrintDebugTime("done\n");
 
-	ppl7::PrintDebugTime ("Wortliste in String laden\n");
-	ppl7::String w(wordlist);
-	Wordlist.reserve(130000);
-	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
-	Wordlist.explode(w,"\n");
-	ppl7::PrintDebugTime ("done\n");
+    setupTestAssocArray();
 
-	setupTestAssocArray();
+    try {
+        return RUN_ALL_TESTS();
+    }
+    catch (const pplib::Exception& e) {
+        printf("pplib::Exception: %s\n", e.what());
+    }
+    catch (...) {
+        printf("Unbekannte Exception\n");
+    }
 
-	try {
-		return RUN_ALL_TESTS();
-	} catch (const ppl7::Exception &e) {
-		printf ("ppl7::Exception: %s\n",e.what());
-	} catch (...) {
-		printf ("Unbekannte Exception\n");
-	}
-
-	return 1;
+    return 1;
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,16 +27,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/fileobject.h>
-#include <ppl7/core/file.h>
-#include <ppl7/core/gzfile.h>
-#include <ppl7/exceptions.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
+#include <pplib/core/gzfile.h>
+#include <pplib/exceptions.h>
 
 #ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
 
-namespace ppl7
+namespace pplib
 {
 
 static const char* fmode(File::FileMode mode)
@@ -59,7 +59,7 @@ static const char* fmode(File::FileMode mode)
  * \ingroup PPLGroupFileIO
  * \brief Zugriff auf eine mit gzip komprimierte Datei
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Klasse können mit gzip-komprimierte Dateien geladen, verändert und
  * gespeichert werden. Sie dient als Wrapper-Klasse für die Methoden aus der zlib-Bibliothek.
@@ -82,7 +82,7 @@ GzFile::GzFile()
  * Konstruktor der Klasse, mit dem gleichzeitig eine Datei geöffnet wird.
  * @param[in] filename Name der zu öffnenden Datei
  * @param[in] mode Zugriffsmodus. Defaultmäßig wird die Datei zum binären Lesen
- * geöffnet (siehe \ref ppl7_File_Filemodi)
+ * geöffnet (siehe \ref pplib_File_Filemodi)
  */
 GzFile::GzFile(const String& filename, File::FileMode mode)
 {
@@ -180,7 +180,7 @@ void GzFile::open(const String& filename, File::FileMode mode)
  * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
  *
  * \param filename Dateiname als C-String
- * \param mode String, der angibt, wie die Datei geöffnet werden soll (siehe \ref ppl7_File_Filemodi)
+ * \param mode String, der angibt, wie die Datei geöffnet werden soll (siehe \ref pplib_File_Filemodi)
  *
  * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
@@ -248,8 +248,8 @@ void GzFile::close()
             if (ret == Z_ERRNO)
                 throwErrno(errno, filename());
             else if (ret == Z_MEM_ERROR)
-                throw ppl7::OutOfMemoryException();
-            throw ppl7::CompressionFailedException();
+                throw pplib::OutOfMemoryException();
+            throw pplib::CompressionFailedException();
         }
     }
     if (fh != NULL) {
@@ -291,7 +291,7 @@ uint64_t GzFile::seek(int64_t offset, SeekOrigin origin)
         o = SEEK_SET;
         break;
     case File::SEEKEND:
-        throw ppl7::UnsupportedFeatureException("GzFile::SEEKEND");
+        throw pplib::UnsupportedFeatureException("GzFile::SEEKEND");
     default:
         throw IllegalArgumentException();
     }
@@ -324,10 +324,10 @@ size_t GzFile::fread(void* ptr, size_t size, size_t nmemb)
     if (ptr == NULL) throw IllegalArgumentException();
     int by = ::gzread((gzFile)ff, ptr, (unsigned int)(size * nmemb));
     if (by > 0) return by;
-    if (by == 0) throw ppl7::EndOfFileException();
+    if (by == 0) throw pplib::EndOfFileException();
     int err = 0;
     const char* msg = gzerror((gzFile)ff, &err);
-    throw ppl7::CompressionFailedException("gzread: %s [%d]", msg, err);
+    throw pplib::CompressionFailedException("gzread: %s [%d]", msg, err);
 }
 
 char* GzFile::fgets(char* buffer, size_t num)
@@ -340,7 +340,7 @@ char* GzFile::fgets(char* buffer, size_t num)
     if (res == NULL) {
         // suberr=::ferror((FILE*)ff);
         if (gzeof((gzFile)ff))
-            throw ppl7::EndOfFileException();
+            throw pplib::EndOfFileException();
         else
             throwErrno(errno, filename());
     }
@@ -354,7 +354,7 @@ int GzFile::fgetc()
     if (ret != -1) {
         return ret;
     }
-    throw ppl7::EndOfFileException();
+    throw pplib::EndOfFileException();
 }
 
 size_t GzFile::fwrite(const void* ptr, size_t size, size_t nmemb)
@@ -363,10 +363,10 @@ size_t GzFile::fwrite(const void* ptr, size_t size, size_t nmemb)
     if (ptr == NULL) throw IllegalArgumentException();
     int by = ::gzwrite((gzFile)ff, ptr, (unsigned int)(size * nmemb));
     if (by > 0) return by;
-    if (by == 0) throw ppl7::EndOfFileException();
+    if (by == 0) throw pplib::EndOfFileException();
     int err = 0;
     const char* msg = gzerror((gzFile)ff, &err);
-    throw ppl7::CompressionFailedException("gzread: %s [%d]", msg, err);
+    throw pplib::CompressionFailedException("gzread: %s [%d]", msg, err);
 }
 
-} // end of namespace ppl7
+} // end of namespace pplib

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,42 +37,39 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
-#include "ppl7-tests.h"
+#include <pplib.h>
+#include "pplib-tests.h"
 
-
-class TestThread : private ppl7::Thread
+class TestThread : private pplib::Thread
 {
-	private:
-		ppl7::Mutex mutex;
-		ppl7::Mutex signal;
-	public:
-		void run();
-		void start();
+private:
+    pplib::Mutex mutex;
+    pplib::Mutex signal;
 
-
+public:
+    void run();
+    void start();
 };
-
 
 void TestThread::start()
 {
-	threadStart();
+    threadStart();
 }
 
 void TestThread::run()
 {
-	ppl7::PrintDebugTime("Thread %u: gestartet\n",threadGetID());
-	ppl7::MSleep(500);
-	ppl7::PrintDebugTime("Thread %u: wird beendet\n",threadGetID());
+    pplib::PrintDebugTime("Thread %u: gestartet\n", threadGetID());
+    pplib::MSleep(500);
+    pplib::PrintDebugTime("Thread %u: wird beendet\n", threadGetID());
 }
 
-int main(int argc, char**argv)
+int main(int argc, char** argv)
 {
-	ppl7::PrintDebugTime("Hauptprogramm gestartet\n");
-	TestThread t1,t2;
-	t1.start();
-	t2.start();
-	ppl7::MSleep(1000);
-	ppl7::PrintDebugTime("Hauptprogramm wird beendet\n");
-	return 0;
+    pplib::PrintDebugTime("Hauptprogramm gestartet\n");
+    TestThread t1, t2;
+    t1.start();
+    t2.start();
+    pplib::MSleep(1000);
+    pplib::PrintDebugTime("Hauptprogramm wird beendet\n");
+    return 0;
 }

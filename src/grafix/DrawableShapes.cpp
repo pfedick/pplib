@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -47,186 +47,193 @@
 #include <math.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 
 #ifdef HAVE_X86_ASSEMBLER
-typedef struct {
-	void* tgt;
-	uint32_t	width;
-	uint32_t	height;
-	uint32_t	pitch;
-	uint32_t	color;
+typedef struct
+{
+    void* tgt;
+    uint32_t width;
+    uint32_t height;
+    uint32_t pitch;
+    uint32_t color;
 } RECTDATA;
 
-extern "C" {
-	void ASM_FillRect32(RECTDATA* d);
+extern "C"
+{
+    void ASM_FillRect32(RECTDATA* d);
 }
 #endif
 
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 static void FillRect_32(DRAWABLE_DATA& data, const Rect& r, SurfaceColor color);
 
 /*
 static int ClearScreen_16 (SURFACE *surface, COLOR color)
 {
-	if (!surface->Lock(surface)) return 0;
-	int x,y;
-	ppldw *adr16;
-	adr16=surface->base16;
-	for (y=0;y<surface->height;y++) {
-		for (x=0;x<surface->width;x++) adr16[x]=(ppldw)color;
-		adr16+=surface->pitch16;
-	}
-	surface->Unlock(surface);
-	return 1;
+    if (!surface->Lock(surface)) return 0;
+    int x,y;
+    ppldw *adr16;
+    adr16=surface->base16;
+    for (y=0;y<surface->height;y++) {
+        for (x=0;x<surface->width;x++) adr16[x]=(ppldw)color;
+        adr16+=surface->pitch16;
+    }
+    surface->Unlock(surface);
+    return 1;
 }
 */
 
 static void ClearScreen_8(DRAWABLE_DATA& data, SurfaceColor c)
 {
-	int x, y;
-	uint8_t* adr;
-	adr=data.base8;
-	for (y=0;y < data.height;y++) {
-		for (x=0;x < data.width;x++) adr[x]=(uint8_t)c;
-		adr+=data.pitch;
-	}
+    int x, y;
+    uint8_t* adr;
+    adr = data.base8;
+    for (y = 0; y < data.height; y++) {
+        for (x = 0; x < data.width; x++)
+            adr[x] = (uint8_t)c;
+        adr += data.pitch;
+    }
 }
 
 static void ClearScreen_32(DRAWABLE_DATA& data, SurfaceColor c)
 {
-	FillRect_32(data, Rect(0, 0, data.width, data.height), c);
-	/*
-	int x,y;
-	uint32_t *adr32;
-	adr32=data.base32;
-	uint32_t pitch32=data.pitch>>2;
-	for (y=0;y<data.height;y++) {
-		for (x=0;x<data.width;x++) adr32[x]=(uint32_t)c;
-		adr32+=pitch32;
-	}
-	*/
+    FillRect_32(data, Rect(0, 0, data.width, data.height), c);
+    /*
+    int x,y;
+    uint32_t *adr32;
+    adr32=data.base32;
+    uint32_t pitch32=data.pitch>>2;
+    for (y=0;y<data.height;y++) {
+        for (x=0;x<data.width;x++) adr32[x]=(uint32_t)c;
+        adr32+=pitch32;
+    }
+    */
 }
-
 
 static void DrawRect_32(DRAWABLE_DATA& data, const Rect& r, SurfaceColor color)
 {
-	int x, y;
-	uint32_t* pp;
-	uint32_t pitch32=data.pitch >> 2;
-	pp=data.base32 + r.top() * pitch32 + r.left();
-	for (x=0;x < r.width();x++) pp[x]=(uint32_t)color;
-	x=r.width() - 1;
-	for (y=1;y < r.height();y++) {
-		pp+=pitch32;
-		pp[0]=(uint32_t)color;
-		pp[x]=(uint32_t)color;
-	}
-	for (x=0;x < r.width();x++) pp[x]=(uint32_t)color;
+    int x, y;
+    uint32_t* pp;
+    uint32_t pitch32 = data.pitch >> 2;
+    pp = data.base32 + r.top() * pitch32 + r.left();
+    for (x = 0; x < r.width(); x++)
+        pp[x] = (uint32_t)color;
+    x = r.width() - 1;
+    for (y = 1; y < r.height(); y++) {
+        pp += pitch32;
+        pp[0] = (uint32_t)color;
+        pp[x] = (uint32_t)color;
+    }
+    for (x = 0; x < r.width(); x++)
+        pp[x] = (uint32_t)color;
 }
 
 static void FillRect_32(DRAWABLE_DATA& data, const Rect& r, SurfaceColor color)
 {
-	Rect s(0, 0, data.width, data.height);
-	Rect in=s.intersected(r);
-	if (r.x2 < r.x1 || r.y2 < r.y1) return;
-	if (in.isNull()) return;
+    Rect s(0, 0, data.width, data.height);
+    Rect in = s.intersected(r);
+    if (r.x2 < r.x1 || r.y2 < r.y1) return;
+    if (in.isNull()) return;
 #ifdef HAVE_X86_ASSEMBLER
-	RECTDATA d;
-	d.tgt=data.base8 + in.top() * data.pitch + in.left() * data.rgbformat.bytesPerPixel();
-	d.width=in.width();
-	d.height=in.height();
-	d.pitch=data.pitch;
-	d.color=color;
-	if (d.width > 0 && d.height > 0) ASM_FillRect32(&d);
+    RECTDATA d;
+    d.tgt = data.base8 + in.top() * data.pitch + in.left() * data.rgbformat.bytesPerPixel();
+    d.width = in.width();
+    d.height = in.height();
+    d.pitch = data.pitch;
+    d.color = color;
+    if (d.width > 0 && d.height > 0) ASM_FillRect32(&d);
 #else
-	uint32_t* pp;
-	int y, x;
-	uint32_t pitch32=data.pitch >> 2;
-	pp=data.base32 + in.top() * pitch32;
-	for (y=in.top();y <= in.bottom();y++) {
-		for (x=in.left();x <= in.right();x++) pp[x]=(uint32_t)color;
-		pp+=pitch32;
-	}
+    uint32_t* pp;
+    int y, x;
+    uint32_t pitch32 = data.pitch >> 2;
+    pp = data.base32 + in.top() * pitch32;
+    for (y = in.top(); y <= in.bottom(); y++) {
+        for (x = in.left(); x <= in.right(); x++)
+            pp[x] = (uint32_t)color;
+        pp += pitch32;
+    }
 #endif
 }
 
 /*
 static int Xchange_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR farbe, COLOR ersatzfarbe)
 {
-	int32_t y,x;
-	RECT r;
-	int32_t breite;
-	ppldb * pp;
-	uint32_t * ppw;
+    int32_t y,x;
+    RECT r;
+    int32_t breite;
+    ppldb * pp;
+    uint32_t * ppw;
 
-	r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
-	if (!data->Surface->FitRect (&r)) return 0;
-	pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
-	ppw=(uint32_t *)pp;
-	breite=r.right-r.left+1;
-	for (y=r.top;y<r.bottom+1;y++) {
-		for (x=0;x<breite;x++) {
-			if (ppw[x]==(uint32_t)farbe) ppw[x]=(uint32_t)ersatzfarbe;
-		}
-		ppw+=data->pitch32;
-	}
-	return 1;
+    r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
+    if (!data->Surface->FitRect (&r)) return 0;
+    pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
+    ppw=(uint32_t *)pp;
+    breite=r.right-r.left+1;
+    for (y=r.top;y<r.bottom+1;y++) {
+        for (x=0;x<breite;x++) {
+            if (ppw[x]==(uint32_t)farbe) ppw[x]=(uint32_t)ersatzfarbe;
+        }
+        ppw+=data->pitch32;
+    }
+    return 1;
 }
 
 static int Invert_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR color1, COLOR color2)
 {
-	COLOR pixel;
-	int32_t y,x;
-	RECT r;
-	int32_t breite;
-	ppldb * pp;
-	uint32_t * ppw;
+    COLOR pixel;
+    int32_t y,x;
+    RECT r;
+    int32_t breite;
+    ppldb * pp;
+    uint32_t * ppw;
 
-	r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
-	if (!data->Surface->FitRect (&r)) return 0;
-	pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
-	ppw=(uint32_t *)pp;
-	breite=r.right-r.left+1;
-	for (y=r.top;y<r.bottom+1;y++) {
-		for (x=0;x<breite;x++) {
-			pixel=ppw[x];
-			if (pixel==color1) ppw[x]=color2;
-			if (pixel==color2) ppw[x]=color1;
-		}
-		ppw+=data->pitch32;
-	}
-	return 1;
+    r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
+    if (!data->Surface->FitRect (&r)) return 0;
+    pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
+    ppw=(uint32_t *)pp;
+    breite=r.right-r.left+1;
+    for (y=r.top;y<r.bottom+1;y++) {
+        for (x=0;x<breite;x++) {
+            pixel=ppw[x];
+            if (pixel==color1) ppw[x]=color2;
+            if (pixel==color2) ppw[x]=color1;
+        }
+        ppw+=data->pitch32;
+    }
+    return 1;
 }
 
 static int Negativ_32 (SURFACE* data, int x1, int y1, int x2, int y2)
 {
-	RGBA pixel;
-	int32_t y,x;
-	RECT r;
-	int32_t breite;
-	ppldb * pp;
-	uint32_t * ppw;
+    RGBA pixel;
+    int32_t y,x;
+    RECT r;
+    int32_t breite;
+    ppldb * pp;
+    uint32_t * ppw;
 
-	r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
-	if (!data->Surface->FitRect (&r)) return 0;
-	pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
-	ppw=(uint32_t *)pp;
-	breite=r.right-r.left+1;
-	for (y=r.top;y<r.bottom+1;y++) {
-		for (x=0;x<breite;x++) {
-			pixel.color=ppw[x];
-			pixel.red=255-pixel.red;
-			pixel.green=255-pixel.green;
-			pixel.blue=255-pixel.blue;
-			ppw[x]=pixel.color;
-		}
-		ppw+=data->pitch32;
-	}
-	return 1;
+    r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
+    if (!data->Surface->FitRect (&r)) return 0;
+    pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
+    ppw=(uint32_t *)pp;
+    breite=r.right-r.left+1;
+    for (y=r.top;y<r.bottom+1;y++) {
+        for (x=0;x<breite;x++) {
+            pixel.color=ppw[x];
+            pixel.red=255-pixel.red;
+            pixel.green=255-pixel.green;
+            pixel.blue=255-pixel.blue;
+            ppw[x]=pixel.color;
+        }
+        ppw+=data->pitch32;
+    }
+    return 1;
 }
 */
 
@@ -248,25 +255,25 @@ static int Negativ_32 (SURFACE* data, int x1, int y1, int x2, int y2)
  */
 void Grafix::initShapes(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
 {
-	if (!fn) throw NullPointerException();
-	switch (format) {
-	case RGBFormat::A8R8G8B8:		// 32 Bit True Color
-	case RGBFormat::A8B8G8R8:
-	case RGBFormat::X8B8G8R8:
-	case RGBFormat::X8R8G8B8:
-		fn->CLS=ClearScreen_32;
-		fn->DrawRect=DrawRect_32;
-		fn->FillRect=FillRect_32;
-		//fn->Xchange=Xchange_32;
-		//fn->Invert=Invert_32;
-		//fn->Negativ=Negativ_32;
-		return;
-	case RGBFormat::A8:
-	case RGBFormat::GREY8:
-		fn->CLS=ClearScreen_8;
-		return;
-	}
-	throw UnsupportedColorFormatException("RGBFormat=%s (%i)", (const char*)format.name(), format.format());
+    if (!fn) throw NullPointerException();
+    switch (format) {
+    case RGBFormat::A8R8G8B8: // 32 Bit True Color
+    case RGBFormat::A8B8G8R8:
+    case RGBFormat::X8B8G8R8:
+    case RGBFormat::X8R8G8B8:
+        fn->CLS = ClearScreen_32;
+        fn->DrawRect = DrawRect_32;
+        fn->FillRect = FillRect_32;
+        // fn->Xchange=Xchange_32;
+        // fn->Invert=Invert_32;
+        // fn->Negativ=Negativ_32;
+        return;
+    case RGBFormat::A8:
+    case RGBFormat::GREY8:
+        fn->CLS = ClearScreen_8;
+        return;
+    }
+    throw UnsupportedColorFormatException("RGBFormat=%s (%i)", (const char*)format.name(), format.format());
 }
 
 /*!\brief Grafik löschen
@@ -279,12 +286,12 @@ void Grafix::initShapes(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
  */
 void Drawable::cls(const Color& c)
 {
-	if (!fn) throw EmptyDrawableException();
-	if (fn->FillRect) {
-		fn->FillRect(data, Rect(0, 0, data.width, data.height), rgb(c));
-		return;
-	}
-	if (fn->CLS) fn->CLS(data, rgb(c));
+    if (!fn) throw EmptyDrawableException();
+    if (fn->FillRect) {
+        fn->FillRect(data, Rect(0, 0, data.width, data.height), rgb(c));
+        return;
+    }
+    if (fn->CLS) fn->CLS(data, rgb(c));
 }
 
 /*!\brief Grafik löschen
@@ -296,14 +303,13 @@ void Drawable::cls(const Color& c)
  */
 void Drawable::cls()
 {
-	if (!fn) throw EmptyDrawableException();
-	if (fn->FillRect) {
-		fn->FillRect(data, Rect(0, 0, data.width, data.height), 0);
-		return;
-	}
-	if (fn->CLS) fn->CLS(data, 0);
+    if (!fn) throw EmptyDrawableException();
+    if (fn->FillRect) {
+        fn->FillRect(data, Rect(0, 0, data.width, data.height), 0);
+        return;
+    }
+    if (fn->CLS) fn->CLS(data, 0);
 }
-
 
 /*!\brief Rechteck zeichnen
  *
@@ -315,26 +321,25 @@ void Drawable::cls()
  */
 void Drawable::drawRect(const Rect& rect, const Color& c)
 {
-	if (!fn) throw EmptyDrawableException();
-	if (rect.left() < 0 || rect.top() < 0 || rect.right() >= data.width || rect.bottom() >= data.height) {
-		int y1, x1, y2, x2;
-		y1=rect.y1;
-		y2=rect.y2;
-		for (x1=rect.x1;x1 < rect.x2;x1++) {
-			putPixel(x1, y1, c);
-			putPixel(x1, y2, c);
-		}
-		x1=rect.x1;
-		x2=rect.x2;
-		for (y1=rect.y1;y1 < rect.y2;y1++) {
-			putPixel(x1, y1, c);
-			putPixel(x2, y1, c);
-		}
-		return;
-	}
-	if (fn->DrawRect) fn->DrawRect(data, rect, rgb(c));
+    if (!fn) throw EmptyDrawableException();
+    if (rect.left() < 0 || rect.top() < 0 || rect.right() >= data.width || rect.bottom() >= data.height) {
+        int y1, x1, y2, x2;
+        y1 = rect.y1;
+        y2 = rect.y2;
+        for (x1 = rect.x1; x1 < rect.x2; x1++) {
+            putPixel(x1, y1, c);
+            putPixel(x1, y2, c);
+        }
+        x1 = rect.x1;
+        x2 = rect.x2;
+        for (y1 = rect.y1; y1 < rect.y2; y1++) {
+            putPixel(x1, y1, c);
+            putPixel(x2, y1, c);
+        }
+        return;
+    }
+    if (fn->DrawRect) fn->DrawRect(data, rect, rgb(c));
 }
-
 
 /*!\brief Rechteck zeichnen
  *
@@ -349,14 +354,12 @@ void Drawable::drawRect(const Rect& rect, const Color& c)
  */
 void Drawable::drawRect(int x1, int y1, int x2, int y2, const Color& c)
 {
-	if (!fn) throw EmptyDrawableException();
-	Rect r;
-	r.setCoords(x1, y1, x2, y2);
-	drawRect(r, c);
-	//if (fn->DrawRect) fn->DrawRect(data,r,RGB(c));
+    if (!fn) throw EmptyDrawableException();
+    Rect r;
+    r.setCoords(x1, y1, x2, y2);
+    drawRect(r, c);
+    // if (fn->DrawRect) fn->DrawRect(data,r,RGB(c));
 }
-
-
 
 /*!\brief Ausgefülltes Rechteck zeichnen
  *
@@ -369,8 +372,8 @@ void Drawable::drawRect(int x1, int y1, int x2, int y2, const Color& c)
  */
 void Drawable::fillRect(const Rect& rect, const Color& c)
 {
-	if (!fn) throw EmptyDrawableException();
-	if (fn->FillRect) fn->FillRect(data, rect, rgb(c));
+    if (!fn) throw EmptyDrawableException();
+    if (fn->FillRect) fn->FillRect(data, rect, rgb(c));
 }
 
 /*!\brief Ausgefülltes Rechteck zeichnen
@@ -387,10 +390,10 @@ void Drawable::fillRect(const Rect& rect, const Color& c)
  */
 void Drawable::fillRect(int x1, int y1, int x2, int y2, const Color& c)
 {
-	if (!fn) throw EmptyDrawableException();
-	Rect r;
-	r.setCoords(x1, y1, x2, y2);
-	if (fn->FillRect) fn->FillRect(data, r, rgb(c));
+    if (!fn) throw EmptyDrawableException();
+    Rect r;
+    r.setCoords(x1, y1, x2, y2);
+    if (fn->FillRect) fn->FillRect(data, r, rgb(c));
 }
 
 void Drawable::xchange(const Rect& rect, const Color& color, const Color& replace)
@@ -404,8 +407,8 @@ void Drawable::xchange(const Rect& rect, const Color& color, const Color& replac
  * @param replace Neu Farbe
  */
 {
-	if (!fn) throw EmptyDrawableException();
-	if (fn->Xchange) fn->Xchange(data, rect, rgb(color), rgb(replace));
+    if (!fn) throw EmptyDrawableException();
+    if (fn->Xchange) fn->Xchange(data, rect, rgb(color), rgb(replace));
 }
 
 void Drawable::invert(const Rect& rect, const Color& color1, const Color& color2)
@@ -420,8 +423,8 @@ void Drawable::invert(const Rect& rect, const Color& color1, const Color& color2
  * @param[in] color2 Zweite Farbe
  */
 {
-	if (!fn) throw EmptyDrawableException();
-	if (fn->Invert) fn->Invert(data, rect, rgb(color1), rgb(color2));
+    if (!fn) throw EmptyDrawableException();
+    if (fn->Invert) fn->Invert(data, rect, rgb(color1), rgb(color2));
 }
 
 void Drawable::negativ(const Rect& rect)
@@ -434,10 +437,9 @@ void Drawable::negativ(const Rect& rect)
  * @param[in] rect Koordinaten des Rechtecks
  */
 {
-	if (!fn) throw EmptyDrawableException();
-	if (fn->Negativ) fn->Negativ(data, rect);
+    if (!fn) throw EmptyDrawableException();
+    if (fn->Negativ) fn->Negativ(data, rect);
 }
-
 
 void Drawable::floodFill(int x, int y, const Color& color, const Color& border)
 /*!\brief Fläche mit Farbe füllen
@@ -463,69 +465,69 @@ void Drawable::floodFill(int x, int y, const Color& color, const Color& border)
  * \endcode
  */
 {
-	if (!fn) throw EmptyDrawableException();
-	/*
-	 * Quelle des Codes: GD-Library Version 1.2
-	 */
+    if (!fn) throw EmptyDrawableException();
+    /*
+     * Quelle des Codes: GD-Library Version 1.2
+     */
 
-	int lastBorder;
-	/* Seek left */
-	int leftLimit, rightLimit;
-	int i;
-	leftLimit = (-1);
-	for (i = x; (i >= 0); i--) {
-		if (getPixel(i, y) == border) {
-			break;
-		}
-		putPixel(i, y, color);
-		leftLimit = i;
-	}
-	if (leftLimit == (-1)) {
-		return;
-	}
-	/* Seek right */
-	rightLimit = x;
-	for (i = (x + 1); (i < data.width); i++) {
-		if (getPixel(i, y) == border) {
-			break;
-		}
-		putPixel(i, y, color);
-		rightLimit = i;
-	}
-	/* Look at lines above and below and start paints */
-	/* Above */
-	if (y > 0) {
-		lastBorder = 1;
-		for (i = leftLimit; (i <= rightLimit); i++) {
-			Color c;
-			c = getPixel(i, y - 1);
-			if (lastBorder) {
-				if ((c != border) && (c != color)) {
-					floodFill(i, y - 1, color, border);
-					lastBorder = 0;
-				}
-			} else if ((c == border) || (c == color)) {
-				lastBorder = 1;
-			}
-		}
-	}
-	/* Below */
-	if (y < ((data.height) - 1)) {
-		lastBorder = 1;
-		for (i = leftLimit; (i <= rightLimit); i++) {
-			Color c;
-			c = getPixel(i, y + 1);
-			if (lastBorder) {
-				if ((c != border) && (c != color)) {
-					floodFill(i, y + 1, color, border);
-					lastBorder = 0;
-				}
-			} else if ((c == border) || (c == color)) {
-				lastBorder = 1;
-			}
-		}
-	}
-	return;
+    int lastBorder;
+    /* Seek left */
+    int leftLimit, rightLimit;
+    int i;
+    leftLimit = (-1);
+    for (i = x; (i >= 0); i--) {
+        if (getPixel(i, y) == border) {
+            break;
+        }
+        putPixel(i, y, color);
+        leftLimit = i;
+    }
+    if (leftLimit == (-1)) {
+        return;
+    }
+    /* Seek right */
+    rightLimit = x;
+    for (i = (x + 1); (i < data.width); i++) {
+        if (getPixel(i, y) == border) {
+            break;
+        }
+        putPixel(i, y, color);
+        rightLimit = i;
+    }
+    /* Look at lines above and below and start paints */
+    /* Above */
+    if (y > 0) {
+        lastBorder = 1;
+        for (i = leftLimit; (i <= rightLimit); i++) {
+            Color c;
+            c = getPixel(i, y - 1);
+            if (lastBorder) {
+                if ((c != border) && (c != color)) {
+                    floodFill(i, y - 1, color, border);
+                    lastBorder = 0;
+                }
+            } else if ((c == border) || (c == color)) {
+                lastBorder = 1;
+            }
+        }
+    }
+    /* Below */
+    if (y < ((data.height) - 1)) {
+        lastBorder = 1;
+        for (i = leftLimit; (i <= rightLimit); i++) {
+            Color c;
+            c = getPixel(i, y + 1);
+            if (lastBorder) {
+                if ((c != border) && (c != color)) {
+                    floodFill(i, y + 1, color, border);
+                    lastBorder = 0;
+                }
+            } else if ((c == border) || (c == color)) {
+                lastBorder = 1;
+            }
+        }
+    }
+    return;
 }
 
 /**************************************************************************
@@ -533,127 +535,127 @@ void Drawable::floodFill(int x, int y, const Color& color, const Color& border)
  **************************************************************************/
 void Drawable::elipse(int x, int y, int radx, int rady, const Color& c, bool fill)
 {
-	if (!fn) throw EmptyDrawableException();
-	int d;
-	int x2=0, y2=0;
+    if (!fn) throw EmptyDrawableException();
+    int d;
+    int x2 = 0, y2 = 0;
 
-	float pi=3.1415926535f;
-	float rad=pi / 180.0f;
+    float pi = 3.1415926535f;
+    float rad = pi / 180.0f;
 
-	for (float i=0.0f;i < 360.0f;i++) {
-		int x1 = x + (int)(sinf(i * rad) * (float)radx);
-		int y1 = y + (int)(cosf(i * rad) * (float)rady);
-		//::printf ("x1=%i, y1=%i\n",x1,y1);
-		if (i > 0) {
-			d=abs(x2 - x1) + abs(y2 - y1);
-			if (d > 1)
-				line(x1, y1, x2, y2, c);
-			else if (d == 1)
-				putPixel(x1, y1, c);
-		}
-		x2 = x1;
-		y2 = y1;
-	}
-	if (fill) floodFill(x, y, c, c);
+    for (float i = 0.0f; i < 360.0f; i++) {
+        int x1 = x + (int)(sinf(i * rad) * (float)radx);
+        int y1 = y + (int)(cosf(i * rad) * (float)rady);
+        //::printf ("x1=%i, y1=%i\n",x1,y1);
+        if (i > 0) {
+            d = abs(x2 - x1) + abs(y2 - y1);
+            if (d > 1)
+                line(x1, y1, x2, y2, c);
+            else if (d == 1)
+                putPixel(x1, y1, c);
+        }
+        x2 = x1;
+        y2 = y1;
+    }
+    if (fill) floodFill(x, y, c, c);
 }
 
-//void CSurface::Elipse (int x, int y, int radiusx, int radiusy, COLOR Farbe, int Flags, COLOR Fuellfarbe, int startwinkel, int endwinkel)
+// void CSurface::Elipse (int x, int y, int radiusx, int radiusy, COLOR Farbe, int Flags, COLOR Fuellfarbe, int startwinkel, int endwinkel)
 void Drawable::elipse(int x, int y, int radx, int rady, const Color& c, bool fill, const Color& fillcolor, int start, int end)
 {
-	if (!fn) throw EmptyDrawableException();
+    if (!fn) throw EmptyDrawableException();
 
-	float st=(float)start / 360.0f;
-	float en=(float)end / 360.0f;
-	if (st != en) {
-		int x2 = x + (int)(sinf(st) * (float)radx);
-		int y2 = y + (int)(cosf(st) * (float)rady);
-		putPixel(x2, y2, c);
+    float st = (float)start / 360.0f;
+    float en = (float)end / 360.0f;
+    if (st != en) {
+        int x2 = x + (int)(sinf(st) * (float)radx);
+        int y2 = y + (int)(cosf(st) * (float)rady);
+        putPixel(x2, y2, c);
 
-		for (int i=start;i < end + 1;i++) {
-			int x1 = x + (int)(sinf((float)i) * radx);
-			int y1 = y + (int)(cosf((float)i) * rady);
-			if (i > 0) {
-				int d=abs(x2 - x1) + abs(y2 - y1);
-				if (d > 1)
-					line(x1, y1, x2, y2, c);
-				else if (d == 1)
-					putPixel(x1, y1, c);
-			}
-			x2 = x1;
-			y2 = y1;
-		}
-		if (fill) {
-			int x1 = x + (int)(sinf((float)(start + end) / 2) * (float)(radx - 2));
-			int y1 = y + (int)(cosf((float)(start + end) / 2) * (float)(rady - 2));
-			floodFill(x1, y1, fillcolor, c);
-		}
-	}
+        for (int i = start; i < end + 1; i++) {
+            int x1 = x + (int)(sinf((float)i) * radx);
+            int y1 = y + (int)(cosf((float)i) * rady);
+            if (i > 0) {
+                int d = abs(x2 - x1) + abs(y2 - y1);
+                if (d > 1)
+                    line(x1, y1, x2, y2, c);
+                else if (d == 1)
+                    putPixel(x1, y1, c);
+            }
+            x2 = x1;
+            y2 = y1;
+        }
+        if (fill) {
+            int x1 = x + (int)(sinf((float)(start + end) / 2) * (float)(radx - 2));
+            int y1 = y + (int)(cosf((float)(start + end) / 2) * (float)(rady - 2));
+            floodFill(x1, y1, fillcolor, c);
+        }
+    }
 }
 
 void Drawable::circle(int x, int y, int rad, const Color& c, bool fill)
 {
-	if (!fn) throw EmptyDrawableException();
-	elipse(x, y, rad, rad, c, fill);
+    if (!fn) throw EmptyDrawableException();
+    elipse(x, y, rad, rad, c, fill);
 }
 
 void Drawable::circle(const Point& p, int rad, const Color& c, bool fill)
 {
-	if (!fn) throw EmptyDrawableException();
-	elipse(p.x, p.y, rad, rad, c, fill);
+    if (!fn) throw EmptyDrawableException();
+    elipse(p.x, p.y, rad, rad, c, fill);
 }
 
 /*
 void CSurface::Polygon (int count, POINT *points, COLOR color, int Flags)
 {
-	POINT *p=points;
-	if (points!=NULL) {
-		PutPixel(p->x,p->y,color);
-		count--;
-		p++;
-		while (count>0) {
-			Line(p->x,p->y,color);
-			p++;
-			count--;
-		}
-		Line (points->x,points->y,color);
-	}
+    POINT *p=points;
+    if (points!=NULL) {
+        PutPixel(p->x,p->y,color);
+        count--;
+        p++;
+        while (count>0) {
+            Line(p->x,p->y,color);
+            p++;
+            count--;
+        }
+        Line (points->x,points->y,color);
+    }
 }
 */
 
 void Drawable::colorGradient(const Rect& rect, const Color& c1, const Color& c2, int direction)
 {
-	colorGradient(rect.x1, rect.y1, rect.x2 - 1, rect.y2 - 1, c1, c2, direction);
+    colorGradient(rect.x1, rect.y1, rect.x2 - 1, rect.y2 - 1, c1, c2, direction);
 }
 
 void Drawable::colorGradient(int x1, int y1, int x2, int y2, const Color& c1, const Color& c2, int direction)
 {
-	if (!fn) throw EmptyDrawableException();
-	Color c;
-	uint32_t w1, w2;
-	int range;
-	c.setAlpha(255);
-	if (direction == 0) {
-		range=x2 - x1 + 1;
-		for (int32_t x=0; x < range; x++) {
-			w1=range - x;
-			w2=x;
-			c.setRed((c1.red() * w1 / range) + (c2.red() * w2 / range));
-			c.setGreen((c1.green() * w1 / range) + (c2.green() * w2 / range));
-			c.setBlue((c1.blue() * w1 / range) + (c2.blue() * w2 / range));
-			line(x1 + x, y1, x1 + x, y2, c);
-		}
-	} else {
-		range=y2 - y1 + 1;
-		for (int32_t y=0; y < range; y++) {
-			w1=range - y;
-			w2=y;
-			c.setRed((c1.red() * w1 / range) + (c2.red() * w2 / range));
-			c.setGreen((c1.green() * w1 / range) + (c2.green() * w2 / range));
-			c.setBlue((c1.blue() * w1 / range) + (c2.blue() * w2 / range));
-			line(x1, y1 + y, x2, y1 + y, c);
-		}
-	}
+    if (!fn) throw EmptyDrawableException();
+    Color c;
+    uint32_t w1, w2;
+    int range;
+    c.setAlpha(255);
+    if (direction == 0) {
+        range = x2 - x1 + 1;
+        for (int32_t x = 0; x < range; x++) {
+            w1 = range - x;
+            w2 = x;
+            c.setRed((c1.red() * w1 / range) + (c2.red() * w2 / range));
+            c.setGreen((c1.green() * w1 / range) + (c2.green() * w2 / range));
+            c.setBlue((c1.blue() * w1 / range) + (c2.blue() * w2 / range));
+            line(x1 + x, y1, x1 + x, y2, c);
+        }
+    } else {
+        range = y2 - y1 + 1;
+        for (int32_t y = 0; y < range; y++) {
+            w1 = range - y;
+            w2 = y;
+            c.setRed((c1.red() * w1 / range) + (c2.red() * w2 / range));
+            c.setGreen((c1.green() * w1 / range) + (c2.green() * w2 / range));
+            c.setBlue((c1.blue() * w1 / range) + (c2.blue() * w2 / range));
+            line(x1, y1 + y, x2, y1 + y, c);
+        }
+    }
 }
 
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace pplib

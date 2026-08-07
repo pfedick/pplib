@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -34,12 +34,12 @@
 
 #include <set>
 
-#include <ppl7/types/array.h>
-#include <ppl7/types/string.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/core/functions.h>
+#include <pplib/types/array.h>
+#include <pplib/types/string.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 /*!\class Array
@@ -517,7 +517,7 @@ bool Array::empty() const
  *
  * \example
 \code
-ppl7::Array a;
+pplib::Array a;
 a.add(L"Value 1");
 a.add(L"Value 2");
 a.add(L"Value 3");
@@ -611,7 +611,7 @@ const String& Array::getRandom() const
 {
     if (!numElements) return EmptyString;
     ROW* r = (ROW*)rows;
-    size_t index = ppl7::rand(0, numElements - 1);
+    size_t index = pplib::rand(0, numElements - 1);
     if (index < numElements && r[index].value != NULL) return *r[index].value;
     return EmptyString;
 }
@@ -628,7 +628,7 @@ String& Array::getRandom()
 {
     if (!numElements) return EmptyString;
     ROW* r = (ROW*)rows;
-    size_t index = ppl7::rand(0, numElements - 1);
+    size_t index = pplib::rand(0, numElements - 1);
     if (index < numElements && r[index].value != NULL) return *r[index].value;
     return EmptyString;
 }
@@ -661,7 +661,7 @@ const char* Array::getRandomPtr() const
 {
     if (!numElements) return String();
     ROW* r = (ROW*)rows;
-    size_t index = ppl7::rand(0, numElements - 1);
+    size_t index = pplib::rand(0, numElements - 1);
     if (index < numElements && r[index].value != NULL) return r[index].value->getPtr();
     return "";
 }
@@ -696,16 +696,16 @@ String Array::getRest(size_t index, const String& delimiter)
  *
  * \example
  * \code
-ppl7::Array a1(L"red green blue yellow black white",L" ");
-ppl7::Array::Iterator it;
-ppl7::String value;
+pplib::Array a1(L"red green blue yellow black white",L" ");
+pplib::Array::Iterator it;
+pplib::String value;
 a1.reset(it);
 try {
     while (1) {
         value=a1.getNext(it);
         value.printnl();
     }
-} catch (ppl7::OutOfBoundsException) {
+} catch (pplib::OutOfBoundsException) {
     printf ("Keine weiteren Elemente\n");
 }
  * \endcode
@@ -727,16 +727,16 @@ void Array::reset(Iterator& it) const
  *
  * \example
  * \code
-ppl7::Array a1(L"red green blue yellow black white",L" ");
-ppl7::Array::Iterator it;
-ppl7::String value;
+pplib::Array a1(L"red green blue yellow black white",L" ");
+pplib::Array::Iterator it;
+pplib::String value;
 a1.reset(it);
 try {
     while (1) {
         value=a1.getNext(it);
         value.printnl();
     }
-} catch (ppl7::OutOfBoundsException) {
+} catch (pplib::OutOfBoundsException) {
     printf ("Keine weiteren Elemente\n");
 }
  * \endcode
@@ -758,16 +758,16 @@ const String& Array::getFirst(Iterator& it) const
  * \exception OutOfBoundsException: Wird geworfen, wenn das Array leer ist
  * \example
  * \code
-ppl7::Array a1(L"red green blue yellow black white",L" ");
-ppl7::Array::Iterator it;
-ppl7::String value;
+pplib::Array a1(L"red green blue yellow black white",L" ");
+pplib::Array::Iterator it;
+pplib::String value;
 a1.reset(it);
 try {
     while (1) {
         value=a1.getNext(it);
         value.printnl();
     }
-} catch (ppl7::OutOfBoundsException) {
+} catch (pplib::OutOfBoundsException) {
     printf ("Keine weiteren Elemente\n");
 }
  * \endcode
@@ -1171,12 +1171,12 @@ Array::Iterator::Iterator()
  */
 void Array::sort()
 {
-    std::multiset<ppl7::String> s;
+    std::multiset<pplib::String> s;
     for (size_t i = 0; i < numElements; i++) {
         s.insert(get(i));
     }
     clear();
-    for (std::multiset<ppl7::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
+    for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
         add(*it);
     }
 }
@@ -1189,12 +1189,12 @@ void Array::sort()
  */
 void Array::sortReverse()
 {
-    std::multiset<ppl7::String> s;
+    std::multiset<pplib::String> s;
     for (size_t i = 0; i < numElements; i++) {
         s.insert(get(i));
     }
     clear();
-    for (std::multiset<ppl7::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
+    for (std::multiset<pplib::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
         add(*it);
     }
 }
@@ -1206,12 +1206,12 @@ void Array::sortReverse()
  */
 void Array::sortUnique()
 {
-    std::set<ppl7::String> s;
+    std::set<pplib::String> s;
     for (size_t i = 0; i < numElements; i++) {
         s.insert(get(i));
     }
     clear();
-    for (std::multiset<ppl7::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
+    for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
         add(*it);
     }
 }
@@ -1276,19 +1276,19 @@ Array Sort(const Array& array, bool unique)
 {
     Array ret;
     if (unique) {
-        std::set<ppl7::String> s;
+        std::set<pplib::String> s;
         for (size_t i = 0; i < array.size(); i++) {
             s.insert(array.get(i));
         }
-        for (std::multiset<ppl7::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
+        for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
             ret.add(*it);
         }
     } else {
-        std::multiset<ppl7::String> s;
+        std::multiset<pplib::String> s;
         for (size_t i = 0; i < array.size(); i++) {
             s.insert(array.get(i));
         }
-        for (std::multiset<ppl7::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
+        for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
             ret.add(*it);
         }
     }
@@ -1310,19 +1310,19 @@ Array SortReverse(const Array& array, bool unique)
 {
     Array ret;
     if (unique) {
-        std::set<ppl7::String> s;
+        std::set<pplib::String> s;
         for (size_t i = 0; i < array.size(); i++) {
             s.insert(array.get(i));
         }
-        for (std::multiset<ppl7::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
+        for (std::multiset<pplib::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
             ret.add(*it);
         }
     } else {
-        std::multiset<ppl7::String> s;
+        std::multiset<pplib::String> s;
         for (size_t i = 0; i < array.size(); i++) {
             s.insert(array.get(i));
         }
-        for (std::multiset<ppl7::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
+        for (std::multiset<pplib::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
             ret.add(*it);
         }
     }
@@ -1353,4 +1353,4 @@ Array::const_iterator Array::end() const noexcept
     return const_iterator((Array::ROW*)rows + numElements);
 }
 
-} // namespace ppl7
+} // namespace pplib

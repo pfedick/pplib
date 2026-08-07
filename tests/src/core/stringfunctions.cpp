@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,9 +37,9 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <pplib.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
 namespace
 {
@@ -65,35 +65,35 @@ static unsigned char binarydata[] = {13, 14, 55, 66, 129, 255, 66, 0, 76, 23, 18
 
 TEST_F(StringFunctionTest, ToBase64)
 {
-    ppl7::ByteArrayPtr b2;
+    pplib::ByteArrayPtr b2;
     b2.use(binarydata, 7);
-    EXPECT_EQ(ppl7::String("DQ43QoH/Qo=="), ToBase64(b2));
+    EXPECT_EQ(pplib::String("DQ43QoH/Qo=="), ToBase64(b2));
     b2.use(binarydata, 8);
-    EXPECT_EQ(ppl7::String("DQ43QoH/QgD="), ToBase64(b2));
+    EXPECT_EQ(pplib::String("DQ43QoH/QgD="), ToBase64(b2));
     b2.use(binarydata, 9);
-    EXPECT_EQ(ppl7::String("DQ43QoH/QgBM"), ToBase64(b2));
+    EXPECT_EQ(pplib::String("DQ43QoH/QgBM"), ToBase64(b2));
     b2.use(binarydata, 10);
-    EXPECT_EQ(ppl7::String("DQ43QoH/QgBMFw=="), ToBase64(b2));
+    EXPECT_EQ(pplib::String("DQ43QoH/QgBMFw=="), ToBase64(b2));
     b2.use(binarydata, 11);
-    EXPECT_EQ(ppl7::String("DQ43QoH/QgBMFxJ="), ToBase64(b2));
+    EXPECT_EQ(pplib::String("DQ43QoH/QgBMFxJ="), ToBase64(b2));
 }
 
 TEST_F(StringFunctionTest, FromBase64)
 {
-    ppl7::ByteArrayPtr b1;
+    pplib::ByteArrayPtr b1;
     try {
         b1.use(binarydata, 7);
-        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/Qo==")));
+        EXPECT_EQ(b1, pplib::FromBase64(pplib::String("DQ43QoH/Qo==")));
         b1.use(binarydata, 8);
-        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/QgD=")));
+        EXPECT_EQ(b1, pplib::FromBase64(pplib::String("DQ43QoH/QgD=")));
         b1.use(binarydata, 9);
-        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/QgBM")));
+        EXPECT_EQ(b1, pplib::FromBase64(pplib::String("DQ43QoH/QgBM")));
         b1.use(binarydata, 10);
-        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/QgBMFw==")));
+        EXPECT_EQ(b1, pplib::FromBase64(pplib::String("DQ43QoH/QgBMFw==")));
         b1.use(binarydata, 11);
-        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/QgBMFxJ=")));
+        EXPECT_EQ(b1, pplib::FromBase64(pplib::String("DQ43QoH/QgBMFxJ=")));
     }
-    catch (const ppl7::Exception& e) {
+    catch (const pplib::Exception& e) {
         e.print();
     }
     catch (const std::exception& e) {
@@ -103,21 +103,21 @@ TEST_F(StringFunctionTest, FromBase64)
 
 TEST_F(StringFunctionTest, UpperCaseWords)
 {
-    ppl7::String s1("the quick brown fox jumps over äöü");
-    ppl7::String expected("The Quick Brown Fox Jumps Over Äöü");
-    ppl7::String result = UpperCaseWords(s1);
+    pplib::String s1("the quick brown fox jumps over äöü");
+    pplib::String expected("The Quick Brown Fox Jumps Over Äöü");
+    pplib::String result = UpperCaseWords(s1);
     ASSERT_EQ(expected, result);
 }
 
 TEST_F(StringFunctionTest, StripSlashes)
 {
-    EXPECT_EQ(ppl7::String(""), ppl7::StripSlashes(ppl7::String("")));
-    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo Welt")));
-    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo\\ Welt")));
-    EXPECT_EQ(ppl7::String("Hallon Welt"), ppl7::StripSlashes(ppl7::String("Hallo\\n Welt")));
-    EXPECT_EQ(ppl7::String("Hallo\\Welt"), ppl7::StripSlashes(ppl7::String("Hallo\\\\Welt")));
-    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("\\Hallo Welt")));
-    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo Welt\\")));
+    EXPECT_EQ(pplib::String(""), pplib::StripSlashes(pplib::String("")));
+    EXPECT_EQ(pplib::String("Hallo Welt"), pplib::StripSlashes(pplib::String("Hallo Welt")));
+    EXPECT_EQ(pplib::String("Hallo Welt"), pplib::StripSlashes(pplib::String("Hallo\\ Welt")));
+    EXPECT_EQ(pplib::String("Hallon Welt"), pplib::StripSlashes(pplib::String("Hallo\\n Welt")));
+    EXPECT_EQ(pplib::String("Hallo\\Welt"), pplib::StripSlashes(pplib::String("Hallo\\\\Welt")));
+    EXPECT_EQ(pplib::String("Hallo Welt"), pplib::StripSlashes(pplib::String("\\Hallo Welt")));
+    EXPECT_EQ(pplib::String("Hallo Welt"), pplib::StripSlashes(pplib::String("Hallo Welt\\")));
 }
 
 // ByteArray fromBase64(const String &base64);

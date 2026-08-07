@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -45,15 +45,15 @@
 #include <fcntl.h>
 #endif
 
-#include <ppl7/core/dir.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/array.h>
-#include <ppl7/core/regex.h>
-#include <ppl7/core/functions.h>
+#include <pplib/core/dir.h>
+#include <pplib/exceptions.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/core/regex.h>
+#include <pplib/core/functions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 /****************************************************************
@@ -498,4 +498,4 @@ bool Dir::tryOpen(const String& path, Sort s)
     return false;
 }
 
-} // namespace ppl7
+} // namespace pplib

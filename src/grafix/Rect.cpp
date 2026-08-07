@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -42,13 +42,15 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-//#ifdef HAVE_MATH_H
+// #ifdef HAVE_MATH_H
 #include <math.h>
-//#endif
-#include "ppl7-grafix.h"
+// #endif
+#include "pplib-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\class Rect
  * \ingroup PPLGroupGrafik
@@ -64,285 +66,276 @@ namespace grafix {
 
 Rect::Rect()
 {
-	x1=0;
-	y1=0;
-	x2=0;
-	y2=0;
+    x1 = 0;
+    y1 = 0;
+    x2 = 0;
+    y2 = 0;
 }
 
 Rect::Rect(const Point& p1, const Point& p2)
 {
-	x1=p1.x;
-	y1=p1.y;
-	x2=p2.x;
-	y2=p2.y;
+    x1 = p1.x;
+    y1 = p1.y;
+    x2 = p2.x;
+    y2 = p2.y;
 }
 
 Rect::Rect(const Point& p, const Size& s)
 {
-	x1=p.x;
-	y1=p.y;
-	x2=x1 + s.width;
-	y2=y1 + s.height;
+    x1 = p.x;
+    y1 = p.y;
+    x2 = x1 + s.width;
+    y2 = y1 + s.height;
 }
 
 Rect::Rect(const Rect& other)
 {
-	x1=other.x1;
-	y1=other.y1;
-	x2=other.x2;
-	y2=other.y2;
+    x1 = other.x1;
+    y1 = other.y1;
+    x2 = other.x2;
+    y2 = other.y2;
 }
 
 Rect::Rect(int x, int y, int width, int height)
 {
-	x1=x;
-	y1=y;
-	x2=x + width;
-	y2=y + height;
+    x1 = x;
+    y1 = y;
+    x2 = x + width;
+    y2 = y + height;
 }
 
 Rect::Rect(const RECT& r)
 {
-	x1=r.left;
-	y1=r.top;
-	x2=r.right;
-	y2=r.bottom;
+    x1 = r.left;
+    y1 = r.top;
+    x2 = r.right;
+    y2 = r.bottom;
 }
-
-
 
 bool Rect::isNull() const
 {
-	if (x1 == x2 && y1 == y2) return true;
-	return false;
+    if (x1 == x2 && y1 == y2) return true;
+    return false;
 }
 
 int Rect::left() const
 {
-	return x1;
+    return x1;
 }
 
 int Rect::right() const
 {
-	return x2 - 1;
+    return x2 - 1;
 }
 
 int Rect::top() const
 {
-	return y1;
+    return y1;
 }
 
 int Rect::bottom() const
 {
-	return y2 - 1;
+    return y2 - 1;
 }
 
 int Rect::width() const
 {
-	return x2 - x1;
+    return x2 - x1;
 }
 
 int Rect::height() const
 {
-	return y2 - y1;
+    return y2 - y1;
 }
 
 Size Rect::size() const
 {
-	return Size(x2 - x1, y2 - y1);
+    return Size(x2 - x1, y2 - y1);
 }
 
 Point Rect::topLeft() const
 {
-	return Point(x1, y1);
+    return Point(x1, y1);
 }
 
 Point Rect::topRight() const
 {
-	return Point(x2, y1);
+    return Point(x2, y1);
 }
 
 Point Rect::bottomLeft() const
 {
-	return Point(x1, y2);
+    return Point(x1, y2);
 }
 
 Point Rect::bottomRight() const
 {
-	return Point(x2, y2);
+    return Point(x2, y2);
 }
 
 inline static void swap_int(int& i1, int& i2)
 {
-	int t=i1;
-	i1=i2;
-	i2=t;
+    int t = i1;
+    i1 = i2;
+    i2 = t;
 }
 
 Rect Rect::normalized() const
 {
-	Rect r(*this);
-	if (x2 < x1) swap_int(r.x1, r.x2);
-	if (y2 < y1) swap_int(r.y1, r.y2);
-	return r;
+    Rect r(*this);
+    if (x2 < x1) swap_int(r.x1, r.x2);
+    if (y2 < y1) swap_int(r.y1, r.y2);
+    return r;
 }
 
 bool Rect::intersects(const Rect& other) const
 {
-	return (other.x1< x2
-		&& other.x2 > x1
-		&& other.y1 < y2
-		&& other.y2 > y1);
+    return (other.x1 < x2 && other.x2 > x1 && other.y1 < y2 && other.y2 > y1);
 }
 
 #ifndef max
 inline static int max(int v1, int v2)
 {
-	if (v1 > v2) return v1;
-	return v2;
+    if (v1 > v2) return v1;
+    return v2;
 }
 #endif
 
 #ifndef min
 inline static int min(int v1, int v2)
 {
-	if (v1 < v2) return v1;
-	return v2;
+    if (v1 < v2) return v1;
+    return v2;
 }
 #endif
 
 Rect Rect::intersected(const Rect& other) const
 {
-	Rect r;
-	if (isNull() == true || other.isNull() == true) return r;
-	if (!intersects(other)) return r;
-	r.x1=max(x1, other.x1);
-	r.y1=max(y1, other.y1);
-	r.x2=min(x2, other.x2);
-	r.y2=min(y2, other.y2);
-	return r;
+    Rect r;
+    if (isNull() == true || other.isNull() == true) return r;
+    if (!intersects(other)) return r;
+    r.x1 = max(x1, other.x1);
+    r.y1 = max(y1, other.y1);
+    r.x2 = min(x2, other.x2);
+    r.y2 = min(y2, other.y2);
+    return r;
 }
 
 void Rect::setTopLeft(const Point& topLeft)
 {
-	x1=topLeft.x;
-	y1=topLeft.y;
+    x1 = topLeft.x;
+    y1 = topLeft.y;
 }
 
 void Rect::setBottomRight(const Point& bottomRight)
 {
-	x2=bottomRight.x;
-	y2=bottomRight.y;
+    x2 = bottomRight.x;
+    y2 = bottomRight.y;
 }
 
 void Rect::setRect(int x, int y, int width, int height)
 {
-	x1=x;
-	y1=y;
-	x2=x + width;
-	y2=y + height;
+    x1 = x;
+    y1 = y;
+    x2 = x + width;
+    y2 = y + height;
 }
 
 void Rect::setRect(const RECT& r)
 {
-	x1=r.left;
-	y1=r.top;
-	x2=r.right;
-	y2=r.bottom;
+    x1 = r.left;
+    y1 = r.top;
+    x2 = r.right;
+    y2 = r.bottom;
 }
-
 
 void Rect::setRect(const Rect& other)
 {
-	x1=other.x1;
-	y1=other.y1;
-	x2=other.x2;
-	y2=other.y2;
+    x1 = other.x1;
+    y1 = other.y1;
+    x2 = other.x2;
+    y2 = other.y2;
 }
-
 
 void Rect::setCoords(int x1, int y1, int x2, int y2)
 {
-	this->x1=x1;
-	this->y1=y1;
-	this->x2=x2;
-	this->y2=y2;
+    this->x1 = x1;
+    this->y1 = y1;
+    this->x2 = x2;
+    this->y2 = y2;
 }
 
 void Rect::setCoords(const Point& p1, const Point& p2)
 {
-	x1=p1.x;
-	y1=p1.y;
-	x2=p2.x;
-	y2=p2.y;
+    x1 = p1.x;
+    y1 = p1.y;
+    x2 = p2.x;
+    y2 = p2.y;
 }
 
 void Rect::setLeft(int left)
 {
-	x1=left;
+    x1 = left;
 }
 
 void Rect::setRight(int right)
 {
-	x2=right;
+    x2 = right;
 }
 
 void Rect::setTop(int top)
 {
-	y1=top;
+    y1 = top;
 }
 
 void Rect::setBottom(int bottom)
 {
-	y2=bottom;
+    y2 = bottom;
 }
 
 void Rect::setX(int x)
 {
-	x1=x;
+    x1 = x;
 }
 
 void Rect::setY(int y)
 {
-	y1=y;
+    y1 = y;
 }
 
 void Rect::setSize(const Size& size)
 {
-	x2=x1 + size.width;
-	y2=y1 + size.height;
+    x2 = x1 + size.width;
+    y2 = y1 + size.height;
 }
 
 void Rect::setWidth(int width)
 {
-	x2=x1 + width;
+    x2 = x1 + width;
 }
 
 void Rect::setHeight(int height)
 {
-	y2=y1 + height;
+    y2 = y1 + height;
 }
 
-
-bool operator!= (const Rect& r1, const Rect& r2)
+bool operator!=(const Rect& r1, const Rect& r2)
 {
-	if (r1.x1 != r2.x1) return true;
-	if (r1.y1 != r2.y1) return true;
-	if (r1.x2 != r2.x2) return true;
-	if (r1.y2 != r2.y2) return true;
-	return false;
+    if (r1.x1 != r2.x1) return true;
+    if (r1.y1 != r2.y1) return true;
+    if (r1.x2 != r2.x2) return true;
+    if (r1.y2 != r2.y2) return true;
+    return false;
 }
 
-bool operator== (const Rect& r1, const Rect& r2)
+bool operator==(const Rect& r1, const Rect& r2)
 {
-	if (r1.x1 != r2.x1) return false;
-	if (r1.y1 != r2.y1) return false;
-	if (r1.x2 != r2.x2) return false;
-	if (r1.y2 != r2.y2) return false;
-	return true;
+    if (r1.x1 != r2.x1) return false;
+    if (r1.y1 != r2.y1) return false;
+    if (r1.x2 != r2.x2) return false;
+    if (r1.y2 != r2.y2) return false;
+    return true;
 }
 
-
-}	// EOF namespace grafix
-}	// EOF namespace ppl7
+} // namespace grafix
+} // namespace pplib

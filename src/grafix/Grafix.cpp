@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -41,11 +41,13 @@
 #include <math.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\class Grafix
  * \ingroup PPLGroupGrafik
@@ -85,197 +87,186 @@ namespace grafix {
  * Instanz der Klasse zu erstellen
  */
 
-static Grafix* pplgfx=NULL;
-char* alphatab=NULL;
+static Grafix* pplgfx = NULL;
+char* alphatab = NULL;
 
 static GRAFIX_FUNCTIONS functions[RGBFormat::MaxIdentifiers];
 
-
 Grafix* GetGrafix()
 {
-	if (pplgfx) return pplgfx;
-	throw NoGrafixEngineException();
+    if (pplgfx) return pplgfx;
+    throw NoGrafixEngineException();
 }
-
 
 Grafix::Grafix()
 {
-	if (pplgfx) {
-		throw DuplicateGrafixEngineException();
-	}
-	//::printf ("Grafix::Grafix()\n");
-	alphatab=NULL;
-	filter_png=NULL;
-	filter_jpeg=NULL;
-	filter_bmp=NULL;
-	filter_gif=NULL;
-	filter_ppm=NULL;
-	filter_tga=NULL;
-	filter_magick=NULL;
-	filter_tiff=NULL;
-	initAlphatab();
+    if (pplgfx) {
+        throw DuplicateGrafixEngineException();
+    }
+    //::printf ("Grafix::Grafix()\n");
+    alphatab = NULL;
+    filter_png = NULL;
+    filter_jpeg = NULL;
+    filter_bmp = NULL;
+    filter_gif = NULL;
+    filter_ppm = NULL;
+    filter_tga = NULL;
+    filter_magick = NULL;
+    filter_tiff = NULL;
+    initAlphatab();
 
-	// Farbformat-abhängige Funktionen initialisieren
-	for (int i=0;i < RGBFormat::MaxIdentifiers;i++) {
-		try {
-			initFunctions(RGBFormat((RGBFormat::Identifier)i), &functions[i]);
-		} catch (UnsupportedColorFormatException&) {
+    // Farbformat-abhängige Funktionen initialisieren
+    for (int i = 0; i < RGBFormat::MaxIdentifiers; i++) {
+        try {
+            initFunctions(RGBFormat((RGBFormat::Identifier)i), &functions[i]);
+        }
+        catch (UnsupportedColorFormatException&) {
+        }
+    }
 
-		}
-	}
+    pplgfx = this;
 
-	pplgfx=this;
-
-
-	// Standardfilter anlegen
+    // Standardfilter anlegen
 #ifdef HAVE_IMAGEMAGICK
-	/*
-	filter_magick=new ImageFilter_ImageMagick;
-	addImageFilter(filter_magick);
-	*/
+    /*
+    filter_magick=new ImageFilter_ImageMagick;
+    addImageFilter(filter_magick);
+    */
 #endif
 
-
-	filter_bmp=new ImageFilter_BMP;
-	addImageFilter(filter_bmp);
-	filter_gif=new ImageFilter_GIF;
-	addImageFilter(filter_gif);
+    filter_bmp = new ImageFilter_BMP;
+    addImageFilter(filter_bmp);
+    filter_gif = new ImageFilter_GIF;
+    addImageFilter(filter_gif);
 
 #ifdef HAVE_PNG
-	filter_png=new ImageFilter_PNG;
-	addImageFilter(filter_png);
+    filter_png = new ImageFilter_PNG;
+    addImageFilter(filter_png);
 #endif
 #ifdef HAVE_JPEG
-	filter_jpeg=new ImageFilter_JPEG;
-	addImageFilter(filter_jpeg);
+    filter_jpeg = new ImageFilter_JPEG;
+    addImageFilter(filter_jpeg);
 #endif
 #ifdef HAVE_TIFF
-	filter_tiff=new ImageFilter_TIFF;
-	addImageFilter(filter_tiff);
+    filter_tiff = new ImageFilter_TIFF;
+    addImageFilter(filter_tiff);
 #endif
-	filter_ppm=new ImageFilter_PPM;
-	addImageFilter(filter_ppm);
+    filter_ppm = new ImageFilter_PPM;
+    addImageFilter(filter_ppm);
 
-	filter_tga=new ImageFilter_TGA;
-	addImageFilter(filter_tga);
+    filter_tga = new ImageFilter_TGA;
+    addImageFilter(filter_tga);
 
-
-	FontEngineFont5* font5=new FontEngineFont5;
-	addFontEngine(font5);
-	FontEngineFont6* font6=new FontEngineFont6;
-	addFontEngine(font6);
+    FontEngineFont5* font5 = new FontEngineFont5;
+    addFontEngine(font5);
+    FontEngineFont6* font6 = new FontEngineFont6;
+    addFontEngine(font6);
 
 #ifdef HAVE_FREETYPE2
-	FontEngineFreeType* freetype=new FontEngineFreeType;
-	addFontEngine(freetype);
+    FontEngineFreeType* freetype = new FontEngineFreeType;
+    addFontEngine(freetype);
 #endif
 
-	Resource* res=GetPPLResource();
+    Resource* res = GetPPLResource();
 
-	loadFont(res->getMemory(34), "Default");
-	loadFont(res->getMemory(35), "Default Mono");
-	Toolbar.load(res->getMemory(14), 16, 16, ImageList::ALPHABLT);
-	Icons32.load(res->getMemory(13), 32, 32, ImageList::ALPHABLT);
-	ButtonSymbolsSmall.load(res->getMemory(12), 9, 9, ImageList::DIFFUSE);
+    loadFont(res->getMemory(34), "Default");
+    loadFont(res->getMemory(35), "Default Mono");
+    Toolbar.load(res->getMemory(14), 16, 16, ImageList::ALPHABLT);
+    Icons32.load(res->getMemory(13), 32, 32, ImageList::ALPHABLT);
+    ButtonSymbolsSmall.load(res->getMemory(12), 9, 9, ImageList::DIFFUSE);
 }
-
 
 Grafix::~Grafix()
 {
-	//::printf ("Grafix::~Grafix()\n");
-	if (alphatab) free(alphatab);
+    //::printf ("Grafix::~Grafix()\n");
+    if (alphatab) free(alphatab);
 
-	if (filter_magick) {
-		delete filter_magick;
-	}
-	if (filter_png) {
-		delete filter_png;
-	}
-	if (filter_jpeg) {
-		delete filter_jpeg;
-	}
-	if (filter_bmp) {
-		delete filter_bmp;
-	}
-	if (filter_gif) {
-		delete filter_gif;
-	}
-	if (filter_ppm) {
-		delete filter_ppm;
-	}
-	if (filter_tga) {
-		delete filter_tga;
-	}
-	if (filter_tiff) {
-		delete filter_tiff;
-	}
+    if (filter_magick) {
+        delete filter_magick;
+    }
+    if (filter_png) {
+        delete filter_png;
+    }
+    if (filter_jpeg) {
+        delete filter_jpeg;
+    }
+    if (filter_bmp) {
+        delete filter_bmp;
+    }
+    if (filter_gif) {
+        delete filter_gif;
+    }
+    if (filter_ppm) {
+        delete filter_ppm;
+    }
+    if (filter_tga) {
+        delete filter_tga;
+    }
+    if (filter_tiff) {
+        delete filter_tiff;
+    }
 
-	// cleanup fonts
-	for (auto it=FontList.begin();it != FontList.end();++it) {
-		delete it->second;
-	}
-	FontList.clear();
-	// cleanup font engines
-	for (auto it=FontEngineList.begin();it != FontEngineList.end();++it) {
-		delete* it;
-	}
-	FontEngineList.clear();
-	if (pplgfx == this) pplgfx=NULL;
+    // cleanup fonts
+    for (auto it = FontList.begin(); it != FontList.end(); ++it) {
+        delete it->second;
+    }
+    FontList.clear();
+    // cleanup font engines
+    for (auto it = FontEngineList.begin(); it != FontEngineList.end(); ++it) {
+        delete *it;
+    }
+    FontEngineList.clear();
+    if (pplgfx == this) pplgfx = NULL;
 }
 
 void Grafix::initAlphatab()
 {
-	uint32_t alpha, i, a;
-	alphatab=(char*)malloc(65536);
-	if (!alphatab) throw OutOfMemoryException();
-	for (alpha=0;alpha < 256;alpha++) {
-		for (i=0;i < 256;i++) {
-			a=alpha << 8;
-			alphatab[a + i]=(uint8_t)((i * alpha) >> 8);
-		}
-	}
+    uint32_t alpha, i, a;
+    alphatab = (char*)malloc(65536);
+    if (!alphatab) throw OutOfMemoryException();
+    for (alpha = 0; alpha < 256; alpha++) {
+        for (i = 0; i < 256; i++) {
+            a = alpha << 8;
+            alphatab[a + i] = (uint8_t)((i * alpha) >> 8);
+        }
+    }
 }
-
 
 void Grafix::initFunctions(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
 {
-	memset(fn, 0, sizeof(GRAFIX_FUNCTIONS));
-	try {
-		initColors(format, fn);
-	} catch (UnsupportedColorFormatException&) {
-
-	}
-	try {
-		initPixel(format, fn);
-	} catch (UnsupportedColorFormatException&) {
-
-	}
-	try {
-		initShapes(format, fn);
-	} catch (UnsupportedColorFormatException&) {
-
-	}
-	try {
-		initLines(format, fn);
-	} catch (UnsupportedColorFormatException&) {
-
-	}
-	try {
-		initBlits(format, fn);
-	} catch (UnsupportedColorFormatException&) {
-
-	}
+    memset(fn, 0, sizeof(GRAFIX_FUNCTIONS));
+    try {
+        initColors(format, fn);
+    }
+    catch (UnsupportedColorFormatException&) {
+    }
+    try {
+        initPixel(format, fn);
+    }
+    catch (UnsupportedColorFormatException&) {
+    }
+    try {
+        initShapes(format, fn);
+    }
+    catch (UnsupportedColorFormatException&) {
+    }
+    try {
+        initLines(format, fn);
+    }
+    catch (UnsupportedColorFormatException&) {
+    }
+    try {
+        initBlits(format, fn);
+    }
+    catch (UnsupportedColorFormatException&) {
+    }
 }
 
 GRAFIX_FUNCTIONS* Grafix::getGrafixFunctions(const RGBFormat& format)
 {
-	if (format >= RGBFormat::MaxIdentifiers) throw UnknownColorFormatException();
-	return &functions[format];
+    if (format >= RGBFormat::MaxIdentifiers) throw UnknownColorFormatException();
+    return &functions[format];
 }
 
-
-
-
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace pplib

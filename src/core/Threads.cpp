@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,9 +27,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/threads.h>
+#include <pplib/core/threads.h>
+#include <pplib/core/functions.h>
+#include <pplib/exceptions.h>
 
-#include "config_ppl7.h"
+#include "config_pplib.h"
 
 #ifdef HAVE_PTHREADS
 #include <pthread.h>
@@ -44,13 +46,12 @@
 
 #include <limits.h>
 
-#include "ppl7.h"
 #ifdef _WIN32
 #define _WINSOCKAPI_ /* Prevent inclusion of winsock.h in windows.h */
 #include <windows.h>
 #endif
 
-namespace ppl7
+namespace pplib
 {
 
 static uint64_t global_thread_id = 0;
@@ -909,7 +910,7 @@ void Thread::threadJoin()
         case ESRCH:
             ThreadOperationFailedException("Thread not found");
         default:
-            ppl7::throwExceptionFromErrno(ret, "Thread is not joinable");
+            pplib::throwExceptionFromErrno(ret, "Thread is not joinable");
         }
     }
 #else
@@ -917,4 +918,4 @@ void Thread::threadJoin()
 #endif
 }
 
-} // namespace ppl7
+} // namespace pplib

@@ -1,5 +1,5 @@
 ###############################################################################
-# This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+# This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
 # Web: https://github.com/pfedick/pplib
 ###############################################################################
 # Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -68,7 +68,7 @@ xml: debug
 	-cd tests && ../build/debug/tests/test_inet$(EXE) --gtest_output=xml:testresult_inet.xml
 
 coverage:
-	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPL7_ENABLE_COVERAGE=ON
+	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
 	cmake --build build/coverage
 	-cd tests && ../build/coverage/tests/test_core$(EXE)
 	gcovr --root . --build-dir build/coverage --xml-pretty -o coverage.xml --exclude 'tests/.*'

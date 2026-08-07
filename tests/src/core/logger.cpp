@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,52 +36,49 @@
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <pplib.h>
 #include <gtest/gtest.h>
-#include "../../../include/config_ppl7.h"
-#include "ppl7-tests.h"
+#include "../../../include/config_pplib.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class LoggerTest : public ::testing::Test {
-	protected:
-	LoggerTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-	}
-	virtual ~LoggerTest() {
-
-	}
+class LoggerTest : public ::testing::Test
+{
+protected:
+    LoggerTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+    }
+    virtual ~LoggerTest()
+    {
+    }
 };
 
-TEST_F(LoggerTest, ConstructorSimple) {
-	ASSERT_NO_THROW({
-		ppl7::Logger log;
-	});
+TEST_F(LoggerTest, ConstructorSimple)
+{
+    ASSERT_NO_THROW({ pplib::Logger log; });
 
-	//log.openSyslog("ppl7::Logger");
-	//log.print("Test");
+    // log.openSyslog("pplib::Logger");
+    // log.print("Test");
 }
 #ifdef HAVE_OPENLOG
 
-TEST_F(LoggerTest, openSyslog) {
-	ASSERT_NO_THROW({
-		ppl7::Logger log;
-		log.openSyslog("ppl7::Logger");
-	});
-	//ppl7::Logger log;
-	//
-	//log.print("Test");
+TEST_F(LoggerTest, openSyslog)
+{
+    ASSERT_NO_THROW({
+        pplib::Logger log;
+        log.openSyslog("pplib::Logger");
+    });
+    // pplib::Logger log;
+    //
+    // log.print("Test");
 }
 #endif
 
-
-
-
-
-}
-
-
+} // namespace

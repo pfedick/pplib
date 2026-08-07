@@ -1,9 +1,9 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (ppl7).
+ * This file is part of "Patrick's Programming Library", Version 7 (pplib).
  * Web: http://www.pfp.de/ppl/
  *
  *******************************************************************************
- * Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,11 +34,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <pplib.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace ppl7
+namespace pplib
 {
 
 class IconvTest : public ::testing::Test
@@ -58,13 +58,13 @@ protected:
 
 TEST_F(IconvTest, ConstructorWithoutFile)
 {
-    ASSERT_NO_THROW({ ppl7::Iconv iconv; });
+    ASSERT_NO_THROW({ pplib::Iconv iconv; });
 }
 
 TEST_F(IconvTest, enumerateCharsets)
 {
-    ppl7::Array list;
-    ppl7::Iconv::enumerateCharsets(list);
+    pplib::Array list;
+    pplib::Iconv::enumerateCharsets(list);
     ASSERT_GT(list.size(), (size_t)10);
     // list.list();
     ASSERT_TRUE(list.has("US-ASCII"));
@@ -76,8 +76,8 @@ TEST_F(IconvTest, enumerateCharsets)
 
 TEST_F(IconvTest, enumerateCharsetsStdList)
 {
-    std::list<ppl7::String> list;
-    ppl7::Iconv::enumerateCharsets(list);
+    std::list<pplib::String> list;
+    pplib::Iconv::enumerateCharsets(list);
     ASSERT_GT(list.size(), (size_t)10);
     // list.list();
     /* TODO
@@ -92,22 +92,22 @@ TEST_F(IconvTest, enumerateCharsetsStdList)
 TEST_F(IconvTest, getLocalCharset)
 {
 #ifdef WIN32
-    ASSERT_EQ(ppl7::String("CP1252"), ppl7::Iconv::getLocalCharset());
+    ASSERT_EQ(pplib::String("CP1252"), pplib::Iconv::getLocalCharset());
 #else
-    ASSERT_EQ(ppl7::String("UTF-8"), ppl7::Iconv::getLocalCharset());
+    ASSERT_EQ(pplib::String("UTF-8"), pplib::Iconv::getLocalCharset());
 #endif
 }
 
 TEST_F(IconvTest, initWithKnownCharsets)
 {
-    ppl7::Iconv iconv;
+    pplib::Iconv iconv;
     ASSERT_NO_THROW({ iconv.init("ISO-8859-1", "UTF-8"); });
 }
 
 TEST_F(IconvTest, initWithUnknownCharsetsThrowsException)
 {
-    ppl7::Iconv iconv;
-    ASSERT_THROW({ iconv.init("ISO-PATRICKF", "UTF-8"); }, ppl7::UnsupportedCharacterEncodingException);
+    pplib::Iconv iconv;
+    ASSERT_THROW({ iconv.init("ISO-PATRICKF", "UTF-8"); }, pplib::UnsupportedCharacterEncodingException);
 }
 
 static const char test_string_iso88591[] = {(char)0x48, (char)0xe4, (char)0x6c, (char)0x6c, (char)0x6f, (char)0x20,
@@ -119,34 +119,34 @@ static const char test_string_utf16be[] = {(char)0x00, (char)0x48, (char)0x00, (
 
 TEST_F(IconvTest, transcodeWithString_ISO88591_UTF8)
 {
-    ppl7::Iconv iconv;
+    pplib::Iconv iconv;
     iconv.init("ISO-8859-1", "UTF-8");
-    ppl7::String source(test_string_iso88591, sizeof(test_string_iso88591));
-    ppl7::String target;
+    pplib::String source(test_string_iso88591, sizeof(test_string_iso88591));
+    pplib::String target;
     iconv.transcode(source, target);
-    ASSERT_EQ(ppl7::String("Hällo Wörld"), target);
+    ASSERT_EQ(pplib::String("Hällo Wörld"), target);
 }
 
 TEST_F(IconvTest, transcodeByteArray_UTF16BE_UTF8)
 {
-    ppl7::String expected("Hällo Wörld!");
-    ppl7::Iconv iconv;
+    pplib::String expected("Hällo Wörld!");
+    pplib::Iconv iconv;
     iconv.init("UTF-16BE", "UTF-8");
-    ppl7::ByteArray source(test_string_utf16be, sizeof(test_string_utf16be));
-    ppl7::ByteArray target;
+    pplib::ByteArray source(test_string_utf16be, sizeof(test_string_utf16be));
+    pplib::ByteArray target;
     iconv.transcode(source, target);
-    ASSERT_EQ(ppl7::ByteArray(expected), target);
+    ASSERT_EQ(pplib::ByteArray(expected), target);
 }
 
 TEST_F(IconvTest, transcodeWithByteArray)
 {
-    ppl7::Iconv iconv;
-    ppl7::String expected("Hällo Wörld");
+    pplib::Iconv iconv;
+    pplib::String expected("Hällo Wörld");
     iconv.init("ISO-8859-1", "UTF-8");
-    ppl7::ByteArray source(test_string_iso88591, sizeof(test_string_iso88591));
-    ppl7::ByteArray target;
+    pplib::ByteArray source(test_string_iso88591, sizeof(test_string_iso88591));
+    pplib::ByteArray target;
     iconv.transcode(source, target);
-    ASSERT_EQ(ppl7::ByteArray(expected), target);
+    ASSERT_EQ(pplib::ByteArray(expected), target);
 }
 
 TEST_F(IconvTest, ISO88591toUtf8)
@@ -154,10 +154,10 @@ TEST_F(IconvTest, ISO88591toUtf8)
     // Wir nehmen ein ByteArray mit einem echten ISO-8859-1 Umlaut ("äöü")
     // In iso-8859-1: ä = 0xe4, ö = 0xf6, ü = 0xfc
     const unsigned char latin1_data[] = {0xe4, 0xf6, 0xfc, 0};
-    ppl7::ByteArray latin1_bytes(latin1_data, 3);
+    pplib::ByteArray latin1_bytes(latin1_data, 3);
 
     // Nutze Deine neue, geniale Iconv::transcode Methode!
-    ppl7::ByteArray utf8_bytes = ppl7::Iconv::transcode(latin1_bytes, "ISO-8859-1", "UTF-8");
+    pplib::ByteArray utf8_bytes = pplib::Iconv::transcode(latin1_bytes, "ISO-8859-1", "UTF-8");
 
     // "äöü" in UTF-8 belegt genau 6 Bytes
     ASSERT_EQ((size_t)6, utf8_bytes.size());
@@ -174,4 +174,4 @@ TEST_F(IconvTest, ISO88591toUtf8)
     EXPECT_EQ(188, (unsigned char)utf8_bytes.get(5));
 }
 
-} // namespace ppl7
+} // namespace pplib

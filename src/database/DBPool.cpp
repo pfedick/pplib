@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -44,10 +44,10 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-db.h"
+#include "pplib.h"
+#include "pplib-db.h"
 
-namespace ppl7
+namespace pplib
 {
 namespace db
 {
@@ -56,7 +56,7 @@ namespace db
  * \ingroup PPLGroupDatabases
  * \brief Klasse zur Verwaltung von Datenbank-Verbindungen
  *
- * \header \#include <ppl7-db.h>
+ * \header \#include <pplib-db.h>
  *
  * \desc
  * Mit dieser Klasse können beliebig viele Connects zu einer bestimmten Datenbank innerhalb
@@ -202,14 +202,14 @@ static String calcHash(const AssocArray& param)
  * Optionen gesetzt werden. Mit der Funktion Pool::SetName kann dem Pool ein Name zugewiesen werden.
  *
  * \param[in] connect Die Connect-Parameter in einem Assoziativen Array, wie sie von der Funktion
- * ppl7::db::Connect, bzw. der jeweiligen Datenbank-Klasse unterstützt werden.
+ * pplib::db::Connect, bzw. der jeweiligen Datenbank-Klasse unterstützt werden.
  * \returns Die Funktion liefert bei Erfolg true (1) zurück, sonst false (0).
  */
 void DBPool::setConnectParams(const AssocArray& connect)
 {
     if (Log)
-        Log->print(ppl7::Logger::INFO, 4, "ppl7::db::DBPool", "setConnectParams", __FILE__, __LINE__,
-                   ppl7::ToString("Setze Connect Parameter für Pool id=%i, name=\"%s\"", Id, (const char*)Name));
+        Log->print(pplib::Logger::INFO, 4, "pplib::db::DBPool", "setConnectParams", __FILE__, __LINE__,
+                   pplib::ToString("Setze Connect Parameter für Pool id=%i, name=\"%s\"", Id, (const char*)Name));
     PoolMutex.lock();
     if (calcHash(connect) != calcHash(this->ConnectParam)) {
         // increment version and remove remaining connections from free pool
@@ -311,4 +311,4 @@ void DBPool::setLogger(Logger& logger)
 }
 
 } // namespace db
-} // namespace ppl7
+} // namespace pplib

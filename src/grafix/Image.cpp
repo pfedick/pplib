@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -43,13 +43,14 @@
 #include <string.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-grafix.h"
-//#include "grafix6.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
+// #include "grafix6.h"
 
-
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\class Image
  * \ingroup PPLGroupGrafik
@@ -57,11 +58,11 @@ namespace grafix {
  *
  * \example
  * \code
- * #include <ppl7.h>
- * #include <ppl7-grafix.h>
+ * #include <pplib.h>
+ * #include <pplib-grafix.h>
  *
- * using namespace ppl7;
- * using namespace ppl7::grafix;
+ * using namespace pplib;
+ * using namespace pplib::grafix;
  *
  * int main(int argc, char **argv) {
  * 	Grafix gfx;									// Grafik-Engine initialisieren
@@ -87,9 +88,9 @@ namespace grafix {
  * Speicherbereich geladen werden.
  *
  */
-Image::Image() : Drawable()
+Image::Image()
+    : Drawable()
 {
-
 }
 
 /*!\brief Copy-Konstruktor
@@ -99,9 +100,10 @@ Image::Image() : Drawable()
  *
  * @param other Anderes Image
  */
-Image::Image(const Image &other) : Drawable()
+Image::Image(const Image& other)
+    : Drawable()
 {
-	copy(other);
+    copy(other);
 }
 
 /*!\brief Copy-Konstruktor
@@ -111,9 +113,10 @@ Image::Image(const Image &other) : Drawable()
  *
  * @param other Ein Drawable, von dem kopiert werden soll
  */
-Image::Image(const Drawable &other) : Drawable()
+Image::Image(const Drawable& other)
+    : Drawable()
 {
-	copy(other);
+    copy(other);
 }
 
 /*!\brief Erstellen einer neuen Grafik
@@ -128,9 +131,10 @@ Image::Image(const Drawable &other) : Drawable()
  * \exception Exception::InitialisationFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht erstellt werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-Image::Image(int width, int height, const RGBFormat &format) : Drawable()
+Image::Image(int width, int height, const RGBFormat& format)
+    : Drawable()
 {
-	create(width,height,format);
+    create(width, height, format);
 }
 
 /*!\brief Grafik aus einer Datei laden
@@ -146,11 +150,12 @@ Image::Image(int width, int height, const RGBFormat &format) : Drawable()
  * @exception Exception::ImageLoadFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht geladen werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-Image::Image(const String &Filename, const RGBFormat &format) : Drawable()
+Image::Image(const String& Filename, const RGBFormat& format)
+    : Drawable()
 {
-	File ff;
-	ff.open(Filename,File::READ);
-	load(ff,format);
+    File ff;
+    ff.open(Filename, File::READ);
+    load(ff, format);
 }
 
 /*!\brief Grafik aus einer geöffneten Datei laden
@@ -164,9 +169,10 @@ Image::Image(const String &Filename, const RGBFormat &format) : Drawable()
  * @exception Exception::ImageLoadFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht geladen werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-Image::Image(FileObject &file, const RGBFormat &format) : Drawable()
+Image::Image(FileObject& file, const RGBFormat& format)
+    : Drawable()
 {
-	load(file,format);
+    load(file, format);
 }
 
 /*!\brief Grafik aus einem Speicherbereich laden
@@ -180,9 +186,10 @@ Image::Image(FileObject &file, const RGBFormat &format) : Drawable()
  * @exception Exception::ImageLoadFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht geladen werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-Image::Image(const ByteArrayPtr &mem, const RGBFormat &format) : Drawable()
+Image::Image(const ByteArrayPtr& mem, const RGBFormat& format)
+    : Drawable()
 {
-	load(mem,format);
+    load(mem, format);
 }
 
 /*!\brief Destruktor der Klasse
@@ -194,7 +201,7 @@ Image::Image(const ByteArrayPtr &mem, const RGBFormat &format) : Drawable()
  */
 Image::~Image()
 {
-	// Passiert alles automatisch
+    // Passiert alles automatisch
 }
 
 /*!\brief Speicher freigeben
@@ -206,9 +213,9 @@ Image::~Image()
  */
 void Image::clear()
 {
-	myMemory.clear();
-	fn=NULL;
-	clearDrawableData();
+    myMemory.clear();
+    fn = NULL;
+    clearDrawableData();
 }
 
 /*!\brief Grafik von einem Drawable kopieren
@@ -219,31 +226,31 @@ void Image::clear()
  * @param other Anderes Drawable
  * @return Im Erfolgsfall gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Image::copy(const Drawable &other)
+void Image::copy(const Drawable& other)
 {
-	clearDrawableData();
-	fn=NULL;
-	if (other.isEmpty()) return;
-	// Das andere Drawable kann auch einen Ausschnitt aus einem größeren Bild
-	// repräsentieren, daher kopieren wir die Pixeldaten Zeilenweise
-	size_t size=other.data.width*other.data.height*(other.data.rgbformat.bitdepth()/8);
-	if (!size) throw EmptyDrawableException();
-	data.base=myMemory.malloc(size);
-	if (!data.base) throw OutOfMemoryException();
-	data.fn=other.data.fn;
-	fn=other.fn;
-	data.width=other.data.width;
-	data.height=other.data.height;
-	data.rgbformat=other.data.rgbformat;
-	data.pitch=data.width*(data.rgbformat.bitdepth()/8);
-	// Jetzt die Pixel kopieren
-	uint8_t *qq=other.data.base8;
-	uint8_t *tt=data.base8;
-	for (int y=0;y<data.height;y++) {
-		memcpy(tt,qq,data.pitch);
-		qq+=other.data.pitch;
-		tt+=data.pitch;
-	}
+    clearDrawableData();
+    fn = NULL;
+    if (other.isEmpty()) return;
+    // Das andere Drawable kann auch einen Ausschnitt aus einem größeren Bild
+    // repräsentieren, daher kopieren wir die Pixeldaten Zeilenweise
+    size_t size = other.data.width * other.data.height * (other.data.rgbformat.bitdepth() / 8);
+    if (!size) throw EmptyDrawableException();
+    data.base = myMemory.malloc(size);
+    if (!data.base) throw OutOfMemoryException();
+    data.fn = other.data.fn;
+    fn = other.fn;
+    data.width = other.data.width;
+    data.height = other.data.height;
+    data.rgbformat = other.data.rgbformat;
+    data.pitch = data.width * (data.rgbformat.bitdepth() / 8);
+    // Jetzt die Pixel kopieren
+    uint8_t* qq = other.data.base8;
+    uint8_t* tt = data.base8;
+    for (int y = 0; y < data.height; y++) {
+        memcpy(tt, qq, data.pitch);
+        qq += other.data.pitch;
+        tt += data.pitch;
+    }
 }
 
 /*!\brief Grafikausschnitt von einem Drawable kopieren
@@ -255,9 +262,9 @@ void Image::copy(const Drawable &other)
  * @param rect Gewünschter Ausschnitt
  * @return Im Erfolgsfall gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Image::copy(const Drawable &other, const Rect &rect)
+void Image::copy(const Drawable& other, const Rect& rect)
 {
-	copy(Drawable(other,rect));
+    copy(Drawable(other, rect));
 }
 
 /*!\brief Grafik kopieren
@@ -268,17 +275,17 @@ void Image::copy(const Drawable &other, const Rect &rect)
  * @param other Anderes Image
  * @return Im Erfolgsfall gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Image::copy(const Image &other)
+void Image::copy(const Image& other)
 {
-	clearDrawableData();
-	fn=NULL;
-	if (other.isEmpty()) return;
-	if (!myMemory.copy(other.myMemory)) {
-		throw OutOfMemoryException();
-	}
-	copyDrawableData(other.data);
-	fn=other.fn;
-	data.base=(void*)myMemory.adr();
+    clearDrawableData();
+    fn = NULL;
+    if (other.isEmpty()) return;
+    if (!myMemory.copy(other.myMemory)) {
+        throw OutOfMemoryException();
+    }
+    copyDrawableData(other.data);
+    fn = other.fn;
+    data.base = (void*)myMemory.adr();
 }
 
 /*!\brief Neues Image erstellen
@@ -292,28 +299,28 @@ void Image::copy(const Image &other)
  * @param format Farbformat der Grafik
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Image::create(int width, int height, const RGBFormat &format)
+void Image::create(int width, int height, const RGBFormat& format)
 {
-	if (data.width==width && data.height==height && data.rgbformat==format) {
-		myMemory.memset(0);
-		return;
-	}
-	fn=NULL;
-	clearDrawableData();
-	myMemory.free();
+    if (data.width == width && data.height == height && data.rgbformat == format) {
+        myMemory.memset(0);
+        return;
+    }
+    fn = NULL;
+    clearDrawableData();
+    myMemory.free();
 
-	if (format==RGBFormat::unknown || format>=RGBFormat::MaxIdentifiers) {
-		throw UnknownColorFormatException();
-	}
-	if (width>65535 || height>65535 || width<1 || height<1) throw InvalidImageSizeException();
-	size_t size=width*height*(format.bytesPerPixel());
-	data.base=myMemory.calloc(size);
-	if (!data.base) throw OutOfMemoryException();
-	data.pitch=width*(format.bitdepth()/8);
-	data.rgbformat=format;
-	data.width=width;
-	data.height=height;
-	initFunctions(data.rgbformat);
+    if (format == RGBFormat::unknown || format >= RGBFormat::MaxIdentifiers) {
+        throw UnknownColorFormatException();
+    }
+    if (width > 65535 || height > 65535 || width < 1 || height < 1) throw InvalidImageSizeException();
+    size_t size = width * height * (format.bytesPerPixel());
+    data.base = myMemory.calloc(size);
+    if (!data.base) throw OutOfMemoryException();
+    data.pitch = width * (format.bitdepth() / 8);
+    data.rgbformat = format;
+    data.width = width;
+    data.height = height;
+    initFunctions(data.rgbformat);
 }
 
 /*!\brief Neues Image aus einem Speicherbereich erstellen
@@ -330,9 +337,9 @@ void Image::create(int width, int height, const RGBFormat &format)
  * @param format Farbformat
  * @return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Image::create(void *base, uint32_t pitch, int width, int height, const RGBFormat &format)
+void Image::create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format)
 {
-	copy(Drawable(base,pitch,width,height,format));
+    copy(Drawable(base, pitch, width, height, format));
 }
 
 /*!\brief Grafik aus einer Datei laden
@@ -345,11 +352,11 @@ void Image::create(void *base, uint32_t pitch, int width, int height, const RGBF
  * verwendet. Andernfalls werden die Originalfarben der Grafikdatei in das angegebene Format konvertiert.
  * @return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Image::load(const String &Filename, const RGBFormat &format)
+void Image::load(const String& Filename, const RGBFormat& format)
 {
-	File ff;
-	ff.open(Filename,File::READ);
-	load(ff,format);
+    File ff;
+    ff.open(Filename, File::READ);
+    load(ff, format);
 }
 
 /*!\brief Grafik aus einem Speicherbereich laden
@@ -362,10 +369,10 @@ void Image::load(const String &Filename, const RGBFormat &format)
  * verwendet. Andernfalls werden die Originalfarben der Grafikdatei in das angegebene Format konvertiert.
  * @return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Image::load(const ByteArrayPtr &Mem, const RGBFormat &format)
+void Image::load(const ByteArrayPtr& Mem, const RGBFormat& format)
 {
-	MemFile ff(Mem);
-	load(ff,format);
+    MemFile ff(Mem);
+    load(ff, format);
 }
 
 /*!\brief Grafik aus einer geöffneten Datei laden
@@ -378,15 +385,15 @@ void Image::load(const ByteArrayPtr &Mem, const RGBFormat &format)
  * verwendet. Andernfalls werden die Originalfarben der Grafikdatei in das angegebene Format konvertiert.
  * @return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Image::load(FileObject &file, const RGBFormat &format)
+void Image::load(FileObject& file, const RGBFormat& format)
 {
-	Grafix *gfx=GetGrafix();
-	IMAGE img;
-	ImageFilter *filter=gfx->findImageFilter(file,img);
-	if (format!=RGBFormat::unknown) img.format=format;
+    Grafix* gfx = GetGrafix();
+    IMAGE img;
+    ImageFilter* filter = gfx->findImageFilter(file, img);
+    if (format != RGBFormat::unknown) img.format = format;
 
-	create(img.width,img.height,img.format);
-	filter->load(file,*this,img);
+    create(img.width, img.height, img.format);
+    filter->load(file, *this, img);
 }
 
 /*!\brief Anzahl Bytes, die durch diese Grafik belegt sind
@@ -398,9 +405,8 @@ void Image::load(FileObject &file, const RGBFormat &format)
  */
 size_t Image::numBytes() const
 {
-	return myMemory.size();
+    return myMemory.size();
 }
-
 
 /*!\brief Grafik kopieren
  *
@@ -410,10 +416,10 @@ size_t Image::numBytes() const
  * @param other Ein Drawable, von dem die Kopie angefertigt werden soll
  * @return Liefert eine Referenz auf dieses Image zurück.
  */
-Image &Image::operator=(const Drawable &other)
+Image& Image::operator=(const Drawable& other)
 {
-	copy(other);
-	return *this;
+    copy(other);
+    return *this;
 }
 
 /*!\brief Grafik kopieren
@@ -424,10 +430,10 @@ Image &Image::operator=(const Drawable &other)
  * @param other Ein Image, von dem die Kopie angefertigt werden soll
  * @return Liefert eine Referenz auf dieses Image zurück.
  */
-Image &Image::operator=(const Image &other)
+Image& Image::operator=(const Image& other)
 {
-	copy(other);
-	return *this;
+    copy(other);
+    return *this;
 }
 
 /*!\brief Referenz auf den Speicherbereich der Grafik holen
@@ -440,7 +446,7 @@ Image &Image::operator=(const Image &other)
  */
 ByteArrayPtr Image::memory() const
 {
-	return myMemory;
+    return myMemory;
 }
 
 /*!\brief Referenz auf den Speicherbereich der Grafik holen
@@ -453,9 +459,8 @@ ByteArrayPtr Image::memory() const
  */
 Image::operator ByteArrayPtr() const
 {
-	return myMemory;
+    return myMemory;
 }
 
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace pplib

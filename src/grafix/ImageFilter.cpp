@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -38,13 +37,13 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 
-
-namespace ppl7 {
-namespace grafix {
-
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\brief Image-Filter registrieren
  *
@@ -68,14 +67,15 @@ namespace grafix {
  */
 void Grafix::addImageFilter(ImageFilter* filter)
 {
-	myMutex.lock();
-	try {
-		ImageFilterList.push_back(filter);
-	} catch (...) {
-		myMutex.unlock();
-		throw;
-	}
-	myMutex.unlock();
+    myMutex.lock();
+    try {
+        ImageFilterList.push_back(filter);
+    }
+    catch (...) {
+        myMutex.unlock();
+        throw;
+    }
+    myMutex.unlock();
 }
 
 /*!\brief Image-Filter entfernen
@@ -90,19 +90,20 @@ void Grafix::addImageFilter(ImageFilter* filter)
  */
 void Grafix::unloadImageFilter(ImageFilter* filter)
 {
-	myMutex.lock();
-	try {
-		for (auto it=ImageFilterList.begin();it != ImageFilterList.end();++it) {
-			if (*it == filter) {
-				ImageFilterList.erase(it);
-				break;
-			}
-		}
-	} catch (...) {
-		myMutex.unlock();
-		throw;
-	}
-	myMutex.unlock();
+    myMutex.lock();
+    try {
+        for (auto it = ImageFilterList.begin(); it != ImageFilterList.end(); ++it) {
+            if (*it == filter) {
+                ImageFilterList.erase(it);
+                break;
+            }
+        }
+    }
+    catch (...) {
+        myMutex.unlock();
+        throw;
+    }
+    myMutex.unlock();
 }
 
 /*!\brief Filter anhand seines Namens finden
@@ -119,17 +120,17 @@ void Grafix::unloadImageFilter(ImageFilter* filter)
  */
 ImageFilter* Grafix::findImageFilter(const String& name)
 {
-	List<ImageFilter*>::Iterator it;
-	myMutex.lock();
-	// Wir gehen die Liste rückwärts durch
-	for (auto it=ImageFilterList.rbegin();it != ImageFilterList.rend();++it) {
-		if (name.strCaseCmp((*it)->name()) == 0) {
-			myMutex.unlock();
-			return *it;
-		}
-	}
-	myMutex.unlock();
-	throw UnknownImageFormatException();
+    List<ImageFilter*>::Iterator it;
+    myMutex.lock();
+    // Wir gehen die Liste rückwärts durch
+    for (auto it = ImageFilterList.rbegin(); it != ImageFilterList.rend(); ++it) {
+        if (name.strCaseCmp((*it)->name()) == 0) {
+            myMutex.unlock();
+            return *it;
+        }
+    }
+    myMutex.unlock();
+    throw UnknownImageFormatException();
 }
 
 /*!\brief Filter anhand des Inhalts einer geöffneten Datei finden
@@ -148,21 +149,18 @@ ImageFilter* Grafix::findImageFilter(const String& name)
  */
 ImageFilter* Grafix::findImageFilter(FileObject& ff, IMAGE& img)
 {
-	List<ImageFilter*>::Iterator it;
-	myMutex.lock();
-	// Wir gehen die Liste rückwärts durch
-	for (auto it=ImageFilterList.rbegin();it != ImageFilterList.rend();++it) {
-		if ((*it)->ident(ff, img) == 1) {
-			myMutex.unlock();
-			return *it;
-		}
-	}
-	myMutex.unlock();
-	throw UnknownImageFormatException();
+    List<ImageFilter*>::Iterator it;
+    myMutex.lock();
+    // Wir gehen die Liste rückwärts durch
+    for (auto it = ImageFilterList.rbegin(); it != ImageFilterList.rend(); ++it) {
+        if ((*it)->ident(ff, img) == 1) {
+            myMutex.unlock();
+            return *it;
+        }
+    }
+    myMutex.unlock();
+    throw UnknownImageFormatException();
 }
-
-
-
 
 /*!\class ImageFilter
  * \ingroup PPLGroupGrafik
@@ -200,7 +198,6 @@ ImageFilter::~ImageFilter()
 {
 }
 
-
 /*!\brief Grafikformat identifizieren
  *
  * \desc
@@ -216,51 +213,49 @@ ImageFilter::~ImageFilter()
  */
 int ImageFilter::ident(FileObject& file, IMAGE& img)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 void ImageFilter::load(FileObject& file, Drawable& surface, IMAGE& img)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 void ImageFilter::save(const Drawable& surface, FileObject& file, const Rect& area, const AssocArray& param)
 {
-	Drawable draw=surface.getDrawable(area);
-	save(draw, file, param);
+    Drawable draw = surface.getDrawable(area);
+    save(draw, file, param);
 }
 
 void ImageFilter::save(const Drawable& surface, FileObject& file, const AssocArray& param)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 void ImageFilter::saveFile(const String& filename, const Drawable& surface, const AssocArray& param)
 {
-	File ff;
-	ff.open(filename, File::WRITE);
-	save(surface, ff, param);
+    File ff;
+    ff.open(filename, File::WRITE);
+    save(surface, ff, param);
 }
 
 void ImageFilter::saveFile(const String& filename, const Drawable& surface, const Rect& area, const AssocArray& param)
 {
-	Drawable draw=surface.getDrawable(area);
-	File ff;
-	ff.open(filename, File::WRITE);
-	save(draw, ff, param);
+    Drawable draw = surface.getDrawable(area);
+    File ff;
+    ff.open(filename, File::WRITE);
+    save(draw, ff, param);
 }
 
 String ImageFilter::name()
 {
-	return "unknown";
+    return "unknown";
 }
 
 String ImageFilter::description()
 {
-	return "Baseclass for image filter";
+    return "Baseclass for image filter";
 }
 
-
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace pplib

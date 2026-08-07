@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -41,21 +41,21 @@
 #include <locale.h>
 #include <errno.h>
 */
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/bytearray.h>
-#include <ppl7/types/array.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/core/iconv.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/array.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/iconv.h>
 
-#include "config_ppl7.h"
+#include "config_pplib.h"
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
 #endif
 
-namespace ppl7
+namespace pplib
 {
 
 /*!\class WideString
@@ -2534,7 +2534,7 @@ bool WideString::operator>(const wchar_t* str) const
  * @return %Pointer auf die Widecharacter Repräsentation des %Strings.
  * \example
  * \code
-void PrintString(const ppl7::String &text)
+void PrintString(const pplib::String &text)
 {
     printf ("Der String lautet: %ls\n",text.getPtr());
     // oder mittels Operator:
@@ -2552,7 +2552,7 @@ void PrintString(const ppl7::String &text)
  * Um dieses Verhalten zu simulieren, kann die Funktion WideString::toLocalEncoding
  * verwendet werden. Beispiel:
  * \code
-void PrintString(const ppl7::String &text)
+void PrintString(const pplib::String &text)
 {
     // Nutzung des Operators:
     printf ("Der String lautet: %s\n",(const char*)text.toLocalEncoding());
@@ -2774,14 +2774,14 @@ bool WideString::endsWith(const WideString& suffix, size_t start, size_t end) co
     return part == suffix;
 }
 
-WideString WideString::join(const ppl7::Array& iterable) const
+WideString WideString::join(const pplib::Array& iterable) const
 {
     return WideString(iterable.implode(*this));
 }
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2799,7 +2799,7 @@ WideString operator+(const WideString& str1, const WideString& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2818,7 +2818,7 @@ WideString operator+(const char* str1, const WideString& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2836,7 +2836,7 @@ WideString operator+(const WideString& str1, const char* str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2854,7 +2854,7 @@ WideString operator+(const wchar_t* str1, const WideString& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2872,7 +2872,7 @@ WideString operator+(const WideString& str1, const wchar_t* str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2890,7 +2890,7 @@ WideString operator+(const std::string& str1, const WideString& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2908,7 +2908,7 @@ WideString operator+(const WideString& str1, const std::string& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2926,7 +2926,7 @@ WideString operator+(const std::wstring& str1, const WideString& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2948,4 +2948,4 @@ std::ostream& operator<<(std::ostream& s, const WideString& str)
     return s.write((const char*)a.adr(), a.size());
 }
 
-} // namespace ppl7
+} // namespace pplib

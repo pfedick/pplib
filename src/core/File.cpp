@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -57,15 +57,15 @@
 
 #endif // _WIN32
 
-#include <ppl7/exceptions.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/array.h>
+#include <pplib/exceptions.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
 
-#include <ppl7/core/file.h>
-#include <ppl7/core/dir.h>
+#include <pplib/core/file.h>
+#include <pplib/core/dir.h>
 
-namespace ppl7
+namespace pplib
 {
 
 #define COPYBYTES_BUFFERSIZE 1024 * 1024
@@ -74,7 +74,7 @@ namespace ppl7
  * \ingroup PPLGroupFileIO
  * \brief Dateizugriff
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Klasse können Dateien geladen, verändert und gespeichert werden.
  * Sie dient als Wrapper-Klasse für die Low-Level Funktionen des Betriebssystems.
@@ -236,7 +236,7 @@ File::File()
  * Konstruktor der Klasse, mit dem gleichzeitig eine Datei geöffnet wird.
  * @param[in] filename Name der zu öffnenden Datei
  * @param[in] mode Zugriffsmodus. Defaultmäßig wird die Datei zum binären Lesen
- * geöffnet (siehe \ref ppl7_File_Filemodi)
+ * geöffnet (siehe \ref pplib_File_Filemodi)
  */
 File::File(const String& filename, FileMode mode)
 {
@@ -434,7 +434,7 @@ void File::open(const String& filename, FileMode mode)
  * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
  *
  * \param filename Dateiname als C-String
- * \param mode String, der angibt, wie die Datei geöffnet werden soll (siehe \ref ppl7_File_Filemodi)
+ * \param mode String, der angibt, wie die Datei geöffnet werden soll (siehe \ref pplib_File_Filemodi)
  *
  * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
@@ -513,7 +513,7 @@ void File::openTemp(const String& filetemplate)
     }
     setFilename((const char*)tmpname);
 #else
-    throw UnsupportedFeatureException("ppl7::File::openTemp, no mkstemp available");
+    throw UnsupportedFeatureException("pplib::File::openTemp, no mkstemp available");
 #endif
 }
 
@@ -827,7 +827,7 @@ wchar_t* File::fgetws(wchar_t* buffer, size_t num)
     if (ff == NULL) throw FileNotOpenException();
     if (buffer == NULL) throw IllegalArgumentException();
 #ifndef HAVE_FGETWS
-    throw UnsupportedFeatureException("ppl7::File::getws: No fgetws available");
+    throw UnsupportedFeatureException("pplib::File::getws: No fgetws available");
 #else
     // int suberr;
     wchar_t* res;
@@ -862,7 +862,7 @@ void File::fputws(const wchar_t* str)
     if (ff == NULL) throw FileNotOpenException();
     if (str == NULL) throw IllegalArgumentException();
 #ifndef HAVE_FPUTWS
-    throw UnsupportedFeatureException("ppl7::File::putws: No fputws available");
+    throw UnsupportedFeatureException("pplib::File::putws: No fputws available");
 #else
     if (::fputws(str, (FILE*)ff) != -1) {
         pos += wcslen(str) * sizeof(wchar_t);
@@ -902,7 +902,7 @@ void File::fputwc(wchar_t c)
 {
     if (ff == NULL) throw FileNotOpenException();
 #ifndef HAVE_FPUTWC
-    throw UnsupportedFeatureException("ppl7::File::putwc: No fputwc available");
+    throw UnsupportedFeatureException("pplib::File::putwc: No fputwc available");
 #else
     wint_t ret = ::fputwc(c, (FILE*)ff);
     if (ret != WEOF) {
@@ -918,7 +918,7 @@ wchar_t File::fgetwc()
 {
     if (ff == NULL) throw FileNotOpenException();
 #ifndef HAVE_FGETWC
-    throw UnsupportedFeatureException("ppl7::File::putwc: No fputwc available");
+    throw UnsupportedFeatureException("pplib::File::putwc: No fputwc available");
 #else
     wint_t ret = ::fgetwc((FILE*)ff);
     if (ret != WEOF) {
@@ -962,7 +962,7 @@ void File::sync()
     if (ret == 0) return;
     throwErrno(errno);
 #else
-    throw UnsupportedFeatureException("ppl7::File::sync: No fsync available");
+    throw UnsupportedFeatureException("pplib::File::sync: No fsync available");
 #endif
 }
 
@@ -979,7 +979,7 @@ void File::truncate(uint64_t length)
     }
     throwErrno(errno);
 #else
-    throw UnsupportedFeatureException("ppl7::File::truncate: No ftruncate available");
+    throw UnsupportedFeatureException("pplib::File::truncate: No ftruncate available");
 #endif
 }
 
@@ -1007,7 +1007,7 @@ void File::lockExclusive(bool block)
     if (ret == 0) return;
     throwErrno(errno);
 #else
-    throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
+    throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
 #endif
 }
 
@@ -1036,7 +1036,7 @@ void File::lockShared(bool block)
     if (ret == 0) return;
     throwErrno(errno);
 #else
-    throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
+    throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
 
 #endif
 }
@@ -1062,7 +1062,7 @@ void File::unlock()
     if (ret == 0) return;
     throwErrno(errno);
 #else
-    throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
+    throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
 #endif
 }
 
@@ -1326,7 +1326,7 @@ void File::truncate(const String& filename, uint64_t bytes)
     if (::truncate((const char*)filename, (off_t)bytes) == 0) return;
     throwErrno(errno, filename);
 #else
-    throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
+    throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
 #endif
 }
 
@@ -1456,8 +1456,8 @@ void File::rename(const String& oldfile, const String& newfile)
             // Ja, wir löschen sie manuell
             fclose(fd);
 #ifdef WIN32
-            ppl7::String o1 = oldfile.toLowerCase();
-            ppl7::String n1 = newfile.toLowerCase();
+            pplib::String o1 = oldfile.toLowerCase();
+            pplib::String n1 = newfile.toLowerCase();
             if (n1 == o1) return;
             if (::_wunlink((const wchar_t*)WideString(oldfile)) == 0) return;
 #else
@@ -1654,9 +1654,9 @@ String File::md5Hash(const String& filename)
 }
 
 #ifdef WIN32
-static void getResultFromStat(struct _stat& st, DirEntry& result, const ppl7::String& filename)
+static void getResultFromStat(struct _stat& st, DirEntry& result, const pplib::String& filename)
 #else
-static void getResultFromStat(struct stat& st, DirEntry& result, const ppl7::String& filename)
+static void getResultFromStat(struct stat& st, DirEntry& result, const pplib::String& filename)
 #endif
 {
     result.ATime.setTime_t(st.st_atime);
@@ -1798,8 +1798,8 @@ bool File::tryStatFile(const String& filename, DirEntry& result)
  *
  * \desc
  * Diese Funktion liefert den Verzeichnisnamen eines Strings zurück, der Pfad und Dateinamen
- * enthält. Lautet der String beispielsweise "/home/patrick/svn/ppl7/README.TXT" liefert die Funktion
- * "/home/patrick/svn/ppl7/" zurück.
+ * enthält. Lautet der String beispielsweise "/home/patrick/svn/pplib/README.TXT" liefert die Funktion
+ * "/home/patrick/svn/pplib/" zurück.
  *
  * @param path Pfad mit Dateinamen
  * @return String mit dem Pfad
@@ -1820,7 +1820,7 @@ String File::getPath(const String& path)
  *
  * \desc
  * Diese Funktion liefert den Dateinamen eines Strings zurück, der Pfad und Dateinamen
- * enthält. Lautet der String beispielsweise "/home/patrick/svn/ppl7/README.TXT" liefert die Funktion
+ * enthält. Lautet der String beispielsweise "/home/patrick/svn/pplib/README.TXT" liefert die Funktion
  * "README.TXT" zurück.
  *
  * @param path Pfad mit Dateinamen
@@ -1904,4 +1904,4 @@ bool File::isExecutable(const String& filename)
     return false;
 }
 
-} // end of namespace ppl7
+} // end of namespace pplib

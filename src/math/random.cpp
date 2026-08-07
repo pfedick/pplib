@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -28,10 +28,10 @@
  *******************************************************************************/
 
 #include <random>
-#include <ppl7/core/functions.h>
-#include <ppl7/types/bytearray.h>
+#include <pplib/core/functions.h>
+#include <pplib/types/bytearray.h>
 
-namespace ppl7
+namespace pplib
 {
 
 // Thread-lokaler Mersenne-Twister-Generator (C++11/17)
@@ -92,4 +92,4 @@ ByteArray& Random(ByteArray& buffer, size_t bytes)
     return buffer;
 }
 
-} // namespace ppl7
+} // namespace pplib

@@ -1,36 +1,36 @@
-dnl AX_PATH_LIB_PPL7([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-AC_DEFUN([AX_PATH_LIB_PPL7],[dnl
+dnl AX_PATH_LIB_PPLIB([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+AC_DEFUN([AX_PATH_LIB_PPLIB],[dnl
 
-AC_ARG_WITH([libppl7],
-	[  --with-libppl7[[=PATH]]  Prefix where PPL7-Library is installed],
-	[ppl7_prefix="$withval"],
-	[ppl7_prefix="no"])
+AC_ARG_WITH([libpplib],
+	[  --with-libpplib[[=PATH]]  Prefix where PPLIB-Library is installed],
+	[pplib_prefix="$withval"],
+	[pplib_prefix="no"])
 
-#if test "$ppl7_prefix" != "no"
+#if test "$pplib_prefix" != "no"
 #then
-	if test "$ppl7_prefix" = "no"
+	if test "$pplib_prefix" = "no"
 	then
-		AC_PATH_PROG(ppl7config,ppl7-config)
-	elif test "$ppl7_prefix" != "yes"
+		AC_PATH_PROG(pplibconfig,pplib-config)
+	elif test "$pplib_prefix" != "yes"
 	then
-		ppl7config="$ppl7_prefix/bin/ppl7-config"
+		pplibconfig="$pplib_prefix/bin/pplib-config"
 	else
-		AC_PATH_PROG(ppl7config,ppl7-config)
+		AC_PATH_PROG(pplibconfig,pplib-config)
 	fi
 	
-	AC_MSG_CHECKING([for lib ppl7])
-	if test [ -z "$ppl7config" ]
+	AC_MSG_CHECKING([for lib pplib])
+	if test [ -z "$pplibconfig" ]
 	then
 		AC_MSG_RESULT(no)
-	    AC_MSG_ERROR([ppl7 library (libppl7) and/or headers not found])
+	    AC_MSG_ERROR([pplib library (libpplib) and/or headers not found])
 		
 		ifelse([$3], , :, [$3])
 	else
 		AC_MSG_RESULT(yes)
 		min_ppl_version=ifelse([$1], ,6.0.0,[$1])
-		AC_MSG_CHECKING(for ppl7 version >= $min_ppl_version)
+		AC_MSG_CHECKING(for pplib version >= $min_ppl_version)
 		
-		ppl_version=`${ppl7config} --version`
+		ppl_version=`${pplibconfig} --version`
 		ppl_config_major_version=`echo $ppl_version | \
 			sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
     	ppl_config_minor_version=`echo $ppl_version | \
@@ -50,37 +50,37 @@ AC_ARG_WITH([libppl7],
 			ifelse([$3], , :, [$3])
 		else 
 			AC_MSG_RESULT([yes (version $ppl_version) ])
-			#AC_MSG_CHECKING(ppl7 debug libraries)
-			LIBPPL7_DEBUG_LIBS=`${ppl7config} --libs debug`
-			#AC_MSG_RESULT($LIBPPL7_DEBUG_LIBS)
-			#AC_MSG_CHECKING(ppl7 release libraries)
-			LIBPPL7_RELEASE_LIBS=`${ppl7config} --libs release`
-			LIBPPL7_RELEASE_ARCHIVE=`${ppl7config} --archive release`
-			LIBPPL7_DEBUG_ARCHIVE=`${ppl7config} --archive debug`
-			#AC_MSG_RESULT($LIBPPL7_RELEASE_LIBS)
-			#AC_MSG_CHECKING(ppl7 includes)
-			LIBPPL7_CFLAGS=`${ppl7config} --cflags`
-			LIBPPL7=`${ppl7config} --ppllib release`
-			LIBPPL7_DEBUG=`${ppl7config} --ppllib debug`
+			#AC_MSG_CHECKING(pplib debug libraries)
+			LIBPPLIB_DEBUG_LIBS=`${pplibconfig} --libs debug`
+			#AC_MSG_RESULT($LIBPPLIB_DEBUG_LIBS)
+			#AC_MSG_CHECKING(pplib release libraries)
+			LIBPPLIB_RELEASE_LIBS=`${pplibconfig} --libs release`
+			LIBPPLIB_RELEASE_ARCHIVE=`${pplibconfig} --archive release`
+			LIBPPLIB_DEBUG_ARCHIVE=`${pplibconfig} --archive debug`
+			#AC_MSG_RESULT($LIBPPLIB_RELEASE_LIBS)
+			#AC_MSG_CHECKING(pplib includes)
+			LIBPPLIB_CFLAGS=`${pplibconfig} --cflags`
+			LIBPPLIB=`${pplibconfig} --ppllib release`
+			LIBPPLIB_DEBUG=`${pplibconfig} --ppllib debug`
 			
-			#AC_MSG_RESULT($LIBPPL7_CFLAGS)
+			#AC_MSG_RESULT($LIBPPLIB_CFLAGS)
 			ifelse([$2], , :, [$2])
 		fi
 	fi
 #else
 #	AC_MSG_RESULT(not configured)
-#	AC_MSG_ERROR([ppl7 library is required])
+#	AC_MSG_ERROR([pplib library is required])
 #fi
 ])
 
 
 
-dnl AX_PPL7_FEATURE([FEATURE, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-AC_DEFUN([AX_PPL7_FEATURE],[dnl
-	AC_MSG_CHECKING([for ppl7-feature: $1])
+dnl AX_PPLIB_FEATURE([FEATURE, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+AC_DEFUN([AX_PPLIB_FEATURE],[dnl
+	AC_MSG_CHECKING([for pplib-feature: $1])
 	if test -z "${ppl_features}"
 	then
-		ppl_features=`${ppl7config} --features`
+		ppl_features=`${pplibconfig} --features`
 	fi
 	echo ${ppl_features}| tr " " "\n" | grep -i "^$1" > /dev/null 2>&1
 	if test $? -eq 0

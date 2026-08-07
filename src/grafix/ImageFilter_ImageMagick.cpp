@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -46,109 +46,117 @@
 #ifdef HAVE_IMAGEMAGICK
 #include <wand/MagickWand.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\class ImageFilter_ImageMagick
  * \ingroup PPLGroupGrafik
  * \brief Import-/Export-Filter für diverse Formate
  */
 
-
 ImageFilter_ImageMagick::ImageFilter_ImageMagick()
 {
 #ifdef HAVE_IMAGEMAGICK
-	MagickWandGenesis();
+    MagickWandGenesis();
 #endif
 }
 
 ImageFilter_ImageMagick::~ImageFilter_ImageMagick()
 {
 #ifdef HAVE_IMAGEMAGICK
-	MagickWandTerminus();
+    MagickWandTerminus();
 #endif
 }
 
-int ImageFilter_ImageMagick::ident(FileObject &file, IMAGE &img)
+int ImageFilter_ImageMagick::ident(FileObject& file, IMAGE& img)
 {
 #ifdef HAVE_IMAGEMAGICK
-	try {
-		MagickWand *wand=NewMagickWand();
-		if (!wand) return 0;
-		const void *blob=file.map();
+    try {
+        MagickWand* wand = NewMagickWand();
+        if (!wand) return 0;
+        const void* blob = file.map();
 
-		MagickBooleanType ok=MagickPingImageBlob(wand, blob, file.size());
-		if (ok) {
-			img.bitdepth=MagickGetImageDepth(wand);
-			img.width=MagickGetImageWidth(wand);
-			img.height=MagickGetImageHeight(wand);
-			img.pitch=0;
-			img.format=RGBFormat::unknown;
+        MagickBooleanType ok = MagickPingImageBlob(wand, blob, file.size());
+        if (ok) {
+            img.bitdepth = MagickGetImageDepth(wand);
+            img.width = MagickGetImageWidth(wand);
+            img.height = MagickGetImageHeight(wand);
+            img.pitch = 0;
+            img.format = RGBFormat::unknown;
 
-			ImageType t=MagickGetImageType(wand);
-			switch (t) {
-				case TrueColorType: img.format=RGBFormat::X8R8G8B8; break;
-				case TrueColorMatteType: img.format=RGBFormat::A8R8G8B8; break;
-				case GrayscaleType: img.format=RGBFormat::GREY8; break;
-				case GrayscaleMatteType: img.format=RGBFormat::GREYALPHA32; break;
-				case PaletteType: img.format=RGBFormat::Palette; break;
-				case PaletteMatteType: img.format=RGBFormat::Palette; break;
-				default: img.format=RGBFormat::unknown; break;
-			}
-			img.format=RGBFormat::A8R8G8B8;
-			printf ("MagickImage erkannt. bitdepth=%i, width=%i, height=%i\n",img.bitdepth,
-					img.width,img.height);
-			printf ("Pitch: %i, format: %s\n",img.pitch,(const char*) img.format.name());
-		}
-		DestroyMagickWand(wand);
-		if (ok) return 1;
-		return 0;
-
-	} catch (...) {
-		return 0;
-	}
+            ImageType t = MagickGetImageType(wand);
+            switch (t) {
+            case TrueColorType:
+                img.format = RGBFormat::X8R8G8B8;
+                break;
+            case TrueColorMatteType:
+                img.format = RGBFormat::A8R8G8B8;
+                break;
+            case GrayscaleType:
+                img.format = RGBFormat::GREY8;
+                break;
+            case GrayscaleMatteType:
+                img.format = RGBFormat::GREYALPHA32;
+                break;
+            case PaletteType:
+                img.format = RGBFormat::Palette;
+                break;
+            case PaletteMatteType:
+                img.format = RGBFormat::Palette;
+                break;
+            default:
+                img.format = RGBFormat::unknown;
+                break;
+            }
+            img.format = RGBFormat::A8R8G8B8;
+            printf("MagickImage erkannt. bitdepth=%i, width=%i, height=%i\n", img.bitdepth, img.width, img.height);
+            printf("Pitch: %i, format: %s\n", img.pitch, (const char*)img.format.name());
+        }
+        DestroyMagickWand(wand);
+        if (ok) return 1;
+        return 0;
+    }
+    catch (...) {
+        return 0;
+    }
 #endif
-	return 0;
+    return 0;
 }
 
-void ImageFilter_ImageMagick::load(FileObject &file, Drawable &surface, IMAGE &img)
+void ImageFilter_ImageMagick::load(FileObject& file, Drawable& surface, IMAGE& img)
 {
 #ifdef HAVE_IMAGEMAGICK
 
-	MagickWand *wand=NewMagickWand();
-	if (!wand) throw NullPointerException();
-	const void *blob=file.map();
-	MagickBooleanType ok=MagickReadImageBlob(wand,blob,file.size());
-	if (!ok) {
-		DestroyMagickWand(wand);
-		throw UnknownImageFormatException();
-	}
+    MagickWand* wand = NewMagickWand();
+    if (!wand) throw NullPointerException();
+    const void* blob = file.map();
+    MagickBooleanType ok = MagickReadImageBlob(wand, blob, file.size());
+    if (!ok) {
+        DestroyMagickWand(wand);
+        throw UnknownImageFormatException();
+    }
 
 #endif
-
 }
 
-void ImageFilter_ImageMagick::save (const Drawable &surface, FileObject &file, const AssocArray &param)
+void ImageFilter_ImageMagick::save(const Drawable& surface, FileObject& file, const AssocArray& param)
 {
-
 }
 
 String ImageFilter_ImageMagick::name()
 {
-	return "ImageMagick";
+    return "ImageMagick";
 }
 
 String ImageFilter_ImageMagick::description()
 {
-	return "Import Filter with ImageMagick";
+    return "Import Filter with ImageMagick";
 }
 
-
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
-
-
+} // namespace grafix
+} // namespace pplib

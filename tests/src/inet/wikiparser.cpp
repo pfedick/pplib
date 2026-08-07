@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,48 +32,49 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
-#include <ppl7-inet.h>
+#include <pplib.h>
+#include <pplib-inet.h>
 #include <gtest/gtest.h>
 #include <list>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 #ifdef DEPRECATED
 // The fixture for testing class Foo.
-class WikiparserTest : public ::testing::Test {
-	protected:
-	WikiparserTest() {
-		if (setlocale(LC_CTYPE,"")==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-	}
-	virtual ~WikiparserTest() {
-
-	}
+class WikiparserTest : public ::testing::Test
+{
+protected:
+    WikiparserTest()
+    {
+        if (setlocale(LC_CTYPE, "") == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+    }
+    virtual ~WikiparserTest()
+    {
+    }
 };
 
-TEST_F(WikiparserTest, Example1) {
-	const char input[]={"==== Dummy Headline ====\n"
-			"\\brief Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua\n"
-			"\\syntax void dummyBlah()\n"
-			"\\desc\n"
-			" Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat.\n"
-			"\n"
-			"\\return\n"
-			"Quis aute iure reprehenderit in \\b voluptate velit esse cillum dolore eu fugiat nulla pariatur. \n"
-	};
-	ppl7::WikiParser wiki;
-	wiki.setIndexEnabled(false);
-	ppl7::String html;
-	ppl7::String t(input);
-	wiki.render(t,html);
-
-
+TEST_F(WikiparserTest, Example1)
+{
+    const char input[] = {
+        "==== Dummy Headline ====\n"
+        "\\brief Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua\n"
+        "\\syntax void dummyBlah()\n"
+        "\\desc\n"
+        " Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquid ex ea commodi consequat.\n"
+        "\n"
+        "\\return\n"
+        "Quis aute iure reprehenderit in \\b voluptate velit esse cillum dolore eu fugiat nulla pariatur. \n"};
+    pplib::WikiParser wiki;
+    wiki.setIndexEnabled(false);
+    pplib::String html;
+    pplib::String t(input);
+    wiki.render(t, html);
 }
 
 #endif
-}
-
+} // namespace

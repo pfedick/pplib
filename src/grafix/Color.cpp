@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,10 +27,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "ppl7/grafix/color.h"
-#include <ppl7/types/string.h>
+#include "pplib/grafix/color.h"
+#include <pplib/types/string.h>
 
-namespace ppl7::grafix
+namespace pplib::grafix
 {
 
 static inline uint8_t clamp(int value) noexcept
@@ -167,4 +167,4 @@ std::ostream& operator<<(std::ostream& s, const Color& c)
     return s.write((const char*)t.getPtr(), t.size());
 }
 
-} // namespace ppl7::grafix
+} // namespace pplib::grafix

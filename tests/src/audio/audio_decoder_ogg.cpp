@@ -1,9 +1,9 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (ppl7).
+ * This file is part of "Patrick's Programming Library", Version 7 (pplib).
  * Web: http://www.pfp.de/ppl/
  *
  *******************************************************************************
- * Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,47 +34,41 @@
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include <ppl7.h>
-#include <ppl7-audio.h>
+#include <pplib.h>
+#include <pplib-audio.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
+namespace pplib
+{
 
-namespace ppl7 {
-
-
-class AudioDecoder_Ogg_Test : public ::testing::Test {
+class AudioDecoder_Ogg_Test : public ::testing::Test
+{
 protected:
-	AudioDecoder_Ogg_Test() {
-		if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
-			printf("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-		ppl7::Dir::mkDir("tmp");
-	}
-	virtual ~AudioDecoder_Ogg_Test() {
-
-	}
+    AudioDecoder_Ogg_Test()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+        pplib::Dir::mkDir("tmp");
+    }
+    virtual ~AudioDecoder_Ogg_Test()
+    {
+    }
 };
 
-TEST_F(AudioDecoder_Ogg_Test, DecodeOggVorbis) {
-	ppl7::File file;
-	file.open("testdata/test_44kHz.ogg");
-	ppl7::AudioDecoder_Ogg ogg;
-	ogg.open(file);
+TEST_F(AudioDecoder_Ogg_Test, DecodeOggVorbis)
+{
+    pplib::File file;
+    file.open("testdata/test_44kHz.ogg");
+    pplib::AudioDecoder_Ogg ogg;
+    ogg.open(file);
 
-
-	STEREOSAMPLE16* samples=(STEREOSAMPLE16*)malloc(sizeof(STEREOSAMPLE16) * 1024);
-	ASSERT_TRUE(samples != NULL);
-	size_t num_read=ogg.getSamples(1024, samples);
-	ASSERT_EQ(num_read, 1024);
-
-
-
+    STEREOSAMPLE16* samples = (STEREOSAMPLE16*)malloc(sizeof(STEREOSAMPLE16) * 1024);
+    ASSERT_TRUE(samples != NULL);
+    size_t num_read = ogg.getSamples(1024, samples);
+    ASSERT_EQ(num_read, 1024);
 }
 
-
-
-
-
-}	// EOF namespace
+} // namespace pplib

@@ -1,10 +1,10 @@
-/*! \struct ppl7::tagTime
+/*! \struct pplib::tagTime
  *  
- * Siehe ppl7::PPLTIME
+ * Siehe pplib::PPLTIME
  *  
  */
 
-/*!\struct ppl7::PPLTIME
+/*!\struct pplib::PPLTIME
  * \ingroup PPLGroupDateTime
  * 
  * In dieser Struktur wird ein Datum in seine einzelnen Bestandteile zerlegt, wie Jahr, Monat, Tag,
@@ -29,7 +29,7 @@ typedef struct tagTime {
  *  
  */
  
-/*!\struct ppl7::RECT ppl7.h "ppl7.h"
+/*!\struct pplib::RECT pplib.h "pplib.h"
 
 \ingroup PPLGroupDataTypes
 \brief Struktur, die ein Rechteck definiert
@@ -55,7 +55,7 @@ int height=r.bottom-r.top;
 
 Sie wird hauptsächlich innerhalb der Garfik-Bibliothek verwendet, um die Koordinaten von
 Fenstern, Surfaces, Rechtecken, Clippings und Texturen zu speichern, oder um rechteckige
-Formen zu zeichnen oder zu Kopieren (z.B. ppl7::grafix::Blt).
+Formen zu zeichnen oder zu Kopieren (z.B. pplib::grafix::Blt).
 
 \remarks
 Windows verwendet den Datentyp "long" für die einzelnen Elemente. Dieser ist unter Windows 32 Bit breit,
@@ -65,15 +65,15 @@ ist.
 */
 
 
-/*!\var ppl7::RECT::left
+/*!\var pplib::RECT::left
  \brief Spezifiziert die X-Koordinate der oberen linken Ecke des Rechtecks
  */
  
-/*!\var ppl7::RECT::top
+/*!\var pplib::RECT::top
  \brief Spezifiziert die Y-Koordinate der oberen linken Ecke des Rechtecks
  */
  
-/*!\var ppl7::RECT::right
+/*!\var pplib::RECT::right
  \brief Spezifiziert die X-Koordinate der unteren rechten Ecke des Rechtecks
  
  Per Definition sind die Koordinaten für die rechte und untere Ecke des Rechtecks
@@ -81,7 +81,7 @@ ist.
  außerhalb.
  */
  
-/*!\var ppl7::RECT::bottom
+/*!\var pplib::RECT::bottom
  \brief Spezifiziert die Y-Koordinate der unteren rechten Ecke des Rechtecks
  
  Per Definition sind die Koordinaten für die rechte und untere Ecke des Rechtecks
@@ -92,7 +92,7 @@ ist.
  
 
 
-/*!\struct ppl7::POINT ppl7.h "ppl7.h"
+/*!\struct pplib::POINT pplib.h "pplib.h"
 
 \ingroup PPLGroupDataTypes
 \brief Koordinaten eines einzelnen Punktes
@@ -102,10 +102,10 @@ Diese Struktur definiert die X- und Y-Koordinaten eines einzelnen Punktes innerh
 2-Dimensionalen Fläche.
 */
 
-/*!\var ppl7::POINT::x
+/*!\var pplib::POINT::x
  \brief Die X-Koordinate des Punktes
 */
 
-/*!\var ppl7::POINT::y
+/*!\var pplib::POINT::y
  \brief Die Y-Koordinate des Punktes
 */

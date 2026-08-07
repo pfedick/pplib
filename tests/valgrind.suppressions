@@ -9,7 +9,7 @@
 
 
 {
-   False Positive outside ppl7
+   False Positive outside pplib
    Memcheck:Addr8
    obj:/libexec/ld-elf.so.1
    obj:/libexec/ld-elf.so.1
@@ -26,7 +26,7 @@
 }
 
 {
-   False Positive outside ppl7
+   False Positive outside pplib
    Memcheck:Addr8
    obj:/libexec/ld-elf.so.1
    obj:/libexec/ld-elf.so.1

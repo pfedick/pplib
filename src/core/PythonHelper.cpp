@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,10 +27,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/functions.h>
-#include <ppl7/core/regex.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/regex.h>
 
-namespace ppl7
+namespace pplib
 {
 
 String PythonHelper::escapeString(const String& s)
@@ -49,9 +49,9 @@ String PythonHelper::escapeRegExp(const String& s)
     return RegEx::escape(s);
 }
 
-static ppl7::String getValue(const ppl7::String str)
+static pplib::String getValue(const pplib::String str)
 {
-    ppl7::String lstr = str.toLowerCase();
+    pplib::String lstr = str.toLowerCase();
     if (str.isNumeric() && (str.instr(",") < 0))
         return str;
     else if (lstr == "true")
@@ -61,10 +61,10 @@ static ppl7::String getValue(const ppl7::String str)
     else if (lstr == "null" || lstr == "none")
         return "None";
     else
-        return ppl7::ToString("\"%s\"", (const char*)PythonHelper::escapeString(str));
+        return pplib::ToString("\"%s\"", (const char*)PythonHelper::escapeString(str));
 }
 
-static ppl7::String toHashRecurse(const AssocArray& a, int indention)
+static pplib::String toHashRecurse(const AssocArray& a, int indention)
 {
     String r;
     String key;
@@ -107,4 +107,4 @@ String PythonHelper::toHash(const AssocArray& a, const String& name, int indenti
     return ret;
 }
 
-} // namespace ppl7
+} // namespace pplib

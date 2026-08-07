@@ -1,10 +1,10 @@
 ;###############################################################################
-;# This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+;# This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
 ;# Web: http://www.pfp.de/ppl/
 ;#
 ;###############################################################################
 ;#
-;# Copyright (c) 2023, Patrick Fedick <patrick@pfp.de>
+;# Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
 ;# All rights reserved.
 ;#
 ;# Redistribution and use in source and binary forms, with or without

@@ -1,9 +1,9 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (ppl7).
+ * This file is part of "Patrick's Programming Library", Version 7 (pplib).
  * Web: http://www.pfp.de/ppl/
  *
  *******************************************************************************
- * Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,51 +34,45 @@
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include <ppl7.h>
-#include <ppl7-audio.h>
+#include <pplib.h>
+#include <pplib-audio.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
+namespace pplib
+{
 
-namespace ppl7 {
-
-
-class AudioDecoder_Aiff_Test : public ::testing::Test {
-	protected:
-	AudioDecoder_Aiff_Test() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-		ppl7::Dir::mkDir("tmp");
-	}
-	virtual ~AudioDecoder_Aiff_Test() {
-
-	}
+class AudioDecoder_Aiff_Test : public ::testing::Test
+{
+protected:
+    AudioDecoder_Aiff_Test()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+        pplib::Dir::mkDir("tmp");
+    }
+    virtual ~AudioDecoder_Aiff_Test()
+    {
+    }
 };
 
-TEST_F(AudioDecoder_Aiff_Test, Constructor) {
-	ASSERT_NO_THROW({
-		ppl7::AudioDecoder_Aiff decoder;
-	});
+TEST_F(AudioDecoder_Aiff_Test, Constructor)
+{
+    ASSERT_NO_THROW({ pplib::AudioDecoder_Aiff decoder; });
 }
 
-TEST_F(AudioDecoder_Aiff_Test, open) {
-	ppl7::AudioDecoder_Aiff decoder;
-	ppl7::File file("testdata/test_44kHz_tagged.aiff");
-	ASSERT_NO_THROW({
-		decoder.open(file);
-	});
-	const ppl7::AudioInfo &info=decoder.getAudioInfo();
-	ASSERT_EQ(ppl7::AudioInfo::AIFF, info.Format);
-	printf ("Samples: %d\n",info.Samples);
-	printf ("AudioSize: %d\n",info.AudioSize);
-	printf ("AudioSize: %d\n",info.AudioSize);
+TEST_F(AudioDecoder_Aiff_Test, open)
+{
+    pplib::AudioDecoder_Aiff decoder;
+    pplib::File file("testdata/test_44kHz_tagged.aiff");
+    ASSERT_NO_THROW({ decoder.open(file); });
+    const pplib::AudioInfo& info = decoder.getAudioInfo();
+    ASSERT_EQ(pplib::AudioInfo::AIFF, info.Format);
+    printf("Samples: %d\n", info.Samples);
+    printf("AudioSize: %d\n", info.AudioSize);
+    printf("AudioSize: %d\n", info.AudioSize);
 }
 
-
-
-}	// EOF namespace
-
-
-
+} // namespace pplib

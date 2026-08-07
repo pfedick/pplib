@@ -1,9 +1,9 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (ppl7).
+ * This file is part of "Patrick's Programming Library", Version 7 (pplib).
  * Web: http://www.pfp.de/ppl/
  *
  *******************************************************************************
- * Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,64 +34,62 @@
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include <ppl7.h>
-#include <ppl7-audio.h>
+#include <pplib.h>
+#include <pplib-audio.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
+namespace pplib
+{
 
-namespace ppl7 {
-
-
-class AudioEncoder_MP3_Test : public ::testing::Test {
-	protected:
-	AudioEncoder_MP3_Test() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-		ppl7::Dir::mkDir("tmp");
-	}
-	virtual ~AudioEncoder_MP3_Test() {
-
-	}
+class AudioEncoder_MP3_Test : public ::testing::Test
+{
+protected:
+    AudioEncoder_MP3_Test()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+        pplib::Dir::mkDir("tmp");
+    }
+    virtual ~AudioEncoder_MP3_Test()
+    {
+    }
 };
 
-TEST_F(AudioEncoder_MP3_Test, Constructor) {
-	ASSERT_NO_THROW({
-		ppl7::AudioEncoder_MP3 encoder;
-	});
-}
-
-static void ProgressFunc(int progress, void *priv)
+TEST_F(AudioEncoder_MP3_Test, Constructor)
 {
-	printf ("%d %%\n",progress);
+    ASSERT_NO_THROW({ pplib::AudioEncoder_MP3 encoder; });
 }
 
-TEST_F(AudioEncoder_MP3_Test, EncodeCBRFromAiff) {
-	ppl7::AudioEncoder_MP3 encoder;
-	ppl7::AudioDecoder_Aiff decoder;
-	ppl7::File file("testdata/test_44kHz_taggedWithCover.aiff");
-	ppl7::ID3Tag tag;
-	tag.load(file);
-	decoder.open(file);
-	try {
-		encoder.setCBR(320,0);
-		encoder.setStereoMode(AudioInfo::JOINT_STEREO);
-		encoder.setProgressFunction(ProgressFunc, this);
-		ppl7::File out("tmp/encoder_cbr320.mp3", ppl7::File::WRITE);
-		encoder.startEncode(out);
-		encoder.writeID3v2Tag(tag);
-		encoder.encode(decoder);
-		encoder.finish();
-		encoder.writeID3v1Tag(tag);
-	} catch (const ppl7::Exception &exp) {
-		exp.print();
-	}
+static void ProgressFunc(int progress, void* priv)
+{
+    printf("%d %%\n", progress);
 }
 
+TEST_F(AudioEncoder_MP3_Test, EncodeCBRFromAiff)
+{
+    pplib::AudioEncoder_MP3 encoder;
+    pplib::AudioDecoder_Aiff decoder;
+    pplib::File file("testdata/test_44kHz_taggedWithCover.aiff");
+    pplib::ID3Tag tag;
+    tag.load(file);
+    decoder.open(file);
+    try {
+        encoder.setCBR(320, 0);
+        encoder.setStereoMode(AudioInfo::JOINT_STEREO);
+        encoder.setProgressFunction(ProgressFunc, this);
+        pplib::File out("tmp/encoder_cbr320.mp3", pplib::File::WRITE);
+        encoder.startEncode(out);
+        encoder.writeID3v2Tag(tag);
+        encoder.encode(decoder);
+        encoder.finish();
+        encoder.writeID3v1Tag(tag);
+    }
+    catch (const pplib::Exception& exp) {
+        exp.print();
+    }
+}
 
-
-
-}	// EOF namespace
-
+} // namespace pplib

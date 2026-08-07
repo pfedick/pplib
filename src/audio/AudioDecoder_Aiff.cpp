@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *******************************************************************************
- * Copyright (c) 2017, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -37,173 +37,167 @@
 #include <string.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-audio.h"
+#include "pplib.h"
+#include "pplib-audio.h"
 
-
-namespace ppl7 {
+namespace pplib
+{
 
 AudioDecoder_Aiff::AudioDecoder_Aiff()
 {
-	position = 0;
-	samplesize = 0;
-	ff = NULL;
+    position = 0;
+    samplesize = 0;
+    ff = NULL;
 }
 
 AudioDecoder_Aiff::~AudioDecoder_Aiff()
 {
-
 }
 
 void AudioDecoder_Aiff::open(FileObject& file, const AudioInfo* info)
 {
-	if (!info) {
-		if (!IdentAudioFile(file, this->info)) {
-			throw UnsupportedAudioFormatException();
-		}
-	}
-	else {
-		this->info = *info;
-	}
-	/*
-	printf ("frequency: %d\n",this->info.Frequency);
-	printf ("Channels: %d\n",this->info.Channels);
-	printf ("BitsPerSample: %d\n",this->info.BitsPerSample);
-	printf ("BytesPerSample: %d\n",this->info.BytesPerSample);
-	*/
-	if (this->info.Format != AudioInfo::AIFF) throw UnsupportedAudioFormatException();
-	//if (this->info.Frequency!=44100) throw UnsupportedAudioFormatException("Frequency != 44100");
-	//if (this->info.Bitrate!=1411) throw UnsupportedAudioFormatException("Bitrate != 1411");
-	if (this->info.Channels != 2) throw UnsupportedAudioFormatException("Channels != 2");
-	if (this->info.BitsPerSample != 16 && this->info.BitsPerSample != 24) throw UnsupportedAudioFormatException("BitsPerSample is not 16 or 24");
-	if (this->info.BytesPerSample != 4 && this->info.BytesPerSample != 6) throw UnsupportedAudioFormatException("BytesPerSample is not 4 or 6");
-	position = 0;
-	this->ff = &file;
+    if (!info) {
+        if (!IdentAudioFile(file, this->info)) {
+            throw UnsupportedAudioFormatException();
+        }
+    } else {
+        this->info = *info;
+    }
+    /*
+    printf ("frequency: %d\n",this->info.Frequency);
+    printf ("Channels: %d\n",this->info.Channels);
+    printf ("BitsPerSample: %d\n",this->info.BitsPerSample);
+    printf ("BytesPerSample: %d\n",this->info.BytesPerSample);
+    */
+    if (this->info.Format != AudioInfo::AIFF) throw UnsupportedAudioFormatException();
+    // if (this->info.Frequency!=44100) throw UnsupportedAudioFormatException("Frequency != 44100");
+    // if (this->info.Bitrate!=1411) throw UnsupportedAudioFormatException("Bitrate != 1411");
+    if (this->info.Channels != 2) throw UnsupportedAudioFormatException("Channels != 2");
+    if (this->info.BitsPerSample != 16 && this->info.BitsPerSample != 24)
+        throw UnsupportedAudioFormatException("BitsPerSample is not 16 or 24");
+    if (this->info.BytesPerSample != 4 && this->info.BytesPerSample != 6)
+        throw UnsupportedAudioFormatException("BytesPerSample is not 4 or 6");
+    position = 0;
+    this->ff = &file;
 }
 
 const AudioInfo& AudioDecoder_Aiff::getAudioInfo() const
 {
-	return info;
+    return info;
 }
 
 void AudioDecoder_Aiff::getAudioInfo(AudioInfo& info) const
 {
-	info = this->info;
+    info = this->info;
 }
 
 void AudioDecoder_Aiff::seekSample(size_t sample)
 {
-	if (sample < info.Samples) position = sample;
-	else position = info.Samples;
+    if (sample < info.Samples)
+        position = sample;
+    else
+        position = info.Samples;
 }
 
 size_t AudioDecoder_Aiff::getPosition() const
 {
-	return position;
+    return position;
 }
 
 size_t AudioDecoder_Aiff::getSamples(size_t num, STEREOSAMPLE16* buffer)
 {
-	size_t samples = num;
-	if (position + samples > info.Samples) samples = info.Samples - position;
-	const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
-	if (info.BitsPerSample == 16) {
-		for (size_t i = 0;i < samples;i++) {
-			buffer[i].left = (int16_t)PeekN16(data);
-			buffer[i].right = (int16_t)PeekN16(data + 2);
-			data += 4;
-		}
-	}
-	else if (info.BitsPerSample == 24) {
-		for (size_t i = 0;i < samples;i++) {
-			int32_t l = (int32_t)(PeekN24(data) << 8) >> 8;   // sign-extend 24-bit
-			int32_t r = (int32_t)(PeekN24(data + 3) << 8) >> 8;
-			buffer[i].left = (int16_t)(l >> 8);  // downscale to 16-bit
-			buffer[i].right = (int16_t)(r >> 8);
-			data += 6;
-		}
-	}
-	position += samples;
-	return samples;
+    size_t samples = num;
+    if (position + samples > info.Samples) samples = info.Samples - position;
+    const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
+    if (info.BitsPerSample == 16) {
+        for (size_t i = 0; i < samples; i++) {
+            buffer[i].left = (int16_t)PeekN16(data);
+            buffer[i].right = (int16_t)PeekN16(data + 2);
+            data += 4;
+        }
+    } else if (info.BitsPerSample == 24) {
+        for (size_t i = 0; i < samples; i++) {
+            int32_t l = (int32_t)(PeekN24(data) << 8) >> 8; // sign-extend 24-bit
+            int32_t r = (int32_t)(PeekN24(data + 3) << 8) >> 8;
+            buffer[i].left = (int16_t)(l >> 8); // downscale to 16-bit
+            buffer[i].right = (int16_t)(r >> 8);
+            data += 6;
+        }
+    }
+    position += samples;
+    return samples;
 }
 
 size_t AudioDecoder_Aiff::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
-	size_t samples = num;
-	if (position + samples > info.Samples) samples = info.Samples - position;
-	const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
-	if (info.BitsPerSample == 16) {
-		for (size_t i = 0;i < samples;i++) {
-			buffer[i].left += (int16_t)PeekN16(data);
-			buffer[i].right += (int16_t)PeekN16(data + 2);
-			data += 4;
-		}
-	}
-	else if (info.BitsPerSample == 24) {
-		for (size_t i = 0;i < samples;i++) {
-			int32_t l = (int32_t)(PeekN24(data) << 8) >> 8;   // sign-extend 24-bit
-			int32_t r = (int32_t)(PeekN24(data + 3) << 8) >> 8;
-			buffer[i].left += l;
-			buffer[i].right += r;
-			data += 6;
-		}
-	}
-	position += samples;
-	return samples;
+    size_t samples = num;
+    if (position + samples > info.Samples) samples = info.Samples - position;
+    const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
+    if (info.BitsPerSample == 16) {
+        for (size_t i = 0; i < samples; i++) {
+            buffer[i].left += (int16_t)PeekN16(data);
+            buffer[i].right += (int16_t)PeekN16(data + 2);
+            data += 4;
+        }
+    } else if (info.BitsPerSample == 24) {
+        for (size_t i = 0; i < samples; i++) {
+            int32_t l = (int32_t)(PeekN24(data) << 8) >> 8; // sign-extend 24-bit
+            int32_t r = (int32_t)(PeekN24(data + 3) << 8) >> 8;
+            buffer[i].left += l;
+            buffer[i].right += r;
+            data += 6;
+        }
+    }
+    position += samples;
+    return samples;
 }
-
 
 size_t AudioDecoder_Aiff::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
-	size_t samples = num;
-	if (position + samples > info.Samples) samples = info.Samples - position;
-	const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
-	if (info.BitsPerSample == 16) {
-		for (size_t i = 0;i < samples;i++) {
-			buffer[i].left = (int16_t)PeekN16(data) / 32768.0f;
-			buffer[i].right = (int16_t)PeekN16(data + 2) / 32768.0f;
-			data += 4;
-		}
-	}
-	else if (info.BitsPerSample == 24) {
-		for (size_t i = 0;i < samples;i++) {
-			int32_t l = (int32_t)(PeekN24(data) << 8) >> 8;   // sign-extend 24-bit
-			int32_t r = (int32_t)(PeekN24(data + 3) << 8) >> 8;
-			buffer[i].left = (float)l / 8388608.0f;
-			buffer[i].right = (float)r / 8388608.0f;
-			data += 6;
-		}
-	}
-	position += samples;
-	return samples;
+    size_t samples = num;
+    if (position + samples > info.Samples) samples = info.Samples - position;
+    const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
+    if (info.BitsPerSample == 16) {
+        for (size_t i = 0; i < samples; i++) {
+            buffer[i].left = (int16_t)PeekN16(data) / 32768.0f;
+            buffer[i].right = (int16_t)PeekN16(data + 2) / 32768.0f;
+            data += 4;
+        }
+    } else if (info.BitsPerSample == 24) {
+        for (size_t i = 0; i < samples; i++) {
+            int32_t l = (int32_t)(PeekN24(data) << 8) >> 8; // sign-extend 24-bit
+            int32_t r = (int32_t)(PeekN24(data + 3) << 8) >> 8;
+            buffer[i].left = (float)l / 8388608.0f;
+            buffer[i].right = (float)r / 8388608.0f;
+            data += 6;
+        }
+    }
+    position += samples;
+    return samples;
 }
 
 size_t AudioDecoder_Aiff::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
-	size_t samples = num;
-	if (position + samples > info.Samples) samples = info.Samples - position;
-	const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
-	if (info.BitsPerSample == 16) {
-		for (size_t i = 0;i < samples;i++) {
-			buffer[i].left += (int16_t)PeekN16(data) / 32768.0f;
-			buffer[i].right += (int16_t)PeekN16(data + 2) / 32768.0f;
-			data += 4;
-		}
-	}
-	else if (info.BitsPerSample == 24) {
-		for (size_t i = 0;i < samples;i++) {
-			int32_t l = (int32_t)(PeekN24(data) << 8) >> 8;   // sign-extend 24-bit
-			int32_t r = (int32_t)(PeekN24(data + 3) << 8) >> 8;
-			buffer[i].left += (float)l / 8388608.0f;
-			buffer[i].right += (float)r / 8388608.0f;
-			data += 6;
-		}
-	}
-	position += samples;
-	return samples;
+    size_t samples = num;
+    if (position + samples > info.Samples) samples = info.Samples - position;
+    const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
+    if (info.BitsPerSample == 16) {
+        for (size_t i = 0; i < samples; i++) {
+            buffer[i].left += (int16_t)PeekN16(data) / 32768.0f;
+            buffer[i].right += (int16_t)PeekN16(data + 2) / 32768.0f;
+            data += 4;
+        }
+    } else if (info.BitsPerSample == 24) {
+        for (size_t i = 0; i < samples; i++) {
+            int32_t l = (int32_t)(PeekN24(data) << 8) >> 8; // sign-extend 24-bit
+            int32_t r = (int32_t)(PeekN24(data + 3) << 8) >> 8;
+            buffer[i].left += (float)l / 8388608.0f;
+            buffer[i].right += (float)r / 8388608.0f;
+            data += 6;
+        }
+    }
+    position += samples;
+    return samples;
 }
 
-
-
-}	// EOF namespace ppl7
-
+} // namespace pplib

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,51 +35,48 @@
 #ifndef TOOLKIT_H_
 #define TOOLKIT_H_
 
-
 class FrameRate
 {
-	private:
-		int desiredFrameRate;
-		int fps;
-		int framecount;
-		ppl7::ppl_time_t lastFpsTime;
+private:
+    int desiredFrameRate;
+    int fps;
+    int framecount;
+    pplib::ppl_time_t lastFpsTime;
 
-	public:
-		FrameRate();
-		void setFrameRate(int fps);
-		int getFrameCount() const;
-		int getFPS() const;
-		void updateFPS();
+public:
+    FrameRate();
+    void setFrameRate(int fps);
+    int getFrameCount() const;
+    int getFPS() const;
+    void updateFPS();
 };
 
-class MainWindow : public ppl7::tk::Window
+class MainWindow : public pplib::tk::Window
 {
-	private:
-		ppl7::grafix::Grafix *gfx;
+private:
+    pplib::grafix::Grafix* gfx;
 
-		ppl7::tk::Frame *menue;
-		ppl7::tk::Label *frameCountLabel;
-		ppl7::tk::Label *fpsLabel;
-		ppl7::tk::Button *exitButton;
-		ppl7::tk::Button *okButton;
+    pplib::tk::Frame* menue;
+    pplib::tk::Label* frameCountLabel;
+    pplib::tk::Label* fpsLabel;
+    pplib::tk::Button* exitButton;
+    pplib::tk::Button* okButton;
 
-		ppl7::tk::Frame *toolbar;
+    pplib::tk::Frame* toolbar;
 
-		ppl7::tk::LineInput *input;
+    pplib::tk::LineInput* input;
 
-		FrameRate fps;
+    FrameRate fps;
 
-		virtual void closeEvent(ppl7::tk::Event *event);
-		virtual void mouseClickEvent(ppl7::tk::MouseEvent *event);
+    virtual void closeEvent(pplib::tk::Event* event);
+    virtual void mouseClickEvent(pplib::tk::MouseEvent* event);
 
-	public:
-		MainWindow();
-		~MainWindow();
+public:
+    MainWindow();
+    ~MainWindow();
 
-		void create(int width, int height, bool fullscreen);
-		void updateFrameRate();
-
-
+    void create(int width, int height, bool fullscreen);
+    void updateFrameRate();
 };
 
 #endif /* TOOLKIT_H_ */

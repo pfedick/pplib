@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *******************************************************************************
- * Copyright (c) 2017, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -37,14 +37,14 @@
 #include <string.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-audio.h"
+#include "pplib.h"
+#include "pplib-audio.h"
 
 #ifdef HAVE_MPG123_H
 #include <mpg123.h>
 #endif
 
-namespace ppl7
+namespace pplib
 {
 
 #ifdef HAVE_MPG123
@@ -103,7 +103,7 @@ AudioDecoder_MP3::~AudioDecoder_MP3()
 void AudioDecoder_MP3::open(FileObject& file, const AudioInfo* info)
 {
 #ifndef HAVE_MPG123
-    throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #else
 
     if (!info) {
@@ -165,7 +165,7 @@ void AudioDecoder_MP3::seekSample(size_t sample)
 #endif
         return;
     }
-    throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3::seekSample");
+    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3::seekSample");
     // if (sample<info.Samples) position=sample;
     // else position=info.Samples;
 }
@@ -212,7 +212,7 @@ size_t AudioDecoder_MP3::fillDecodeBuffer()
 size_t AudioDecoder_MP3::getSamples(size_t num, STEREOSAMPLE16* interleafed)
 {
 #ifndef HAVE_MPG123
-    throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #else
     if (lastDecodeFormat != MPG123_ENC_SIGNED_16) {
         // We need to switch the output format
@@ -257,7 +257,7 @@ size_t AudioDecoder_MP3::getSamples(size_t num, STEREOSAMPLE16* interleafed)
 size_t AudioDecoder_MP3::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
 #ifndef HAVE_MPG123
-    throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #else
     if (lastDecodeFormat != MPG123_ENC_SIGNED_16) {
         // We need to switch the output format
@@ -305,7 +305,7 @@ size_t AudioDecoder_MP3::addSamples(size_t num, STEREOSAMPLE32* buffer)
 size_t AudioDecoder_MP3::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
 #ifndef HAVE_MPG123
-    throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #else
     if (lastDecodeFormat != MPG123_ENC_FLOAT_32) {
         // We need to switch the output format
@@ -349,7 +349,7 @@ size_t AudioDecoder_MP3::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 size_t AudioDecoder_MP3::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
 #ifndef HAVE_MPG123
-    throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #else
     if (lastDecodeFormat != MPG123_ENC_FLOAT_32) {
         // We need to switch the output format
@@ -397,7 +397,7 @@ size_t AudioDecoder_MP3::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 size_t AudioDecoder_MP3::getSamples(size_t num, SAMPLE16* left, SAMPLE16* right)
 {
 #ifndef HAVE_MPG123
-    throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #else
     size_t rest = num;
     while (rest) {
@@ -426,8 +426,8 @@ size_t AudioDecoder_MP3::getSamples(size_t num, SAMPLE16* left, SAMPLE16* right)
 
 size_t AudioDecoder_MP3::getSamples(size_t num, float* left, float* right)
 {
-    throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3::getSamples(size_t num, float *left, float *right)");
+    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3::getSamples(size_t num, float *left, float *right)");
 }
 */
 
-} // namespace ppl7
+} // namespace pplib

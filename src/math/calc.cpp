@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -33,9 +33,9 @@
 #include <math.h>
 #include <list>
 
-#include <ppl7/core/functions.h>
+#include <pplib/core/functions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 #define CALC_BUFFERSIZE 64
@@ -237,4 +237,4 @@ double Calc(const String& expression)
     return Tokenize(current, buffer);
 }
 
-} // namespace ppl7
+} // namespace pplib

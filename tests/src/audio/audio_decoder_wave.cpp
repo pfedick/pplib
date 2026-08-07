@@ -1,9 +1,9 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (ppl7).
+ * This file is part of "Patrick's Programming Library", Version 7 (pplib).
  * Web: http://www.pfp.de/ppl/
  *
  *******************************************************************************
- * Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,31 +34,28 @@
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include <ppl7.h>
-#include <ppl7-audio.h>
+#include <pplib.h>
+#include <pplib-audio.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
+namespace pplib
+{
 
-namespace ppl7 {
-
-
-class AudioDecoder_Wave_Test : public ::testing::Test {
-	protected:
-	AudioDecoder_Wave_Test() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-		ppl7::Dir::mkDir("tmp");
-	}
-	virtual ~AudioDecoder_Wave_Test() {
-
-	}
+class AudioDecoder_Wave_Test : public ::testing::Test
+{
+protected:
+    AudioDecoder_Wave_Test()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+        pplib::Dir::mkDir("tmp");
+    }
+    virtual ~AudioDecoder_Wave_Test()
+    {
+    }
 };
 
-
-
-
-}	// EOF namespace
-
+} // namespace pplib

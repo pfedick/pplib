@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2021, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -42,13 +42,15 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-//#ifdef HAVE_MATH_H
+// #ifdef HAVE_MATH_H
 #include <math.h>
-//#endif
-#include "ppl7-grafix.h"
+// #endif
+#include "pplib-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\class PointF
  * \ingroup PPLGroupGrafik
@@ -66,7 +68,6 @@ namespace grafix {
  *
  */
 
-
 /*!\var Point::x
  * \brief Speichert die X-Koordinate des Punktes
  */
@@ -77,8 +78,8 @@ namespace grafix {
 
 PointF::PointF()
 {
-	x=0.0f;
-	y=0.0f;
+    x = 0.0f;
+    y = 0.0f;
 }
 
 /*!\brief Konstruktor mit Initialisierung auf die angegebenen Koordinaten
@@ -90,22 +91,21 @@ PointF::PointF()
  */
 PointF::PointF(float x, float y)
 {
-	this->x=x;
-	this->y=y;
+    this->x = x;
+    this->y = y;
 }
 
 PointF::PointF(const Point& other)
 {
-	this->x=(float)other.x;
-	this->y=(float)other.y;
+    this->x = (float)other.x;
+    this->y = (float)other.y;
 }
 
 PointF::PointF(const PointF& other)
 {
-	this->x=other.x;
-	this->y=other.y;
+    this->x = other.x;
+    this->y = other.y;
 }
-
 
 /*!\brief Liefert \c true zurück, wenn sowohl x als auch y 0 sind.
  *
@@ -117,8 +117,8 @@ PointF::PointF(const PointF& other)
  */
 bool PointF::isNull() const
 {
-	if (x == 0.0f && y == 0.0f) return true;
-	return false;
+    if (x == 0.0f && y == 0.0f) return true;
+    return false;
 }
 
 /*!\brief X und Y-Koordinate gleichzeitig setzen
@@ -130,8 +130,8 @@ bool PointF::isNull() const
  */
 void PointF::setPoint(float x, float y)
 {
-	this->x=x;
-	this->y=y;
+    this->x = x;
+    this->y = y;
 }
 
 /*!\brief X und Y-Koordinate von einem anderen Point übernehmen
@@ -143,16 +143,15 @@ void PointF::setPoint(float x, float y)
  */
 void PointF::setPoint(const PointF& other)
 {
-	x=other.x;
-	y=other.y;
+    x = other.x;
+    y = other.y;
 }
 
 void PointF::setPoint(const Point& other)
 {
-	x=(float)other.x;
-	y=(float)other.y;
+    x = (float)other.x;
+    y = (float)other.y;
 }
-
 
 /*!\brief Länge des Vektors
  *
@@ -170,7 +169,7 @@ void PointF::setPoint(const Point& other)
  */
 double PointF::vectorLength() const
 {
-	return sqrt((double)((x * x) + (y * y)));
+    return sqrt((double)((x * x) + (y * y)));
 }
 
 /*!\brief Berechnet den Abstand zwischen zwei Punkten
@@ -191,11 +190,10 @@ double PointF::vectorLength() const
  */
 double Distance(const PointF& p1, const PointF& p2)
 {
-	double a=fabs(p2.x - p1.x);
-	double b=fabs(p2.y - p1.y);
-	return sqrt((a * a) + (b * b));
+    double a = fabs(p2.x - p1.x);
+    double b = fabs(p2.y - p1.y);
+    return sqrt((a * a) + (b * b));
 }
-
 
 /*!\brief Länge des Vektors in "Manhattan Distance"
  *
@@ -214,33 +212,32 @@ double Distance(const PointF& p1, const PointF& p2)
  */
 float PointF::manhattanLength() const
 {
-	return fabsf(x) + fabsf(y);
+    return fabsf(x) + fabsf(y);
 }
 
 bool PointF::inside(const Rect& r) const
 {
-	if (r.x1 <= x && x <= r.x2) {
-		if (r.y1 <= y && y <= r.y2) {
-			return true;
-		}
-	}
-	return false;
+    if (r.x1 <= x && x <= r.x2) {
+        if (r.y1 <= y && y <= r.y2) {
+            return true;
+        }
+    }
+    return false;
 }
 
-PointF& PointF::operator= (const Point& other)
+PointF& PointF::operator=(const Point& other)
 {
-	x=(float)other.x;
-	y=(float)other.y;
-	return *this;
+    x = (float)other.x;
+    y = (float)other.y;
+    return *this;
 }
 
-PointF& PointF::operator= (const PointF& other)
+PointF& PointF::operator=(const PointF& other)
 {
-	x=other.x;
-	y=other.y;
-	return *this;
+    x = other.x;
+    y = other.y;
+    return *this;
 }
-
 
 /*!\brief Multiplikation mit einem Faktor
  *
@@ -251,11 +248,11 @@ PointF& PointF::operator= (const PointF& other)
  * \param[in] factor Der Faktor, mit dem die Koordinate multipliziert werden soll
  * \return Referenz auf den Point
  */
-PointF& PointF::operator*= (double factor)
+PointF& PointF::operator*=(double factor)
 {
-	x=(float)((double)x * factor);
-	y=(float)((double)y * factor);
-	return *this;
+    x = (float)((double)x * factor);
+    y = (float)((double)y * factor);
+    return *this;
 }
 
 /*!\brief Addition mit einem anderen Point
@@ -267,11 +264,11 @@ PointF& PointF::operator*= (double factor)
  * \param[in] point Referenz auf einen anderen Point
  * \return Referenz auf den Point
  */
-PointF& PointF::operator+= (const PointF& point)
+PointF& PointF::operator+=(const PointF& point)
 {
-	x+=point.x;
-	y+=point.y;
-	return *this;
+    x += point.x;
+    y += point.y;
+    return *this;
 }
 
 /*!\brief Subtraktion mit einem anderen Point
@@ -283,11 +280,11 @@ PointF& PointF::operator+= (const PointF& point)
  * \param[in] point Referenz auf einen anderen Point
  * \return Referenz auf den Point
  */
-PointF& PointF::operator-= (const PointF& point)
+PointF& PointF::operator-=(const PointF& point)
 {
-	x-=point.x;
-	y-=point.y;
-	return *this;
+    x -= point.x;
+    y -= point.y;
+    return *this;
 }
 
 /*!\brief Division mit einem Divisor
@@ -299,98 +296,93 @@ PointF& PointF::operator-= (const PointF& point)
  * \param[in] divisor Der Divisor, durch den die aktuelle Koordinate geteilt werden soll
  * \return Referenz auf den Point
  */
-PointF& PointF::operator/= (double divisor)
+PointF& PointF::operator/=(double divisor)
 {
-	x=(float)((double)x / divisor);
-	y=(float)((double)y / divisor);
-	return *this;
+    x = (float)((double)x / divisor);
+    y = (float)((double)y / divisor);
+    return *this;
 }
 
-const PointF operator* (const PointF& point, double factor)
+const PointF operator*(const PointF& point, double factor)
 {
-	return PointF((float)(point.x * factor), (float)(point.y * factor));
+    return PointF((float)(point.x * factor), (float)(point.y * factor));
 }
 
-const PointF operator* (double factor, const PointF& point)
+const PointF operator*(double factor, const PointF& point)
 {
-	return PointF((float)(point.x * factor), (float)(point.y * factor));
+    return PointF((float)(point.x * factor), (float)(point.y * factor));
 }
 
-const PointF operator+ (const PointF& p1, const PointF& p2)
+const PointF operator+(const PointF& p1, const PointF& p2)
 {
-	return PointF(p1.x + p2.x, p1.y + p2.y);
+    return PointF(p1.x + p2.x, p1.y + p2.y);
 }
 
-const PointF operator- (const PointF& p1, const PointF& p2)
+const PointF operator-(const PointF& p1, const PointF& p2)
 {
-	return PointF(p1.x - p2.x, p1.y - p2.y);
+    return PointF(p1.x - p2.x, p1.y - p2.y);
 }
 
-const PointF operator- (const PointF& point)
+const PointF operator-(const PointF& point)
 {
-	return PointF(0 - point.x, 0 - point.y);
+    return PointF(0 - point.x, 0 - point.y);
 }
 
-const PointF operator/ (const PointF& point, double divisor)
+const PointF operator/(const PointF& point, double divisor)
 {
-	return PointF((float)(point.x / divisor), (float)(point.y / divisor));
+    return PointF((float)(point.x / divisor), (float)(point.y / divisor));
 }
 
 static int cmp(const PointF& p1, const PointF& p2)
 {
-	if (p1.y < p2.y) return -1;
-	if (p1.y > p2.y) return 1;
-	if (p1.x < p2.x) return -1;
-	if (p1.x > p2.x) return -1;
-	return 0;
+    if (p1.y < p2.y) return -1;
+    if (p1.y > p2.y) return 1;
+    if (p1.x < p2.x) return -1;
+    if (p1.x > p2.x) return -1;
+    return 0;
 }
 
 bool PointF::operator<(const PointF& other) const
 {
-	int c=cmp(*this, other);
-	if (c < 0) return true;
-	return false;
+    int c = cmp(*this, other);
+    if (c < 0) return true;
+    return false;
 }
 
 bool PointF::operator<=(const PointF& other) const
 {
-	int c=cmp(*this, other);
-	if (c <= 0) return true;
-	return false;
-
+    int c = cmp(*this, other);
+    if (c <= 0) return true;
+    return false;
 }
 
 bool PointF::operator==(const PointF& other) const
 {
-	int c=cmp(*this, other);
-	if (c == 0) return true;
-	return false;
-
+    int c = cmp(*this, other);
+    if (c == 0) return true;
+    return false;
 }
 
 bool PointF::operator!=(const PointF& other) const
 {
-	int c=cmp(*this, other);
-	if (c != 0) return true;
-	return false;
+    int c = cmp(*this, other);
+    if (c != 0) return true;
+    return false;
 }
 
 bool PointF::operator>=(const PointF& other) const
 {
-	int c=cmp(*this, other);
-	if (c >= 0) return true;
-	return false;
+    int c = cmp(*this, other);
+    if (c >= 0) return true;
+    return false;
 }
 
 bool PointF::operator>(const PointF& other) const
 {
-	int c=cmp(*this, other);
-	if (c > 0) return true;
-	return false;
-
+    int c = cmp(*this, other);
+    if (c > 0) return true;
+    return false;
 }
 
-
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace pplib

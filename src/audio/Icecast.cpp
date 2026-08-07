@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -38,18 +38,19 @@
 #include <string.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-audio.h"
+#include "pplib.h"
+#include "pplib-audio.h"
 
 #ifdef HAVE_LIBSHOUT
 #include <shout/shout.h>
 #endif
 
-namespace ppl7 {
+namespace pplib
+{
 
 #ifdef HAVE_LIBSHOUT
-static Mutex		MutexInstance;
-static uint32_t	instance=0;
+static Mutex MutexInstance;
+static uint32_t instance = 0;
 #endif
 
 /*!\class Icecast
@@ -86,25 +87,25 @@ static uint32_t	instance=0;
  */
 Icecast::Icecast()
 {
-	shout=NULL;
-	bconnected=false;
+    shout = NULL;
+    bconnected = false;
 #ifdef HAVE_LIBSHOUT
-	MutexInstance.lock();
-	if (!instance) {
-		shout_init();
-	}
-	if (instance>=65535) {
-		MutexInstance.unlock();
-		throw TooManyInstancesException("Icecast");
-	}
-	instance++;
-	MutexInstance.unlock();
-	shout=shout_new();
-	if (!shout) {
-		throw OutOfMemoryException();
-	}
+    MutexInstance.lock();
+    if (!instance) {
+        shout_init();
+    }
+    if (instance >= 65535) {
+        MutexInstance.unlock();
+        throw TooManyInstancesException("Icecast");
+    }
+    instance++;
+    MutexInstance.unlock();
+    shout = shout_new();
+    if (!shout) {
+        throw OutOfMemoryException();
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -118,14 +119,14 @@ Icecast::Icecast()
 Icecast::~Icecast()
 {
 #ifdef HAVE_LIBSHOUT
-	if (bconnected) disconnect();
-	if (shout) shout_free((shout_t*)shout);
-	MutexInstance.lock();
-	instance--;
-	if (instance==0) {
-		shout_shutdown();
-	}
-	MutexInstance.unlock();
+    if (bconnected) disconnect();
+    if (shout) shout_free((shout_t*)shout);
+    MutexInstance.lock();
+    instance--;
+    if (instance == 0) {
+        shout_shutdown();
+    }
+    MutexInstance.unlock();
 #endif
 }
 
@@ -145,12 +146,12 @@ Icecast::~Icecast()
  *
  * @return String mit der Version
  */
-String Icecast::getVersion(int *major, int *minor, int *patch) const
+String Icecast::getVersion(int* major, int* minor, int* patch) const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_version(major,minor,patch);
+    return shout_version(major, minor, patch);
 #else
-	return "";
+    return "";
 #endif
 }
 
@@ -164,9 +165,9 @@ String Icecast::getVersion(int *major, int *minor, int *patch) const
 String Icecast::version() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_version(NULL,NULL,NULL);
+    return shout_version(NULL, NULL, NULL);
 #else
-	return "";
+    return "";
 #endif
 }
 
@@ -181,14 +182,14 @@ String Icecast::version() const
 bool Icecast::connected()
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_get_connected((shout_t*)shout);
-	if (ret==SHOUTERR_CONNECTED) {
-		bconnected=true;
-		return true;
-	}
+    int ret = shout_get_connected((shout_t*)shout);
+    if (ret == SHOUTERR_CONNECTED) {
+        bconnected = true;
+        return true;
+    }
 #endif
-	bconnected=false;
-	return false;
+    bconnected = false;
+    return false;
 }
 
 /*!\brief Verbindungsdaten festlegen
@@ -206,27 +207,27 @@ bool Icecast::connected()
  * Icecast::setUser festgelegt werden.
  *
  */
-void Icecast::setConnection(const String &host, int port, const String &password)
+void Icecast::setConnection(const String& host, int port, const String& password)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret;
-	ret=shout_set_host((shout_t*)shout,host.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_host");
-	}
-	ret=shout_set_port((shout_t*)shout,port);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_port");
-	}
-	ret=shout_set_password((shout_t*)shout,password.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_password");
-	}
+    int ret;
+    ret = shout_set_host((shout_t*)shout, host.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_host");
+    }
+    ret = shout_set_port((shout_t*)shout, port);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_port");
+    }
+    ret = shout_set_password((shout_t*)shout, password.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_password");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -240,9 +241,9 @@ void Icecast::setConnection(const String &host, int port, const String &password
 String Icecast::host() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_host((shout_t*)shout);
+    return shout_get_host((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -256,9 +257,9 @@ String Icecast::host() const
 int Icecast::port() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_port((shout_t*)shout);
+    return shout_get_port((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -272,12 +273,11 @@ int Icecast::port() const
 String Icecast::password() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_password((shout_t*)shout);
+    return shout_get_password((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
-
 
 /*!\brief Mount-Punkt festlegen
  *
@@ -298,21 +298,21 @@ String Icecast::password() const
  * Der Name des Mount-Punkts ist also "/live". Die Funktion würde also folgendermassen
  * aufgerufen werden:
  * \code
- * ppl7::Icecast ice;
+ * pplib::Icecast ice;
  * ice.setConnection("icecast.example.org",1234,"icesource");
  * ice.setMount("/live");
  * \endcode
  */
-void Icecast::setMount(const String &mount)
+void Icecast::setMount(const String& mount)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_mount((shout_t*)shout,mount.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_mount");
-	}
+    int ret = shout_set_mount((shout_t*)shout, mount.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_mount");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -326,13 +326,12 @@ void Icecast::setMount(const String &mount)
 String Icecast::mount() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_mount((shout_t*)shout);
+    return shout_get_mount((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
-	
 /*!\brief Name des Streams festlegen
  *
  * \descr
@@ -340,16 +339,16 @@ String Icecast::mount() const
  *
  * @param name String mit dem Namen des Streams
  */
-void Icecast::setName(const String &name)
+void Icecast::setName(const String& name)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_name((shout_t*)shout,name.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_name");
-	}
+    int ret = shout_set_name((shout_t*)shout, name.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_name");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -365,13 +364,12 @@ void Icecast::setName(const String &name)
 String Icecast::name() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_name((shout_t*)shout);
+    return shout_get_name((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
-	
 /*!\brief URL der Webseite festlegen
  *
  * \descr
@@ -379,16 +377,16 @@ String Icecast::name() const
  *
  * @param url String mit der URL der Webseite
  */
-void Icecast::setUrl(const String &url)
+void Icecast::setUrl(const String& url)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_url((shout_t*)shout,url.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_url");
-	}
+    int ret = shout_set_url((shout_t*)shout, url.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_url");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -403,13 +401,12 @@ void Icecast::setUrl(const String &url)
 String Icecast::url() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_url((shout_t*)shout);
+    return shout_get_url((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
-	
 /*!\brief Genre festlegen
  *
  * \descr
@@ -417,16 +414,16 @@ String Icecast::url() const
  *
  * @param genre String mit den Genres
  */
-void Icecast::setGenre(const String &genre)
+void Icecast::setGenre(const String& genre)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_genre((shout_t*)shout,genre.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_genre");
-	}
+    int ret = shout_set_genre((shout_t*)shout, genre.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_genre");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -440,9 +437,9 @@ void Icecast::setGenre(const String &genre)
 String Icecast::genre() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_genre((shout_t*)shout);
+    return shout_get_genre((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -453,16 +450,16 @@ String Icecast::genre() const
  *
  * @param user String mit dem Benutzernamen
  */
-void Icecast::setUser(const String &user)
+void Icecast::setUser(const String& user)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_user((shout_t*)shout,user.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_user");
-	}
+    int ret = shout_set_user((shout_t*)shout, user.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_user");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -476,12 +473,11 @@ void Icecast::setUser(const String &user)
 String Icecast::user() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_user((shout_t*)shout);
+    return shout_get_user((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
-
 
 /*!\brief User Agent setzen
  *
@@ -490,16 +486,16 @@ String Icecast::user() const
  *
  * @param agent String mit dem Namen des Agent
  */
-void Icecast::setAgent(const String &agent)
+void Icecast::setAgent(const String& agent)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_agent((shout_t*)shout,agent.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_agent");
-	}
+    int ret = shout_set_agent((shout_t*)shout, agent.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_agent");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -513,12 +509,11 @@ void Icecast::setAgent(const String &agent)
 String Icecast::agent() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_agent((shout_t*)shout);
+    return shout_get_agent((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
-
 
 /*!\brief Beschreibung des Streams setzen
  *
@@ -527,16 +522,16 @@ String Icecast::agent() const
  *
  * @param description String mit der Beschreibung.
  */
-void Icecast::setDescription(const String &description)
+void Icecast::setDescription(const String& description)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_description((shout_t*)shout,description.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_description");
-	}
+    int ret = shout_set_description((shout_t*)shout, description.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_description");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -550,13 +545,11 @@ void Icecast::setDescription(const String &description)
 String Icecast::description() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_description((shout_t*)shout);
+    return shout_get_description((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
-
-
 
 /*!\brief Stream auf dem Server archivieren
  *
@@ -567,16 +560,16 @@ String Icecast::description() const
  *
  * @param file Name des Archiv-Files
  */
-void Icecast::setDumpfile(const String &file)
+void Icecast::setDumpfile(const String& file)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_dumpfile((shout_t*)shout,file.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_dumpfile");
-	}
+    int ret = shout_set_dumpfile((shout_t*)shout, file.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_dumpfile");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -591,9 +584,9 @@ void Icecast::setDumpfile(const String &file)
 String Icecast::dumpfile() const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_dumpfile((shout_t*)shout);
+    return shout_get_dumpfile((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -607,16 +600,16 @@ String Icecast::dumpfile() const
  * @param name Name des Parameters
  * @param value Inhalt des Parameters
  */
-void Icecast::setAudioInfo(const String &name, const String &value)
+void Icecast::setAudioInfo(const String& name, const String& value)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_audio_info((shout_t*)shout,name.toUtf8(),value.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_audio_info");
-	}
+    int ret = shout_set_audio_info((shout_t*)shout, name.toUtf8(), value.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_audio_info");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 
@@ -628,12 +621,12 @@ void Icecast::setAudioInfo(const String &name, const String &value)
  * @param name Name des Parameters
  * @return String mit dem Wert des Parameters
  */
-String Icecast::audioInfo(const String &name) const
+String Icecast::audioInfo(const String& name) const
 {
 #ifdef HAVE_LIBSHOUT
-	return shout_get_audio_info((shout_t*)shout,name.toUtf8());
+    return shout_get_audio_info((shout_t*)shout, name.toUtf8());
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
 }
 /*!\brief Stream als öffentlich bekannt geben
@@ -648,17 +641,16 @@ String Icecast::audioInfo(const String &name) const
 void Icecast::setPublic(bool makepublic)
 {
 #ifdef HAVE_LIBSHOUT
-	int param=0;
-	if (makepublic) param=1;
-	int ret=shout_set_public((shout_t*)shout,param);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_public");
-	}
+    int param = 0;
+    if (makepublic) param = 1;
+    int ret = shout_set_public((shout_t*)shout, param);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_public");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Stream-Format auf MP3 festlegen
@@ -669,21 +661,20 @@ void Icecast::setPublic(bool makepublic)
 void Icecast::setFormatMP3()
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_format((shout_t*)shout,SHOUT_FORMAT_MP3);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_format");
-	}
-	ret=shout_set_protocol((shout_t*)shout,SHOUT_PROTOCOL_HTTP);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_protocol");
-	}
+    int ret = shout_set_format((shout_t*)shout, SHOUT_FORMAT_MP3);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_format");
+    }
+    ret = shout_set_protocol((shout_t*)shout, SHOUT_PROTOCOL_HTTP);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_protocol");
+    }
 
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Stream-Format auf OGG festlegen
@@ -694,20 +685,19 @@ void Icecast::setFormatMP3()
 void Icecast::setFormatOGG()
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_format((shout_t*)shout,SHOUT_FORMAT_OGG);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_format");
-	}
-	ret=shout_set_protocol((shout_t*)shout,SHOUT_PROTOCOL_HTTP);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_protocol");
-	}
+    int ret = shout_set_format((shout_t*)shout, SHOUT_FORMAT_OGG);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_format");
+    }
+    ret = shout_set_protocol((shout_t*)shout, SHOUT_PROTOCOL_HTTP);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_protocol");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Verbindung auf Non-Blocking setzen
@@ -722,15 +712,14 @@ void Icecast::setFormatOGG()
 void Icecast::setNonBlocking(bool flag)
 {
 #ifdef HAVE_LIBSHOUT
-	int ret=shout_set_nonblocking((shout_t*)shout,flag);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_set_nonblocking");
-	}
+    int ret = shout_set_nonblocking((shout_t*)shout, flag);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_set_nonblocking");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Verbindung zum Server herstellen
@@ -750,24 +739,31 @@ void Icecast::setNonBlocking(bool flag)
 void Icecast::connect()
 {
 #ifdef HAVE_LIBSHOUT
-	if (bconnected) disconnect();
-	int ret=shout_open((shout_t*)shout);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		else if (ret==SHOUTERR_INSANE) throw IllegalArgumentException("Check if host, port, and password are set");
-		else if (ret==SHOUTERR_CONNECTED) throw AlreadyConnectedException();
-		else if (ret==SHOUTERR_NOCONNECT) throw ConnectionFailedException();
-		else if (ret==SHOUTERR_UNSUPPORTED) throw OperationFailedException("The protocol/format combination is unsupported");
-		else if (ret==SHOUTERR_SOCKET) throw SocketException();
-		else if (ret==SHOUTERR_NOLOGIN) throw LoginRefusedException();
-		else if (ret==SHOUTERR_UNCONNECTED) throw NoConnectionException();
-		throw OperationFailedException("shout_open");
-	}
-	bconnected=true;
+    if (bconnected) disconnect();
+    int ret = shout_open((shout_t*)shout);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC)
+            throw OutOfMemoryException();
+        else if (ret == SHOUTERR_INSANE)
+            throw IllegalArgumentException("Check if host, port, and password are set");
+        else if (ret == SHOUTERR_CONNECTED)
+            throw AlreadyConnectedException();
+        else if (ret == SHOUTERR_NOCONNECT)
+            throw ConnectionFailedException();
+        else if (ret == SHOUTERR_UNSUPPORTED)
+            throw OperationFailedException("The protocol/format combination is unsupported");
+        else if (ret == SHOUTERR_SOCKET)
+            throw SocketException();
+        else if (ret == SHOUTERR_NOLOGIN)
+            throw LoginRefusedException();
+        else if (ret == SHOUTERR_UNCONNECTED)
+            throw NoConnectionException();
+        throw OperationFailedException("shout_open");
+    }
+    bconnected = true;
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Verbindung trennen
@@ -786,26 +782,30 @@ void Icecast::connect()
 void Icecast::disconnect()
 {
 #ifdef HAVE_LIBSHOUT
-	if (!bconnected) return;
-	int ret=shout_close((shout_t*)shout);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		else if (ret==SHOUTERR_INSANE) throw IllegalArgumentException("Check if host, port, and password are set");
-		else if (ret==SHOUTERR_NOCONNECT) {
-			bconnected=false;
-			return;
-		}
-		else if (ret==SHOUTERR_UNSUPPORTED) throw OperationFailedException("The protocol/format combination is unsupported");
-		else if (ret==SHOUTERR_SOCKET) throw SocketException();
-		else if (ret==SHOUTERR_NOLOGIN) throw LoginRefusedException();
-		else if (ret==SHOUTERR_UNCONNECTED) throw NoConnectionException();
-		throw OperationFailedException("shout_close");
-	}
-	bconnected=false;
+    if (!bconnected) return;
+    int ret = shout_close((shout_t*)shout);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC)
+            throw OutOfMemoryException();
+        else if (ret == SHOUTERR_INSANE)
+            throw IllegalArgumentException("Check if host, port, and password are set");
+        else if (ret == SHOUTERR_NOCONNECT) {
+            bconnected = false;
+            return;
+        } else if (ret == SHOUTERR_UNSUPPORTED)
+            throw OperationFailedException("The protocol/format combination is unsupported");
+        else if (ret == SHOUTERR_SOCKET)
+            throw SocketException();
+        else if (ret == SHOUTERR_NOLOGIN)
+            throw LoginRefusedException();
+        else if (ret == SHOUTERR_UNCONNECTED)
+            throw NoConnectionException();
+        throw OperationFailedException("shout_close");
+    }
+    bconnected = false;
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Audiodaten senden
@@ -824,24 +824,29 @@ void Icecast::disconnect()
  * \exception NoConnectionException: Es besteht keine Verbindung
  * \exception OperationFailedException: Übertragung aus anderen Gründen fehlgeschlagen
  */
-void Icecast::send(const void *buffer, size_t bytes)
+void Icecast::send(const void* buffer, size_t bytes)
 {
 #ifdef HAVE_LIBSHOUT
-	if (!bconnected) throw NoConnectionException();
-	int ret=shout_send((shout_t*)shout,(const unsigned char*)buffer,bytes);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		else if (ret==SHOUTERR_INSANE) throw IllegalArgumentException("Check if host, port, and password are set");
-		else if (ret==SHOUTERR_UNSUPPORTED) throw OperationFailedException("The protocol/format combination is unsupported");
-		else if (ret==SHOUTERR_SOCKET) throw SocketException();
-		else if (ret==SHOUTERR_NOLOGIN) throw LoginRefusedException();
-		else if (ret==SHOUTERR_UNCONNECTED) throw NoConnectionException();
-		throw OperationFailedException("shout_send");
-	}
+    if (!bconnected) throw NoConnectionException();
+    int ret = shout_send((shout_t*)shout, (const unsigned char*)buffer, bytes);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC)
+            throw OutOfMemoryException();
+        else if (ret == SHOUTERR_INSANE)
+            throw IllegalArgumentException("Check if host, port, and password are set");
+        else if (ret == SHOUTERR_UNSUPPORTED)
+            throw OperationFailedException("The protocol/format combination is unsupported");
+        else if (ret == SHOUTERR_SOCKET)
+            throw SocketException();
+        else if (ret == SHOUTERR_NOLOGIN)
+            throw LoginRefusedException();
+        else if (ret == SHOUTERR_UNCONNECTED)
+            throw NoConnectionException();
+        throw OperationFailedException("shout_send");
+    }
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Number of milliseconds the caller should wait
@@ -856,12 +861,11 @@ void Icecast::send(const void *buffer, size_t bytes)
 int Icecast::delay()
 {
 #ifdef HAVE_LIBSHOUT
-	if (!bconnected) return 0;
-	return shout_delay((shout_t*)shout);
+    if (!bconnected) return 0;
+    return shout_delay((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Synchronise with Stream
@@ -876,12 +880,11 @@ int Icecast::delay()
 void Icecast::sync()
 {
 #ifdef HAVE_LIBSHOUT
-	if (!bconnected) return;
-	shout_sync((shout_t*)shout);
+    if (!bconnected) return;
+    shout_sync((shout_t*)shout);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Metadaten setzen
@@ -895,33 +898,39 @@ void Icecast::sync()
  * @param name Name der Metadaten
  * @param value Inhalt der Metadaten
  */
-void Icecast::sendMetadata(const String &name, const String &value)
+void Icecast::sendMetadata(const String& name, const String& value)
 {
 #ifdef HAVE_LIBSHOUT
-	if (!bconnected) return;
-	shout_metadata_t *meta=shout_metadata_new();
-	int ret;
-	ret=shout_metadata_add(meta,name.toUtf8(),value.toUtf8());
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		throw OperationFailedException("shout_metadata_add");
-	}
-	ret=shout_set_metadata((shout_t*)shout,meta);
-	if(ret!=SHOUTERR_SUCCESS) {
-		if (ret==SHOUTERR_MALLOC) throw OutOfMemoryException();
-		else if (ret==SHOUTERR_INSANE) throw IllegalArgumentException("Check if host, port, and password are set");
-		else if (ret==SHOUTERR_NOCONNECT) throw ConnectionFailedException();
-		else if (ret==SHOUTERR_UNSUPPORTED) throw OperationFailedException("The protocol/format combination is unsupported");
-		else if (ret==SHOUTERR_SOCKET) throw SocketException();
-		else if (ret==SHOUTERR_NOLOGIN) throw LoginRefusedException();
-		else if (ret==SHOUTERR_UNCONNECTED) throw NoConnectionException();
-		throw OperationFailedException("shout_set_metadata");
-	}
-	shout_metadata_free(meta);
+    if (!bconnected) return;
+    shout_metadata_t* meta = shout_metadata_new();
+    int ret;
+    ret = shout_metadata_add(meta, name.toUtf8(), value.toUtf8());
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC) throw OutOfMemoryException();
+        throw OperationFailedException("shout_metadata_add");
+    }
+    ret = shout_set_metadata((shout_t*)shout, meta);
+    if (ret != SHOUTERR_SUCCESS) {
+        if (ret == SHOUTERR_MALLOC)
+            throw OutOfMemoryException();
+        else if (ret == SHOUTERR_INSANE)
+            throw IllegalArgumentException("Check if host, port, and password are set");
+        else if (ret == SHOUTERR_NOCONNECT)
+            throw ConnectionFailedException();
+        else if (ret == SHOUTERR_UNSUPPORTED)
+            throw OperationFailedException("The protocol/format combination is unsupported");
+        else if (ret == SHOUTERR_SOCKET)
+            throw SocketException();
+        else if (ret == SHOUTERR_NOLOGIN)
+            throw LoginRefusedException();
+        else if (ret == SHOUTERR_UNCONNECTED)
+            throw NoConnectionException();
+        throw OperationFailedException("shout_set_metadata");
+    }
+    shout_metadata_free(meta);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
 /*!\brief Aktuellen Titel übermitteln
@@ -932,15 +941,13 @@ void Icecast::sendMetadata(const String &name, const String &value)
  *
  * @param title String mit dem Namen des aktuellen Titels
  */
-void Icecast::setTitle(const String &title)
+void Icecast::setTitle(const String& title)
 {
 #ifdef HAVE_LIBSHOUT
-	sendMetadata("song",title);
+    sendMetadata("song", title);
 #else
-	throw UnsupportedFeatureException("Icecast");
+    throw UnsupportedFeatureException("Icecast");
 #endif
-
 }
 
-
-}	// EOF namespace ppl7
+} // namespace pplib

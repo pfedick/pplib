@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,10 +27,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/functions.h>
-#include <ppl7/core/regex.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/regex.h>
 
-namespace ppl7
+namespace pplib
 {
 
 String PerlHelper::escapeString(const String& s)
@@ -78,4 +78,4 @@ String PerlHelper::toHash(const AssocArray& a, const String& name)
     return ret;
 }
 
-} // namespace ppl7
+} // namespace pplib

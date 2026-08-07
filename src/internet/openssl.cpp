@@ -1,9 +1,9 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -86,16 +86,16 @@
 #include <openssl/x509v3.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-inet.h"
-#include "socket_ppl7.h"
+#include "pplib.h"
+#include "pplib-inet.h"
+#include "socket_pplib.h"
 
-namespace ppl7
+namespace pplib
 {
 
 typedef struct
 {
-    ppl7::Mutex* mutex;
+    pplib::Mutex* mutex;
 } MUTEX_STRUCT;
 
 static inline int getErrno()
@@ -188,26 +188,26 @@ static void locking_function(int mode, int n, const char* file, int line)
 
 static unsigned long id_function(void)
 {
-    return (unsigned long)ppl7::ThreadID();
+    return (unsigned long)pplib::ThreadID();
 }
 
 /*
 static CRYPTO_dynlock_value *dyn_create_function(char *file, int line)
 {
-    return (CRYPTO_dynlock_value *) new ppl7::Mutex;
+    return (CRYPTO_dynlock_value *) new pplib::Mutex;
 }
 
 static void dyn_lock_function (int mode, CRYPTO_dynlock_value *l, const char *file, int line)
 {
     if (mode & CRYPTO_LOCK)
-            ((ppl7::Mutex*)l)->lock();
+            ((pplib::Mutex*)l)->lock();
         else
-            ((ppl7::Mutex*)l)->unlock();
+            ((pplib::Mutex*)l)->unlock();
 }
 
 static void dyn_destroy_function (CRYPTO_dynlock_value *l, const char *file, int line)
 {
-    delete ((ppl7::Mutex*)l);
+    delete ((pplib::Mutex*)l);
 }
 */
 
@@ -835,7 +835,7 @@ void TCPSocket::sslStart(SSLContext& context)
             }
             */
             if (res == 0) {
-                ppl7::String Error;
+                pplib::String Error;
                 Error.setf("SSL_connect: %s, State: %s", ssl_geterror((SSL*)ssl, res), SSL_state_string_long((SSL*)ssl));
                 sslStop();
                 throw SSLConnectionFailedException(Error);
@@ -844,7 +844,7 @@ void TCPSocket::sslStart(SSLContext& context)
             // printf ("res=%i, e=%i, state=%x: %s\n",res,e,SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
             if (e == SSL_ERROR_WANT_READ) {
                 if ((n = select(sockfd + 1, &rset, NULL, NULL, &tval)) == 0) {
-                    ppl7::String Error;
+                    pplib::String Error;
                     Error.setf("Socket not ready for reading. SSL_connect: %s, State: %s", ssl_geterror((SSL*)ssl, res),
                                SSL_state_string_long((SSL*)ssl));
                     sslStop();
@@ -852,14 +852,14 @@ void TCPSocket::sslStart(SSLContext& context)
                 }
             } else if (e == SSL_ERROR_WANT_WRITE) {
                 if ((n = select(sockfd + 1, NULL, &wset, NULL, &tval)) == 0) {
-                    ppl7::String Error;
+                    pplib::String Error;
                     Error.setf("Socket not ready for writing. SSL_connect: %s, State: %s", ssl_geterror((SSL*)ssl, res),
                                SSL_state_string_long((SSL*)ssl));
                     sslStop();
                     throw SSLConnectionFailedException(Error);
                 }
             } else {
-                ppl7::String Error;
+                pplib::String Error;
                 Error.setf("SSL_connect: %s, State: %s", ssl_geterror((SSL*)ssl, res), SSL_state_string_long((SSL*)ssl));
                 sslStop();
                 throw SSLConnectionFailedException(Error);
@@ -869,7 +869,7 @@ void TCPSocket::sslStart(SSLContext& context)
     } else {
         int res = SSL_connect((SSL*)ssl);
         if (res < 1) {
-            ppl7::String Error;
+            pplib::String Error;
             Error.setf("SSL_connect: %s, State: %s", ssl_geterror((SSL*)ssl, res), SSL_state_string_long((SSL*)ssl));
             sslStop();
             throw SSLConnectionFailedException(Error);
@@ -1046,20 +1046,20 @@ void TCPSocket::sslWaitForAccept(SSLContext& context, int timeout_ms)
             if (stoplisten) {
 
                 printf("stop\n");
-                throw ppl7::OperationAbortedException("TCPSocket::sslWaitForAccept");
+                throw pplib::OperationAbortedException("TCPSocket::sslWaitForAccept");
             }
             try {
                 sslAccept(context);
                 return;
             }
-            catch (const ppl7::OperationBlockedException& exp) {
+            catch (const pplib::OperationBlockedException& exp) {
                 printf("Blocked\n");
                 MSleep(10);
             }
         }
-        throw ppl7::TimeoutException("Timeout while waiting for SSL handshake [TCPSocket::sslWaitForAccept]");
+        throw pplib::TimeoutException("Timeout while waiting for SSL handshake [TCPSocket::sslWaitForAccept]");
     }
-    catch (const ppl7::Exception& exp) {
+    catch (const pplib::Exception& exp) {
         exp.print();
         throw;
     }
@@ -1081,7 +1081,7 @@ void TCPSocket::sslWaitForAccept(SSLContext& context, int timeout_ms)
  * @return Ist das Zertifikat gültig und alle Prüfungen erfolgreich, gibt die Funktion 1 zurück,
  * ansonsten 0.
  */
-void TCPSocket::sslCheckCertificate(const ppl7::String& name, bool AcceptSelfSignedCert)
+void TCPSocket::sslCheckCertificate(const pplib::String& name, bool AcceptSelfSignedCert)
 {
 #ifdef HAVE_OPENSSL
     if (!ssl) throw SSLNotStartedException();
@@ -1213,4 +1213,4 @@ int TCPSocket::sslGetCipherBits() const
 
 //@}
 
-} // namespace ppl7
+} // namespace pplib

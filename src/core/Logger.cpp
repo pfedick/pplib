@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -31,14 +31,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <config_ppl7.h>
+#include <config_pplib.h>
 
-#include <ppl7/core/logging.h>
-#include <ppl7/core/threads.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/array.h>
-#include <ppl7/types/assocarray.h>
-#include <ppl7/types/datetime.h>
+#include <pplib/core/logging.h>
+#include <pplib/core/threads.h>
+#include <pplib/types/string.h>
+#include <pplib/types/array.h>
+#include <pplib/types/assocarray.h>
+#include <pplib/types/datetime.h>
 
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
@@ -46,7 +46,7 @@
 
 #include <stdarg.h>
 
-namespace ppl7
+namespace pplib
 {
 
 typedef struct tagLOGHANDLER
@@ -143,7 +143,8 @@ Logger::~Logger()
 
 void Logger::terminate()
 {
-    print(Logger::INFO, 0, "ppl7::Logger", "terminate", __FILE__, __LINE__, "=== Logfile-Class terminated ===============================");
+    print(Logger::INFO, 0, "pplib::Logger", "terminate", __FILE__, __LINE__,
+          "=== Logfile-Class terminated ===============================");
     for (int i = 0; i < NUMFACILITIES; i++) {
         logff[i].close();
     }
@@ -184,14 +185,14 @@ void Logger::openSyslog(const String& ident, SYSLOG_FACILITY facility)
     throw UnsupportedFeatureException("syslog");
 #else
     if (useSyslog) {
-        print(Logger::INFO, 0, "ppl7::Logger", "openSyslog", __FILE__, __LINE__, "=== Reopen Syslog ===============================");
+        print(Logger::INFO, 0, "pplib::Logger", "openSyslog", __FILE__, __LINE__, "=== Reopen Syslog ===============================");
         closelog();
     }
     useSyslog = true;
     syslogIdent = ident;
     syslogFacility = facility;
     openlog(syslogIdent, LOG_NDELAY | LOG_PID, syslog_facility_lookup[facility]);
-    print(Logger::INFO, 0, "ppl7::Logger", "openSyslog", __FILE__, __LINE__, "=== Enable Syslog ===============================");
+    print(Logger::INFO, 0, "pplib::Logger", "openSyslog", __FILE__, __LINE__, "=== Enable Syslog ===============================");
 #endif
 }
 
@@ -201,7 +202,7 @@ void Logger::closeSyslog()
     throw UnsupportedFeatureException("syslog");
 #else
     if (useSyslog) {
-        print(Logger::INFO, 0, "ppl7::Logger", "closeSyslog", __FILE__, __LINE__, "=== Close Syslog ===============================");
+        print(Logger::INFO, 0, "pplib::Logger", "closeSyslog", __FILE__, __LINE__, "=== Close Syslog ===============================");
         closelog();
         useSyslog = false;
     }
@@ -218,7 +219,7 @@ void Logger::setLogfile(PRIORITY prio, const String& filename)
             logfilename[prio] = filename;
             logff[prio].open(filename, File::FileMode::APPEND);
             mutex.unlock();
-            print(prio, 0, "ppl7::Logger", "SetLogfile", __FILE__, __LINE__, ToString("=== Logfile started for %s", prioritylist[prio]));
+            print(prio, 0, "pplib::Logger", "SetLogfile", __FILE__, __LINE__, ToString("=== Logfile started for %s", prioritylist[prio]));
         }
     }
     catch (...) {
@@ -238,7 +239,7 @@ void Logger::setLogfile(PRIORITY prio, const String& filename, int level)
             logfilename[prio] = filename;
             logff[prio].open(filename, File::FileMode::APPEND);
             mutex.unlock();
-            print(prio, 0, "ppl7::Logger", "SetLogfile", __FILE__, __LINE__, ToString("=== Logfile started for %s", prioritylist[prio]));
+            print(prio, 0, "pplib::Logger", "SetLogfile", __FILE__, __LINE__, ToString("=== Logfile started for %s", prioritylist[prio]));
         }
     }
     catch (...) {
@@ -264,7 +265,7 @@ void Logger::setLogLevel(PRIORITY prio, int level)
         mutex.lock();
         debuglevel[prio] = level;
         mutex.unlock();
-        print(prio, 0, "ppl7::Logger", "SetLogLevel", __FILE__, __LINE__,
+        print(prio, 0, "pplib::Logger", "SetLogLevel", __FILE__, __LINE__,
               ToString("=== Setting Debuglevel for %s, to: %u", prioritylist[prio], level));
     }
 }
@@ -744,7 +745,7 @@ void Logger::checkRotate(PRIORITY prio)
         uint64_t size = logff[prio].size();
         if (size > 0 && (uint64_t)size > maxsize) {
             inrotate = true;
-            output(prio, 0, "ppl7::Logger", "CheckRotate", __FILE__, __LINE__, "Logfile Rotated");
+            output(prio, 0, "pplib::Logger", "CheckRotate", __FILE__, __LINE__, "Logfile Rotated");
             logff[prio].close();
             // Wir müssen die bisherigen Generationen umbenennen
             for (int i = generations; i > 1; i--) {
@@ -757,10 +758,10 @@ void Logger::checkRotate(PRIORITY prio)
             File::rename(logfilename[prio], f2);
             logff[prio].open(logfilename[prio], File::FileMode::APPEND);
             f1.setf("=== Logging started for %s", prioritylist[prio]);
-            output(prio, 0, "ppl7::Logger", "SetLogfile", __FILE__, __LINE__, f1);
+            output(prio, 0, "pplib::Logger", "SetLogfile", __FILE__, __LINE__, f1);
             inrotate = false;
         }
     }
 }
 
-} // namespace ppl7
+} // namespace pplib

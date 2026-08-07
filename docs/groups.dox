@@ -43,10 +43,10 @@ Die nachfolgenden Klassen dienen zum Erstellen und Verwalten von Bitmap-Grafiken
 
 
 
-/*!\defgroup PPL7_CRYPT Verschlüsselung und Hashes
+/*!\defgroup PPLIB_CRYPT Verschlüsselung und Hashes
 \brief Verschlüsselung und Hashes
 
-\header \#include <ppl7-crypto.h>
+\header \#include <pplib-crypto.h>
 
 \descr
 Auf dieser Seite sind Klassen und Funktion zu finden, mit denen Daten nach verschiedenen
@@ -54,17 +54,17 @@ kryptographischen Algorithmen verschlüsselt und entschlüsselt werden können, 
 Klassen und Funktionen zum Berechnen von Hash-Werten oder Prüfsummen nach verschiedenen
 Algorithmen.
 \par
-Die Funktionen der Klasse ppl7::MCrypt basieren auf der Bibliothek
+Die Funktionen der Klasse pplib::MCrypt basieren auf der Bibliothek
 <a href="http://mcrypt.sourceforge.net/">libmcrypt</a> und sind daher nur
 verfügbar, wenn diese beim Kompilieren der PPL-Library eingebunden wurden.
-Die Klasse ppl7::Digest setzt auf <a href="http://www.openssl.org/">OpenSSL</a> auf
+Die Klasse pplib::Digest setzt auf <a href="http://www.openssl.org/">OpenSSL</a> auf
 und ist daher nur verfügbar, wenn diese beim Kompilieren der PPL-Library eingebunden wurde.
 
 
 */
 
 
-/*!\defgroup PPL7_COMPRESSION Datenkomprimierung
+/*!\defgroup PPLIB_COMPRESSION Datenkomprimierung
 \brief Komprimierung von Daten
 
 \descr

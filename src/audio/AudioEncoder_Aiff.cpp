@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *******************************************************************************
- * Copyright (c) 2017, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,21 +30,20 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifndef _WIN32
 #include <strings.h>
 #endif
 #include <time.h>
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN		// Keine MFCs
+#define WIN32_LEAN_AND_MEAN // Keine MFCs
 #include <windows.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-audio.h"
+#include "pplib.h"
+#include "pplib-audio.h"
 
-namespace ppl7 {
+namespace pplib
+{
 
-
-} // end of namespace ppl
-
+} // namespace pplib

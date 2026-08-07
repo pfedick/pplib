@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -48,28 +48,28 @@
 
 #include <time.h>
 #ifdef _WIN32
-    #include <winsock2.h>
-	#include <Ws2tcpip.h>
+#include <winsock2.h>
+#include <Ws2tcpip.h>
 #else
-	#ifdef HAVE_UNISTD_H
-    #include <unistd.h>
-	#endif
-	#ifdef HAVE_SYS_SOCKET_H
-    #include <sys/socket.h>
-	#endif
-	#ifdef HAVE_SYS_POLL_H
-    #include <sys/poll.h>
-	#endif
-	#ifdef HAVE_NETINET_IN_H
-    #include <netinet/in.h>
-	#endif
-	#ifdef HAVE_NETDB_H
-    #include <netdb.h>
-	#endif
-	#ifdef HAVE_ARPA_INET_H
-    #include <arpa/inet.h>
-	#endif
-	#include <netdb.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#include <netdb.h>
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -81,210 +81,206 @@
 #include <errno.h>
 #endif
 #ifdef HAVE_SIGNAL_H
-    #include <signal.h>
+#include <signal.h>
 #endif
 #ifdef HAVE_LIBIDN2
-	#include <idn2.h>
+#include <idn2.h>
 #else
-	#ifdef HAVE_LIBIDN
-		#include <idna.h>
-		#ifdef WIN32
-			#ifndef MINGW32
-				#include <idn-free.h>
-			#else
-				#define idn_free free
-			#endif
-		#endif
-	#endif
+#ifdef HAVE_LIBIDN
+#include <idna.h>
+#ifdef WIN32
+#ifndef MINGW32
+#include <idn-free.h>
+#else
+#define idn_free free
+#endif
+#endif
+#endif
 #endif
 
+#include "pplib.h"
+#include "pplib-inet.h"
+// #include "socket.h"
 
-
-#include "ppl7.h"
-#include "ppl7-inet.h"
-//#include "socket.h"
-
-namespace ppl7 {
+namespace pplib
+{
 
 #ifdef _WIN32
-#define socklen_t	int
-int inet_aton(const char *cp, struct in_addr *pin)
+#define socklen_t int
+int inet_aton(const char* cp, struct in_addr* pin)
 {
-	unsigned long ret=inet_addr(cp);
-	if (ret!=INADDR_NONE) {
-		pin->S_un.S_addr=ret;
-		return 1;
-	}
-	return 0;
+    unsigned long ret = inet_addr(cp);
+    if (ret != INADDR_NONE) {
+        pin->S_un.S_addr = ret;
+        return 1;
+    }
+    return 0;
 }
 
 #endif
 
 #ifdef WIN32
-static int _wsa_init=0;
+static int _wsa_init = 0;
 #endif
 
 void InitSockets()
 {
 #ifdef WIN32
-	if (!_wsa_init) {
-		WORD wVersionRequested;
-		WSADATA wsaData;
-		int err;
-		wVersionRequested = MAKEWORD( 2, 2 );
-		err = WSAStartup( wVersionRequested, &wsaData );
-		if (err!=0)	throw WinsockInitialisationFailed();
-	}
-#endif
-}
-
-
-/*!\brief Ace-Form aus einem IDN-String berechnen
- * \ingroup PPLGroupInternet
- *
- * \desc
- * Wandelt einen IDN-String in seine Ace-Form um.
- *
- * \param[in] idn Der IDN-String
- * \return Liefert einen neuen String mit der Ace-Form des Domainnamens zurück.
- * \exception IdnConversionException Wird geworfen, wenn der Domainname im String \p idn
- * nicht konvertiert werden kann.
- */
-String Idn2Ace(const String &idn)
-{
-	WideString ws_idn(idn);
-	return Idn2Ace(ws_idn);
-}
-
-/*!\brief Ace-Form aus einem IDN-String berechnen
- * \ingroup PPLGroupInternet
- * \desc
- * Wandelt einen IDN-String in seine Ace-Form um.
- *
- * \param[in] idn Der IDN-String
- * \return Liefert einen neuen String mit der Ace-Form des Domainnamens zurück.
- * \exception IdnConversionException Wird geworfen, wenn der Domainname im String \p idn
- * nicht konvertiert werden kann.
- */
-WideString Idn2Ace(const WideString &idn)
-{
-#ifdef HAVE_LIBIDN2
-	WideString ace;
-	char *a=NULL;
-	ByteArray ucs4=idn.toUCS4();
-	if (IDNA_SUCCESS==idn2_to_ascii_4z((const uint32_t*)ucs4.ptr(),&a,0) && a!=NULL) {
-		ace.set(a);
-		free(a);
-		return ace;
-	}
-	free(a);
-	throw IdnConversionException("%ls",(const wchar_t*)idn);
-#else
-#ifdef HAVE_LIBIDN
-	WideString ace;
-	char *a=NULL;
-	ByteArray ucs4=idn.toUCS4();
-	int flags=0;
-	#ifdef HAVE_LIBIDN2_IDN2_NO_TR46
-		flags=IDN2_NO_TR46;
-	#endif
-	if (IDNA_SUCCESS==idna_to_ascii_4z((const uint32_t*)ucs4.ptr(),&a,flags) && a!=NULL) {
-		ace.set(a);
-#ifdef _WIN32
-		idn_free(a);
-#else
-		free(a);
-#endif
-		return ace;
+    if (!_wsa_init) {
+        WORD wVersionRequested;
+        WSADATA wsaData;
+        int err;
+        wVersionRequested = MAKEWORD(2, 2);
+        err = WSAStartup(wVersionRequested, &wsaData);
+        if (err != 0) throw WinsockInitialisationFailed();
     }
-#ifdef _WIN32
-		idn_free(a);
-#else
-		free(a);
-#endif
-
-	throw IdnConversionException("%ls",(const wchar_t*)idn);
-#else
-	throw UnsupportedFeatureException("libidn");
-#endif
 #endif
 }
 
-
-/*!\brief Ace-Form einer Domain in die IDN-Form umwandeln
- *
- * \desc
- * Wandelt einen ACE-String in seine lesbare IDN-Form um.
- *
- * \param[in] ace Der ACE-String
- * \return Liefert einen neuen String mit der IDN-Form des Domainnamens zurück.
- * \exception IdnConversionException Wird geworfen, wenn der ACE-String nicht
- * umgewandelt werden kann.
- */
-String Ace2Idn(const String &ace)
-{
-	WideString ws_ace(ace);
-	return Ace2Idn(ws_ace);
-}
-
-
-/*!\brief Ace-Form einer Domain in die IDN-Form umwandeln
+/*!\brief Ace-Form aus einem IDN-String berechnen
  * \ingroup PPLGroupInternet
  *
  * \desc
- * Wandelt einen ACE-String in seine lesbare IDN-Form um.
+ * Wandelt einen IDN-String in seine Ace-Form um.
  *
- * \param[in] ace Der ACE-String
- * \return Liefert einen neuen String mit der IDN-Form des Domainnamens zurück.
- * \exception IdnConversionException Wird geworfen, wenn der ACE-String nicht
- * umgewandelt werden kann.
+ * \param[in] idn Der IDN-String
+ * \return Liefert einen neuen String mit der Ace-Form des Domainnamens zurück.
+ * \exception IdnConversionException Wird geworfen, wenn der Domainname im String \p idn
+ * nicht konvertiert werden kann.
  */
-WideString Ace2Idn(const WideString &ace)
+String Idn2Ace(const String& idn)
+{
+    WideString ws_idn(idn);
+    return Idn2Ace(ws_idn);
+}
+
+/*!\brief Ace-Form aus einem IDN-String berechnen
+ * \ingroup PPLGroupInternet
+ * \desc
+ * Wandelt einen IDN-String in seine Ace-Form um.
+ *
+ * \param[in] idn Der IDN-String
+ * \return Liefert einen neuen String mit der Ace-Form des Domainnamens zurück.
+ * \exception IdnConversionException Wird geworfen, wenn der Domainname im String \p idn
+ * nicht konvertiert werden kann.
+ */
+WideString Idn2Ace(const WideString& idn)
 {
 #ifdef HAVE_LIBIDN2
-	WideString idn;
-	uint32_t *a=NULL;
-	ByteArray ucs4=ace.toUCS4();
-	int flags=0;
-	#ifdef HAVE_LIBIDN2_IDN2_NO_TR46
-		flags=IDN2_NO_TR46;
-	#endif
-    if (IDNA_SUCCESS==idn2_to_unicode_4z4z((const uint32_t*)ucs4.ptr(), &a,flags) && a!=NULL) {
-		idn.fromUCS4(a);
-		free(a);
-		return idn;
+    WideString ace;
+    char* a = NULL;
+    ByteArray ucs4 = idn.toUCS4();
+    if (IDNA_SUCCESS == idn2_to_ascii_4z((const uint32_t*)ucs4.ptr(), &a, 0) && a != NULL) {
+        ace.set(a);
+        free(a);
+        return ace;
     }
     free(a);
-    throw IdnConversionException("%ls",(const wchar_t*)ace);
+    throw IdnConversionException("%ls", (const wchar_t*)idn);
 #else
-
 #ifdef HAVE_LIBIDN
-	WideString idn;
-	uint32_t *a=NULL;
-	ByteArray ucs4=ace.toUCS4();
-    if (IDNA_SUCCESS==idna_to_unicode_4z4z((const uint32_t*)ucs4.ptr(), &a,0) && a!=NULL) {
-		idn.fromUCS4(a);
-#ifdef _WIN32
-		idn_free(a);
-#else
-		free(a);
+    WideString ace;
+    char* a = NULL;
+    ByteArray ucs4 = idn.toUCS4();
+    int flags = 0;
+#ifdef HAVE_LIBIDN2_IDN2_NO_TR46
+    flags = IDN2_NO_TR46;
 #endif
-		return idn;
+    if (IDNA_SUCCESS == idna_to_ascii_4z((const uint32_t*)ucs4.ptr(), &a, flags) && a != NULL) {
+        ace.set(a);
+#ifdef _WIN32
+        idn_free(a);
+#else
+        free(a);
+#endif
+        return ace;
     }
 #ifdef _WIN32
-		idn_free(a);
+    idn_free(a);
 #else
-		free(a);
+    free(a);
 #endif
 
-		throw IdnConversionException("%ls",(const wchar_t*)ace);
+    throw IdnConversionException("%ls", (const wchar_t*)idn);
 #else
-	throw UnsupportedFeatureException("libidn");
+    throw UnsupportedFeatureException("libidn");
 #endif
 #endif
 }
 
-#define MAXL (size_t) 75    /* 76th position only used by continuation = */
+/*!\brief Ace-Form einer Domain in die IDN-Form umwandeln
+ *
+ * \desc
+ * Wandelt einen ACE-String in seine lesbare IDN-Form um.
+ *
+ * \param[in] ace Der ACE-String
+ * \return Liefert einen neuen String mit der IDN-Form des Domainnamens zurück.
+ * \exception IdnConversionException Wird geworfen, wenn der ACE-String nicht
+ * umgewandelt werden kann.
+ */
+String Ace2Idn(const String& ace)
+{
+    WideString ws_ace(ace);
+    return Ace2Idn(ws_ace);
+}
+
+/*!\brief Ace-Form einer Domain in die IDN-Form umwandeln
+ * \ingroup PPLGroupInternet
+ *
+ * \desc
+ * Wandelt einen ACE-String in seine lesbare IDN-Form um.
+ *
+ * \param[in] ace Der ACE-String
+ * \return Liefert einen neuen String mit der IDN-Form des Domainnamens zurück.
+ * \exception IdnConversionException Wird geworfen, wenn der ACE-String nicht
+ * umgewandelt werden kann.
+ */
+WideString Ace2Idn(const WideString& ace)
+{
+#ifdef HAVE_LIBIDN2
+    WideString idn;
+    uint32_t* a = NULL;
+    ByteArray ucs4 = ace.toUCS4();
+    int flags = 0;
+#ifdef HAVE_LIBIDN2_IDN2_NO_TR46
+    flags = IDN2_NO_TR46;
+#endif
+    if (IDNA_SUCCESS == idn2_to_unicode_4z4z((const uint32_t*)ucs4.ptr(), &a, flags) && a != NULL) {
+        idn.fromUCS4(a);
+        free(a);
+        return idn;
+    }
+    free(a);
+    throw IdnConversionException("%ls", (const wchar_t*)ace);
+#else
+
+#ifdef HAVE_LIBIDN
+    WideString idn;
+    uint32_t* a = NULL;
+    ByteArray ucs4 = ace.toUCS4();
+    if (IDNA_SUCCESS == idna_to_unicode_4z4z((const uint32_t*)ucs4.ptr(), &a, 0) && a != NULL) {
+        idn.fromUCS4(a);
+#ifdef _WIN32
+        idn_free(a);
+#else
+        free(a);
+#endif
+        return idn;
+    }
+#ifdef _WIN32
+    idn_free(a);
+#else
+    free(a);
+#endif
+
+    throw IdnConversionException("%ls", (const wchar_t*)ace);
+#else
+    throw UnsupportedFeatureException("libidn");
+#endif
+#endif
+}
+
+#define MAXL (size_t)75 /* 76th position only used by continuation = */
 
 /*!\brief Konvertiert einen 8Bit-String in Quoted Printable (RFC-822)
  * \ingroup PPLGroupInternet
@@ -295,49 +291,50 @@ WideString Ace2Idn(const WideString &ace)
  * \param[in] source Der zu konvertierende String
  * \return Gibt den String als Quoted Printable zurück
  */
-String ToQuotedPrintable (const String &source)
+String ToQuotedPrintable(const String& source)
 {
-	unsigned char *src=(unsigned char *)source.getPtr();
-	size_t srcl=source.size();
-	unsigned long lp = 0;
-	unsigned char *ret = (unsigned char *) malloc ((size_t) (3*srcl + 3*(((3*srcl)/MAXL) + 1)));
-	unsigned char *d = ret;
-	const char *hex = (const char*)"0123456789ABCDEF";
-	while (srcl--) {      /* for each character */
-		unsigned char c;
-		/* true line break? */
-		if (((c = *src++) == '\012') && srcl) {
-			*d++ = '\012'; *d++ = *src++; srcl--;
-			lp = 0;           /* reset line count */
-		}
-		else {          /* not a line break */
-			/* quoting required? */
-			if (iscntrl (c) || (c == 0x7f) || (c & 0x80) || (c == '=') ||
-					((c == ' ') && (*src == '\012'))) {
-				if ((lp += 3) > MAXL) { /* yes, would line overflow? */
-					*d++ = '='; *d++ = '\012';
-					lp = 2;       /* set line count */
-				}
-				*d++ = '=';     /* quote character */
-				*d++ = hex[c >> 4]; /* high order 4 bits */
-				*d++ = hex[c & 0xf];    /* low order 4 bits */
-			}
-			else {            /* ordinary character */
-				if ((++lp) > MAXL) {    /* would line overflow? */
-					*d++ = '='; *d++ = '\012';
-					lp = 1;       /* set line count */
-				}
-				*d++ = c;       /* ordinary character */
-			}
-		}
-	}
-	*d = '\0';            /* tie off destination */
-	size_t len = d - ret;       /* calculate true size */
-	String rr;
-	rr.set((const char*)ret,len);
-	//target->Replace("=0A","=0A\n");
-	free(ret);
-	return rr;
+    unsigned char* src = (unsigned char*)source.getPtr();
+    size_t srcl = source.size();
+    unsigned long lp = 0;
+    unsigned char* ret = (unsigned char*)malloc((size_t)(3 * srcl + 3 * (((3 * srcl) / MAXL) + 1)));
+    unsigned char* d = ret;
+    const char* hex = (const char*)"0123456789ABCDEF";
+    while (srcl--) { /* for each character */
+        unsigned char c;
+        /* true line break? */
+        if (((c = *src++) == '\012') && srcl) {
+            *d++ = '\012';
+            *d++ = *src++;
+            srcl--;
+            lp = 0; /* reset line count */
+        } else {    /* not a line break */
+            /* quoting required? */
+            if (iscntrl(c) || (c == 0x7f) || (c & 0x80) || (c == '=') || ((c == ' ') && (*src == '\012'))) {
+                if ((lp += 3) > MAXL) { /* yes, would line overflow? */
+                    *d++ = '=';
+                    *d++ = '\012';
+                    lp = 2; /* set line count */
+                }
+                *d++ = '=';          /* quote character */
+                *d++ = hex[c >> 4];  /* high order 4 bits */
+                *d++ = hex[c & 0xf]; /* low order 4 bits */
+            } else {                 /* ordinary character */
+                if ((++lp) > MAXL) { /* would line overflow? */
+                    *d++ = '=';
+                    *d++ = '\012';
+                    lp = 1; /* set line count */
+                }
+                *d++ = c; /* ordinary character */
+            }
+        }
+    }
+    *d = '\0';            /* tie off destination */
+    size_t len = d - ret; /* calculate true size */
+    String rr;
+    rr.set((const char*)ret, len);
+    // target->Replace("=0A","=0A\n");
+    free(ret);
+    return rr;
 }
 
 /*!\brief 32-Bit-Wert von Host-Byteorder in Hostbyteorder wandeln
@@ -353,7 +350,7 @@ String ToQuotedPrintable (const String &source)
  */
 uint32_t Ntohl(uint32_t net)
 {
-	return ntohl(net);
+    return ntohl(net);
 }
 
 /*!\brief 32-Bit-Wert von Host-Byteorder in Netzwerk-Byteorder wandeln
@@ -370,7 +367,7 @@ uint32_t Ntohl(uint32_t net)
  */
 uint32_t Htonl(uint32_t host)
 {
-	return htonl(host);
+    return htonl(host);
 }
 
 /*!\brief 16-Bit-Wert von Netzwerk-Byteorder in Host-Byteorder wandeln
@@ -386,7 +383,7 @@ uint32_t Htonl(uint32_t host)
  */
 uint16_t Ntohs(uint16_t net)
 {
-	return ntohs(net);
+    return ntohs(net);
 }
 
 /*!\brief 16-Bit-Wert von Host-Byteorder in Netzwerk-Byteorder wandeln
@@ -403,25 +400,23 @@ uint16_t Ntohs(uint16_t net)
  */
 uint16_t Htons(uint16_t host)
 {
-	return htons(host);
+    return htons(host);
 }
 
 bool IsBigEndian()
 {
 #ifdef __BIG_ENDIAN__
-	return true;
+    return true;
 #endif
-	return false;
+    return false;
 }
 
 bool IsLittleEndian()
 {
 #ifdef __LITTLE_ENDIAN__
-	return true;
+    return true;
 #endif
-	return false;
+    return false;
 }
 
-
-}	// namespace ppl7
-
+} // namespace pplib

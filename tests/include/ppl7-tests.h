@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef PPL7_TESTS_H_
-#define PPL7_TESTS_H_
+#ifndef PPLIB_TESTS_H_
+#define PPLIB_TESTS_H_
 
 #ifdef _WIN32
 #define DEFAULT_LOCALE ".UTF-8"
@@ -38,11 +38,11 @@
 #define LATIN1_LOCALE "de_DE.ISO8859-1"
 #endif
 
-#ifndef PPL7TESTSUITEMAIN
-extern ppl7::ConfigParser PPL7TestConfig;
+#ifndef PPLIBTESTSUITEMAIN
+extern pplib::ConfigParser PPLIBTestConfig;
 #endif
 
 extern const char* loremipsum;
 extern const char* loremipsum_md5;
 
-#endif /* PPL7_TESTS_H_ */
+#endif /* PPLIB_TESTS_H_ */

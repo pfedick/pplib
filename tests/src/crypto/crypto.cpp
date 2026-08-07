@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
@@ -8,7 +8,7 @@
  * $Id: memorygroup.cpp 600 2013-04-26 19:37:49Z pafe $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,10 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
-#include <ppl7-crypto.h>
+#include <pplib.h>
+#include <pplib-crypto.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
 namespace
 {
@@ -67,8 +67,8 @@ static unsigned char iv[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 
 
 TEST_F(CryptoTest, EncryptDecrypt_AES_128_CFB)
 {
-    ppl7::Encrypt encrypt(ppl7::Crypt::Algo_AES_128, ppl7::Crypt::Mode_CFB);
-    ppl7::Decrypt decrypt(ppl7::Crypt::Algo_AES_128, ppl7::Crypt::Mode_CFB);
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_128, pplib::Crypt::Mode_CFB);
+    pplib::Decrypt decrypt(pplib::Crypt::Algo_AES_128, pplib::Crypt::Mode_CFB);
 
     ASSERT_EQ(16, encrypt.keyLength());
     ASSERT_EQ(16, encrypt.ivLength());
@@ -78,30 +78,30 @@ TEST_F(CryptoTest, EncryptDecrypt_AES_128_CFB)
     ASSERT_EQ(16, decrypt.ivLength());
     ASSERT_EQ(1, decrypt.blockSize());
 
-    encrypt.setKey(ppl7::ByteArrayPtr(key, 16));
-    encrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    encrypt.setKey(pplib::ByteArrayPtr(key, 16));
+    encrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    decrypt.setKey(ppl7::ByteArrayPtr(key, 16));
-    decrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    decrypt.setKey(pplib::ByteArrayPtr(key, 16));
+    decrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    ppl7::String clearData("this is an unencrypted string");
-    ppl7::ByteArray crypteddata;
+    pplib::String clearData("this is an unencrypted string");
+    pplib::ByteArray crypteddata;
 
-    encrypt.encrypt(ppl7::ByteArrayPtr(clearData), crypteddata);
+    encrypt.encrypt(pplib::ByteArrayPtr(clearData), crypteddata);
 
     ASSERT_EQ(29, crypteddata.size());
 
-    ppl7::ByteArray decrypteddata;
+    pplib::ByteArray decrypteddata;
     decrypt.decrypt(crypteddata, decrypteddata);
 
     ASSERT_EQ(29, decrypteddata.size());
-    ASSERT_EQ(clearData, ppl7::String(decrypteddata));
+    ASSERT_EQ(clearData, pplib::String(decrypteddata));
 }
 
 TEST_F(CryptoTest, EncryptDecrypt_AES_256_CFB)
 {
-    ppl7::Encrypt encrypt(ppl7::Crypt::Algo_AES_256, ppl7::Crypt::Mode_CFB);
-    ppl7::Decrypt decrypt(ppl7::Crypt::Algo_AES_256, ppl7::Crypt::Mode_CFB);
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CFB);
+    pplib::Decrypt decrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CFB);
 
     ASSERT_EQ(32, encrypt.keyLength());
     ASSERT_EQ(16, encrypt.ivLength());
@@ -111,30 +111,30 @@ TEST_F(CryptoTest, EncryptDecrypt_AES_256_CFB)
     ASSERT_EQ(16, decrypt.ivLength());
     ASSERT_EQ(1, decrypt.blockSize());
 
-    encrypt.setKey(ppl7::ByteArrayPtr(key, 32));
-    encrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    encrypt.setKey(pplib::ByteArrayPtr(key, 32));
+    encrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    decrypt.setKey(ppl7::ByteArrayPtr(key, 32));
-    decrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    decrypt.setKey(pplib::ByteArrayPtr(key, 32));
+    decrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    ppl7::String clearData("this is an unencrypted string");
-    ppl7::ByteArray crypteddata;
+    pplib::String clearData("this is an unencrypted string");
+    pplib::ByteArray crypteddata;
 
-    encrypt.encrypt(ppl7::ByteArrayPtr(clearData), crypteddata);
+    encrypt.encrypt(pplib::ByteArrayPtr(clearData), crypteddata);
 
     ASSERT_EQ(29, crypteddata.size());
 
-    ppl7::ByteArray decrypteddata;
+    pplib::ByteArray decrypteddata;
     decrypt.decrypt(crypteddata, decrypteddata);
 
     ASSERT_EQ(29, decrypteddata.size());
-    ASSERT_EQ(clearData, ppl7::String(decrypteddata));
+    ASSERT_EQ(clearData, pplib::String(decrypteddata));
 }
 
 TEST_F(CryptoTest, EncryptDecrypt_TRIPLE_DES_CFB)
 {
-    ppl7::Encrypt encrypt(ppl7::Crypt::Algo_TRIPLE_DES, ppl7::Crypt::Mode_CFB);
-    ppl7::Decrypt decrypt(ppl7::Crypt::Algo_TRIPLE_DES, ppl7::Crypt::Mode_CFB);
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_TRIPLE_DES, pplib::Crypt::Mode_CFB);
+    pplib::Decrypt decrypt(pplib::Crypt::Algo_TRIPLE_DES, pplib::Crypt::Mode_CFB);
 
     ASSERT_EQ(24, encrypt.keyLength());
     ASSERT_EQ(8, encrypt.ivLength());
@@ -144,30 +144,30 @@ TEST_F(CryptoTest, EncryptDecrypt_TRIPLE_DES_CFB)
     ASSERT_EQ(8, decrypt.ivLength());
     ASSERT_EQ(1, decrypt.blockSize());
 
-    encrypt.setKey(ppl7::ByteArrayPtr(key, 24));
-    encrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    encrypt.setKey(pplib::ByteArrayPtr(key, 24));
+    encrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    decrypt.setKey(ppl7::ByteArrayPtr(key, 24));
-    decrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    decrypt.setKey(pplib::ByteArrayPtr(key, 24));
+    decrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    ppl7::String clearData("this is an unencrypted string");
-    ppl7::ByteArray crypteddata;
+    pplib::String clearData("this is an unencrypted string");
+    pplib::ByteArray crypteddata;
 
-    encrypt.encrypt(ppl7::ByteArrayPtr(clearData), crypteddata);
+    encrypt.encrypt(pplib::ByteArrayPtr(clearData), crypteddata);
 
     ASSERT_EQ(29, crypteddata.size());
 
-    ppl7::ByteArray decrypteddata;
+    pplib::ByteArray decrypteddata;
     decrypt.decrypt(crypteddata, decrypteddata);
 
     ASSERT_EQ(29, decrypteddata.size());
-    ASSERT_EQ(clearData, ppl7::String(decrypteddata));
+    ASSERT_EQ(clearData, pplib::String(decrypteddata));
 }
 
 TEST_F(CryptoTest, EncryptDecrypt_TRIPLE_DES_CBC)
 {
-    ppl7::Encrypt encrypt(ppl7::Crypt::Algo_TRIPLE_DES, ppl7::Crypt::Mode_CBC);
-    ppl7::Decrypt decrypt(ppl7::Crypt::Algo_TRIPLE_DES, ppl7::Crypt::Mode_CBC);
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_TRIPLE_DES, pplib::Crypt::Mode_CBC);
+    pplib::Decrypt decrypt(pplib::Crypt::Algo_TRIPLE_DES, pplib::Crypt::Mode_CBC);
 
     ASSERT_EQ(24, encrypt.keyLength());
     ASSERT_EQ(8, encrypt.ivLength());
@@ -177,31 +177,31 @@ TEST_F(CryptoTest, EncryptDecrypt_TRIPLE_DES_CBC)
     ASSERT_EQ(8, decrypt.ivLength());
     ASSERT_EQ(8, decrypt.blockSize());
 
-    encrypt.setKey(ppl7::ByteArrayPtr(key, 24));
-    encrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    encrypt.setKey(pplib::ByteArrayPtr(key, 24));
+    encrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    decrypt.setKey(ppl7::ByteArrayPtr(key, 24));
-    decrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    decrypt.setKey(pplib::ByteArrayPtr(key, 24));
+    decrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    ppl7::String clearData("this is an unencrypted string");
-    ppl7::ByteArray crypteddata;
+    pplib::String clearData("this is an unencrypted string");
+    pplib::ByteArray crypteddata;
 
-    encrypt.encrypt(ppl7::ByteArrayPtr(clearData), crypteddata);
+    encrypt.encrypt(pplib::ByteArrayPtr(clearData), crypteddata);
 
     ASSERT_EQ(32, crypteddata.size());
 
-    ppl7::ByteArray decrypteddata;
+    pplib::ByteArray decrypteddata;
     decrypt.decrypt(crypteddata, decrypteddata);
     // crypteddata.hexDump();
     // decrypteddata.hexDump();
     ASSERT_EQ(29, decrypteddata.size());
-    ASSERT_EQ(clearData, ppl7::String(decrypteddata));
+    ASSERT_EQ(clearData, pplib::String(decrypteddata));
 }
 
 TEST_F(CryptoTest, EncryptDecryptWithBase64_AES_256_CFB)
 {
-    ppl7::Encrypt encrypt(ppl7::Crypt::Algo_AES_256, ppl7::Crypt::Mode_CFB);
-    ppl7::Decrypt decrypt(ppl7::Crypt::Algo_AES_256, ppl7::Crypt::Mode_CFB);
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CFB);
+    pplib::Decrypt decrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CFB);
 
     ASSERT_EQ(32, encrypt.keyLength());
     ASSERT_EQ(16, encrypt.ivLength());
@@ -211,25 +211,25 @@ TEST_F(CryptoTest, EncryptDecryptWithBase64_AES_256_CFB)
     ASSERT_EQ(16, decrypt.ivLength());
     ASSERT_EQ(1, decrypt.blockSize());
 
-    encrypt.setKey(ppl7::ByteArrayPtr(key, 32));
-    encrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    encrypt.setKey(pplib::ByteArrayPtr(key, 32));
+    encrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    decrypt.setKey(ppl7::ByteArrayPtr(key, 32));
-    decrypt.setIV(ppl7::ByteArrayPtr(iv, sizeof(iv)));
+    decrypt.setKey(pplib::ByteArrayPtr(key, 32));
+    decrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
 
-    ppl7::String clearData("this is an unencrypted string");
-    ppl7::String crypteddata;
+    pplib::String clearData("this is an unencrypted string");
+    pplib::String crypteddata;
 
-    crypteddata = encrypt.encrypt(ppl7::ByteArrayPtr(clearData)).toBase64();
+    crypteddata = encrypt.encrypt(pplib::ByteArrayPtr(clearData)).toBase64();
 
     ASSERT_EQ(40, crypteddata.size());
-    ASSERT_EQ(ppl7::String("O2k5VBdaAV/4KXSLjjGxHexJoIdy/P148zvHAR7="), crypteddata);
+    ASSERT_EQ(pplib::String("O2k5VBdaAV/4KXSLjjGxHexJoIdy/P148zvHAR7="), crypteddata);
 
-    ppl7::ByteArray decrypteddata;
-    decrypt.decrypt(ppl7::FromBase64(crypteddata), decrypteddata);
+    pplib::ByteArray decrypteddata;
+    decrypt.decrypt(pplib::FromBase64(crypteddata), decrypteddata);
 
     ASSERT_EQ(29, decrypteddata.size());
-    ASSERT_EQ(clearData, ppl7::String(decrypteddata));
+    ASSERT_EQ(clearData, pplib::String(decrypteddata));
 }
 
 } // namespace

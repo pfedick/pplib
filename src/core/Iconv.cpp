@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,13 +27,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/array.h>
-#include <ppl7/types/bytearray.h>
-#include <ppl7/types/bytearrayptr.h>
-#include <ppl7/core/iconv.h>
-#include <ppl7/exceptions.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/core/iconv.h>
+#include <pplib/exceptions.h>
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
@@ -47,7 +47,7 @@
 #endif
 #endif
 
-namespace ppl7
+namespace pplib
 {
 
 Iconv::Iconv()
@@ -98,7 +98,7 @@ void Iconv::transcode(const ByteArrayPtr& from, ByteArray& to)
     size_t outbytes = inbytes * 4 + 10;
     char* buffer = (char*)malloc(outbytes);
     char* outbuf = buffer;
-    if (!outbuf) throw ppl7::OutOfMemoryException();
+    if (!outbuf) throw pplib::OutOfMemoryException();
     const char* inbuffer = (const char*)from.ptr();
     char* ret = outbuf;
     // printf ("Iconv::transcode\n");
@@ -255,7 +255,7 @@ static int iconv_enumerate_do_one(unsigned int namescount, const char* const* na
 
 static int iconv_enumerate_do_one_std_list(unsigned int namescount, const char* const* names, void* data)
 {
-    std::list<ppl7::String>* a = (std::list<ppl7::String>*)data;
+    std::list<pplib::String>* a = (std::list<pplib::String>*)data;
     if (!a) return 0;
     if (namescount) {
         // printf ("namescount=%u: ",namescount);
@@ -304,7 +304,7 @@ void Iconv::enumerateCharsets(Array& list)
 #endif
 }
 
-void Iconv::enumerateCharsets(std::list<ppl7::String>& list)
+void Iconv::enumerateCharsets(std::list<pplib::String>& list)
 {
 #ifndef HAVE_ICONV
     throw UnsupportedFeatureException("Iconv");
@@ -395,4 +395,4 @@ ByteArray Iconv::transcode(const ByteArrayPtr& text, const String& fromEncoding,
     return buffer;
 }
 
-} // namespace ppl7
+} // namespace pplib

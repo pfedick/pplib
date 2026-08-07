@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,9 +27,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/compression.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/core/functions.h>
+#include <pplib/core/compression.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
 
 #ifdef HAVE_ZLIB
 #include <zlib.h>
@@ -39,7 +39,7 @@
 #include <bzlib.h>
 #endif
 
-namespace ppl7
+namespace pplib
 {
 
 /*!\var Compression::Level Compression::Level_Fast
@@ -912,7 +912,7 @@ void Compression::uncompress(ByteArray& out, const ByteArrayPtr& object)
     uncompress(out, object.ptr(), object.size());
 }
 
-/*!\ingroup PPL7_COMPRESSION
+/*!\ingroup PPLIB_COMPRESSION
  * \brief Speicherbereich komprimieren
  *
  * \desc
@@ -938,7 +938,7 @@ void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm met
     comp.compress(out, in);
 }
 
-/*!\ingroup PPL7_COMPRESSION
+/*!\ingroup PPLIB_COMPRESSION
  * \relatesalso Compression
  * \brief Daten dekomprimieren
  *
@@ -966,7 +966,7 @@ void Uncompress(ByteArray& out, const ByteArrayPtr& in)
 }
 
 void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
-/*!\ingroup PPL7_COMPRESSION
+/*!\ingroup PPLIB_COMPRESSION
  * \relatesalso Compression
  * \brief Daten mit ZLib komprimieren
  *
@@ -991,7 +991,7 @@ void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level lev
 }
 
 void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
-/*!\ingroup PPL7_COMPRESSION
+/*!\ingroup PPLIB_COMPRESSION
  * \relatesalso Compression
  * \brief Daten mit BZip2 komprimieren
  *
@@ -1017,4 +1017,4 @@ void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level le
     Compress(out, in, Compression::Algo_BZIP2, level);
 }
 
-} // namespace ppl7
+} // namespace pplib

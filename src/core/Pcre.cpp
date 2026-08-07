@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -30,14 +30,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "config_ppl7.h"
-#include <ppl7/core/regex.h>
+#include "config_pplib.h"
+#include <pplib/core/regex.h>
 
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/array.h>
-#include <ppl7/types/bytearray.h>
-#include <ppl7/core/functions.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/core/functions.h>
 
 #ifdef HAVE_PCRE2
 #define PCRE2_CODE_UNIT_WIDTH 8
@@ -73,7 +73,7 @@
 #define pcre2_bits_wide 32
 #endif
 
-namespace ppl7
+namespace pplib
 {
 
 RegEx::Pattern::Pattern()
@@ -86,7 +86,7 @@ RegEx::Pattern::Pattern(const Pattern& other)
 {
     p = NULL;
     bits = other.bits;
-    ppl7::PrintDebug("RegEx::Pattern::Pattern using copy constructor\n");
+    pplib::PrintDebug("RegEx::Pattern::Pattern using copy constructor\n");
     if (other.p) {
         if (bits == 8) {
 #ifdef HAVE_PCRE2_BITS_8
@@ -103,7 +103,7 @@ RegEx::Pattern::Pattern(const Pattern& other)
 
 RegEx::Pattern::Pattern(const Pattern&& other)
 {
-    ppl7::PrintDebug("RegEx::Pattern::Pattern using move constructor\n");
+    pplib::PrintDebug("RegEx::Pattern::Pattern using move constructor\n");
     p = other.p;
     bits = other.bits;
 }
@@ -252,7 +252,7 @@ bool RegEx::match(const Pattern& pattern, const String& subject)
 bool RegEx::match(const Pattern& pattern, const WideString& subject)
 {
     if (pattern.p == NULL) {
-        ppl7::PrintDebug("debug 1\n");
+        pplib::PrintDebug("debug 1\n");
         throw IllegalRegularExpressionException();
     }
 #ifndef HAVE_PCRE2_WIDE
@@ -263,7 +263,7 @@ bool RegEx::match(const Pattern& pattern, const WideString& subject)
     if (rc < 0) {
         pcre2_match_data_free_wide(md);
         if (rc == PCRE2_ERROR_NOMATCH) return false;
-        // ppl7::PrintDebug("debug 2, rc=%d\n", rc);
+        // pplib::PrintDebug("debug 2, rc=%d\n", rc);
         throw IllegalRegularExpressionException();
     }
     pcre2_match_data_free_wide(md);
@@ -475,4 +475,4 @@ WideString RegEx::escape(const WideString& subject)
     return t;
 }
 
-} // namespace ppl7
+} // namespace pplib

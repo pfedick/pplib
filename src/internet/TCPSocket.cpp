@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -82,20 +82,21 @@
 #include <signal.h>
 #endif
 
-//#define DEBUGOUT
+// #define DEBUGOUT
 
-#include "ppl7.h"
-#include "ppl7-inet.h"
-#include "socket_ppl7.h"
+#include "pplib.h"
+#include "pplib-inet.h"
+#include "socket_pplib.h"
 
-namespace ppl7 {
+namespace pplib
+{
 
 /*!\class TCPSocket
  * \ingroup PPLGroupInternet
  *
  * \brief Socket-Klasse für TCP-Verbindungen
  *
- * \header \#include <ppl7-inet.h>
+ * \header \#include <pplib-inet.h>
  *
  * \desc
  * Mit dieser Klasse kann eine TCP-Verbindung (Transmission Control Protocol) zu einem über IP
@@ -128,33 +129,29 @@ namespace ppl7 {
 
 // Compat-Funktionen
 #ifdef _WIN32
-#define socklen_t	int
+#define socklen_t int
 #endif
-
 
 static inline int getErrno()
 {
 #ifdef WIN32
-	return WSAGetLastError();
+    return WSAGetLastError();
 #else
-	return errno;
+    return errno;
 #endif
 }
 
-void throwExceptionFromEaiError(int ecode, const String &msg)
+void throwExceptionFromEaiError(int ecode, const String& msg)
 {
 #ifndef _WIN32
-	if (ecode == EAI_SYSTEM)
-		throwSocketException(getErrno(), msg);
+    if (ecode == EAI_SYSTEM) throwSocketException(getErrno(), msg);
 #endif
-	String m = msg;
-	if (msg.notEmpty())
-		m += " [";
-	m += "ResolverException: ";
-	m += gai_strerror(ecode);
-	if (msg.notEmpty())
-		m += "]";
-	throw ResolverException(m);
+    String m = msg;
+    if (msg.notEmpty()) m += " [";
+    m += "ResolverException: ";
+    m += gai_strerror(ecode);
+    if (msg.notEmpty()) m += "]";
+    throw ResolverException(m);
 }
 
 /*!\brief Eingehende Verbindung verarbeiten
@@ -174,9 +171,9 @@ void throwExceptionFromEaiError(int ecode, const String &msg)
  * zurückgeben. Soll die Verbindung wieder getrennt werden, muss die
  * Funktion 0 zurückgeben.
  */
-int TCPSocket::receiveConnect(TCPSocket *socket, const String &host, int port)
+int TCPSocket::receiveConnect(TCPSocket* socket, const String& host, int port)
 {
-	return 0;
+    return 0;
 }
 
 /*!\brief Konstruktor der Klasse
@@ -186,22 +183,22 @@ int TCPSocket::receiveConnect(TCPSocket *socket, const String &host, int port)
 TCPSocket::TCPSocket()
 {
 #ifdef _WIN32
-	InitSockets();
+    InitSockets();
 #endif
-	PortNum=0;
-	socket = NULL;
-	connected = false;
-	islisten = false;
-	stoplisten = false;
-	blocking=true;
-	ssl = NULL;
-	sslcontext = NULL;
-	connect_timeout_sec = 0;
-	connect_timeout_usec = 0;
-	SourcePort = 0;
+    PortNum = 0;
+    socket = NULL;
+    connected = false;
+    islisten = false;
+    stoplisten = false;
+    blocking = true;
+    ssl = NULL;
+    sslcontext = NULL;
+    connect_timeout_sec = 0;
+    connect_timeout_usec = 0;
+    SourcePort = 0;
 #ifndef _WIN32
-	// signal SIGPIPE ignorieren
-	signal(SIGPIPE, SIG_IGN);
+    // signal SIGPIPE ignorieren
+    signal(SIGPIPE, SIG_IGN);
 #endif
 }
 
@@ -211,20 +208,15 @@ TCPSocket::TCPSocket()
  */
 TCPSocket::~TCPSocket()
 {
-	sslStop();
-	if (connected)
-		disconnect();
-	if (islisten)
-		disconnect();
-	PPLSOCKET *s = (PPLSOCKET*) socket;
-	if (!s)
-		return;
-	if (s->sd)
-		disconnect();
-	if (s->ipname)
-		free(s->ipname);
-	free(s);
-	socket = NULL;
+    sslStop();
+    if (connected) disconnect();
+    if (islisten) disconnect();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (!s) return;
+    if (s->sd) disconnect();
+    if (s->ipname) free(s->ipname);
+    free(s);
+    socket = NULL;
 }
 
 /*!\brief Quell-Interface und Port festlegen
@@ -248,10 +240,10 @@ TCPSocket::~TCPSocket()
  * festgelegt.
  *
  */
-void TCPSocket::setSource(const String &interface, int port)
+void TCPSocket::setSource(const String& interface, int port)
 {
-	SourceInterface = interface;
-	SourcePort = port;
+    SourceInterface = interface;
+    SourcePort = port;
 }
 
 /*!\brief Descriptor des Sockets auslesen
@@ -266,13 +258,12 @@ void TCPSocket::setSource(const String &interface, int port)
  */
 int TCPSocket::getDescriptor()
 {
-	if (!connected)
-		throw NotConnectedException();
-	PPLSOCKET *s = (PPLSOCKET*) socket;
+    if (!connected) throw NotConnectedException();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
 #ifdef _WIN32
-	return (int)s->sd;
+    return (int)s->sd;
 #else
-	return s->sd;
+    return s->sd;
 #endif
 }
 
@@ -295,26 +286,25 @@ int TCPSocket::getDescriptor()
  */
 void TCPSocket::disconnect()
 {
-	PPLSOCKET *s = (PPLSOCKET*) socket;
-	if (!s)
-		return;
-	if (islisten) {
-		stopListen();
-	}
-	sslStop();
-	//if (s->sd>0) shutdown(s->sd,2);
-	connected = false;
-	if (s->sd > 0) {
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (!s) return;
+    if (islisten) {
+        stopListen();
+    }
+    sslStop();
+    // if (s->sd>0) shutdown(s->sd,2);
+    connected = false;
+    if (s->sd > 0) {
 #ifdef _WIN32
-		closesocket(s->sd);
+        closesocket(s->sd);
 #else
-		close(s->sd);
+        close(s->sd);
 #endif
-		s->sd = 0;
-	}
-	HostName.clear();
-	PortNum = 0;
-	islisten = false;
+        s->sd = 0;
+    }
+    HostName.clear();
+    PortNum = 0;
+    islisten = false;
 }
 
 /*!\brief Verbindung trennen
@@ -335,26 +325,25 @@ void TCPSocket::disconnect()
  */
 void TCPSocket::shutdown()
 {
-	PPLSOCKET *s = (PPLSOCKET*) socket;
-	if (!s)
-		return;
-	if (islisten) {
-		stopListen();
-	}
-	sslStop();
-	//if (s->sd>0) shutdown(s->sd,2);
-	connected = false;
-	if (s->sd > 0) {
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (!s) return;
+    if (islisten) {
+        stopListen();
+    }
+    sslStop();
+    // if (s->sd>0) shutdown(s->sd,2);
+    connected = false;
+    if (s->sd > 0) {
 #ifdef _WIN32
-		closesocket(s->sd);
+        closesocket(s->sd);
 #else
-		::shutdown(s->sd, SHUT_RDWR);
+        ::shutdown(s->sd, SHUT_RDWR);
 #endif
-		s->sd = 0;
-	}
-	HostName.clear();
-	PortNum = 0;
-	islisten = false;
+        s->sd = 0;
+    }
+    HostName.clear();
+    PortNum = 0;
+    islisten = false;
 }
 
 /*!\brief TCP-Server anhalten
@@ -368,15 +357,15 @@ void TCPSocket::shutdown()
  */
 void TCPSocket::stopListen()
 {
-	mutex.lock();
-	stoplisten = true;
-	while (islisten) {
-		mutex.unlock();
-		MSleep(1);
-		mutex.lock();
-	}
-	stoplisten = false;
-	mutex.unlock();
+    mutex.lock();
+    stoplisten = true;
+    while (islisten) {
+        mutex.unlock();
+        MSleep(1);
+        mutex.lock();
+    }
+    stoplisten = false;
+    mutex.unlock();
 }
 
 /*!\brief TCP-Server signalisieren, dass er stoppen soll
@@ -389,9 +378,9 @@ void TCPSocket::stopListen()
  */
 void TCPSocket::signalStopListen()
 {
-	mutex.lock();
-	stoplisten = true;
-	mutex.unlock();
+    mutex.lock();
+    stoplisten = true;
+    mutex.unlock();
 }
 
 /*!\brief Timeout für Connect-Funktion definieren
@@ -408,14 +397,14 @@ void TCPSocket::signalStopListen()
  */
 void TCPSocket::setTimeoutConnect(int seconds, int useconds)
 {
-	connect_timeout_sec = seconds;
-	connect_timeout_usec = useconds;
+    connect_timeout_sec = seconds;
+    connect_timeout_usec = useconds;
 }
 
 #ifdef WIN32
-static int out_bind(const char *host, int port)
+static int out_bind(const char* host, int port)
 {
-	throw UnsupportedFeatureException("TCPSocket.connect after TCPSocket.bind");
+    throw UnsupportedFeatureException("TCPSocket.connect after TCPSocket.bind");
 }
 
 #else
@@ -433,66 +422,61 @@ static int out_bind(const char *host, int port)
  *
  * @exception IllegalArgumentException Wird geworfen, wenn \p host auf NULL zeigt und \p port 0 enthält
  *
- * \relates ppl7::TCPSocket
+ * \relates pplib::TCPSocket
  */
-static int out_bind(const char *host, int port)
+static int out_bind(const char* host, int port)
 {
-	struct addrinfo hints, *res, *ressave;
-	bzero(&hints, sizeof(struct addrinfo));
-	hints.ai_flags = AI_PASSIVE;
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	int listenfd;
-	int n;
-	int on = 1;
-	// Prüfen, ob host ein Wildcard ist
-	if (host != NULL && strlen(host) == 0)
-		host = NULL;
-	if (host != NULL && host[0] == '*')
-		host = NULL;
+    struct addrinfo hints, *res, *ressave;
+    bzero(&hints, sizeof(struct addrinfo));
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    int listenfd;
+    int n;
+    int on = 1;
+    // Prüfen, ob host ein Wildcard ist
+    if (host != NULL && strlen(host) == 0) host = NULL;
+    if (host != NULL && host[0] == '*') host = NULL;
 
-	if (host != NULL && port > 0) {
-		char portstr[12];
-		sprintf(portstr, "%i", port);
-		n = getaddrinfo(host, portstr, &hints, &res);
-	} else if (host) {
-		n = getaddrinfo(host, NULL, &hints, &res);
-	} else if (port) {
-		char portstr[12];
-		sprintf(portstr, "%i", port);
-		n = getaddrinfo(NULL, portstr, &hints, &res);
-	} else {
-		throw IllegalArgumentException();
-	}
-	if (n != 0) {
-		throwExceptionFromEaiError(n, ToString("TCPSocket bind connect: %s:%i", host, port));
-	}
-	ressave = res;
-	do {
-		listenfd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-		if (listenfd < 0)
-			continue; // Error, try next one
+    if (host != NULL && port > 0) {
+        char portstr[12];
+        sprintf(portstr, "%i", port);
+        n = getaddrinfo(host, portstr, &hints, &res);
+    } else if (host) {
+        n = getaddrinfo(host, NULL, &hints, &res);
+    } else if (port) {
+        char portstr[12];
+        sprintf(portstr, "%i", port);
+        n = getaddrinfo(NULL, portstr, &hints, &res);
+    } else {
+        throw IllegalArgumentException();
+    }
+    if (n != 0) {
+        throwExceptionFromEaiError(n, ToString("TCPSocket bind connect: %s:%i", host, port));
+    }
+    ressave = res;
+    do {
+        listenfd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        if (listenfd < 0) continue; // Error, try next one
 
-		if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0) {
-			freeaddrinfo(ressave);
-			throwSocketException(errno, ToString("TCPSocket bind connect: %s:%i", host, port));
-		}
+        if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0) {
+            freeaddrinfo(ressave);
+            throwSocketException(errno, ToString("TCPSocket bind connect: %s:%i", host, port));
+        }
 
-		//HexDump(res->ai_addr,res->ai_addrlen);
-		if (::bind(listenfd, res->ai_addr, res->ai_addrlen) == 0) {
+        // HexDump(res->ai_addr,res->ai_addrlen);
+        if (::bind(listenfd, res->ai_addr, res->ai_addrlen) == 0) {
 
-			break;
-		}
-		shutdown(listenfd, 2);
-		close(listenfd);
-		listenfd = 0;
-	} while ((res = res->ai_next) != NULL);
-	freeaddrinfo(ressave);
-	if (listenfd <= 0)
-		throw CouldNotOpenSocketException("Host: %s, Port: %d", host, port);
-	if (res == NULL)
-		throw CouldNotBindToInterfaceException("Host: %s, Port: %d", host, port);
-	return (listenfd);
+            break;
+        }
+        shutdown(listenfd, 2);
+        close(listenfd);
+        listenfd = 0;
+    } while ((res = res->ai_next) != NULL);
+    freeaddrinfo(ressave);
+    if (listenfd <= 0) throw CouldNotOpenSocketException("Host: %s, Port: %d", host, port);
+    if (res == NULL) throw CouldNotBindToInterfaceException("Host: %s, Port: %d", host, port);
+    return (listenfd);
 }
 #endif
 
@@ -510,28 +494,25 @@ static int out_bind(const char *host, int port)
  * @exception IllegalPortException wird geworfen, wenn der angegebene Port oder
  * Servicename ungültig ist.
  */
-void TCPSocket::connect(const String &host_and_port)
+void TCPSocket::connect(const String& host_and_port)
 {
-	if (host_and_port.isEmpty())
-		throw IllegalArgumentException("TCPSocket::connect(const String &host_and_port)");
-	Array hostname = StrTok(host_and_port, ":");
-	if (hostname.size() != 2)
-		throw IllegalArgumentException("TCPSocket::connect(const String &host_and_port)");
-	String portname = hostname.get(1);
-	int port = portname.toInt();
-	if (port <= 0 && portname.size() > 0) {
-		// Vielleicht wurde ein Service-Namen angegeben?
-		struct servent *s = getservbyname((const char*) portname, "tcp");
-		if (s) {
-			unsigned short int p = s->s_port;
-			port = (int) ntohs(p);
-		} else {
-			throw IllegalPortException("TCPSocket::connect(const String &host_and_port=%s)", (const char*) host_and_port);
-		}
-	}
-	if (port <= 0)
-		throw IllegalPortException("TCPSocket::connect(const String &host_and_port=%s)", (const char*) host_and_port);
-	return connect(hostname.get(0), port);
+    if (host_and_port.isEmpty()) throw IllegalArgumentException("TCPSocket::connect(const String &host_and_port)");
+    Array hostname = StrTok(host_and_port, ":");
+    if (hostname.size() != 2) throw IllegalArgumentException("TCPSocket::connect(const String &host_and_port)");
+    String portname = hostname.get(1);
+    int port = portname.toInt();
+    if (port <= 0 && portname.size() > 0) {
+        // Vielleicht wurde ein Service-Namen angegeben?
+        struct servent* s = getservbyname((const char*)portname, "tcp");
+        if (s) {
+            unsigned short int p = s->s_port;
+            port = (int)ntohs(p);
+        } else {
+            throw IllegalPortException("TCPSocket::connect(const String &host_and_port=%s)", (const char*)host_and_port);
+        }
+    }
+    if (port <= 0) throw IllegalPortException("TCPSocket::connect(const String &host_and_port=%s)", (const char*)host_and_port);
+    return connect(hostname.get(0), port);
 }
 
 /*!\fn TCPSocket::connect(const String &host, int port)
@@ -568,152 +549,141 @@ void TCPSocket::connect(const String &host_and_port)
  * @param[in] usec Timeout in Mikrosekunden. Der tatsächliche Timeout errechnet sich aus \p sec + \p usec
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  *
- * \relates ppl7::TCPSocket
+ * \relates pplib::TCPSocket
  * \note
  * Zur Zeit wird diese Funktion nur unter Unix unterstützt.
  */
-static int ppl_connect_nb(int sockfd, struct sockaddr *serv_addr, int addrlen, int sec, int usec)
+static int ppl_connect_nb(int sockfd, struct sockaddr* serv_addr, int addrlen, int sec, int usec)
 {
-	int flags, n, error;
-	struct timeval tval;
-	socklen_t len;
-	fd_set rset, wset;
-	flags = fcntl(sockfd, F_GETFL, 0);
-	fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
-	error = 0;
-	if ((n = ::connect(sockfd, serv_addr, addrlen)) < 0)
-		if (errno != EINPROGRESS)
-			return (-1);
-	if (n == 0) // Connect completed immediately
-		goto done;
-	FD_ZERO(&rset);
-	FD_SET(sockfd, &rset);
-	wset = rset;
-	tval.tv_sec = sec;
-	tval.tv_usec = usec;
-	if ((n = select(sockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
-		errno = ETIMEDOUT;
-		return -1;
-	}
-	if (FD_ISSET(sockfd, &rset) || FD_ISSET(sockfd, &wset)) {
-		len = sizeof(error);
-		if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
-			return -1; // Solaris pending error
-		}
-	}
-	done: fcntl(sockfd, F_SETFL, flags);
-	if (error) {
-		errno = error;
-		return (-1);
-	}
-	return 0;
+    int flags, n, error;
+    struct timeval tval;
+    socklen_t len;
+    fd_set rset, wset;
+    flags = fcntl(sockfd, F_GETFL, 0);
+    fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+    error = 0;
+    if ((n = ::connect(sockfd, serv_addr, addrlen)) < 0)
+        if (errno != EINPROGRESS) return (-1);
+    if (n == 0) // Connect completed immediately
+        goto done;
+    FD_ZERO(&rset);
+    FD_SET(sockfd, &rset);
+    wset = rset;
+    tval.tv_sec = sec;
+    tval.tv_usec = usec;
+    if ((n = select(sockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
+        errno = ETIMEDOUT;
+        return -1;
+    }
+    if (FD_ISSET(sockfd, &rset) || FD_ISSET(sockfd, &wset)) {
+        len = sizeof(error);
+        if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+            return -1; // Solaris pending error
+        }
+    }
+done:
+    fcntl(sockfd, F_SETFL, flags);
+    if (error) {
+        errno = error;
+        return (-1);
+    }
+    return 0;
 }
 #endif
 
-
-void TCPSocket::connect(const String &host, int port)
+void TCPSocket::connect(const String& host, int port)
 {
-	if (connected)
-		disconnect();
-	if (islisten)
-		disconnect();
-	//BytesWritten=0;
-	//BytesRead=0;
-	if (!socket) {
-		socket = malloc(sizeof(PPLSOCKET));
-		if (!socket)
-			throw OutOfMemoryException();
-		PPLSOCKET *s = (PPLSOCKET*) socket;
-		s->sd = 0;
-		//s->proto=6;
-		s->proto = 0;
-		s->ipname = NULL;
-		s->port = 0;
-		//s->addrlen=0;
-	}
-	PPLSOCKET *s = (PPLSOCKET*) socket;
-	if (s->ipname)
-		free(s->ipname);
-	s->ipname = NULL;
+    if (connected) disconnect();
+    if (islisten) disconnect();
+    // BytesWritten=0;
+    // BytesRead=0;
+    if (!socket) {
+        socket = malloc(sizeof(PPLSOCKET));
+        if (!socket) throw OutOfMemoryException();
+        PPLSOCKET* s = (PPLSOCKET*)socket;
+        s->sd = 0;
+        // s->proto=6;
+        s->proto = 0;
+        s->ipname = NULL;
+        s->port = 0;
+        // s->addrlen=0;
+    }
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (s->ipname) free(s->ipname);
+    s->ipname = NULL;
 
-	if (s->sd)
-		disconnect();
-	if (host.isEmpty())
-		throw IllegalArgumentException("void TCPSocket::connect(const String &host, int port): host is empty");
-	if (!port)
-		throw IllegalArgumentException("void TCPSocket::connect(const String &host, int port): port is 0");
+    if (s->sd) disconnect();
+    if (host.isEmpty()) throw IllegalArgumentException("void TCPSocket::connect(const String &host, int port): host is empty");
+    if (!port) throw IllegalArgumentException("void TCPSocket::connect(const String &host, int port): port is 0");
 #ifdef _WIN32
-	SOCKET sockfd;
+    SOCKET sockfd;
 #else
-	int sockfd = 0;
+    int sockfd = 0;
 #endif
-	int n;
-	struct addrinfo hints, *res, *ressave;
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	char portstr[10];
-	sprintf(portstr, "%i", port);
-	if ((n = getaddrinfo((const char*) host, portstr, &hints, &res)) != 0)
-		throwExceptionFromEaiError(n, ToString("TCPSocket::connect: host=%s, port=%i", (const char*) host, port));
-	ressave = res;
-	int e = 0, conres = 0;
-	do {
-		if (SourceInterface.size() > 0 || SourcePort > 0) {
-			try {
-				sockfd = out_bind((const char*) SourceInterface, SourcePort);
-			} catch (...) {
-				::shutdown(sockfd, 2);
-				close(sockfd);
-				freeaddrinfo(ressave);
-				throw;
-			}
-		} else {
-			sockfd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-			if (sockfd < 0)
-				continue; // Error, try next one
-		}
-		if (connect_timeout_sec > 0 || connect_timeout_usec) {
+    int n;
+    struct addrinfo hints, *res, *ressave;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    char portstr[10];
+    sprintf(portstr, "%i", port);
+    if ((n = getaddrinfo((const char*)host, portstr, &hints, &res)) != 0)
+        throwExceptionFromEaiError(n, ToString("TCPSocket::connect: host=%s, port=%i", (const char*)host, port));
+    ressave = res;
+    int e = 0, conres = 0;
+    do {
+        if (SourceInterface.size() > 0 || SourcePort > 0) {
+            try {
+                sockfd = out_bind((const char*)SourceInterface, SourcePort);
+            }
+            catch (...) {
+                ::shutdown(sockfd, 2);
+                close(sockfd);
+                freeaddrinfo(ressave);
+                throw;
+            }
+        } else {
+            sockfd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+            if (sockfd < 0) continue; // Error, try next one
+        }
+        if (connect_timeout_sec > 0 || connect_timeout_usec) {
 #ifdef _WIN32
-			conres=::connect(sockfd,res->ai_addr,res->ai_addrlen);
+            conres = ::connect(sockfd, res->ai_addr, res->ai_addrlen);
 #else
-			conres = ppl_connect_nb(sockfd, res->ai_addr, res->ai_addrlen, connect_timeout_sec, connect_timeout_usec);
-			e = errno;
+            conres = ppl_connect_nb(sockfd, res->ai_addr, res->ai_addrlen, connect_timeout_sec, connect_timeout_usec);
+            e = errno;
 #endif
-		} else {
-			conres = ::connect(sockfd, res->ai_addr, res->ai_addrlen);
-			e = errno;
-		}
-		if (conres == 0)
-			break;
+        } else {
+            conres = ::connect(sockfd, res->ai_addr, res->ai_addrlen);
+            e = errno;
+        }
+        if (conres == 0) break;
 #ifdef _WIN32
-		e=WSAGetLastError();
-		::shutdown(sockfd,2);
-		closesocket(sockfd);
+        e = WSAGetLastError();
+        ::shutdown(sockfd, 2);
+        closesocket(sockfd);
 #else
-		::shutdown(sockfd, 2);
-		close(sockfd);
+        ::shutdown(sockfd, 2);
+        close(sockfd);
 #endif
-		sockfd = 0;
-	} while ((res = res->ai_next) != NULL);
-	if (conres < 0)
-		res = NULL;
-	if (sockfd < 0) {
-		freeaddrinfo(ressave);
-		throw CouldNotOpenSocketException(ToString("Host: %s, Port: %d", (const char*) host, port));
-	}
-	if (res == NULL) {
-		freeaddrinfo(ressave);
-		throwSocketException(e, ToString("Host: %s, Port: %d", (const char*) host, port));
-	}
-	s->sd = sockfd;
-	//s->addrlen=res->ai_addrlen;
-	HostName = host;
-	PortNum = port;
-	connected = true;
-	freeaddrinfo(ressave);
+        sockfd = 0;
+    } while ((res = res->ai_next) != NULL);
+    if (conres < 0) res = NULL;
+    if (sockfd < 0) {
+        freeaddrinfo(ressave);
+        throw CouldNotOpenSocketException(ToString("Host: %s, Port: %d", (const char*)host, port));
+    }
+    if (res == NULL) {
+        freeaddrinfo(ressave);
+        throwSocketException(e, ToString("Host: %s, Port: %d", (const char*)host, port));
+    }
+    s->sd = sockfd;
+    // s->addrlen=res->ai_addrlen;
+    HostName = host;
+    PortNum = port;
+    connected = true;
+    freeaddrinfo(ressave);
 }
-
 
 /*!\brief Prüfen, ob eine Verbindung besteht
  *
@@ -724,7 +694,7 @@ void TCPSocket::connect(const String &host, int port)
  */
 bool TCPSocket::isConnected() const
 {
-	return connected;
+    return connected;
 }
 
 /*!\brief Prüfen, ob der Socket auf eingehende Verbindungen wartet
@@ -736,7 +706,7 @@ bool TCPSocket::isConnected() const
  */
 bool TCPSocket::isListening() const
 {
-	return islisten;
+    return islisten;
 }
 
 /*!\brief Lese-Timeout festlegen
@@ -762,15 +732,14 @@ bool TCPSocket::isListening() const
  */
 void TCPSocket::setTimeoutRead(int seconds, int useconds)
 {
-	if (!connected)
-		throw NotConnectedException();
-	struct timeval tv;
-	tv.tv_sec = seconds;
-	tv.tv_usec = useconds;
-	PPLSOCKET *s = (PPLSOCKET*) socket;
-	if (setsockopt(s->sd,SOL_SOCKET,SO_RCVTIMEO,(const char*)&tv,sizeof(tv))!=0) {
-		throwSocketException(getErrno(), "setTimeoutRead");
-	}
+    if (!connected) throw NotConnectedException();
+    struct timeval tv;
+    tv.tv_sec = seconds;
+    tv.tv_usec = useconds;
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (setsockopt(s->sd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) != 0) {
+        throwSocketException(getErrno(), "setTimeoutRead");
+    }
 }
 
 /*!\brief Schreib-Timeout festlegen
@@ -795,15 +764,14 @@ void TCPSocket::setTimeoutRead(int seconds, int useconds)
  */
 void TCPSocket::setTimeoutWrite(int seconds, int useconds)
 {
-	if (!connected)
-		throw NotConnectedException();
-	struct timeval tv;
-	tv.tv_sec = seconds;
-	tv.tv_usec = useconds;
-	PPLSOCKET *s = (PPLSOCKET*) socket;
-	if (setsockopt(s->sd,SOL_SOCKET,SO_SNDTIMEO,(const char*)&tv,sizeof(tv))!=0) {
-		throwSocketException(getErrno(), "setTimeoutRead");
-	}
+    if (!connected) throw NotConnectedException();
+    struct timeval tv;
+    tv.tv_sec = seconds;
+    tv.tv_usec = useconds;
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (setsockopt(s->sd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv)) != 0) {
+        throwSocketException(getErrno(), "setTimeoutRead");
+    }
 }
 
 /*!\brief Daten schreiben
@@ -817,77 +785,75 @@ void TCPSocket::setTimeoutWrite(int seconds, int useconds)
  * @return Wenn die Daten erfolgreich geschrieben wurden, gibt die Funktion die Anzahl geschriebener
  * Bytes zurück. Im Fehlerfall wird eine Exception geworfen.
  */
-size_t TCPSocket::write(const void *buffer, size_t bytes)
+size_t TCPSocket::write(const void* buffer, size_t bytes)
 {
-	if (!connected)
-		throw NotConnectedException();
-	PPLSOCKET *s = (PPLSOCKET*) socket;
-	if (!buffer)
-		throw InvalidArgumentsException();
-	size_t BytesWritten = 0;
-	if (bytes) {
-		size_t rest = bytes;
-		ssize_t b = 0;
-		while (rest) {
-			if (ssl)
-				b = SSL_Write(buffer, rest);
-			else
-				b = ::send(s->sd, (char *) buffer, rest, 0);
-			if (b > 0) {
-				BytesWritten += b;
-				rest -= b;
-				buffer = ((const char*) buffer) + b;
-			}
+    if (!connected) throw NotConnectedException();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (!buffer) throw InvalidArgumentsException();
+    size_t BytesWritten = 0;
+    if (bytes) {
+        size_t rest = bytes;
+        ssize_t b = 0;
+        while (rest) {
+            if (ssl)
+                b = SSL_Write(buffer, rest);
+            else
+                b = ::send(s->sd, (char*)buffer, rest, 0);
+            if (b > 0) {
+                BytesWritten += b;
+                rest -= b;
+                buffer = ((const char*)buffer) + b;
+            }
 #ifdef WIN32
-			if (b==SOCKET_ERROR) {
-				errno=WSAGetLastError();
+            if (b == SOCKET_ERROR) {
+                errno = WSAGetLastError();
 #else
-			if (b < 0) {
+            if (b < 0) {
 #endif
-				if (errno == EAGAIN) {
-					waitForOutgoingData(0, 100000);
-				} else {
-					throwSocketException(errno, "TCPSocket::write");
-				}
-			}
-		}
-	}
-	return BytesWritten;
+                if (errno == EAGAIN) {
+                    waitForOutgoingData(0, 100000);
+                } else {
+                    throwSocketException(errno, "TCPSocket::write");
+                }
+            }
+        }
+    }
+    return BytesWritten;
 }
 
-size_t TCPSocket::write(const String &str, size_t bytes)
+size_t TCPSocket::write(const String& str, size_t bytes)
 {
-	if (bytes>0 && bytes<=str.size()) {
-		return write(str.getPtr(),bytes);
-	}
-	return write(str.getPtr(),str.size());
+    if (bytes > 0 && bytes <= str.size()) {
+        return write(str.getPtr(), bytes);
+    }
+    return write(str.getPtr(), str.size());
 }
 
-size_t TCPSocket::write(const WideString &str, size_t bytes)
+size_t TCPSocket::write(const WideString& str, size_t bytes)
 {
-	if (bytes>0 && bytes<=str.byteLength()) {
-		return write(str.getPtr(),bytes);
-	}
-	return write(str.getPtr(),str.byteLength());
+    if (bytes > 0 && bytes <= str.byteLength()) {
+        return write(str.getPtr(), bytes);
+    }
+    return write(str.getPtr(), str.byteLength());
 }
 
-size_t TCPSocket::write(const ByteArrayPtr &bin, size_t bytes)
+size_t TCPSocket::write(const ByteArrayPtr& bin, size_t bytes)
 {
-	if (bytes>0 && bytes<=bin.size()) {
-		return write(bin.ptr(),bytes);
-	}
-	return write(bin.ptr(),bin.size());
+    if (bytes > 0 && bytes <= bin.size()) {
+        return write(bin.ptr(), bytes);
+    }
+    return write(bin.ptr(), bin.size());
 }
 
-size_t TCPSocket::writef(const char *fmt, ...)
+size_t TCPSocket::writef(const char* fmt, ...)
 {
-	if (!fmt) throw IllegalArgumentException();
-	String str;
-	va_list args;
-	va_start(args, fmt);
-	str.vasprintf(fmt,args);
-	va_end(args);
-	return write(str);
+    if (!fmt) throw IllegalArgumentException();
+    String str;
+    va_list args;
+    va_start(args, fmt);
+    str.vasprintf(fmt, args);
+    va_end(args);
+    return write(str);
 }
 
 /*!\brief Daten lesen
@@ -910,70 +876,69 @@ size_t TCPSocket::writef(const char *fmt, ...)
  * @see TCPSocket::isReadable
  * @see TCPSocket::waitForIncomingData
  */
-size_t TCPSocket::read(void *buffer, size_t bytes)
+size_t TCPSocket::read(void* buffer, size_t bytes)
 {
-	if (!connected)
-		throw NotConnectedException();
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (!buffer) throw IllegalArgumentException();
-	ssize_t BytesRead=0;
-	if (ssl) {
-		BytesRead=SSL_Read(buffer,bytes);
-	} else {
-		BytesRead=::recv(s->sd,(char*)buffer,bytes,0);
-		if (BytesRead<0)
-			throwSocketException(getErrno(), "TCPSocket::read");
-	}
-	return ((size_t)BytesRead);
+    if (!connected) throw NotConnectedException();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (!buffer) throw IllegalArgumentException();
+    ssize_t BytesRead = 0;
+    if (ssl) {
+        BytesRead = SSL_Read(buffer, bytes);
+    } else {
+        BytesRead = ::recv(s->sd, (char*)buffer, bytes, 0);
+        if (BytesRead < 0) throwSocketException(getErrno(), "TCPSocket::read");
+    }
+    return ((size_t)BytesRead);
 }
 
-size_t TCPSocket::read(String &buffer, size_t bytes)
+size_t TCPSocket::read(String& buffer, size_t bytes)
 {
-	char * readbuffer=(char*)malloc(bytes);
-	if (!readbuffer) throw OutOfMemoryException();
-	try {
-		size_t BytesRead=read((void*)readbuffer,bytes);
-		buffer.set(readbuffer,BytesRead);
-		free(readbuffer);
-		return BytesRead;
-	} catch (...) {
-		free(readbuffer);
-		throw;
-	}
+    char* readbuffer = (char*)malloc(bytes);
+    if (!readbuffer) throw OutOfMemoryException();
+    try {
+        size_t BytesRead = read((void*)readbuffer, bytes);
+        buffer.set(readbuffer, BytesRead);
+        free(readbuffer);
+        return BytesRead;
+    }
+    catch (...) {
+        free(readbuffer);
+        throw;
+    }
 }
 
-size_t TCPSocket::read(ByteArray &buffer, size_t bytes)
+size_t TCPSocket::read(ByteArray& buffer, size_t bytes)
 {
-	char * readbuffer=(char*)malloc(bytes);
-	if (!readbuffer) throw OutOfMemoryException();
-	try {
-		size_t BytesRead=read((void*)readbuffer,bytes);
-		buffer.copy(readbuffer,BytesRead);
-		free(readbuffer);
-		return BytesRead;
-	} catch (...) {
-		free(readbuffer);
-		throw;
-	}
+    char* readbuffer = (char*)malloc(bytes);
+    if (!readbuffer) throw OutOfMemoryException();
+    try {
+        size_t BytesRead = read((void*)readbuffer, bytes);
+        buffer.copy(readbuffer, BytesRead);
+        free(readbuffer);
+        return BytesRead;
+    }
+    catch (...) {
+        free(readbuffer);
+        throw;
+    }
 }
 
-
-void TCPSocket::readLoop(void *buffer, size_t bytes, int timeout_seconds, Thread *watch_thread)
+void TCPSocket::readLoop(void* buffer, size_t bytes, int timeout_seconds, Thread* watch_thread)
 {
-	size_t todo=bytes;
-	unsigned char *ptr=(unsigned char*)buffer;
-	uint64_t timeout=ppl7::GetMilliSeconds()+timeout_seconds*1000;
-	while (todo>0) {
-		if (watch_thread) {
-			if (watch_thread->threadShouldStop()) throw OperationAbortedException("TCPSocket::readLoop");
-		}
-		if (waitForIncomingData(0,200000)) {
-			size_t recevied=read(ptr,todo);
-			todo-=recevied;
-			ptr+=recevied;
-		}
-		if (timeout_seconds>0 && ppl7::GetMilliSeconds()>timeout) throw ppl7::TimeoutException("TCPSocket::readLoop");
-	}
+    size_t todo = bytes;
+    unsigned char* ptr = (unsigned char*)buffer;
+    uint64_t timeout = pplib::GetMilliSeconds() + timeout_seconds * 1000;
+    while (todo > 0) {
+        if (watch_thread) {
+            if (watch_thread->threadShouldStop()) throw OperationAbortedException("TCPSocket::readLoop");
+        }
+        if (waitForIncomingData(0, 200000)) {
+            size_t recevied = read(ptr, todo);
+            todo -= recevied;
+            ptr += recevied;
+        }
+        if (timeout_seconds > 0 && pplib::GetMilliSeconds() > timeout) throw pplib::TimeoutException("TCPSocket::readLoop");
+    }
 }
 
 /*!\brief Bei Lesezugriffen blockieren
@@ -991,30 +956,30 @@ void TCPSocket::readLoop(void *buffer, size_t bytes, int timeout_seconds, Thread
  */
 void TCPSocket::setBlocking(bool value)
 {
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if((!s) || (!s->sd)) throw NotConnectedException();
-	int ret=0;
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if ((!s) || (!s->sd)) throw NotConnectedException();
+    int ret = 0;
 #ifdef _WIN32
-	u_long v;
-	if (value) {
-		v=0;
-		ret=ioctlsocket(s->sd,FIONBIO,&v);
-	} else {
-		v=1;
-		ret=ioctlsocket(s->sd,FIONBIO,&v);
-	}
-	if (ret==0) {
-		blocking=value;
-		return;
-	}
-	throwSocketException(getErrno(), "TCPSocket::setBlocking");
+    u_long v;
+    if (value) {
+        v = 0;
+        ret = ioctlsocket(s->sd, FIONBIO, &v);
+    } else {
+        v = 1;
+        ret = ioctlsocket(s->sd, FIONBIO, &v);
+    }
+    if (ret == 0) {
+        blocking = value;
+        return;
+    }
+    throwSocketException(getErrno(), "TCPSocket::setBlocking");
 #else
-	if (value)
-	    ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)&(~O_NONBLOCK)); // Blocking
-	else
-		ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)|O_NONBLOCK);// NON-Blocking
-	if (ret<0) throwSocketException(errno, "TCPSocket::setBlocking");
-	blocking=value;
+    if (value)
+        ret = fcntl(s->sd, F_SETFL, fcntl(s->sd, F_GETFL, 0) & (~O_NONBLOCK)); // Blocking
+    else
+        ret = fcntl(s->sd, F_SETFL, fcntl(s->sd, F_GETFL, 0) | O_NONBLOCK); // NON-Blocking
+    if (ret < 0) throwSocketException(errno, "TCPSocket::setBlocking");
+    blocking = value;
 #endif
 }
 
@@ -1028,11 +993,10 @@ void TCPSocket::setBlocking(bool value)
  */
 bool TCPSocket::isBlocking() const
 {
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if((!s) || (!s->sd)) throw NotConnectedException();
-	return blocking;
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if ((!s) || (!s->sd)) throw NotConnectedException();
+    return blocking;
 }
-
 
 /*!\brief Prüfen, ob Daten auf den Socket geschrieben werden können
  *
@@ -1045,28 +1009,28 @@ bool TCPSocket::isBlocking() const
  */
 bool TCPSocket::isWriteable()
 {
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (!connected) throw NotConnectedException();
-	fd_set rset, wset, eset;
-	FD_ZERO(&rset);
-	FD_ZERO(&wset);
-	FD_ZERO(&eset);
-	FD_SET(s->sd,&wset);
-	struct timeval timeout;
-	timeout.tv_sec=0;
-	timeout.tv_usec=0;
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
-		throwSocketException(getErrno(), "TCPSocket::isWriteable");
-	}
-	if (FD_ISSET(s->sd,&eset)) {
-		throw OutOfBandDataReceivedException("TCPSocket::isWriteable");
-	}
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (!connected) throw NotConnectedException();
+    fd_set rset, wset, eset;
+    FD_ZERO(&rset);
+    FD_ZERO(&wset);
+    FD_ZERO(&eset);
+    FD_SET(s->sd, &wset);
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+    int ret = select(s->sd + 1, &rset, &wset, &eset, &timeout);
+    if (ret < 0) {
+        throwSocketException(getErrno(), "TCPSocket::isWriteable");
+    }
+    if (FD_ISSET(s->sd, &eset)) {
+        throw OutOfBandDataReceivedException("TCPSocket::isWriteable");
+    }
 
-	if (FD_ISSET(s->sd,&wset)) {
-		return true;
-	}
-	return false;
+    if (FD_ISSET(s->sd, &wset)) {
+        return true;
+    }
+    return false;
 }
 
 /*!\brief Prüfen, ob Daten vom Socket gelesen werden können
@@ -1082,39 +1046,38 @@ bool TCPSocket::isWriteable()
  */
 bool TCPSocket::isReadable()
 {
-	if (!connected) throw NotConnectedException();
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	fd_set rset, wset, eset;
-	FD_ZERO(&rset);
-	FD_ZERO(&wset);
-	FD_ZERO(&eset);
-	FD_SET(s->sd,&rset);
-	struct timeval timeout;
-	timeout.tv_sec=0;
-	timeout.tv_usec=0;
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
-		throwSocketException(errno, "TCPSocket::isReadable");
-	}
-	if (FD_ISSET(s->sd,&eset)) {
-		throw OutOfBandDataReceivedException("TCPSocket::isReadable");
-	}
-	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-	if (FD_ISSET(s->sd,&rset)) {
-		char buf[2];
-		ret=recv(s->sd, buf,1, MSG_PEEK|MSG_DONTWAIT);
-		// Kommt hier ein Fehler zurück?
-		if (ret<0) {
-			throwSocketException(getErrno(), "TCPSocket::isReadable");
-		}
-		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-		if (ret==0) {
-			throw BrokenPipeException();
-		}
-	}
-	return true;
+    if (!connected) throw NotConnectedException();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    fd_set rset, wset, eset;
+    FD_ZERO(&rset);
+    FD_ZERO(&wset);
+    FD_ZERO(&eset);
+    FD_SET(s->sd, &rset);
+    struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
+    int ret = select(s->sd + 1, &rset, &wset, &eset, &timeout);
+    if (ret < 0) {
+        throwSocketException(errno, "TCPSocket::isReadable");
+    }
+    if (FD_ISSET(s->sd, &eset)) {
+        throw OutOfBandDataReceivedException("TCPSocket::isReadable");
+    }
+    // Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+    if (FD_ISSET(s->sd, &rset)) {
+        char buf[2];
+        ret = recv(s->sd, buf, 1, MSG_PEEK | MSG_DONTWAIT);
+        // Kommt hier ein Fehler zurück?
+        if (ret < 0) {
+            throwSocketException(getErrno(), "TCPSocket::isReadable");
+        }
+        // Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+        if (ret == 0) {
+            throw BrokenPipeException();
+        }
+    }
+    return true;
 }
-
 
 /*!\brief Auf eingehende Daten warten
  *
@@ -1133,40 +1096,40 @@ bool TCPSocket::isReadable()
  */
 bool TCPSocket::waitForIncomingData(int seconds, int useconds)
 {
-	if (!connected) throw NotConnectedException();
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	fd_set rset, wset, eset;
-	struct timeval timeout;
+    if (!connected) throw NotConnectedException();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    fd_set rset, wset, eset;
+    struct timeval timeout;
 
-	timeout.tv_sec=seconds;
-	timeout.tv_usec=useconds;
+    timeout.tv_sec = seconds;
+    timeout.tv_usec = useconds;
 
-	FD_ZERO(&rset);
-	FD_ZERO(&wset);
-	FD_ZERO(&eset);
-	FD_SET(s->sd,&rset); // Wir wollen nur prüfen, ob was zu lesen da ist
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
-		throwSocketException(getErrno(), "TCPSocket::waitForIncomingData");
-	}
-	if (FD_ISSET(s->sd,&eset)) {
-		throw OutOfBandDataReceivedException("TCPSocket::waitForIncomingData");
-	}
-	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-	if (FD_ISSET(s->sd,&rset)) {
-		char buf[2];
-		ret=recv(s->sd, buf,1, MSG_PEEK|MSG_DONTWAIT);
-		// Kommt hier ein Fehler zurück?
-		if (ret<0) {
-			throwSocketException(getErrno(), "TCPSocket::isReadable");
-		}
-		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-		if (ret==0) {
-			throw BrokenPipeException();
-		}
-		return true;
-	}
-	return false;
+    FD_ZERO(&rset);
+    FD_ZERO(&wset);
+    FD_ZERO(&eset);
+    FD_SET(s->sd, &rset); // Wir wollen nur prüfen, ob was zu lesen da ist
+    int ret = select(s->sd + 1, &rset, &wset, &eset, &timeout);
+    if (ret < 0) {
+        throwSocketException(getErrno(), "TCPSocket::waitForIncomingData");
+    }
+    if (FD_ISSET(s->sd, &eset)) {
+        throw OutOfBandDataReceivedException("TCPSocket::waitForIncomingData");
+    }
+    // Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+    if (FD_ISSET(s->sd, &rset)) {
+        char buf[2];
+        ret = recv(s->sd, buf, 1, MSG_PEEK | MSG_DONTWAIT);
+        // Kommt hier ein Fehler zurück?
+        if (ret < 0) {
+            throwSocketException(getErrno(), "TCPSocket::isReadable");
+        }
+        // Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+        if (ret == 0) {
+            throw BrokenPipeException();
+        }
+        return true;
+    }
+    return false;
 }
 
 /*!\brief Warten, bis der Socket beschreibbar ist
@@ -1188,28 +1151,28 @@ bool TCPSocket::waitForIncomingData(int seconds, int useconds)
  */
 bool TCPSocket::waitForOutgoingData(int seconds, int useconds)
 {
-	if (!connected) throw NotConnectedException();
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	fd_set rset, wset, eset;
-	struct timeval timeout;
-	timeout.tv_sec=seconds;
-	timeout.tv_usec=useconds;
+    if (!connected) throw NotConnectedException();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    fd_set rset, wset, eset;
+    struct timeval timeout;
+    timeout.tv_sec = seconds;
+    timeout.tv_usec = useconds;
 
-	FD_ZERO(&rset);
-	FD_ZERO(&wset);
-	FD_ZERO(&eset);
-	FD_SET(s->sd,&wset); // Wir wollen nur prüfen, ob wir schreiben können
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
-		throwSocketException(getErrno(), "TCPSocket::waitForOutgoingData");
-	}
-	if (FD_ISSET(s->sd,&eset)) {
-		throw OutOfBandDataReceivedException("TCPSocket::waitForIncomingData");
-	}
-	if (FD_ISSET(s->sd,&wset)) {
-		return true;
-	}
-	return false;
+    FD_ZERO(&rset);
+    FD_ZERO(&wset);
+    FD_ZERO(&eset);
+    FD_SET(s->sd, &wset); // Wir wollen nur prüfen, ob wir schreiben können
+    int ret = select(s->sd + 1, &rset, &wset, &eset, &timeout);
+    if (ret < 0) {
+        throwSocketException(getErrno(), "TCPSocket::waitForOutgoingData");
+    }
+    if (FD_ISSET(s->sd, &eset)) {
+        throw OutOfBandDataReceivedException("TCPSocket::waitForIncomingData");
+    }
+    if (FD_ISSET(s->sd, &wset)) {
+        return true;
+    }
+    return false;
 }
 
 /*!\brief Socket auf eine IP-Adresse und Port binden
@@ -1228,105 +1191,104 @@ bool TCPSocket::waitForOutgoingData(int seconds, int useconds)
  * @exception CouldNotBindToInterfaceException
  * @exception CouldNotOpenSocketException
  */
-void TCPSocket::bind(const String &host, int port)
+void TCPSocket::bind(const String& host, int port)
 {
-	//int addrlen=0;
-	if (!socket) {
-		socket=malloc(sizeof(PPLSOCKET));
-		if (!socket) throw OutOfMemoryException();
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-		s->sd=0;
-		s->proto=6;
-		s->ipname=NULL;
-		s->port=port;
-		//s->addrlen=0;
-	}
+    // int addrlen=0;
+    if (!socket) {
+        socket = malloc(sizeof(PPLSOCKET));
+        if (!socket) throw OutOfMemoryException();
+        PPLSOCKET* s = (PPLSOCKET*)socket;
+        s->sd = 0;
+        s->proto = 6;
+        s->ipname = NULL;
+        s->port = port;
+        // s->addrlen=0;
+    }
 #ifdef _WIN32
-	SOCKET listenfd=0;
+    SOCKET listenfd = 0;
 #else
-	int listenfd=0;
+    int listenfd = 0;
 #endif
 
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (s->sd) disconnect();
-	if (s->ipname) free(s->ipname);
-	s->ipname=NULL;
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if (s->sd) disconnect();
+    if (s->ipname) free(s->ipname);
+    s->ipname = NULL;
 
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_flags=AI_PASSIVE;
-	hints.ai_family=AF_UNSPEC;
-	hints.ai_socktype=SOCK_STREAM;
-	int on=1;
-	// Prüfen, ob host ein Wildcard ist
-	struct addrinfo *res;
-	if (host.notEmpty()==true && host!="*") {
-		char portstr[10];
-		sprintf(portstr,"%i",port);
-		int n;
-		if ((n=getaddrinfo(host,portstr,&hints,&res))!=0) {
-			throw ResolverException("%s, %s",(const char*)host,gai_strerror(n));
-		}
-		struct addrinfo *ressave=res;
-		do {
-			listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-			if (listenfd<0) continue; // Error, try next one
+    struct addrinfo hints;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    int on = 1;
+    // Prüfen, ob host ein Wildcard ist
+    struct addrinfo* res;
+    if (host.notEmpty() == true && host != "*") {
+        char portstr[10];
+        sprintf(portstr, "%i", port);
+        int n;
+        if ((n = getaddrinfo(host, portstr, &hints, &res)) != 0) {
+            throw ResolverException("%s, %s", (const char*)host, gai_strerror(n));
+        }
+        struct addrinfo* ressave = res;
+        do {
+            listenfd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+            if (listenfd < 0) continue; // Error, try next one
 #ifdef _WIN32
-			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,(const char*)&on,sizeof(on))!=0) {
+            if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, (const char*)&on, sizeof(on)) != 0) {
 #else
-			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
+            if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0) {
 #endif
-				freeaddrinfo(ressave);
-				throw SettingSocketOptionException();
-			}
-			if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
-				//addrlen=res->ai_addrlen;
-				break;
-			}
-			::shutdown(listenfd,2);
+                freeaddrinfo(ressave);
+                throw SettingSocketOptionException();
+            }
+            if (::bind(listenfd, res->ai_addr, res->ai_addrlen) == 0) {
+                // addrlen=res->ai_addrlen;
+                break;
+            }
+            ::shutdown(listenfd, 2);
 #ifdef _WIN32
-			closesocket(listenfd);
+            closesocket(listenfd);
 #else
-			close(listenfd);
+            close(listenfd);
 #endif
-			listenfd=0;
+            listenfd = 0;
 
-		} while ((res=res->ai_next)!=NULL);
-		freeaddrinfo(ressave);
-	} else {
-		// Auf alle Interfaces binden
-		listenfd=::socket(AF_INET, SOCK_STREAM, 0);
-		if (listenfd>=0) {
-			struct sockaddr_in addr;
-			memset(&addr,0,sizeof(addr));
-			addr.sin_addr.s_addr = htonl(INADDR_ANY);
-			addr.sin_port = htons(port);
-			addr.sin_family = AF_INET;
-			/* bind server port */
-			if(::bind(listenfd, (struct sockaddr *) &addr, sizeof(addr))!=0) {
-				::shutdown(listenfd,2);
+        } while ((res = res->ai_next) != NULL);
+        freeaddrinfo(ressave);
+    } else {
+        // Auf alle Interfaces binden
+        listenfd = ::socket(AF_INET, SOCK_STREAM, 0);
+        if (listenfd >= 0) {
+            struct sockaddr_in addr;
+            memset(&addr, 0, sizeof(addr));
+            addr.sin_addr.s_addr = htonl(INADDR_ANY);
+            addr.sin_port = htons(port);
+            addr.sin_family = AF_INET;
+            /* bind server port */
+            if (::bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
+                ::shutdown(listenfd, 2);
 #ifdef _WIN32
-				closesocket(listenfd);
+                closesocket(listenfd);
 #else
-				close(listenfd);
+                close(listenfd);
 #endif
-				throw CouldNotBindToInterfaceException("Host: *, Port: %d",port);
-			}
-			s->sd=listenfd;
-			connected=1;
-			return;
-		}
-	}
-	if (listenfd<0) {
-		throw CouldNotOpenSocketException("Host: %s, Port: %d",(const char*)host,port);
-	}
-	if (res==NULL) {
-		throw CouldNotBindToInterfaceException("Host: %s, Port: %d",(const char*)host,port);
-	}
-	s->sd=listenfd;
-	connected=1;
+                throw CouldNotBindToInterfaceException("Host: *, Port: %d", port);
+            }
+            s->sd = listenfd;
+            connected = 1;
+            return;
+        }
+    }
+    if (listenfd < 0) {
+        throw CouldNotOpenSocketException("Host: %s, Port: %d", (const char*)host, port);
+    }
+    if (res == NULL) {
+        throw CouldNotBindToInterfaceException("Host: %s, Port: %d", (const char*)host, port);
+    }
+    s->sd = listenfd;
+    connected = 1;
 }
-
 
 /*!\brief Server starten und auf eingehende Verbindung warten
  *
@@ -1342,9 +1304,9 @@ void TCPSocket::bind(const String &host, int port)
  * wird jedoch geprüft, ob die Funktion sich beenden soll. Dies wird durch Aufruf der Funktion
  * CTCPSocket::SignalStopListen oder CTCPSocket::StopListen signalisiert.
  *
- * \param[in] backlog The backlog argument defines the maximum length to which the queue of pending connections for sockfd may grow.  If a connection
- *      request  arrives when the queue is full, the client may receive an error with an indication of ECONNREFUSED or, if the underly‐
- *      ing protocol supports retransmission, the request may be ignored so that a later reattempt at connection succeeds.
+ * \param[in] backlog The backlog argument defines the maximum length to which the queue of pending connections for sockfd may grow.  If a
+ * connection request  arrives when the queue is full, the client may receive an error with an indication of ECONNREFUSED or, if the
+ * underly‐ ing protocol supports retransmission, the request may be ignored so that a later reattempt at connection succeeds.
  *
  * \param[in] timeout Intervall in Millisekunden, nachdem geprüpft werden soll, ob
  * weiter auf eingehende Verbindungen gewartet werden soll. Je niedriger der Wert, desto
@@ -1358,111 +1320,111 @@ void TCPSocket::bind(const String &host, int port)
 void TCPSocket::listen(int backlog, int timeout)
 {
 #ifdef _WIN32
-	struct sockaddr_in cliAddr;
+    struct sockaddr_in cliAddr;
 #else
-	struct sockaddr cliAddr;
+    struct sockaddr cliAddr;
 #endif
     fd_set rset;
     struct timeval tv;
 
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if((!s) || (!s->sd)) throw NotConnectedException();
-	stopListen();
-	mutex.lock();
-	stoplisten=false;
-	islisten=true;
-	mutex.unlock();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    if ((!s) || (!s->sd)) throw NotConnectedException();
+    stopListen();
+    mutex.lock();
+    stoplisten = false;
+    islisten = true;
+    mutex.unlock();
 
-	// Listen
-	if (::listen(s->sd,backlog)!=0) {
-		int e=errno;
-		mutex.lock();
-		islisten=false;
-		mutex.unlock();
-		throwSocketException(e, "TCPSocket::listen");
-	}
-	setBlocking(true);
+    // Listen
+    if (::listen(s->sd, backlog) != 0) {
+        int e = errno;
+        mutex.lock();
+        islisten = false;
+        mutex.unlock();
+        throwSocketException(e, "TCPSocket::listen");
+    }
+    setBlocking(true);
 
-	while (1) {
-		mutex.lock();
-		if (stoplisten) {
-			mutex.unlock();
-			break;
-		}
-		mutex.unlock();
-		socklen_t cliLen=sizeof(cliAddr);
+    while (1) {
+        mutex.lock();
+        if (stoplisten) {
+            mutex.unlock();
+            break;
+        }
+        mutex.unlock();
+        socklen_t cliLen = sizeof(cliAddr);
 #ifdef TODO
-		// WIN32
-		SOCKET newSd;
-		newSd = accept(s->sd, (struct sockaddr *) &cliAddr, &cliLen);
-		if (newSd!=INVALID_SOCKET) {
-			CTCPSocket *newsocket=new CTCPSocket();
-			if (newsocket) newsocket->socket=malloc(sizeof(PPLSOCKET));
-			if (newsocket==NULL || newsocket->socket==NULL) {
-				if (newsocket) delete newsocket;
-				if (log) log->Printf (LOG::ERROR,1,__FILE__,__LINE__,"Out of memory, could not handle connect from: %s:%d\n",inet_ntoa(cliAddr.sin_addr),ntohs(cliAddr.sin_port));
-				SetError(2);
-				continue;
-			}
-			newsocket->connected=1;
-			PPLSOCKET *ns=(PPLSOCKET*)newsocket->socket;
-			ns->proto=6;
-			ns->sd=newSd;
-			ns->ipname=strdup(inet_ntoa(cliAddr.sin_addr));
-			ns->port=ntohs(cliAddr.sin_port);
-			if (!ReceiveConnect(newsocket,ns->ipname,ns->port)) {
-				delete newsocket;
-			}
-		} else {
-			MSleep(100);
-		}
+        // WIN32
+        SOCKET newSd;
+        newSd = accept(s->sd, (struct sockaddr*)&cliAddr, &cliLen);
+        if (newSd != INVALID_SOCKET) {
+            CTCPSocket* newsocket = new CTCPSocket();
+            if (newsocket) newsocket->socket = malloc(sizeof(PPLSOCKET));
+            if (newsocket == NULL || newsocket->socket == NULL) {
+                if (newsocket) delete newsocket;
+                if (log)
+                    log->Printf(LOG::ERROR, 1, __FILE__, __LINE__, "Out of memory, could not handle connect from: %s:%d\n",
+                                inet_ntoa(cliAddr.sin_addr), ntohs(cliAddr.sin_port));
+                SetError(2);
+                continue;
+            }
+            newsocket->connected = 1;
+            PPLSOCKET* ns = (PPLSOCKET*)newsocket->socket;
+            ns->proto = 6;
+            ns->sd = newSd;
+            ns->ipname = strdup(inet_ntoa(cliAddr.sin_addr));
+            ns->port = ntohs(cliAddr.sin_port);
+            if (!ReceiveConnect(newsocket, ns->ipname, ns->port)) {
+                delete newsocket;
+            }
+        } else {
+            MSleep(100);
+        }
 #endif
-		int newSd;
-		// Prüfen, ob der Socket lesbar ist
-		FD_ZERO(&rset);
-		FD_SET(s->sd,&rset);
-		tv.tv_sec=0;
-		tv.tv_usec=timeout*1000;// Timeout für select setzen
-		if (select(s->sd+1,&rset,NULL,NULL,&tv)<=0) continue;
-		newSd = accept(s->sd, (struct sockaddr *) &cliAddr, &cliLen);
-		if(newSd>0) {
-			char hostname[1024];
-			char servname[32];
-			bzero(hostname,1024);
-			bzero(servname,32);
-			if (getnameinfo((const sockaddr*)&cliAddr,sizeof(cliAddr),
-							hostname,1023, servname,31,NI_NUMERICHOST|NI_NUMERICSERV)!=0) {
+        int newSd;
+        // Prüfen, ob der Socket lesbar ist
+        FD_ZERO(&rset);
+        FD_SET(s->sd, &rset);
+        tv.tv_sec = 0;
+        tv.tv_usec = timeout * 1000; // Timeout für select setzen
+        if (select(s->sd + 1, &rset, NULL, NULL, &tv) <= 0) continue;
+        newSd = accept(s->sd, (struct sockaddr*)&cliAddr, &cliLen);
+        if (newSd > 0) {
+            char hostname[1024];
+            char servname[32];
+            bzero(hostname, 1024);
+            bzero(servname, 32);
+            if (getnameinfo((const sockaddr*)&cliAddr, sizeof(cliAddr), hostname, 1023, servname, 31, NI_NUMERICHOST | NI_NUMERICSERV) !=
+                0) {
 #ifdef _WIN32
-				closesocket(newSd);
+                closesocket(newSd);
 #else
-				close (newSd);
+                close(newSd);
 #endif
-				continue;
-			}
-			TCPSocket *newsocket=new TCPSocket();
-			if (newsocket) newsocket->socket=malloc(sizeof(PPLSOCKET));
-			if (newsocket==NULL || newsocket->socket==NULL) {
-				if (newsocket) delete newsocket;
-				throw OutOfMemoryException();
-			}
-			newsocket->connected=true;
-			PPLSOCKET *ns=(PPLSOCKET*)newsocket->socket;
-			ns->proto=6;
-			ns->sd=newSd;
-			ns->ipname=strdup(hostname);
-			ns->port=atoi(servname);
+                continue;
+            }
+            TCPSocket* newsocket = new TCPSocket();
+            if (newsocket) newsocket->socket = malloc(sizeof(PPLSOCKET));
+            if (newsocket == NULL || newsocket->socket == NULL) {
+                if (newsocket) delete newsocket;
+                throw OutOfMemoryException();
+            }
+            newsocket->connected = true;
+            PPLSOCKET* ns = (PPLSOCKET*)newsocket->socket;
+            ns->proto = 6;
+            ns->sd = newSd;
+            ns->ipname = strdup(hostname);
+            ns->port = atoi(servname);
 
-			if (!receiveConnect(newsocket,ns->ipname,ns->port)) {
-				delete newsocket;
-			}
-
-		}
-	}
-	mutex.lock();
-	islisten=false;
-	mutex.unlock();
+            if (!receiveConnect(newsocket, ns->ipname, ns->port)) {
+                delete newsocket;
+            }
+        }
+    }
+    mutex.lock();
+    islisten = false;
+    mutex.unlock();
 }
-
 
 /*\brief lokale Socket-Adresse auslesen
  *
@@ -1476,14 +1438,13 @@ void TCPSocket::listen(int backlog, int timeout)
  */
 SockAddr TCPSocket::getSockAddr() const
 {
-	if (!connected)
-		throw NotConnectedException();
-	PPLSOCKET *s = (PPLSOCKET*) socket;
-	struct sockaddr addr;
-	socklen_t len=sizeof(addr);
-	int ret=getsockname(s->sd, &addr, &len);
-	if (ret<0) throwSocketException(getErrno(), "TCPSocket::getSockAddr");
-	return ppl7::SockAddr((const void*)&addr,(size_t)len);
+    if (!connected) throw NotConnectedException();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    struct sockaddr addr;
+    socklen_t len = sizeof(addr);
+    int ret = getsockname(s->sd, &addr, &len);
+    if (ret < 0) throwSocketException(getErrno(), "TCPSocket::getSockAddr");
+    return pplib::SockAddr((const void*)&addr, (size_t)len);
 }
 
 /*\brief Socket-Adresse der Gegenstelle auslesen
@@ -1498,28 +1459,24 @@ SockAddr TCPSocket::getSockAddr() const
  */
 SockAddr TCPSocket::getPeerAddr() const
 {
-	if (!connected)
-		throw NotConnectedException();
-	PPLSOCKET *s = (PPLSOCKET*) socket;
-	struct sockaddr addr;
-	socklen_t len=sizeof(addr);
-	int ret=getpeername(s->sd, &addr, &len);
-	if (ret<0) throwSocketException(getErrno(), "TCPSocket::getSockAddr");
-	return ppl7::SockAddr((const void*)&addr,(size_t)len);
+    if (!connected) throw NotConnectedException();
+    PPLSOCKET* s = (PPLSOCKET*)socket;
+    struct sockaddr addr;
+    socklen_t len = sizeof(addr);
+    int ret = getpeername(s->sd, &addr, &len);
+    if (ret < 0) throwSocketException(getErrno(), "TCPSocket::getSockAddr");
+    return pplib::SockAddr((const void*)&addr, (size_t)len);
 }
 
-
-
-int	TCPSocket::port() const
+int TCPSocket::port() const
 {
-	return PortNum;
+    return PortNum;
 }
 
 const String& TCPSocket::hostname() const
 {
-	return HostName;
+    return HostName;
 }
 
-
-}
- // EOF namespace ppl
+} // namespace pplib
+  // EOF namespace ppl

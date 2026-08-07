@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -30,28 +30,28 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <ctype.h>
-#include <ppl7/types/string.h>
-#include <ppl7/core/functions.h>
+#include <pplib/types/string.h>
+#include <pplib/core/functions.h>
 
 #ifdef HAVE_NASM
 extern "C"
 {
-    uint32_t PPL7_GetASMBits();
-    uint32_t PPL7_GetCpuCaps();
+    uint32_t PPLIB_GetASMBits();
+    uint32_t PPLIB_GetCpuCaps();
 }
 #else
-static uint32_t PPL7_GetCpuCaps()
+static uint32_t PPLIB_GetCpuCaps()
 {
     return 0;
 }
 
-static uint32_t PPL7_GetASMBits()
+static uint32_t PPLIB_GetASMBits()
 {
     return sizeof(void*);
 }
 #endif
 
-namespace ppl7
+namespace pplib
 {
 
 static uint32_t myCPUCaps = 0;
@@ -72,8 +72,8 @@ String binaryString(uint64_t value)
 uint32_t GetCPUCaps(CPUCaps& cpu)
 {
     if (myBits == 0) {
-        myCPUCaps = PPL7_GetCpuCaps();
-        myBits = PPL7_GetASMBits();
+        myCPUCaps = PPLIB_GetCpuCaps();
+        myBits = PPLIB_GetASMBits();
     }
     cpu.caps = myCPUCaps;
     cpu.bits = myBits;
@@ -83,10 +83,10 @@ uint32_t GetCPUCaps(CPUCaps& cpu)
 uint32_t GetCPUCaps()
 {
     if (myBits == 0) {
-        myCPUCaps = PPL7_GetCpuCaps();
-        myBits = PPL7_GetASMBits();
+        myCPUCaps = PPLIB_GetCpuCaps();
+        myBits = PPLIB_GetASMBits();
     }
     return myCPUCaps;
 }
 
-} // namespace ppl7
+} // namespace pplib

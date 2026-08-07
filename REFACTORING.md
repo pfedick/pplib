@@ -1,4 +1,4 @@
-# Refactoring von PPLIB aka PPL7
+# Refactoring von PPLIB aka PPLIB
 
 PPLIB steht für "Patrick's Programming Library" und ist eine C++-Bibliothek, die ich seit vielen Jahren weiter entwickele. Sie enthält viele nützliche Klassen und Funktionen, die ich in meinen Projekten immer wieder verwendet habe. Die Bibliothek ist inzwischen sehr umfangreich geworden und enthält einige Klassen, die nicht mehr zeitgemäß sind oder die ich heute anders implementieren würde.
 
@@ -38,20 +38,20 @@ Vielleicht können wir auch beide Varianten anbieten.
 ## pico-pplib
 Siehe: [https://](https://github.com/pfedick/pico-pplib)
 
-"picopplib" enthält ein Subset von Klassen und Funktionen aus PPL7 und ist für Microcontroller optimiert, und zwar in dem Sinne, dass weniger RAM benötigt wird. Viele Objekte verwenden daher uint16_t anstelle von int oder es gibt duplikate von Klassen, die 16-Bit Integer verwenden.
+"picopplib" enthält ein Subset von Klassen und Funktionen aus PPLIB und ist für Microcontroller optimiert, und zwar in dem Sinne, dass weniger RAM benötigt wird. Viele Objekte verwenden daher uint16_t anstelle von int oder es gibt duplikate von Klassen, die 16-Bit Integer verwenden.
 
-Der Code ist inzwischen auseinander gelaufen, so dass es schwierig ist, Änderungen in beiden Codebasen zu pflegen. Daher ist es sinnvoll, die picopplib-Version in PPL7 zu integrieren und die Unterschiede über "#ifdef"s zu steuern.
+Der Code ist inzwischen auseinander gelaufen, so dass es schwierig ist, Änderungen in beiden Codebasen zu pflegen. Daher ist es sinnvoll, die picopplib-Version in PPLIB zu integrieren und die Unterschiede über "#ifdef"s zu steuern.
 
-In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPL7 nicht benötigt werden. Hierfür wäre ein eigenes Projekt sinnvoll, das die Hardware-spezifischen Klassen enthält und von PPL7 abhängig ist.
+In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPLIB nicht benötigt werden. Hierfür wäre ein eigenes Projekt sinnvoll, das die Hardware-spezifischen Klassen enthält und von PPLIB abhängig ist.
 
-## Namespace ppl7, ppl8 oder pplib?
-Der Aufwand alle Programme, die PPL7 verwenden, auf PPL8 zu portieren wäre sehr hoch. Allerdings sind die Überarbeitungen schon recht umfangreich, so dass ein größerer Versionssprung gerechtfertigt wäre. Die Interfaces bleiben weitgehend kompatibel.
+## Namespace pplib, ppl8 oder pplib?
+Der Aufwand alle Programme, die PPLIB verwenden, auf PPL8 zu portieren wäre sehr hoch. Allerdings sind die Überarbeitungen schon recht umfangreich, so dass ein größerer Versionssprung gerechtfertigt wäre. Die Interfaces bleiben weitgehend kompatibel.
 
 Da das GitHub-Repository "pplib" heißt, und ich auch die Domain "pplib.de" besitze, wäre es sinnvoll auf die Version im Namespace zu verzichten und stattdessen den neutralen Namespace "pplib" zu verwenden. "ppl" kollidiert bereits mit dem Namespace "ppl" von Microsoft, der in Visual Studio verwendet wird.
 
-Für die Portierung vorhandener Projekte könnte ein Alias "ppl7" definiert werden, der auf den Namespace "pplib" verweist:
+Für die Portierung vorhandener Projekte könnte ein Alias "pplib" definiert werden, der auf den Namespace "pplib" verweist:
 ```cpp
-namespace ppl7 = pplib;
+namespace pplib = pplib;
 ```
 
 

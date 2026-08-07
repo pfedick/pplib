@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -45,13 +45,13 @@
 
 #include <math.h>
 
-#include "ppl7.h"
-#include "ppl7-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 // #include "grafix7.h"
 
 // #undef HAVE_X86_ASSEMBLER
 
-namespace ppl7
+namespace pplib
 {
 namespace grafix
 {
@@ -146,7 +146,7 @@ Drawable::Drawable(const Drawable& other)
  * @param other Ein anderes Drawable
  * @param rect Bildausschnitt
  *
- * \exception ppl7::Exception::InitialisationFailed Diese Exception wird geworfen,
+ * \exception pplib::Exception::InitialisationFailed Diese Exception wird geworfen,
  * wenn das Drawable nicht kopiert werden kann. Die genaue Ursache kann über den Fehlercode
  * ausgelesen werden.
  */
@@ -165,7 +165,7 @@ Drawable::Drawable(const Drawable& other, const Rect& rect)
  * @param p Koordinate der linken oberen Ecke
  * @param s Breite und Höhe
  *
- * \exception ppl7::Exception::InitialisationFailed Diese Exception wird geworfen,
+ * \exception pplib::Exception::InitialisationFailed Diese Exception wird geworfen,
  * wenn das Drawable nicht kopiert werden kann. Die genaue Ursache kann über den Fehlercode
  * ausgelesen werden.
  */
@@ -187,7 +187,7 @@ Drawable::Drawable(const Drawable& other, const Point& p, const Size& s)
  * @param height Höhe der Grafik in Pixel
  * @param format Farbformat
  *
- * \exception ppl7::Exception::InitialisationFailed Diese Exception wird geworfen,
+ * \exception pplib::Exception::InitialisationFailed Diese Exception wird geworfen,
  * wenn das Drawable nicht mit den angegebenen Parametern erstellt werden kann.
  * Die genaue Ursache kann über den Fehlercode ausgelesen werden.
  */
@@ -816,4 +816,4 @@ void Drawable::scale(Image& tgt, int width, int height, bool keepAspectRation, b
 }
 
 } // namespace grafix
-} // namespace ppl7
+} // namespace pplib

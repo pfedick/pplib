@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -28,13 +28,13 @@
  *******************************************************************************/
 
 #include <string.h>
-#include <ppl7/core/pfpfile.h>
-#include <ppl7/core/compression.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/core/file.h>
-#include <ppl7/exceptions.h>
+#include <pplib/core/pfpfile.h>
+#include <pplib/core/compression.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/file.h>
+#include <pplib/exceptions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 PFPChunk::PFPChunk()
@@ -517,4 +517,4 @@ void PFPFile::load(FileObject& ff)
     }
 }
 
-} // namespace ppl7
+} // namespace pplib

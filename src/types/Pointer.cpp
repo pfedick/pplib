@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,9 +27,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/types/pointer.h>
+#include <pplib/types/pointer.h>
 
-namespace ppl7
+namespace pplib
 {
 
 #pragma GCC diagnostic push
@@ -221,4 +221,4 @@ bool Pointer::operator>(const Pointer& other) const
 
 #pragma GCC diagnostic pop
 
-} // namespace ppl7
+} // namespace pplib

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
@@ -8,7 +8,7 @@
  * $Id: file.cpp 837 2014-01-23 07:31:34Z pafe $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,52 +36,58 @@
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <pplib.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class TimeTest : public ::testing::Test {
-	protected:
-	TimeTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen: LC_CTYPE\n");
-			throw std::exception();
-		}
-		if (setlocale(LC_TIME,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen: LC_TIME\n");
-			throw std::exception();
-		}
-	}
-	virtual ~TimeTest() {
-
-	}
+class TimeTest : public ::testing::Test
+{
+protected:
+    TimeTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen: LC_CTYPE\n");
+            throw std::exception();
+        }
+        if (setlocale(LC_TIME, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen: LC_TIME\n");
+            throw std::exception();
+        }
+    }
+    virtual ~TimeTest()
+    {
+    }
 };
 
-
-TEST_F(TimeTest, MkTime_withIso8601String_withoutTimezone) {
-	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T14:43:44"))) << "MkTime returns unexpected value";
+TEST_F(TimeTest, MkTime_withIso8601String_withoutTimezone)
+{
+    EXPECT_EQ((pplib::ppl_time_t)1378388624, pplib::MkTime(pplib::String("2013-09-05T14:43:44"))) << "MkTime returns unexpected value";
 }
 
-TEST_F(TimeTest, MkTime_withIso8601String_withZeroTimeoffset) {
-	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T14:43:44+00:00"))) << "MkTime returns unexpected value";
-	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T14:43:44-00:00"))) << "MkTime returns unexpected value";
+TEST_F(TimeTest, MkTime_withIso8601String_withZeroTimeoffset)
+{
+    EXPECT_EQ((pplib::ppl_time_t)1378388624, pplib::MkTime(pplib::String("2013-09-05T14:43:44+00:00")))
+        << "MkTime returns unexpected value";
+    EXPECT_EQ((pplib::ppl_time_t)1378388624, pplib::MkTime(pplib::String("2013-09-05T14:43:44-00:00")))
+        << "MkTime returns unexpected value";
 }
 
-TEST_F(TimeTest, MkTime_withIso8601String_withPositiveTimeoffset) {
-	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T16:43:44+02:00"))) << "MkTime returns unexpected value";
-	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T12:43:44-02:00"))) << "MkTime returns unexpected value";
+TEST_F(TimeTest, MkTime_withIso8601String_withPositiveTimeoffset)
+{
+    EXPECT_EQ((pplib::ppl_time_t)1378388624, pplib::MkTime(pplib::String("2013-09-05T16:43:44+02:00")))
+        << "MkTime returns unexpected value";
+    EXPECT_EQ((pplib::ppl_time_t)1378388624, pplib::MkTime(pplib::String("2013-09-05T12:43:44-02:00")))
+        << "MkTime returns unexpected value";
 }
 
-TEST_F(TimeTest, MkTime_withIso8601String_withNegativeTimeoffset) {
-	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T12:43:44-02:00"))) << "MkTime returns unexpected value";
+TEST_F(TimeTest, MkTime_withIso8601String_withNegativeTimeoffset)
+{
+    EXPECT_EQ((pplib::ppl_time_t)1378388624, pplib::MkTime(pplib::String("2013-09-05T12:43:44-02:00")))
+        << "MkTime returns unexpected value";
 }
 
-
-
-
-}
-
-
+} // namespace

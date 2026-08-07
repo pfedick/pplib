@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -30,13 +30,13 @@
 #include <chrono>
 #include <cctype>
 #include <string.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/datetime.h>
+#include <pplib/types/string.h>
+#include <pplib/types/datetime.h>
 
-#include <ppl7/core/functions.h>
-#include <ppl7/core/regex.h>
-#include <ppl7/exceptions.h>
-#include <config_ppl7.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/regex.h>
+#include <pplib/exceptions.h>
+#include <config_pplib.h>
 
 /*
        The glibc version of struct tm has additional fields
@@ -53,7 +53,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 
-namespace ppl7
+namespace pplib
 {
 
 static bool safe_localtime(time_t t, struct tm* tmstruct)
@@ -1685,4 +1685,4 @@ std::ostream& operator<<(std::ostream& s, const DateTime& dt)
     return s.write((const char*)str, str.size());
 }
 
-} // namespace ppl7
+} // namespace pplib

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,15 +27,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/resource.h>
-#include <ppl7/core/fileobject.h>
-#include <ppl7/core/file.h>
-#include <ppl7/core/memfile.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/core/compression.h>
-#include <ppl7/exceptions.h>
+#include <pplib/core/resource.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
+#include <pplib/core/memfile.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/compression.h>
+#include <pplib/exceptions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 class ResourceChunk
@@ -330,7 +330,7 @@ static void includeHelp(FileObject& out, const String& configfile)
     DateTime now;
     now.setCurrentTime();
     out.putsf("/*********************************************************\n"
-              " * PPL7 Resourcen Generator Version %i.%i.%i\n"
+              " * PPLIB Resourcen Generator Version %i.%i.%i\n"
               " * %s\n"
               "",
               PPL_VERSION_MAJOR, PPL_VERSION_MINOR, PPL_VERSION_BUILD, PPL_COPYRIGHT);
@@ -574,4 +574,4 @@ Resource* Resource::getPPLResource()
     return GetPPLResource();
 }
 
-} // namespace ppl7
+} // namespace pplib

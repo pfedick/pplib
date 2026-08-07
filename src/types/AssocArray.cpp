@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -35,17 +35,17 @@
 #include <set>
 #include <ostream>
 
-#include <ppl7/types/array.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/assocarray.h>
-#include <ppl7/types/bytearray.h>
-#include <ppl7/types/bytearrayptr.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/core/iconv.h>
+#include <pplib/types/array.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/assocarray.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/iconv.h>
 
-#include <config_ppl7.h>
+#include <config_pplib.h>
 #ifndef ICONV_UNICODE
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define ICONV_UNICODE (sizeof(wchar_t) == 2 ? "UTF-16BE" : "UTF-32BE")
@@ -54,7 +54,7 @@
 #endif
 #endif
 
-namespace ppl7
+namespace pplib
 {
 
 /*!\class AssocArray
@@ -89,7 +89,7 @@ namespace ppl7
  * \par Beispiel:
  * Einen Wert setzen und wieder auslesen:
  * \code
- * ppl7::AssocArray a;
+ * pplib::AssocArray a;
  * // Wert setzen
  * a.set("ebene1/ebene2/key","Ein Wert");
  * // Wert auslesen
@@ -98,13 +98,13 @@ namespace ppl7
  * \par
  * Durch ein AssocArray durchiterieren:
  * \code
-void IterateArray(const ppl7::AssocArray &a)
+void IterateArray(const pplib::AssocArray &a)
 {
-    ppl7::AssocArray::Iterator it;
+    pplib::AssocArray::Iterator it;
     a.reset(it);
     while (a.getNext(it)) {
-        const ppl7::String &key=it.key();
-        const ppl7::Variant &var=*it.value().value;
+        const pplib::String &key=it.key();
+        const pplib::Variant &var=*it.value().value;
         if (var.isString()) {
             cout << "Key: " << key << ", Value: " << var.toString() << endl;
         }
@@ -115,10 +115,10 @@ void IterateArray(const ppl7::AssocArray &a)
  * Wenn von vorneherein bekannt ist, dass im Array nur Strings vorhanden sind, kann man auch noch auf diese
  * Weise durchiterieren:
  * \code
-void IterateArray(const ppl7::AssocArray &a)
+void IterateArray(const pplib::AssocArray &a)
 {
-    ppl7::AssocArray::Iterator it;
-    ppl7::String Key, Value;
+    pplib::AssocArray::Iterator it;
+    pplib::String Key, Value;
     a.reset(it);
     while (a.GetNext(it,Key,Value)) {
         cout << "Key: " << Key << ", Value: " << Value << endl;
@@ -361,7 +361,7 @@ void AssocArray::createTree(const ArrayKey& key, Variant* var)
         if (tok.count() > 0) { // Ja, koennen wir iterieren?
             if (it->second->isAssocArray() == false) {
                 delete (it->second); // Nein, wir loeschen daher diesen Zweig und machen ein Array draus
-                it->second = new Variant(ppl7::AssocArray());
+                it->second = new Variant(pplib::AssocArray());
             }
             it->second->toAssocArray().createTree(rest, var);
             return;
@@ -377,7 +377,7 @@ void AssocArray::createTree(const ArrayKey& key, Variant* var)
     // Ist noch was im Pfad rest?
     if (tok.count() > 0) { // Ja, wir erstellen ein Array und iterieren
         // printf ("Iteration\n");
-        Variant* newnode = new Variant(ppl7::AssocArray());
+        Variant* newnode = new Variant(pplib::AssocArray());
         Tree.insert(std::pair<ArrayKey, Variant*>(firstkey, newnode));
         newnode->toAssocArray().createTree(rest, var);
     } else {
@@ -447,8 +447,8 @@ size_t AssocArray::count(const String& key, bool recursive) const
  *
  * \par Beispiel:
  * \code
-ppl7::AssocArray a;
-ppl7::Binary bin;
+pplib::AssocArray a;
+pplib::Binary bin;
 bin.load("main.cpp");
 
 a.set("key1","value1");
@@ -841,7 +841,7 @@ void AssocArray::add(const AssocArray& other)
  * \example
  * Der Variant kann z.B. folgendermaßen in einen String umgewandelt werden:
  * \code
-ppl7::String &str=a.get(L"key1").toString();
+pplib::String &str=a.get(L"key1").toString();
 \endcode
  */
 Variant& AssocArray::get(const String& key) const
@@ -1094,7 +1094,7 @@ AssocArray::const_reverse_iterator AssocArray::rend() const
  * Funktion AssocArray::getNext und AssocArray::getPrevious benötigt wird,
  * auf den Anfang zurückgesetzt.
  *
- * \param[in] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * \param[in] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
  *
  */
 void AssocArray::reset(Iterator& it) const
@@ -1113,7 +1113,7 @@ void AssocArray::reset(ReverseIterator& it) const
  * Diese Funktion liefert das erste Element des Arrays zurück. Falls der optionale Parameter
  * \p type verwendet wird, liefert die Funktion das erste Element dieses Typs zurück.
  *
- * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
@@ -1136,7 +1136,7 @@ bool AssocArray::getFirst(Iterator& it, Variant::DataType type) const
  * Diese Funktion liefert das nächste Element des Arrays zurück. Falls der optionale Parameter
  * \p type verwendet wird, liefert die Funktion das nächste Element dieses Typs zurück.
  *
- * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
@@ -1159,7 +1159,7 @@ bool AssocArray::getNext(Iterator& it, Variant::DataType type) const
  * Diese Funktion liefert das letzte Element des Arrays zurück. Falls der optionale Parameter
  * \p type verwendet wird, liefert die Funktion das letzte Element dieses Typs zurück.
  *
- * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
@@ -1182,7 +1182,7 @@ bool AssocArray::getLast(ReverseIterator& it, Variant::DataType type) const
  * Diese Funktion liefert das vorhergehende Element des Arrays zurück. Falls der optionale Parameter
  * \p type verwendet wird, liefert die Funktion das vorhergehende Element dieses Typs zurück.
  *
- * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
@@ -1205,7 +1205,7 @@ bool AssocArray::getPrevious(ReverseIterator& it, Variant::DataType type) const
  * Diese Funktion sucht den ersten %String im %Array und speichert dessen
  * Schlüssel im Parameter \p key und den Wert in \p value;
  *
- * @param[in,out] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param[in,out] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
  * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
  * @param[out] value String, in dem der Wert gespeichert werden soll.
  * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
@@ -1230,7 +1230,7 @@ bool AssocArray::getFirst(Iterator& it, String& key, String& value) const
  * Diese Funktion sucht den nächsten %String im %Array und speichert dessen
  * Schlüssel im Parameter \p key und den Wert in \p value;
  *
- * @param[in,out] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param[in,out] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
  * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
  * @param[out] value String, in dem der Wert gespeichert werden soll.
  * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
@@ -1255,7 +1255,7 @@ bool AssocArray::getNext(Iterator& it, String& key, String& value) const
  * Diese Funktion sucht den letzten %String im %Array und speichert dessen
  * Schlüssel im Parameter \p key und den Wert in \p value;
  *
- * @param[in,out] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param[in,out] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
  * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
  * @param[out] value String, in dem der Wert gespeichert werden soll.
  * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
@@ -1280,7 +1280,7 @@ bool AssocArray::getLast(ReverseIterator& it, String& key, String& value) const
  * Diese Funktion sucht den vorhergehenden %String im %Array und speichert dessen
  * Schlüssel im Parameter \p key und den Wert in \p value;
  *
- * @param[in,out] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param[in,out] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
  * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
  * @param[out] value String, in dem der Wert gespeichert werden soll.
  * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
@@ -1475,13 +1475,13 @@ size_t AssocArray::fromConfig(
 \code
 #include <stdio.h>
 #include <string.h>
-#include <ppl7.h>
+#include <pplib.h>
 
 int main(int argc, char **argv)
 {
-    ppl7::AssocArray a;
-    ppl7::ByteArray bin;
-    ppl7::String out;
+    pplib::AssocArray a;
+    pplib::ByteArray bin;
+    pplib::String out;
     bin.load("main.cpp");
     a.set("key1","Dieser Wert geht über\nmehrere Zeilen");
     a.set("array1/unterkey1","value2");
@@ -1518,7 +1518,7 @@ void AssocArray::toTemplate(String& s, const String& prefix, const String& lined
     String key, pre, value, index;
     Array Tok;
     if (prefix.notEmpty()) key = prefix + "/";
-    ppl7::AssocArray::const_iterator it;
+    pplib::AssocArray::const_iterator it;
     for (it = Tree.begin(); it != Tree.end(); ++it) {
         Variant* p = it->second;
         if (p->isString()) {
@@ -1661,7 +1661,7 @@ void AssocArray::exportBinary(void* buffer, size_t buffersize, size_t* realsize)
                 a->toAssocArray().exportBinary(ptr + p, buffersize - p, &asize);
             p += asize;
         } else if (a->isArray()) {
-            ppl7::Array aaa(a->toArray());
+            pplib::Array aaa(a->toArray());
             if (p + 4 < buffersize) PokeN32(ptr + p, (int)aaa.size());
             p += 4;
             for (ssize_t i = 0; i < (ssize_t)aaa.size(); i++) {
@@ -1938,4 +1938,4 @@ AssocArray operator+(const AssocArray& a1, const AssocArray& a2)
     return a;
 }
 
-} // namespace ppl7
+} // namespace pplib

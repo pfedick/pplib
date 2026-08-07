@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,9 +27,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/resource.h>
+#include <pplib/core/resource.h>
 
-namespace ppl7
+namespace pplib
 {
 
 #include "../resource/res.h"
@@ -47,11 +47,11 @@ Resource* GetPPLResource()
     if (!pplResource) {
         Resource* r;
         r = new Resource;
-        r->useMemory(PPL7_RESOURCES, sizeof(PPL7_RESOURCES));
+        r->useMemory(PPLIB_RESOURCES, sizeof(PPLIB_RESOURCES));
         pplResource = r;
         atexit(PPLExitResource);
     }
     return pplResource;
 }
 
-} // namespace ppl7
+} // namespace pplib

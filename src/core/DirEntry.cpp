@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,8 +27,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/dir.h>
-namespace ppl7
+#include <pplib/core/dir.h>
+namespace pplib
 {
 
 bool DirEntry::isDir() const
@@ -93,4 +93,4 @@ void DirEntry::print(const String& label) const
     a.list(label);
 }
 
-} // namespace ppl7
+} // namespace pplib

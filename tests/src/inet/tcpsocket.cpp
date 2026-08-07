@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
@@ -8,7 +8,7 @@
  * $Id: inet.cpp 600 2013-04-26 19:37:49Z pafe $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,205 +37,174 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
-#include <ppl7-inet.h>
+#include <pplib.h>
+#include <pplib-inet.h>
 #include <gtest/gtest.h>
 #include <list>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class TcpSocketTest : public ::testing::Test {
-	protected:
-		TcpSocketTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-		ppl7::InitSockets();
-	}
-	virtual ~TcpSocketTest() {
-
-	}
+class TcpSocketTest : public ::testing::Test
+{
+protected:
+    TcpSocketTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+        pplib::InitSockets();
+    }
+    virtual ~TcpSocketTest()
+    {
+    }
 };
 
-TEST_F(TcpSocketTest, Constructor) {
-	ASSERT_NO_THROW({
-		ppl7::TCPSocket socket;
-	}
-	);
+TEST_F(TcpSocketTest, Constructor)
+{
+    ASSERT_NO_THROW({ pplib::TCPSocket socket; });
 }
 
-TEST_F(TcpSocketTest, getDescriptorWithoutConnection) {
-	ppl7::TCPSocket socket;
-	ASSERT_THROW({
-		socket.getDescriptor();
-	},ppl7::NotConnectedException);
+TEST_F(TcpSocketTest, getDescriptorWithoutConnection)
+{
+    pplib::TCPSocket socket;
+    ASSERT_THROW({ socket.getDescriptor(); }, pplib::NotConnectedException);
 }
 
-TEST_F(TcpSocketTest, disconnectWithoutConnection) {
-	ppl7::TCPSocket socket;
-	ASSERT_NO_THROW({
-		socket.disconnect();
-	});
+TEST_F(TcpSocketTest, disconnectWithoutConnection)
+{
+    pplib::TCPSocket socket;
+    ASSERT_NO_THROW({ socket.disconnect(); });
 }
 
-TEST_F(TcpSocketTest, shutdownWithoutConnection) {
-	ppl7::TCPSocket socket;
-	ASSERT_NO_THROW({
-		socket.disconnect();
-	});
+TEST_F(TcpSocketTest, shutdownWithoutConnection)
+{
+    pplib::TCPSocket socket;
+    ASSERT_NO_THROW({ socket.disconnect(); });
 }
 
-TEST_F(TcpSocketTest, connectUnresolveableHostname) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","unknownserver","unresolveable.server.pfp.de");
-	ASSERT_THROW({
-		socket.connect(Hostname,80);
-	},ppl7::ResolverException) << "Connect on unresolveable address throws ResolverException";
+TEST_F(TcpSocketTest, connectUnresolveableHostname)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "unknownserver", "unresolveable.server.pfp.de");
+    ASSERT_THROW(
+        { socket.connect(Hostname, 80); }, pplib::ResolverException)
+        << "Connect on unresolveable address throws ResolverException";
 }
 
-TEST_F(TcpSocketTest, connectOnServerNotRunningWithTimeout) {
-	ppl7::TCPSocket socket;
-	socket.setTimeoutConnect(1,0);
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","notrunningserver","unexistingserver.ppl.pfp.de");
-	double start=ppl7::GetMicrotime();
-	ASSERT_THROW({
-		socket.connect(Hostname,80);
-	},ppl7::TimeoutException);
-	double duration=ppl7::GetMicrotime()-start;
-	ASSERT_LT(duration,1.1) << "Timeout too long";
+TEST_F(TcpSocketTest, connectOnServerNotRunningWithTimeout)
+{
+    pplib::TCPSocket socket;
+    socket.setTimeoutConnect(1, 0);
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "notrunningserver", "unexistingserver.ppl.pfp.de");
+    double start = pplib::GetMicrotime();
+    ASSERT_THROW({ socket.connect(Hostname, 80); }, pplib::TimeoutException);
+    double duration = pplib::GetMicrotime() - start;
+    ASSERT_LT(duration, 1.1) << "Timeout too long";
 }
 
-TEST_F(TcpSocketTest, connectOnEchoServerNonexistingPort) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
-	int port=PPL7TestConfig.getIntFromSection("tcpsocket","echoserver_nonexistingport",11111);
-	ASSERT_THROW({
-		socket.connect(Hostname,port);
-	},ppl7::ConnectionRefusedException);
+TEST_F(TcpSocketTest, connectOnEchoServerNonexistingPort)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "echoserver", "localhost");
+    int port = PPLIBTestConfig.getIntFromSection("tcpsocket", "echoserver_nonexistingport", 11111);
+    ASSERT_THROW({ socket.connect(Hostname, port); }, pplib::ConnectionRefusedException);
 }
 
-
-TEST_F(TcpSocketTest, connectOnEchoServer) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
+TEST_F(TcpSocketTest, connectOnEchoServer)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "echoserver", "localhost");
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
 }
 
-TEST_F(TcpSocketTest, connectWithOneParameter) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
-	Hostname+=":7";
-	ASSERT_NO_THROW({
-		socket.connect(Hostname);
-	});
+TEST_F(TcpSocketTest, connectWithOneParameter)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "echoserver", "localhost");
+    Hostname += ":7";
+    ASSERT_NO_THROW({ socket.connect(Hostname); });
 }
 
-TEST_F(TcpSocketTest, connectAndDisconnect) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
-	ASSERT_NO_THROW({
-		socket.disconnect();
-	});
+TEST_F(TcpSocketTest, connectAndDisconnect)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "echoserver", "localhost");
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
+    ASSERT_NO_THROW({ socket.disconnect(); });
 }
 
-TEST_F(TcpSocketTest, connectAndDisconnectAndReconnect) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
-	ASSERT_NO_THROW({
-		socket.disconnect();
-	});
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
+TEST_F(TcpSocketTest, connectAndDisconnectAndReconnect)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "echoserver", "localhost");
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
+    ASSERT_NO_THROW({ socket.disconnect(); });
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
 }
 
-TEST_F(TcpSocketTest, connectAndReconnect) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
+TEST_F(TcpSocketTest, connectAndReconnect)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "echoserver", "localhost");
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
 }
 
-TEST_F(TcpSocketTest, writeAndReadString) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
-	ppl7::String Expected, OutString, InString;
-	Expected="PPL7 Unittest Teststring";
-	OutString=Expected;
-	ASSERT_NO_THROW({
-		ASSERT_EQ((size_t)24,socket.write(OutString));
-		ASSERT_EQ((size_t)24,socket.read(InString,1024));
-	});
-	ASSERT_EQ(Expected,InString);
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
+TEST_F(TcpSocketTest, writeAndReadString)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "echoserver", "localhost");
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
+    pplib::String Expected, OutString, InString;
+    Expected = "PPLIB Unittest Teststring";
+    OutString = Expected;
+    ASSERT_NO_THROW({
+        ASSERT_EQ((size_t)24, socket.write(OutString));
+        ASSERT_EQ((size_t)24, socket.read(InString, 1024));
+    });
+    ASSERT_EQ(Expected, InString);
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
 }
 
-TEST_F(TcpSocketTest, writeAndReadRandomByteArray) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
-	ppl7::ByteArray Expected, Out, In;
-	ppl7::Random(Expected,1234);
-	Out=Expected;
-	ASSERT_NO_THROW({
-		ASSERT_EQ((size_t)1234,socket.write(Out));
-		ASSERT_EQ((size_t)1234,socket.read(In,4000));
-	});
-	ASSERT_EQ(Expected,In);
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
+TEST_F(TcpSocketTest, writeAndReadRandomByteArray)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "echoserver", "localhost");
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
+    pplib::ByteArray Expected, Out, In;
+    pplib::Random(Expected, 1234);
+    Out = Expected;
+    ASSERT_NO_THROW({
+        ASSERT_EQ((size_t)1234, socket.write(Out));
+        ASSERT_EQ((size_t)1234, socket.read(In, 4000));
+    });
+    ASSERT_EQ(Expected, In);
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
 }
 
-TEST_F(TcpSocketTest, repetetiveReadAndwaitForIncomingData) {
-	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
-	ppl7::ByteArray Expected, Out, In, TotalIn;
-	size_t totalBytes=200000;
-	ppl7::Random(Expected,totalBytes);
-	Out=Expected;
-	ASSERT_NO_THROW({
-		ASSERT_EQ((size_t)totalBytes,socket.write(Out));
-	});
-	size_t bytesRead=0;
-	while (socket.waitForIncomingData(0,1000)) {
-		bytesRead+=socket.read(In,20000);
-		TotalIn.append(In);
-	}
-	ASSERT_EQ((size_t)totalBytes,bytesRead);
-	ASSERT_EQ((size_t)totalBytes,TotalIn.size());
-	ASSERT_EQ(Expected,TotalIn);
-	ASSERT_NO_THROW({
-		socket.connect(Hostname,7);
-	});
+TEST_F(TcpSocketTest, repetetiveReadAndwaitForIncomingData)
+{
+    pplib::TCPSocket socket;
+    pplib::String Hostname = PPLIBTestConfig.getFromSection("tcpsocket", "echoserver", "localhost");
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
+    pplib::ByteArray Expected, Out, In, TotalIn;
+    size_t totalBytes = 200000;
+    pplib::Random(Expected, totalBytes);
+    Out = Expected;
+    ASSERT_NO_THROW({ ASSERT_EQ((size_t)totalBytes, socket.write(Out)); });
+    size_t bytesRead = 0;
+    while (socket.waitForIncomingData(0, 1000)) {
+        bytesRead += socket.read(In, 20000);
+        TotalIn.append(In);
+    }
+    ASSERT_EQ((size_t)totalBytes, bytesRead);
+    ASSERT_EQ((size_t)totalBytes, TotalIn.size());
+    ASSERT_EQ(Expected, TotalIn);
+    ASSERT_NO_THROW({ socket.connect(Hostname, 7); });
 }
 
-
-
-}
-
+} // namespace

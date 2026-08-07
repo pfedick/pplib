@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -28,13 +28,13 @@
  *******************************************************************************/
 
 #include <string.h>
-#include <ppl7/types/bytearrayptr.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/exceptions.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/core/functions.h>
+#include <pplib/exceptions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 ByteArrayPtr::ByteArrayPtr()
@@ -271,8 +271,8 @@ int ByteArrayPtr::memcmp(const ByteArrayPtr& other) const
 
 std::ostream& operator<<(std::ostream& s, const ByteArrayPtr& ba)
 {
-    ppl7::String hex = ba.toHex();
+    pplib::String hex = ba.toHex();
     return s.write((const char*)hex, hex.size());
 }
 
-} // namespace ppl7
+} // namespace pplib

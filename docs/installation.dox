@@ -15,7 +15,7 @@ Der Quellcode der Library wird bei <a href="https://github.com/pfedick/pplib">Gi
 gehostet und kann wie nachfolgend beschrieben aus dem Repository ausgecheckt werden.
 
 \code
-git clone https://github.com/pfedick/pplib.git ppl7
+git clone https://github.com/pfedick/pplib.git pplib
 \endcode
 
 
@@ -203,7 +203,7 @@ make install
 \endcode
 
 
-\subsubsection inst3mingw_ppl7
+\subsubsection inst3mingw_pplib
 
 \code
 export MINGW=/mingw64

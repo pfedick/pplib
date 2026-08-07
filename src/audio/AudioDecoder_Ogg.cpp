@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *******************************************************************************
- * Copyright (c) 2017, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -37,14 +37,15 @@
 #include <string.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-audio.h"
+#include "pplib.h"
+#include "pplib-audio.h"
 
 #ifdef HAVE_LIBVORBIS
 #include <vorbis/vorbisfile.h>
 #endif
 
-namespace ppl7 {
+namespace pplib
+{
 
 #ifdef HAVE_LIBVORBIS
 
@@ -54,7 +55,6 @@ typedef struct
     ov_callbacks callbacks;
 
 } OggVorbisPrivateData;
-
 
 static size_t ppl_read_func(void* ptr, size_t size, size_t nmemb, void* datasource)
 {
@@ -101,8 +101,8 @@ static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf)
         info.IsVBR = false;
         if (vf.vi->bitrate_lower != 0) info.Bitrate = vf.vi->bitrate_lower;
     }
-    //ppl7::PrintDebug("min: %d, max: %d, nominal: %d\n", vf.vi->bitrate_lower, vf.vi->bitrate_upper, vf.vi->bitrate_nominal);
-    //info.Bitrate=ov_bitrate(&vf, -1);
+    // pplib::PrintDebug("min: %d, max: %d, nominal: %d\n", vf.vi->bitrate_lower, vf.vi->bitrate_upper, vf.vi->bitrate_nominal);
+    // info.Bitrate=ov_bitrate(&vf, -1);
     info.BitsPerSample = 16;
     info.AudioStart = vf.offset;
     info.AudioEnd = vf.end;
@@ -123,18 +123,15 @@ bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
     init_callback(callbacks);
     file.seek(0);
     int res = ov_open_callbacks(&file, &vf, NULL, 0, callbacks);
-    //ppl7::PrintDebug("try read vobis file, result is: %d\n", res);
+    // pplib::PrintDebug("try read vobis file, result is: %d\n", res);
     if (res != 0) return false;
     GetVorbisAudioInfo(info, vf);
     ov_clear(&vf);
     return true;
 
-
 #endif
     return false;
 }
-
-
 
 AudioDecoder_Ogg::AudioDecoder_Ogg()
 {
@@ -153,7 +150,6 @@ AudioDecoder_Ogg::AudioDecoder_Ogg()
     decodebuffer = NULL;
 #endif
 }
-
 
 AudioDecoder_Ogg::~AudioDecoder_Ogg()
 {
@@ -190,17 +186,15 @@ void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
     int res = ov_open_callbacks(&file, &oggp->vf, NULL, 0, oggp->callbacks);
     if (res != 0) throw UnsupportedAudioFormatException();
     getAudioInfo(this->info);
-    if (this->info.Channels < 1 || this->info.Channels>2) throw UnsupportedAudioFormatException("channels <1 or >2");
+    if (this->info.Channels < 1 || this->info.Channels > 2) throw UnsupportedAudioFormatException("channels <1 or >2");
     if (this->info.Channels == 1 && decodebuffer == NULL) {
         decodebuffer_size = 4096;
         decodebuffer = (char*)malloc(decodebuffer_size * 4);
         if (!decodebuffer) throw OutOfMemoryException();
     }
 
-
     position = 0;
 #endif
-
 }
 
 const AudioInfo& AudioDecoder_Ogg::getAudioInfo() const
@@ -223,9 +217,7 @@ void AudioDecoder_Ogg::seekSample(size_t sample)
     ov_pcm_seek(&oggp->vf, sample);
     position = sample;
 
-
 #endif
-
 }
 
 size_t AudioDecoder_Ogg::getPosition() const
@@ -235,9 +227,7 @@ size_t AudioDecoder_Ogg::getPosition() const
 #else
     return 0;
 #endif
-
 }
-
 
 size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
 {
@@ -249,33 +239,36 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
     if (info.Channels == 2) {
         while (rest > 0) {
             long bytes_read = ov_read(&oggp->vf, b, rest, 0, 2, 1, &bitstream);
-            if (bytes_read > 0) rest -= bytes_read;
-            else if (bytes_read == 0) break;
-            else throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
+            if (bytes_read > 0)
+                rest -= bytes_read;
+            else if (bytes_read == 0)
+                break;
+            else
+                throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
             b += bytes_read;
         }
         return num - (rest / 4);
-    }
-    else if (info.Channels == 1) {
+    } else if (info.Channels == 1) {
         int size = decodebuffer_size;
-        ppl7::SAMPLE16* sample = (ppl7::SAMPLE16*)decodebuffer;
+        pplib::SAMPLE16* sample = (pplib::SAMPLE16*)decodebuffer;
         while (rest > 0) {
             if (rest < size) size = rest;
             long bytes_read = ov_read(&oggp->vf, decodebuffer, size, 0, 2, 1, &bitstream);
             if (bytes_read > 0) {
                 rest -= bytes_read;
-                for (int i = 0;i < bytes_read / 2;i++) {
+                for (int i = 0; i < bytes_read / 2; i++) {
                     buffer[i].left = sample[i];
                     buffer[i].right = sample[i];
                 }
-            }
-            else if (bytes_read == 0) break;
-            else throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
+            } else if (bytes_read == 0)
+                break;
+            else
+                throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
             buffer += (bytes_read / 2);
         }
         return num - (rest / 2);
-    }
-    else throw UnsupportedAudioFormatException("channels <1 or >2");
+    } else
+        throw UnsupportedAudioFormatException("channels <1 or >2");
 #else
     return 0;
 #endif
@@ -284,14 +277,13 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
 size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
 #ifdef HAVE_LIBVORBIS
-    //OggVorbisPrivateData* oggp=static_cast<OggVorbisPrivateData*>(private_data);
+    // OggVorbisPrivateData* oggp=static_cast<OggVorbisPrivateData*>(private_data);
     allocateBuffer(4 * num);
     size_t real_num = getSamples(num, (STEREOSAMPLE16*)readbuffer);
-    for (size_t i = 0;i < real_num;i++) {
+    for (size_t i = 0; i < real_num; i++) {
         buffer[i].left += ((STEREOSAMPLE16*)readbuffer)[i].left;
         buffer[i].right += ((STEREOSAMPLE16*)readbuffer)[i].right;
     }
-
 
     return real_num;
 #else
@@ -310,24 +302,21 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
         long got = ov_read_float(&oggp->vf, &pcm, (int)(num - total), &bitstream);
         if (got > 0) {
             if (info.Channels == 2) {
-                for (long i = 0;i < got;i++) {
+                for (long i = 0; i < got; i++) {
                     buffer[total + i].left = pcm[0][i];
                     buffer[total + i].right = pcm[1][i];
                 }
-            }
-            else if (info.Channels == 1) {
-                for (long i = 0;i < got;i++) {
+            } else if (info.Channels == 1) {
+                for (long i = 0; i < got; i++) {
                     buffer[total + i].left = pcm[0][i];
                     buffer[total + i].right = pcm[0][i];
                 }
-            }
-            else throw UnsupportedAudioFormatException("channels <1 or >2");
+            } else
+                throw UnsupportedAudioFormatException("channels <1 or >2");
             total += got;
-        }
-        else if (got == 0) {
+        } else if (got == 0) {
             break; // EOF
-        }
-        else {
+        } else {
             throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)got);
         }
     }
@@ -335,7 +324,7 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
     return (size_t)total;
 #else
     return 0;
-#endif    
+#endif
 }
 
 size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
@@ -349,24 +338,21 @@ size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
         long got = ov_read_float(&oggp->vf, &pcm, (int)(num - total), &bitstream);
         if (got > 0) {
             if (info.Channels == 2) {
-                for (long i = 0;i < got;i++) {
+                for (long i = 0; i < got; i++) {
                     buffer[total + i].left += pcm[0][i];
                     buffer[total + i].right += pcm[1][i];
                 }
-            }
-            else if (info.Channels == 1) {
-                for (long i = 0;i < got;i++) {
+            } else if (info.Channels == 1) {
+                for (long i = 0; i < got; i++) {
                     buffer[total + i].left += pcm[0][i];
                     buffer[total + i].right += pcm[0][i];
                 }
-            }
-            else throw UnsupportedAudioFormatException("channels <1 or >2");
+            } else
+                throw UnsupportedAudioFormatException("channels <1 or >2");
             total += got;
-        }
-        else if (got == 0) {
+        } else if (got == 0) {
             break; // EOF
-        }
-        else {
+        } else {
             throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)got);
         }
     }
@@ -377,5 +363,4 @@ size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 #endif
 }
 
-
-}	// EOF namespace ppl7
+} // namespace pplib

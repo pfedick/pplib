@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -31,12 +31,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ppl7/core/functions.h>
-#include <ppl7/core/fileobject.h>
-#include <ppl7/types/bytearray.h>
-#include <ppl7/exceptions.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/exceptions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 // MD5 Berechnung
@@ -354,4 +354,4 @@ String FileObject::md5()
     return String(tmp);
 }
 
-} // namespace ppl7
+} // namespace pplib

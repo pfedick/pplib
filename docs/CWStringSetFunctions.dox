@@ -2,7 +2,7 @@
  * \return Bei Erfolg liefert die Funktion true (1) zurück, sonst false (0).
  * 
  * \see
- * - ppl7::CWString::Set(const char *text, int size=-1);
+ * - pplib::CWString::Set(const char *text, int size=-1);
  *
  * 
  */	

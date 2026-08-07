@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -33,10 +33,10 @@
 #include <thread>
 #include <chrono>
 
-#include "config_ppl7.h"
-#include <ppl7/core/functions.h>
-#include <ppl7/core/timer.h>
-#include <ppl7/core/regex.h>
+#include "config_pplib.h"
+#include <pplib/core/functions.h>
+#include <pplib/core/timer.h>
+#include <pplib/core/regex.h>
 
 /*
        The glibc version of struct tm has additional fields
@@ -51,7 +51,7 @@
 #endif
 #include <time.h>
 
-namespace ppl7
+namespace pplib
 {
 
 static bool safe_localtime(time_t t, struct tm* tmstruct)
@@ -74,8 +74,8 @@ static bool safe_localtime(time_t t, struct tm* tmstruct)
  * sowie die Struktur PPLTIME gefüllt, sofert der Parameter \a t nicht NULL ist.
  * Tritt ein Fehler auf, wird ((uint64_t)-1) zurückgegeben und errno entsprechend gesetzt.
  *
- * \see ppl7::GetTime()
- * \see ppl7::GetTime(PPLTIME *t, uint64_t now)
+ * \see pplib::GetTime()
+ * \see pplib::GetTime(PPLTIME *t, uint64_t now)
  *
  */
 uint64_t GetTime(PPLTIME* t)
@@ -105,7 +105,7 @@ uint64_t GetTime(PPLTIME& t)
     return GetTime(t, now);
 }
 
-/*! \fn ppl7::GetTime (PPLTIME *t, uint64_t now)
+/*! \fn pplib::GetTime (PPLTIME *t, uint64_t now)
  * \ingroup PPLGroupDateTime
  * \brief Wandelt Unix-Zeit in die Struktur PPLTIME um
  *
@@ -118,8 +118,8 @@ uint64_t GetTime(PPLTIME& t)
  * zurückgeliefert und die Struktur PPLTIME wird gefüllt,
  * \exception Bei Auftreten eines Fehlers wird eine InvalidDateException geworfen.
  *
- * \see ppl7::GetTime()
- * \see ppl7::GetTime(PPLTIME *t)
+ * \see pplib::GetTime()
+ * \see pplib::GetTime(PPLTIME *t)
  *
  */
 ppl_time_t GetTime(PPLTIME* t, ppl_time_t now)
@@ -161,8 +161,8 @@ ppl_time_t GetTime(PPLTIME* t, ppl_time_t now)
  * zurückgeliefert und die Struktur PPLTIME wird gefüllt.
  * \exception Bei Auftreten eines Fehlers wird eine InvalidDateException geworfen.
  *
- * \see ppl7::GetTime()
- * \see ppl7::GetTime(PPLTIME *t)
+ * \see pplib::GetTime()
+ * \see pplib::GetTime(PPLTIME *t)
  *
  */
 ppl_time_t GetTime(PPLTIME& t, ppl_time_t now)
@@ -403,7 +403,7 @@ String MkISO8601Date(const PPLTIME& t)
 /*!\brief Datum/Zeit formatieren
  * \ingroup PPLGroupDateTime
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Die Funktion MkDate wandelt einen Unix-Timestamp in einen String um.
  *
@@ -478,4 +478,4 @@ double Timer::duration()
     return myduration;
 }
 
-} // namespace ppl7
+} // namespace pplib

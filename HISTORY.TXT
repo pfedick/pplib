@@ -1,5 +1,8 @@
-/*!\page PPL7History PPL7 History
-PPL7 - HISTORY
+/*!\page PPLIBHistory PPLIB History
+PPLIB - HISTORY
+Version 8.0.0
+  - namespace ist jetzt "pplib" ohne Versionsnummer
+  
 
 Version 7.0.2
   - ID3Tag can read tags from WAVE-files (.wav)
@@ -60,7 +63,7 @@ Version 7.0.1 vom 27.10.2019 (Repo-Tag: REL_7_0_1)
   - ID3Tag can read and write popularity meters
   - Updated googletest detection in configure
   - introduced preprocessor define "PPL_QT_STRING_UTF8". If set before
-    including ppl7.h or ppl7-types.h, string conversions between ppl7::String
+    including pplib.h or pplib-types.h, string conversions between pplib::String
     and Qt's QString will be based on Utf8 and not local 8 bit encoding
   - String class: added constructor with ByteArrayPtr as input
   - Crypto: introduced Encrypt and Decrypt class based on OpenSSL
@@ -113,11 +116,11 @@ Version 6.4.19 vom 16.02.2014	(SVN-Tag: REL_6_4_19)
     funktionen, die "const CString &" als einzigen Parameter erwarten 
   - CID3Tag kann ID3-Tags aus AIFF-Dateien lesen und schreiben
   - UnitTests für CID3Tag-Funktionen erstellt
-  - MemoryHeap-Klasse sammt Unit-Tests aus PPL7 importiert
-  - Algorithmus "List" sammt Unit-Tests aus PPL7 importiert
+  - MemoryHeap-Klasse sammt Unit-Tests aus PPLIB importiert
+  - Algorithmus "List" sammt Unit-Tests aus PPLIB importiert
   - CDir wurde refakturiert: "Get" Funktionen geben jetzt
     "const CDirEntry*" statt "CDirEntry*" zurück, Sortierfunktionen
-    aus PPL7 importiert, als Sortieralgorithmus wird nun std::multimap
+    aus PPLIB importiert, als Sortieralgorithmus wird nun std::multimap
     statt der eigenen AVL-Methoden verwendet. Dies fixt ein Problem
     bei der Sortierung, wenn identische Schlüssel mehrfach auftauchen
     (z.B. gleiche Timestamps oder Dateigrößen). Zusätzlich kann nun
@@ -202,7 +205,7 @@ Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - CArray: Neuer Konstruktor mit Explode-Funktion
   - Bugfix in CAssocArray::CreateFromConfig: Bei Angabe von "dotrim=false"
     wurde am Ende doch getrimmt
-  - Testsuite um Tests für CAssocArray-Klasse ergänzt (Backport von PPL7)
+  - Testsuite um Tests für CAssocArray-Klasse ergänzt (Backport von PPLIB)
   - Bugfix: CleanupThreadData hat zwar das Datenobjekt gelöscht, nicht aber
     den Pointer darauf innerhalb der posix threads
   - PPLExit ruft nun CleanupThreadData auf
@@ -227,7 +230,7 @@ Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Bugfix in MySQL::Query: Ein Fehlerfall beim Speichern des Query-Results
     wurde zwar festgestellt, aber kein passender Fehlercode gesetzt. 
   - Freetype-Font-Rendering verbessert, das Hinting funktioniert jetzt besser
-    (Code aus ppl7 übernommen)
+    (Code aus pplib übernommen)
   - Makefile sollte nun abbrechen, wenn beim "make install" ein Fehler auftritt
   - Statische Funktionen in CFile umbenannt und erweitert: Exists, TouchFile,
     DeleteFile und FileAttr akzeptieren nurnoch einen Parameter mit dem Datei-
@@ -264,13 +267,13 @@ Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Memory-Leak im Zusammenhang mit MySQL gefixt
   - Überflüssige Variablen in Trim-Funktionen der Klasse CWString entfernt
   - Bugfix: Fehler in CString::RTrim behoben, durch den zu wenig Zeichen am
-    Ende des Strings abgeschnitten wurden (Backport von PPL7)
+    Ende des Strings abgeschnitten wurden (Backport von PPLIB)
   - Bugfix: Fehler in CWString::RTrim behoben, durch den zu wenig Zeichen am
-    Ende des Strings abgeschnitten wurden (Backport von PPL7)
+    Ende des Strings abgeschnitten wurden (Backport von PPLIB)
   - Bugfix: Memory Leak und "silly malloc" in CString::PregMatch und
     CWString::PregMatch behoben
-  - Testsuite um Tests für CString-Klasse ergänzt (Backport von PPL7)
-  - Testsuite um Tests für CWString-Klasse ergänzt (Backport von PPL7)
+  - Testsuite um Tests für CString-Klasse ergänzt (Backport von PPLIB)
+  - Testsuite um Tests für CWString-Klasse ergänzt (Backport von PPLIB)
   - CWString hat Konstruktor für std::wstring bekommen und Operator für
     std::ostream
   - Bugfix in CString::IsNumeric und CWString::IsNumeric
@@ -329,7 +332,7 @@ Version 6.4.12  vom 04.04.2012	(CVS-Tag: REL_6_4_12)
     Datenbank escaped und gequoted. Neue Funktion Database::getQuoted
   - Datenbank: Mutexe aus den Datenbanken entfernt. Die Anwendung ist
     dafür verantwortlich parallelen Zugriff zu verhindern.
-  - Backport von PPL7: CDir::homePath und CDir::tempPath
+  - Backport von PPLIB: CDir::homePath und CDir::tempPath
   - Funktion ppl6::db::GetSupportedDatabases hinzugefügt
   - Unterstützung für Datenbank SQLite3 (experimentell)
     
@@ -347,7 +350,7 @@ Version 6.4.11 vom 19.02.2012	(CVS-Tag: REL_6_4_11)
   - Fehlende Funktion CString::Capacity implementiert
   - CFile::Open mit Formatstring wurde umbenannt in CFile::Openf
   - CFont unterstützt Parameter für Rotation
-  - Font-Format 6 eingeführt (Backport aus PPL7)
+  - Font-Format 6 eingeführt (Backport aus PPLIB)
   - Bugfix: Array::Explode auf einen leeren String führt jetzt nicht mehr
     dazu, dass ein leeres Element hinzugefügt wird 
 

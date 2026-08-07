@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -44,19 +44,19 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-db.h"
+#include "pplib.h"
+#include "pplib-db.h"
 
-
-namespace ppl7 {
-namespace db {
-
+namespace pplib
+{
+namespace db
+{
 
 /*!\class ResultSet
  * \ingroup PPLGroupDatabases
  * \brief Ergebnis eines Datenbank-Selects
  *
- * \header \#include <ppl7-db.h>
+ * \header \#include <pplib-db.h>
  *
  * \descr
  * Dies ist eine virtuelle Basisklasse für das Aufnehmen des Ergebnisses eines Datenbank-Selects.
@@ -64,7 +64,7 @@ namespace db {
  * eigene abgeleitete Implementierung davon.
  * Mit Ihren Funktionen können die Ergebniszeilen aus einem Select durchwandert und ausgelesen werden.
  * \par
- * Das ResultSet wird durch Aufruf verschiedener Funktionen innerhalb der Klasse ppl7::db::Database (bzw.
+ * Das ResultSet wird durch Aufruf verschiedener Funktionen innerhalb der Klasse pplib::db::Database (bzw.
  * davon abgeleiteten Klassen) erstellt und muss von der aufrufenden Anwendung selbst mit
  * \c delete freigegeben werden.
  *
@@ -105,7 +105,6 @@ namespace db {
  * Ein Dezimalwert doppelter Genauigkeit
  */
 
-
 /*!\var ResultSet::Type ResultSet::BOOLEAN
  * Ein boolscher Wert, "true" oder "false"
  */
@@ -126,7 +125,6 @@ namespace db {
  * Ein Binärwert
  */
 
-
 /*!\fn db::ResultSet::ResultSet
  * \brief Konstruktor der Klasse
  *
@@ -141,8 +139,6 @@ namespace db {
  * wird. Dazu wird die Funktion ResultSet::clear aufgerufen.
  */
 
-
-
 /*!\fn db::ResultSet::clear
  * \brief Speicher freigeben, Result löschen
  *
@@ -153,7 +149,7 @@ namespace db {
  * aufgerufen zu werden, da dies der Destruktor der Klasse automatisch macht.
  */
 
-/*!\fn ppl7::db::ResultSet::rows
+/*!\fn pplib::db::ResultSet::rows
  * \brief Anzahl Zeilen im Ergebnis
  *
  * Diese Funktion liefert die Anzahl Zeilen im Ergebnis des vorhergehenden Selects zurück.
@@ -187,7 +183,6 @@ namespace db {
  * @return Anzahl Spalten.
  */
 
-
 /*!\fn ResultSet::getString(const String &fieldname)
  * \brief Wert eines bestimmten Feldes
  *
@@ -213,7 +208,6 @@ namespace db {
  * zurückgegeben. Andernfalls wird eine Exception geworfen.
  * @exception FieldNotInResultSetException Wird geworfen, wenn das Feld nicht im Resultset vorhanden ist.
  */
-
 
 /*!\fn ResultSet::fieldNum
  * \brief Spalte eines bestimmten Feldes herausfinden
@@ -344,7 +338,6 @@ namespace db {
  *
  */
 
-
 /*!\fn ResultSet::eof
  * \brief Prüfen, ob eine (weitere) Ergebniszeile vorhanden ist
  *
@@ -365,17 +358,14 @@ namespace db {
  */
 void copyResultToAssocArray(ResultSet* res, AssocArray& array)
 {
-	if (!res) throw IllegalArgumentException();
-	array.clear();
-	AssocArray row;
-	while (!res->eof()) {
-		res->fetchArray(row);
-		array.set("[]", row);
-	}
+    if (!res) throw IllegalArgumentException();
+    array.clear();
+    AssocArray row;
+    while (!res->eof()) {
+        res->fetchArray(row);
+        array.set("[]", row);
+    }
 }
 
-
-
-
-}	// EOF namespace db
-}	// EOF namespace ppl7
+} // namespace db
+} // namespace pplib

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,14 +27,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/types/string.h>
-#include <ppl7/types/array.h>
-#include <ppl7/types/assocarray.h>
-#include <ppl7/core/configparser.h>
-#include <ppl7/core/file.h>
-#include <ppl7/core/memfile.h>
+#include <pplib/types/string.h>
+#include <pplib/types/array.h>
+#include <pplib/types/assocarray.h>
+#include <pplib/core/configparser.h>
+#include <pplib/core/file.h>
+#include <pplib/core/memfile.h>
 
-namespace ppl7
+namespace pplib
 {
 
 typedef struct tagSections
@@ -48,7 +48,7 @@ typedef struct tagSections
  * \ingroup PPLGroupFileIO
  * \brief Lesen und Schreiben von Konfigurationsdateien
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Klasse können Konfigurationsdateien mit mehreren Sektionen gelesen und
  * geschrieben werden.
@@ -77,10 +77,10 @@ patrick=690669aaf38453f0c5676a4f16fe9d20
 \par
 Die Klasse kann folgendermassen verwendet werden:
 \code
-#include <ppl7.h>
+#include <pplib.h>
 int main(int argc, char **argv) {
-    ppl7::ConfigParser conf;
-    ppl7::String ip, path;
+    pplib::ConfigParser conf;
+    pplib::String ip, path;
     int port;
 
     try {
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
         port=conf.getInt("port",8080);
         // alternativ: port=conf.get("port","8080").toInt();
         path=conf.get("path");
-    } catch (const ppl7::Exception &e) {
+    } catch (const pplib::Exception &e) {
         cout << "Ein Fehler ist aufgetreten: " << e << "\n";
     }
     return 0;
@@ -375,7 +375,7 @@ int ConfigParser::getInt(const String& key, int defaultvalue) const
 const String& ConfigParser::getSection(const String& name) const
 /*!\brief Inhalt einer Sektion als String
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird der komplette Inhalt einer Sektion als String
  * zurückgegeben, wie sie beim Laden der Konfiguration vorgefunden wurde, einschließlich
@@ -397,7 +397,7 @@ const String& ConfigParser::getSection(const String& name) const
 
 /*!\brief Inhalt einer Sektion in einem AssocArray speichern
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird der Inhalt einer Sektion in ein AssocArray kopiert.
  *
@@ -413,7 +413,7 @@ void ConfigParser::copySection(AssocArray& target, const String& section) const
 
 /*!\brief Konfiguration auf STDOUT ausgeben
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird die derzeit vorhandene Konfiguration auf STDOUT ausgegeben.
  *
@@ -432,7 +432,7 @@ void ConfigParser::print() const
 void ConfigParser::load(const String& filename)
 /*!\brief Konfiguration aus einer Datei laden
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird eine Konfiguration aus einer Datei geladen.
  *
@@ -446,7 +446,7 @@ void ConfigParser::load(const String& filename)
 
 /*!\brief Konfiguration aus dem Speicher laden
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird eine bereits im Speicher befindliche Konfiguration in das
  * ConfigParser-Objekt geladen.
@@ -466,7 +466,7 @@ void ConfigParser::loadFromMemory(const void* buffer, size_t bytes)
 
 /*!\brief Konfiguration aus dem Speicher laden
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird eine bereits im Speicher befindliche Konfiguration in das
  * ConfigParser-Objekt geladen.
@@ -483,7 +483,7 @@ void ConfigParser::loadFromMemory(const ByteArrayPtr& ptr)
 void ConfigParser::loadFromString(const String& string)
 /*!\brief Konfiguration aus einem String laden
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird eine in einem String enthaltene Konfiguration in das
  * ConfigParser-Objekt geladen.
@@ -500,7 +500,7 @@ void ConfigParser::loadFromString(const String& string)
 
 /*!\brief Konfiguration aus einem FileObject-Objekt laden
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Mit dieser Funktion wird eine Konfiguration aus einem FileObject-Objekt geladen.
  * Die Funktion wird intern von den anderen Load-Funktionen verwendet.
@@ -558,7 +558,7 @@ void ConfigParser::load(FileObject& file)
             }
         }
     }
-    catch (const ppl7::EndOfFileException&) {
+    catch (const pplib::EndOfFileException&) {
         section = NULL;
         return;
     }
@@ -567,7 +567,7 @@ void ConfigParser::load(FileObject& file)
 
 /*!\brief Konfiguration in eine Datei speichern
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Der Inhalt des ConfigParser wird in die Datei \p filename gespeichert.
  *
@@ -589,7 +589,7 @@ void ConfigParser::save(const String& filename)
 
 /*!\brief Konfiguration in ein FileObject speichern
  *
- * \header \#include <ppl7.h>
+ * \header \#include <pplib.h>
  * \desc
  * Der Inhalt des ConfigParser wird in das FileObject \p file gespeichert.
  *
@@ -627,4 +627,4 @@ void ConfigParser::save(FileObject& file)
     }
 }
 
-} // end of namespace ppl7
+} // end of namespace pplib

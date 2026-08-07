@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,8 +27,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "config_ppl7.h"
+#include "config_pplib.h"
 
+#include <pplib/exceptions.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,9 +38,9 @@
 #include <openssl/evp.h>
 #endif
 
-#include <ppl7-crypto.h>
+#include <pplib-crypto.h>
 
-namespace ppl7
+namespace pplib
 {
 
 bool __OpenSSLDigestAdded = false;
@@ -359,4 +360,4 @@ uint32_t Digest::adler32(const ByteArrayPtr& data)
     }
     return (s2 << 16) | s1;
 }
-} // namespace ppl7
+} // namespace pplib

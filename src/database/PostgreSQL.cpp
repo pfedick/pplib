@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -44,224 +44,221 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-db.h"
+#include "pplib.h"
+#include "pplib-db.h"
 
 #ifdef HAVE_POSTGRESQL
 #include <libpq-fe.h>
 #endif
 
-namespace ppl7 {
-namespace db {
+namespace pplib
+{
+namespace db
+{
 
 #ifdef HAVE_POSTGRESQL
 
 class Postgres92Result : public ResultSet
 {
-	friend class PostgreSQL;
+    friend class PostgreSQL;
+
 private:
-	PGresult* res;			//!\brief Postgres-spezifisches Result-Handle
-	PGconn* conn;			//!\brief Postgres-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
-	PostgreSQL* postgres_class;	//!\brief Die ppl7::db::MySQL-Klasse, die das Result erzeugt hat
-	uint64_t	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
-	int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
+    PGresult* res;              //!\brief Postgres-spezifisches Result-Handle
+    PGconn* conn;               //!\brief Postgres-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
+    PostgreSQL* postgres_class; //!\brief Die pplib::db::MySQL-Klasse, die das Result erzeugt hat
+    uint64_t affectedrows;      //!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
+    int num_fields;             //!\brief Anzahl Spalten im Ergebnis
 
 public:
-	Postgres92Result();
-	virtual ~Postgres92Result();
-	virtual	void		clear();
-	virtual uint64_t	affected() const;
-	virtual int			fields() const;
-	virtual String		getString(const String& fieldname);
-	virtual String		getString(int field);
-	virtual int			fieldNum(const String& fieldname);
-	virtual String		fieldName(int field);
-	virtual FieldType	fieldType(int field);
-	virtual FieldType	fieldType(const String& fieldname);
-	virtual AssocArray	fetchArray();
-	virtual void		fetchArray(AssocArray& array);
-	virtual Array		fetchFields();
-	virtual void		fetchFields(Array& array);
-	virtual void		nextRow();
-	virtual bool		eof();
+    Postgres92Result();
+    virtual ~Postgres92Result();
+    virtual void clear();
+    virtual uint64_t affected() const;
+    virtual int fields() const;
+    virtual String getString(const String& fieldname);
+    virtual String getString(int field);
+    virtual int fieldNum(const String& fieldname);
+    virtual String fieldName(int field);
+    virtual FieldType fieldType(int field);
+    virtual FieldType fieldType(const String& fieldname);
+    virtual AssocArray fetchArray();
+    virtual void fetchArray(AssocArray& array);
+    virtual Array fetchFields();
+    virtual void fetchFields(Array& array);
+    virtual void nextRow();
+    virtual bool eof();
 };
-
 
 Postgres92Result::Postgres92Result()
 {
-	res=NULL;
-	postgres_class=NULL;
-	conn=NULL;
-	affectedrows=0;
-	num_fields=0;
+    res = NULL;
+    postgres_class = NULL;
+    conn = NULL;
+    affectedrows = 0;
+    num_fields = 0;
 }
 
 Postgres92Result::~Postgres92Result()
 {
-	clear();
+    clear();
 }
 
 void Postgres92Result::clear()
 {
-	if (conn) {
-		while (res) {
-			PQclear(res);
-			res=PQgetResult(conn);
-		}
-	}
-	res=NULL;
-	postgres_class=NULL;
-	conn=NULL;
-	affectedrows=0;
-	num_fields=0;
+    if (conn) {
+        while (res) {
+            PQclear(res);
+            res = PQgetResult(conn);
+        }
+    }
+    res = NULL;
+    postgres_class = NULL;
+    conn = NULL;
+    affectedrows = 0;
+    num_fields = 0;
 }
-
 
 uint64_t Postgres92Result::affected() const
 {
-	return affectedrows;
+    return affectedrows;
 }
 
 int Postgres92Result::fields() const
 {
-	return num_fields;
+    return num_fields;
 }
-
 
 int Postgres92Result::fieldNum(const String& fieldname)
 {
-	if (!res) throw NoResultException();
-	if (fieldname.isEmpty()) throw IllegalArgumentException();
-	int n=PQfnumber(res, (const char*)fieldname);
-	if (n == -1) throw FieldNotInResultSetException(fieldname);
-	return n;
+    if (!res) throw NoResultException();
+    if (fieldname.isEmpty()) throw IllegalArgumentException();
+    int n = PQfnumber(res, (const char*)fieldname);
+    if (n == -1) throw FieldNotInResultSetException(fieldname);
+    return n;
 }
 
 String Postgres92Result::fieldName(int field)
 {
-	if (!res) throw NoResultException();
-	if (field > num_fields) throw FieldNotInResultSetException("%d", field);
-	const char* name=PQfname(res, field);
-	if (!name) FieldNotInResultSetException("%d", field);
-	return String(name);
+    if (!res) throw NoResultException();
+    if (field > num_fields) throw FieldNotInResultSetException("%d", field);
+    const char* name = PQfname(res, field);
+    if (!name) FieldNotInResultSetException("%d", field);
+    return String(name);
 }
-
 
 ResultSet::FieldType Postgres92Result::fieldType(int field)
 {
-	if (field > num_fields) throw FieldNotInResultSetException("%d", field);
-	Oid o=PQftype(res, field);
-	switch (o) {
-	default:
-		return ResultSet::TYPE_UNKNOWN;
-	}
-	return ResultSet::TYPE_UNKNOWN;
+    if (field > num_fields) throw FieldNotInResultSetException("%d", field);
+    Oid o = PQftype(res, field);
+    switch (o) {
+    default:
+        return ResultSet::TYPE_UNKNOWN;
+    }
+    return ResultSet::TYPE_UNKNOWN;
 }
 
 ResultSet::FieldType Postgres92Result::fieldType(const String& fieldname)
 {
-	int num=fieldNum(fieldname);
-	return fieldType(num);
+    int num = fieldNum(fieldname);
+    return fieldType(num);
 }
 
 AssocArray Postgres92Result::fetchArray()
 {
-	AssocArray a;
-	fetchArray(a);
-	return a;
+    AssocArray a;
+    fetchArray(a);
+    return a;
 }
 
 void Postgres92Result::fetchArray(AssocArray& array)
 {
-	if (!res) throw NoResultException();
-	if (PQntuples(res) == 0) {
-		PQclear(res);
-		res=NULL;
-		throw NoResultException();
-	}
-	array.clear();
-	for (int i=0; i < num_fields; i++) {
-		array.set(String(PQfname(res, i)), String(PQgetvalue(res, 0, i)));
-	}
-	PQclear(res);
-	res=PQgetResult(conn);
+    if (!res) throw NoResultException();
+    if (PQntuples(res) == 0) {
+        PQclear(res);
+        res = NULL;
+        throw NoResultException();
+    }
+    array.clear();
+    for (int i = 0; i < num_fields; i++) {
+        array.set(String(PQfname(res, i)), String(PQgetvalue(res, 0, i)));
+    }
+    PQclear(res);
+    res = PQgetResult(conn);
 }
-
 
 String Postgres92Result::getString(const String& fieldname)
 {
-	int num=fieldNum(fieldname);
-	return getString(num);
+    int num = fieldNum(fieldname);
+    return getString(num);
 }
 
 String Postgres92Result::getString(int field)
 {
-	if (!res) throw NoResultException();
-	if (PQntuples(res) == 0) {
-		PQclear(res);
-		res=NULL;
-		throw NoResultException();
-	}
-	if (field > num_fields) throw FieldNotInResultSetException("%d", field);
-	return String(PQgetvalue(res, 0, field));
+    if (!res) throw NoResultException();
+    if (PQntuples(res) == 0) {
+        PQclear(res);
+        res = NULL;
+        throw NoResultException();
+    }
+    if (field > num_fields) throw FieldNotInResultSetException("%d", field);
+    return String(PQgetvalue(res, 0, field));
 }
-
-
 
 Array Postgres92Result::fetchFields()
 {
-	Array a;
-	fetchFields(a);
-	return a;
+    Array a;
+    fetchFields(a);
+    return a;
 }
-
 
 void Postgres92Result::fetchFields(Array& array)
 {
-	if (!res) throw NoResultException();
-	if (PQntuples(res) == 0) {
-		PQclear(res);
-		res=NULL;
-		throw NoResultException();
-	}
-	array.clear();
-	const char* tmp;
-	for (int i=0; i < num_fields; i++) {
-		tmp=PQgetvalue(res, 0, i);
-		if (tmp) array.add(tmp);
-		else array.add("");
-	}
-	PQclear(res);
-	res=PQgetResult(conn);
+    if (!res) throw NoResultException();
+    if (PQntuples(res) == 0) {
+        PQclear(res);
+        res = NULL;
+        throw NoResultException();
+    }
+    array.clear();
+    const char* tmp;
+    for (int i = 0; i < num_fields; i++) {
+        tmp = PQgetvalue(res, 0, i);
+        if (tmp)
+            array.add(tmp);
+        else
+            array.add("");
+    }
+    PQclear(res);
+    res = PQgetResult(conn);
 }
 
 void Postgres92Result::nextRow()
 {
-	if (!res) throw NoResultException();
-	if (PQntuples(res) == 0) {
-		PQclear(res);
-		res=NULL;
-		throw NoResultException();
-	}
-	PQclear(res);
-	res=PQgetResult(conn);
+    if (!res) throw NoResultException();
+    if (PQntuples(res) == 0) {
+        PQclear(res);
+        res = NULL;
+        throw NoResultException();
+    }
+    PQclear(res);
+    res = PQgetResult(conn);
 }
 
 bool Postgres92Result::eof()
 {
-	if (res) {
-		if (PQntuples(res) > 0) return false;
-	}
-	return true;
+    if (res) {
+        if (PQntuples(res) > 0) return false;
+    }
+    return true;
 }
 
-#endif	// HAVE_POSTGRESQL
+#endif // HAVE_POSTGRESQL
 
 /*!\class PostgreSQL
  * \ingroup PPLGroupDatabases
  * \brief Implementierung einer Postgres-Datenbank
  *
- * \header \#include <ppl7-db.h>
+ * \header \#include <pplib-db.h>
  *
  * \descr
  * Mit dieser Klasse kann eine Verbindung zu einer Postgres-Datenbank aufgebaut werden, um darüber
@@ -273,27 +270,23 @@ bool Postgres92Result::eof()
  * \until EOF
  */
 
-
-
-
 PostgreSQL::PostgreSQL()
 {
-	conn=NULL;
-	affectedrows=0;
-	transactiondepth=0;
+    conn = NULL;
+    affectedrows = 0;
+    transactiondepth = 0;
 }
 
 PostgreSQL::~PostgreSQL()
 {
 #ifdef HAVE_POSTGRESQL
-	if (conn) close();
+    if (conn) close();
 #endif
 }
 
-
 void PostgreSQL::connect()
 {
-	Database::connect();
+    Database::connect();
 }
 
 /*!\brief Connect auf eine Postgres-Datenbank erstellen
@@ -327,125 +320,124 @@ void PostgreSQL::connect()
 void PostgreSQL::connect(const AssocArray& params)
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (conn) close();
-	condata=params;
-	String conninfo;
-	if (params.exists("host")) conninfo.appendf("host=%s ", (const char*)params["host"].toString());
-	if (params.exists("port")) conninfo.appendf("port=%s ", (const char*)params["port"].toString());
-	if (params.exists("dbname")) conninfo.appendf("dbname='%s' ", (const char*)params["dbname"].toString());
-	if (params.exists("user")) conninfo.appendf("user='%s' ", (const char*)params["user"].toString());
-	if (params.exists("password")) conninfo.appendf("password='%s' ", (const char*)params["password"].toString());
-	if (params.exists("timeout")) conninfo.appendf("connect_timeout='%s' ", (const char*)params["timeout"].toString());
+    if (conn) close();
+    condata = params;
+    String conninfo;
+    if (params.exists("host")) conninfo.appendf("host=%s ", (const char*)params["host"].toString());
+    if (params.exists("port")) conninfo.appendf("port=%s ", (const char*)params["port"].toString());
+    if (params.exists("dbname")) conninfo.appendf("dbname='%s' ", (const char*)params["dbname"].toString());
+    if (params.exists("user")) conninfo.appendf("user='%s' ", (const char*)params["user"].toString());
+    if (params.exists("password")) conninfo.appendf("password='%s' ", (const char*)params["password"].toString());
+    if (params.exists("timeout")) conninfo.appendf("connect_timeout='%s' ", (const char*)params["timeout"].toString());
 
-	conn=PQconnectdb((const char*)conninfo);
-	if (!conn) {
-		throw OutOfMemoryException();
-	}
-	// Pruefen, ob auch wirklich eine Verbindung da ist
-	if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
-		try {
-			if (params.exists("searchpath")) {
-				String SearchPath=escape(params["searchpath"]);
-				if (SearchPath.notEmpty()) {
-					execf("set search_path to %s", (const char*)SearchPath);
-				}
-			}
-			updateLastUse();
-		} catch (...) {
-			PQfinish((PGconn*)conn);
-			conn=NULL;
-			throw;
-		}
-		return;
-	}
+    conn = PQconnectdb((const char*)conninfo);
+    if (!conn) {
+        throw OutOfMemoryException();
+    }
+    // Pruefen, ob auch wirklich eine Verbindung da ist
+    if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
+        try {
+            if (params.exists("searchpath")) {
+                String SearchPath = escape(params["searchpath"]);
+                if (SearchPath.notEmpty()) {
+                    execf("set search_path to %s", (const char*)SearchPath);
+                }
+            }
+            updateLastUse();
+        }
+        catch (...) {
+            PQfinish((PGconn*)conn);
+            conn = NULL;
+            throw;
+        }
+        return;
+    }
 
-	// Was war der Fehler?
-	String err(PQerrorMessage((PGconn*)conn));
-	PQfinish((PGconn*)conn);
-	conn=NULL;
-	throw ConnectionFailedException(err);
+    // Was war der Fehler?
+    String err(PQerrorMessage((PGconn*)conn));
+    PQfinish((PGconn*)conn);
+    conn = NULL;
+    throw ConnectionFailedException(err);
 #endif
 }
 
-
 void PostgreSQL::connectCreate(const AssocArray& params)
 {
-	AssocArray a=params;
-	a.remove("dbname");
-	a.set("dbname", "postgres");
-	String dbname=params["dbname"];
-	// Versuch auf die immer vorhandene Datenbank "postgres" zuzugreifen
-	connect(a);
-	// Wir versuchen die Datenbank auszuwählen
-	try {
-		selectDB(dbname);
-		return;
-	} catch (...) {
-
-	}
-	createDatabase(dbname);
-	selectDB(dbname);
+    AssocArray a = params;
+    a.remove("dbname");
+    a.set("dbname", "postgres");
+    String dbname = params["dbname"];
+    // Versuch auf die immer vorhandene Datenbank "postgres" zuzugreifen
+    connect(a);
+    // Wir versuchen die Datenbank auszuwählen
+    try {
+        selectDB(dbname);
+        return;
+    }
+    catch (...) {
+    }
+    createDatabase(dbname);
+    selectDB(dbname);
 }
 
 void PostgreSQL::close()
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (!conn) {
-		return;
-	}
-	PQfinish((PGconn*)conn);
-	conn=NULL;
-	clearLastUse();
+    if (!conn) {
+        return;
+    }
+    PQfinish((PGconn*)conn);
+    conn = NULL;
+    clearLastUse();
 #endif
 }
-
-
 
 void PostgreSQL::reconnect()
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (conn) {
-		PQreset((PGconn*)conn);
-		if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
-			updateLastUse();
-			return;
-		}
-	}
-	// Hat nicht geklappt, wir versuchen einen normalen Connect
-	close();
-	AssocArray a=condata;
-	connect(a);
+    if (conn) {
+        PQreset((PGconn*)conn);
+        if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
+            updateLastUse();
+            return;
+        }
+    }
+    // Hat nicht geklappt, wir versuchen einen normalen Connect
+    close();
+    AssocArray a = condata;
+    connect(a);
 #endif
 }
 
 void PostgreSQL::selectDB(const String& databasename)
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	// Wir koennen die Datenbank nicht innerhalb der laufenden Verbindung wechseln
-	// Daher bauen wir eine neue Verbindung auf
-	if (!conn) throw NoConnectionException();
-	AssocArray a;
-	a=condata;
-	a.set("dbname", databasename);
-	PostgreSQL newDB;
-	try {
-		newDB.connect(a);
-	} catch (...) {
-		throw;
-	}
-	close();
-	this->conn=newDB.conn;
-	transactiondepth=0;
-	condata.set("dbname", databasename);
-	newDB.conn=NULL;
+    // Wir koennen die Datenbank nicht innerhalb der laufenden Verbindung wechseln
+    // Daher bauen wir eine neue Verbindung auf
+    if (!conn) throw NoConnectionException();
+    AssocArray a;
+    a = condata;
+    a.set("dbname", databasename);
+    PostgreSQL newDB;
+    try {
+        newDB.connect(a);
+    }
+    catch (...) {
+        throw;
+    }
+    close();
+    this->conn = newDB.conn;
+    transactiondepth = 0;
+    condata.set("dbname", databasename);
+    newDB.conn = NULL;
 #endif
 }
 
@@ -468,240 +460,236 @@ void PostgreSQL::selectDB(const String& databasename)
 void* PostgreSQL::pgsqlQuery(const String& query)
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	PGresult* res=NULL;
-	ExecStatusType status;
-	int count=0;
-	ppl7::String err;
-	while (count < 2) {
-		count++;
-		if (PQsendQuery((PGconn*)conn, (const char*)query) != 1) {
-			throw QueryFailedException("PQsendQuery failed: %s", PQerrorMessage((PGconn*)conn));
-		} else {
-			if (PQsetSingleRowMode((PGconn*)conn) != 1) {
-				ppl7::String err;
-				err.setf("PQsetSingleRowMode failed: %s", PQerrorMessage((PGconn*)conn));
-				if (res) PQclear(res);
-				throw QueryFailedException(err);
-			}
-			res=PQgetResult((PGconn*)conn);
-			status=PQresultStatus(res);
-			if (status == PGRES_COMMAND_OK
-				|| status == PGRES_SINGLE_TUPLE
-				|| status == PGRES_TUPLES_OK) {
-				affectedrows=atoll(PQcmdTuples(res));
-				return res;
-			} else if (status == PGRES_FATAL_ERROR) {
-				err.setf("%s", PQresultErrorMessage(res));
-				/* Laut Doku: Even when PQresultStatus indicates a fatal error, PQgetResult should
-				 * be called until it returns a null pointer, to allow libpq to process the error
-				 * information completely.
-				 */
-				while ((res=PQgetResult((PGconn*)conn)) != NULL) {
-					PQclear(res);
-					res=NULL;
-				}
-				throw QueryFailedException(err);
-			} else {
-				err.setf("%s", PQresultErrorMessage(res));
-			}
-		}
-		if (res) PQclear(res);
-		res=NULL;
-		if (PQstatus((PGconn*)conn) != CONNECTION_OK) {
-			reconnect();
-		} else break;
-	}
-	throw QueryFailedException(err);
+    PGresult* res = NULL;
+    ExecStatusType status;
+    int count = 0;
+    pplib::String err;
+    while (count < 2) {
+        count++;
+        if (PQsendQuery((PGconn*)conn, (const char*)query) != 1) {
+            throw QueryFailedException("PQsendQuery failed: %s", PQerrorMessage((PGconn*)conn));
+        } else {
+            if (PQsetSingleRowMode((PGconn*)conn) != 1) {
+                pplib::String err;
+                err.setf("PQsetSingleRowMode failed: %s", PQerrorMessage((PGconn*)conn));
+                if (res) PQclear(res);
+                throw QueryFailedException(err);
+            }
+            res = PQgetResult((PGconn*)conn);
+            status = PQresultStatus(res);
+            if (status == PGRES_COMMAND_OK || status == PGRES_SINGLE_TUPLE || status == PGRES_TUPLES_OK) {
+                affectedrows = atoll(PQcmdTuples(res));
+                return res;
+            } else if (status == PGRES_FATAL_ERROR) {
+                err.setf("%s", PQresultErrorMessage(res));
+                /* Laut Doku: Even when PQresultStatus indicates a fatal error, PQgetResult should
+                 * be called until it returns a null pointer, to allow libpq to process the error
+                 * information completely.
+                 */
+                while ((res = PQgetResult((PGconn*)conn)) != NULL) {
+                    PQclear(res);
+                    res = NULL;
+                }
+                throw QueryFailedException(err);
+            } else {
+                err.setf("%s", PQresultErrorMessage(res));
+            }
+        }
+        if (res) PQclear(res);
+        res = NULL;
+        if (PQstatus((PGconn*)conn) != CONNECTION_OK) {
+            reconnect();
+        } else
+            break;
+    }
+    throw QueryFailedException(err);
 #endif
 }
-
 
 void PostgreSQL::exec(const String& query)
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (!conn) throw NoConnectionException();
-	double t_start;
-	PGresult* res;
-	t_start=GetMicrotime();
-	res=(PGresult*)pgsqlQuery(query);
-	updateLastUse();
-	if (res) {
-		// Result-Handle freigeben
-		PQclear(res);
-		while ((res=PQgetResult((PGconn*)conn)) != NULL) {
-			PQclear(res);
-		}
-		logQuery(query, (float)(GetMicrotime() - t_start));
-		return;
-	}
-	throw QueryFailedException(query);
+    if (!conn) throw NoConnectionException();
+    double t_start;
+    PGresult* res;
+    t_start = GetMicrotime();
+    res = (PGresult*)pgsqlQuery(query);
+    updateLastUse();
+    if (res) {
+        // Result-Handle freigeben
+        PQclear(res);
+        while ((res = PQgetResult((PGconn*)conn)) != NULL) {
+            PQclear(res);
+        }
+        logQuery(query, (float)(GetMicrotime() - t_start));
+        return;
+    }
+    throw QueryFailedException(query);
 #endif
 }
-
 
 ResultSet* PostgreSQL::query(const String& query)
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (!conn) throw NoConnectionException();
-	double t_start;
-	PGresult* res;
-	t_start=GetMicrotime();
-	res=(PGresult*)pgsqlQuery(query);
-	updateLastUse();
+    if (!conn) throw NoConnectionException();
+    double t_start;
+    PGresult* res;
+    t_start = GetMicrotime();
+    res = (PGresult*)pgsqlQuery(query);
+    updateLastUse();
 
-	// Query loggen
-	logQuery(query, (float)(GetMicrotime() - t_start));
-	// Result-Klasse erstellen
-	Postgres92Result* pr=new Postgres92Result;
-	if (!pr) {
-		PQclear(res);
-		throw OutOfMemoryException();
-	}
-	pr->res=res;
-	pr->postgres_class=this;
-	pr->conn=(PGconn*)conn;
-	//pr->result_rows=PQntuples(res);
-	pr->affectedrows=affectedrows;
-	pr->num_fields=PQnfields(res);
-	return pr;
+    // Query loggen
+    logQuery(query, (float)(GetMicrotime() - t_start));
+    // Result-Klasse erstellen
+    Postgres92Result* pr = new Postgres92Result;
+    if (!pr) {
+        PQclear(res);
+        throw OutOfMemoryException();
+    }
+    pr->res = res;
+    pr->postgres_class = this;
+    pr->conn = (PGconn*)conn;
+    // pr->result_rows=PQntuples(res);
+    pr->affectedrows = affectedrows;
+    pr->num_fields = PQnfields(res);
+    return pr;
 #endif
 }
-
 
 bool PostgreSQL::ping()
 {
 #ifndef HAVE_POSTGRESQL
-	return false;
+    return false;
 #else
-	if (!conn) return false;
-	PGresult* res;
-	try {
-		res=(PGresult*)pgsqlQuery("select 1 as result");
-		if (res) {
-			// Result-Handle freigeben
-			PQclear(res);
-			return true;
-		}
-	} catch (...) {
-		return false;
-	}
-	return false;
+    if (!conn) return false;
+    PGresult* res;
+    try {
+        res = (PGresult*)pgsqlQuery("select 1 as result");
+        if (res) {
+            // Result-Handle freigeben
+            PQclear(res);
+            return true;
+        }
+    }
+    catch (...) {
+        return false;
+    }
+    return false;
 #endif
 }
 
 String PostgreSQL::escape(const String& str) const
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (!conn) throw NoConnectionException();
-	size_t l=str.size() * 2 + 1;
-	char* buf=(char*)malloc(l);   // Buffer reservieren
-	if (!buf) {
-		throw OutOfMemoryException();
-	}
-	int error;
-	size_t newlength=PQescapeStringConn((PGconn*)conn, buf, (const char*)str, str.size(), &error);
-	if (error == 0) {
-		String ret(buf, newlength);
-		free(buf);
-		return ret;
-	}
-	free(buf);
-	throw EscapeFailedException("%s", PQerrorMessage((PGconn*)conn));
+    if (!conn) throw NoConnectionException();
+    size_t l = str.size() * 2 + 1;
+    char* buf = (char*)malloc(l); // Buffer reservieren
+    if (!buf) {
+        throw OutOfMemoryException();
+    }
+    int error;
+    size_t newlength = PQescapeStringConn((PGconn*)conn, buf, (const char*)str, str.size(), &error);
+    if (error == 0) {
+        String ret(buf, newlength);
+        free(buf);
+        return ret;
+    }
+    free(buf);
+    throw EscapeFailedException("%s", PQerrorMessage((PGconn*)conn));
 #endif
 }
 
 uint64_t PostgreSQL::getAffectedRows()
 {
-	return affectedrows;
+    return affectedrows;
 }
 
 void PostgreSQL::startTransaction()
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (transactiondepth == 0) {	// Neue Transaktion
-		exec("BEGIN");
-		transactiondepth++;
-	} else {
-		execf("SAVEPOINT LEVEL%i", transactiondepth);
-		transactiondepth++;
-	}
+    if (transactiondepth == 0) { // Neue Transaktion
+        exec("BEGIN");
+        transactiondepth++;
+    } else {
+        execf("SAVEPOINT LEVEL%i", transactiondepth);
+        transactiondepth++;
+    }
 #endif
 }
 
 void PostgreSQL::endTransaction()
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (transactiondepth == 1) {
-		exec("COMMIT");
-		transactiondepth=0;
-	} else {
-		execf("RELEASE SAVEPOINT LEVEL%i", transactiondepth - 1);
-		transactiondepth--;
-	}
+    if (transactiondepth == 1) {
+        exec("COMMIT");
+        transactiondepth = 0;
+    } else {
+        execf("RELEASE SAVEPOINT LEVEL%i", transactiondepth - 1);
+        transactiondepth--;
+    }
 #endif
 }
 
 void PostgreSQL::cancelTransaction()
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (transactiondepth == 1) {
-		exec("ROLLBACK");
-		transactiondepth=0;
-	} else {
-		execf("ROLLBACK TO SAVEPOINT LEVEL%i", transactiondepth - 1);
-		transactiondepth--;
-	}
+    if (transactiondepth == 1) {
+        exec("ROLLBACK");
+        transactiondepth = 0;
+    } else {
+        execf("ROLLBACK TO SAVEPOINT LEVEL%i", transactiondepth - 1);
+        transactiondepth--;
+    }
 #endif
 }
 
 void PostgreSQL::cancelTransactionComplete()
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	exec("ROLLBACK");
-	transactiondepth=0;
+    exec("ROLLBACK");
+    transactiondepth = 0;
 #endif
 }
 
 void PostgreSQL::createDatabase(const String& name)
 {
 #ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+    throw UnsupportedFeatureException("PostgreSQL");
 #else
-	throw UnsupportedFeatureException("PostgreSQL::createDatabase");
+    throw UnsupportedFeatureException("PostgreSQL::createDatabase");
 #endif
 }
 
 String PostgreSQL::databaseType() const
 {
-	return String("PostgreSQL");
+    return String("PostgreSQL");
 }
 
 String PostgreSQL::getQuoted(const String& value, const String& type) const
 {
-	String Type=type;
-	String s=escape(value);
-	Type.lowerCase();
-	if (Type == "int" || Type == "integer") return s;
-	if (Type == "bit" || Type == "boolean") return "'" + s + "'";
-	return "'" + s + "'";
+    String Type = type;
+    String s = escape(value);
+    Type.lowerCase();
+    if (Type == "int" || Type == "integer") return s;
+    if (Type == "bit" || Type == "boolean") return "'" + s + "'";
+    return "'" + s + "'";
 }
-
 
 /*
 
@@ -712,7 +700,7 @@ void PostgreSQL::prepare(const String &preparedStatementName, const String &quer
 
 ResultSet *PostgreSQL::execute(const String &preparedStatementName, const Array &params)
 {
-	return NULL;
+    return NULL;
 }
 
 void PostgreSQL::deallocate(const String &preparedStatementName)
@@ -721,6 +709,5 @@ void PostgreSQL::deallocate(const String &preparedStatementName)
 }
 */
 
-
-}	// EOF namespace db
-}	// EOF namespace ppl7
+} // namespace db
+} // namespace pplib

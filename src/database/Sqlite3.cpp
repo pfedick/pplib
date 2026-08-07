@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -44,47 +44,50 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-db.h"
+#include "pplib.h"
+#include "pplib-db.h"
 
 #ifdef HAVE_SQLITE3
 #include <sqlite3.h>
 #endif
 
-namespace ppl7 {
-namespace db {
+namespace pplib
+{
+namespace db
+{
 
 #ifdef HAVE_SQLITE3
 
 class SQLiteResult : public ResultSet
 {
-	friend class SQLite;
+    friend class SQLite;
+
 private:
-	sqlite3* conn;		//!\brief SQLite-spezifisches Handle des Datenbank-Connects
-	sqlite3_stmt* stmt;		//!\brief SQLite-spezifisches Result-Handle
-	SQLite* sqlite_class;		//!\brief Pointer auf die SQLite-Klassem die diesen Result erzeugt hat
-	uint64_t	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
-	int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
-	int			last_res;		//!\brief letzter Returncode von sqlite3_step()
+    sqlite3* conn;         //!\brief SQLite-spezifisches Handle des Datenbank-Connects
+    sqlite3_stmt* stmt;    //!\brief SQLite-spezifisches Result-Handle
+    SQLite* sqlite_class;  //!\brief Pointer auf die SQLite-Klassem die diesen Result erzeugt hat
+    uint64_t affectedrows; //!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
+    int num_fields;        //!\brief Anzahl Spalten im Ergebnis
+    int last_res;          //!\brief letzter Returncode von sqlite3_step()
 
 public:
-	SQLiteResult();
-	virtual ~SQLiteResult();
-	virtual	void		clear();
-	virtual uint64_t	affected() const;
-	virtual int			fields() const;
-	virtual String		getString(const String& fieldname);
-	virtual String		getString(int field);
-	virtual int			fieldNum(const String& fieldname);
-	virtual String		fieldName(int field);
-	virtual FieldType	fieldType(int field);
-	virtual FieldType	fieldType(const String& fieldname);
-	virtual AssocArray	fetchArray();
-	virtual void		fetchArray(AssocArray& array);
-	virtual Array		fetchFields();
-	virtual void		fetchFields(Array& array);
-	virtual void		nextRow();
-	virtual bool		eof();
+    SQLiteResult();
+    virtual ~SQLiteResult();
+    virtual void clear();
+    virtual uint64_t affected() const;
+    virtual int fields() const;
+    virtual String getString(const String& fieldname);
+    virtual String getString(int field);
+    virtual int fieldNum(const String& fieldname);
+    virtual String fieldName(int field);
+    virtual FieldType fieldType(int field);
+    virtual FieldType fieldType(const String& fieldname);
+    virtual AssocArray fetchArray();
+    virtual void fetchArray(AssocArray& array);
+    virtual Array fetchFields();
+    virtual void fetchFields(Array& array);
+    virtual void nextRow();
+    virtual bool eof();
 };
 
 /*!\class SQLiteResult
@@ -92,177 +95,179 @@ public:
  * \brief Klasse, die das Ergebnis eines SQLite-Results aufnimmt
  *
  * \descr
- * Dies ist eine interne Klasse des SQLite-Datenbankmoduls. Sie ist abgeleitet von ppl7::db::Result
+ * Dies ist eine interne Klasse des SQLite-Datenbankmoduls. Sie ist abgeleitet von pplib::db::Result
  * und nimmt das Ergebnis eines Datenbank-Selects auf. Mit Ihren Funktionen kann anschließend
  * auf das Ergebnis zugegriffen werden.
  *
- * Die Klasse wird durch Aufruf verschiedener Funktionen innerhalb der Klasse ppl7::db::SQLite erstellt
+ * Die Klasse wird durch Aufruf verschiedener Funktionen innerhalb der Klasse pplib::db::SQLite erstellt
  * und muss von der aufrufenden Anwendung selbst mit \c delete gelöscht werden.
  *
  */
 
 SQLiteResult::SQLiteResult()
 {
-	conn=NULL;
-	stmt=NULL;
-	sqlite_class=NULL;
-	affectedrows=0;
-	num_fields=0;
-	last_res=0;
+    conn = NULL;
+    stmt = NULL;
+    sqlite_class = NULL;
+    affectedrows = 0;
+    num_fields = 0;
+    last_res = 0;
 }
 
 SQLiteResult::~SQLiteResult()
 {
-	clear();
+    clear();
 }
 
 void SQLiteResult::clear()
 {
-	if (stmt) sqlite3_finalize(stmt);
-	stmt=NULL;
-	sqlite_class=NULL;
-	conn=NULL;
-	affectedrows=0;
-	num_fields=0;
-	last_res=0;
+    if (stmt) sqlite3_finalize(stmt);
+    stmt = NULL;
+    sqlite_class = NULL;
+    conn = NULL;
+    affectedrows = 0;
+    num_fields = 0;
+    last_res = 0;
 }
 
 uint64_t SQLiteResult::affected() const
 {
-	return affectedrows;
+    return affectedrows;
 }
 
 int SQLiteResult::fields() const
 {
-	return num_fields;
+    return num_fields;
 }
 
 int SQLiteResult::fieldNum(const String& fieldname)
 {
-	if (!stmt) throw NoResultException();
-	if (fieldname.isEmpty()) throw IllegalArgumentException();
-	if (last_res != SQLITE_ROW) throw NoResultException();
-	for (int i=0;i < num_fields;i++) {
-		if (fieldname.strcmp(sqlite3_column_name(stmt, i)) == 0) {
-			return i;
-		}
-	}
-	throw FieldNotInResultSetException(fieldname);
+    if (!stmt) throw NoResultException();
+    if (fieldname.isEmpty()) throw IllegalArgumentException();
+    if (last_res != SQLITE_ROW) throw NoResultException();
+    for (int i = 0; i < num_fields; i++) {
+        if (fieldname.strcmp(sqlite3_column_name(stmt, i)) == 0) {
+            return i;
+        }
+    }
+    throw FieldNotInResultSetException(fieldname);
 }
 
 String SQLiteResult::fieldName(int field)
 {
-	if (!stmt) throw NoResultException();
-	if (field > num_fields) throw FieldNotInResultSetException("%d", field);
-	if (last_res != SQLITE_ROW) throw NoResultException();
-	const char* name=sqlite3_column_name(stmt, field);
-	if (!name) FieldNotInResultSetException("%d", field);
-	return String(name);
+    if (!stmt) throw NoResultException();
+    if (field > num_fields) throw FieldNotInResultSetException("%d", field);
+    if (last_res != SQLITE_ROW) throw NoResultException();
+    const char* name = sqlite3_column_name(stmt, field);
+    if (!name) FieldNotInResultSetException("%d", field);
+    return String(name);
 }
 
 ResultSet::FieldType SQLiteResult::fieldType(int field)
 {
-	if (field > num_fields) throw FieldNotInResultSetException("%d", field);
-	if (!stmt) throw NoResultException();
-	if (last_res != SQLITE_ROW) throw NoResultException();
-	int type=sqlite3_column_type(stmt, field);
-	switch (type) {
-	case SQLITE_INTEGER: return ResultSet::TYPE_INTEGER;
-	case SQLITE_FLOAT: return ResultSet::TYPE_FLOAT;
-	case SQLITE_BLOB: return ResultSet::TYPE_BINARY;
-	case SQLITE_NULL: return ResultSet::TYPE_INTEGER;
-	case SQLITE_TEXT: return ResultSet::TYPE_STRING;
-	}
-	return ResultSet::TYPE_UNKNOWN;
+    if (field > num_fields) throw FieldNotInResultSetException("%d", field);
+    if (!stmt) throw NoResultException();
+    if (last_res != SQLITE_ROW) throw NoResultException();
+    int type = sqlite3_column_type(stmt, field);
+    switch (type) {
+    case SQLITE_INTEGER:
+        return ResultSet::TYPE_INTEGER;
+    case SQLITE_FLOAT:
+        return ResultSet::TYPE_FLOAT;
+    case SQLITE_BLOB:
+        return ResultSet::TYPE_BINARY;
+    case SQLITE_NULL:
+        return ResultSet::TYPE_INTEGER;
+    case SQLITE_TEXT:
+        return ResultSet::TYPE_STRING;
+    }
+    return ResultSet::TYPE_UNKNOWN;
 }
 
 ResultSet::FieldType SQLiteResult::fieldType(const String& fieldname)
 {
-	int num=fieldNum(fieldname);
-	return fieldType(num);
+    int num = fieldNum(fieldname);
+    return fieldType(num);
 }
-
 
 AssocArray SQLiteResult::fetchArray()
 {
-	AssocArray a;
-	fetchArray(a);
-	return a;
+    AssocArray a;
+    fetchArray(a);
+    return a;
 }
 
 void SQLiteResult::fetchArray(AssocArray& array)
 {
-	if (!stmt) throw NoResultException();
-	if (last_res != SQLITE_ROW) throw NoResultException();
+    if (!stmt) throw NoResultException();
+    if (last_res != SQLITE_ROW) throw NoResultException();
 
-	array.clear();
-	for (int i=0; i < num_fields; i++) {
-		const char* name=sqlite3_column_name(stmt, i);
-		const unsigned char* value=sqlite3_column_text(stmt, i);
-		int length=sqlite3_column_bytes(stmt, i);
-		array.set(String(name), String((const char*)value, length));
-	}
-	last_res=sqlite3_step(stmt);
+    array.clear();
+    for (int i = 0; i < num_fields; i++) {
+        const char* name = sqlite3_column_name(stmt, i);
+        const unsigned char* value = sqlite3_column_text(stmt, i);
+        int length = sqlite3_column_bytes(stmt, i);
+        array.set(String(name), String((const char*)value, length));
+    }
+    last_res = sqlite3_step(stmt);
 }
 
 String SQLiteResult::getString(const String& fieldname)
 {
-	int num=fieldNum(fieldname);
-	return getString(num);
+    int num = fieldNum(fieldname);
+    return getString(num);
 }
 
 String SQLiteResult::getString(int field)
 {
-	if (!stmt) throw NoResultException();
-	if (last_res != SQLITE_ROW) throw NoResultException();
-	if (field > num_fields) throw FieldNotInResultSetException("%d", field);
-	return String((const char*)sqlite3_column_text(stmt, field), sqlite3_column_bytes(stmt, field));
+    if (!stmt) throw NoResultException();
+    if (last_res != SQLITE_ROW) throw NoResultException();
+    if (field > num_fields) throw FieldNotInResultSetException("%d", field);
+    return String((const char*)sqlite3_column_text(stmt, field), sqlite3_column_bytes(stmt, field));
 }
 
 Array SQLiteResult::fetchFields()
 {
-	Array a;
-	fetchFields(a);
-	return a;
+    Array a;
+    fetchFields(a);
+    return a;
 }
 
 void SQLiteResult::fetchFields(Array& array)
 {
-	if (!stmt) throw NoResultException();
-	if (last_res != SQLITE_ROW) throw NoResultException();
+    if (!stmt) throw NoResultException();
+    if (last_res != SQLITE_ROW) throw NoResultException();
 
-	for (int i=0; i < num_fields; i++) {
-		const char* value=(const char*)sqlite3_column_text(stmt, i);
-		int length=sqlite3_column_bytes(stmt, i);
-		array.add(String(value, length));
-	}
-	last_res=sqlite3_step(stmt);
+    for (int i = 0; i < num_fields; i++) {
+        const char* value = (const char*)sqlite3_column_text(stmt, i);
+        int length = sqlite3_column_bytes(stmt, i);
+        array.add(String(value, length));
+    }
+    last_res = sqlite3_step(stmt);
 }
 
 void SQLiteResult::nextRow()
 {
-	if (!stmt) throw NoResultException();
-	if (last_res != SQLITE_ROW) throw NoResultException();
-	last_res=sqlite3_step(stmt);
+    if (!stmt) throw NoResultException();
+    if (last_res != SQLITE_ROW) throw NoResultException();
+    last_res = sqlite3_step(stmt);
 }
 
 bool SQLiteResult::eof()
 {
-	if (stmt) {
-		if (last_res == SQLITE_ROW) return false;
-	}
-	return true;
+    if (stmt) {
+        if (last_res == SQLITE_ROW) return false;
+    }
+    return true;
 }
 
-
-#endif	// HAVE_SQLITE3
-
+#endif // HAVE_SQLITE3
 
 /*!\class SQLite
  * \ingroup PPLGroupDatabases
  * \brief Implementierung einer SQLite-Datenbank
  *
- * \header \#include <ppl7-db.h>
+ * \header \#include <pplib-db.h>
  *
  * \descr
  * Mit dieser Klasse kann aufe eine lokale Datei mit einer SQLite-Datenbank
@@ -274,26 +279,23 @@ bool SQLiteResult::eof()
  * \until EOF
  */
 
-
-
-
 SQLite::SQLite()
 {
-	conn=NULL;
-	affectedrows=0;
-	transactiondepth=0;
+    conn = NULL;
+    affectedrows = 0;
+    transactiondepth = 0;
 }
 
 SQLite::~SQLite()
 {
 #ifdef HAVE_SQLITE3
-	if (conn) close();
+    if (conn) close();
 #endif
 }
 
 void SQLite::connect()
 {
-	Database::connect();
+    Database::connect();
 }
 
 /*!\brief Connect auf eine SQLite-Datenbank erstellen
@@ -314,256 +316,253 @@ void SQLite::connect()
 void SQLite::connect(const AssocArray& params)
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	if (conn) close();
-	condata=params;
-	String filename=params["filename"];
-	int ret=sqlite3_open((const char*)filename, (sqlite3**)&conn);
-	if (!conn) throw OutOfMemoryException();
-	if (ret != SQLITE_OK) {
-		String err(sqlite3_errmsg((sqlite3*)conn));
-		sqlite3_close((sqlite3*)conn);
-		conn=NULL;
-		throw ConnectionFailedException(err);
-	}
+    if (conn) close();
+    condata = params;
+    String filename = params["filename"];
+    int ret = sqlite3_open((const char*)filename, (sqlite3**)&conn);
+    if (!conn) throw OutOfMemoryException();
+    if (ret != SQLITE_OK) {
+        String err(sqlite3_errmsg((sqlite3*)conn));
+        sqlite3_close((sqlite3*)conn);
+        conn = NULL;
+        throw ConnectionFailedException(err);
+    }
 #endif
 }
 
 void SQLite::connectCreate(const AssocArray& params)
 {
-	connect(params);
+    connect(params);
 }
 
 void SQLite::close()
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite3");
+    throw UnsupportedFeatureException("SQLite3");
 #else
-	if (!conn) {
-		return;
-	}
-	sqlite3_close((sqlite3*)conn);
-	conn=NULL;
-	clearLastUse();
+    if (!conn) {
+        return;
+    }
+    sqlite3_close((sqlite3*)conn);
+    conn = NULL;
+    clearLastUse();
 #endif
 }
 
 void SQLite::reconnect()
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	close();
-	AssocArray a=condata;
-	connect(a);
+    close();
+    AssocArray a = condata;
+    connect(a);
 #endif
 }
-
 
 void SQLite::selectDB(const String& databasename)
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	throw UnsupportedFeatureException("SQLite:selectDB");
+    throw UnsupportedFeatureException("SQLite:selectDB");
 #endif
 }
 
 void SQLite::exec(const String& query)
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	if (!conn) throw NoConnectionException();
-	String err;
-	double t_start;
-	affectedrows=0;
-	sqlite3_stmt* stmt=NULL;
-	t_start=GetMicrotime();
-	int ret=sqlite3_prepare_v2((sqlite3*)conn, (const char*)query, query.size(), &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		throw QueryFailedException("sqlite3_prepare_v2 failed: %s", sqlite3_errmsg((sqlite3*)conn));
-	}
-	if (stmt == NULL) {
-		throw OutOfMemoryException();
-	}
-	ret=sqlite3_step(stmt);
-	if (ret != SQLITE_DONE && ret != SQLITE_ROW) {
-		err.setf("sqlite3_step: %s, Query: %s", sqlite3_errmsg((sqlite3*)conn), (const char*)query);
-		sqlite3_finalize(stmt);
-		throw QueryFailedException(err);
-	}
-	ret=sqlite3_finalize(stmt);
-	if (ret != SQLITE_OK) {
-		err.setf("sqlite3_finalize: %s, Query: %s", sqlite3_errmsg((sqlite3*)conn), (const char*)query);
-		throw QueryFailedException(err);
-	}
-	affectedrows=sqlite3_changes((sqlite3*)conn);
-	updateLastUse();
-	logQuery(query, (float)(GetMicrotime() - t_start));
+    if (!conn) throw NoConnectionException();
+    String err;
+    double t_start;
+    affectedrows = 0;
+    sqlite3_stmt* stmt = NULL;
+    t_start = GetMicrotime();
+    int ret = sqlite3_prepare_v2((sqlite3*)conn, (const char*)query, query.size(), &stmt, NULL);
+    if (ret != SQLITE_OK) {
+        throw QueryFailedException("sqlite3_prepare_v2 failed: %s", sqlite3_errmsg((sqlite3*)conn));
+    }
+    if (stmt == NULL) {
+        throw OutOfMemoryException();
+    }
+    ret = sqlite3_step(stmt);
+    if (ret != SQLITE_DONE && ret != SQLITE_ROW) {
+        err.setf("sqlite3_step: %s, Query: %s", sqlite3_errmsg((sqlite3*)conn), (const char*)query);
+        sqlite3_finalize(stmt);
+        throw QueryFailedException(err);
+    }
+    ret = sqlite3_finalize(stmt);
+    if (ret != SQLITE_OK) {
+        err.setf("sqlite3_finalize: %s, Query: %s", sqlite3_errmsg((sqlite3*)conn), (const char*)query);
+        throw QueryFailedException(err);
+    }
+    affectedrows = sqlite3_changes((sqlite3*)conn);
+    updateLastUse();
+    logQuery(query, (float)(GetMicrotime() - t_start));
 #endif
 }
 
 ResultSet* SQLite::query(const String& query)
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	if (!conn) throw NoConnectionException();
-	String err;
-	double t_start;
-	affectedrows=0;
-	sqlite3_stmt* stmt=NULL;
-	t_start=GetMicrotime();
-	int ret=sqlite3_prepare_v2((sqlite3*)conn, (const char*)query, query.size(), &stmt, NULL);
-	if (ret != SQLITE_OK) {
-		throw QueryFailedException("sqlite3_prepare_v2 failed: %s", sqlite3_errmsg((sqlite3*)conn));
-	}
-	if (stmt == NULL) {
-		throw OutOfMemoryException();
-	}
-	ret=sqlite3_step(stmt);
-	if (ret != SQLITE_DONE && ret != SQLITE_ROW) {
-		err.setf("sqlite3_step: %s, Query: %s", sqlite3_errmsg((sqlite3*)conn), (const char*)query);
-		sqlite3_finalize(stmt);
-		throw QueryFailedException(err);
-	}
-	affectedrows=sqlite3_changes((sqlite3*)conn);
-	updateLastUse();
-	logQuery(query, (float)(GetMicrotime() - t_start));
+    if (!conn) throw NoConnectionException();
+    String err;
+    double t_start;
+    affectedrows = 0;
+    sqlite3_stmt* stmt = NULL;
+    t_start = GetMicrotime();
+    int ret = sqlite3_prepare_v2((sqlite3*)conn, (const char*)query, query.size(), &stmt, NULL);
+    if (ret != SQLITE_OK) {
+        throw QueryFailedException("sqlite3_prepare_v2 failed: %s", sqlite3_errmsg((sqlite3*)conn));
+    }
+    if (stmt == NULL) {
+        throw OutOfMemoryException();
+    }
+    ret = sqlite3_step(stmt);
+    if (ret != SQLITE_DONE && ret != SQLITE_ROW) {
+        err.setf("sqlite3_step: %s, Query: %s", sqlite3_errmsg((sqlite3*)conn), (const char*)query);
+        sqlite3_finalize(stmt);
+        throw QueryFailedException(err);
+    }
+    affectedrows = sqlite3_changes((sqlite3*)conn);
+    updateLastUse();
+    logQuery(query, (float)(GetMicrotime() - t_start));
 
-	SQLiteResult* pr=new SQLiteResult;
-	if (!pr) {
-		sqlite3_finalize(stmt);
-		throw OutOfMemoryException();
-	}
-	pr->stmt=stmt;
-	pr->last_res=ret;
-	pr->sqlite_class=this;
-	pr->conn=(sqlite3*)conn;
-	pr->affectedrows=affectedrows;
-	pr->num_fields=sqlite3_column_count(stmt);
-	return pr;
+    SQLiteResult* pr = new SQLiteResult;
+    if (!pr) {
+        sqlite3_finalize(stmt);
+        throw OutOfMemoryException();
+    }
+    pr->stmt = stmt;
+    pr->last_res = ret;
+    pr->sqlite_class = this;
+    pr->conn = (sqlite3*)conn;
+    pr->affectedrows = affectedrows;
+    pr->num_fields = sqlite3_column_count(stmt);
+    return pr;
 #endif
 }
 
 bool SQLite::ping()
 {
 #ifndef HAVE_SQLITE3
-	return false;
+    return false;
 #else
-	if (conn) return true;
-	return false;
+    if (conn) return true;
+    return false;
 #endif
 }
-
 
 String SQLite::escape(const String& str) const
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	// SQLite hat keine Escape-Funktion, daher müssen wir das selbst machen
-	String n;
-	const char* tmp=str.getPtr();
-	int c;
-	while ((c=tmp[0])) {
-		if (c == '\'') n+="'";
-		n+=c;
-		tmp++;
-	}
-	return n;
+    // SQLite hat keine Escape-Funktion, daher müssen wir das selbst machen
+    String n;
+    const char* tmp = str.getPtr();
+    int c;
+    while ((c = tmp[0])) {
+        if (c == '\'') n += "'";
+        n += c;
+        tmp++;
+    }
+    return n;
 #endif
 }
 
 uint64_t SQLite::getAffectedRows()
 {
-	return affectedrows;
+    return affectedrows;
 }
 
 void SQLite::startTransaction()
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	if (transactiondepth == 0) {	// Neue Transaktion
-		exec("BEGIN");
-		transactiondepth++;
-	} else {
-		execf("SAVEPOINT LEVEL%i", transactiondepth);
-		transactiondepth++;
-	}
+    if (transactiondepth == 0) { // Neue Transaktion
+        exec("BEGIN");
+        transactiondepth++;
+    } else {
+        execf("SAVEPOINT LEVEL%i", transactiondepth);
+        transactiondepth++;
+    }
 #endif
 }
 
 void SQLite::endTransaction()
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	if (transactiondepth == 1) {
-		exec("COMMIT");
-		transactiondepth=0;
-	} else {
-		execf("RELEASE SAVEPOINT LEVEL%i", transactiondepth - 1);
-		transactiondepth--;
-	}
-	affectedrows=0;
+    if (transactiondepth == 1) {
+        exec("COMMIT");
+        transactiondepth = 0;
+    } else {
+        execf("RELEASE SAVEPOINT LEVEL%i", transactiondepth - 1);
+        transactiondepth--;
+    }
+    affectedrows = 0;
 #endif
 }
 
 void SQLite::cancelTransaction()
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	if (transactiondepth == 1) {
-		exec("ROLLBACK");
-		transactiondepth=0;
-	} else {
-		execf("ROLLBACK TO SAVEPOINT LEVEL%i", transactiondepth - 1);
-		transactiondepth--;
-	}
-	affectedrows=0;
+    if (transactiondepth == 1) {
+        exec("ROLLBACK");
+        transactiondepth = 0;
+    } else {
+        execf("ROLLBACK TO SAVEPOINT LEVEL%i", transactiondepth - 1);
+        transactiondepth--;
+    }
+    affectedrows = 0;
 #endif
 }
 
 void SQLite::cancelTransactionComplete()
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	exec("ROLLBACK");
-	transactiondepth=0;
-	affectedrows=0;
+    exec("ROLLBACK");
+    transactiondepth = 0;
+    affectedrows = 0;
 #endif
 }
 
 void SQLite::createDatabase(const String& name)
 {
 #ifndef HAVE_SQLITE3
-	throw UnsupportedFeatureException("SQLite");
+    throw UnsupportedFeatureException("SQLite");
 #else
-	throw UnsupportedFeatureException("SQLite::createDatabase");
+    throw UnsupportedFeatureException("SQLite::createDatabase");
 #endif
 }
 
 String SQLite::databaseType() const
 {
-	return String("SQLite");
+    return String("SQLite");
 }
 
 String SQLite::getQuoted(const String& value, const String& type) const
 {
-	String Type=type;
-	String s=escape(value);
-	Type.lowerCase();
-	if (Type == "int" || Type == "integer") return s;
-	if (Type == "bit" || Type == "boolean") return "'" + s + "'";
-	return "'" + s + "'";
+    String Type = type;
+    String s = escape(value);
+    Type.lowerCase();
+    if (Type == "int" || Type == "integer") return s;
+    if (Type == "bit" || Type == "boolean") return "'" + s + "'";
+    return "'" + s + "'";
 }
 
-
-}	// EOF namespace db
-}	// EOF namespace ppl7
+} // namespace db
+} // namespace pplib

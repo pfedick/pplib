@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,12 +27,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/threads.h>
-#include <ppl7/core/threadpool.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/core/functions.h>
+#include <pplib/core/threads.h>
+#include <pplib/core/threadpool.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 /*!\class ThreadPool
@@ -46,7 +46,7 @@ namespace ppl7
  * Iteratoren und den Methoden ThreadPool::begin und ThreadPool::end kann die Anwendung auch
  * selbst über die Threads iterieren.
  * @par
- * Ein %Thread muss von der Klasse ppl7::Thread abgeleitet sein.
+ * Ein %Thread muss von der Klasse pplib::Thread abgeleitet sein.
  *
  *
  */
@@ -312,7 +312,7 @@ size_t ThreadPool::count_running()
  */
 bool ThreadPool::running()
 {
-    std::set<ppl7::Thread*>::const_iterator it;
+    std::set<pplib::Thread*>::const_iterator it;
     mutex.lock();
     for (it = threads.begin(); it != threads.end(); ++it) {
         if ((*it)->threadIsRunning()) {
@@ -354,4 +354,4 @@ void ThreadPool::unlock()
     mutex.unlock();
 }
 
-} // namespace ppl7
+} // namespace pplib

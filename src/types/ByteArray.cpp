@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,13 +27,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/types/bytearray.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/exceptions.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
 #include <vector>
 
-namespace ppl7
+namespace pplib
 {
 
 ByteArray::ByteArray()
@@ -367,8 +367,8 @@ void* ByteArray::fromHex(const String& hex)
 
 std::ostream& operator<<(std::ostream& s, const ByteArray& ba)
 {
-    ppl7::String hex = ba.toHex();
+    pplib::String hex = ba.toHex();
     return s.write((const char*)hex, hex.size());
 }
 
-} // namespace ppl7
+} // namespace pplib

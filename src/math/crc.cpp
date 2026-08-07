@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -33,9 +33,9 @@
 #include <math.h>
 #include <list>
 
-#include <ppl7/core/functions.h>
+#include <pplib/core/functions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 static const uint32_t crc32_table[256] = {
@@ -102,4 +102,4 @@ uint16_t Crc16(const void* buffer, size_t size, uint16_t initial_crc)
     return crc;
 }
 
-} // namespace ppl7
+} // namespace pplib

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,64 +37,64 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include "../include/ppl7.h"
-#include "../include/ppl7-grafix.h"
+#include "../include/pplib.h"
+#include "../include/pplib-grafix.h"
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class GrafixImageTest : public ::testing::Test {
+class GrafixImageTest : public ::testing::Test
+{
 protected:
-    ppl7::grafix::Grafix *gfx;
-    GrafixImageTest() {
-        if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-            printf ("setlocale fehlgeschlagen\n");
+    pplib::grafix::Grafix* gfx;
+    GrafixImageTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
             throw std::exception();
         }
-        gfx=NULL;
-
-
+        gfx = NULL;
     }
-    virtual ~GrafixImageTest() {
+    virtual ~GrafixImageTest()
+    {
     }
-    virtual void SetUp() {
-        gfx=new ppl7::grafix::Grafix();
+    virtual void SetUp()
+    {
+        gfx = new pplib::grafix::Grafix();
     }
-    virtual void TearDown() {
+    virtual void TearDown()
+    {
         delete gfx;
     }
 };
 
+TEST_F(GrafixImageTest, constructor_without_parameter)
+{
+    ASSERT_NO_THROW({ pplib::grafix::Image img; });
+}
 
-TEST_F(GrafixImageTest, constructor_without_parameter) {
+TEST_F(GrafixImageTest, constructor_create)
+{
     ASSERT_NO_THROW({
-        ppl7::grafix::Image img;
+        pplib::grafix::Image img(320, 200);
+        ASSERT_EQ((int)320, img.width());
+        ASSERT_EQ((int)200, img.height());
+        ASSERT_EQ((int)32, img.bitdepth());
+        ASSERT_EQ(pplib::grafix::RGBFormat::A8R8G8B8, img.rgbformat());
     });
 }
 
-TEST_F(GrafixImageTest, constructor_create) {
-    ASSERT_NO_THROW({
-        ppl7::grafix::Image img(320,200);
-        ASSERT_EQ((int)320,img.width());
-        ASSERT_EQ((int)200,img.height());
-        ASSERT_EQ((int)32,img.bitdepth());
-        ASSERT_EQ(ppl7::grafix::RGBFormat::A8R8G8B8,img.rgbformat());
-    });
+TEST_F(GrafixImageTest, create)
+{
+    pplib::grafix::Image img;
+    ASSERT_NO_THROW({ img.create(320, 200); });
+    ASSERT_EQ((int)320, img.width());
+    ASSERT_EQ((int)200, img.height());
+    ASSERT_EQ((int)32, img.bitdepth());
+    ASSERT_EQ(pplib::grafix::RGBFormat::A8R8G8B8, img.rgbformat());
 }
 
-TEST_F(GrafixImageTest, create) {
-    ppl7::grafix::Image img;
-    ASSERT_NO_THROW({
-        img.create(320,200);
-    });
-    ASSERT_EQ((int)320,img.width());
-    ASSERT_EQ((int)200,img.height());
-    ASSERT_EQ((int)32,img.bitdepth());
-    ASSERT_EQ(ppl7::grafix::RGBFormat::A8R8G8B8,img.rgbformat());
-
-}
-
-}	// EOF namespace
-
+} // namespace

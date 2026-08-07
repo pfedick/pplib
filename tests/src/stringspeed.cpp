@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,91 +32,89 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#define PPL7TESTSUITEMAIN
+#define PPLIBTESTSUITEMAIN
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
 #include <list>
-#include <ppl7.h>
-#include "ppl7-tests.h"
+#include <pplib.h>
+#include "pplib-tests.h"
 
-extern "C" {
-	int A_strlen (const char * s);
+extern "C"
+{
+    int A_strlen(const char* s);
 }
 
-extern const char *wordlist;
+extern const char* wordlist;
 
-ppl7::Array Wordlist;
-ppl7::ConfigParser PPL7TestConfig;
-ppl7::AssocArray TestAssocArray;
+pplib::Array Wordlist;
+pplib::ConfigParser PPLIBTestConfig;
+pplib::AssocArray TestAssocArray;
 
 void create_empty_strings()
 {
-	std::list<ppl7::String> slist;
-	for (int i=0;i<10000000;i++) {
-		slist.push_back(ppl7::String());
-	}
+    std::list<pplib::String> slist;
+    for (int i = 0; i < 10000000; i++) {
+        slist.push_back(pplib::String());
+    }
 }
 
 void create_strings()
 {
-	std::list<ppl7::String> slist;
-	for (int i=0;i<10000000;i++) {
-		slist.push_back(ppl7::String("Hello World"));
-	}
+    std::list<pplib::String> slist;
+    for (int i = 0; i < 10000000; i++) {
+        slist.push_back(pplib::String("Hello World"));
+    }
 }
 
 void create_large_strings()
 {
-	std::list<ppl7::String> slist;
-	for (int i=0;i<10000000;i++) {
-		slist.push_back(ppl7::String("The big brown fox jumps over the lazy dog in a huge hello world."));
-	}
+    std::list<pplib::String> slist;
+    for (int i = 0; i < 10000000; i++) {
+        slist.push_back(pplib::String("The big brown fox jumps over the lazy dog in a huge hello world."));
+    }
 }
 
 void create_ordered_set_with_strings_from_wordlist()
 {
-	std::set<ppl7::String> sset;
-	size_t wlist_size=Wordlist.size();
-	ppl7::String Suffix;
-	for (int iter=0;iter<10;iter++) {
-		Suffix.setf("_%05d");
-		for (size_t i=0;i<wlist_size;i++) {
-			sset.insert(Wordlist[i]+Suffix);
-		}
-	}
+    std::set<pplib::String> sset;
+    size_t wlist_size = Wordlist.size();
+    pplib::String Suffix;
+    for (int iter = 0; iter < 10; iter++) {
+        Suffix.setf("_%05d");
+        for (size_t i = 0; i < wlist_size; i++) {
+            sset.insert(Wordlist[i] + Suffix);
+        }
+    }
 }
 
-
-double timer(const char *descr, void (*fn)())
+double timer(const char* descr, void (*fn)())
 {
-	double start=ppl7::GetMicrotime();
-	fn();
-	double duration=ppl7::GetMicrotime()-start;
-	printf ("%-30s: %0.3f\n",descr, duration);
-	fflush(NULL);
-	return duration;
+    double start = pplib::GetMicrotime();
+    fn();
+    double duration = pplib::GetMicrotime() - start;
+    printf("%-30s: %0.3f\n", descr, duration);
+    fflush(NULL);
+    return duration;
 }
 
-
-int main (int argc, char**argv)
+int main(int argc, char** argv)
 {
-	double start=ppl7::GetMicrotime();
-	ppl7::PrintDebugTime ("Wortliste in String laden\n");
-	ppl7::String w(wordlist);
-	Wordlist.reserve(130000);
-	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
-	Wordlist.explode(w,"\n");
-	ppl7::PrintDebugTime ("done\n");
+    double start = pplib::GetMicrotime();
+    pplib::PrintDebugTime("Wortliste in String laden\n");
+    pplib::String w(wordlist);
+    Wordlist.reserve(130000);
+    pplib::PrintDebugTime("Wortliste in Array laden\n");
+    Wordlist.explode(w, "\n");
+    pplib::PrintDebugTime("done\n");
 
-	timer ("create empty strings", create_empty_strings);
-	timer ("create short strings", create_strings);
-	timer ("create large strings", create_large_strings);
-	timer ("ordered set with strings", create_ordered_set_with_strings_from_wordlist);
-	double duration=ppl7::GetMicrotime()-start;
-	printf ("%-30s: %0.3f\n","Totaltime",duration);
-	return 1;
+    timer("create empty strings", create_empty_strings);
+    timer("create short strings", create_strings);
+    timer("create large strings", create_large_strings);
+    timer("ordered set with strings", create_ordered_set_with_strings_from_wordlist);
+    double duration = pplib::GetMicrotime() - start;
+    printf("%-30s: %0.3f\n", "Totaltime", duration);
+    return 1;
 }
-

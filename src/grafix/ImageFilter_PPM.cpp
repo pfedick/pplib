@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -43,11 +42,13 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\class ImageFilter_PPM
  * \ingroup PPLGroupGrafik
@@ -56,137 +57,135 @@ namespace grafix {
 
 ImageFilter_PPM::ImageFilter_PPM()
 {
-	//SaveAsASCII=false;
+    // SaveAsASCII=false;
 }
 
 ImageFilter_PPM::~ImageFilter_PPM()
 {
 }
 
-
-int ImageFilter_PPM::ident(FileObject &file, IMAGE &img)
+int ImageFilter_PPM::ident(FileObject& file, IMAGE& img)
 {
-	try {
-		String line;
-		file.seek(0);
-		file.gets(line,64);
-		if (line.left(3)=="P6\n") {		// Ja, ist ein PPM
-			file.gets(line,64);				// Breite und Hoehe holen
-			line.trim();
-			while (line[0]=='#') {			// Es koennte sein, dass hier Kommentare drin sind
-				file.gets(line,64);				// Breite und Hoehe holen
-				line.trim();
-			}
-			Array a;
-			a.explode(line," ");
-			img.width=a.get(0).toInt();
-			img.height=a.get(1).toInt();
-			//file->Gets(tmpc,64);			// Farbtiefe holen, normalerweise 255
-			img.bitdepth=24;
-			img.colors=0x1000000;
-			img.pitch=3*img.width;
-			img.format=RGBFormat::X8R8G8B8;
-			return 1;
-		}
-	} catch (...) {
-		return 0;
-	}
-	return 0;
+    try {
+        String line;
+        file.seek(0);
+        file.gets(line, 64);
+        if (line.left(3) == "P6\n") { // Ja, ist ein PPM
+            file.gets(line, 64);      // Breite und Hoehe holen
+            line.trim();
+            while (line[0] == '#') { // Es koennte sein, dass hier Kommentare drin sind
+                file.gets(line, 64); // Breite und Hoehe holen
+                line.trim();
+            }
+            Array a;
+            a.explode(line, " ");
+            img.width = a.get(0).toInt();
+            img.height = a.get(1).toInt();
+            // file->Gets(tmpc,64);			// Farbtiefe holen, normalerweise 255
+            img.bitdepth = 24;
+            img.colors = 0x1000000;
+            img.pitch = 3 * img.width;
+            img.format = RGBFormat::X8R8G8B8;
+            return 1;
+        }
+    }
+    catch (...) {
+        return 0;
+    }
+    return 0;
 }
 
-void ImageFilter_PPM::load(FileObject &file, Drawable &surface, IMAGE &img)
+void ImageFilter_PPM::load(FileObject& file, Drawable& surface, IMAGE& img)
 {
-	String line;
-	file.seek(0);
-	file.gets(line,64);
-	if (line.left(3)!="P6\n") throw UnknownImageFormatException();
-	file.gets(line,64);				// Breite und Hoehe holen
-	line.trim();
-	while (line[0]=='#') {			// Es koennte sein, dass hier Kommentare drin sind
-		file.gets(line,64);
-		line.trim();
-	}
-	Array a;
-	a.explode(line," ");
-	img.width=a.get(0).toInt();
-	img.height=a.get(1).toInt();
-	file.gets(line,64);				// Farbtiefe holen, normalerweise 255
-	//int farbtiefe;
-	//farbtiefe=line.toInt();
+    String line;
+    file.seek(0);
+    file.gets(line, 64);
+    if (line.left(3) != "P6\n") throw UnknownImageFormatException();
+    file.gets(line, 64); // Breite und Hoehe holen
+    line.trim();
+    while (line[0] == '#') { // Es koennte sein, dass hier Kommentare drin sind
+        file.gets(line, 64);
+        line.trim();
+    }
+    Array a;
+    a.explode(line, " ");
+    img.width = a.get(0).toInt();
+    img.height = a.get(1).toInt();
+    file.gets(line, 64); // Farbtiefe holen, normalerweise 255
+    // int farbtiefe;
+    // farbtiefe=line.toInt();
 
-	int x,y;
-	uint8_t r,g,b;
-	uint64_t pp=file.tell();
-	const char *adresse;
-	for (y=0;y<surface.height();y++) {
-		adresse=file.map(pp,img.pitch);	// Zeile fuer Zeile einlesen
-		pp+=img.pitch;
-		for (x=0;x<surface.width();x++) {
-			r=adresse[x*3];
-			g=adresse[x*3+1];
-			b=adresse[x*3+2];
-			surface.putPixel(x,y,Color(r,g,b));
-		}
-	}
+    int x, y;
+    uint8_t r, g, b;
+    uint64_t pp = file.tell();
+    const char* adresse;
+    for (y = 0; y < surface.height(); y++) {
+        adresse = file.map(pp, img.pitch); // Zeile fuer Zeile einlesen
+        pp += img.pitch;
+        for (x = 0; x < surface.width(); x++) {
+            r = adresse[x * 3];
+            g = adresse[x * 3 + 1];
+            b = adresse[x * 3 + 2];
+            surface.putPixel(x, y, Color(r, g, b));
+        }
+    }
 }
 
-void ImageFilter_PPM::save (const Drawable &surface, FileObject &file, const AssocArray &param)
+void ImageFilter_PPM::save(const Drawable& surface, FileObject& file, const AssocArray& param)
 {
-	Color farbe;
-    //int haupt,unter,build;
-	bool SaveAsASCII=false;
-	if (param.exists("ascii")) SaveAsASCII=param.getString("ascii").toBool();
+    Color farbe;
+    // int haupt,unter,build;
+    bool SaveAsASCII = false;
+    if (param.exists("ascii")) SaveAsASCII = param.getString("ascii").toBool();
 
-
-	if (surface.bitdepth()>8) {
-		if (SaveAsASCII==false) file.puts("P6\n");
-		else file.puts("P3\n");
-		file.putsf("# Generated by PPL %u.%u.%u\n",PPL7_VERSION_MAJOR,PPL7_VERSION_MINOR,PPL7_VERSION_BUILD);
-		file.putsf("# %s\n",PPL7_COPYRIGHT);
-		file.putsf("%d %d\n",surface.width(),surface.height());
-		file.putsf("%d\n",255);
-		int c=0;
-		for (int y=0;y<surface.height();y++) {
-			for (int x=0;x<surface.width();x++) {
-				farbe=surface.getPixel(x,y);
-				uint8_t r=(uint8_t)farbe.red();
-				uint8_t g=(uint8_t)farbe.green();
-				uint8_t b=(uint8_t)farbe.blue();
-				if (SaveAsASCII==false) {
-					file.write((char*)&r,1);
-					file.write((char*)&g,1);
-					file.write((char*)&b,1);
-				} else {
-					file.putsf("%u %u %u ",r,g,b);
-					c++;
-					if (c>7) {
-						file.puts("\n");
-						c=0;
-					}
-				}
-			}
-		}
-		if (SaveAsASCII==true) {
-			file.puts("\n");
-		}
-		return;
-	} else {			// Farbpalette wurde benutzt
-		throw UnsupportedFeatureException("ImageFilter_PPM::save with palette");
-	}
-	throw UnsupportedFeatureException("ImageFilter_PPM::save unsupported bitdepth");
+    if (surface.bitdepth() > 8) {
+        if (SaveAsASCII == false)
+            file.puts("P6\n");
+        else
+            file.puts("P3\n");
+        file.putsf("# Generated by PPL %u.%u.%u\n", PPLIB_VERSION_MAJOR, PPLIB_VERSION_MINOR, PPLIB_VERSION_BUILD);
+        file.putsf("# %s\n", PPLIB_COPYRIGHT);
+        file.putsf("%d %d\n", surface.width(), surface.height());
+        file.putsf("%d\n", 255);
+        int c = 0;
+        for (int y = 0; y < surface.height(); y++) {
+            for (int x = 0; x < surface.width(); x++) {
+                farbe = surface.getPixel(x, y);
+                uint8_t r = (uint8_t)farbe.red();
+                uint8_t g = (uint8_t)farbe.green();
+                uint8_t b = (uint8_t)farbe.blue();
+                if (SaveAsASCII == false) {
+                    file.write((char*)&r, 1);
+                    file.write((char*)&g, 1);
+                    file.write((char*)&b, 1);
+                } else {
+                    file.putsf("%u %u %u ", r, g, b);
+                    c++;
+                    if (c > 7) {
+                        file.puts("\n");
+                        c = 0;
+                    }
+                }
+            }
+        }
+        if (SaveAsASCII == true) {
+            file.puts("\n");
+        }
+        return;
+    } else { // Farbpalette wurde benutzt
+        throw UnsupportedFeatureException("ImageFilter_PPM::save with palette");
+    }
+    throw UnsupportedFeatureException("ImageFilter_PPM::save unsupported bitdepth");
 }
 
 String ImageFilter_PPM::name()
 {
-	return "PPM";
+    return "PPM";
 }
 String ImageFilter_PPM::description()
 {
-	return "PPM";
+    return "PPM";
 }
 
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
-
-
+} // namespace grafix
+} // namespace pplib

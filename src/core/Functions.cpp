@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -43,11 +43,11 @@
 #include <windows.h>
 #endif
 
-#include <ppl7/core/functions.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
+#include <pplib/core/functions.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
 
-namespace ppl7
+namespace pplib
 {
 
 static int printdebug = 0;
@@ -697,4 +697,4 @@ bool HaveArgv(int argc, char* argv[], const String& argument)
     return false;
 }
 
-} // namespace ppl7
+} // namespace pplib

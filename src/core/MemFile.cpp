@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -28,13 +28,13 @@
  *******************************************************************************/
 
 #include <string.h>
-#include <ppl7/core/memfile.h>
-#include <ppl7/core/fileobject.h>
-#include <ppl7/types/bytearray.h>
-#include <ppl7/types/bytearrayptr.h>
-#include <ppl7/exceptions.h>
+#include <pplib/core/memfile.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/exceptions.h>
 
-namespace ppl7
+namespace pplib
 {
 
 #define COPYBYTES_BUFFERSIZE 1024 * 1024
@@ -234,7 +234,7 @@ void MemFile::resizeBuffer(size_t size)
     if (maxsize > 0 && size > maxsize) throw BufferExceedsLimitException();
     size_t newsize = (((size + 8191) >> 13) << 13);
     if (newsize > buffersize) {
-        // ppl7::PrintDebug("MemFile::resizeBuffer, old size: %d, requested size: %d, new size: %d\n", (int)buffersize, size, newsize);
+        // pplib::PrintDebug("MemFile::resizeBuffer, old size: %d, requested size: %d, new size: %d\n", (int)buffersize, size, newsize);
         char* buf = (char*)realloc(buffer, newsize);
         if (!buf) throw OutOfMemoryException();
         buffer = buf;
@@ -561,4 +561,4 @@ void MemFile::unlock()
     throw OperationUnavailableException();
 }
 
-} // end of namespace ppl7
+} // end of namespace pplib

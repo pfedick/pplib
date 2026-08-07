@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,34 +37,34 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <pplib.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class MemoryGroupTest : public ::testing::Test {
-	protected:
-	MemoryGroupTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-	}
-	virtual ~MemoryGroupTest() {
-
-	}
+class MemoryGroupTest : public ::testing::Test
+{
+protected:
+    MemoryGroupTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+    }
+    virtual ~MemoryGroupTest()
+    {
+    }
 };
 
-TEST_F(MemoryGroupTest, ConstructorSimple) {
-	ppl7::MemoryGroup g1;
-	ASSERT_EQ((size_t)0,g1.count());
-	ASSERT_LT((size_t)0,g1.size());
+TEST_F(MemoryGroupTest, ConstructorSimple)
+{
+    pplib::MemoryGroup g1;
+    ASSERT_EQ((size_t)0, g1.count());
+    ASSERT_LT((size_t)0, g1.size());
 }
 
-
-
-
-}	// EOF namespace
-
+} // namespace

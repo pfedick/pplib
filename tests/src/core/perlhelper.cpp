@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,222 +37,206 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <pplib.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class PerlHelperTest : public ::testing::Test {
-	protected:
-	PerlHelperTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen: LC_CTYPE\n");
-			throw std::exception();
-		}
-		if (setlocale(LC_TIME,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen: LC_TIME\n");
-			throw std::exception();
-		}
-	}
-	virtual ~PerlHelperTest() {
-
-	}
+class PerlHelperTest : public ::testing::Test
+{
+protected:
+    PerlHelperTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen: LC_CTYPE\n");
+            throw std::exception();
+        }
+        if (setlocale(LC_TIME, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen: LC_TIME\n");
+            throw std::exception();
+        }
+    }
+    virtual ~PerlHelperTest()
+    {
+    }
 };
 
+TEST_F(PerlHelperTest, escapeString)
+{
+    pplib::String res;
 
-TEST_F(PerlHelperTest, escapeString) {
-	ppl7::String res;
-
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::escapeString("Emailadresse: \"test@test.de\"");
-	});
-	ASSERT_EQ(ppl7::String("Emailadresse: \\\"test\\@test.de\\\""),res);
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::escapeString("Emailadresse: \"test@test.de\""); });
+    ASSERT_EQ(pplib::String("Emailadresse: \\\"test\\@test.de\\\""), res);
 }
 
+TEST_F(PerlHelperTest, escapeStringWithBackslashes)
+{
+    pplib::String res;
 
-TEST_F(PerlHelperTest, escapeStringWithBackslashes) {
-	ppl7::String res;
-
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::escapeString("test\\,test");
-	});
-	ASSERT_EQ(ppl7::String("test\\\\,test"),res);
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::escapeString("test\\,test"); });
+    ASSERT_EQ(pplib::String("test\\\\,test"), res);
 }
 
-TEST_F(PerlHelperTest, toHashWithEmptyArray) {
-	ppl7::AssocArray a;
-	ppl7::String res;
+TEST_F(PerlHelperTest, toHashWithEmptyArray)
+{
+    pplib::AssocArray a;
+    pplib::String res;
 
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::toHash(a,"key");
-	});
-	ASSERT_EQ(ppl7::String("my %key;\n"),res);
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::toHash(a, "key"); });
+    ASSERT_EQ(pplib::String("my %key;\n"), res);
 }
 
-TEST_F(PerlHelperTest, toHashWithEmptyArrayEmptyKey) {
-	ppl7::AssocArray a;
-	ppl7::String res;
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::toHash(a,"");
-	});
-	ASSERT_EQ(ppl7::String(""),res);
+TEST_F(PerlHelperTest, toHashWithEmptyArrayEmptyKey)
+{
+    pplib::AssocArray a;
+    pplib::String res;
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::toHash(a, ""); });
+    ASSERT_EQ(pplib::String(""), res);
 }
 
-TEST_F(PerlHelperTest, toHashNonRecursive) {
-	ppl7::AssocArray a;
-	ppl7::String res;
-	ppl7::String expected="my %key;\n"
-			"$key{key1}=\"value1\";\n"
-			"$key{key2}=\"20\";\n"
-			"$key{key3}=\"Geht\n"
-			"ueber\n"
-			"mehrere\n"
-			"Zeilen\n"
-			"\";\n";
+TEST_F(PerlHelperTest, toHashNonRecursive)
+{
+    pplib::AssocArray a;
+    pplib::String res;
+    pplib::String expected = "my %key;\n"
+                             "$key{key1}=\"value1\";\n"
+                             "$key{key2}=\"20\";\n"
+                             "$key{key3}=\"Geht\n"
+                             "ueber\n"
+                             "mehrere\n"
+                             "Zeilen\n"
+                             "\";\n";
 
-	a.set("key1","value1");
-	a.set("key2","20");
-	a.set("key3","Geht\nueber\nmehrere\nZeilen\n");
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::toHash(a,"key");
-	});
-	ASSERT_EQ(expected,res);
+    a.set("key1", "value1");
+    a.set("key2", "20");
+    a.set("key3", "Geht\nueber\nmehrere\nZeilen\n");
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::toHash(a, "key"); });
+    ASSERT_EQ(expected, res);
 }
 
-TEST_F(PerlHelperTest, toHashNonRecursiveWithQuotationMark) {
-	ppl7::AssocArray a;
-	ppl7::String res;
-	ppl7::String expected="my %key;\n"
-			"$key{key1}=\"Ein \\\"besonderes\\\" Zeichen\";\n"
-			"$key{key2}=\"20\";\n"
-			"$key{key3}=\"Geht\n"
-			"ueber\n"
-			"mehrere\n"
-			"Zeilen\n"
-			"\";\n";
+TEST_F(PerlHelperTest, toHashNonRecursiveWithQuotationMark)
+{
+    pplib::AssocArray a;
+    pplib::String res;
+    pplib::String expected = "my %key;\n"
+                             "$key{key1}=\"Ein \\\"besonderes\\\" Zeichen\";\n"
+                             "$key{key2}=\"20\";\n"
+                             "$key{key3}=\"Geht\n"
+                             "ueber\n"
+                             "mehrere\n"
+                             "Zeilen\n"
+                             "\";\n";
 
-	a.set("key1","Ein \"besonderes\" Zeichen");
-	a.set("key2","20");
-	a.set("key3","Geht\nueber\nmehrere\nZeilen\n");
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::toHash(a,"key");
-	});
-	ASSERT_EQ(expected,res);
+    a.set("key1", "Ein \"besonderes\" Zeichen");
+    a.set("key2", "20");
+    a.set("key3", "Geht\nueber\nmehrere\nZeilen\n");
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::toHash(a, "key"); });
+    ASSERT_EQ(expected, res);
 }
 
-TEST_F(PerlHelperTest, toHashNonRecursiveWithAtChar) {
-	ppl7::AssocArray a;
-	ppl7::String res;
-	ppl7::String expected="my %key;\n"
-			"$key{email}=\"ppl\\@pfp.de\";\n"
-			"$key{key1}=\"Ein \\\"besonderes\\\" Zeichen\";\n"
-			"$key{key2}=\"20\";\n"
-			"$key{key3}=\"Geht\n"
-			"ueber\n"
-			"mehrere\n"
-			"Zeilen\n"
-			"\";\n"
-			;
+TEST_F(PerlHelperTest, toHashNonRecursiveWithAtChar)
+{
+    pplib::AssocArray a;
+    pplib::String res;
+    pplib::String expected = "my %key;\n"
+                             "$key{email}=\"ppl\\@pfp.de\";\n"
+                             "$key{key1}=\"Ein \\\"besonderes\\\" Zeichen\";\n"
+                             "$key{key2}=\"20\";\n"
+                             "$key{key3}=\"Geht\n"
+                             "ueber\n"
+                             "mehrere\n"
+                             "Zeilen\n"
+                             "\";\n";
 
-	a.set("key1","Ein \"besonderes\" Zeichen");
-	a.set("key2","20");
-	a.set("key3","Geht\nueber\nmehrere\nZeilen\n");
-	a.set("email","ppl@pfp.de");
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::toHash(a,"key");
-	});
-	ASSERT_EQ(expected,res);
+    a.set("key1", "Ein \"besonderes\" Zeichen");
+    a.set("key2", "20");
+    a.set("key3", "Geht\nueber\nmehrere\nZeilen\n");
+    a.set("email", "ppl@pfp.de");
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::toHash(a, "key"); });
+    ASSERT_EQ(expected, res);
 }
 
-TEST_F(PerlHelperTest, toHashRecursive) {
-	ppl7::AssocArray a;
-	ppl7::String res;
-	ppl7::String expected="my %key;\n"
-			"$key{key1}=\"value1\";\n"
-			"$key{key2}=\"20\";\n"
-			"$key{key3}=\"Geht\n"
-			"ueber\n"
-			"mehrere\n"
-			"Zeilen\n"
-			"\";\n"
-			"$key{tree1}{key1}=\"subvalue1\";\n"
-			"$key{tree1}{key2}=\"subvalue2\";\n"
-			;
+TEST_F(PerlHelperTest, toHashRecursive)
+{
+    pplib::AssocArray a;
+    pplib::String res;
+    pplib::String expected = "my %key;\n"
+                             "$key{key1}=\"value1\";\n"
+                             "$key{key2}=\"20\";\n"
+                             "$key{key3}=\"Geht\n"
+                             "ueber\n"
+                             "mehrere\n"
+                             "Zeilen\n"
+                             "\";\n"
+                             "$key{tree1}{key1}=\"subvalue1\";\n"
+                             "$key{tree1}{key2}=\"subvalue2\";\n";
 
-
-	a.set("key1","value1");
-	a.set("key2","20");
-	a.set("key3","Geht\nueber\nmehrere\nZeilen\n");
-	a.set("tree1/key1","subvalue1");
-	a.set("tree1/key2","subvalue2");
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::toHash(a,"key");
-	});
-	ASSERT_EQ(expected,res);
+    a.set("key1", "value1");
+    a.set("key2", "20");
+    a.set("key3", "Geht\nueber\nmehrere\nZeilen\n");
+    a.set("tree1/key1", "subvalue1");
+    a.set("tree1/key2", "subvalue2");
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::toHash(a, "key"); });
+    ASSERT_EQ(expected, res);
 }
 
-TEST_F(PerlHelperTest, toHashRecursiveWithQuotationMark) {
-	ppl7::AssocArray a;
-	ppl7::String res;
-	ppl7::String expected="my %key;\n"
-			"$key{key1}=\"Ein \\\"besonderes\\\" Zeichen\";\n"
-			"$key{key2}=\"20\";\n"
-			"$key{key3}=\"Geht\n"
-			"ueber\n"
-			"mehrere\n"
-			"Zeilen\n"
-			"\";\n"
-			"$key{tree1}{key1}=\"subvalue1\";\n"
-			"$key{tree1}{key2}=\"subvalue2\";\n"
-			"$key{tree1}{key3}=\"Ein \\\"besonderes\\\" Zeichen\";\n"
-			;
+TEST_F(PerlHelperTest, toHashRecursiveWithQuotationMark)
+{
+    pplib::AssocArray a;
+    pplib::String res;
+    pplib::String expected = "my %key;\n"
+                             "$key{key1}=\"Ein \\\"besonderes\\\" Zeichen\";\n"
+                             "$key{key2}=\"20\";\n"
+                             "$key{key3}=\"Geht\n"
+                             "ueber\n"
+                             "mehrere\n"
+                             "Zeilen\n"
+                             "\";\n"
+                             "$key{tree1}{key1}=\"subvalue1\";\n"
+                             "$key{tree1}{key2}=\"subvalue2\";\n"
+                             "$key{tree1}{key3}=\"Ein \\\"besonderes\\\" Zeichen\";\n";
 
-	a.set("key1","Ein \"besonderes\" Zeichen");
-	a.set("key2","20");
-	a.set("key3","Geht\nueber\nmehrere\nZeilen\n");
-	a.set("tree1/key1","subvalue1");
-	a.set("tree1/key2","subvalue2");
-	a.set("tree1/key3","Ein \"besonderes\" Zeichen");
+    a.set("key1", "Ein \"besonderes\" Zeichen");
+    a.set("key2", "20");
+    a.set("key3", "Geht\nueber\nmehrere\nZeilen\n");
+    a.set("tree1/key1", "subvalue1");
+    a.set("tree1/key2", "subvalue2");
+    a.set("tree1/key3", "Ein \"besonderes\" Zeichen");
 
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::toHash(a,"key");
-	});
-	ASSERT_EQ(expected,res);
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::toHash(a, "key"); });
+    ASSERT_EQ(expected, res);
 }
 
-TEST_F(PerlHelperTest, toHashRecursiveWithAtChar) {
-	ppl7::AssocArray a;
-	ppl7::String res;
-	ppl7::String expected="my %key;\n"
-			"$key{email}=\"ppl\\@pfp.de\";\n"
-			"$key{key1}=\"Ein \\\"besonderes\\\" Zeichen\";\n"
-			"$key{key2}=\"20\";\n"
-			"$key{key3}=\"Geht\n"
-			"ueber\n"
-			"mehrere\n"
-			"Zeilen\n"
-			"\";\n"
-			"$key{tree1}{email}=\"test\\@test.de\";\n"
-			"$key{tree1}{key1}=\"subvalue1\";\n"
-			"$key{tree1}{key2}=\"subvalue2\";\n"
-			;
+TEST_F(PerlHelperTest, toHashRecursiveWithAtChar)
+{
+    pplib::AssocArray a;
+    pplib::String res;
+    pplib::String expected = "my %key;\n"
+                             "$key{email}=\"ppl\\@pfp.de\";\n"
+                             "$key{key1}=\"Ein \\\"besonderes\\\" Zeichen\";\n"
+                             "$key{key2}=\"20\";\n"
+                             "$key{key3}=\"Geht\n"
+                             "ueber\n"
+                             "mehrere\n"
+                             "Zeilen\n"
+                             "\";\n"
+                             "$key{tree1}{email}=\"test\\@test.de\";\n"
+                             "$key{tree1}{key1}=\"subvalue1\";\n"
+                             "$key{tree1}{key2}=\"subvalue2\";\n";
 
-	a.set("key1","Ein \"besonderes\" Zeichen");
-	a.set("key2","20");
-	a.set("key3","Geht\nueber\nmehrere\nZeilen\n");
-	a.set("email","ppl@pfp.de");
-	a.set("tree1/key1","subvalue1");
-	a.set("tree1/key2","subvalue2");
-	a.set("tree1/email","test@test.de");
+    a.set("key1", "Ein \"besonderes\" Zeichen");
+    a.set("key2", "20");
+    a.set("key3", "Geht\nueber\nmehrere\nZeilen\n");
+    a.set("email", "ppl@pfp.de");
+    a.set("tree1/key1", "subvalue1");
+    a.set("tree1/key2", "subvalue2");
+    a.set("tree1/email", "test@test.de");
 
-	ASSERT_NO_THROW ({
-		res=ppl7::PerlHelper::toHash(a,"key");
-	});
-	ASSERT_EQ(expected,res);
+    ASSERT_NO_THROW({ res = pplib::PerlHelper::toHash(a, "key"); });
+    ASSERT_EQ(expected, res);
 }
 
-}
-
-
+} // namespace

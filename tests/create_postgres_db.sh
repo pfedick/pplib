@@ -2,9 +2,9 @@
 
 DBHOST=${DBHOST:=localhost}
 DBPORT=${DBPORT:=5432}
-DBNAME=${DBNAME:=ppl7}
+DBNAME=${DBNAME:=pplib}
 DBUSER=${DBUSER:=postgres}
-PPL7USER=${PPL7USER:=ppl7}
+PPLIBUSER=${PPLIBUSER:=pplib}
 
 
 # Vorhandene Datenbank droppen und neuanlegen
@@ -23,7 +23,7 @@ fi
 
 cat <<EOF | psql -h ${DBHOST} -p ${DBPORT} -U ${DBUSER}
 CREATE DATABASE ${DBNAME}
-  WITH OWNER      = ${PPL7USER}
+  WITH OWNER      = ${PPLIBUSER}
        ENCODING   = 'UTF8'
        TABLESPACE = pg_default
        LC_COLLATE = 'de_DE.UTF-8'
@@ -32,7 +32,7 @@ CREATE DATABASE ${DBNAME}
        CONNECTION LIMIT = -1;
 
 GRANT CONNECT, TEMPORARY ON DATABASE ${DBNAME} TO public;
-GRANT ALL ON DATABASE ${DBNAME} TO ${PPL7USER};
+GRANT ALL ON DATABASE ${DBNAME} TO ${PPLIBUSER};
 EOF
 if [ $? -ne 0 ] ; then
     echo "INFO: psql-Fehler, Datenbank ${DBNAME} konnten nicht gedroppt werden"
@@ -40,4 +40,4 @@ fi
 
 
 
-cat testdata/database/postgresql.sql | psql -h ${DBHOST} -p ${DBPORT} -U ${PPL7USER} -d ${DBNAME}
+cat testdata/database/postgresql.sql | psql -h ${DBHOST} -p ${DBPORT} -U ${PPLIBUSER} -d ${DBNAME}

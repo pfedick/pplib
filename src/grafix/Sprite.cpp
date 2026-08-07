@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -38,15 +37,17 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\page PFPSpriteTexture1 Format PFP Sprite-Textures, Version 1
  *
-Eine Texture-Sprite-Datei wird zum Speichern von Sprites verwendet, die mit der Klasse ppl7::grafix::Sprite
+Eine Texture-Sprite-Datei wird zum Speichern von Sprites verwendet, die mit der Klasse pplib::grafix::Sprite
 geladen und dargestellt werden können. Dabei werden viele einzelne kleine Sprite-Grafiken auf einer
 oder mehreren größeren Texturen zusammengefasst.
 Die Datei verwendet als Basisformat das \ref PFPFileVersion3 "PFP-File-Format Version 3" mit seinen Chunks.
@@ -66,16 +67,16 @@ Darauf folgt dann pro Sprite ein 22 Byte langer Block mit folgenden Daten:
 Byte 0:  ItemId                                       4 Byte
 Byte 4:  TextureId                                    2 Byte
 Byte 6:  TextureRect                                  8 Byte
-		 Byte 6:  left          (2 Byte)
-		 Byte 8:  top           (2 Byte)
-		 Byte 10: right         (2 Byte)
-		 Byte 12: bottom        (2 Byte)
+         Byte 6:  left          (2 Byte)
+         Byte 8:  top           (2 Byte)
+         Byte 10: right         (2 Byte)
+         Byte 12: bottom        (2 Byte)
 Byte 14: Pivot-Punkt                                  4 Byte
-		 Byte 14: x-Koordinate  (2 Byte)
-		 Byte 16: y-Koordinate  (2 Byte)
+         Byte 14: x-Koordinate  (2 Byte)
+         Byte 16: y-Koordinate  (2 Byte)
 Byte 18: Offset                                       4 Byte
-		 Byte 18: x-Koordinate  (2 Byte)
-		 Byte 20: y-Koordinate  (2 Byte)
+         Byte 18: x-Koordinate  (2 Byte)
+         Byte 20: y-Koordinate  (2 Byte)
 \endcode
 Sämtliche Werte müssen im Little-Endian-Format angegeben werden.
 
@@ -137,7 +138,7 @@ Pixel.
 </li>
 </ul>
 
-Die Pixel-Daten werden mit der Funktion ppl7::CCompression::CompressZlib komprimiert. Sie beginnen daher
+Die Pixel-Daten werden mit der Funktion pplib::CCompression::CompressZlib komprimiert. Sie beginnen daher
 mit einem 9-Byte langen Header, gefolgt von den eigentlichen Zlib-komprimierten Daten:
 \code
 Byte 0:  Komprimierunsart, ist immer 1 für Zlib       1 Byte
@@ -147,9 +148,6 @@ Byte 9:  Beginn des komprimierten Datenstroms
 \endcode
 
  */
-
-
-
 
 /*!\class Sprite
  * \ingroup PPLGroupGrafik
@@ -171,7 +169,6 @@ Byte 9:  Beginn des komprimierten Datenstroms
  * \brief Liste aller Sprites
  */
 
-
 Sprite::Sprite()
 /*!\brief Konstruktor der Klasse
  *
@@ -189,7 +186,7 @@ Sprite::~Sprite()
  * Texturen und Speicherbereiche der Klasse wieder freigegeben werden.
  */
 {
-	clear();
+    clear();
 }
 
 void Sprite::clear()
@@ -200,8 +197,8 @@ void Sprite::clear()
  * wieder freigegeben werden.
  */
 {
-	TextureList.clear();
-	SpriteList.clear();
+    TextureList.clear();
+    SpriteList.clear();
 }
 
 const Drawable* Sprite::findTexture(int id) const
@@ -214,11 +211,11 @@ const Drawable* Sprite::findTexture(int id) const
  * zurückgeliefert, andernfalls NULL.
  */
 {
-	auto it=TextureList.find(id);
-	if (it != TextureList.end()) {
-		return &it->second.surface;
-	}
-	return NULL;
+    auto it = TextureList.find(id);
+    if (it != TextureList.end()) {
+        return &it->second.surface;
+    }
+    return NULL;
 }
 
 void Sprite::loadIndex(PFPChunk* chunk)
@@ -233,28 +230,28 @@ void Sprite::loadIndex(PFPChunk* chunk)
  * liefert die Funktion true (1) zurück, andernfalls false (0).
  */
 {
-	char* buffer=(char*)chunk->data();
-	int num=Peek32(buffer);		// Anzahl Einträge in der Tabelle
-	char* p=buffer + 4;
-	SpriteIndexItem item;
-	for (int i=0;i < num;i++) {
-		item.id=Peek32(p + 0);
-		item.surface=findTexture(Peek16(p + 4));
-		item.r.x1=Peek16(p + 6 + 0);
-		item.r.y1=Peek16(p + 6 + 2);
-		item.r.x2=Peek16(p + 6 + 4) + 1;
-		item.r.y2=Peek16(p + 6 + 6) + 1;
-		item.Pivot.x=Peek16(p + 14 + 0);
-		item.Pivot.y=Peek16(p + 14 + 2);
-		item.Offset.x=Peek16(p + 18 + 0);
-		item.Offset.y=Peek16(p + 18 + 2);
-		/*
-		PrintDebug("Id: %i, (%i/%i)-(%i/%i)\n",
-			item->id,item->r.left,item->r.top,item->r.right,item->r.bottom);
-			*/
-		SpriteList.insert(std::pair<int, SpriteIndexItem>(item.id, item));
-		p+=22;
-	}
+    char* buffer = (char*)chunk->data();
+    int num = Peek32(buffer); // Anzahl Einträge in der Tabelle
+    char* p = buffer + 4;
+    SpriteIndexItem item;
+    for (int i = 0; i < num; i++) {
+        item.id = Peek32(p + 0);
+        item.surface = findTexture(Peek16(p + 4));
+        item.r.x1 = Peek16(p + 6 + 0);
+        item.r.y1 = Peek16(p + 6 + 2);
+        item.r.x2 = Peek16(p + 6 + 4) + 1;
+        item.r.y2 = Peek16(p + 6 + 6) + 1;
+        item.Pivot.x = Peek16(p + 14 + 0);
+        item.Pivot.y = Peek16(p + 14 + 2);
+        item.Offset.x = Peek16(p + 18 + 0);
+        item.Offset.y = Peek16(p + 18 + 2);
+        /*
+        PrintDebug("Id: %i, (%i/%i)-(%i/%i)\n",
+            item->id,item->r.left,item->r.top,item->r.right,item->r.bottom);
+            */
+        SpriteList.insert(std::pair<int, SpriteIndexItem>(item.id, item));
+        p += 22;
+    }
 }
 
 void Sprite::loadTexture(PFPChunk* chunk)
@@ -266,43 +263,44 @@ void Sprite::loadTexture(PFPChunk* chunk)
  *
  * \param[in] chunk Pointer auf den zu ladenden SURF-Chunk
  * \param[in] flags Flags, mit dem das Texture-Surfaces erstellt werden soll.
- * Dies ist eine Kombination der Werte innerhalb der Enumeration ppl7::grafix::Surface::Flags
+ * Dies ist eine Kombination der Werte innerhalb der Enumeration pplib::grafix::Surface::Flags
  * \returns Konnte die Textur erfolgreich geladen werden,
  * liefert die Funktion true (1) zurück, andernfalls false (0).
  */
 {
-	Compression Comp;
-	Comp.usePrefix(Compression::Prefix_V2);
-	char* buffer=(char*)chunk->data();
-	// Textur anlegen
-	SpriteTexture tex;
-	// Zunächst lesen wir dem Header
-	tex.id=Peek16(buffer + 0);
-	int rgbformat=Peek8(buffer + 2);
-	switch (rgbformat) {
-		case 9: tex.rgbformat=RGBFormat::A8R8G8B8;
-			break;
-		default:
-			throw UnsupportedColorFormatException();
-	}
-	tex.bitdepth=Peek8(buffer + 3);
-	tex.width=Peek16(buffer + 4);
-	tex.height=Peek16(buffer + 6);
-	// Nutzdaten dekomprimieren
-	ByteArray uncompressed;
-	Comp.uncompress(uncompressed, buffer + 8, chunk->size() - 8);
-	buffer=(char*)uncompressed.ptr();
-	// Nun erstellen wir ein neues Surface
-	tex.surface.create(tex.width, tex.height, tex.rgbformat);
-	for (int y=0;y < tex.height;y++) {
-		for (int x=0;x < tex.width;x++) {
-			if (tex.rgbformat == RGBFormat::A8R8G8B8) {
-				tex.surface.putPixel(x, y, Color(Peek8(buffer + 2), Peek8(buffer + 1), Peek8(buffer), Peek8(buffer + 3)));
-				buffer+=4;
-			}
-		}
-	}
-	TextureList.insert(std::pair<int, SpriteTexture>(tex.id, tex));
+    Compression Comp;
+    Comp.usePrefix(Compression::Prefix_V2);
+    char* buffer = (char*)chunk->data();
+    // Textur anlegen
+    SpriteTexture tex;
+    // Zunächst lesen wir dem Header
+    tex.id = Peek16(buffer + 0);
+    int rgbformat = Peek8(buffer + 2);
+    switch (rgbformat) {
+    case 9:
+        tex.rgbformat = RGBFormat::A8R8G8B8;
+        break;
+    default:
+        throw UnsupportedColorFormatException();
+    }
+    tex.bitdepth = Peek8(buffer + 3);
+    tex.width = Peek16(buffer + 4);
+    tex.height = Peek16(buffer + 6);
+    // Nutzdaten dekomprimieren
+    ByteArray uncompressed;
+    Comp.uncompress(uncompressed, buffer + 8, chunk->size() - 8);
+    buffer = (char*)uncompressed.ptr();
+    // Nun erstellen wir ein neues Surface
+    tex.surface.create(tex.width, tex.height, tex.rgbformat);
+    for (int y = 0; y < tex.height; y++) {
+        for (int x = 0; x < tex.width; x++) {
+            if (tex.rgbformat == RGBFormat::A8R8G8B8) {
+                tex.surface.putPixel(x, y, Color(Peek8(buffer + 2), Peek8(buffer + 1), Peek8(buffer), Peek8(buffer + 3)));
+                buffer += 4;
+            }
+        }
+    }
+    TextureList.insert(std::pair<int, SpriteTexture>(tex.id, tex));
 }
 
 void Sprite::load(const String& filename)
@@ -313,14 +311,14 @@ void Sprite::load(const String& filename)
  *
  * \param[in] filename Name der zu ladenden Datei
  * \param[in] flags Flags mit der die Textur-Surfaces erstellt werden sollen. Dies ist eine Kombination der Werte
- * innerhalb der Enumeration ppl7::grafix::Surface::Flags
+ * innerhalb der Enumeration pplib::grafix::Surface::Flags
  * \returns Konnte die Datei erfolgreich geladern werden, gibt die Funktion 1 (true) zurück,
  * im Fehlerfall 0 (false). Im Fehlerfall wird ein entsprechender Fehlercode gesetzt.
  */
 {
-	File ff;
-	ff.open(filename);
-	load(ff);
+    File ff;
+    ff.open(filename);
+    load(ff);
 }
 
 void Sprite::load(FileObject& ff)
@@ -331,29 +329,29 @@ void Sprite::load(FileObject& ff)
  *
  * \param[in] ff Pointer auf die CFileObject-Klasse, die die Daten enthält.
  * \param[in] flags Flags mit der die Textur-Surfaces erstellt werden sollen. Dies ist eine Kombination der Werte
- * innerhalb der Enumeration ppl7::grafix::Surface::Flags
+ * innerhalb der Enumeration pplib::grafix::Surface::Flags
  * \returns Konnte die Datei erfolgreich geladern werden, gibt die Funktion 1 (true) zurück,
  * im Fehlerfall 0 (false). Im Fehlerfall wird ein entsprechender Fehlercode gesetzt.
  */
 {
-	PFPFile File;
-	clear();
-	File.load(ff);
-	int major, minor;
-	File.getVersion(&major, &minor);
-	if (File.getID() != "TEXS" || major != 1 || minor != 0) throw InvalidSpriteException();
-	// Texture Chunks laden
-	PFPChunk* chunk;
-	PFPFile::Iterator it;
-	File.reset(it);
-	while ((chunk=File.findNextChunk(it, "SURF"))) {
-		loadTexture(chunk);
-	}
-	// Index Chunks laden
-	File.reset(it);
-	while ((chunk=File.findNextChunk(it, "INDX"))) {
-		loadIndex(chunk);
-	}
+    PFPFile File;
+    clear();
+    File.load(ff);
+    int major, minor;
+    File.getVersion(&major, &minor);
+    if (File.getID() != "TEXS" || major != 1 || minor != 0) throw InvalidSpriteException();
+    // Texture Chunks laden
+    PFPChunk* chunk;
+    PFPFile::Iterator it;
+    File.reset(it);
+    while ((chunk = File.findNextChunk(it, "SURF"))) {
+        loadTexture(chunk);
+    }
+    // Index Chunks laden
+    File.reset(it);
+    while ((chunk = File.findNextChunk(it, "INDX"))) {
+        loadIndex(chunk);
+    }
 }
 
 void Sprite::draw(Drawable& target, int x, int y, int id) const
@@ -369,13 +367,13 @@ void Sprite::draw(Drawable& target, int x, int y, int id) const
  * \returns Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	// Sprite im Index finden
-	auto it=SpriteList.find(id);
-	if (it != SpriteList.end()) {
-		const SpriteIndexItem& item=it->second;
+    // Sprite im Index finden
+    auto it = SpriteList.find(id);
+    if (it != SpriteList.end()) {
+        const SpriteIndexItem& item = it->second;
 
-		target.bltAlpha(*item.surface, item.r, x + item.Offset.x - item.Pivot.x, y + item.Offset.y - item.Pivot.y);
-	}
+        target.bltAlpha(*item.surface, item.r, x + item.Offset.x - item.Pivot.x, y + item.Offset.y - item.Pivot.y);
+    }
 }
 
 int Sprite::numTextures() const
@@ -386,7 +384,7 @@ int Sprite::numTextures() const
  * \returns Anzahl Texturen oder 0, wenn keine geladen sind.
  */
 {
-	return (int)TextureList.size();
+    return (int)TextureList.size();
 }
 
 int Sprite::numSprites() const
@@ -397,10 +395,8 @@ int Sprite::numSprites() const
  * \returns Anzahl Sprites oder 0, wenn keine geladen sind.
  */
 {
-	return (int)SpriteList.size();
+    return (int)SpriteList.size();
 }
 
-
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace pplib

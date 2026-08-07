@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -32,9 +32,9 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <pplib.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
 namespace
 {
@@ -58,37 +58,37 @@ protected:
 TEST_F(ByteArrayTest, ConstructorSimple)
 {
     ASSERT_NO_THROW({
-        ppl7::ByteArray b1;
+        pplib::ByteArray b1;
         ASSERT_TRUE(b1.isNull() == true) << "Array is not empty";
     });
 }
 
 TEST_F(ByteArrayTest, CopyConstructorWithEmptyObject)
 {
-    ppl7::ByteArray b1;
-    ASSERT_NO_THROW({ ppl7::ByteArray b2(b1); });
+    pplib::ByteArray b1;
+    ASSERT_NO_THROW({ pplib::ByteArray b2(b1); });
 }
 
 TEST_F(ByteArrayTest, AssignmentWithEmptyObject)
 {
-    ppl7::ByteArray b1;
-    ASSERT_NO_THROW({ ppl7::ByteArray b2 = b1; });
+    pplib::ByteArray b1;
+    ASSERT_NO_THROW({ pplib::ByteArray b2 = b1; });
     ASSERT_NO_THROW({
-        ppl7::ByteArray b3;
+        pplib::ByteArray b3;
         b3 = b1;
     });
 
-    ppl7::ByteArray b4;
+    pplib::ByteArray b4;
     b4 = b1;
 }
 
 TEST_F(ByteArrayTest, load_and_base64)
 {
-    ppl7::ByteArray ba;
-    ppl7::File::load(ba, "testdata/screenshot1.png");
+    pplib::ByteArray ba;
+    pplib::File::load(ba, "testdata/screenshot1.png");
     ASSERT_EQ((size_t)59627, ba.size());
-    ppl7::String ba64 = ba.toBase64();
-    ppl7::ByteArray ba2 = ppl7::FromBase64(ba64);
+    pplib::String ba64 = ba.toBase64();
+    pplib::ByteArray ba2 = pplib::FromBase64(ba64);
     ASSERT_EQ((size_t)59627, ba2.size());
 }
 
@@ -99,8 +99,8 @@ static unsigned char memBlock2[] = {123, 77, 42, 200, 192, 16, 9};
 
 TEST_F(ByteArrayTest, operators_equal)
 {
-    ppl7::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
-    ppl7::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
+    pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
+    pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
     ASSERT_FALSE(b1 < b2);
     ASSERT_TRUE(b1 <= b2);
     ASSERT_TRUE(b1 == b2);
@@ -111,8 +111,8 @@ TEST_F(ByteArrayTest, operators_equal)
 
 TEST_F(ByteArrayTest, operators_lower)
 {
-    ppl7::ByteArrayPtr b1(memBlock2, sizeof(memBlock2));
-    ppl7::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
+    pplib::ByteArrayPtr b1(memBlock2, sizeof(memBlock2));
+    pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
     ASSERT_TRUE(b1 < b2);
     ASSERT_TRUE(b1 <= b2);
     ASSERT_FALSE(b1 == b2);
@@ -123,8 +123,8 @@ TEST_F(ByteArrayTest, operators_lower)
 
 TEST_F(ByteArrayTest, operators_greater)
 {
-    ppl7::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
-    ppl7::ByteArrayPtr b2(memBlock2, sizeof(memBlock2));
+    pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
+    pplib::ByteArrayPtr b2(memBlock2, sizeof(memBlock2));
     ASSERT_FALSE(b1 < b2);
     ASSERT_FALSE(b1 <= b2);
     ASSERT_FALSE(b1 == b2);

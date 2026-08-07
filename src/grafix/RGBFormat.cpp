@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -46,11 +46,12 @@
 #include <math.h>
 #endif
 
-#include "ppl7-grafix.h"
+#include "pplib-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
-
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\class RGBFormat
  * \ingroup PPLGroupGrafik
@@ -103,7 +104,6 @@ namespace grafix {
  * 8-Bit der Alphakanal (Transparenz).
  */
 
-
 /*!\var RGBFormat::Identifier RGBFormat::X1R5G5B5
  * \brief 16-Bit High-Color, 5 Bit für Rot, 5 Bit für Grün und 5 Bit für Blau,
  * wobei Blau in den unteren Bits enthalten ist und das höchstwertige Bit
@@ -145,7 +145,6 @@ namespace grafix {
  * 4-Bit der Alphakanal (Transparenz).
  */
 
-
 /*!\var RGBFormat::Identifier RGBFormat::R8G8B8
  * \brief 24-Bit Truecolor, jeweils 8 Bit für Rot, Grün und Blau,
  * wobei Blau im untersten Byte gespeichert wird.
@@ -176,7 +175,6 @@ namespace grafix {
  * wobei Rot im untersten Byte gespeichert wird und das höchste Byte unbenutzt ist
  */
 
-
 /*!\var RGBFormat::Identifier RGBFormat::A16R16G16B16
  * \brief 64-Bit Truecolor, jeweils 16 Bit für den Alpha-Wert, Rot, Grün und Blau,
  * wobei Blau im untersten Doppelbyte gespeichert wird der Alpha-Kanal im obersten.
@@ -187,7 +185,6 @@ namespace grafix {
  * wobei Rot im untersten Doppelbyte gespeichert wird und das oberste Doppelbyte
  * unbenutzt ist.
  */
-
 
 /*!\var RGBFormat::Identifier RGBFormat::GREY8
  * \brief 8-Bit Graustufen
@@ -205,7 +202,6 @@ namespace grafix {
  * \brief Marker für den höchsten Identifier. Wird intern von der Klasse CGrafix verwendet.
  */
 
-
 /*!\var RGBFormat::f
  * \brief Interne Variable zum Speichern des Farbformats
  *
@@ -221,7 +217,7 @@ namespace grafix {
  */
 RGBFormat::RGBFormat()
 {
-	f=unknown;
+    f = unknown;
 }
 
 /*!\brief Konstruktor mit Identifier
@@ -233,7 +229,7 @@ RGBFormat::RGBFormat()
  */
 RGBFormat::RGBFormat(Identifier id)
 {
-	f=id;
+    f = id;
 }
 
 /*!\brief Konstruktor mit Namen
@@ -250,9 +246,9 @@ RGBFormat::RGBFormat(Identifier id)
  * RGBFormat rgb("A8R8B8G8");
  * \endcode
  */
-RGBFormat::RGBFormat(const String &Identifier)
+RGBFormat::RGBFormat(const String& Identifier)
 {
-	setFormat(Identifier);
+    setFormat(Identifier);
 }
 
 /*!\brief Farbformat Anhand einer ID festlegen
@@ -265,8 +261,8 @@ RGBFormat::RGBFormat(const String &Identifier)
  */
 void RGBFormat::setFormat(Identifier id)
 {
-	if (id<unknown || id>=MaxIdentifiers) throw UnknownColorFormatException();
-	f=id;
+    if (id < unknown || id >= MaxIdentifiers) throw UnknownColorFormatException();
+    f = id;
 }
 
 /*!\brief Farbformat anhand seines Namens festlegen
@@ -286,31 +282,51 @@ void RGBFormat::setFormat(Identifier id)
  * \exception UnknownColorFormatException Wird geworfen, wenn der \p Identifier nicht
  * erkannt wurde.
  */
-void RGBFormat::setFormat(const String &Identifier)
+void RGBFormat::setFormat(const String& Identifier)
 {
-	if (Identifier=="Palette") f=Palette;
-	else if (Identifier=="R5G6B5") f=R5G6B5;
-	else if (Identifier=="B5G6R5") f=B5G6R5;
-	else if (Identifier=="X1R5G5B5") f=X1R5G5B5;
-	else if (Identifier=="X1B5G5R5") f=X1B5G5R5;
-	else if (Identifier=="X4R4G4B4") f=X4R4G4B4;
-	else if (Identifier=="A1R5G5B5") f=A1R5G5B5;
-	else if (Identifier=="A1B5G5R5") f=A1B5G5R5;
-	else if (Identifier=="A4R4G4B4") f=A4R4G4B4;
-	else if (Identifier=="R8G8B8") f=R8G8B8;
-	else if (Identifier=="B8G8R8") f=B8G8R8;
-	else if (Identifier=="A8R8G8B8") f=A8R8G8B8;
-	else if (Identifier=="A8B8G8R8") f=A8B8G8R8;
-	else if (Identifier=="R3G3B2") f=R3G3B2;
-	else if (Identifier=="A8") f=A8;
-	else if (Identifier=="A8R3G3B2") f=A8R3G3B2;
-	else if (Identifier=="X8R8G8B8") f=X8R8G8B8;
-	else if (Identifier=="X8B8G8R8") f=X8B8G8R8;
-	else if (Identifier=="GREY8") f=GREY8;
-	else if (Identifier=="GREYALPHA32") f=GREYALPHA32;
-	else {
-		throw UnknownColorFormatException(Identifier);
-	}
+    if (Identifier == "Palette")
+        f = Palette;
+    else if (Identifier == "R5G6B5")
+        f = R5G6B5;
+    else if (Identifier == "B5G6R5")
+        f = B5G6R5;
+    else if (Identifier == "X1R5G5B5")
+        f = X1R5G5B5;
+    else if (Identifier == "X1B5G5R5")
+        f = X1B5G5R5;
+    else if (Identifier == "X4R4G4B4")
+        f = X4R4G4B4;
+    else if (Identifier == "A1R5G5B5")
+        f = A1R5G5B5;
+    else if (Identifier == "A1B5G5R5")
+        f = A1B5G5R5;
+    else if (Identifier == "A4R4G4B4")
+        f = A4R4G4B4;
+    else if (Identifier == "R8G8B8")
+        f = R8G8B8;
+    else if (Identifier == "B8G8R8")
+        f = B8G8R8;
+    else if (Identifier == "A8R8G8B8")
+        f = A8R8G8B8;
+    else if (Identifier == "A8B8G8R8")
+        f = A8B8G8R8;
+    else if (Identifier == "R3G3B2")
+        f = R3G3B2;
+    else if (Identifier == "A8")
+        f = A8;
+    else if (Identifier == "A8R3G3B2")
+        f = A8R3G3B2;
+    else if (Identifier == "X8R8G8B8")
+        f = X8R8G8B8;
+    else if (Identifier == "X8B8G8R8")
+        f = X8B8G8R8;
+    else if (Identifier == "GREY8")
+        f = GREY8;
+    else if (Identifier == "GREYALPHA32")
+        f = GREYALPHA32;
+    else {
+        throw UnknownColorFormatException(Identifier);
+    }
 }
 
 /*!\brief Integer-Wert des Farbformats auslesen
@@ -323,7 +339,7 @@ void RGBFormat::setFormat(const String &Identifier)
  */
 int RGBFormat::format() const
 {
-	return f;
+    return f;
 }
 
 /*!\brief Name des Farbformates
@@ -336,29 +352,49 @@ int RGBFormat::format() const
  */
 String RGBFormat::name() const
 {
-	switch (f) {
-		case RGBFormat::Palette: return "Palette";
-		case RGBFormat::R5G6B5: return "R5G6B5";
-		case RGBFormat::B5G6R5: return "B5G6R5";
-		case RGBFormat::X1R5G5B5: return "X1R5G5B5";
-		case RGBFormat::X1B5G5R5: return "X1B5G5R5";
-		case RGBFormat::X4R4G4B4: return "X4R4G4B4";
-		case RGBFormat::A1R5G5B5: return "A1R5G5B5";
-		case RGBFormat::A1B5G5R5: return "A1B5G5R5";
-		case RGBFormat::A4R4G4B4: return "A4R4G4B4";
-		case RGBFormat::R8G8B8: return "R8G8B8";
-		case RGBFormat::B8G8R8: return "B8G8R8";
-		case RGBFormat::A8R8G8B8: return "A8R8G8B8";
-		case RGBFormat::A8B8G8R8: return "A8B8G8R8";
-		case RGBFormat::R3G3B2: return "R3G3B2";
-		case RGBFormat::A8: return "A8";
-		case RGBFormat::A8R3G3B2: return "A8R3G3B2";
-		case RGBFormat::X8R8G8B8: return "X8R8G8B8";
-		case RGBFormat::X8B8G8R8: return "X8B8G8R8";
-		case RGBFormat::GREY8: return "GREY8";
-		case RGBFormat::GREYALPHA32: return "GREYALPHA32";
-	}
-	return "unknown";
+    switch (f) {
+    case RGBFormat::Palette:
+        return "Palette";
+    case RGBFormat::R5G6B5:
+        return "R5G6B5";
+    case RGBFormat::B5G6R5:
+        return "B5G6R5";
+    case RGBFormat::X1R5G5B5:
+        return "X1R5G5B5";
+    case RGBFormat::X1B5G5R5:
+        return "X1B5G5R5";
+    case RGBFormat::X4R4G4B4:
+        return "X4R4G4B4";
+    case RGBFormat::A1R5G5B5:
+        return "A1R5G5B5";
+    case RGBFormat::A1B5G5R5:
+        return "A1B5G5R5";
+    case RGBFormat::A4R4G4B4:
+        return "A4R4G4B4";
+    case RGBFormat::R8G8B8:
+        return "R8G8B8";
+    case RGBFormat::B8G8R8:
+        return "B8G8R8";
+    case RGBFormat::A8R8G8B8:
+        return "A8R8G8B8";
+    case RGBFormat::A8B8G8R8:
+        return "A8B8G8R8";
+    case RGBFormat::R3G3B2:
+        return "R3G3B2";
+    case RGBFormat::A8:
+        return "A8";
+    case RGBFormat::A8R3G3B2:
+        return "A8R3G3B2";
+    case RGBFormat::X8R8G8B8:
+        return "X8R8G8B8";
+    case RGBFormat::X8B8G8R8:
+        return "X8B8G8R8";
+    case RGBFormat::GREY8:
+        return "GREY8";
+    case RGBFormat::GREYALPHA32:
+        return "GREYALPHA32";
+    }
+    return "unknown";
 }
 
 /*!\brief Bittiefe des Farbformates
@@ -372,33 +408,33 @@ String RGBFormat::name() const
  */
 int RGBFormat::bitdepth() const
 {
-	switch(f) {
-		case RGBFormat::Palette:
-		case RGBFormat::A8:
-		case RGBFormat::R3G3B2:
-		case RGBFormat::GREY8:
-			return 8;
-		case RGBFormat::R5G6B5:
-		case RGBFormat::B5G6R5:
-		case RGBFormat::X1R5G5B5:
-		case RGBFormat::X1B5G5R5:
-		case RGBFormat::X4R4G4B4:
-		case RGBFormat::A1R5G5B5:
-		case RGBFormat::A1B5G5R5:
-		case RGBFormat::A4R4G4B4:
-		case RGBFormat::A8R3G3B2:
-			return 16;
-		case RGBFormat::R8G8B8:
-		case RGBFormat::B8G8R8:
-			return 24;
-		case RGBFormat::A8R8G8B8:
-		case RGBFormat::A8B8G8R8:
-		case RGBFormat::X8R8G8B8:
-		case RGBFormat::X8B8G8R8:
-		case RGBFormat::GREYALPHA32:
-			return 32;
-	};
-	return 0;
+    switch (f) {
+    case RGBFormat::Palette:
+    case RGBFormat::A8:
+    case RGBFormat::R3G3B2:
+    case RGBFormat::GREY8:
+        return 8;
+    case RGBFormat::R5G6B5:
+    case RGBFormat::B5G6R5:
+    case RGBFormat::X1R5G5B5:
+    case RGBFormat::X1B5G5R5:
+    case RGBFormat::X4R4G4B4:
+    case RGBFormat::A1R5G5B5:
+    case RGBFormat::A1B5G5R5:
+    case RGBFormat::A4R4G4B4:
+    case RGBFormat::A8R3G3B2:
+        return 16;
+    case RGBFormat::R8G8B8:
+    case RGBFormat::B8G8R8:
+        return 24;
+    case RGBFormat::A8R8G8B8:
+    case RGBFormat::A8B8G8R8:
+    case RGBFormat::X8R8G8B8:
+    case RGBFormat::X8B8G8R8:
+    case RGBFormat::GREYALPHA32:
+        return 32;
+    };
+    return 0;
 }
 
 /*!\brief Anzahl erforderlicher Bits zur Darstellung eines Pixels.
@@ -412,7 +448,7 @@ int RGBFormat::bitdepth() const
  */
 int RGBFormat::bitsPerPixel() const
 {
-	return bitdepth();
+    return bitdepth();
 }
 
 /*!\brief Anzahl Bytes pro Pixel
@@ -426,7 +462,7 @@ int RGBFormat::bitsPerPixel() const
  */
 int RGBFormat::bytesPerPixel() const
 {
-	return bitdepth()>>3;
+    return bitdepth() >> 3;
 }
 
 /*!\brief Farbformat Anhand eines Identifiers setzten
@@ -438,10 +474,10 @@ int RGBFormat::bytesPerPixel() const
  * @param[in] id Wert aus der Enumeration RGBFormat::Identifier
  * @return Liefert eine Referenz auf die Klasse zurück.
  */
-RGBFormat &RGBFormat::operator=(Identifier id)
+RGBFormat& RGBFormat::operator=(Identifier id)
 {
-	f=id;
-	return *this;
+    f = id;
+    return *this;
 }
 
 /*!\brief Integer-Wert des Farbformats auslesen
@@ -454,7 +490,7 @@ RGBFormat &RGBFormat::operator=(Identifier id)
  */
 RGBFormat::operator int() const
 {
-	return f;
+    return f;
 }
 
 /*!\brief Zwei Farbformate vergleichen
@@ -471,10 +507,10 @@ RGBFormat::operator int() const
  * verwendet, liefert die Funktion \c true zurück, wenn die beiden Farbformate unterschiedlich sind, sonst
  * \c true.
  */
-bool operator!= (const RGBFormat &r1, const RGBFormat &r2)
+bool operator!=(const RGBFormat& r1, const RGBFormat& r2)
 {
-	if (r1.f!=r2.f) return true;
-	return false;
+    if (r1.f != r2.f) return true;
+    return false;
 }
 
 /*!\brief Zwei Farbformate vergleichen
@@ -491,10 +527,10 @@ bool operator!= (const RGBFormat &r1, const RGBFormat &r2)
  * verwendet, liefert die Funktion \c true zurück, wenn die beiden Farbformate unterschiedlich sind, sonst
  * \c true.
  */
-bool operator== (const RGBFormat &r1, const RGBFormat &r2)
+bool operator==(const RGBFormat& r1, const RGBFormat& r2)
 {
-	if (r1.f==r2.f) return true;
-	return false;
+    if (r1.f == r2.f) return true;
+    return false;
 }
 
 /*!\brief Zwei Farbformate vergleichen
@@ -511,10 +547,10 @@ bool operator== (const RGBFormat &r1, const RGBFormat &r2)
  * verwendet, liefert die Funktion \c true zurück, wenn die beiden Farbformate unterschiedlich sind, sonst
  * \c true.
  */
-bool operator!= (const RGBFormat &r1, RGBFormat::Identifier r2)
+bool operator!=(const RGBFormat& r1, RGBFormat::Identifier r2)
 {
-	if (r1.f!=r2) return true;
-	return false;
+    if (r1.f != r2) return true;
+    return false;
 }
 
 /*!\brief Zwei Farbformate vergleichen
@@ -531,10 +567,10 @@ bool operator!= (const RGBFormat &r1, RGBFormat::Identifier r2)
  * verwendet, liefert die Funktion \c true zurück, wenn die beiden Farbformate unterschiedlich sind, sonst
  * \c true.
  */
-bool operator== (const RGBFormat &r1, RGBFormat::Identifier r2)
+bool operator==(const RGBFormat& r1, RGBFormat::Identifier r2)
 {
-	if (r1.f==r2) return true;
-	return false;
+    if (r1.f == r2) return true;
+    return false;
 }
 
 /*!\brief Zwei Farbformate vergleichen
@@ -551,10 +587,10 @@ bool operator== (const RGBFormat &r1, RGBFormat::Identifier r2)
  * verwendet, liefert die Funktion \c true zurück, wenn die beiden Farbformate unterschiedlich sind, sonst
  * \c true.
  */
-bool operator!= (RGBFormat::Identifier r1, const RGBFormat &r2)
+bool operator!=(RGBFormat::Identifier r1, const RGBFormat& r2)
 {
-	if (r1!=r2.f) return true;
-	return false;
+    if (r1 != r2.f) return true;
+    return false;
 }
 
 /*!\brief Zwei Farbformate vergleichen
@@ -571,12 +607,11 @@ bool operator!= (RGBFormat::Identifier r1, const RGBFormat &r2)
  * verwendet, liefert die Funktion \c true zurück, wenn die beiden Farbformate unterschiedlich sind, sonst
  * \c true.
  */
-bool operator== (RGBFormat::Identifier r1, const RGBFormat &r2)
+bool operator==(RGBFormat::Identifier r1, const RGBFormat& r2)
 {
-	if (r1==r2.f) return true;
-	return false;
+    if (r1 == r2.f) return true;
+    return false;
 }
 
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace pplib

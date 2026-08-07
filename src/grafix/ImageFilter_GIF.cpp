@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -42,11 +42,13 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\class ImageFilter_GIF
  * \ingroup PPLGroupGrafik
@@ -68,25 +70,25 @@ namespace grafix {
  * \endcode
  */
 
-#define        MAXCOLORMAPSIZE         256
+#define MAXCOLORMAPSIZE 256
 
-#define        TRUE    1
-#define        FALSE   0
+#define TRUE 1
+#define FALSE 0
 
-#define CM_RED         0
-#define CM_GREEN       1
-#define CM_BLUE                2
+#define CM_RED 0
+#define CM_GREEN 1
+#define CM_BLUE 2
 
-#define        MAX_LWZ_BITS            12
+#define MAX_LWZ_BITS 12
 
-#define INTERLACE              0x40
-#define LOCALCOLORMAP  0x80
-#define BitSet(byte, bit)      (((byte) & (bit)) == (bit))
+#define INTERLACE 0x40
+#define LOCALCOLORMAP 0x80
+#define BitSet(byte, bit) (((byte) & (bit)) == (bit))
 
-//#define        ReadOK(file,buffer,len) (fread(buffer, len, 1, file) != 0)
-#define        ReadOK(file,buffer,len) (file->read((char *)buffer, len) != 0)
+// #define        ReadOK(file,buffer,len) (fread(buffer, len, 1, file) != 0)
+#define ReadOK(file, buffer, len) (file->read((char*)buffer, len) != 0)
 
-#define LM_to_uint(a,b)                        (((b)<<8)|(a))
+#define LM_to_uint(a, b) (((b) << 8) | (a))
 
 /* We may eventually want to use this information, but def it out for now */
 #if 0
@@ -101,321 +103,316 @@ static struct {
 } GifScreen;
 #endif
 
-static struct {
-       int     transparent;
-       int     delayTime;
-       int     inputFlag;
-       int     disposal;
-} Gif89 = { -1, -1, -1, 0 };
+static struct
+{
+    int transparent;
+    int delayTime;
+    int inputFlag;
+    int disposal;
+} Gif89 = {-1, -1, -1, 0};
 
-static int ReadColorMap (FileObject *fd, int number, unsigned char (*buffer)[256]);
-static int DoExtension (FileObject *fd, int label, int *Transparent);
-static int GetDataBlock (FileObject *fd, unsigned char *buf);
-static int GetCode (FileObject *fd, int code_size, int flag);
-static int LWZReadByte (FileObject *fd, int flag, int input_code_size);
-//static void ReadImage (gdImagePtr im, FILE *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore);
-static void ReadImage (Drawable &surface, FileObject *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore);
+static int ReadColorMap(FileObject* fd, int number, unsigned char (*buffer)[256]);
+static int DoExtension(FileObject* fd, int label, int* Transparent);
+static int GetDataBlock(FileObject* fd, unsigned char* buf);
+static int GetCode(FileObject* fd, int code_size, int flag);
+static int LWZReadByte(FileObject* fd, int flag, int input_code_size);
+// static void ReadImage (gdImagePtr im, FILE *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore);
+static void ReadImage(Drawable& surface, FileObject* fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore);
 
 static int ZeroDataBlock;
 
-
-static int ReadColorMap(FileObject *fd, int number, unsigned char (*buffer)[256])
+static int ReadColorMap(FileObject* fd, int number, unsigned char (*buffer)[256])
 {
-       int             i;
-       unsigned char   rgb[3];
+    int i;
+    unsigned char rgb[3];
 
+    for (i = 0; i < number; ++i) {
+        if (!ReadOK(fd, rgb, sizeof(rgb))) {
+            return TRUE;
+        }
+        buffer[CM_RED][i] = rgb[0];
+        buffer[CM_GREEN][i] = rgb[1];
+        buffer[CM_BLUE][i] = rgb[2];
+    }
 
-       for (i = 0; i < number; ++i) {
-               if (! ReadOK(fd, rgb, sizeof(rgb))) {
-                       return TRUE;
-               }
-               buffer[CM_RED][i] = rgb[0] ;
-               buffer[CM_GREEN][i] = rgb[1] ;
-               buffer[CM_BLUE][i] = rgb[2] ;
-       }
-
-
-       return FALSE;
+    return FALSE;
 }
 
-static int DoExtension(FileObject *fd, int label, int *Transparent)
+static int DoExtension(FileObject* fd, int label, int* Transparent)
 {
-       static unsigned char     buf[256];
+    static unsigned char buf[256];
 
-       switch (label) {
-       case 0xf9:              /* Graphic Control Extension */
-               (void) GetDataBlock(fd, (unsigned char*) buf);
-               Gif89.disposal    = (buf[0] >> 2) & 0x7;
-               Gif89.inputFlag   = (buf[0] >> 1) & 0x1;
-               Gif89.delayTime   = LM_to_uint(buf[1],buf[2]);
-               if ((buf[0] & 0x1) != 0)
-                       *Transparent = buf[3];
+    switch (label) {
+    case 0xf9: /* Graphic Control Extension */
+        (void)GetDataBlock(fd, (unsigned char*)buf);
+        Gif89.disposal = (buf[0] >> 2) & 0x7;
+        Gif89.inputFlag = (buf[0] >> 1) & 0x1;
+        Gif89.delayTime = LM_to_uint(buf[1], buf[2]);
+        if ((buf[0] & 0x1) != 0) *Transparent = buf[3];
 
-               while (GetDataBlock(fd, (unsigned char*) buf) != 0)
-                       ;
-               return FALSE;
-       default:
-               break;
-       }
-       while (GetDataBlock(fd, (unsigned char*) buf) != 0)
-               ;
+        while (GetDataBlock(fd, (unsigned char*)buf) != 0)
+            ;
+        return FALSE;
+    default:
+        break;
+    }
+    while (GetDataBlock(fd, (unsigned char*)buf) != 0)
+        ;
 
-       return FALSE;
+    return FALSE;
 }
 
-
-static int GetDataBlock(FileObject *fd, unsigned char *buf)
+static int GetDataBlock(FileObject* fd, unsigned char* buf)
 {
-       unsigned char   count;
+    unsigned char count;
 
-       if (! ReadOK(fd,&count,1)) {
-               return -1;
-       }
+    if (!ReadOK(fd, &count, 1)) {
+        return -1;
+    }
 
-       ZeroDataBlock = count == 0;
+    ZeroDataBlock = count == 0;
 
-       if ((count != 0) && (! ReadOK(fd, buf, count))) {
-               return -1;
-       }
+    if ((count != 0) && (!ReadOK(fd, buf, count))) {
+        return -1;
+    }
 
-       return count;
+    return count;
 }
 
-static int GetCode(FileObject *fd, int code_size, int flag)
+static int GetCode(FileObject* fd, int code_size, int flag)
 {
-	//TODO: Nicht threadsafe!
-	static unsigned char buf[280];
-	static int curbit, lastbit, done, last_byte;
-	int i, j, ret;
+    // TODO: Nicht threadsafe!
+    static unsigned char buf[280];
+    static int curbit, lastbit, done, last_byte;
+    int i, j, ret;
 
-	if (flag) {
-		curbit = 0;
-		lastbit = 0;
-		done = FALSE;
-		return 0;
-	}
+    if (flag) {
+        curbit = 0;
+        lastbit = 0;
+        done = FALSE;
+        return 0;
+    }
 
-	if ((curbit + code_size) >= lastbit) {
-		if (done) {
-			if (curbit >= lastbit) {
-				/* Oh well */
-			}
-			return -1;
-		}
-		buf[0] = buf[last_byte - 2];
-		buf[1] = buf[last_byte - 1];
+    if ((curbit + code_size) >= lastbit) {
+        if (done) {
+            if (curbit >= lastbit) {
+                /* Oh well */
+            }
+            return -1;
+        }
+        buf[0] = buf[last_byte - 2];
+        buf[1] = buf[last_byte - 1];
 
-		int count;
-		if ((count = GetDataBlock(fd, &buf[2])) == 0)
-			done = TRUE;
+        int count;
+        if ((count = GetDataBlock(fd, &buf[2])) == 0) done = TRUE;
 
-		last_byte = 2 + count;
-		curbit = (curbit - lastbit) + 16;
-		lastbit = (2 + count) * 8;
-	}
+        last_byte = 2 + count;
+        curbit = (curbit - lastbit) + 16;
+        lastbit = (2 + count) * 8;
+    }
 
-	ret = 0;
-	for (i = curbit, j = 0; j < code_size; ++i, ++j)
-		ret |= ((buf[i / 8] & (1 << (i % 8))) != 0) << j;
+    ret = 0;
+    for (i = curbit, j = 0; j < code_size; ++i, ++j)
+        ret |= ((buf[i / 8] & (1 << (i % 8))) != 0) << j;
 
-	curbit += code_size;
+    curbit += code_size;
 
-	return ret;
+    return ret;
 }
 
-static int LWZReadByte(FileObject *fd, int flag, int input_code_size)
+static int LWZReadByte(FileObject* fd, int flag, int input_code_size)
 {
-	//TODO: Nicht threadsafe!
-	static int fresh = FALSE;
-	static int code_size, set_code_size;
-	static int max_code, max_code_size;
-	static int firstcode, oldcode;
-	static int clear_code, end_code;
-	static int table[2][(1 << MAX_LWZ_BITS)];
-	static int stack[(1 << (MAX_LWZ_BITS)) * 2], *sp;
-	int i;
+    // TODO: Nicht threadsafe!
+    static int fresh = FALSE;
+    static int code_size, set_code_size;
+    static int max_code, max_code_size;
+    static int firstcode, oldcode;
+    static int clear_code, end_code;
+    static int table[2][(1 << MAX_LWZ_BITS)];
+    static int stack[(1 << (MAX_LWZ_BITS)) * 2], *sp;
+    int i;
 
-	if (flag) {
-		set_code_size = input_code_size;
-		code_size = set_code_size + 1;
-		clear_code = 1 << set_code_size;
-		end_code = clear_code + 1;
-		max_code_size = 2 * clear_code;
-		max_code = clear_code + 2;
+    if (flag) {
+        set_code_size = input_code_size;
+        code_size = set_code_size + 1;
+        clear_code = 1 << set_code_size;
+        end_code = clear_code + 1;
+        max_code_size = 2 * clear_code;
+        max_code = clear_code + 2;
 
-		GetCode(fd, 0, TRUE);
+        GetCode(fd, 0, TRUE);
 
-		fresh = TRUE;
+        fresh = TRUE;
 
-		for (i = 0; i < clear_code; ++i) {
-			table[0][i] = 0;
-			table[1][i] = i;
-		}
-		for (; i < (1 << MAX_LWZ_BITS); ++i)
-			table[0][i] = table[1][0] = 0;
+        for (i = 0; i < clear_code; ++i) {
+            table[0][i] = 0;
+            table[1][i] = i;
+        }
+        for (; i < (1 << MAX_LWZ_BITS); ++i)
+            table[0][i] = table[1][0] = 0;
 
-		sp = stack;
+        sp = stack;
 
-		return 0;
-	} else if (fresh) {
-		fresh = FALSE;
-		do {
-			firstcode = oldcode = GetCode(fd, code_size, FALSE);
-		} while (firstcode == clear_code);
-		return firstcode;
-	}
+        return 0;
+    } else if (fresh) {
+        fresh = FALSE;
+        do {
+            firstcode = oldcode = GetCode(fd, code_size, FALSE);
+        } while (firstcode == clear_code);
+        return firstcode;
+    }
 
-	if (sp > stack)
-		return *--sp;
+    if (sp > stack) return *--sp;
 
-	int code;
-	while ((code = GetCode(fd, code_size, FALSE)) >= 0) {
-		if (code == clear_code) {
-			for (i = 0; i < clear_code; ++i) {
-				table[0][i] = 0;
-				table[1][i] = i;
-			}
-			for (; i < (1 << MAX_LWZ_BITS); ++i)
-				table[0][i] = table[1][i] = 0;
-			code_size = set_code_size + 1;
-			max_code_size = 2 * clear_code;
-			max_code = clear_code + 2;
-			sp = stack;
-			firstcode = oldcode = GetCode(fd, code_size, FALSE);
-			return firstcode;
-		} else if (code == end_code) {
-			int count;
-			unsigned char buf[260];
+    int code;
+    while ((code = GetCode(fd, code_size, FALSE)) >= 0) {
+        if (code == clear_code) {
+            for (i = 0; i < clear_code; ++i) {
+                table[0][i] = 0;
+                table[1][i] = i;
+            }
+            for (; i < (1 << MAX_LWZ_BITS); ++i)
+                table[0][i] = table[1][i] = 0;
+            code_size = set_code_size + 1;
+            max_code_size = 2 * clear_code;
+            max_code = clear_code + 2;
+            sp = stack;
+            firstcode = oldcode = GetCode(fd, code_size, FALSE);
+            return firstcode;
+        } else if (code == end_code) {
+            int count;
+            unsigned char buf[260];
 
-			if (ZeroDataBlock)
-				return -2;
+            if (ZeroDataBlock) return -2;
 
-			while ((count = GetDataBlock(fd, buf)) > 0)
-				;
+            while ((count = GetDataBlock(fd, buf)) > 0)
+                ;
 
-			if (count != 0)
-				return -2;
-		}
+            if (count != 0) return -2;
+        }
 
-		int incode = code;
+        int incode = code;
 
-		if (code >= max_code) {
-			*sp++ = firstcode;
-			code = oldcode;
-		}
+        if (code >= max_code) {
+            *sp++ = firstcode;
+            code = oldcode;
+        }
 
-		while (code >= clear_code) {
-			*sp++ = table[1][code];
-			if (code == table[0][code]) {
-				/* Oh well */
-			}
-			code = table[0][code];
-		}
+        while (code >= clear_code) {
+            *sp++ = table[1][code];
+            if (code == table[0][code]) {
+                /* Oh well */
+            }
+            code = table[0][code];
+        }
 
-		*sp++ = firstcode = table[1][code];
+        *sp++ = firstcode = table[1][code];
 
-		if ((code = max_code) < (1 << MAX_LWZ_BITS)) {
-			table[0][code] = oldcode;
-			table[1][code] = firstcode;
-			++max_code;
-			if ((max_code >= max_code_size) && (max_code_size < (1 << MAX_LWZ_BITS))) {
-				max_code_size *= 2;
-				++code_size;
-			}
-		}
+        if ((code = max_code) < (1 << MAX_LWZ_BITS)) {
+            table[0][code] = oldcode;
+            table[1][code] = firstcode;
+            ++max_code;
+            if ((max_code >= max_code_size) && (max_code_size < (1 << MAX_LWZ_BITS))) {
+                max_code_size *= 2;
+                ++code_size;
+            }
+        }
 
-		oldcode = incode;
+        oldcode = incode;
 
-		if (sp > stack)
-			return *--sp;
-	}
-	return code;
+        if (sp > stack) return *--sp;
+    }
+    return code;
 }
 
-static void ReadImage (Drawable &surface, FileObject *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore)
+static void ReadImage(Drawable& surface, FileObject* fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore)
 {
-	unsigned char   c;
-	int             v;
-	int             xpos = 0, ypos = 0, pass = 0;
+    unsigned char c;
+    int v;
+    int xpos = 0, ypos = 0, pass = 0;
 
-	/* Stash the color map into the image */
-	/*
+    /* Stash the color map into the image */
+    /*
        for (i=0; (i<gdMaxColors); i++) {
                im->red[i] = cmap[CM_RED][i];
                im->green[i] = cmap[CM_GREEN][i];
                im->blue[i] = cmap[CM_BLUE][i];
                im->open[i] = 1;
        }
-	 */
-	/* Many (perhaps most) of these colors will remain marked open. */
-	//im->colorsTotal = gdMaxColors;
-	/*
-	 **  Initialize the Compression routines
-	 */
-	if (! ReadOK(fd,&c,1)) {
-		return;
-	}
-	if (LWZReadByte(fd, TRUE, c) < 0) {
-		return;
-	}
+     */
+    /* Many (perhaps most) of these colors will remain marked open. */
+    // im->colorsTotal = gdMaxColors;
+    /*
+     **  Initialize the Compression routines
+     */
+    if (!ReadOK(fd, &c, 1)) {
+        return;
+    }
+    if (LWZReadByte(fd, TRUE, c) < 0) {
+        return;
+    }
 
-	/*
-	 **  If this is an "uninteresting picture" ignore it.
-	 */
-	if (ignore) {
-		while (LWZReadByte(fd, FALSE, c) >= 0)
-			;
-		return;
-	}
-	while ((v = LWZReadByte(fd,FALSE,c)) >= 0 ) {
-		/* This how we recognize which colors are actually used. */
-		/*
+    /*
+     **  If this is an "uninteresting picture" ignore it.
+     */
+    if (ignore) {
+        while (LWZReadByte(fd, FALSE, c) >= 0)
+            ;
+        return;
+    }
+    while ((v = LWZReadByte(fd, FALSE, c)) >= 0) {
+        /* This how we recognize which colors are actually used. */
+        /*
                if (im->open[v]) {
                        im->open[v] = 0;
                }
-		 */
-		surface.putPixel(xpos,ypos,Color(cmap[CM_RED][v],cmap[CM_GREEN][v],cmap[CM_BLUE][v]));
-		//gdImageSetPixel(im, xpos, ypos, v);
-		++xpos;
-		if (xpos == len) {
-			xpos = 0;
-			if (interlace) {
-				switch (pass) {
-					case 0:
-					case 1:
-						ypos += 8; break;
-					case 2:
-						ypos += 4; break;
-					case 3:
-						ypos += 2; break;
-				}
+         */
+        surface.putPixel(xpos, ypos, Color(cmap[CM_RED][v], cmap[CM_GREEN][v], cmap[CM_BLUE][v]));
+        // gdImageSetPixel(im, xpos, ypos, v);
+        ++xpos;
+        if (xpos == len) {
+            xpos = 0;
+            if (interlace) {
+                switch (pass) {
+                case 0:
+                case 1:
+                    ypos += 8;
+                    break;
+                case 2:
+                    ypos += 4;
+                    break;
+                case 3:
+                    ypos += 2;
+                    break;
+                }
 
-				if (ypos >= height) {
-					++pass;
-					switch (pass) {
-						case 1:
-							ypos = 4; break;
-						case 2:
-							ypos = 2; break;
-						case 3:
-							ypos = 1; break;
-						default:
-							goto fini;
-					}
-				}
-			} else {
-				++ypos;
-			}
-		}
-		if (ypos >= height)
-			break;
-	}
-	fini:
-	if (LWZReadByte(fd,FALSE,c)>=0) {
-		/* Ignore extra */
-	}
+                if (ypos >= height) {
+                    ++pass;
+                    switch (pass) {
+                    case 1:
+                        ypos = 4;
+                        break;
+                    case 2:
+                        ypos = 2;
+                        break;
+                    case 3:
+                        ypos = 1;
+                        break;
+                    default:
+                        goto fini;
+                    }
+                }
+            } else {
+                ++ypos;
+            }
+        }
+        if (ypos >= height) break;
+    }
+fini:
+    if (LWZReadByte(fd, FALSE, c) >= 0) {
+        /* Ignore extra */
+    }
 }
-
 
 ImageFilter_GIF::ImageFilter_GIF()
 {
@@ -425,95 +422,96 @@ ImageFilter_GIF::~ImageFilter_GIF()
 {
 }
 
-int ImageFilter_GIF::ident(FileObject &file, IMAGE &img)
+int ImageFilter_GIF::ident(FileObject& file, IMAGE& img)
 {
-	try {
-		const char *address=file.map(0,256);
-		const char *lsdb;
-		char b;
-		if (address==NULL) return 0;
+    try {
+        const char* address = file.map(0, 256);
+        const char* lsdb;
+        char b;
+        if (address == NULL) return 0;
 
-		if (strncmp (address, "GIF",3)!=0) {		// GIF ?
-			return 0;
-		}
-		lsdb=address+6;
+        if (strncmp(address, "GIF", 3) != 0) { // GIF ?
+            return 0;
+        }
+        lsdb = address + 6;
 
-		img.width=Peek16(lsdb);
-		img.height=Peek16(lsdb+2);
-		b=Peek8(lsdb+4);
-		img.bitdepth=((b>>4)&7)+1;
-		img.format=RGBFormat::Palette;
-		img.colors=256;
-		img.pitch=0;
-		//img->pfp.header_version=0;
-		if (strncmp(address+3,"89a",3)==0) {							// GIF89a
-			return 1;
-		}
-		if (strncmp(address+3,"87a",3)==0) {							// GIF87a
-			return 1;
-		}
-		return 0;
-	} catch (...) {
-		return 0;
-	}
-	return 0;
+        img.width = Peek16(lsdb);
+        img.height = Peek16(lsdb + 2);
+        b = Peek8(lsdb + 4);
+        img.bitdepth = ((b >> 4) & 7) + 1;
+        img.format = RGBFormat::Palette;
+        img.colors = 256;
+        img.pitch = 0;
+        // img->pfp.header_version=0;
+        if (strncmp(address + 3, "89a", 3) == 0) { // GIF89a
+            return 1;
+        }
+        if (strncmp(address + 3, "87a", 3) == 0) { // GIF87a
+            return 1;
+        }
+        return 0;
+    }
+    catch (...) {
+        return 0;
+    }
+    return 0;
 }
 
-void ImageFilter_GIF::load(FileObject &file, Drawable &surface, IMAGE &img)
+void ImageFilter_GIF::load(FileObject& file, Drawable& surface, IMAGE& img)
 {
-	int imageNumber;
-	int BitPixel;
-	//int ColorResolution;
-	//int Background;
-	//int AspectRatio;
-	int Transparent = (-1);
-	unsigned char   buf[16];
-	unsigned char   c;
-	unsigned char   ColorMap[3][MAXCOLORMAPSIZE];
-	unsigned char   localColorMap[3][MAXCOLORMAPSIZE];
-	int             imw, imh;
-	int             useGlobalColormap;
-	int             bitPixel;
-	int             imageCount = 0;
-	char            version[4];
-	ZeroDataBlock = FALSE;
-	FileObject *fd=&file;
-	imageNumber = 1;
-	file.seek(0);
+    int imageNumber;
+    int BitPixel;
+    // int ColorResolution;
+    // int Background;
+    // int AspectRatio;
+    int Transparent = (-1);
+    unsigned char buf[16];
+    unsigned char c;
+    unsigned char ColorMap[3][MAXCOLORMAPSIZE];
+    unsigned char localColorMap[3][MAXCOLORMAPSIZE];
+    int imw, imh;
+    int useGlobalColormap;
+    int bitPixel;
+    int imageCount = 0;
+    char version[4];
+    ZeroDataBlock = FALSE;
+    FileObject* fd = &file;
+    imageNumber = 1;
+    file.seek(0);
 
-	if (!ReadOK(fd,buf,6)) throw UnknownImageFormatException();
-	if (strncmp((char *)buf,"GIF",3) != 0) throw UnknownImageFormatException();
-	strncpy(version, (char *)buf + 3, 3);
-	version[3] = '\0';
+    if (!ReadOK(fd, buf, 6)) throw UnknownImageFormatException();
+    if (strncmp((char*)buf, "GIF", 3) != 0) throw UnknownImageFormatException();
+    strncpy(version, (char*)buf + 3, 3);
+    version[3] = '\0';
 
-	if ((strcmp(version, "87a") != 0) && (strcmp(version, "89a") != 0)) {
-		throw UnknownImageFormatException();
-	}
-	if (! ReadOK(fd,buf,7)) throw UnknownImageFormatException();
-	BitPixel        = 2<<(buf[4]&0x07);
-	//ColorResolution = (int) (((buf[4]&0x70)>>3)+1);
-	//Background      = buf[5];
-	//AspectRatio     = buf[6];
+    if ((strcmp(version, "87a") != 0) && (strcmp(version, "89a") != 0)) {
+        throw UnknownImageFormatException();
+    }
+    if (!ReadOK(fd, buf, 7)) throw UnknownImageFormatException();
+    BitPixel = 2 << (buf[4] & 0x07);
+    // ColorResolution = (int) (((buf[4]&0x70)>>3)+1);
+    // Background      = buf[5];
+    // AspectRatio     = buf[6];
 
-	if (BitSet(buf[4], LOCALCOLORMAP)) {    /* Global Colormap */
-		if (ReadColorMap(fd, BitPixel, ColorMap)) {
-			throw UnknownImageFormatException();
-		}
-	}
-	for (;;) {
-		if (! ReadOK(fd,&c,1)) throw UnknownImageFormatException();
-		if (c == ';') {         /* GIF terminator */
-			if (imageCount < imageNumber) throw UnknownImageFormatException();
-			/* Terminator before any image was declared! */
-			/*
+    if (BitSet(buf[4], LOCALCOLORMAP)) { /* Global Colormap */
+        if (ReadColorMap(fd, BitPixel, ColorMap)) {
+            throw UnknownImageFormatException();
+        }
+    }
+    for (;;) {
+        if (!ReadOK(fd, &c, 1)) throw UnknownImageFormatException();
+        if (c == ';') { /* GIF terminator */
+            if (imageCount < imageNumber) throw UnknownImageFormatException();
+            /* Terminator before any image was declared! */
+            /*
                        if (!im) {
                               return;
                        }
-			 */
-			/* Check for open colors at the end, so
+             */
+            /* Check for open colors at the end, so
                           we can reduce colorsTotal and ultimately
                           BitsPerPixel */
-			/*
+            /*
                        for (i=((im->colorsTotal-1)); (i>=0); i--) {
                                if (im->open[i]) {
                                        im->colorsTotal--;
@@ -521,79 +519,72 @@ void ImageFilter_GIF::load(FileObject &file, Drawable &surface, IMAGE &img)
                                        break;
                                }
                        }
-			 */
-			return;		// Erfolgreich geladen
-		}
+             */
+            return; // Erfolgreich geladen
+        }
 
-		if (c == '!') {         /* Extension */
-			if (! ReadOK(fd,&c,1)) throw UnknownImageFormatException();
-			DoExtension(fd, c, &Transparent);
-			continue;
-		}
+        if (c == '!') { /* Extension */
+            if (!ReadOK(fd, &c, 1)) throw UnknownImageFormatException();
+            DoExtension(fd, c, &Transparent);
+            continue;
+        }
 
-		if (c != ',') {         /* Not a valid start character */
-			continue;
-		}
+        if (c != ',') { /* Not a valid start character */
+            continue;
+        }
 
-		++imageCount;
+        ++imageCount;
 
-		if (! ReadOK(fd,buf,9)) throw UnknownImageFormatException();
+        if (!ReadOK(fd, buf, 9)) throw UnknownImageFormatException();
 
-		useGlobalColormap = ! BitSet(buf[8], LOCALCOLORMAP);
+        useGlobalColormap = !BitSet(buf[8], LOCALCOLORMAP);
 
-		bitPixel = 1<<((buf[8]&0x07)+1);
+        bitPixel = 1 << ((buf[8] & 0x07) + 1);
 
-		imw = LM_to_uint(buf[4],buf[5]);
-		imh = LM_to_uint(buf[6],buf[7]);
-		/*
+        imw = LM_to_uint(buf[4], buf[5]);
+        imh = LM_to_uint(buf[6], buf[7]);
+        /*
                if (!(im = gdImageCreate(imw, imh))) {
                          return;
                }
                im->interlace = BitSet(buf[8], INTERLACE);
-		 */
-		if (! useGlobalColormap) {
-			if (ReadColorMap(fd, bitPixel, localColorMap)) {
-				return;
-			}
-			ReadImage(surface, fd, imw, imh, localColorMap,
-					BitSet(buf[8], INTERLACE),
-					imageCount != imageNumber);
-			if (Transparent != (-1)) {
-				/*
-				surface.SetColorKey(Color(localColorMap[CM_RED][Transparent],
-						localColorMap[CM_GREEN][Transparent],
-						localColorMap[CM_BLUE][Transparent]));
-						*/
-			}
+         */
+        if (!useGlobalColormap) {
+            if (ReadColorMap(fd, bitPixel, localColorMap)) {
+                return;
+            }
+            ReadImage(surface, fd, imw, imh, localColorMap, BitSet(buf[8], INTERLACE), imageCount != imageNumber);
+            if (Transparent != (-1)) {
+                /*
+                surface.SetColorKey(Color(localColorMap[CM_RED][Transparent],
+                        localColorMap[CM_GREEN][Transparent],
+                        localColorMap[CM_BLUE][Transparent]));
+                        */
+            }
 
-		} else {
-			ReadImage(surface, fd, imw, imh,
-					ColorMap,
-					BitSet(buf[8], INTERLACE),
-					imageCount != imageNumber);
-			if (Transparent != (-1)) {
-				//surface.SetColorKey(surface->RGB(0,0,0));
-			}
-		}
-	}
+        } else {
+            ReadImage(surface, fd, imw, imh, ColorMap, BitSet(buf[8], INTERLACE), imageCount != imageNumber);
+            if (Transparent != (-1)) {
+                // surface.SetColorKey(surface->RGB(0,0,0));
+            }
+        }
+    }
 }
 
-void ImageFilter_GIF::save (const Drawable &surface, FileObject &file, const AssocArray &param)
+void ImageFilter_GIF::save(const Drawable& surface, FileObject& file, const AssocArray& param)
 {
-	throw UnsupportedFeatureException("ImageFilter_GIF::save");
+    throw UnsupportedFeatureException("ImageFilter_GIF::save");
 }
 
 String ImageFilter_GIF::name()
 {
-	return "GIF";
+    return "GIF";
 }
 
 String ImageFilter_GIF::description()
 {
-	return "GIF";
+    return "GIF";
 }
 
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
-
+} // namespace grafix
+} // namespace pplib

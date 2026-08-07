@@ -1,10 +1,10 @@
 ;###############################################################################
-;# This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+;# This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
 ;# Web: http://www.pfp.de/ppl/
 ;#
 ;###############################################################################
 ;#
-;# Copyright (c) 2023, Patrick Fedick <patrick@pfp.de>
+;# Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
 ;# All rights reserved.
 ;#
 ;# Redistribution and use in source and binary forms, with or without
@@ -34,47 +34,47 @@
 %include "src/asm/common.asm"
 
 
-global PPL7_GetCpuCaps
-global _PPL7_GetCpuCaps
+global PPLIB_GetCpuCaps
+global _PPLIB_GetCpuCaps
 
 
 SECTION .data
 align 16
-PPL7CPUCAPS@:	dd -1                  ; local name to avoid problems in shared objects
+PPLIBCPUCAPS@:	dd -1                  ; local name to avoid problems in shared objects
 
 
 SECTION .text
 
 ;/*********************************************************************
-;/** PPL7_GetASMBits                                                 **
+;/** PPLIB_GetASMBits                                                 **
 ;/**                                                                 **
 ;/** uint32_t GetASMBits()                                          **
 ;/*********************************************************************
 %if arch_elf64=1 || arch_win64=1
-	global PPL7_GetASMBits
-	PPL7_GetASMBits:
+	global PPLIB_GetASMBits
+	PPLIB_GetASMBits:
 		xor rax,rax
 		mov al, __BITS__
 		ret
 %else
-	global _PPL7_GetASMBits
-	_PPL7_GetASMBits:
-	global PPL7_GetASMBits
-	PPL7_GetASMBits:
+	global _PPLIB_GetASMBits
+	_PPLIB_GetASMBits:
+	global PPLIB_GetASMBits
+	PPLIB_GetASMBits:
 		xor eax,eax
 		mov al, __BITS__
 		ret
 %endif
 
 ;/*********************************************************************
-;/** PPL7_HaveCPUID                                                  **
+;/** PPLIB_HaveCPUID                                                  **
 ;/**                                                                 **
 ;/** uint32_t HaveCPUID()                                           **
 ;/*********************************************************************
 
 %if arch_elf64=1 || arch_win64=1
-	global PPL7_HaveCPUID
-	PPL7_HaveCPUID:
+	global PPLIB_HaveCPUID
+	PPLIB_HaveCPUID:
 		; check whether CPUID is supported
 		; (bit 21 of Eflags can be toggled)
 		; // cli							// Interupts abschalten
@@ -97,11 +97,11 @@ SECTION .text
 			ret
 
 %else
-	global PPL7_HaveCPUID
-	global _PPL7_HaveCPUID
+	global PPLIB_HaveCPUID
+	global _PPLIB_HaveCPUID
 
-	PPL7_HaveCPUID:
-	_PPL7_HaveCPUID:
+	PPLIB_HaveCPUID:
+	_PPLIB_HaveCPUID:
 		; check whether CPUID is supported
 		; (bit 21 of Eflags can be toggled)
 		; // cli							// Interupts abschalten
@@ -160,9 +160,9 @@ GetCpuCaps_Vendor_AMD:
 	ret
 
 
-PPL7_GetCpuCaps:
-_PPL7_GetCpuCaps:
-	mov  eax, [rel PPL7CPUCAPS@]
+PPLIB_GetCpuCaps:
+_PPLIB_GetCpuCaps:
+	mov  eax, [rel PPLIBCPUCAPS@]
     test eax, eax
     js   .FirstTime              ; Negative means first time
         ; Early return. Has been called before
@@ -189,7 +189,7 @@ _PPL7_GetCpuCaps:
 		xor edi,edi
 	%endif
 	; In EDI bauen wir den Returnwert zusammen
-	call PPL7_HaveCPUID		; Als erstes prüfen wir, ob wir den Befehl CPUID haben
+	call PPLIB_HaveCPUID		; Als erstes prüfen wir, ob wir den Befehl CPUID haben
 	cmp al,1
 	jne .end			; Nein, dann gibt es nichts mehr zu tun
 	or edi,1
@@ -276,7 +276,7 @@ _PPL7_GetCpuCaps:
 
 	.end:
 	mov eax,edi
-	mov [rel PPL7CPUCAPS@], edi ; save value in global variable
+	mov [rel PPLIBCPUCAPS@], edi ; save value in global variable
 	%ifidn __OUTPUT_FORMAT__, elf64
 		pop rdi
 		pop rbx

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -42,13 +42,15 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-//#ifdef HAVE_MATH_H
+// #ifdef HAVE_MATH_H
 #include <math.h>
-//#endif
-#include "ppl7-grafix.h"
+// #endif
+#include "pplib-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace pplib
+{
+namespace grafix
+{
 
 /*!\class Point3D
  * \ingroup PPLGroupGrafik
@@ -85,7 +87,6 @@ namespace grafix {
  *
  */
 
-
 /*!\var Point3D::x
  * \brief Speichert die X-Koordinate des Punktes
  */
@@ -105,9 +106,9 @@ namespace grafix {
  */
 Point3D::Point3D()
 {
-	x=0;
-	y=0;
-	z=0;
+    x = 0;
+    y = 0;
+    z = 0;
 }
 
 /*!\brief Konstruktor mit Initialisierung auf die angegebenen Koordinaten
@@ -120,9 +121,9 @@ Point3D::Point3D()
  */
 Point3D::Point3D(int x, int y, int z)
 {
-	this->x=x;
-	this->y=y;
-	this->z=z;
+    this->x = x;
+    this->y = y;
+    this->z = z;
 }
 
 /*!\brief Konstruktor mit Kopierfunktion
@@ -132,11 +133,11 @@ Point3D::Point3D(int x, int y, int z)
  *
  * @param other Referenz auf einen anderen Point3D
  */
-Point3D::Point3D(const Point3D &other)
+Point3D::Point3D(const Point3D& other)
 {
-	x=other.x;
-	y=other.y;
-	z=other.z;
+    x = other.x;
+    y = other.y;
+    z = other.z;
 }
 
 /*!\brief Liefert \c true zurück, wenn x, y und z 0 sind.
@@ -149,10 +150,9 @@ Point3D::Point3D(const Point3D &other)
  */
 bool Point3D::isNull() const
 {
-	if (x==0 && y==0 && z==0) return true;
-	return false;
+    if (x == 0 && y == 0 && z == 0) return true;
+    return false;
 }
-
 
 /*!\brief X-Koordinate setzen
  *
@@ -162,7 +162,7 @@ bool Point3D::isNull() const
  */
 void Point3D::setX(int x)
 {
-	this->x=x;
+    this->x = x;
 }
 
 /*!\brief Y-Koordinate setzen
@@ -173,7 +173,7 @@ void Point3D::setX(int x)
  */
 void Point3D::setY(int y)
 {
-	this->y=y;
+    this->y = y;
 }
 
 /*!\brief Z-Koordinate setzen
@@ -184,9 +184,8 @@ void Point3D::setY(int y)
  */
 void Point3D::setZ(int z)
 {
-	this->z=z;
+    this->z = z;
 }
-
 
 /*!\brief X-, Y- und Z-Koordinate gleichzeitig setzen
  *
@@ -198,9 +197,9 @@ void Point3D::setZ(int z)
  */
 void Point3D::setPoint(int x, int y, int z)
 {
-	this->x=x;
-	this->y=y;
-	this->z=z;
+    this->x = x;
+    this->y = y;
+    this->z = z;
 }
 
 /*!\brief Anderen Point3D kopieren
@@ -210,11 +209,11 @@ void Point3D::setPoint(int x, int y, int z)
  *
  * @param other Referenz auf einen anderen Point3D
  */
-void Point3D::setPoint(const Point3D &other)
+void Point3D::setPoint(const Point3D& other)
 {
-	x=other.x;
-	y=other.y;
-	z=other.z;
+    x = other.x;
+    y = other.y;
+    z = other.z;
 }
 
 /*!\brief Multiplikation mit einem Faktor
@@ -226,12 +225,12 @@ void Point3D::setPoint(const Point3D &other)
  * \param[in] factor Der Faktor, mit dem die Koordinate multipliziert werden soll
  * \return Referenz auf den Point3D
  */
-Point3D &Point3D::operator*= (double factor)
+Point3D& Point3D::operator*=(double factor)
 {
-	x=(int)(x*factor);
-	y=(int)(y*factor);
-	z=(int)(z*factor);
-	return *this;
+    x = (int)(x * factor);
+    y = (int)(y * factor);
+    z = (int)(z * factor);
+    return *this;
 }
 
 /*!\brief Addition mit einem anderen Point3D
@@ -243,12 +242,12 @@ Point3D &Point3D::operator*= (double factor)
  * \param[in] point Referenz auf einen anderen Point3D
  * \return Referenz auf den Point3D
  */
-Point3D &Point3D::operator+= (const Point3D &point)
+Point3D& Point3D::operator+=(const Point3D& point)
 {
-	x+=point.x;
-	y+=point.y;
-	z+=point.z;
-	return *this;
+    x += point.x;
+    y += point.y;
+    z += point.z;
+    return *this;
 }
 
 /*!\brief Subtraktion mit einem anderen Point3D
@@ -260,12 +259,12 @@ Point3D &Point3D::operator+= (const Point3D &point)
  * \param[in] point Referenz auf einen anderen Point3D
  * \return Referenz auf den Point3D
  */
-Point3D &Point3D::operator-= (const Point3D &point)
+Point3D& Point3D::operator-=(const Point3D& point)
 {
-	x-=point.x;
-	y-=point.y;
-	z-=point.z;
-	return *this;
+    x -= point.x;
+    y -= point.y;
+    z -= point.z;
+    return *this;
 }
 
 /*!\brief Division mit einem Divisor
@@ -277,59 +276,59 @@ Point3D &Point3D::operator-= (const Point3D &point)
  * \param[in] divisor Der Divisor, durch den die aktuelle Koordinate geteilt werden soll
  * \return Referenz auf den Point3D
  */
-Point3D &Point3D::operator/= (double divisor)
+Point3D& Point3D::operator/=(double divisor)
 {
-	x=(int)(x/divisor);
-	y=(int)(y/divisor);
-	z=(int)(z/divisor);
-	return *this;
+    x = (int)(x / divisor);
+    y = (int)(y / divisor);
+    z = (int)(z / divisor);
+    return *this;
 }
 
-bool operator!= (const Point3D &p1, const Point3D &p2)
+bool operator!=(const Point3D& p1, const Point3D& p2)
 {
-	if (p1.x!=p2.x) return true;
-	if (p1.y!=p2.y) return true;
-	if (p1.z!=p2.z) return true;
-	return false;
+    if (p1.x != p2.x) return true;
+    if (p1.y != p2.y) return true;
+    if (p1.z != p2.z) return true;
+    return false;
 }
 
-bool operator== (const Point3D &p1, const Point3D &p2)
+bool operator==(const Point3D& p1, const Point3D& p2)
 {
-	if (p1.x!=p2.x) return false;
-	if (p1.y!=p2.y) return false;
-	if (p1.z!=p2.z) return false;
-	return true;
+    if (p1.x != p2.x) return false;
+    if (p1.y != p2.y) return false;
+    if (p1.z != p2.z) return false;
+    return true;
 }
 
-const Point3D operator* (const Point3D &point, double factor)
+const Point3D operator*(const Point3D& point, double factor)
 {
-	return Point3D ((int)(point.x*factor),(int)(point.y*factor), (int)(point.z*factor));
+    return Point3D((int)(point.x * factor), (int)(point.y * factor), (int)(point.z * factor));
 }
 
-const Point3D operator* (double factor, const Point3D &point)
+const Point3D operator*(double factor, const Point3D& point)
 {
-	return Point3D ((int)(point.x*factor),(int)(point.y*factor), (int)(point.z*factor));
+    return Point3D((int)(point.x * factor), (int)(point.y * factor), (int)(point.z * factor));
 }
 
-const Point3D operator+ (const Point3D &p1, const Point3D &p2)
+const Point3D operator+(const Point3D& p1, const Point3D& p2)
 {
-	return Point3D (p1.x+p2.x,p1.y+p2.y,p1.z+p2.z);
+    return Point3D(p1.x + p2.x, p1.y + p2.y, p1.z + p2.z);
 }
 
-const Point3D operator- (const Point3D &p1, const Point3D &p2)
+const Point3D operator-(const Point3D& p1, const Point3D& p2)
 {
-	return Point3D (p1.x-p2.x,p1.y-p2.y,p1.z-p2.z);
+    return Point3D(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
 }
 
-const Point3D operator- (const Point3D &point)
+const Point3D operator-(const Point3D& point)
 {
-	return Point3D (0-point.x,0-point.y,0-point.z);
+    return Point3D(0 - point.x, 0 - point.y, 0 - point.z);
 }
 
-const Point3D operator/ (const Point3D &point, double divisor)
+const Point3D operator/(const Point3D& point, double divisor)
 {
-	return Point3D ((int)(point.x/divisor),(int)(point.y/divisor),(int)(point.z/divisor));
+    return Point3D((int)(point.x / divisor), (int)(point.y / divisor), (int)(point.z / divisor));
 }
 
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace pplib

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -27,18 +27,18 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/json.h>
-#include <ppl7/core/fileobject.h>
-#include <ppl7/core/file.h>
-#include <ppl7/core/memfile.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/array.h>
-#include <ppl7/types/assocarray.h>
+#include <pplib/core/json.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
+#include <pplib/core/memfile.h>
+#include <pplib/core/functions.h>
+#include <pplib/exceptions.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/types/assocarray.h>
 
-namespace ppl7
+namespace pplib
 {
 
 struct ParserState
@@ -52,12 +52,12 @@ struct ParserState
     };
 };
 
-static void readDict(ppl7::AssocArray& data, ppl7::FileObject& file);
-static void readArray(ppl7::AssocArray& data, ppl7::FileObject& file);
+static void readDict(pplib::AssocArray& data, pplib::FileObject& file);
+static void readArray(pplib::AssocArray& data, pplib::FileObject& file);
 
-static ppl7::String getString(ppl7::FileObject& file)
+static pplib::String getString(pplib::FileObject& file)
 {
-    ppl7::String str;
+    pplib::String str;
     int c;
     while (!file.eof()) {
         c = file.fgetc();
@@ -83,7 +83,7 @@ static ppl7::String getString(ppl7::FileObject& file)
                 char hex[5];
                 for (int i = 0; i < 4; i++) {
                     int h = file.fgetc();
-                    if (h == EOF) throw ppl7::UnexpectedEndOfDataException();
+                    if (h == EOF) throw pplib::UnexpectedEndOfDataException();
                     hex[i] = (char)h;
                 }
                 hex[4] = 0;
@@ -97,7 +97,7 @@ static ppl7::String getString(ppl7::FileObject& file)
                         if (nextNextC == 'u') {
                             for (int i = 0; i < 4; i++) {
                                 int h = file.fgetc();
-                                if (h == EOF) throw ppl7::UnexpectedEndOfDataException();
+                                if (h == EOF) throw pplib::UnexpectedEndOfDataException();
                                 hex[i] = (char)h;
                             }
                             hex[4] = 0;
@@ -106,17 +106,17 @@ static ppl7::String getString(ppl7::FileObject& file)
                                 codePoint = 0x10000 + ((codePoint - 0xD800) << 10) + (lowSurrogate - 0xDC00);
                             } else {
                                 // Not a valid low surrogate? Backup and treat high surrogate as is
-                                file.seek(-6, ppl7::File::SEEKCUR);
+                                file.seek(-6, pplib::File::SEEKCUR);
                             }
                         } else {
-                            file.seek(-2, ppl7::File::SEEKCUR);
+                            file.seek(-2, pplib::File::SEEKCUR);
                         }
                     } else {
-                        file.seek(-1, ppl7::File::SEEKCUR);
+                        file.seek(-1, pplib::File::SEEKCUR);
                     }
                 }
 
-                ppl7::WideString ws;
+                pplib::WideString ws;
                 ws.append((wchar_t)codePoint);
                 str.append(ws.toUtf8().toString());
             } else
@@ -127,12 +127,12 @@ static ppl7::String getString(ppl7::FileObject& file)
             str.append(c);
         }
     }
-    throw ppl7::UnexpectedEndOfDataException();
+    throw pplib::UnexpectedEndOfDataException();
 }
 
-static ppl7::String getNumber(ppl7::FileObject& file)
+static pplib::String getNumber(pplib::FileObject& file)
 {
-    ppl7::String str;
+    pplib::String str;
     int c;
     while (!file.eof()) {
         c = file.fgetc();
@@ -140,26 +140,26 @@ static ppl7::String getNumber(ppl7::FileObject& file)
         if (c == '-' || c == '+' || c == '.' || c == 'e' || c == 'E' || (c >= '0' && c <= '9')) {
             str.append(c);
         } else {
-            file.seek(-1, ppl7::File::SEEKCUR);
+            file.seek(-1, pplib::File::SEEKCUR);
             return str;
         }
     }
     return str;
 }
 
-static void readChars(ppl7::FileObject& file, const char* chars)
+static void readChars(pplib::FileObject& file, const char* chars)
 {
     int c, p = 0;
     while (chars[p] != 0) {
         c = file.fgetc();
-        if (c == EOF) throw ppl7::UnexpectedEndOfDataException();
+        if (c == EOF) throw pplib::UnexpectedEndOfDataException();
         if (c != chars[p])
-            throw ppl7::UnexpectedCharacterException("#1: Expected: >>%s<<, character: >>%c<<, got: >>%c<<", chars, chars[p], c);
+            throw pplib::UnexpectedCharacterException("#1: Expected: >>%s<<, character: >>%c<<, got: >>%c<<", chars, chars[p], c);
         p++;
     }
 }
 
-static void skipToEOL(ppl7::FileObject& file)
+static void skipToEOL(pplib::FileObject& file)
 {
     while (!file.eof()) {
         int c = file.fgetc();
@@ -167,47 +167,47 @@ static void skipToEOL(ppl7::FileObject& file)
     }
 }
 
-static bool readValue(ppl7::AssocArray& data, const ppl7::String& key, ppl7::FileObject& file, int c)
+static bool readValue(pplib::AssocArray& data, const pplib::String& key, pplib::FileObject& file, int c)
 {
     if (c == '"') {
-        ppl7::String value = getString(file);
+        pplib::String value = getString(file);
         data.set(key, value);
         return true;
     } else if (c == '[') { // Array
-        ppl7::AssocArray value;
+        pplib::AssocArray value;
         readArray(value, file);
         data.set(key, value);
         return true;
     } else if (c == '{') { // dict
-        ppl7::AssocArray value;
+        pplib::AssocArray value;
         readDict(value, file);
         data.set(key, value);
         return true;
     } else if (c == '-' || (c >= '0' && c <= '9')) {
-        file.seek(-1, ppl7::File::SEEKCUR);
-        ppl7::String value = getNumber(file);
+        file.seek(-1, pplib::File::SEEKCUR);
+        pplib::String value = getNumber(file);
         data.set(key, value);
         return true;
     } else if (c == 't') { // true
-        file.seek(-1, ppl7::File::SEEKCUR);
+        file.seek(-1, pplib::File::SEEKCUR);
         readChars(file, "true");
-        data.set(key, ppl7::String("true"));
+        data.set(key, pplib::String("true"));
         return true;
     } else if (c == 'f') { // false
-        file.seek(-1, ppl7::File::SEEKCUR);
+        file.seek(-1, pplib::File::SEEKCUR);
         readChars(file, "false");
-        data.set(key, ppl7::String("false"));
+        data.set(key, pplib::String("false"));
         return true;
     } else if (c == 'n') { // null
-        file.seek(-1, ppl7::File::SEEKCUR);
+        file.seek(-1, pplib::File::SEEKCUR);
         readChars(file, "null");
-        data.set(key, ppl7::String("null"));
+        data.set(key, pplib::String("null"));
         return true;
     }
     return false;
 }
 
-static void readArray(ppl7::AssocArray& data, ppl7::FileObject& file)
+static void readArray(pplib::AssocArray& data, pplib::FileObject& file)
 {
     int c;
     ParserState::state state = ParserState::ExpectingValue;
@@ -221,16 +221,16 @@ static void readArray(ppl7::AssocArray& data, ppl7::FileObject& file)
         } else if (c == ']' && (state == ParserState::ExpectingValue || state == ParserState::ExpectingNextOrEnd)) {
             return;
         } else {
-            throw ppl7::UnexpectedCharacterException("#2: >>%c<< at position %lld while parsing array", c, file.tell());
+            throw pplib::UnexpectedCharacterException("#2: >>%c<< at position %lld while parsing array", c, file.tell());
         }
     }
-    throw ppl7::UnexpectedEndOfDataException();
+    throw pplib::UnexpectedEndOfDataException();
 }
 
-static void readDict(ppl7::AssocArray& data, ppl7::FileObject& file)
+static void readDict(pplib::AssocArray& data, pplib::FileObject& file)
 {
     int c;
-    ppl7::String key;
+    pplib::String key;
     ParserState::state state = ParserState::ExpectingKey;
     while (!file.eof()) {
         c = file.fgetc();
@@ -248,7 +248,7 @@ static void readDict(ppl7::AssocArray& data, ppl7::FileObject& file)
             if (readValue(data, key, file, c) == true) {
                 state = ParserState::ExpectingNextOrEnd;
             } else {
-                throw ppl7::UnexpectedCharacterException(
+                throw pplib::UnexpectedCharacterException(
                     "#3: >>%c<< at position %lld while parsing dict (expecting value), state ExpectingValue", c, file.tell());
             }
         } else if (c == '}' && (state == ParserState::ExpectingNextOrEnd || state == ParserState::ExpectingKey)) {
@@ -258,37 +258,37 @@ static void readDict(ppl7::AssocArray& data, ppl7::FileObject& file)
             if (c2 == '/') {
                 skipToEOL(file);
             } else {
-                file.seek(-1, ppl7::File::SEEKCUR);
-                throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict (slash), state %d", c, file.tell(),
-                                                         state);
+                file.seek(-1, pplib::File::SEEKCUR);
+                throw pplib::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict (slash), state %d", c, file.tell(),
+                                                          state);
             }
         } else {
-            throw ppl7::UnexpectedCharacterException("#4: >>%c<< (ASCII %d) at position %lld while parsing dict (general), state %d", c, c,
-                                                     file.tell(), state);
+            throw pplib::UnexpectedCharacterException("#4: >>%c<< (ASCII %d) at position %lld while parsing dict (general), state %d", c, c,
+                                                      file.tell(), state);
         }
     }
-    throw ppl7::UnexpectedEndOfDataException();
+    throw pplib::UnexpectedEndOfDataException();
 }
 
-static void expectEof(ppl7::FileObject& file)
+static void expectEof(pplib::FileObject& file)
 {
     int c;
     while (!file.eof()) {
         c = file.fgetc();
         if (c == EOF) return;
         if (c != ' ' && c != '\n' && c != '\r' && c != '\t' && c != 0) {
-            throw ppl7::UnexpectedCharacterException("#5: >>%c<< at position %lld while parsing dict 2", c, file.tell());
+            throw pplib::UnexpectedCharacterException("#5: >>%c<< at position %lld while parsing dict 2", c, file.tell());
         }
     }
 }
 
-void Json::loads(ppl7::AssocArray& data, const ppl7::String& json)
+void Json::loads(pplib::AssocArray& data, const pplib::String& json)
 {
-    ppl7::MemFile file((void*)json.getPtr(), json.size());
+    pplib::MemFile file((void*)json.getPtr(), json.size());
     Json::load(data, file);
 }
 
-void Json::load(ppl7::AssocArray& data, ppl7::FileObject& file)
+void Json::load(pplib::AssocArray& data, pplib::FileObject& file)
 {
     int c;
     while (!file.eof()) {
@@ -302,28 +302,28 @@ void Json::load(ppl7::AssocArray& data, ppl7::FileObject& file)
             expectEof(file);
             return;
         } else if (c != ' ' && c != '\n' && c != '\r' && c != '\t') {
-            throw ppl7::UnexpectedCharacterException("#6: >>%c<< at position %lld while parsing dict 1", c, file.tell());
+            throw pplib::UnexpectedCharacterException("#6: >>%c<< at position %lld while parsing dict 1", c, file.tell());
         }
     }
 }
 
-ppl7::AssocArray Json::loads(const ppl7::String& json)
+pplib::AssocArray Json::loads(const pplib::String& json)
 {
-    ppl7::AssocArray result;
+    pplib::AssocArray result;
     Json::loads(result, json);
     return result;
 }
 
-ppl7::AssocArray Json::load(ppl7::FileObject& file)
+pplib::AssocArray Json::load(pplib::FileObject& file)
 {
-    ppl7::AssocArray result;
+    pplib::AssocArray result;
     Json::load(result, file);
     return result;
 }
 
-void Json::dumps(ppl7::String& json, const ppl7::AssocArray& data)
+void Json::dumps(pplib::String& json, const pplib::AssocArray& data)
 {
-    ppl7::MemFile file((void*)NULL, 0, true);
+    pplib::MemFile file((void*)NULL, 0, true);
     Json::dump(file, data);
     size_t size = file.tell();
     unsigned char* str = (unsigned char*)malloc(size + 1);
@@ -335,19 +335,19 @@ void Json::dumps(ppl7::String& json, const ppl7::AssocArray& data)
     free(str);
 }
 
-ppl7::String Json::dumps(const ppl7::AssocArray& data)
+pplib::String Json::dumps(const pplib::AssocArray& data)
 {
-    ppl7::String result;
+    pplib::String result;
     Json::dumps(result, data);
     return result;
 }
 
-static bool isArray(const ppl7::AssocArray& data)
+static bool isArray(const pplib::AssocArray& data)
 {
     uint64_t v = 0;
-    ppl7::AssocArray::const_iterator it;
+    pplib::AssocArray::const_iterator it;
     for (it = data.begin(); it != data.end(); ++it) {
-        ppl7::String expectedkey;
+        pplib::String expectedkey;
         expectedkey.setf("%llu", v);
         if ((*it).first != expectedkey) return false;
         v++;
@@ -356,37 +356,37 @@ static bool isArray(const ppl7::AssocArray& data)
     return true;
 }
 
-static void writeArray(const ppl7::AssocArray& data, ppl7::FileObject& file);
-static void writeArray(const ppl7::Array& data, ppl7::FileObject& file);
-static void writeDict(const ppl7::AssocArray& data, ppl7::FileObject& file);
+static void writeArray(const pplib::AssocArray& data, pplib::FileObject& file);
+static void writeArray(const pplib::Array& data, pplib::FileObject& file);
+static void writeDict(const pplib::AssocArray& data, pplib::FileObject& file);
 
-static void writeValue(ppl7::FileObject& file, const ppl7::String& key, const ppl7::Variant* value)
+static void writeValue(pplib::FileObject& file, const pplib::String& key, const pplib::Variant* value)
 {
     if (value->isString()) {
-        const ppl7::String& str = value->toString();
+        const pplib::String& str = value->toString();
         if (str.isNumeric() && (!str.has(",")))
             file.puts(str);
         else if (str == "true" || str == "false" || str == "null")
             file.puts(str);
         else
-            file.putsf("\"%s\"", (const char*)ppl7::PythonHelper::escapeString(str));
+            file.putsf("\"%s\"", (const char*)pplib::PythonHelper::escapeString(str));
     } else if (value->isWideString()) {
-        const ppl7::WideString& wstr = value->toWideString();
-        ppl7::ByteArray ba = wstr.toUtf8();
-        ppl7::String str(ba);
+        const pplib::WideString& wstr = value->toWideString();
+        pplib::ByteArray ba = wstr.toUtf8();
+        pplib::String str(ba);
         if (str.isNumeric() && (!str.has(",")))
             file.puts(str);
         else if (str == "true" || str == "false" || str == "null")
             file.puts(str);
         else
-            file.putsf("\"%s\"", (const char*)ppl7::PythonHelper::escapeString(str));
+            file.putsf("\"%s\"", (const char*)pplib::PythonHelper::escapeString(str));
     } else if (value->isArray()) {
         writeArray(value->toArray(), file);
     } else if (value->isAssocArray()) {
         writeDict(value->toAssocArray(), file);
     } else if (value->isByteArrayPtr()) {
-        const ppl7::ByteArrayPtr& ba = value->toByteArrayPtr();
-        ppl7::String str = ba.toBase64();
+        const pplib::ByteArrayPtr& ba = value->toByteArrayPtr();
+        pplib::String str = ba.toBase64();
         file.fputc('"');
         file.fputs(str);
         file.fputc('"');
@@ -397,11 +397,11 @@ static void writeValue(ppl7::FileObject& file, const ppl7::String& key, const pp
     }
 }
 
-static void writeArray(const ppl7::AssocArray& data, ppl7::FileObject& file)
+static void writeArray(const pplib::AssocArray& data, pplib::FileObject& file)
 {
     file.fputc('[');
-    ppl7::AssocArray::const_iterator it;
-    ppl7::String key = "array";
+    pplib::AssocArray::const_iterator it;
+    pplib::String key = "array";
     for (it = data.begin(); it != data.end(); ++it) {
         if (it != data.begin()) file.fputc(',');
         writeValue(file, key, (*it).second);
@@ -409,7 +409,7 @@ static void writeArray(const ppl7::AssocArray& data, ppl7::FileObject& file)
     file.fputc(']');
 }
 
-static void writeArray(const ppl7::Array& data, ppl7::FileObject& file)
+static void writeArray(const pplib::Array& data, pplib::FileObject& file)
 {
     file.fputc('[');
     for (size_t i = 0; i < data.size(); i++) {
@@ -419,28 +419,28 @@ static void writeArray(const ppl7::Array& data, ppl7::FileObject& file)
     file.fputc(']');
 }
 
-static void writeDict(const ppl7::AssocArray& data, ppl7::FileObject& file)
+static void writeDict(const pplib::AssocArray& data, pplib::FileObject& file)
 {
     if (isArray(data)) {
         writeArray(data, file);
         return;
     }
     file.fputc('{');
-    ppl7::AssocArray::const_iterator it;
+    pplib::AssocArray::const_iterator it;
     for (it = data.begin(); it != data.end(); ++it) {
         if (it != data.begin()) file.fputc(',');
-        const ppl7::String& key = (*it).first;
+        const pplib::String& key = (*it).first;
         file.putsf("\"%s\":", (const char*)key);
         writeValue(file, key, (*it).second);
     }
     file.fputc('}');
 }
 
-void Json::dump(ppl7::FileObject& file, const ppl7::AssocArray& data)
+void Json::dump(pplib::FileObject& file, const pplib::AssocArray& data)
 {
     file.rewind();
     file.truncate(0);
     writeDict(data, file);
 }
 
-} // end of namespace ppl7
+} // end of namespace pplib

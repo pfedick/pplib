@@ -1,8 +1,8 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include "prolog_pplib.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -55,19 +55,19 @@
 #include <windows.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-inet.h"
-#include "ppl7/inet/httpclient.h"
+#include "pplib.h"
+#include "pplib-inet.h"
+#include "pplib/inet/httpclient.h"
 
 #ifdef HAVE_LIBCURL
 #include <curl/curl.h>
 #endif
 
-namespace ppl7
+namespace pplib
 {
 #ifdef HAVE_LIBCURL
-static void addParamsToUrl(const ppl7::HttpRequest& req, CURL* curl, ppl7::String& finalUrl);
-static curl_mime* addPostParams(const ppl7::HttpRequest& req, CURL* curl);
+static void addParamsToUrl(const pplib::HttpRequest& req, CURL* curl, pplib::String& finalUrl);
+static curl_mime* addPostParams(const pplib::HttpRequest& req, CURL* curl);
 #endif
 
 static String UserAgent =
@@ -100,13 +100,13 @@ static size_t header_callback(void* ptr, size_t size, size_t nmemb, void* userda
 {
     size_t totalSize = size * nmemb;
     CurlData* data = static_cast<CurlData*>(userdata);
-    ppl7::String headerLine((const char*)ptr, totalSize);
+    pplib::String headerLine((const char*)ptr, totalSize);
 
     // Einfaches Parsing: "Key: Value"
     int pos = headerLine.instr(":");
     if (pos > 0) {
-        ppl7::String key = headerLine.left(pos).trimmed();
-        ppl7::String value = headerLine.mid(pos + 1).trimmed();
+        pplib::String key = headerLine.left(pos).trimmed();
+        pplib::String value = headerLine.mid(pos + 1).trimmed();
         data->response->headers[key] = value;
     }
     return totalSize;
@@ -191,7 +191,7 @@ enum class HttpMethod
     HTTP_DELETE
 };
 
-static HttpResponse performHttpRequest(const ppl7::String& url, const HttpRequest& req, HttpMethod method)
+static HttpResponse performHttpRequest(const pplib::String& url, const HttpRequest& req, HttpMethod method)
 {
     HttpClient::Init(); // Sicherstellen, dass global init durch ist
     HttpResponse response;
@@ -206,7 +206,7 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
 
     CurlData curlData = {&response};
-    ppl7::String finalUrl = url;
+    pplib::String finalUrl = url;
 
     // 1. GET-Parameter an URL anhängen
     if (method == HttpMethod::HTTP_GET && !req.params.empty()) {
@@ -216,7 +216,7 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
     // 2. Custom Header aufbauen
     struct curl_slist* headerList = nullptr;
     for (auto const& [key, value] : req.headers) {
-        ppl7::String h = key + ": " + value;
+        pplib::String h = key + ": " + value;
         headerList = curl_slist_append(headerList, (const char*)h);
     }
 
@@ -250,7 +250,7 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
 
     // 3b. Cookies
     if (!req.cookies.empty()) {
-        ppl7::String cookieString;
+        pplib::String cookieString;
         for (auto const& [key, value] : req.cookies) {
             if (cookieString.notEmpty()) cookieString += "; ";
             cookieString += key + "=" + value;
@@ -315,7 +315,7 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
 }
 
 #ifdef HAVE_LIBCURL
-static curl_mime* addPostParams(const ppl7::HttpRequest& req, CURL* curl)
+static curl_mime* addPostParams(const pplib::HttpRequest& req, CURL* curl)
 {
     curl_mime* mime = nullptr;
     if (!req.body.isEmpty()) {
@@ -342,9 +342,9 @@ static curl_mime* addPostParams(const ppl7::HttpRequest& req, CURL* curl)
     return mime;
 }
 
-static void addParamsToUrl(const ppl7::HttpRequest& req, CURL* curl, ppl7::String& finalUrl)
+static void addParamsToUrl(const pplib::HttpRequest& req, CURL* curl, pplib::String& finalUrl)
 {
-    ppl7::String queryParams;
+    pplib::String queryParams;
     for (auto const& [key, value] : req.params) {
         if (!queryParams.isEmpty()) queryParams += "&";
         char* escapedKey = curl_easy_escape(curl, (const char*)key, key.size());
@@ -362,34 +362,34 @@ static void addParamsToUrl(const ppl7::HttpRequest& req, CURL* curl, ppl7::Strin
 
 #endif
 
-HttpResponse HttpClient::get(const ppl7::String& url, const HttpRequest& req)
+HttpResponse HttpClient::get(const pplib::String& url, const HttpRequest& req)
 {
     return performHttpRequest(url, req, HttpMethod::HTTP_GET);
 }
 
-HttpResponse HttpClient::post(const ppl7::String& url, const HttpRequest& req)
+HttpResponse HttpClient::post(const pplib::String& url, const HttpRequest& req)
 {
     return performHttpRequest(url, req, HttpMethod::HTTP_POST);
 }
 
-HttpResponse HttpClient::put(const ppl7::String& url, const HttpRequest& req)
+HttpResponse HttpClient::put(const pplib::String& url, const HttpRequest& req)
 {
     return performHttpRequest(url, req, HttpMethod::HTTP_PUT);
 }
 
-HttpResponse HttpClient::patch(const ppl7::String& url, const HttpRequest& req)
+HttpResponse HttpClient::patch(const pplib::String& url, const HttpRequest& req)
 {
     return performHttpRequest(url, req, HttpMethod::HTTP_PATCH);
 }
 
-HttpResponse HttpClient::del(const ppl7::String& url, const HttpRequest& req)
+HttpResponse HttpClient::del(const pplib::String& url, const HttpRequest& req)
 {
     return performHttpRequest(url, req, HttpMethod::HTTP_DELETE);
 }
 
-HttpResponse HttpClient::head(const ppl7::String& url, const HttpRequest& req)
+HttpResponse HttpClient::head(const pplib::String& url, const HttpRequest& req)
 {
     return performHttpRequest(url, req, HttpMethod::HTTP_HEAD);
 }
 
-} // namespace ppl7
+} // namespace pplib

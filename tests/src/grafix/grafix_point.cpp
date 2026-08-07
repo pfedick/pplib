@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,84 +37,89 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include "../include/ppl7.h"
-#include "../include/ppl7-grafix.h"
+#include "../include/pplib.h"
+#include "../include/pplib-grafix.h"
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class GrafixPointTest : public ::testing::Test {
-    protected:
-        GrafixPointTest() {
-        if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-            printf ("setlocale fehlgeschlagen\n");
+class GrafixPointTest : public ::testing::Test
+{
+protected:
+    GrafixPointTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
             throw std::exception();
         }
-
     }
-    virtual ~GrafixPointTest() {
-
+    virtual ~GrafixPointTest()
+    {
     }
 };
 
-
-TEST_F(GrafixPointTest, constructor) {
+TEST_F(GrafixPointTest, constructor)
+{
     ASSERT_NO_THROW({
-        //ppl7::grafix::Grafix gfx;
+        // pplib::grafix::Grafix gfx;
     });
-
 }
 
-TEST_F(GrafixPointTest, operator_lower) {
-	ppl7::grafix::Point p1(40,30);
-	ppl7::grafix::Point p2(45,40);
-	ASSERT_TRUE(p1<p2);
-	ASSERT_FALSE(p2<p1);
+TEST_F(GrafixPointTest, operator_lower)
+{
+    pplib::grafix::Point p1(40, 30);
+    pplib::grafix::Point p2(45, 40);
+    ASSERT_TRUE(p1 < p2);
+    ASSERT_FALSE(p2 < p1);
 }
 
-TEST_F(GrafixPointTest, operator_lowereq) {
-	ppl7::grafix::Point p1(40,30);
-	ppl7::grafix::Point p2(45,40);
-	ppl7::grafix::Point p3(45,40);
-	ASSERT_TRUE(p1<=p2);
-	ASSERT_TRUE(p3<=p2);
-	ASSERT_FALSE(p2<=p1);
+TEST_F(GrafixPointTest, operator_lowereq)
+{
+    pplib::grafix::Point p1(40, 30);
+    pplib::grafix::Point p2(45, 40);
+    pplib::grafix::Point p3(45, 40);
+    ASSERT_TRUE(p1 <= p2);
+    ASSERT_TRUE(p3 <= p2);
+    ASSERT_FALSE(p2 <= p1);
 }
 
-TEST_F(GrafixPointTest, operator_eq) {
-	ppl7::grafix::Point p1(40,30);
-	ppl7::grafix::Point p2(40,30);
-	ppl7::grafix::Point p3(41,31);
-	ASSERT_TRUE(p1==p2);
-	ASSERT_FALSE(p1==p3);
+TEST_F(GrafixPointTest, operator_eq)
+{
+    pplib::grafix::Point p1(40, 30);
+    pplib::grafix::Point p2(40, 30);
+    pplib::grafix::Point p3(41, 31);
+    ASSERT_TRUE(p1 == p2);
+    ASSERT_FALSE(p1 == p3);
 }
 
-TEST_F(GrafixPointTest, operator_noteq) {
-	ppl7::grafix::Point p1(40,30);
-	ppl7::grafix::Point p2(41,31);
-	ppl7::grafix::Point p3(41,31);
-	ASSERT_TRUE(p1!=p2);
-	ASSERT_FALSE(p2!=p3);
+TEST_F(GrafixPointTest, operator_noteq)
+{
+    pplib::grafix::Point p1(40, 30);
+    pplib::grafix::Point p2(41, 31);
+    pplib::grafix::Point p3(41, 31);
+    ASSERT_TRUE(p1 != p2);
+    ASSERT_FALSE(p2 != p3);
 }
 
-TEST_F(GrafixPointTest, operator_higher) {
-	ppl7::grafix::Point p1(40,45);
-	ppl7::grafix::Point p2(45,40);
-	ASSERT_TRUE(p1>p2);
-	ASSERT_FALSE(p2>p1);
+TEST_F(GrafixPointTest, operator_higher)
+{
+    pplib::grafix::Point p1(40, 45);
+    pplib::grafix::Point p2(45, 40);
+    ASSERT_TRUE(p1 > p2);
+    ASSERT_FALSE(p2 > p1);
 }
 
-TEST_F(GrafixPointTest, operator_highereq) {
-	ppl7::grafix::Point p1(40,45);
-	ppl7::grafix::Point p2(45,40);
-	ppl7::grafix::Point p3(40,45);
-	ASSERT_TRUE(p1>=p2);
-	ASSERT_TRUE(p1>=p3);
-	ASSERT_FALSE(p2>=p1);
+TEST_F(GrafixPointTest, operator_highereq)
+{
+    pplib::grafix::Point p1(40, 45);
+    pplib::grafix::Point p2(45, 40);
+    pplib::grafix::Point p3(40, 45);
+    ASSERT_TRUE(p1 >= p2);
+    ASSERT_TRUE(p1 >= p3);
+    ASSERT_FALSE(p2 >= p1);
 }
 
-
-}	// EOF namespace
-
+} // namespace

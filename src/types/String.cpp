@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
@@ -38,18 +38,18 @@
 #include <locale.h>
 #include <vector>
 
-#include <ppl7/types/string.h>
-#include <ppl7/types/widestring.h>
-#include <ppl7/types/bytearrayptr.h>
-#include <ppl7/types/bytearray.h>
-#include <ppl7/types/array.h>
-#include <ppl7/exceptions.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/core/iconv.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/array.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/iconv.h>
 
-#include <config_ppl7.h>
+#include <config_pplib.h>
 
-namespace ppl7
+namespace pplib
 {
 
 String::String() noexcept
@@ -1962,14 +1962,14 @@ bool String::endsWith(const String& suffix, size_t start, size_t end) const
     return part == suffix;
 }
 
-String String::join(const ppl7::Array& iterable) const
+String String::join(const pplib::Array& iterable) const
 {
     return iterable.implode(*this);
 }
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -1987,7 +1987,7 @@ String operator+(const String& str1, const String& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2005,7 +2005,7 @@ String operator+(const char* str1, const String& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2023,7 +2023,7 @@ String operator+(const String& str1, const char* str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2042,7 +2042,7 @@ String operator+(const wchar_t* str1, const String& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2060,7 +2060,7 @@ String operator+(const String& str1, const wchar_t* str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2078,7 +2078,7 @@ String operator+(const std::string& str1, const String& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2096,7 +2096,7 @@ String operator+(const String& str1, const std::string& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2114,7 +2114,7 @@ String operator+(const std::wstring& str1, const String& str2)
 
 /*!\brief String addieren
  *
- * \relates ppl7::String
+ * \relates pplib::String
  *
  * \desc
  * Zwei Strings werden zu einem neuen String zusammengefügt.
@@ -2195,4 +2195,4 @@ String::const_reverse_iterator String::crend() const noexcept
     return const_reverse_iterator(begin());
 }
 
-} // namespace ppl7
+} // namespace pplib

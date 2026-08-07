@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,35 +37,35 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include "../include/ppl7.h"
-#include "../include/ppl7-grafix.h"
+#include "../include/pplib.h"
+#include "../include/pplib-grafix.h"
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "pplib-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class GrafixRGBFormatTest : public ::testing::Test {
-    protected:
-        GrafixRGBFormatTest() {
-        if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-            printf ("setlocale fehlgeschlagen\n");
+class GrafixRGBFormatTest : public ::testing::Test
+{
+protected:
+    GrafixRGBFormatTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
             throw std::exception();
         }
-
     }
-    virtual ~GrafixRGBFormatTest() {
-
+    virtual ~GrafixRGBFormatTest()
+    {
     }
 };
 
-
-TEST_F(GrafixRGBFormatTest, constructor) {
+TEST_F(GrafixRGBFormatTest, constructor)
+{
     ASSERT_NO_THROW({
-        //ppl7::grafix::Grafix gfx;
+        // pplib::grafix::Grafix gfx;
     });
-
 }
 
-}	// EOF namespace
-
+} // namespace
