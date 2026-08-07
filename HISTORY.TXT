@@ -4,8 +4,79 @@ Version 8.0.0
   - namespace ist jetzt "pplib" ohne Versionsnummer
   
 
-Version 7.0.2
-  - ID3Tag can read tags from WAVE-files (.wav)
+Version 7.1.0 vom 07.08.2026 (Repo-Tag: REL_7_1_0)
+  - Core & Datentypen
+    - Alte Datentypen entfernt: Veraltete Typen (pplint8, pplint16 etc.) wurden vollständig entfernt und durch C++ Standardtypen ersetzt.
+    - ByteArray & ByteArrayPtr:
+      - Neue Methoden map() und truncate().
+      - Move-Operatoren für ByteArray ergänzt.
+      - Schreibender Zugriff auf einzelne Bytes über Operatoren bei ByteArrayPtr.
+      - File::load() gibt nun direkt ein ByteArray zurück (statt void*).
+    - String & WideString:
+      - Zuweisung von WideString zu String, Operator += QString sowie Qt6-Unterstützung (QAnyStringView).
+      - Neue Methoden: shl(), shr(), cut(), startsWith(), endsWith(), join(), toString(), toWideString().
+      - C++ std::iterator-Kompatibilität für String und Array.
+    - Krypto & Hash:
+      - Verschlüsselungsklassen (Encrypt/Decrypt) um neue Methoden erweitert.
+      - Veraltete Hash-Algorithmen (MD4, Whirlpool) entfernt.
+    - Low-Level Byte-Operationen:
+      - Peek- und Poke-Funktionen für Big-Endian, Floats und 24-Bit-Werte überarbeitet.
+
+  - Dateisystem & System
+    - Dateizugriffe & Pfade:
+      - Windows: Nutzung von Wide-Character-Funktionen (UTF-16) und FindFirstFile bei Verzeichnis-Iterationen zur korrekten Handhabung von Nicht-ASCII-Dateinamen.
+      - File: Statische Methoden isDir(), isFile(), tryStatFile(), getSuffix().
+      - File::exists() nutzt nun stat statt fopen und wirft bei leeren Pfaden keine Exception mehr.
+      - File::erase() wirft keine Exception mehr, wenn eine Datei nicht existiert.
+      - Dir: Neue Funktionen tryOpen(), canOpen(), documentsPath(), applicationDataPath() sowie rekursives mkDir() unter Windows.
+    - GzFile:
+      - fwrite() implementiert und Fix für ungültige Dateideskriptoren beim Schließen.
+    - Threads & Sockets:
+      - Unterstützung für Thread-Namen (pthread_set_name_np).
+      - sched_yield statt des veralteten pthread_yield genutzt.
+      - threadRunCount() und threadJoin() hinzugefügt.
+      - SockAddr und IPAddress um Methode version() ergänzt.
+
+  - HTTP-Client, Regex & Parser
+    - Neuer HTTP-Client (HttpClient):
+      - Komplett neuer HTTP-Client implementiert.
+      - Unterstützung für alle HTTP-Methoden (GET, POST, PUT, DELETE etc.).
+      - Proxy-Unterstützung, Authentifizierung, anpassbarer User-Agent, Cookie-Verwaltung und erweiterte Fehlerrückmeldung.
+    - RegEx / PCRE2:
+      - Umstellung der Regular-Expression-Engine auf PCRE2 (inkl. UTF-8 und WideString-Unterstützung).
+      - Neue RegEx-Klasse mit compile(), match(), capture(), replace() und escape().
+      - Veraltete preg*-Funktionen entfernt.
+    - JSON-Parser & Konfiguration:
+      - JSON-Parser überspringt Kommentare und behandelt Dateiende korrekt.
+      - ConfigParser: Neue Prüfmethoden hasSection() und hasKey().
+      - AssocArray::add() führt verschachtelte Arrays nun rekursiv zusammen.
+
+  - Audio & ID3-Tag
+    - ID3Tag:
+      - Lesen und Schreiben von ID3-Tags aus/in WAVE-Dateien (.wav).
+      - Unterstützung für unsynchronisierte Tags, Popularimeter (getPopularimeter()) und Zeichensatz-Konvertierung.
+      - Klasse vollständig überarbeitet.
+    - Audio-Decoder:
+      - Neuer Ogg Vorbis-Decoder (AudioDecoder_Ogg) inkl. Mono-Unterstützung.
+      - Unterstützung für Fließkomma-Audio-Puffer (float).
+      - Unterstützung für 24-Bit AIFF- und WAVE-Dateien sowie Mono-MP3-Dateien.
+
+  - Grafik & Bildverarbeitung
+    - Grafix / Drawable / Image:
+      - Einführung der Klasse PointF (Float-Punkte) und Hilfsfunktion randf().
+      - Export von 32-Bit BMP-Dateien mit Alphakanal.
+      - Bilinearer Filter beim Herunterskalieren von Bildern und stark verbesserte Skalierungsleistung.
+      - Korrekturen und 64-Bit Assembler-Optimierungen beim Alpha-Blending (BltAlpha_32, RGBBlend_32_255).
+      - Neue Methode Drawable::isNull().
+
+  - Architektur & Aufräumarbeiten
+    - Auslagerung des Toolkits: Das GUI/Toolkit sowie die SDL2-Abhängigkeit wurden aus PPL7 entfernt und in das neue, separate Projekt ppltk ausgelagert.
+    - Entfernung alter Altlasten:
+      - Veraltete Webserver-Klasse sowie die PPL6-Kompatibilitätsschicht wurden komplett entfernt.
+      - Veraltete AVLTree-Klasse entfernt (durch std::map ersetzt).
+    - Header-Reorganisation:
+      - Die monolithische Header-Datei ppl7-types.h wurde in einzelne, spezifische Header aufgeteilt.
+      - Code-Formatierung aller Header-Dateien mit clang-format.
 
 Version 7.0.1 vom 27.10.2019 (Repo-Tag: REL_7_0_1)
   - Fixed overflow exception in ID3Tag::copyAiffToNewFile
