@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "pplib/grafix/color.h"
+#include <pplib/grafix/color.h>
 #include <pplib/types/string.h>
 
 namespace pplib::grafix

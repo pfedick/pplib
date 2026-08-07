@@ -27,48 +27,73 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPLIB_INCLUDE_GRAFIX
-#define _PPLIB_INCLUDE_GRAFIX
-#include <pplib.h>
+#ifndef PPLIB_INCLUDE_GRAFIX_SPRITE_H
+#define PPLIB_INCLUDE_GRAFIX_SPRITE_H
 
-#include <map>
-#include <list>
+#include <stdint.h>
 
-#include <pplib/grafix/color.h>
-#include <pplib/grafix/point.h>
-#include <pplib/grafix/size.h>
-#include <pplib/grafix/rect.h>
-#include <pplib/grafix/rgbformat.h>
-#include <pplib/grafix/font.h>
-
-namespace pplib
+namespace pplib::grafix
 {
-namespace grafix
+class Sprite
 {
+private:
+    class SpriteTexture
+    {
+    public:
+        int id;
+        int width, height;
+        int bitdepth;
+        RGBFormat rgbformat;
+        Image surface;
 
-PPLIBEXCEPTION(UnknownColorFormatException, Exception);
-PPLIBEXCEPTION(UnsupportedColorFormatException, Exception);
-PPLIBEXCEPTION(NoGrafixEngineException, Exception);
-PPLIBEXCEPTION(EmptyDrawableException, Exception);
-PPLIBEXCEPTION(UnknownBltMethodException, Exception);
-PPLIBEXCEPTION(DuplicateGrafixEngineException, Exception);
-PPLIBEXCEPTION(FunctionUnavailableException, Exception);
-PPLIBEXCEPTION(InvalidImageSizeException, Exception);
-PPLIBEXCEPTION(UnknownImageFormatException, Exception);
-PPLIBEXCEPTION(FontEngineInitializationException, Exception);
-PPLIBEXCEPTION(FontEngineUninitializedException, Exception);
-PPLIBEXCEPTION(InvalidFontException, Exception);
-PPLIBEXCEPTION(NoSuitableFontEngineException, Exception);
-PPLIBEXCEPTION(FontNotFoundException, Exception);
-PPLIBEXCEPTION(InvalidFontEngineException, Exception);
-PPLIBEXCEPTION(InvalidSpriteException, Exception);
+        SpriteTexture()
+        {
+            id = width = height = bitdepth = 0;
+        }
+        ~SpriteTexture()
+        {
+        }
+    };
 
-// Font6 Exceptions
-PPLIBEXCEPTION(InvalidFontFormatException, Exception);
-PPLIBEXCEPTION(InvalidFontFaceException, Exception);
-PPLIBEXCEPTION(UnknownFontFaceException, Exception);
+    class SpriteIndexItem
+    {
+    public:
+        int id;
+        const Drawable* surface;
+        Rect r;
+        Point Pivot;
+        Point Offset;
 
-} // namespace grafix
-} // end of namespace pplib
+        SpriteIndexItem()
+        {
+            id = 0;
+            surface = NULL;
+        }
+        SpriteIndexItem(const SpriteIndexItem& other)
+            : r(other.r),
+              Pivot(other.Pivot),
+              Offset(other.Offset)
+        {
+            id = other.id;
+            surface = other.surface;
+        }
+    };
+    std::map<int, SpriteTexture> TextureList;
+    std::map<int, SpriteIndexItem> SpriteList;
 
-#endif // _PPLIB_INCLUDE_GRAFIX
+    void loadTexture(PFPChunk* chunk);
+    void loadIndex(PFPChunk* chunk);
+    const Drawable* findTexture(int id) const;
+
+public:
+    Sprite();
+    ~Sprite();
+    void load(const String& filename);
+    void load(FileObject& ff);
+    void clear();
+    void draw(Drawable& target, int x, int y, int id) const;
+    int numTextures() const;
+    int numSprites() const;
+};
+} // namespace pplib::grafix
+#endif // PPLIB_INCLUDE_GRAFIX_SPRITE_H

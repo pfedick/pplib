@@ -27,48 +27,57 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPLIB_INCLUDE_GRAFIX
-#define _PPLIB_INCLUDE_GRAFIX
-#include <pplib.h>
+#ifndef PPLIB_INCLUDE_GRAFIX_IMAGEREFERENCE_H
+#define PPLIB_INCLUDE_GRAFIX_IMAGEREFERENCE_H
 
-#include <map>
-#include <list>
+#include <stdint.h>
 
-#include <pplib/grafix/color.h>
-#include <pplib/grafix/point.h>
-#include <pplib/grafix/size.h>
-#include <pplib/grafix/rect.h>
-#include <pplib/grafix/rgbformat.h>
-#include <pplib/grafix/font.h>
-
-namespace pplib
+namespace pplib::grafix
 {
-namespace grafix
+enum class DrawMethod : uint8_t
 {
+    BLT = 1,
+    ALPHABLT,
+    DIFFUSE
+};
 
-PPLIBEXCEPTION(UnknownColorFormatException, Exception);
-PPLIBEXCEPTION(UnsupportedColorFormatException, Exception);
-PPLIBEXCEPTION(NoGrafixEngineException, Exception);
-PPLIBEXCEPTION(EmptyDrawableException, Exception);
-PPLIBEXCEPTION(UnknownBltMethodException, Exception);
-PPLIBEXCEPTION(DuplicateGrafixEngineException, Exception);
-PPLIBEXCEPTION(FunctionUnavailableException, Exception);
-PPLIBEXCEPTION(InvalidImageSizeException, Exception);
-PPLIBEXCEPTION(UnknownImageFormatException, Exception);
-PPLIBEXCEPTION(FontEngineInitializationException, Exception);
-PPLIBEXCEPTION(FontEngineUninitializedException, Exception);
-PPLIBEXCEPTION(InvalidFontException, Exception);
-PPLIBEXCEPTION(NoSuitableFontEngineException, Exception);
-PPLIBEXCEPTION(FontNotFoundException, Exception);
-PPLIBEXCEPTION(InvalidFontEngineException, Exception);
-PPLIBEXCEPTION(InvalidSpriteException, Exception);
+class ImageReference
+{
+    friend class Drawable;
 
-// Font6 Exceptions
-PPLIBEXCEPTION(InvalidFontFormatException, Exception);
-PPLIBEXCEPTION(InvalidFontFaceException, Exception);
-PPLIBEXCEPTION(UnknownFontFaceException, Exception);
+private:
+    Color diffuse_color;
+    Drawable pixel;
+    DrawMethod draw_method;
 
-} // namespace grafix
-} // end of namespace pplib
+public:
+    ImageReference();
+    ImageReference(const Drawable& draw, DrawMethod method = DrawMethod::ALPHABLT, const Color& diffuse = Color());
+    Size16 size() const;
+    DrawMethod drawMethod() const;
+    const Drawable& getDrawable() const;
+    Color diffuseColor() const;
+    void setDrawMethod(DrawMethod method);
+    void setDiffuseColor(const Color& c);
+    void setDrawable(const Drawable& draw);
+    void useDrawable(const Drawable& draw, DrawMethod method, const Color& diffuse = Color());
+    inline uint16_t width() const
+    {
+        return pixel.width();
+    };
+    inline uint16_t height() const
+    {
+        return pixel.height();
+    };
+    inline RGBFormat format() const
+    {
+        return pixel.format();
+    };
+    inline bool isEmpty() const
+    {
+        return pixel.isEmpty();
+    };
+};
 
-#endif // _PPLIB_INCLUDE_GRAFIX
+} // namespace pplib::grafix
+#endif // PPLIB_INCLUDE_GRAFIX_IMAGEREFERENCE_H

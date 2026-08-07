@@ -27,8 +27,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPLIB_INCLUDE_GRAFIX_COLOR
-#define _PPLIB_INCLUDE_GRAFIX_COLOR
+#ifndef PPLIB_INCLUDE_GRAFIX_COLOR_H
+#define PPLIB_INCLUDE_GRAFIX_COLOR_H
 
 #include <stdint.h>
 #include <ostream>
@@ -605,4 +605,4 @@ std::ostream& operator<<(std::ostream& s, const Color& c);
 
 } // namespace pplib::grafix
 
-#endif // _PPLIB_INCLUDE_GRAFIX_COLOR
+#endif // PPLIB_INCLUDE_GRAFIX_COLOR_H

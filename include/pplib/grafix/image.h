@@ -27,48 +27,50 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPLIB_INCLUDE_GRAFIX
-#define _PPLIB_INCLUDE_GRAFIX
-#include <pplib.h>
+#ifndef PPLIB_INCLUDE_GRAFIX_IMAGE_H
+#define PPLIB_INCLUDE_GRAFIX_IMAGE_H
 
-#include <map>
-#include <list>
+#include <stdint.h>
 
-#include <pplib/grafix/color.h>
-#include <pplib/grafix/point.h>
-#include <pplib/grafix/size.h>
-#include <pplib/grafix/rect.h>
-#include <pplib/grafix/rgbformat.h>
-#include <pplib/grafix/font.h>
-
-namespace pplib
+namespace pplib::grafix
 {
-namespace grafix
+class Image : public Drawable
 {
+private:
+    ByteArray myMemory;
 
-PPLIBEXCEPTION(UnknownColorFormatException, Exception);
-PPLIBEXCEPTION(UnsupportedColorFormatException, Exception);
-PPLIBEXCEPTION(NoGrafixEngineException, Exception);
-PPLIBEXCEPTION(EmptyDrawableException, Exception);
-PPLIBEXCEPTION(UnknownBltMethodException, Exception);
-PPLIBEXCEPTION(DuplicateGrafixEngineException, Exception);
-PPLIBEXCEPTION(FunctionUnavailableException, Exception);
-PPLIBEXCEPTION(InvalidImageSizeException, Exception);
-PPLIBEXCEPTION(UnknownImageFormatException, Exception);
-PPLIBEXCEPTION(FontEngineInitializationException, Exception);
-PPLIBEXCEPTION(FontEngineUninitializedException, Exception);
-PPLIBEXCEPTION(InvalidFontException, Exception);
-PPLIBEXCEPTION(NoSuitableFontEngineException, Exception);
-PPLIBEXCEPTION(FontNotFoundException, Exception);
-PPLIBEXCEPTION(InvalidFontEngineException, Exception);
-PPLIBEXCEPTION(InvalidSpriteException, Exception);
+public:
+    /** @name Konstruktoren
+     */
+    //@{
+    Image();
+    Image(const Image& other);
+    Image(const Drawable& other);
+    Image(int width, int height, const RGBFormat& format = RGBFormat::A8R8G8B8);
+    Image(const String& Filename, const RGBFormat& format = RGBFormat::unknown);
+    Image(FileObject& file, const RGBFormat& format = RGBFormat::unknown);
+    Image(const ByteArrayPtr& mem, const RGBFormat& format = RGBFormat::unknown);
+    ~Image();
+    //@}
 
-// Font6 Exceptions
-PPLIBEXCEPTION(InvalidFontFormatException, Exception);
-PPLIBEXCEPTION(InvalidFontFaceException, Exception);
-PPLIBEXCEPTION(UnknownFontFaceException, Exception);
-
-} // namespace grafix
-} // end of namespace pplib
-
-#endif // _PPLIB_INCLUDE_GRAFIX
+    /** @name Verschiedenes
+     */
+    //@{
+    void clear();
+    void create(int width, int height, const RGBFormat& format = RGBFormat::A8R8G8B8);
+    void create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format = RGBFormat::A8R8G8B8);
+    void load(const String& Filename, const RGBFormat& format = RGBFormat::unknown);
+    void load(FileObject& file, const RGBFormat& format = RGBFormat::unknown);
+    void load(const ByteArrayPtr& Mem, const RGBFormat& format = RGBFormat::unknown);
+    void copy(const Drawable& other);
+    void copy(const Drawable& other, const Rect& rect);
+    void copy(const Image& other);
+    Image& operator=(const Drawable& other);
+    Image& operator=(const Image& other);
+    size_t numBytes() const;
+    ByteArrayPtr memory() const;
+    operator ByteArrayPtr() const;
+    //@}
+};
+} // namespace pplib::grafix
+#endif // PPLIB_INCLUDE_GRAFIX_IMAGE_H
