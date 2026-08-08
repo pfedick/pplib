@@ -30,6 +30,7 @@
 #include <mutex>
 
 #include <pplib/types/string.h>
+#include <pplib/core/file.h>
 #include <pplib/grafix/imagefilter.h>
 #include <pplib/grafix/grafix.h>
 
@@ -39,6 +40,10 @@ namespace pplib::grafix
 void Grafix::addImageFilter(ImageFilter* filter)
 {
     MutexLock lock(myMutex);
+    // filter darf nicht schon registriert sein
+    for (auto it = ImageFilterList.begin(); it != ImageFilterList.end(); ++it) {
+        if (*it == filter) throw DuplicateImageFilterException();
+    }
     ImageFilterList.push_back(filter);
 }
 
@@ -77,56 +82,7 @@ ImageFilter* Grafix::findImageFilter(FileObject& ff, IMAGE& img)
     return nullptr;
 }
 
-/*!\class ImageFilter
- * \ingroup PPLGroupGrafik
- * \brief Basisklasse für Import-/Export-Filter verschiedener Grafikformate
- *
- * \desc
- * Dies ist die Basisklasse für alle Import- und Export-Filter für verschiedene
- * Grafikformate.
- * eine von ImageFilter abgeleitete Klasse, die in der Lage ist ein bestimmtes Grafikformat
- * zu lesen und optional auch zu schreiben.
- * Eine Instanz des Filters muss mit "new" angelegt und mit der Funktion
- * Grafix::addFilter in der Grafik-Engine registriert werden. Die Grafik-Engine
- * kümmert sich bei Programmende selbst um das Löschen des Filters.
- * Mit Grafix::unloadFilter kann ein Filter aber auch manuell von der Anwendung
- * wieder entfernt werden. Mit Grafix::findFilter kann ein Filter anhand seines
- * Namens gefunden werden.
- */
-
-/*!\brief Konstruktor
- *
- * \desc
- * Im Konstruktor werden interne Daten der Klasse initialisiert
- */
-ImageFilter::ImageFilter()
-{
-}
-
-/*!\brief Destruktor
- *
- * \desc
- * Der Destruktor sorgt dafür, dass durch die Klasse allokierter Speicher
- * wieder freigegeben wird.
- */
-ImageFilter::~ImageFilter()
-{
-}
-
-/*!\brief Grafikformat identifizieren
- *
- * \desc
- * Diese Funktion wird aufgerufen, um herauszufinden, ob ein Grafikformat durch diesen
- * Filter gelesen werden kann. Ist dieser der Fall, muss die die Funktion 1 zurückgeben
- * und die IMAGE-Struktur \p img füllen. Wird das Format nicht unterstützt, muss 0
- * zurückgegeben werden.
- *
- * @param[in] file Eine geöffnete Datei
- * @param[out] img Eine IMAGE-Struktur
- * @return Wird das Grafikformat unterstützt, muss die Funktion 1 zurückgegen,
- * andernfalls 0.
- */
-int ImageFilter::ident(FileObject& file, IMAGE& img)
+bool ImageFilter::ident(FileObject& file, IMAGE& img)
 {
     throw UnimplementedVirtualFunctionException();
 }
@@ -134,12 +90,6 @@ int ImageFilter::ident(FileObject& file, IMAGE& img)
 void ImageFilter::load(FileObject& file, Drawable& surface, IMAGE& img)
 {
     throw UnimplementedVirtualFunctionException();
-}
-
-void ImageFilter::save(const Drawable& surface, FileObject& file, const Rect& area, const AssocArray& param)
-{
-    Drawable draw = surface.getDrawable(area);
-    save(draw, file, param);
 }
 
 void ImageFilter::save(const Drawable& surface, FileObject& file, const AssocArray& param)
@@ -150,16 +100,8 @@ void ImageFilter::save(const Drawable& surface, FileObject& file, const AssocArr
 void ImageFilter::saveFile(const String& filename, const Drawable& surface, const AssocArray& param)
 {
     File ff;
-    ff.open(filename, File::WRITE);
+    ff.open(filename, File::FileMode::WRITE);
     save(surface, ff, param);
-}
-
-void ImageFilter::saveFile(const String& filename, const Drawable& surface, const Rect& area, const AssocArray& param)
-{
-    Drawable draw = surface.getDrawable(area);
-    File ff;
-    ff.open(filename, File::WRITE);
-    save(draw, ff, param);
 }
 
 String ImageFilter::name()
@@ -172,5 +114,4 @@ String ImageFilter::description()
     return "Baseclass for image filter";
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

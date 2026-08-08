@@ -45,6 +45,10 @@ namespace pplib::grafix
 PPLIBEXCEPTION(NoGrafixEngineException, Exception);
 PPLIBEXCEPTION(DuplicateGrafixEngineException, Exception);
 PPLIBEXCEPTION(UnknownColorFormatException, Exception);
+PPLIBEXCEPTION(DuplicateFontEngineException, Exception);
+PPLIBEXCEPTION(DuplicateImageFilterException, Exception);
+PPLIBEXCEPTION(InvalidFontException, Exception);
+PPLIBEXCEPTION(NoSuitableFontEngineException, Exception);
 
 class ImageFilter;
 class ImageList;
@@ -125,6 +129,7 @@ public:
      * werden.
      *
      * @param[in] filter Pointer auf den zu registrierenden Filter
+     * @exception DuplicateImageFilterException Wird geworfen, wenn der Filter bereits registriert ist.
      *
      * @see
      * - ImageFilter
@@ -176,14 +181,96 @@ public:
 
     /// @name Fonts
     //@{
+
+    /** @brief FontEngine hinzufügen
+     *
+     * Mit dieser Funktion wird eine FontEngine der Grafikengine hinzugefügt. Darunter
+     * versteht man eine von FontEngine abgeleitete Klasse, die in der Lage ist Fontdateien
+     * in einem bestimmten Format zu verarbeiten und darzustellen.
+     *
+     * Die FontEngine muss von der Anwendung mit "new" erstellt werden und als Pointer
+     * an die Grafix-Engine übergeben werden. Grafix verwaltet die Engine ab diesem
+     * Moment und kümmert sich auch um deren Löschung bei Programmende. Die Anwendung darf
+     * die FontEngine nicht selbst löschen!
+     *
+     * @param engine Pointer auf die Klasse mit der FontEngine
+     * @exception DuplicateFontEngineException Wird geworfen, wenn die Engine bereits registriert ist.
+     */
     void addFontEngine(FontEngine* engine);
+
+    /** @brief Fontdatei laden
+     *
+     * Mit dieser Funktion wird ein Font aus einer Datei geladen.
+     *
+     * @param filename Dateiname der Fontdatei
+     * @param fontname Name, unter dem der Font in der Grafix-Engine registriert werden soll. Falls dieser
+     * nicht angegeben wird, wird entweder der Name aus der Fontdatei verwendet oder ein Name aus dem
+     * Dateinamen generiert.
+     * @exception InvalidFontException Wird geworfen, wenn die Fontdatei nicht geladen werden konnte.
+     * @exception NoSuitableFontEngineException Wird geworfen, wenn keine passende FontEngine für
+     */
     void loadFont(const String& filename, const String& fontname = String());
+
+    /**
+     * @brief  Fontdatei aus einer geöffneten Datei laden
+     *
+     * Mit dieser Funktion wird ein Font aus einer bereits geöffneten Datei geladen.
+     *
+     * @param ff Referenz auf eine bereits geöffnete Datei mit den Fontdaten
+     * @param fontname Name, unter dem der Font in der Grafix-Engine registriert werden soll. Falls dieser
+     * nicht angegeben wird, wird entweder der Name aus der Fontdatei verwendet oder ein Name aus dem
+     * Dateinamen generiert.
+     * @exception InvalidFontException Wird geworfen, wenn die Fontdatei nicht geladen werden konnte.
+     * @exception NoSuitableFontEngineException Wird geworfen, wenn keine passende FontEngine für
+     */
     void loadFont(FileObject& ff, const String& fontname = String());
+
+    /** @brief Fontdatei aus Speicherbereich laden
+     *
+     * Mit dieser Funktion wird ein Font aus einem Speicherbereich geladen.
+     *
+     * @param memory Speicherbereich mit den Fontdaten
+     * @param fontname Name, unter dem der Font in der Grafix-Engine registriert werden soll. Falls dieser
+     * nicht angegeben wird, wird entweder der Name aus der Fontdatei verwendet oder ein Name aus dem
+     * Dateinamen generiert.
+     * @exception InvalidFontException Wird geworfen, wenn die Fontdatei nicht geladen werden konnte.
+     * @exception NoSuitableFontEngineException Wird geworfen, wenn keine passende FontEngine für
+     */
     void loadFont(const ByteArrayPtr& memory, const String& fontname = String());
-    void unloadFont(const String& fontname);
-    FontFile* findFont(const String& fontname);
-    FontFile* findFont(const Font& font);
-    void listFonts();
+
+    /** @brief Fontdatei entladen
+     *
+     * Mit dieser Funktion wird ein zuvor geladener Font wieder aus der Grafix-Engine entfernt.
+     * Die Anwendung kann den Font danach nicht mehr verwenden.
+     *
+     * @param fontname Name des Fonts, der entfernt werden soll
+     */
+    void unloadFont(const String& fontname) noexcept;
+
+    /** @brief Fontdatei anhand des Namens suchen
+     *
+     * Mit dieser Funktion kann ein zuvor geladener Font anhand seines Namens gesucht werden.
+     *
+     * @param fontname Name des gesuchten Fonts
+     * @return Bei Erfolg liefert die Funktion einen Pointer auf die Fontdatei zurück, im Fehlerfall nullptr.
+     */
+    FontFile* findFont(const String& fontname) noexcept;
+
+    /** @brief Fontdatei anhand des Font-Objekts suchen
+     *
+     * Mit dieser Funktion kann ein zuvor geladener Font anhand eines Font-Objekts gesucht werden.
+     *
+     * @param font Referenz auf ein Font-Objekt, das den Namen des gesuchten Fonts enthält
+     * @return Bei Erfolg liefert die Funktion einen Pointer auf die Fontdatei zurück, im Fehlerfall nullptr.
+     */
+    FontFile* findFont(const Font& font) noexcept;
+
+    /** @brief Liste aller geladenen Fonts ausgeben
+     *
+     * Mit dieser Funktion wird eine Liste aller in der Grafix-Engine geladenen Fonts auf die Standardausgabe
+     * ausgegeben. Dabei werden der Name des Fonts und die verwendete FontEngine angezeigt.
+     */
+    void listFonts() noexcept;
     //@}
 };
 

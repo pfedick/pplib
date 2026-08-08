@@ -34,7 +34,7 @@
 #include <pplib/grafix/rgbformat.h>
 #include <pplib/grafix/color.h>
 #include <pplib/grafix/rect.h>
-#include <pplib/grafix/font.h>
+#include <pplib/grafix/fonts.h>
 #include <pplib/grafix/imagereference.h>
 
 namespace pplib::grafix

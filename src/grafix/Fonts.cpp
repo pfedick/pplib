@@ -27,26 +27,18 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_MATH_H
-#include <math.h>
-#endif
+#include <config_pplib.h>
 
-#include "pplib.h"
-#include "pplib-grafix.h"
+#include <pplib/exceptions.h>
+#include <pplib/types/string.h>
+#include <pplib/core/file.h>
+#include <pplib/core/memfile.h>
 
-namespace pplib
-{
-namespace grafix
+#include <pplib/grafix/grafix.h>
+#include <pplib/grafix/fonts.h>
+#include <pplib/grafix/drawable.h>
+
+namespace pplib::grafix
 {
 
 /*!\class Font
@@ -265,8 +257,7 @@ void Font::setRotation(double degrees)
 Size Font::measure(const WideString& text) const
 {
     Size s;
-    Grafix* gfx = GetGrafix();
-    FontFile* file = gfx->findFont(Name);
+    FontFile* file = GetGrafix().findFont(Name);
     if (!file) return s;
     if (!file->engine) return s;
     return file->engine->measure(*file, *this, text);
@@ -275,8 +266,7 @@ Size Font::measure(const WideString& text) const
 Rect Font::boundary(const WideString& text, int x, int y) const
 {
     Rect r;
-    Grafix* gfx = GetGrafix();
-    FontFile* file = gfx->findFont(Name);
+    FontFile* file = GetGrafix().findFont(Name);
     if (!file) return r;
     if (!file->engine) return r;
     return file->engine->boundary(*file, *this, text, x, y);
@@ -322,40 +312,21 @@ FontFile::~FontFile()
     engine = NULL;
 }
 
-/*!\brief FontEngine hinzufügen
- *
- * Mit dieser Funktion wird eine FontEngine der Grafikengine hinzugefügt. Darunter
- * versteht man eine von FontEngine abgeleitete Klasse, die in der Lage ist Fontdateien
- * in einem bestimmten Format zu verarbeiten und darzustellen.
- *
- * Die FontEngine muss von der Anwendung mit "new" erstellt werden und als Pointer
- * an die Grafix-Engine übergeben werden. Grafix verwaltet die Engine ab diesem
- * Moment und kümmert sich auch um deren Löschung bei Programmende. Die Anwendung darf
- * die FontEngine nicht selbst löschen!
- *
- * \param engine Pointer auf die Klasse mit der FontEngine
- * \returns Liefert true (1) zurück, wenn die Engine erfolgreich aufgenommen werden
- * konnte, sonst false (0). Ein entsprechender Fehlercode wird gesetzt.
- */
 void Grafix::addFontEngine(FontEngine* engine)
 {
-    if (!engine) throw NullPointerException();
-    engine->init();
-    myMutex.lock();
-    try {
-        FontEngineList.push_back(engine);
+    if (!engine) throw IllegalArgumentException();
+    MutexLock lock(myMutex);
+    // engine darf nicht schon registriert sein
+    for (auto it = FontEngineList.begin(); it != FontEngineList.end(); ++it) {
+        if (*it == engine) throw DuplicateFontEngineException();
     }
-    catch (...) {
-        myMutex.unlock();
-        throw;
-    }
-    myMutex.unlock();
+    FontEngineList.push_back(engine);
 }
 
 void Grafix::loadFont(const String& filename, const String& fontname)
 {
     File ff;
-    ff.open(filename, File::READ);
+    ff.open(filename, File::FileMode::READ);
     loadFont(ff, fontname);
 }
 
@@ -367,78 +338,65 @@ void Grafix::loadFont(const ByteArrayPtr& memory, const String& fontname)
 
 void Grafix::loadFont(FileObject& ff, const String& fontname)
 {
-    myMutex.lock();
+    MutexLock lock(myMutex);
     // Passenden Filter finden
     FontEngine* engine;
-    try {
-        for (auto it = FontEngineList.begin(); it != FontEngineList.end(); ++it) {
-            engine = *it;
-            int id = engine->ident(ff);
-            if (id == 1) {
-                FontFile* font = engine->loadFont(ff, fontname);
-                if (!font) throw InvalidFontException();
-                // Falls ein Font mit gleichem Namen geladen ist, löschen wir
-                // diesen zuerst
-                auto old_it = FontList.find(font->Name);
-                if (old_it != FontList.end()) {
-                    FontFile* old = old_it->second;
-                    FontList.erase(old_it);
-                    old->engine->deleteFont(old);
-                }
-                try {
-                    FontList.insert(std::pair<pplib::String, FontFile*>(font->Name, font));
-                }
-                catch (...) {
-                    font->engine->deleteFont(font);
-                    myMutex.unlock();
-                    throw;
-                }
-                myMutex.unlock();
-                return;
+    for (auto it = FontEngineList.begin(); it != FontEngineList.end(); ++it) {
+        engine = *it;
+        int id = engine->ident(ff);
+        if (id == 1) {
+            FontFile* font = engine->loadFont(ff, fontname);
+            if (!font) throw InvalidFontException();
+            // Falls ein Font mit gleichem Namen geladen ist, löschen wir
+            // diesen zuerst
+            auto old_it = FontList.find(font->Name);
+            if (old_it != FontList.end()) {
+                FontFile* old = old_it->second;
+                FontList.erase(old_it);
+                old->engine->deleteFont(old);
             }
+            try {
+                FontList.insert(std::pair<pplib::String, FontFile*>(font->Name, font));
+            }
+            catch (...) {
+                font->engine->deleteFont(font);
+                throw;
+            }
+            return;
         }
     }
-    catch (...) {
-        myMutex.unlock();
-        throw;
-    }
-    myMutex.unlock();
     throw NoSuitableFontEngineException();
 }
 
-void Grafix::unloadFont(const String& fontname)
+void Grafix::unloadFont(const String& fontname) noexcept
 {
-    myMutex.lock();
+    MutexLock lock(myMutex);
     auto it = FontList.find(fontname);
     if (it != FontList.end()) {
         FontFile* file = it->second;
         FontList.erase(it);
         file->engine->deleteFont(file);
     }
-    myMutex.unlock();
 }
 
-FontFile* Grafix::findFont(const String& fontname)
+FontFile* Grafix::findFont(const String& fontname) noexcept
 {
-    myMutex.lock();
+    MutexLock lock(myMutex);
     auto it = FontList.find(fontname);
     if (it != FontList.end()) {
-        myMutex.unlock();
         return it->second;
     }
-    myMutex.unlock();
-    throw FontNotFoundException(fontname);
+    return nullptr;
 }
 
-void Grafix::listFonts()
+void Grafix::listFonts() noexcept
 {
-    myMutex.lock();
+    MutexLock lock(myMutex);
     printf("Available Fonts:\n");
     for (auto it = FontList.begin(); it != FontList.end(); ++it) {
         FontFile* ff = it->second;
         printf("    %s, Engine: %s\n", (const char*)ff->Name, (const char*)ff->engine->name());
     }
-    myMutex.unlock();
 }
 
 FontFile* Grafix::findFont(const Font& font)
@@ -459,8 +417,7 @@ FontFile* Grafix::findFont(const Font& font)
  */
 void Drawable::print(const Font& font, int x, int y, const WideString& text)
 {
-    Grafix* gfx = GetGrafix();
-    FontFile* file = gfx->findFont(font.name());
+    FontFile* file = GetGrafix().findFont(font.name());
     if (font.drawShadow()) {
         file->engine->render(*file, font, *this, x + 2, y + 2, text, font.shadowColor());
     }
@@ -520,11 +477,6 @@ FontEngine::~FontEngine()
 {
 }
 
-void FontEngine::init()
-{
-    throw UnimplementedVirtualFunctionException();
-}
-
 int FontEngine::ident(FileObject& ff) throw()
 {
     return 0;
@@ -565,5 +517,4 @@ String FontEngine::description() const
     throw UnimplementedVirtualFunctionException();
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

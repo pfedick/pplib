@@ -36,6 +36,7 @@
 #include <pplib/types/bytearray.h>
 #include <pplib/types/assocarray.h>
 #include <pplib/core/fileobject.h>
+#include <pplib/core/baseexception.h>
 #include <pplib/grafix/drawable.h>
 
 #include <pplib/grafix/rgbformat.h>
@@ -53,6 +54,18 @@ typedef struct
     RGBFormat format;
 } IMAGE;
 
+/** @class ImageFilter
+ * @ingroup PPLGroupGrafik
+ * @brief Basisklasse für Import-/Export-Filter verschiedener Grafikformate
+ *
+ * Dies ist die Basisklasse für alle Import- und Export-Filter für verschiedene
+ * Grafikformate. Eine Instanz des Filters muss mit "new" angelegt und mit der Funktion
+ * Grafix::addFilter in der Grafik-Engine registriert werden. Die Grafik-Engine
+ * kümmert sich bei Programmende selbst um das Löschen des Filters.
+ * Mit Grafix::unloadFilter kann ein Filter aber auch manuell von der Anwendung
+ * wieder entfernt werden. Mit Grafix::findFilter kann ein Filter anhand seines
+ * Namens gefunden werden.
+ */
 class ImageFilter
 {
 private:
@@ -60,16 +73,83 @@ public:
     PPLIBEXCEPTION(IllegalImageFormatException, Exception);
     PPLIBEXCEPTION(EmptyImageException, Exception);
 
-    ImageFilter();
-    virtual ~ImageFilter();
-    virtual int ident(FileObject& file, IMAGE& img);
+    /** @brief Konstruktor
+     *
+     * Im Konstruktor werden interne Daten der Klasse initialisiert
+     */
+    ImageFilter() {};
+
+    /** @brief Destruktor
+     *
+     * Der Destruktor sorgt dafür, dass durch die Klasse allokierter Speicher
+     * wieder freigegeben wird.
+     */
+    virtual ~ImageFilter() {};
+
+    /** @brief Grafikformat identifizieren
+     *
+     * Diese Funktion wird aufgerufen, um herauszufinden, ob ein Grafikformat durch diesen
+     * Filter gelesen werden kann. Ist dieser der Fall, gibt die Funktion True zurück und
+     * füllt die IMAGE-Struktur \p img mit den Informationen zum Bild. Wird das Format nicht
+     * unterstützt, wird False zurückgegeben.
+     *
+     * @param[in] file Eine geöffnete Datei
+     * @param[out] img Referenz auf eine IMAGE-Struktur
+     * @return True, wenn das Format unterstützt wird, ansonsten False.
+     */
+    virtual bool ident(FileObject& file, IMAGE& img);
+
+    /** @brief Grafik in ein Drawable laden
+     *
+     * Diese Funktion wird aufgerufen, um ein Bild aus einer Datei zu laden. Die Funktion
+     * füllt die Drawable-Struktur \p surface mit den Bilddaten. Die IMAGE-Struktur \p img
+     * enthält die Informationen zum Bild.
+     *
+     * @param[in] file Eine geöffnete Datei
+     * @param[out] surface Referenz auf eine Drawable-Struktur
+     * @param[in] img Referenz auf eine IMAGE-Struktur
+     */
     virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-    virtual void save(const Drawable& surface, FileObject& file, const Rect& area, const AssocArray& param = AssocArray());
+
+    /** @brief Grafik in eine Datei speichern
+     *
+     * Diese Funktion wird aufgerufen, um ein Bild in eine Datei zu speichern. Die Funktion
+     * liest die Bilddaten aus der Drawable-Struktur \p surface und speichert sie in der
+     * Datei \p file. Die Parameter \p param können zusätzliche Informationen zum Speichern
+     * enthalten, z.B. die Qualität bei JPEG-Bildern.
+     *
+     * @param[in] surface Referenz auf eine Drawable-Struktur
+     * @param[in] file Eine geöffnete Datei
+     * @param[in] param Referenz auf eine AssocArray-Struktur mit zusätzlichen Parametern
+     */
     virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
+
+    /** @brief Name des Filters
+     *
+     * Diese Funktion gibt den Namen des Filters zurück, z.B. "PNG", "JPEG", "BMP" usw.
+     * @return String mit dem Namen des Filters
+     */
     virtual String name();
+
+    /** @brief Beschreibung des Filters
+     *
+     * Diese Funktion gibt eine kurze Beschreibung des Filters zurück, z.B. "Portable Network Graphics"
+     * für den PNG-Filter.
+     * @return String mit der Beschreibung des Filters
+     */
     virtual String description();
 
-    void saveFile(const String& filename, const Drawable& surface, const Rect& area, const AssocArray& param = AssocArray());
+    /** @brief Grafik in eine Datei speichern
+     *
+     * Diese Funktion wird aufgerufen, um ein Bild in eine Datei zu speichern. Die Funktion
+     * liest die Bilddaten aus der Drawable-Struktur \p surface und speichert sie in der
+     * Datei \p file. Die Parameter \p param können zusätzliche Informationen zum Speichern
+     * enthalten, z.B. die Qualität bei JPEG-Bildern.
+     *
+     * @param[in] surface Referenz auf eine Drawable-Struktur
+     * @param[in] filename Name der Zieldatei
+     * @param[in] param Referenz auf eine AssocArray-Struktur mit zusätzlichen Parametern
+     */
     void saveFile(const String& filename, const Drawable& surface, const AssocArray& param = AssocArray());
 };
 
@@ -78,7 +158,7 @@ class ImageFilter_PNG : public ImageFilter
 public:
     ImageFilter_PNG();
     virtual ~ImageFilter_PNG();
-    virtual int ident(FileObject& file, IMAGE& img);
+    virtual bool ident(FileObject& file, IMAGE& img);
     virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
     virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
     virtual String name();
@@ -90,7 +170,7 @@ class ImageFilter_JPEG : public ImageFilter
 public:
     ImageFilter_JPEG();
     virtual ~ImageFilter_JPEG();
-    virtual int ident(FileObject& file, IMAGE& img);
+    virtual bool ident(FileObject& file, IMAGE& img);
     virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
     virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
     virtual String name();
@@ -102,7 +182,7 @@ class ImageFilter_BMP : public ImageFilter
 public:
     ImageFilter_BMP();
     virtual ~ImageFilter_BMP();
-    virtual int ident(FileObject& file, IMAGE& img);
+    virtual bool ident(FileObject& file, IMAGE& img);
     virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
     virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
     virtual String name();
@@ -114,7 +194,7 @@ class ImageFilter_TIFF : public ImageFilter
 public:
     ImageFilter_TIFF();
     virtual ~ImageFilter_TIFF();
-    virtual int ident(FileObject& file, IMAGE& img);
+    virtual bool ident(FileObject& file, IMAGE& img);
     virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
     virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
     virtual String name();
@@ -126,7 +206,7 @@ class ImageFilter_GIF : public ImageFilter
 public:
     ImageFilter_GIF();
     virtual ~ImageFilter_GIF();
-    virtual int ident(FileObject& file, IMAGE& img);
+    virtual bool ident(FileObject& file, IMAGE& img);
     virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
     virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
     virtual String name();
@@ -138,7 +218,7 @@ class ImageFilter_PPM : public ImageFilter
 public:
     ImageFilter_PPM();
     virtual ~ImageFilter_PPM();
-    virtual int ident(FileObject& file, IMAGE& img);
+    virtual bool ident(FileObject& file, IMAGE& img);
     virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
     virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
     virtual String name();
@@ -150,7 +230,7 @@ class ImageFilter_TGA : public ImageFilter
 public:
     ImageFilter_TGA();
     virtual ~ImageFilter_TGA();
-    virtual int ident(FileObject& file, IMAGE& img);
+    virtual bool ident(FileObject& file, IMAGE& img);
     virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
     virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
     virtual String name();

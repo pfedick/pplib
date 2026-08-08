@@ -39,7 +39,7 @@
 #include <pplib/grafix/size.h>
 #include <pplib/grafix/rect.h>
 #include <pplib/grafix/rgbformat.h>
-#include <pplib/grafix/font.h>
+#include <pplib/grafix/fonts.h>
 #include <pplib/core/baseexception.h>
 
 namespace pplib
@@ -57,8 +57,7 @@ PPLIBEXCEPTION(InvalidImageSizeException, Exception);
 PPLIBEXCEPTION(UnknownImageFormatException, Exception);
 PPLIBEXCEPTION(FontEngineInitializationException, Exception);
 PPLIBEXCEPTION(FontEngineUninitializedException, Exception);
-PPLIBEXCEPTION(InvalidFontException, Exception);
-PPLIBEXCEPTION(NoSuitableFontEngineException, Exception);
+
 PPLIBEXCEPTION(FontNotFoundException, Exception);
 PPLIBEXCEPTION(InvalidFontEngineException, Exception);
 PPLIBEXCEPTION(InvalidSpriteException, Exception);

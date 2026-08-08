@@ -142,7 +142,6 @@ public:
     FontEngine();
     virtual ~FontEngine();
 
-    virtual void init();
     virtual int ident(FileObject& file) throw();
     virtual FontFile* loadFont(FileObject& file, const String& fontname);
     virtual void deleteFont(FontFile* file);
@@ -162,7 +161,6 @@ private:
 public:
     FontEngineFont5();
     virtual ~FontEngineFont5();
-    virtual void init();
     virtual int ident(FileObject& file) throw();
     virtual FontFile* loadFont(FileObject& file, const String& fontname);
     virtual void deleteFont(FontFile* file);
@@ -178,7 +176,6 @@ private:
 public:
     FontEngineFont6();
     virtual ~FontEngineFont6();
-    virtual void init();
     virtual int ident(FileObject& file) throw();
     virtual FontFile* loadFont(FileObject& file, const String& fontname);
     virtual void deleteFont(FontFile* file);
@@ -197,7 +194,6 @@ private:
 public:
     FontEngineFreeType();
     virtual ~FontEngineFreeType();
-    virtual void init();
     virtual int ident(FileObject& file) throw();
     virtual FontFile* loadFont(FileObject& file, const String& fontname);
     virtual void deleteFont(FontFile* file);
