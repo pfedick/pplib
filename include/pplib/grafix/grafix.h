@@ -57,7 +57,7 @@ class FontFile;
 class Font;
 
 typedef struct DRAWABLE_FUNCTIONS DRAWABLE_FUNCTIONS;
-typedef struct IMAGE;
+typedef struct IMAGE IMAGE;
 
 /** @class Grafix
  * @ingroup PPLGroupGrafik

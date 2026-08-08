@@ -44,7 +44,7 @@
 namespace pplib::grafix
 {
 
-typedef struct
+typedef struct IMAGE
 {
     int width;
     int height;

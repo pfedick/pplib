@@ -35,7 +35,7 @@
 #include <pplib/grafix/color.h>
 #include <pplib/grafix/rect.h>
 #include <pplib/grafix/fonts.h>
-#include <pplib/grafix/imagereference.h>
+// #include <pplib/grafix/imagereference.h>
 
 namespace pplib::grafix
 {
@@ -46,6 +46,7 @@ typedef uint32_t SurfaceColor;
 struct DRAWABLE_FUNCTIONS;
 
 class DrawableData;
+class ImageReference;
 
 typedef struct DRAWABLE_FUNCTIONS
 {
@@ -70,28 +71,16 @@ typedef struct DRAWABLE_FUNCTIONS
     void (*LineAA)(const DrawableData& data, int x1, int y1, int x2, int y2, SurfaceColor color, int strength);
     void (*Line)(const DrawableData& data, int x1, int y1, int x2, int y2, SurfaceColor color);
 
-    void (*Blt)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y);
-    void (*BltDiffuse)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y, SurfaceColor c);
-    void (*BltColorKey)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y, SurfaceColor c);
-    void (*BltAlpha)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y);
-    void (*BltAlphaMod)(const DrawableData& target, const const DrawableData& source, const Rect& srect, SurfaceColor mod, int x, int y);
-    void (*BltBlend)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y, float factor);
-    void (*BltChromaKey)(const DrawableData& target,
-                         const const DrawableData& source,
-                         const Rect& srect,
-                         const Color& key,
-                         int tol1,
-                         int tol2,
-                         int x,
-                         int y);
-    void (*BltBackgoundOnChromaKey)(const DrawableData& target,
-                                    const const DrawableData& background,
-                                    const Rect& srect,
-                                    const Color& key,
-                                    int tol1,
-                                    int tol2,
-                                    int x,
-                                    int y);
+    void (*Blt)(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y);
+    void (*BltDiffuse)(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y, SurfaceColor c);
+    void (*BltColorKey)(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y, SurfaceColor c);
+    void (*BltAlpha)(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y);
+    void (*BltAlphaMod)(const DrawableData& target, const DrawableData& source, const Rect& srect, SurfaceColor mod, int x, int y);
+    void (*BltBlend)(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y, float factor);
+    void (*BltChromaKey)(
+        const DrawableData& target, const DrawableData& source, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
+    void (*BltBackgoundOnChromaKey)(
+        const DrawableData& target, const DrawableData& background, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
 
 } DRAWABLE_FUNCTIONS;
 
@@ -102,19 +91,33 @@ class Image;
 class DrawableData
 {
 public:
-    DRAWABLE_FUNCTIONS* fn;
+    DRAWABLE_FUNCTIONS* fn = nullptr;
     union {
-        void* base;
+        void* base = nullptr;
         uint8_t* base8;
         uint16_t* base16;
         uint32_t* base32;
     };
-    uint32_t pitch;
-    uint32_t width;
-    uint32_t height;
+    uint32_t pitch = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
     RGBFormat rgbformat;
 };
 
+/** @class Drawable
+ * @brief Eine Klasse, die eine Zeichenfläche im Speicher repräsentiert
+ *
+ * Die Klasse Drawable stellt eine zweidimensonale Zeichenfläche dar, auf der verschiedene grafische
+ * Operationen durchgeführt werden können. Sie bietet Funktionen zum Zeichnen von Pixeln,
+ * Linien, Rechtecken, Kreisen und anderen geometrischen Formen sowie zum Kopieren und Skalieren
+ * von Bildinhalten. Die Klasse unterstützt verschiedene Farbformate und ermöglicht die Arbeit
+ * mit Transparenz und Farbverläufen.
+ *
+ * Die Klasse verwaltet selbst keinen Speicher für die Zeichenfläche, sondern
+ * muss bei Initialisierung mit einem Speicherbereich, der Breite, Höhe, Pitch und
+ * Farbformat angegeben werden. Verwende die Klasse Image, um eine Drawable-Instanz
+ * zu erstellen, die den Speicher selbst verwaltet.
+ */
 class Drawable
 {
     friend class Image;
@@ -122,7 +125,7 @@ class Drawable
 private:
     // GRAFIX_FUNCTIONS* fn; => obsolete, da in DrawableData vorhanden
     DrawableData data;
-    void initFunctions(const RGBFormat& format);
+
     // void clearDrawableData();
     // void copyDrawableData(const DRAWABLE_DATA& other);
 
@@ -130,52 +133,341 @@ public:
     /** @name Konstruktoren
      */
     //@{
-    Drawable();
+
+    /** @class Konstruktor
+     *
+     * Mit diesem Konstruktor wird ein leeres Drawable erstellt. Bevor es verwendet werden
+     * kann, muss zunächst mit Drawable::copy eine Kopie eines anderen Drawable oder davon
+     * abgeleiteten Objekts erstellt werden oder mit Drawable::create ein neues Drawable
+     * anhand eines Speicherbereichs erstellt werden.
+     */
+    Drawable() {};
+
+    /** @class Copy-Konstruktor
+     *
+     * Mit diesem Konstruktor wird eine Kopie eines anderen Drawable oder davon abgeleiteten
+     * Klasse erstellt.
+     *
+     * @param other Ein anderes Drawable
+     */
     Drawable(const Drawable& other);
+
+    /** @class Move-Konstruktor
+     *
+     * Mit diesem Konstruktor wird ein Drawable von einem anderen Drawable oder davon abgeleiteten
+     * Klasse übernommen.
+     *
+     * @param other Ein anderes Drawable
+     */
     Drawable(Drawable&& other);
+
+    /** @class Konstruktor mit Speicherbereich
+     *
+     * Mit diesem Konstruktor wird ein Drawable anhand eines Speicherbereichs erstellt.
+     *
+     * @param base Zeiger auf den Speicherbereich, der die Pixeldaten enthält
+     * @param pitch Anzahl der Bytes pro Zeile (Breite des Bildes in Bytes)
+     * @param width Breite des Bildes in Pixeln
+     * @param height Höhe des Bildes in Pixeln
+     * @param format Farbformat der Pixel (z.B. RGBFormat::R5G6B5)
+     * @exception IllegalArgumentException Wird ausgelöst, wenn base null ist, pitch 0 ist oder width/height 0 sind.
+     * @exception NoGrafixEngineException Wird ausgelöst, wenn die Grafikengine nicht initialisiert ist.
+     */
     Drawable(void* base, uint32_t pitch, uint32_t width, uint32_t height, const RGBFormat& format);
-    ~Drawable();
+
     //@}
 
     /** @name Verschiedenes
      */
     //@{
-    DRAWABLE_FUNCTIONS* getFunctions() const;
-    const DrawableData* getData() const;
 
+    /** @brief Pointer auf die Grafik-Funktionen für das Farbformat dieses Drawable holen
+     *
+     * Diese Funktion liefert einen Pointer auf die Grafik-Funktionen für das Farbformat
+     * dieses Drawable zurück. Dieser kann NULL sein, wenn das Drawable noch nicht
+     * initialisiert wurde oder das angegebene Farbformat nicht unterstützt wird.
+     *
+     * @return Pointer auf eine DRAWABLE_FUNCTIONS Struktur oder NULL, wenn das Drawable
+     * nicht initialisiert war.
+     */
+    DRAWABLE_FUNCTIONS* getFunctions() const;
+
+    /** @brief Referenz auf die Datenstruktur des Drawable holen
+     *
+     * Diese Funktion liefert eine Referenz auf die Struktur DrawableData des
+     * Drawable zurück. Diese enthält alle Informationen des Drawable, wie den
+     * Speicherbereich der Grafik, Breite und Höhe, Bytes pro Zeile (pitch) und das
+     * Farbformat.
+     *
+     * @return Pointer auf die DrawableData Struktur des Drawable.
+     */
+    const DrawableData& getData() const;
+
+    /** @brief Grafik von einem anderen Drawable kopieren
+     *
+     * Mit dieser Funktion wird eine Kopie eines anderen Drawable erstellt.
+     *
+     * @param other Ein anderes Drawable
+     */
     void copy(const Drawable& other);
+
+    /** @brief Drawable anhand eines Speicherbereichs erstellen
+     *
+     * Mit dieser Funktion wird ein Drawable anhand eines Speicherbereichs erstellt.
+     *
+     * @param base Zeiger auf den Speicherbereich, der die Pixeldaten enthält
+     * @param pitch Anzahl der Bytes pro Zeile (Breite des Bildes in Bytes)
+     * @param width Breite des Bildes in Pixeln
+     * @param height Höhe des Bildes in Pixeln
+     * @param format Farbformat der Pixel (z.B. RGBFormat::R5G6B5)
+     * @exception IllegalArgumentException Wird ausgelöst, wenn base null ist, pitch 0 ist oder width/height 0 sind.
+     * @exception NoGrafixEngineException Wird ausgelöst, wenn die Grafikengine nicht initialisiert ist.
+     */
     void create(void* base, uint32_t pitch, uint32_t width, uint32_t height, const RGBFormat& format);
 
-    Drawable& operator=(const Drawable& other);
+    /**
+     * @brief  Zuweisungsoperator für Drawable
+     *
+     * @param other Ein anderes Drawable, das kopiert werden soll
+     * @return Referenz auf das aktuelle Drawable-Objekt nach der Zuweisung
+     */
+    Drawable& operator=(const Drawable& other) noexcept;
+
+    /**
+     * @brief Move-Zuweisungsoperator für Drawable
+     *
+     * @param other Ein anderes Drawable, dessen Ressourcen übernommen werden sollen
+     * @return Referenz auf das aktuelle Drawable-Objekt nach der Zuweisung
+     */
     Drawable& operator=(Drawable&& other) noexcept;
 
-    Rect rect() const;
-    Rect16 rect16() const;
-    Size size() const;
-    Size16 size16() const;
-    uint32_t width() const;
-    uint32_t height() const;
-    uint32_t pitch() const;
-    RGBFormat rgbformat() const;
-    bool isEmpty() const;
-    bool isNull() const;
-    void* adr() const;
-    void* adr(int x, int y) const;
-    void cls(const Color& c);
-    void cls();
-    Drawable getDrawable() const;
+    /** @brief Rechteck des Drawable auslesen
+     *
+     * Dieser Funktion liefert das Rechteck des Drawable zurück. Die Koordinaten des
+     * Rechtecks sind immer 0/0, Breite und Höhe sind die des Drawable.
+     *
+     * @return Ein Objekt von Typ Rect.
+     */
+    inline Rect rect() const
+    {
+        return Rect(0, 0, data.width, data.height);
+    }
+
+    /** @brief Rechteck des Drawable auslesen
+     *
+     * Dieser Funktion liefert das Rechteck des Drawable zurück. Die Koordinaten des
+     * Rechtecks sind immer 0/0, Breite und Höhe sind die des Drawable.
+     *
+     * @return Ein Objekt von Typ Rect16, das die Koordinaten und Größe des Rechtecks in 16-Bit Ganzzahlen enthält.
+     */
+    inline Rect16 rect16() const
+    {
+        return Rect16(0, 0, data.width, data.height);
+    }
+
+    /** @brief Größe des Drawable auslesen
+     *
+     * Diese Funktion liefert Breite und Höhe des Drawable in einem Size-Objekt zurück.
+     *
+     * @return Objekt von Typ Size.
+     */
+    inline Size size() const
+    {
+        return Size(data.width, data.height);
+    }
+
+    /** @brief Größe des Drawable in 16-Bit Ganzzahlen auslesen
+     *
+     * Diese Funktion liefert Breite und Höhe des Drawable in einem Size16-Objekt zurück.
+     *
+     * @return Objekt von Typ Size16, das die Breite und Höhe in 16-Bit Ganzzahlen enthält.
+     */
+    inline Size16 size16() const
+    {
+        return Size16(data.width, data.height);
+    }
+
+    /** @brief Breite der Grafik in Pixel
+     *
+     * Diese Funktion liefert die Breite der Grafik in Pixel zurück.
+     *
+     * @return Breite in Pixel
+     */
+    inline uint32_t width() const
+    {
+        return data.width;
+    }
+
+    /** @brief Höhe der Grafik in Pixel
+     *
+     * Diese Funktion liefert die Höhe der Grafik in Pixel zurück.
+     *
+     * @return Höhe in Pixel
+     */
+    inline uint32_t height() const
+    {
+        return data.height;
+    }
+
+    /** @brief Anzahl der Bytes pro Zeile (Pitch)
+     *
+     * Mit dieser Funktion kann abgefragt werden, wieviele Bytes eine Grafikzeile benötigt.
+     * Dies muss nicht unbedingt das Ergebnis von Breite mal BytesProPixel sein, sondern kann
+     * auch mehr sein, z.B. wenn das Drawable nur einen Ausschnitt aus einer größeren Grafik
+     * enthält.
+     *
+     * @return Pitch in Bytes
+     */
+    inline uint32_t pitch() const
+    {
+        return data.pitch;
+    }
+
+    /** @brief Farbformat des Drawable
+     *
+     * Diese Funktion liefert das Farbformat des Drawable zurück.
+     *
+     * @return Farbformat als RGBFormat-Objekt
+     */
+    inline RGBFormat rgbformat() const
+    {
+        return data.rgbformat;
+    }
+
+    /** @brief Enthält dieses Drawable eine Grafik?
+     *
+     * Mit dieser Funktion kann geprüft werden, ob das Drawable eine gültige und somit nutzbare
+     * Grafik enthält. Dies ist der Fall, wenn eine Basisadresse vorhanden ist, die Grafik eine
+     * Höhe und Breite größer 0 und ein gültiges Farbformat enthält.
+     *
+     * @return Liefert \c true zurück, wenn das Drawable eine gültige Grafik enthält, andernfalls
+     * \c false.
+     */
+    inline bool isEmpty() const
+    {
+        return (data.base == nullptr || data.width == 0 || data.height == 0 || data.rgbformat == RGBFormat::unknown);
+    }
+
+    /**
+     * @brief Speicheradresse der Grafik
+     * Diese Funktion gibt die Speicheradresse zurück, an der die Daten dieser Grafik
+     * beginnen.
+     * @return Pointer auf den Speicherbereich der Grafikdaten
+     */
+    inline void* adr() const
+    {
+        return data.base;
+    }
+
+    /**
+     * @brief Speicheradresse eines Pixels in der Grafik
+     * Diese Funktion gibt die Speicheradresse zurück, an der die Daten des Pixels
+     * an den Koordinaten (x,y) beginnen.
+     * @param x X-Koordinate des Pixels
+     * @param y Y-Koordinate des Pixels
+     * @return Pointer auf den Speicherbereich des Pixels
+     * @exception OutOfBoundsException Wird ausgelöst, wenn die Koordinaten außerhalb der Grafik liegen.
+     */
+    void* adr(uint32_t x, uint32_t y) const;
+
+    /** @brief Ein neues Drawable anhand eines Ausschnitts erstellen
+     *
+     * Diese Funktion erstellt ein neues Drawable Objekt anhand des angegebenen Ausschnitts \p rect.
+     *
+     * @param rect Der gewünschte Bildausschnitt
+     * @return Neues Drawable, das den gewünschten Ausschnitt repräsentiert. Kann leer
+     * sein, wenn der Ausschnitt außerhalb des Drawable liegt.
+     */
     Drawable getDrawable(const Rect& rect) const;
-    Drawable getDrawable(const Point& p, const Size& s) const;
-    Drawable getDrawable(int x1, int y1, int x2, int y2) const;
-    Image scaled(int width, int height, bool keepAspectRation = true, bool smoothTransform = false) const;
-    void scale(Image& tgt, int width, int height, bool keepAspectRation = true, bool smoothTransform = false) const;
+
+    /** @brief Ein neues Drawable anhand eines Ausschnitts erstellen
+     *
+     * Diese Funktion erstellt ein neues Drawable Objekt anhand des angegebenen Ausschnitts \p rect.
+     *
+     * @param rect Der gewünschte Bildausschnitt
+     * @return Neues Drawable, das den gewünschten Ausschnitt repräsentiert. Kann leer
+     * sein, wenn der Ausschnitt außerhalb des Drawable liegt.
+     */
+    Drawable getDrawable(const Rect16& rect) const;
+
+    /** @brief Ein neues Drawable anhand eines Ausschnitts erstellen
+     *
+     * Diese Funktion erstellt ein neues Drawable Objekt anhand des angegebenen Ausschnitts \p rect.
+     *
+     * @param p Punkt, der die obere linke Ecke des Ausschnitts definiert
+     * @param s Größe des Ausschnitts, die die Breite und Höhe angibt
+     * @return Neues Drawable, das den gewünschten Ausschnitt repräsentiert. Kann leer
+     * sein, wenn der Ausschnitt außerhalb des Drawable liegt.
+     */
+    inline Drawable getDrawable(const Point& p, const Size& s) const
+    {
+        return getDrawable(Rect(p, s));
+    }
+
+    /** @brief Ein neues Drawable anhand eines Ausschnitts erstellen
+     *
+     * Diese Funktion erstellt ein neues Drawable Objekt anhand des angegebenen Koordinaten. Dabei
+     * ist zu beachten, dass der Ausschnitt inklusive der rechten unteren Ecke erstellt wird.
+     *
+     * @param x1 X-Koordinate der linken oberen Ecke
+     * @param y1 Y-Koordinate der linken oberen Ecke
+     * @param x2 X-Koordinate der rechten unteren Ecke
+     * @param y2 Y-Koordinate der rechten unteren Ecke
+     * @return Neues Drawable, das den gewünschten Ausschnitt repräsentiert. Kann leer
+     * sein, wenn der Ausschnitt außerhalb des Drawable liegt.
+     */
+    inline Drawable getDrawable(uint32_t x1, uint32_t y1, uint32_t x2, uint32_t y2) const
+    {
+        return getDrawable(Rect(x1, y1, x2 - x1 + 1, y2 - y1 + 1));
+    }
+
+    /** @brief Inhalt des Drawable in ein neues Image skalieren
+     *
+     * Mit dieser Funktion wird die Grafik in ein neues Image skaliert. Dabei kann
+     * die Größe der Grafik angegeben werden. Wenn \p keepAspectRation auf \c true gesetzt ist,
+     * wird das Seitenverhältnis der Grafik beibehalten, andernfalls wird die Grafik auf die
+     * angegebene Größe skaliert.
+     *
+     * @param width Neue Breite der Grafik in Pixel
+     * @param height Neue Höhe der Grafik in Pixel
+     * @param keepAspectRation Beibehalten des Seitenverhältnisses?
+     * @param smoothTransform Verwenden von bilinearer Skalierung?
+     *
+     * @note Wenn \p smoothTransform auf \c true gesetzt ist, wird die Grafik mit
+     * bilinearer Skalierung skaliert, andernfalls wird die Grafik mit der
+     * nächstgelegenen Pixelmethode skaliert. Bei bilinearer Skalierung kann
+     * es zu leichten Unschärfen kommen, da die Pixel interpoliert werden.
+     * Bei der nächstgelegenen Pixelmethode wird jeder Pixel auf den nächstgelegenen
+     * Pixel der Originalgrafik gesetzt, was zu einem schärferen, aber auch
+     * kantigeren Ergebnis führt.
+     */
+    Image scaled(uint32_t width, uint32_t height, bool keepAspectRation = true, bool smoothTransform = false) const;
+
     //@}
 
     /** @name Farben
      */
     //@{
-    SurfaceColor rgb(const Color& c) const;
-    SurfaceColor rgb(int r, int g, int b, int alpha) const;
+    inline SurfaceColor toNativeColor(const Color& c) const
+    {
+        return data.fn->ToNativeColor(c);
+    }
+
+    inline Color fromNativeColor(SurfaceColor c) const
+    {
+        return data.fn->FromNativeColor(c);
+    }
+
+    inline void cls(const Color& c)
+    {
+        data.fn->Clear(data, data.fn->ToNativeColor(c));
+    }
+
+    inline void cls()
+    {
+        data.fn->Clear(data, 0);
+    }
+
     //@}
 
     /** @name Pixel
@@ -190,10 +482,26 @@ public:
         data.fn->PutPixel(data, p.x, p.y, data.fn->ToNativeColor(c));
     }
 
-    void alphaPixel(int x, int y, const Color& c);
-    void alphaPixel(const Point& p, const Color& c);
-    void blendPixel(int x, int y, const Color& c, float brightness);
-    void blendPixel(int x, int y, const Color& c, int brightness);
+    inline void alphaPixel(int x, int y, const Color& c)
+    {
+        data.fn->AlphaPixel(data, x, y, data.fn->ToNativeColor(c));
+    }
+
+    inline void alphaPixel(const Point& p, const Color& c)
+    {
+        data.fn->AlphaPixel(data, p.x, p.y, data.fn->ToNativeColor(c));
+    }
+
+    inline void blendPixel(int x, int y, const Color& c, float brightness)
+    {
+        data.fn->BlendPixel(data, x, y, data.fn->ToNativeColor(c), (int)(brightness * 255.0f));
+    }
+
+    inline void blendPixel(int x, int y, const Color& c, int brightness)
+    {
+        data.fn->BlendPixel(data, x, y, data.fn->ToNativeColor(c), brightness);
+    }
+
     inline Color getPixel(int x, int y) const
     {
         return data.fn->FromNativeColor(data.fn->GetPixel(data, x, y));

@@ -32,8 +32,12 @@
 
 #include <stdint.h>
 
+#include <pplib/grafix/color.h>
+#include <pplib/grafix/drawable.h>
+
 namespace pplib::grafix
 {
+class Drawable;
 enum class DrawMethod : uint8_t
 {
     BLT = 1,
@@ -71,7 +75,7 @@ public:
     };
     inline RGBFormat format() const
     {
-        return pixel.format();
+        return pixel.rgbformat();
     };
     inline bool isEmpty() const
     {

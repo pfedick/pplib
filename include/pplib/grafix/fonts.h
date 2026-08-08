@@ -34,12 +34,21 @@
 
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/core/fileobject.h>
 #include <pplib/grafix/color.h>
 #include <pplib/grafix/size.h>
 #include <pplib/grafix/rect.h>
 
+namespace pplib
+{
+class PFPChunk;
+}
 namespace pplib::grafix
 {
+class Drawable;
+class FontEngine;
+
 class Font
 {
     friend bool operator!=(const Font& f1, const Font& f2);
