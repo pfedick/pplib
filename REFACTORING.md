@@ -1,4 +1,4 @@
-# Refactoring von PPLIB aka PPLIB
+# Refactoring von PPL7 aka PPLIB
 
 PPLIB steht für "Patrick's Programming Library" und ist eine C++-Bibliothek, die ich seit vielen Jahren weiter entwickele. Sie enthält viele nützliche Klassen und Funktionen, die ich in meinen Projekten immer wieder verwendet habe. Die Bibliothek ist inzwischen sehr umfangreich geworden und enthält einige Klassen, die nicht mehr zeitgemäß sind oder die ich heute anders implementieren würde.
 
@@ -19,41 +19,53 @@ Einige Klassen sind sehr gut dokumentiert und getestet, andere wiederum eher wen
 - pico-pplib integrieren (siehe eigenes Kapitel)?
 - C++17 oder C++20 als Standard?
 - CMake statt autoconf/makefile verwenden?
-- configure abspecken: wir brauchen einen Großteil der Checks auf Header und Funktion nicht, das diese laut Standard in allen modernen Compilern vorhanden sind. Wir brauchen nur noch die Checks auf C++17/C++20, sowie die Checks auf die Plattform (Windows, Linux, FreeBSD)
+- configure / Makefile abspecken: wir brauchen einen Großteil der Checks auf Header und Funktion nicht, das diese laut Standard in allen modernen Compilern vorhanden sind. Wir brauchen nur noch die Checks auf C++17/C++20, sowie die Checks auf die Plattform (Windows, Linux, FreeBSD). Alternative: CMake?
 
 
 ## autoconf / makefile vs. CMake
-Das Makefile.in wird im Moment per Script generiert, welches die Dateien in den Verzeichnissen sucht und passende Header als Abhängigkeit einträgt.
+### bisheriger Zustand
+- Das Makefile.in wird im Moment per Script generiert, welches die Dateien in den Verzeichnissen sucht und passende Header als Abhängigkeit einträgt.
+- Configure enthält unzählige Checks auf Header-Dateien und Funktionen, die in allen modernen Compilern aber vorhanden sind. Das ist unnötig und macht configure sehr langsam.
 
+Fragen dazu:
 - Gibt es Möglichkeiten das Makefile automatisch zu generieren?
 - Abhängigkeit zu den jeweiligen Header-Dateien automatisch finden?
 - Manuell pflegen? So oft kommen keine neuen Dateien hinzu
 - Würden sich die Probleme von selbst erledigen, wenn make die Dateien selbst findet? (z.B. mit wildcards)
 
-Entscheidung: Ich probiere mal CMake aus.
+### Aktueller Stand
+- Ich habe Makefile und Configure entfernt und durch CMake ersetzt. Ich möchte das mal ausprobieren.
 
-Vielleicht können wir auch beide Varianten anbieten.
+ Das CMakeLists.txt ist inzwischen allerdings auch recht umfangreich geworden, weshalb ich mir nicht sicher bin, ob das eine gute Idee war. Eventuell hole ich Automake wieder zurück oder biete beides an.
+
 
  
 ## pico-pplib
 Siehe: [https://](https://github.com/pfedick/pico-pplib)
+Quellcode liegt auch im aktuellen Ordner "pico-pplib" im Repository.
 
-"picopplib" enthält ein Subset von Klassen und Funktionen aus PPLIB und ist für Microcontroller optimiert, und zwar in dem Sinne, dass weniger RAM benötigt wird. Viele Objekte verwenden daher uint16_t anstelle von int oder es gibt duplikate von Klassen, die 16-Bit Integer verwenden.
+"pico-pplib" enthält ein Subset von Klassen und Funktionen aus PPLIB und ist für Microcontroller optimiert, und zwar in dem Sinne, dass weniger RAM benötigt wird. Viele Objekte verwenden daher uint16_t anstelle von int oder es gibt duplikate von Klassen, die 16-Bit Integer verwenden.
 
-Der Code ist inzwischen auseinander gelaufen, so dass es schwierig ist, Änderungen in beiden Codebasen zu pflegen. Daher ist es sinnvoll, die picopplib-Version in PPLIB zu integrieren und die Unterschiede über "#ifdef"s zu steuern.
+Der Code ist inzwischen auseinander gelaufen, so dass es schwierig ist, Änderungen in beiden Codebasen zu pflegen. Daher ist es sinnvoll, die pico-pplib-Version in PPLIB zu integrieren und eventuelle Unterschiede über "#ifdef"s zu steuern.
+
+Wahrscheinlich möchte ich auf dem pico auch weiterhin nur ein subset der hier vorhandenen Funktionen und Klassen verwenden, da wir mit Speicher sparen müssen und viele Klassen auf dem pico nicht benötigt werden.
 
 In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPLIB nicht benötigt werden. Hierfür wäre ein eigenes Projekt sinnvoll, das die Hardware-spezifischen Klassen enthält und von PPLIB abhängig ist.
 
-## Namespace pplib, ppl8 oder pplib?
-Der Aufwand alle Programme, die PPLIB verwenden, auf PPL8 zu portieren wäre sehr hoch. Allerdings sind die Überarbeitungen schon recht umfangreich, so dass ein größerer Versionssprung gerechtfertigt wäre. Die Interfaces bleiben weitgehend kompatibel.
+## Namespace ppl7, ppl8 oder pplib?
+
+Aus "historischen Gründen" hat die Library bisher den Namespace "ppl7" verwendet. Dies hing vor vielen Jahren mit der Umstellung von Version 6 auf 7 zusammen. Damals erfolgte eine sehr umfangreiche Überarbeitung der Library, die viele Änderungen an den Interfaces mit sich brachte. Damit beide Versionen parallel in einem projekt verwendet werden konnten, wurde die alte Version in den Namespace "ppl6" und die neue Version in den Namespace "ppl7" gelegt.
+
+Hier erfolgen jetzt ebenfalls größere Änderungen, weshalb eine neue Major-Version gerechtfertigt ist. Allerdings bleiben die meisten Klassen und Funktionen unverändert, weshlab eine Umstellung vorhandener Programme weniger aufwendig ist. Übergangsweise könnte man auch einen Alias "ppl7" definieren, der auf den neuen Namespace verweist.
 
 Da das GitHub-Repository "pplib" heißt, und ich auch die Domain "pplib.de" besitze, wäre es sinnvoll auf die Version im Namespace zu verzichten und stattdessen den neutralen Namespace "pplib" zu verwenden. "ppl" kollidiert bereits mit dem Namespace "ppl" von Microsoft, der in Visual Studio verwendet wird.
 
-Für die Portierung vorhandener Projekte könnte ein Alias "pplib" definiert werden, der auf den Namespace "pplib" verweist:
+Für die Portierung vorhandener Projekte könnte ein Alias "ppl7" definiert werden, der auf den Namespace "pplib" verweist:
 ```cpp
-namespace pplib = pplib;
+namespace ppl7 = pplib;
 ```
 
+Entscheidung: wir verwenden den Namespace "pplib"
 
 ## Fragen
 - Sollen wir die Library aufsplitten in mehrere kleinere Module?
@@ -63,18 +75,26 @@ namespace pplib = pplib;
   - Crypto
   - Internet
 
+## Unittests
+Es gibt bereits recht viele Unittests, die Google Test verwenden. Es gibt aber aktuell keine Möglichkeit die Testabdeckung zu messen. Dies soll bei der Refakturierung geändert werden, unter Verwendung von gcov.
+
+Durch die laufende Refakturierung and der Haupt-Library sind die Unittests aktuell leider nicht kompilierbar. Hier sind auch noch Anpassungen an die geänderten Interfaces notwendig.
+
+Ein grundsätzliches Problem der Tests waren in der Vergangenheit die unterschiedlichen Locale-Einstellungen unter Windows und Linux. Unter Windows ist die Standard-Locale "ANSI", unter Linux "UTF-8". Viele Tests sind auf die Locale "UTF-8" angewiesen, weshalb wir die Tests so anpassen müssen, dass sie auch unter Windows mit UTF-8 als Locale laufen.
 
 # Fortschritt
 ## TODO
-- Array
+- Array checken und ggf. refaktorisieren
 - AssocArray
-- DateTime
-
 - Funktionen
 - File (viele fehlschlagende Unittests)
+- Grafix überarbeiten
+- Audio überarbeiten
+- Internet überarbeiten
+- Database überarbeiten (oder in separates Projekt auslagern?)
+- Tests wieder lauffähig bekommen
 
 
-- Makefile überarbeiten
 
 ## NEU
 - HttpRequest, HttpResponse, HttpClient
@@ -83,6 +103,7 @@ namespace pplib = pplib;
 - Umstellung von Autoconf auf CMake
 - Dir-Klasse komplett überarbeitet
 - DirEntry-Klasse überarbeitet
+- Alle Quellcode-Dateien unter "core", "crypto", "math" und "types" kompilieren wieder ohne Fehler
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft
@@ -91,7 +112,7 @@ namespace pplib = pplib;
 - ByteArrayPtr Klasse refakturiert und geprüft
 - String Klasse refakturiert und geprüft
 - WideString Klasse refakturiert und geprüft
-
+- DateTime Klasse refakturiert und geprüft
 
 
 

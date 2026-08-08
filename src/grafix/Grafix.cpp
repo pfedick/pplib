@@ -27,74 +27,30 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_MATH_H
-#include <math.h>
-#endif
+#include <pplib/grafix/drawable.h>
+#include <pplib/grafix/grafix.h>
+#include <pplib/grafix/imagefilter.h>
+#include <config_pplib.h>
 
-#include "pplib.h"
-#include "pplib-grafix.h"
-
-namespace pplib
-{
-namespace grafix
+namespace pplib::grafix
 {
 
-/*!\class Grafix
- * \ingroup PPLGroupGrafik
- * \brief Hauptklasse für alle Grafik-Operationen
+/// Grafix-Engine (Singleton)
+static Grafix* pplgfx = nullptr;
+
+/** @brief Array mit den Grafix-Funktionen für die einzelnen Farbformate.
  *
- * Diese Klasse wird für alle grafischen Funktionen benötigt und muß einmalig
- * von der Anwendung instanziiert und Initialisiert werden. Beim Versuch eine zweite
- * Instanz anzulegen, wird eine Exception geworfen.
- *
- * \par Grafikengine
- * Ohne weiteres Zutun verwendet die PPL-Library nur Software-Routinen für die
- * Grafik-Funktionen. Die Darstellung von Fenstern oder Vollbildanwendungen sind
- * nicht möglich. Falls dies gewünscht ist, muss die Anwendung zunächst die
- * gewünschte Grafik-Engine initialisieren und mit Grafix::UseEngine anmelden.
- * Siehe dazu auch die Basisklasse für Grafikengines GFXEngine, sowie die
- * davon abgeleiteten Klassen GFXEngineDX9 und GFXEngineSDL.
- *
- * \par Grafik-Filter
- * Ein Grafik-Filter ist eine von CFilter abgeleitete Klasse, mit der man ein bestimmtes
- * Grafikformat lesen oder schreiben kann. Die PPL-Library bringt bereits Filter für
- * die Format PNG, JPEG, GIF, BMP, PPM und TGA mit, die bei Initialisierung von Grafix
- * automatisch eingebunden werden. Bringt die Anwendung weitere Filter mit, müssen
- * diese mit Grafix::AddFilter registriert werden.
- *
- * \par Fonts
- * Genau wie bei den Grafikfiltern gibt es auch Klassen für verschiedene Font-Formate.
- * Die Basisklasse hierfür ist CFontEngine. PPL bringt bereits eine Engine für das eigene
- * Font5-Format mit, sowie für die FreeType-Library, mit der unter anderem Fonts im TrueType
- * oder OpenType Format dargestellt werden können. Um weitere Engines hinzuzufügen,
- * muss die Funktion Grafix::AddFontEngine aufgerufen werden.
- * \par
- * Standardmäßig sind ist der freie Font "Liberation Sans" und "Liberation Mono" im
- * Font5-Format in einigen Auflösungen enthalten. Um weitere Fonts zu laden muss
- * die Funktion Grafix::LoadFont verwendet werden.
- *
- * \exception Exception::ExistingGrafixInstance Wird geworfen, wenn versucht wird eine zweite
- * Instanz der Klasse zu erstellen
+ * Das Array enthält für jedes RGBFormat::Identifier einen Zeiger auf die zugehörigen Grafix-Funktionen.
+ * Wenn ein Format noch nicht initialisiert wurde, ist der Zeiger auf nullptr gesetzt.
+ * Die Funktionen werden bei Bedarf (Lazy-Loading) initialisiert und im Array gespeichert.
+ * @note
+ * Das Array ist statisch und wird beim Start der Anwendung einmalig initialisiert.
  */
+static DRAWABLE_FUNCTIONS* drawable_functions[RGBFormat::MaxIdentifiers] = {nullptr};
 
-static Grafix* pplgfx = NULL;
-char* alphatab = NULL;
-
-static GRAFIX_FUNCTIONS functions[RGBFormat::MaxIdentifiers];
-
-Grafix* GetGrafix()
+Grafix& GetGrafix()
 {
-    if (pplgfx) return pplgfx;
+    if (pplgfx) return *pplgfx;
     throw NoGrafixEngineException();
 }
 
@@ -103,59 +59,32 @@ Grafix::Grafix()
     if (pplgfx) {
         throw DuplicateGrafixEngineException();
     }
-    //::printf ("Grafix::Grafix()\n");
-    alphatab = NULL;
-    filter_png = NULL;
-    filter_jpeg = NULL;
-    filter_bmp = NULL;
-    filter_gif = NULL;
-    filter_ppm = NULL;
-    filter_tga = NULL;
-    filter_magick = NULL;
-    filter_tiff = NULL;
-    initAlphatab();
-
-    // Farbformat-abhängige Funktionen initialisieren
-    for (int i = 0; i < RGBFormat::MaxIdentifiers; i++) {
-        try {
-            initFunctions(RGBFormat((RGBFormat::Identifier)i), &functions[i]);
-        }
-        catch (UnsupportedColorFormatException&) {
-        }
-    }
-
     pplgfx = this;
 
     // Standardfilter anlegen
-#ifdef HAVE_IMAGEMAGICK
-    /*
-    filter_magick=new ImageFilter_ImageMagick;
-    addImageFilter(filter_magick);
-    */
-#endif
 
-    filter_bmp = new ImageFilter_BMP;
-    addImageFilter(filter_bmp);
-    filter_gif = new ImageFilter_GIF;
-    addImageFilter(filter_gif);
+    ImageFilter* filter = new ImageFilter_BMP;
+    addImageFilter(filter);
+    filter = new ImageFilter_GIF;
+    addImageFilter(filter);
 
 #ifdef HAVE_PNG
-    filter_png = new ImageFilter_PNG;
-    addImageFilter(filter_png);
+    filter = new ImageFilter_PNG;
+    addImageFilter(filter);
 #endif
 #ifdef HAVE_JPEG
-    filter_jpeg = new ImageFilter_JPEG;
-    addImageFilter(filter_jpeg);
+    filter = new ImageFilter_JPEG;
+    addImageFilter(filter);
 #endif
 #ifdef HAVE_TIFF
-    filter_tiff = new ImageFilter_TIFF;
-    addImageFilter(filter_tiff);
+    filter = new ImageFilter_TIFF;
+    addImageFilter(filter);
 #endif
-    filter_ppm = new ImageFilter_PPM;
-    addImageFilter(filter_ppm);
+    filter = new ImageFilter_PPM;
+    addImageFilter(filter);
 
-    filter_tga = new ImageFilter_TGA;
-    addImageFilter(filter_tga);
+    filter = new ImageFilter_TGA;
+    addImageFilter(filter);
 
     FontEngineFont5* font5 = new FontEngineFont5;
     addFontEngine(font5);
@@ -166,45 +95,23 @@ Grafix::Grafix()
     FontEngineFreeType* freetype = new FontEngineFreeType;
     addFontEngine(freetype);
 #endif
-
-    Resource* res = GetPPLResource();
-
-    loadFont(res->getMemory(34), "Default");
-    loadFont(res->getMemory(35), "Default Mono");
-    Toolbar.load(res->getMemory(14), 16, 16, ImageList::ALPHABLT);
-    Icons32.load(res->getMemory(13), 32, 32, ImageList::ALPHABLT);
-    ButtonSymbolsSmall.load(res->getMemory(12), 9, 9, ImageList::DIFFUSE);
 }
 
 Grafix::~Grafix()
 {
-    //::printf ("Grafix::~Grafix()\n");
-    if (alphatab) free(alphatab);
+    // cleanup grafix functions
+    for (int i = 0; i < RGBFormat::MaxIdentifiers; i++) {
+        if (drawable_functions[i]) {
+            delete drawable_functions[i];
+            drawable_functions[i] = nullptr;
+        }
+    }
 
-    if (filter_magick) {
-        delete filter_magick;
+    // cleanup image filters
+    for (auto it = ImageFilterList.begin(); it != ImageFilterList.end(); ++it) {
+        delete *it;
     }
-    if (filter_png) {
-        delete filter_png;
-    }
-    if (filter_jpeg) {
-        delete filter_jpeg;
-    }
-    if (filter_bmp) {
-        delete filter_bmp;
-    }
-    if (filter_gif) {
-        delete filter_gif;
-    }
-    if (filter_ppm) {
-        delete filter_ppm;
-    }
-    if (filter_tga) {
-        delete filter_tga;
-    }
-    if (filter_tiff) {
-        delete filter_tiff;
-    }
+    ImageFilterList.clear();
 
     // cleanup fonts
     for (auto it = FontList.begin(); it != FontList.end(); ++it) {
@@ -219,54 +126,22 @@ Grafix::~Grafix()
     if (pplgfx == this) pplgfx = NULL;
 }
 
-void Grafix::initAlphatab()
-{
-    uint32_t alpha, i, a;
-    alphatab = (char*)malloc(65536);
-    if (!alphatab) throw OutOfMemoryException();
-    for (alpha = 0; alpha < 256; alpha++) {
-        for (i = 0; i < 256; i++) {
-            a = alpha << 8;
-            alphatab[a + i] = (uint8_t)((i * alpha) >> 8);
-        }
-    }
-}
+DRAWABLE_FUNCTIONS* getDefaultGrafixFunctions(); // definiert in src/grafix/DrawableDefault.cpp
 
-void Grafix::initFunctions(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
-{
-    memset(fn, 0, sizeof(GRAFIX_FUNCTIONS));
-    try {
-        initColors(format, fn);
-    }
-    catch (UnsupportedColorFormatException&) {
-    }
-    try {
-        initPixel(format, fn);
-    }
-    catch (UnsupportedColorFormatException&) {
-    }
-    try {
-        initShapes(format, fn);
-    }
-    catch (UnsupportedColorFormatException&) {
-    }
-    try {
-        initLines(format, fn);
-    }
-    catch (UnsupportedColorFormatException&) {
-    }
-    try {
-        initBlits(format, fn);
-    }
-    catch (UnsupportedColorFormatException&) {
-    }
-}
-
-GRAFIX_FUNCTIONS* Grafix::getGrafixFunctions(const RGBFormat& format)
+DRAWABLE_FUNCTIONS* Grafix::getGrafixFunctions(const RGBFormat& format)
 {
     if (format >= RGBFormat::MaxIdentifiers) throw UnknownColorFormatException();
-    return &functions[format];
+    if (drawable_functions[format]) return drawable_functions[format];
+    DRAWABLE_FUNCTIONS* fn = new DRAWABLE_FUNCTIONS;
+    DRAWABLE_FUNCTIONS* defaultfn = getDefaultGrafixFunctions();
+    memcpy(fn, defaultfn, sizeof(DRAWABLE_FUNCTIONS));
+    initColors(format, fn);
+    initPixel(format, fn);
+    initShapes(format, fn);
+    initLines(format, fn);
+    initBlits(format, fn);
+    drawable_functions[format] = fn;
+    return fn;
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

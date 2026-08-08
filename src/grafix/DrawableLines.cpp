@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,119 +22,16 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#include "pplib.h"
-#include "pplib-grafix.h"
+#include <stdint.h>
+#include <pplib/grafix/drawable.h>
 
-namespace pplib
+namespace pplib::grafix
 {
-namespace grafix
-{
-
-/*
-static void Line_32 (DRAWABLE_DATA &data, int x1, int y1, int x2, int y2, SurfaceColor color)
-{
-    GRAFIX_FUNCTIONS *fn=data.fn;
-    if (!fn->PutPixel) return;
-    int32_t xx1,xx2,yy1,yy2,StepX,StepY;
-    //ppldd * pp;
-
-    // Sonderfall 1: Anfangs- und Endkoordinaten sind identisch
-    if (x1==x2 && y1==y2) {
-        fn->PutPixel(data,x1,y1,color);
-        return;
-    }
-
-    // Zuerst sorgen wir dafuer, dass die Linie immer von links nach rechts gezeichnet
-    // werden kann
-
-    if (x1>x2) {
-        xx1=x2;
-        yy1=y2;
-        xx2=x1;
-        yy2=y1;
-    } else {
-        xx1=x1;
-        yy1=y1;
-        xx2=x2;
-        yy2=y2;
-    }
-
-    // Danach wird der Steigungswert in X- und Y-Richtung berechnet
-
-    StepX=xx2-xx1;
-    StepY=abs(yy2-yy1);
-
-    if (StepX==0) {
-        // Sonderfall 2: Gerade Vertikale Linie
-        int yylow=lowest(yy1,yy2);
-        for (int i=0;i<=StepY;i++) {
-            fn->PutPixel(data,xx1,i+yylow,color);
-        }
-        return;
-    }
-    if (StepY==0) {
-        // Sonderfall 3: Gerade Horizontale Linie
-        int xxlow=lowest(xx1,xx2);
-        for (int i=0;i<=StepX;i++) fn->PutPixel(data,xxlow+i,yy1,color);
-        return;
-    }
-
-    // Startposition berechnen
-    if (StepX<StepY) {
-        if (yy1<yy2) {	// Fall 1
-            int x=0;
-            for (int i=0;i<=StepY;i++) {
-                x=xx1+(i*StepX/StepY);
-                fn->PutPixel(data,x,yy1,color);
-                yy1++;
-            }
-            return;
-        } else {		// Fall 4
-            int x=0;
-            for (int i=0;i<=StepY;i++) {
-                x=xx1+(i*StepX/StepY);
-                fn->PutPixel(data,x,yy1,color);
-                yy1--;
-            }
-            return;
-        }
-    } else {
-        if (yy1<yy2) {	// Fall 2
-            int y=0,yy=0;
-            for (int i=0;i<=StepX;i++) {
-                y=yy1+(i*StepY/StepX);
-                if (y>yy) {yy1++; yy=y;}
-                fn->PutPixel(data,xx1+i,y,color);
-            }
-            return;
-        } else {		// Fall 3
-            int y=0,yy=0;
-            for (int i=0;i<=StepX;i++) {
-                y=yy1+(i*StepY/StepX);
-                if (y>yy) {yy1--; yy=y;}
-                fn->PutPixel(data,xx1+i,y,color);
-            }
-            return;
-        }
-    }
-    return;
-}
-*/
 
 /* signum function */
 static int sgn(int x)
@@ -605,7 +497,6 @@ void Grafix::initLines(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
     case RGBFormat::GREY8:
         return;
     }
-    throw UnsupportedColorFormatException("RGBFormat=%s (%i)", (const char*)format.name(), format.format());
 }
 
 void Drawable::line(int x1, int y1, int x2, int y2, const Color& c)

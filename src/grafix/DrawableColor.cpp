@@ -291,7 +291,6 @@ void Grafix::initColors(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
         fn->RGBBlend255 = RGBBlend_255_NULL;
         break;
     }
-    throw UnsupportedColorFormatException("RGBFormat=%s (%i)", (const char*)format.name(), format.format());
 }
 
 } // namespace grafix

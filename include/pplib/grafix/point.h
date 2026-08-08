@@ -32,9 +32,14 @@
 
 #include <stdint.h>
 
-namespace pplib::grafix
+namespace pplib
 {
 class String;
+}
+
+namespace pplib::grafix
+{
+
 class Point;
 class Point16;
 class Size;

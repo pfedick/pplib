@@ -27,139 +27,54 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#include "pplib.h"
-#include "pplib-grafix.h"
+#include <mutex>
 
-namespace pplib
-{
-namespace grafix
+#include <pplib/types/string.h>
+#include <pplib/grafix/imagefilter.h>
+#include <pplib/grafix/grafix.h>
+
+namespace pplib::grafix
 {
 
-/*!\brief Image-Filter registrieren
- *
- * \desc
- * Mit dieser Funktion wird ein neuer Image-Filter registriert. Ein Image-Filter ist
- * eine von ImageFilter abgeleitete Klasse, die in der Lage ist ein bestimmtes Grafikformat
- * zu lesen und optional auch zu schreiben.
- * Der Filter muss mit "new" angelegt worden sein. Grafix übernimmt dessen
- * Verwaltung, dass heisst die Klasse kümmert sich auch um das Löschen. Mit
- * Grafix::UnloadFilter kann ein Filter von der Anwendung manuell wieder entfernt
- * werden.
- *
- * \param[in] filter Pointer auf den zu registrierenden Filter
- * \return Konnte der Filter erfolgreich registriert werden, liefert die Funktion
- * 1 zurück, im Fehlerfall 0. Ein entsprechender Fehlercode wird gesetzt.
- *
- * \see
- * - ImageFilter
- * - Grafix::UnloadFilter
- * - Grafix::FindFilter
- */
 void Grafix::addImageFilter(ImageFilter* filter)
 {
-    myMutex.lock();
-    try {
-        ImageFilterList.push_back(filter);
-    }
-    catch (...) {
-        myMutex.unlock();
-        throw;
-    }
-    myMutex.unlock();
+    MutexLock lock(myMutex);
+    ImageFilterList.push_back(filter);
 }
 
-/*!\brief Image-Filter entfernen
- *
- * \desc
- * Mit dieser Funktion wird ein zuvor mit Grafix::AddFilter registrierter Image-Filter
- * aus der Grafik-Engine entfernt. Der Filter selbst wird jedoch nicht gelöscht, darum
- * muss sich die Anwendung kümmern.
- *
- * \param[in] filter Pointer auf den zu entfernenden Image-Filter
- * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-void Grafix::unloadImageFilter(ImageFilter* filter)
+void Grafix::unloadImageFilter(ImageFilter* filter) noexcept
 {
-    myMutex.lock();
-    try {
-        for (auto it = ImageFilterList.begin(); it != ImageFilterList.end(); ++it) {
-            if (*it == filter) {
-                ImageFilterList.erase(it);
-                break;
-            }
+    MutexLock lock(myMutex);
+    for (auto it = ImageFilterList.begin(); it != ImageFilterList.end(); ++it) {
+        if (*it == filter) {
+            ImageFilterList.erase(it);
+            break;
         }
     }
-    catch (...) {
-        myMutex.unlock();
-        throw;
-    }
-    myMutex.unlock();
 }
 
-/*!\brief Filter anhand seines Namens finden
- *
- * \desc
- * Jeder Filter muss einen eindeutigen Namen haben. Mit dieser Funktion kann ein
- * registrierter Filter anhand dieses Namens gefunden werden.
- *
- * \param[in] name Der gesuchte Filter-Name
- * \return Bei Erfolg liefert die Funktion einen Pointer auf den gefundenen Filter
- * zurück, , im Fehlerfall wird eine Exception geworfen.
- * \exception
- * UnknownImageFormatException
- */
-ImageFilter* Grafix::findImageFilter(const String& name)
+ImageFilter* Grafix::findImageFilter(const String& name) noexcept
 {
-    List<ImageFilter*>::Iterator it;
-    myMutex.lock();
+    MutexLock lock(myMutex);
     // Wir gehen die Liste rückwärts durch
     for (auto it = ImageFilterList.rbegin(); it != ImageFilterList.rend(); ++it) {
         if (name.strCaseCmp((*it)->name()) == 0) {
-            myMutex.unlock();
             return *it;
         }
     }
-    myMutex.unlock();
-    throw UnknownImageFormatException();
+    return nullptr;
 }
 
-/*!\brief Filter anhand des Inhalts einer geöffneten Datei finden
- *
- * \desc
- * Mit dieser Funktion kann ein registrierter Filter anhand des Inhalts einer
- * bereits geöffneten Datei gefunden werden. Dazu wird die Funktion ImageFilter::Ident
- * von jedem registrierten Filter aufgerufen, bis einer signalisiert, dass er das
- * Format verarbeiten kann.
- *
- * \param[in] ff Referenz auf die geöffnete Datei
- * \return Bei Erfolg liefert die Funktion einen Pointer auf den gefundenen Filter
- * zurück, im Fehlerfall wird eine Exception geworfen.
- * \exception
- * UnknownImageFormatException
- */
 ImageFilter* Grafix::findImageFilter(FileObject& ff, IMAGE& img)
 {
-    List<ImageFilter*>::Iterator it;
-    myMutex.lock();
+    MutexLock lock(myMutex);
     // Wir gehen die Liste rückwärts durch
     for (auto it = ImageFilterList.rbegin(); it != ImageFilterList.rend(); ++it) {
         if ((*it)->ident(ff, img) == 1) {
-            myMutex.unlock();
             return *it;
         }
     }
-    myMutex.unlock();
-    throw UnknownImageFormatException();
+    return nullptr;
 }
 
 /*!\class ImageFilter

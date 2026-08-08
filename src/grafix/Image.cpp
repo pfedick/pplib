@@ -390,6 +390,7 @@ void Image::load(FileObject& file, const RGBFormat& format)
     Grafix* gfx = GetGrafix();
     IMAGE img;
     ImageFilter* filter = gfx->findImageFilter(file, img);
+    if (!filter) throw UnknownImageFormatException();
     if (format != RGBFormat::unknown) img.format = format;
 
     create(img.width, img.height, img.format);

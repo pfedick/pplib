@@ -224,7 +224,7 @@ void Drawable::copyDrawableData(const DRAWABLE_DATA& other)
  * @return Pointer auf eine GRAFIX_FUNCTIONS Struktur oder NULL. Es wird kein
  * Fehlercode gesetzt.
  */
-GRAFIX_FUNCTIONS* Drawable::getFunctions()
+DRAWABLE_FUNCTIONS* Drawable::getFunctions()
 {
     return fn;
 }

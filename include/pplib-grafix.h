@@ -40,18 +40,18 @@
 #include <pplib/grafix/rect.h>
 #include <pplib/grafix/rgbformat.h>
 #include <pplib/grafix/font.h>
+#include <pplib/core/baseexception.h>
 
 namespace pplib
 {
 namespace grafix
 {
 
-PPLIBEXCEPTION(UnknownColorFormatException, Exception);
 PPLIBEXCEPTION(UnsupportedColorFormatException, Exception);
-PPLIBEXCEPTION(NoGrafixEngineException, Exception);
+
 PPLIBEXCEPTION(EmptyDrawableException, Exception);
 PPLIBEXCEPTION(UnknownBltMethodException, Exception);
-PPLIBEXCEPTION(DuplicateGrafixEngineException, Exception);
+
 PPLIBEXCEPTION(FunctionUnavailableException, Exception);
 PPLIBEXCEPTION(InvalidImageSizeException, Exception);
 PPLIBEXCEPTION(UnknownImageFormatException, Exception);

@@ -29,64 +29,16 @@
 
 #ifndef PPLIB_EXCEPTIONS_H_
 #define PPLIB_EXCEPTIONS_H_
-#include <exception>
-#include <ostream>
-#include <stdarg.h>
-#include <string>
 
 #include <pplib/types/string.h>
+#include <pplib/core/baseexception.h>
 
 namespace pplib
 {
 
-class String;
-
 void throwExceptionFromErrno(int e, const String& info);
 void throwSocketException(int e, const String& info);
 void throwExceptionFromEaiError(int ecode, const String& info);
-
-class Exception : public std::exception
-{
-private:
-    char* ErrorText;
-
-public:
-    Exception() noexcept;
-    Exception(const Exception& other) noexcept;
-    Exception& operator=(const Exception& other) noexcept;
-    Exception(const char* msg, ...) noexcept;
-    Exception(const String& msg) noexcept;
-    virtual ~Exception() noexcept;
-    virtual const char* what() const noexcept;
-    const char* text() const noexcept;
-    String toString() const noexcept;
-    void print() const;
-    void copyText(const char* str) noexcept;
-    void copyText(const char* fmt, va_list args) noexcept;
-};
-
-std::ostream& operator<<(std::ostream& s, const Exception& e);
-
-#define STR_VALUE(arg) #arg
-#define PPLIBEXCEPTION(name, inherit)                                                                                                      \
-    class name : public pplib::inherit                                                                                                     \
-    {                                                                                                                                      \
-    public:                                                                                                                                \
-        name() noexcept                                                                                                                    \
-        {                                                                                                                                  \
-        }                                                                                                                                  \
-        name(const char* msg, ...) noexcept                                                                                                \
-        {                                                                                                                                  \
-            va_list args;                                                                                                                  \
-            va_start(args, msg);                                                                                                           \
-            copyText(msg, args);                                                                                                           \
-            va_end(args);                                                                                                                  \
-        }                                                                                                                                  \
-        virtual const char* what() const noexcept                                                                                          \
-        {                                                                                                                                  \
-            return (STR_VALUE(name));                                                                                                      \
-        }                                                                                                                                  \
-    };
 
 PPLIBEXCEPTION(UnknownException, Exception);
 PPLIBEXCEPTION(OutOfMemoryException, Exception);

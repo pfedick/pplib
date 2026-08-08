@@ -619,7 +619,6 @@ void Grafix::initBlits(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
     case RGBFormat::A8:
         return;
     }
-    throw UnsupportedColorFormatException("RGBFormat=%s (%i)", (const char*)format.name(), format.format());
 }
 
 /*!\brief Überprüft, ob eine Blit-Aktion in den Zeichenbereich passt.

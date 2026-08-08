@@ -30,6 +30,8 @@
 #ifndef PPLIB_CORE_MUTEX_H_
 #define PPLIB_CORE_MUTEX_H_
 
+#include <mutex>
+
 namespace pplib
 {
 /**
@@ -133,6 +135,10 @@ public:
      */
     bool signal() noexcept;
 };
+
+/// Ein Lock-Guard für Mutexes. Sperrt den Mutex beim Erstellen und gibt ihn beim Zerstören wieder frei.
+using MutexLock = std::lock_guard<Mutex>;
+
 } // namespace pplib
 
 #endif /* PPLIB_CORE_MUTEX_H_ */

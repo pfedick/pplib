@@ -273,7 +273,6 @@ void Grafix::initShapes(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
         fn->CLS = ClearScreen_8;
         return;
     }
-    throw UnsupportedColorFormatException("RGBFormat=%s (%i)", (const char*)format.name(), format.format());
 }
 
 /*!\brief Grafik löschen

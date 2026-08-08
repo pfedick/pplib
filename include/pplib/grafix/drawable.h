@@ -31,6 +31,11 @@
 #define PPLIB_INCLUDE_GRAFIX_DRAWABLE_H
 
 #include <stdint.h>
+#include <pplib/grafix/rgbformat.h>
+#include <pplib/grafix/color.h>
+#include <pplib/grafix/rect.h>
+#include <pplib/grafix/font.h>
+#include <pplib/grafix/imagereference.h>
 
 namespace pplib::grafix
 {
@@ -38,11 +43,66 @@ typedef uint32_t SurfaceColor;
 
 // ACHTUNG: Bei Änderungen in der Reihenfolge muss auch die Assembler-Struktur
 // in src/asm/common.asminc angepasst werden!
-struct GRAFIX_FUNCTIONS;
+struct DRAWABLE_FUNCTIONS;
 
-typedef struct
+class DrawableData;
+
+typedef struct DRAWABLE_FUNCTIONS
 {
-    GRAFIX_FUNCTIONS* fn;
+    void (*Clear)(DrawableData& data, SurfaceColor c);
+    void (*PutPixel)(const DrawableData& data, int x, int y, SurfaceColor c);
+    void (*BlendPixel)(const DrawableData& data, int x, int y, SurfaceColor c, int brightness);
+    void (*AlphaPixel)(const DrawableData& data, int x, int y, SurfaceColor c);
+    SurfaceColor (*GetPixel)(const DrawableData& data, int x, int y);
+
+    void (*DrawRect)(const DrawableData& data, const Rect& r, SurfaceColor c);
+    void (*FillRect)(const DrawableData& data, const Rect& r, SurfaceColor c);
+    void (*Xchange)(const DrawableData& data, const Rect& r, SurfaceColor farbe, SurfaceColor ersatzfarbe);
+    void (*Invert)(const DrawableData& data, const Rect& r, SurfaceColor farbe1, SurfaceColor farbe2);
+    void (*Negativ)(const DrawableData& data, const Rect& r);
+
+    SurfaceColor (*ToNativeColor)(const Color& c);
+    Color (*FromNativeColor)(const SurfaceColor c);
+
+    SurfaceColor (*RGBBlend)(SurfaceColor ground, SurfaceColor top, float intensity);
+    SurfaceColor (*RGBBlend255)(SurfaceColor ground, SurfaceColor top, int intensity);
+
+    void (*LineAA)(const DrawableData& data, int x1, int y1, int x2, int y2, SurfaceColor color, int strength);
+    void (*Line)(const DrawableData& data, int x1, int y1, int x2, int y2, SurfaceColor color);
+
+    void (*Blt)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y);
+    void (*BltDiffuse)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y, SurfaceColor c);
+    void (*BltColorKey)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y, SurfaceColor c);
+    void (*BltAlpha)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y);
+    void (*BltAlphaMod)(const DrawableData& target, const const DrawableData& source, const Rect& srect, SurfaceColor mod, int x, int y);
+    void (*BltBlend)(const DrawableData& target, const const DrawableData& source, const Rect& srect, int x, int y, float factor);
+    void (*BltChromaKey)(const DrawableData& target,
+                         const const DrawableData& source,
+                         const Rect& srect,
+                         const Color& key,
+                         int tol1,
+                         int tol2,
+                         int x,
+                         int y);
+    void (*BltBackgoundOnChromaKey)(const DrawableData& target,
+                                    const const DrawableData& background,
+                                    const Rect& srect,
+                                    const Color& key,
+                                    int tol1,
+                                    int tol2,
+                                    int x,
+                                    int y);
+
+} DRAWABLE_FUNCTIONS;
+
+class ImageList;
+class Sprite;
+class Image;
+
+class DrawableData
+{
+public:
+    DRAWABLE_FUNCTIONS* fn;
     union {
         void* base;
         uint8_t* base8;
@@ -50,59 +110,21 @@ typedef struct
         uint32_t* base32;
     };
     uint32_t pitch;
-    int width;
-    int height;
+    uint32_t width;
+    uint32_t height;
     RGBFormat rgbformat;
-} DRAWABLE_DATA;
-
-typedef struct GRAFIX_FUNCTIONS
-{
-    void (*CLS)(DRAWABLE_DATA& data, SurfaceColor c);
-    void (*PutPixel)(const DRAWABLE_DATA& data, int x, int y, SurfaceColor c);
-    void (*BlendPixel)(const DRAWABLE_DATA& data, int x, int y, SurfaceColor c, int brightness);
-    void (*AlphaPixel)(const DRAWABLE_DATA& data, int x, int y, SurfaceColor c);
-    SurfaceColor (*GetPixel)(const DRAWABLE_DATA& data, int x, int y);
-
-    void (*DrawRect)(DRAWABLE_DATA& data, const Rect& r, SurfaceColor c);
-    void (*FillRect)(DRAWABLE_DATA& data, const Rect& r, SurfaceColor c);
-    void (*Xchange)(DRAWABLE_DATA& data, const Rect& r, SurfaceColor farbe, SurfaceColor ersatzfarbe);
-    void (*Invert)(DRAWABLE_DATA& data, const Rect& r, SurfaceColor farbe1, SurfaceColor farbe2);
-    void (*Negativ)(DRAWABLE_DATA& data, const Rect& r);
-
-    SurfaceColor (*GetRGB)(int r, int g, int b, int a);
-    SurfaceColor (*RGBBlend)(SurfaceColor ground, SurfaceColor top, float intensity);
-    SurfaceColor (*RGBBlend255)(SurfaceColor ground, SurfaceColor top, int intensity);
-    Color (*Surface2RGB)(SurfaceColor color);
-    void (*LineAA)(DRAWABLE_DATA& data, int x1, int y1, int x2, int y2, SurfaceColor color, int strength);
-    void (*Line)(DRAWABLE_DATA& data, int x1, int y1, int x2, int y2, SurfaceColor color);
-
-    int (*Blt)(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y);
-    int (*BltDiffuse)(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, SurfaceColor c);
-    int (*BltColorKey)(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, SurfaceColor c);
-    int (*BltAlpha)(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y);
-    int (*BltAlphaMod)(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, SurfaceColor mod, int x, int y);
-    int (*BltBlend)(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, float factor);
-    void (*BltChromaKey)(
-        DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
-    void (*BltBackgoundOnChromaKey)(
-        DRAWABLE_DATA& target, const DRAWABLE_DATA& background, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
-
-} GRAFIX_FUNCTIONS;
-
-class ImageList;
-class Sprite;
-class Image;
+};
 
 class Drawable
 {
     friend class Image;
 
 private:
-    GRAFIX_FUNCTIONS* fn;
-    DRAWABLE_DATA data;
+    // GRAFIX_FUNCTIONS* fn; => obsolete, da in DrawableData vorhanden
+    DrawableData data;
     void initFunctions(const RGBFormat& format);
-    void clearDrawableData();
-    void copyDrawableData(const DRAWABLE_DATA& other);
+    // void clearDrawableData();
+    // void copyDrawableData(const DRAWABLE_DATA& other);
 
 public:
     /** @name Konstruktoren
@@ -110,31 +132,30 @@ public:
     //@{
     Drawable();
     Drawable(const Drawable& other);
-    Drawable(const Drawable& other, const Rect& rect);
-    Drawable(const Drawable& other, const Point& p, const Size& s);
-    Drawable(void* base, uint32_t pitch, int width, int height, const RGBFormat& format);
+    Drawable(Drawable&& other);
+    Drawable(void* base, uint32_t pitch, uint32_t width, uint32_t height, const RGBFormat& format);
     ~Drawable();
     //@}
 
     /** @name Verschiedenes
      */
     //@{
-    GRAFIX_FUNCTIONS* getFunctions();
-    DRAWABLE_DATA* getData();
+    DRAWABLE_FUNCTIONS* getFunctions() const;
+    const DrawableData* getData() const;
 
     void copy(const Drawable& other);
-    void copy(const Drawable& other, const Rect& rect);
-    void copy(const Drawable& other, const Point& p, const Size& s);
-    void create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format);
+    void create(void* base, uint32_t pitch, uint32_t width, uint32_t height, const RGBFormat& format);
+
     Drawable& operator=(const Drawable& other);
+    Drawable& operator=(Drawable&& other) noexcept;
 
     Rect rect() const;
+    Rect16 rect16() const;
     Size size() const;
-    int width() const;
-    int height() const;
-    int pitch() const;
-    int bytesPerPixel() const;
-    int bitdepth() const;
+    Size16 size16() const;
+    uint32_t width() const;
+    uint32_t height() const;
+    uint32_t pitch() const;
     RGBFormat rgbformat() const;
     bool isEmpty() const;
     bool isNull() const;
@@ -160,14 +181,28 @@ public:
     /** @name Pixel
      */
     //@{
-    void putPixel(int x, int y, const Color& c);
-    void putPixel(const Point& p, const Color& c);
+    inline void putPixel(int x, int y, const Color& c)
+    {
+        data.fn->PutPixel(data, x, y, data.fn->ToNativeColor(c));
+    }
+    inline void putPixel(const Point& p, const Color& c)
+    {
+        data.fn->PutPixel(data, p.x, p.y, data.fn->ToNativeColor(c));
+    }
+
     void alphaPixel(int x, int y, const Color& c);
     void alphaPixel(const Point& p, const Color& c);
     void blendPixel(int x, int y, const Color& c, float brightness);
     void blendPixel(int x, int y, const Color& c, int brightness);
-    Color getPixel(int x, int y) const;
-    Color getPixel(const Point& p) const;
+    inline Color getPixel(int x, int y) const
+    {
+        return data.fn->FromNativeColor(data.fn->GetPixel(data, x, y));
+    }
+
+    inline Color getPixel(const Point& p) const
+    {
+        return data.fn->FromNativeColor(data.fn->GetPixel(data, p.x, p.y));
+    }
     //@}
 
     /** @name Geometrische Formen
@@ -236,6 +271,9 @@ public:
 
     void draw(const ImageList& iml, int nr, int x, int y);
     void draw(const ImageList& iml, int nr, int x, int y, const Color& diffuse);
+    void draw(const ImageReference& imgref, int x, int y);
+    void drawBlend(const ImageReference& imgref, int x, int y, float factor);
+
     void draw(const Sprite& sprite, int nr, int x, int y);
     //@}
 };

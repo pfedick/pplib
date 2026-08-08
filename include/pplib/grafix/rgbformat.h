@@ -48,17 +48,24 @@ public:
     enum Identifier
     {
         unknown = 0,
-        // 1 Bit
+
+        // Allgemeine Formate, die in allen PPLIB-Versionen unterstützt werden
+
         Monochrome1BitVertical, ///< 1 Bit pro Pixel, vertikal gepackt (z.B. SSD1322)
+        GREY8,                  ///< 8 Bit pro Pixel: 8 Bit Graustufe
+        R5G6B5,                 ///< 16 Bit pro Pixel: 5 Bit Rot, 6 Bit Grün, 5 Bit Blau
+        A8R8G8B8,               ///< 32 Bit pro Pixel: 8 Bit Alpha, 8 Bit Rot, 8 Bit Grün, 8 Bit Blau
+
+#ifndef PICO_BUILD
+        // Erweiterte Formate, die nicht in Embedded-Systemen unterstützt werden
 
         // 8 Bit
         Palette,
         R3G3B2,
         A8,
-        GREY8, ///< 8 Bit pro Pixel: 8 Bit Graustufe
 
         // 16 Bit
-        R5G6B5, ///< 16 Bit pro Pixel: 5 Bit Rot, 6 Bit Grün, 5 Bit Blau
+
         B5G6R5,
         X1R5G5B5,
         X1B5G5R5,
@@ -75,11 +82,11 @@ public:
         B8G8R8,
 
         // 32 Bit
-        A8R8G8B8, ///< 32 Bit pro Pixel: 8 Bit Alpha, 8 Bit Rot, 8 Bit Grün, 8 Bit Blau
         A8B8G8R8,
         X8R8G8B8,
         X8B8G8R8,
         GREYALPHA32,
+#endif
 
         MaxIdentifiers ///< Obergrenze der Identifikatoren
     };

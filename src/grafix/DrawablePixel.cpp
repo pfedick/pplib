@@ -241,7 +241,6 @@ void Grafix::initPixel(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
         fn->GetPixel = GetPixel_8;
         return;
     }
-    throw UnsupportedColorFormatException("RGBFormat=%s (%i)", (const char*)format.name(), format.format());
 }
 
 } // namespace grafix
