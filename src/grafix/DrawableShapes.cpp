@@ -71,7 +71,7 @@ namespace pplib
 namespace grafix
 {
 
-static void FillRect_32(DRAWABLE_DATA& data, const Rect& r, SurfaceColor color);
+static void FillRect_32(DrawableData& data, const Rect& r, SurfaceColor color);
 
 /*
 static int ClearScreen_16 (SURFACE *surface, COLOR color)
@@ -89,7 +89,7 @@ static int ClearScreen_16 (SURFACE *surface, COLOR color)
 }
 */
 
-static void ClearScreen_8(DRAWABLE_DATA& data, SurfaceColor c)
+static void ClearScreen_8(DrawableData& data, SurfaceColor c)
 {
     int x, y;
     uint8_t* adr;
@@ -101,7 +101,7 @@ static void ClearScreen_8(DRAWABLE_DATA& data, SurfaceColor c)
     }
 }
 
-static void ClearScreen_32(DRAWABLE_DATA& data, SurfaceColor c)
+static void ClearScreen_32(DrawableData& data, SurfaceColor c)
 {
     FillRect_32(data, Rect(0, 0, data.width, data.height), c);
     /*
@@ -116,7 +116,7 @@ static void ClearScreen_32(DRAWABLE_DATA& data, SurfaceColor c)
     */
 }
 
-static void DrawRect_32(DRAWABLE_DATA& data, const Rect& r, SurfaceColor color)
+static void DrawRect_32(DrawableData& data, const Rect& r, SurfaceColor color)
 {
     int x, y;
     uint32_t* pp;
@@ -134,7 +134,7 @@ static void DrawRect_32(DRAWABLE_DATA& data, const Rect& r, SurfaceColor color)
         pp[x] = (uint32_t)color;
 }
 
-static void FillRect_32(DRAWABLE_DATA& data, const Rect& r, SurfaceColor color)
+static void FillRect_32(DrawableData& data, const Rect& r, SurfaceColor color)
 {
     Rect s(0, 0, data.width, data.height);
     Rect in = s.intersected(r);

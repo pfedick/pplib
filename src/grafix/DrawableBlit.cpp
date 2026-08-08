@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,39 +22,21 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-
-#ifdef HAVE_STDDEF_H
-#include <stddef.h>
-#endif
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
+#include <config_pplib.h>
+#include <pplib/grafix/drawable.h>
+#include <pplib/grafix/image.h>
+#include <pplib/grafix/grafix.h>
+#include <pplib/grafix/imagereference.h>
+#include <pplib/types/string.h>
+#include <pplib/exceptions.h>
 
-#ifdef HAVE_MATH_H
-#include <math.h>
-#endif
-
-#include "pplib.h"
-#include "pplib-grafix.h"
-
-#ifdef HAVE_X86_ASSEMBLER
+#ifdef HAVE_NASM
 typedef struct
 {
     void* src;
@@ -100,22 +77,18 @@ extern "C"
 }
 #endif
 
-namespace pplib
-{
-namespace grafix
+namespace pplib::grafix
 {
 
-extern char* alphatab;
-
-static void* adr(const DRAWABLE_DATA& data, int x, int y)
+static void* adr(const DrawableData& data, int x, int y)
 {
     if (x < data.width && y < data.height) return data.base8 + (y * data.pitch) + (x * data.rgbformat.bitdepth() / 8);
     return NULL;
 }
 
-static int Blt_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y)
+static void Blt_32(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y)
 {
-#ifdef HAVE_X86_ASSEMBLER
+#ifdef HAVE_NASM
     BLTDATA data;
     data.src = (uint32_t*)adr(source, srect.left(), srect.top());
     data.tgt = (uint32_t*)adr(target, x, y);
@@ -133,9 +106,8 @@ static int Blt_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect
     */
 
     if (ASM_Blt32(&data)) {
-        return 1;
+        return;
     }
-    return 0;
 #endif
     uint8_t *q, *z;
     q = (uint8_t*)adr(source, srect.left(), srect.top());
@@ -147,7 +119,6 @@ static int Blt_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect
         q += source.pitch;
         z += target.pitch;
     }
-    return 1;
 }
 
 #ifdef __LITTLE_ENDIAN__
@@ -162,7 +133,7 @@ union Pixel32_t {
 union Pixel32_t {
     struct
     {
-        uint8_t alpha, red, green, blue;
+        uint8_t alpha, blue, green, red;
     };
     uint32_t c;
 };
@@ -180,9 +151,9 @@ static inline Pixel32_t GetColorBltAlphablend_32(Pixel32_t ground, Pixel32_t top
     return result;
 }
 
-static int BltAlpha_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y)
+static void BltAlpha_32(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y)
 {
-#ifdef HAVE_X86_ASSEMBLER
+#ifdef HAVE_NASM
     BLTDATA data;
     data.src = (uint32_t*)adr(source, srect.left(), srect.top());
     data.tgt = (uint32_t*)adr(target, x, y);
@@ -191,9 +162,8 @@ static int BltAlpha_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const
     data.pitchsrc = source.pitch;
     data.pitchtgt = target.pitch;
     if (ASM_AlphaBlt32(&data)) {
-        return 1;
+        return;
     }
-    return 0;
 #endif
     Pixel32_t *src, *tgt;
     src = (Pixel32_t*)adr(source, srect.left(), srect.top());
@@ -213,7 +183,6 @@ static int BltAlpha_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const
         src += (source.pitch >> 2);
         tgt += (target.pitch >> 2);
     }
-    return 1;
 }
 
 static inline Pixel32_t GetColorBltAlphablendMod_32(Pixel32_t ground, Pixel32_t top, Pixel32_t mod)
@@ -238,9 +207,9 @@ static inline Pixel32_t GetColorModulated(Pixel32_t top, Pixel32_t mod)
     return result;
 }
 
-static int BltAlphaMod_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, SurfaceColor mod, int x, int y)
+static void BltAlphaMod_32(const DrawableData& target, const DrawableData& source, const Rect& srect, SurfaceColor mod, int x, int y)
 {
-#ifdef HAVE_X86_ASSEMBLER
+#ifdef HAVE_NASM
 /*
     BLTDATA data;
     data.src=(uint32_t*)adr(source, srect.left(), srect.top());
@@ -277,12 +246,11 @@ static int BltAlphaMod_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, co
         src += (source.pitch >> 2);
         tgt += (target.pitch >> 2);
     }
-    return 1;
 }
 
-static int BltBlend_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, float factor)
+static void BltBlend_32(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y, float factor)
 {
-#ifdef HAVE_X86_ASSEMBLER
+#ifdef HAVE_NASM
     BLTDATA data;
     data.src = (uint32_t*)adr(source, srect.left(), srect.top());
     data.tgt = (uint32_t*)adr(target, x, y);
@@ -295,14 +263,10 @@ static int BltBlend_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const
     if (f > 255) f = 255;
     //::printf ("factor=%0.2f, f=%i\n",factor,f);
 
-    if ((GetCPUCaps() & CPUCAPS::CPU_HAVE_SSE2)) {
-        if ((data.width & 1) == 0 && (((ptrdiff_t)data.src) & 7) == 0 && (((ptrdiff_t)data.tgt) & 7) == 0) {
-            if (ASM_BltBlend32_SSE_Align2(&data, f)) return 1;
-        } else {
-            if (ASM_BltBlend32_SSE_Align1(&data, f)) return 1;
-        }
+    if ((data.width & 1) == 0 && (((ptrdiff_t)data.src) & 7) == 0 && (((ptrdiff_t)data.tgt) & 7) == 0) {
+        if (ASM_BltBlend32_SSE_Align2(&data, f)) return;
     } else {
-        if (ASM_BltBlend32_MMX(&data, f)) return 1;
+        if (ASM_BltBlend32_SSE_Align1(&data, f)) return;
     }
 #endif
     uint32_t *src, *tgt;
@@ -310,24 +274,23 @@ static int BltBlend_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const
     tgt = (uint32_t*)adr(target, x, y);
     int width = srect.width();
     int yy, xx;
-    if (!alphatab) return 0;
+    // if (!alphatab) return; // TODO?
     Color psrc, ptgt, c;
     for (yy = 0; yy < srect.height(); yy++) {
         for (xx = 0; xx < width; xx++) {
             ptgt.setColor(tgt[xx]);
             psrc.setColor(src[xx]);
             c.blendf(ptgt, psrc, factor);
-            tgt[xx] = c.color();
+            tgt[xx] = c.rgba();
         }
         src += (source.pitch >> 2);
         tgt += (target.pitch >> 2);
     }
-    return 1;
 }
 
-static int BltColorKey_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, SurfaceColor c)
+static void BltColorKey_32(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y, SurfaceColor c)
 {
-#ifdef HAVE_X86_ASSEMBLER
+#ifdef HAVE_NASM
     BLTDATA data;
     data.src = (uint32_t*)adr(source, srect.left(), srect.top());
     data.tgt = (uint32_t*)adr(target, x, y);
@@ -337,7 +300,7 @@ static int BltColorKey_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, co
     data.pitchtgt = target.pitch;
     data.color = c;
     if (ASM_BltColorKey32(&data)) {
-        return 1;
+        return;
     }
 #endif
     uint32_t *q, *z;
@@ -356,12 +319,11 @@ static int BltColorKey_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, co
         q += pitch_src;
         z += pitch_tgt;
     }
-    return 1;
 }
 
-static int BltDiffuse_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, SurfaceColor c)
+static void BltDiffuse_32(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y, SurfaceColor c)
 {
-#ifdef HAVE_X86_ASSEMBLER
+#ifdef HAVE_NASM
     BLTDATA data;
     data.src = (uint32_t*)adr(source, srect.left(), srect.top());
     data.tgt = (uint32_t*)adr(target, x, y);
@@ -371,9 +333,8 @@ static int BltDiffuse_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, con
     data.pitchtgt = target.pitch;
     data.color = c;
     if (ASM_BltDiffuse32(&data)) {
-        return 1;
+        return;
     }
-    return 0;
 #endif
     uint32_t* z;
     uint8_t* q;
@@ -397,19 +358,7 @@ static int BltDiffuse_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, con
         q += source.pitch;
         z += pitch32;
     }
-    return 1;
 }
-
-typedef struct
-{
-    union {
-        struct
-        {
-            uint8_t b, g, r, a;
-        };
-        uint32_t c;
-    };
-} PIXEL;
 
 #ifndef max
 static inline int max(int a, int b)
@@ -448,34 +397,33 @@ static inline int getYCr(int r, int g, int b)
 }
 
 static void BltChromaKey_32(
-    DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y)
+    const DrawableData& target, const DrawableData& source, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y)
 {
     if (tol2 < tol1) tol2 = tol1;
-#ifdef HAVE_X86_ASSEMBLER
-    if ((GetCPUCaps() & CPUCAPS::CPU_HAVE_SSE2)) {
-        BLTCHROMADATA data;
-        data.sadr = (char*)adr(source, srect.left(), srect.top());
-        data.bgadr = (char*)adr(target, x, y);
-        data.tgadr = data.bgadr;
-        data.width = srect.width();
-        data.height = srect.height();
-        data.spitch = source.pitch;
-        data.bgpitch = target.pitch;
-        data.tgpitch = data.bgpitch;
-        data.cb_key = key.getYCb();
-        data.cr_key = key.getYCr();
-        data.tola = tol1;
-        data.tolb = tol2;
-        // if ((((int)(data.width&255))&3)==0 && (((int)(data.sadr&255))&15)==0 && (((int)(data.bgadr&255))&15)==0) {
-        if (ASM_BltChromaKey32(&data)) return;
-    }
+#ifdef HAVE_NASM
+    BLTCHROMADATA data;
+    data.sadr = (char*)adr(source, srect.left(), srect.top());
+    data.bgadr = (char*)adr(target, x, y);
+    data.tgadr = data.bgadr;
+    data.width = srect.width();
+    data.height = srect.height();
+    data.spitch = source.pitch;
+    data.bgpitch = target.pitch;
+    data.tgpitch = data.bgpitch;
+    data.cb_key = key.getYCb();
+    data.cr_key = key.getYCr();
+    data.tola = tol1;
+    data.tolb = tol2;
+    // if ((((int)(data.width&255))&3)==0 && (((int)(data.sadr&255))&15)==0 && (((int)(data.bgadr&255))&15)==0) {
+    if (ASM_BltChromaKey32(&data)) return;
+
 #endif
     double mask;
     int cb, cr;
     int cb_key = key.getYCb();
     int cr_key = key.getYCr();
 
-    PIXEL c, bg, t;
+    Pixel32_t c, bg, t;
 
     uint32_t* sadr = (uint32_t*)adr(source, srect.left(), srect.top());
     uint32_t spitch = source.pitch / 4;
@@ -489,8 +437,8 @@ static void BltChromaKey_32(
     for (int y = 0; y < srect.height(); y++) {
         for (int x = 0; x < srect.width(); x++) {
             c.c = sadr[x];
-            cb = getYCb(c.r, c.g, c.b);
-            cr = getYCr(c.r, c.g, c.b);
+            cb = getYCb(c.red, c.green, c.blue);
+            cr = getYCr(c.red, c.green, c.blue);
             bg.c = bgadr[x];
 
             mask = 1 - colorclose(cb, cr, cb_key, cr_key, tol1, tol2);
@@ -500,10 +448,10 @@ static void BltChromaKey_32(
             } else if (mask == 1.0) {
                 tgadr[x] = bg.c;
             } else {
-                t.r = (uint8_t)(max(c.r - mask * c.r, 0) + mask * bg.r);
-                t.g = (uint8_t)(max(c.g - mask * c.g, 0) + mask * bg.g);
-                t.b = (uint8_t)(max(c.b - mask * c.b, 0) + mask * bg.b);
-                t.a = (uint8_t)(max(c.a - mask * c.a, 0) + mask * bg.a);
+                t.red = (uint8_t)(max(c.red - mask * c.red, 0) + mask * bg.red);
+                t.green = (uint8_t)(max(c.green - mask * c.green, 0) + mask * bg.green);
+                t.blue = (uint8_t)(max(c.blue - mask * c.blue, 0) + mask * bg.blue);
+                t.alpha = (uint8_t)(max(c.alpha - mask * c.alpha, 0) + mask * bg.alpha);
                 tgadr[x] = t.c;
             }
         }
@@ -514,33 +462,32 @@ static void BltChromaKey_32(
 }
 
 static void BltBackgroundOnChromaKey_32(
-    DRAWABLE_DATA& target, const DRAWABLE_DATA& background, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y)
+    const DrawableData& target, const DrawableData& background, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y)
 {
     if (tol2 < tol1) tol2 = tol1;
-#ifdef HAVE_X86_ASSEMBLER
-    if ((GetCPUCaps() & CPUCAPS::CPU_HAVE_SSE2)) {
-        BLTCHROMADATA data;
-        data.sadr = (char*)adr(target, srect.left(), srect.top());
-        data.bgadr = (char*)adr(background, x, y);
-        data.tgadr = data.sadr;
-        data.width = srect.width();
-        data.height = srect.height();
-        data.spitch = target.pitch;
-        data.bgpitch = background.pitch;
-        data.tgpitch = data.spitch;
-        data.cb_key = key.getYCb();
-        data.cr_key = key.getYCr();
-        data.tola = tol1;
-        data.tolb = tol2;
-        if (ASM_BltChromaKey32(&data)) return;
-    }
+#ifdef HAVE_NASM
+    BLTCHROMADATA data;
+    data.sadr = (char*)adr(target, srect.left(), srect.top());
+    data.bgadr = (char*)adr(background, x, y);
+    data.tgadr = data.sadr;
+    data.width = srect.width();
+    data.height = srect.height();
+    data.spitch = target.pitch;
+    data.bgpitch = background.pitch;
+    data.tgpitch = data.spitch;
+    data.cb_key = key.getYCb();
+    data.cr_key = key.getYCr();
+    data.tola = tol1;
+    data.tolb = tol2;
+    if (ASM_BltChromaKey32(&data)) return;
+
 #endif
     double mask;
     int cb, cr;
     int cb_key = key.getYCb();
     int cr_key = key.getYCr();
 
-    PIXEL c, bg, t;
+    Pixel32_t c, bg, t;
 
     uint32_t* sadr = (uint32_t*)adr(target, srect.left(), srect.top());
     uint32_t spitch = target.pitch / 4;
@@ -554,8 +501,8 @@ static void BltBackgroundOnChromaKey_32(
     for (int y = 0; y < srect.height(); y++) {
         for (int x = 0; x < srect.width(); x++) {
             c.c = sadr[x];
-            cb = getYCb(c.r, c.g, c.b);
-            cr = getYCr(c.r, c.g, c.b);
+            cb = getYCb(c.red, c.green, c.blue);
+            cr = getYCr(c.red, c.green, c.blue);
             bg.c = bgadr[x];
 
             mask = 1 - colorclose(cb, cr, cb_key, cr_key, tol1, tol2);
@@ -565,10 +512,10 @@ static void BltBackgroundOnChromaKey_32(
             } else if (mask == 1.0) {
                 tgadr[x] = bg.c;
             } else {
-                t.r = (uint8_t)(max(c.r - mask * c.r, 0) + mask * bg.r);
-                t.g = (uint8_t)(max(c.g - mask * c.g, 0) + mask * bg.g);
-                t.b = (uint8_t)(max(c.b - mask * c.b, 0) + mask * bg.b);
-                t.a = (uint8_t)(max(c.a - mask * c.a, 0) + mask * bg.a);
+                t.red = (uint8_t)(max(c.red - mask * c.red, 0) + mask * bg.red);
+                t.green = (uint8_t)(max(c.green - mask * c.green, 0) + mask * bg.green);
+                t.blue = (uint8_t)(max(c.blue - mask * c.blue, 0) + mask * bg.blue);
+                t.alpha = (uint8_t)(max(c.alpha - mask * c.alpha, 0) + mask * bg.alpha);
                 tgadr[x] = t.c;
             }
         }
@@ -599,7 +546,7 @@ static void BltBackgroundOnChromaKey_32(
  * Gegenwärtig werden nur Farbformate mit einer Tiefe von 32 Bit unterstützt.
  *
  */
-void Grafix::initBlits(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
+void Grafix::initBlits(const RGBFormat& format, DRAWABLE_FUNCTIONS* fn) noexcept
 {
     switch (format) {
     case RGBFormat::A8R8G8B8: // 32 Bit True Color
@@ -625,7 +572,7 @@ void Grafix::initBlits(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
  *
  * \desc
  * Diese Funktion prüft, ob das zu zeichnende Rechteck überhaupt in die aktuelle
- * Zeichenfläche. Dabei wird das Quellrechteck bei Bedarf angepasst.
+ * Zeichenfläche passt. Dabei wird das Quellrechteck bei Bedarf angepasst.
  *
  * \param[in,out] x X-Koordinate der Zielposition
  * \param[in,out] y Y-Koordinate der Zielposition
@@ -642,23 +589,18 @@ int Drawable::fitRect(int& x, int& y, Rect& r)
 {
     Rect screen(0, 0, data.width, data.height);
     Rect object(x, y, r.width(), r.height());
-    Rect i = screen.intersected(object); // TODO: Das ist falsch
-
-    //::printf ("Drawable::fitRect screen (%i/%i)-(%i/%i)\n", screen.x1, screen.y1, screen.x2, screen.y2);
-    //::printf ("Drawable::fitRect object (%i/%i)-(%i/%i)\n", object.x1, object.y1, object.x2, object.y2);
-    //::printf ("Drawable::fitRect i (%i/%i)-(%i/%i)\n", i.x1, i.y1, i.x2, i.y2);
+    Rect i = screen.intersected(object);
 
     if (i.isNull()) return 0;
-    int shiftx = i.x1 - object.x1;
-    int shifty = i.y1 - object.y1;
+    int32_t shiftx = i.left() - object.left();
+    int32_t shifty = i.top() - object.top();
     x += shiftx;
     y += shifty;
 
-    r.x1 += shiftx;
-    r.y1 += shifty;
-    r.x2 = r.x1 + i.width();
-    r.y2 = r.y1 + i.height();
-    //::printf ("Drawable::fitRect r (%i/%i)-(%i/%i)\n", r.x1, r.y1, r.x2, r.y2);
+    r.setLeft(r.left() + shiftx);
+    r.setTop(r.top() + shifty);
+    r.setWidth(i.width());
+    r.setHeight(i.height());
     return 1;
 }
 
@@ -709,7 +651,7 @@ void Drawable::blt(const Drawable& source, int x, int y)
  */
 void Drawable::blt(const Drawable& source, const Rect& srect, int x, int y)
 {
-    if (source.isEmpty()) throw EmptyDrawableException();
+    if (source.isEmpty() || !data.base) return;
     // Quellrechteck
     Rect q;
     if (srect.isNull()) {
@@ -724,8 +666,7 @@ void Drawable::blt(const Drawable& source, const Rect& srect, int x, int y)
     //::printf ("rect=(%i/%i)-(%i/%i)\n", q.x1, q.y1, q.x2, q.y2);
     if (!fitRect(x, y, q)) return;
     //::printf ("rect=(%i/%i)-(%i/%i)\n", q.x1, q.y1, q.x2, q.y2);
-    if (!fn->Blt) throw FunctionUnavailableException("Drawable::blt");
-    fn->Blt(data, source.data, q, x, y);
+    data.fn->Blt(data, source.data, q, x, y);
 }
 
 void Drawable::bltDiffuse(const Drawable& source, int x, int y, const Color& c)
@@ -783,7 +724,7 @@ void Drawable::bltDiffuse(const Drawable& source, int x, int y, const Color& c)
  */
 void Drawable::bltDiffuse(const Drawable& source, const Rect& srect, int x, int y, const Color& c)
 {
-    if (source.isEmpty()) throw EmptyDrawableException();
+    if (source.isEmpty() || !data.base) return;
     // Quellrechteck
     Rect q;
     if (srect.isNull()) {
@@ -796,8 +737,7 @@ void Drawable::bltDiffuse(const Drawable& source, const Rect& srect, int x, int 
         if (q.height() > source.height()) q.setHeight(source.height());
     }
     if (!fitRect(x, y, q)) return;
-    if (!fn->BltDiffuse) throw FunctionUnavailableException("Drawable::bltDiffuse");
-    fn->BltDiffuse(data, source.data, q, x, y, rgb(c));
+    data.fn->BltDiffuse(data, source.data, q, x, y, toNativeColor(c));
 }
 
 /*!\brief Rechteck unter Berücksichtigung einer transparenten Schlüsselfarbe kopieren
@@ -849,7 +789,7 @@ void Drawable::bltColorKey(const Drawable& source, int x, int y, const Color& c)
  */
 void Drawable::bltColorKey(const Drawable& source, const Rect& srect, int x, int y, const Color& c)
 {
-    if (source.isEmpty()) throw EmptyDrawableException();
+    if (source.isEmpty() || !data.base) return;
     // Quellrechteck
     Rect q;
     if (srect.isNull()) {
@@ -862,8 +802,7 @@ void Drawable::bltColorKey(const Drawable& source, const Rect& srect, int x, int
         if (q.height() > source.height()) q.setHeight(source.height());
     }
     if (!fitRect(x, y, q)) return;
-    if (!fn->BltColorKey) throw FunctionUnavailableException("Drawable::bltColorKey");
-    fn->BltColorKey(data, source.data, q, x, y, rgb(c));
+    data.fn->BltColorKey(data, source.data, q, x, y, toNativeColor(c));
 }
 
 /*!\brief Rechteck unter Berücksichtigung des Alpha-Kanals kopieren
@@ -917,7 +856,7 @@ void Drawable::bltAlpha(const Drawable& source, int x, int y)
  */
 void Drawable::bltAlpha(const Drawable& source, const Rect& srect, int x, int y)
 {
-    if (source.isEmpty()) throw EmptyDrawableException();
+    if (source.isEmpty() || !data.base) return;
     // Quellrechteck
     Rect q;
     if (srect.isNull()) {
@@ -930,8 +869,7 @@ void Drawable::bltAlpha(const Drawable& source, const Rect& srect, int x, int y)
         if (q.height() > source.height()) q.setHeight(source.height());
     }
     if (!fitRect(x, y, q)) return;
-    if (!fn->BltAlpha) throw FunctionUnavailableException("Drawable::bltAlpha");
-    fn->BltAlpha(data, source.data, q, x, y);
+    data.fn->BltAlpha(data, source.data, q, x, y);
 }
 
 void Drawable::bltAlphaMod(const Drawable& source, const Color& mod, int x, int y)
@@ -941,7 +879,7 @@ void Drawable::bltAlphaMod(const Drawable& source, const Color& mod, int x, int 
 
 void Drawable::bltAlphaMod(const Drawable& source, const Rect& srect, const Color& mod, int x, int y)
 {
-    if (source.isEmpty()) throw EmptyDrawableException();
+    if (source.isEmpty() || !data.base) return;
     // Quellrechteck
     Rect q;
     if (srect.isNull()) {
@@ -954,8 +892,7 @@ void Drawable::bltAlphaMod(const Drawable& source, const Rect& srect, const Colo
         if (q.height() > source.height()) q.setHeight(source.height());
     }
     if (!fitRect(x, y, q)) return;
-    if (!fn->BltAlphaMod) throw FunctionUnavailableException("Drawable::bltAlpha");
-    fn->BltAlphaMod(data, source.data, q, rgb(mod), x, y);
+    data.fn->BltAlphaMod(data, source.data, q, toNativeColor(mod), x, y);
 }
 
 /*!\brief Grafik aus einer Image-Liste kopieren
@@ -977,6 +914,7 @@ void Drawable::bltAlphaMod(const Drawable& source, const Rect& srect, const Colo
  */
 void Drawable::draw(const ImageList& iml, int nr, int x, int y)
 {
+    if (!data.base) return;
     Rect r = iml.getRect(nr);
     switch ((int)iml.method) {
     case ImageList::BLT:
@@ -992,7 +930,6 @@ void Drawable::draw(const ImageList& iml, int nr, int x, int y)
         bltDiffuse(iml, r, x, y, iml.diffuse);
         return;
     }
-    throw UnknownBltMethodException();
 }
 
 /*!\brief Grafik aus einer Image-Liste kopieren
@@ -1015,6 +952,7 @@ void Drawable::draw(const ImageList& iml, int nr, int x, int y)
  */
 void Drawable::draw(const ImageList& iml, int nr, int x, int y, const Color& diffuse)
 {
+    if (!data.base) return;
     Rect r = iml.getRect(nr);
     switch ((int)iml.method) {
     case ImageList::BLT:
@@ -1030,7 +968,6 @@ void Drawable::draw(const ImageList& iml, int nr, int x, int y, const Color& dif
         bltDiffuse(iml, r, x, y, diffuse);
         return;
     }
-    throw UnknownBltMethodException();
 }
 
 void Drawable::bltBlend(const Drawable& source, float factor, int x, int y)
@@ -1040,7 +977,7 @@ void Drawable::bltBlend(const Drawable& source, float factor, int x, int y)
 
 void Drawable::bltBlend(const Drawable& source, float factor, const Rect& srect, int x, int y)
 {
-    if (source.isEmpty()) throw EmptyDrawableException();
+    if (source.isEmpty() || !data.base) return;
     if (factor <= 0.0f) return;
     if (factor >= 1.0f) {
         blt(source, srect, x, y);
@@ -1059,8 +996,39 @@ void Drawable::bltBlend(const Drawable& source, float factor, const Rect& srect,
     }
     //::printf ("rect=(%i/%i)-(%i/%i)\n", q.x1, q.y1, q.x2, q.y2);
     if (!fitRect(x, y, q)) return;
-    if (!fn->BltBlend) throw FunctionUnavailableException("Drawable::Blend");
-    fn->BltBlend(data, source.data, q, x, y, factor);
+    data.fn->BltBlend(data, source.data, q, x, y, factor);
+}
+
+void Drawable::draw(const ImageReference& imgref, int x, int y)
+{
+    if (!data.base) return;
+    switch (imgref.draw_method) {
+    case DrawMethod::BLT:
+        blt(imgref.pixel, imgref.pixel.rect(), x, y);
+        return;
+    case DrawMethod::ALPHABLT:
+        bltAlpha(imgref.pixel, x, y);
+        return;
+    case DrawMethod::DIFFUSE:
+        bltDiffuse(imgref.pixel, x, y, imgref.diffuse_color);
+        return;
+    }
+}
+
+void Drawable::drawBlend(const ImageReference& imgref, int x, int y, float factor)
+{
+    if (!data.base) return;
+    switch (imgref.draw_method) {
+    case DrawMethod::BLT:
+        blt(imgref.pixel, imgref.pixel.rect(), x, y);
+        return;
+    case DrawMethod::ALPHABLT:
+        bltBlend(imgref.pixel, factor, x, y);
+        return;
+    case DrawMethod::DIFFUSE:
+        bltDiffuse(imgref.pixel, x, y, imgref.diffuse_color);
+        return;
+    }
 }
 
 /*!\brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
@@ -1088,7 +1056,7 @@ void Drawable::bltBlend(const Drawable& source, float factor, const Rect& srect,
  * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
  * sondern den Hintergrund an.
  */
-void Drawable::bltChromaKey(const Drawable& source, const Color& key, int tol1, int tol2, int x, int y)
+void Drawable::bltChromaKey(const Drawable& source, const Color& key, uint8_t tol1, uint8_t tol2, int x, int y)
 {
     bltChromaKey(source, source.rect(), key, tol1, tol2, x, y);
 }
@@ -1119,11 +1087,9 @@ void Drawable::bltChromaKey(const Drawable& source, const Color& key, int tol1, 
  * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
  * sondern den Hintergrund an.
  */
-void Drawable::bltChromaKey(const Drawable& source, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y)
+void Drawable::bltChromaKey(const Drawable& source, const Rect& srect, const Color& key, uint8_t tol1, uint8_t tol2, int x, int y)
 {
-    if (source.isEmpty()) throw EmptyDrawableException();
-    if (tol1 < 0 || tol1 > 255) throw IllegalArgumentException("0<=tol1<=255");
-    if (tol2 < 0 || tol2 > 255) throw IllegalArgumentException("0<=tol2<=255");
+    if (source.isEmpty() || !data.base) return;
     // Quellrechteck
     Rect q;
     if (srect.isNull()) {
@@ -1136,8 +1102,7 @@ void Drawable::bltChromaKey(const Drawable& source, const Rect& srect, const Col
         if (q.height() > source.height()) q.setHeight(source.height());
     }
     if (!fitRect(x, y, q)) return;
-    if (!fn->BltChromaKey) throw FunctionUnavailableException("Drawable::bltChromaKey");
-    fn->BltChromaKey(data, source.data, q, key, tol1, tol2, x, y);
+    data.fn->BltChromaKey(data, source.data, q, key, tol1, tol2, x, y);
 }
 
 /*!\brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
@@ -1165,7 +1130,7 @@ void Drawable::bltChromaKey(const Drawable& source, const Rect& srect, const Col
  * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
  * sondern den Hintergrund an.
  */
-void Drawable::bltBackgroundOnChromaKey(const Drawable& background, const Color& key, int tol1, int tol2, int x, int y)
+void Drawable::bltBackgroundOnChromaKey(const Drawable& background, const Color& key, uint8_t tol1, uint8_t tol2, int x, int y)
 {
     bltBackgroundOnChromaKey(background, rect(), key, tol1, tol2, x, y);
 }
@@ -1196,11 +1161,10 @@ void Drawable::bltBackgroundOnChromaKey(const Drawable& background, const Color&
  * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
  * sondern den Hintergrund an.
  */
-void Drawable::bltBackgroundOnChromaKey(const Drawable& background, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y)
+void Drawable::bltBackgroundOnChromaKey(
+    const Drawable& background, const Rect& srect, const Color& key, uint8_t tol1, uint8_t tol2, int x, int y)
 {
-    if (background.isEmpty()) throw EmptyDrawableException();
-    if (tol1 < 0 || tol1 > 255) throw IllegalArgumentException("0<=tol1<=255");
-    if (tol2 < 0 || tol2 > 255) throw IllegalArgumentException("0<=tol2<=255");
+    if (background.isEmpty() || !data.base) return;
     // Quellrechteck
     Rect q;
     if (srect.isNull()) {
@@ -1213,16 +1177,7 @@ void Drawable::bltBackgroundOnChromaKey(const Drawable& background, const Rect& 
         if (q.height() > height()) q.setHeight(height());
     }
     if (!fitRect(x, y, q)) return;
-    if (!fn->BltBackgoundOnChromaKey) throw FunctionUnavailableException("Drawable::bltBackgroundOnChromaKey");
-    fn->BltBackgoundOnChromaKey(data, background.data, q, key, tol1, tol2, x, y);
+    data.fn->BltBackgoundOnChromaKey(data, background.data, q, key, tol1, tol2, x, y);
 }
 
-#ifdef DONE
-void Drawable::draw(const Sprite& sprite, int nr, int x, int y)
-{
-    sprite.draw(*this, x, y, nr);
-}
-#endif
-
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

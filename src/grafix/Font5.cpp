@@ -274,7 +274,7 @@ extern "C"
 }
 #endif
 
-static int DrawGlyphMono8(DRAWABLE_DATA& data, const char* glyph, int x, int y, SurfaceColor c)
+static int DrawGlyphMono8(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -297,7 +297,7 @@ static int DrawGlyphMono8(DRAWABLE_DATA& data, const char* glyph, int x, int y, 
     return 1;
 }
 
-static int DrawGlyphMono1(DRAWABLE_DATA& data, const char* glyph, int x, int y, SurfaceColor c)
+static int DrawGlyphMono1(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -328,7 +328,7 @@ static int DrawGlyphMono1(DRAWABLE_DATA& data, const char* glyph, int x, int y, 
     return 1;
 }
 
-static int DrawGlyphAA2(DRAWABLE_DATA& data, const char* glyph, int x, int y, SurfaceColor c)
+static int DrawGlyphAA2(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -364,7 +364,7 @@ static int DrawGlyphAA2(DRAWABLE_DATA& data, const char* glyph, int x, int y, Su
     return 1;
 }
 
-static int DrawGlyphAA4(DRAWABLE_DATA& data, const char* glyph, int x, int y, SurfaceColor c)
+static int DrawGlyphAA4(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -396,7 +396,7 @@ static int DrawGlyphAA4(DRAWABLE_DATA& data, const char* glyph, int x, int y, Su
     return 1;
 }
 
-static int DrawGlyphAA8(DRAWABLE_DATA& data, const char* glyph, int x, int y, SurfaceColor c)
+static int DrawGlyphAA8(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -484,7 +484,7 @@ void FontEngineFont5::render(
 void FontEngineFont5::renderInternal(
     PFPChunk* c, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color)
 {
-    DRAWABLE_DATA* data = draw.getData();
+    DrawableData* data = draw.getData();
     const char* header = (char*)c->data();
     const char* jump = NULL;
     const char* glyph;
@@ -500,7 +500,7 @@ void FontEngineFont5::renderInternal(
     int lasty = y;
 
     int (*BltGlyph)(GLYPH* surface) = NULL;
-    int (*ErsatzGlyph)(DRAWABLE_DATA& data, const char* glyph, int x, int y, SurfaceColor c) = NULL;
+    int (*ErsatzGlyph)(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c) = NULL;
     GLYPH g;
     g.color = draw.rgb(color);
     switch (pixelformat) {

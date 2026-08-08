@@ -40,7 +40,7 @@ static int sgn(int x)
 }
 
 /* Bresenham Algorithmus */
-static void Line_32(DRAWABLE_DATA& data, int xstart, int ystart, int xend, int yend, SurfaceColor color)
+static void Line_32(DrawableData& data, int xstart, int ystart, int xend, int yend, SurfaceColor color)
 {
     int x, y, t, dx, dy, incx, incy, pdx, pdy, ddx, ddy, es, el, err;
 
@@ -232,12 +232,12 @@ static float WuInvFrac(float value)
     return 1 - WuFrac(value);
 }
 
-static void WuLine(DRAWABLE_DATA& data, float x1, float y1, float x2, float y2, SurfaceColor color)
+static void WuLine(DrawableData& data, float x1, float y1, float x2, float y2, SurfaceColor color)
 {
     float grad, xd, yd; //,length,xm,ym;
     float brightness1, brightness2;
 
-    GRAFIX_FUNCTIONS* fn = data.fn;
+    DRAWABLE_DATA* fn = data.fn;
     if (!fn->BlendPixel) return;
 
     xd = (x2 - x1); // Breite und Hoehe der Linie
@@ -343,7 +343,7 @@ static void WuLine(DRAWABLE_DATA& data, float x1, float y1, float x2, float y2, 
     }
 }
 
-static void WuLineThick(DRAWABLE_DATA& data, float x1, float y1, float x2, float y2, SurfaceColor color, int strength)
+static void WuLineThick(DrawableData& data, float x1, float y1, float x2, float y2, SurfaceColor color, int strength)
 {
     float grad, xd, yd; //,length,xm,ym;
     float brightness1, brightness2;
@@ -472,7 +472,7 @@ static void WuLineThick(DRAWABLE_DATA& data, float x1, float y1, float x2, float
     }
 }
 
-static void LineAA(DRAWABLE_DATA& data, int x1, int y1, int x2, int y2, SurfaceColor color, int strength)
+static void LineAA(DrawableData& data, int x1, int y1, int x2, int y2, SurfaceColor color, int strength)
 {
     if (strength == 1) {
         WuLine(data, (float)x1, (float)y1, (float)x2, (float)y2, color);

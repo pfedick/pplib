@@ -55,22 +55,22 @@ namespace grafix
 extern "C"
 {
 #ifdef HAVE_X86_ASSEMBLER
-    void AlphaPixel_32(const DRAWABLE_DATA& data, int x, int y, SurfaceColor color);
-    void PutPixel_32(const DRAWABLE_DATA& data, int x, int y, SurfaceColor color);
-    SurfaceColor GetPixel_32(const DRAWABLE_DATA& data, int x, int y);
+    void AlphaPixel_32(const DrawableData& data, int x, int y, SurfaceColor color);
+    void PutPixel_32(const DrawableData& data, int x, int y, SurfaceColor color);
+    SurfaceColor GetPixel_32(const DrawableData& data, int x, int y);
 #endif
 }
 
 /*
  * 8 Bit
  */
-static void PutPixel_8(const DRAWABLE_DATA& data, int x, int y, SurfaceColor color)
+static void PutPixel_8(const DrawableData& data, int x, int y, SurfaceColor color)
 {
     if (x < 0 || y < 0 || x >= data.width || y >= data.height) return;
     data.base8[data.pitch * y + x] = (uint8_t)(color & 0xff);
 }
 
-static SurfaceColor GetPixel_8(const DRAWABLE_DATA& data, int x, int y)
+static SurfaceColor GetPixel_8(const DrawableData& data, int x, int y)
 {
     if (x < 0 || y < 0 || x >= data.width || y >= data.height) return 0;
     return ((SurfaceColor)data.base8[data.pitch * y + x]);
@@ -79,13 +79,13 @@ static SurfaceColor GetPixel_8(const DRAWABLE_DATA& data, int x, int y)
 /*
  * 16 Bit
  */
-static void PutPixel_16(const DRAWABLE_DATA& data, int x, int y, SurfaceColor color)
+static void PutPixel_16(const DrawableData& data, int x, int y, SurfaceColor color)
 {
     if (x < 0 || y < 0 || x >= data.width || y >= data.height) return;
     data.base16[(data.pitch >> 1) * y + x] = (uint16_t)(color & 0xffff);
 }
 
-static SurfaceColor GetPixel_16(const DRAWABLE_DATA& data, int x, int y)
+static SurfaceColor GetPixel_16(const DrawableData& data, int x, int y)
 {
     if (x < 0 || y < 0 || x >= data.width || y >= data.height) return 0;
     return ((SurfaceColor)data.base16[(data.pitch >> 1) * y + x]);
@@ -95,19 +95,19 @@ static SurfaceColor GetPixel_16(const DRAWABLE_DATA& data, int x, int y)
  * 32 Bit
  */
 #ifndef HAVE_X86_ASSEMBLER
-static void PutPixel_32(const DRAWABLE_DATA& data, int x, int y, SurfaceColor color)
+static void PutPixel_32(const DrawableData& data, int x, int y, SurfaceColor color)
 {
     if (x < 0 || y < 0 || x >= data.width || y >= data.height) return;
     data.base32[(data.pitch >> 2) * y + x] = (uint32_t)color;
 }
 
-static SurfaceColor GetPixel_32(const DRAWABLE_DATA& data, int x, int y)
+static SurfaceColor GetPixel_32(const DrawableData& data, int x, int y)
 {
     if (x < 0 || y < 0 || x >= data.width || y >= data.height) return 0;
     return ((SurfaceColor)data.base32[(data.pitch >> 2) * y + x]);
 }
 
-static void AlphaPixel_32(const DRAWABLE_DATA& data, int x, int y, SurfaceColor color)
+static void AlphaPixel_32(const DrawableData& data, int x, int y, SurfaceColor color)
 {
     if (x < 0 || y < 0 || x >= data.width || y >= data.height) return;
     if (!data.fn->RGBBlend255) return;
@@ -117,7 +117,7 @@ static void AlphaPixel_32(const DRAWABLE_DATA& data, int x, int y, SurfaceColor 
 }
 #endif
 
-static void BlendPixel_32(const DRAWABLE_DATA& data, int x, int y, SurfaceColor color, int brightness)
+static void BlendPixel_32(const DrawableData& data, int x, int y, SurfaceColor color, int brightness)
 {
     if (x < 0 || y < 0 || x >= data.width || y >= data.height) return;
     SurfaceColor screen = (SurfaceColor)data.base32[(data.pitch >> 2) * y + x];
@@ -125,20 +125,20 @@ static void BlendPixel_32(const DRAWABLE_DATA& data, int x, int y, SurfaceColor 
     data.base32[(data.pitch >> 2) * y + x] = (uint32_t)c;
 }
 
-static void PutPixel_NULL(const DRAWABLE_DATA& data, int x, int y, SurfaceColor color)
+static void PutPixel_NULL(const DrawableData& data, int x, int y, SurfaceColor color)
 {
 }
 
-static SurfaceColor GetPixel_NULL(const DRAWABLE_DATA& data, int x, int y)
+static SurfaceColor GetPixel_NULL(const DrawableData& data, int x, int y)
 {
     return 0;
 }
 
-static void BlendPixel_NULL(const DRAWABLE_DATA& data, int x, int y, SurfaceColor c, int brightness)
+static void BlendPixel_NULL(const DrawableData& data, int x, int y, SurfaceColor c, int brightness)
 {
 }
 
-static void AlphaPixel_NULL(const DRAWABLE_DATA& data, int x, int y, SurfaceColor c)
+static void AlphaPixel_NULL(const DrawableData& data, int x, int y, SurfaceColor c)
 {
 }
 

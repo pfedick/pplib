@@ -127,7 +127,7 @@ private:
     DrawableData data;
 
     // void clearDrawableData();
-    // void copyDrawableData(const DRAWABLE_DATA& other);
+    // void copyDrawableData(const DrawableData& other);
 
 public:
     /** @name Konstruktoren
@@ -571,11 +571,11 @@ public:
     void bltAlphaMod(const Drawable& source, const Rect& srect, const Color& mod, int x = 0, int y = 0);
     void bltBlend(const Drawable& source, float factor, int x = 0, int y = 0);
     void bltBlend(const Drawable& source, float factor, const Rect& srect, int x = 0, int y = 0);
-    void bltChromaKey(const Drawable& source, const Color& key, int tol1, int tol2, int x = 0, int y = 0);
-    void bltChromaKey(const Drawable& source, const Rect& srect, const Color& key, int tol1, int tol2, int x = 0, int y = 0);
-    void bltBackgroundOnChromaKey(const Drawable& background, const Color& key, int tol1, int tol2, int x = 0, int y = 0);
+    void bltChromaKey(const Drawable& source, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0);
+    void bltChromaKey(const Drawable& source, const Rect& srect, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0);
+    void bltBackgroundOnChromaKey(const Drawable& background, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0);
     void bltBackgroundOnChromaKey(
-        const Drawable& background, const Rect& srect, const Color& key, int tol1, int tol2, int x = 0, int y = 0);
+        const Drawable& background, const Rect& srect, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0);
 
     void draw(const ImageList& iml, int nr, int x, int y);
     void draw(const ImageList& iml, int nr, int x, int y, const Color& diffuse);

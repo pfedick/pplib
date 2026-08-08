@@ -278,7 +278,7 @@ Font6Glyph::Font6Glyph()
     bitmap = NULL;
 }
 
-static void DrawGlyphMono8_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono8_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -291,7 +291,7 @@ static void DrawGlyphMono8_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x
     }
 }
 
-static void DrawGlyphMono8_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono8_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -304,7 +304,7 @@ static void DrawGlyphMono8_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int 
     }
 }
 
-static void DrawGlyphMono8_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono8_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -317,7 +317,7 @@ static void DrawGlyphMono8_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int
     }
 }
 
-static void DrawGlyphMono8_270(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono8_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -330,7 +330,7 @@ static void DrawGlyphMono8_270(DRAWABLE_DATA& data, const Font6Glyph& glyph, int
     }
 }
 
-static void DrawGlyphMono1_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono1_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0;
@@ -351,7 +351,7 @@ static void DrawGlyphMono1_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x
     }
 }
 
-static void DrawGlyphMono1_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono1_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0;
@@ -372,7 +372,7 @@ static void DrawGlyphMono1_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int 
     }
 }
 
-static void DrawGlyphMono1_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono1_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0;
@@ -393,7 +393,7 @@ static void DrawGlyphMono1_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int
     }
 }
 
-static void DrawGlyphMono1_270(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono1_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0;
@@ -414,7 +414,7 @@ static void DrawGlyphMono1_270(DRAWABLE_DATA& data, const Font6Glyph& glyph, int
     }
 }
 
-static void DrawGlyphAA2_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA2_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -440,7 +440,7 @@ static void DrawGlyphAA2_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, 
     }
 }
 
-static void DrawGlyphAA2_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA2_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -466,7 +466,7 @@ static void DrawGlyphAA2_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x,
     }
 }
 
-static void DrawGlyphAA2_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA2_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -492,7 +492,7 @@ static void DrawGlyphAA2_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x
     }
 }
 
-static void DrawGlyphAA2_270(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA2_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -518,7 +518,7 @@ static void DrawGlyphAA2_270(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x
     }
 }
 
-static void DrawGlyphAA4_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA4_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -540,7 +540,7 @@ static void DrawGlyphAA4_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, 
     }
 }
 
-static void DrawGlyphAA4_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA4_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -562,7 +562,7 @@ static void DrawGlyphAA4_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x,
     }
 }
 
-static void DrawGlyphAA4_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA4_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -584,7 +584,7 @@ static void DrawGlyphAA4_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x
     }
 }
 
-static void DrawGlyphAA4_270(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA4_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -606,7 +606,7 @@ static void DrawGlyphAA4_270(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x
     }
 }
 
-static void DrawGlyphAA8_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA8_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -619,7 +619,7 @@ static void DrawGlyphAA8_0(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, 
     }
 }
 
-static void DrawGlyphAA8_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA8_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -632,7 +632,7 @@ static void DrawGlyphAA8_90(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x,
     }
 }
 
-static void DrawGlyphAA8_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA8_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -644,7 +644,7 @@ static void DrawGlyphAA8_180(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x
         }
     }
 }
-static void DrawGlyphAA8_270(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA8_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -836,7 +836,7 @@ static void getBlitter(const Font6Face& face,
                        const grafix::Drawable& draw,
                        int rotate,
                        void (**BltGlyph)(RENDER_CONTEXT* context),
-                       void (**ErsatzGlyph)(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c))
+                       void (**ErsatzGlyph)(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c))
 {
     *BltGlyph = NULL;
     *ErsatzGlyph = NULL;
@@ -981,11 +981,11 @@ static void getBlitter(const Font6Face& face,
 void Font6Renderer::renderInternal(
     const Font6Face& face, grafix::Drawable& draw, const Font& font, int x, int y, const WideString& text, const Color& color)
 {
-    DRAWABLE_DATA* data = draw.getData();
+    DrawableData* data = draw.getData();
     const Font6Glyph *glyph = NULL, *previous = NULL;
     RENDER_CONTEXT rc;
     void (*BltGlyph)(RENDER_CONTEXT* context) = NULL;
-    void (*ErsatzGlyph)(DRAWABLE_DATA& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c) = NULL;
+    void (*ErsatzGlyph)(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c) = NULL;
     int startx = x;
     int starty = y;
     int lastx = x;
