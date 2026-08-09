@@ -87,11 +87,7 @@ private:
     std::list<FontEngine*> FontEngineList;
     std::map<String, FontFile*> FontList;
 
-    void initColors(const RGBFormat& format, DRAWABLE_FUNCTIONS* fn) noexcept;
-    void initPixel(const RGBFormat& format, DRAWABLE_FUNCTIONS* fn) noexcept;
-    void initShapes(const RGBFormat& format, DRAWABLE_FUNCTIONS* fn) noexcept;
-    void initLines(const RGBFormat& format, DRAWABLE_FUNCTIONS* fn) noexcept;
-    void initBlits(const RGBFormat& format, DRAWABLE_FUNCTIONS* fn) noexcept;
+    void initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noexcept;
 
 public:
     /**

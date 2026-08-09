@@ -135,11 +135,7 @@ DRAWABLE_FUNCTIONS* Grafix::getGrafixFunctions(const RGBFormat& format)
     DRAWABLE_FUNCTIONS* fn = new DRAWABLE_FUNCTIONS;
     DRAWABLE_FUNCTIONS* defaultfn = getDefaultGrafixFunctions();
     memcpy(fn, defaultfn, sizeof(DRAWABLE_FUNCTIONS));
-    initColors(format, fn);
-    initPixel(format, fn);
-    initShapes(format, fn);
-    initLines(format, fn);
-    initBlits(format, fn);
+    if (format.bitdepth() == 32) initDrawable32(fn, format);
     drawable_functions[format] = fn;
     return fn;
 }

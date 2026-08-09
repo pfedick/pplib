@@ -548,8 +548,9 @@ static void BltBackgroundOnChromaKey_32(
  * @param[in] fn Zeiger auf die DRAWABLE_FUNCTIONS-Struktur, die initialisiert werden soll
  * @param[in] format Das RGBFormat, das das Farbformat des DRAWABLEs angibt
  */
-void initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format)
+void Grafix::initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noexcept
 {
+    if (format.bitdepth() != 32) return;
     fn->PutPixel = PutPixel_32;
     fn->GetPixel = GetPixel_32;
     fn->AlphaPixel = AlphaPixel_32;
