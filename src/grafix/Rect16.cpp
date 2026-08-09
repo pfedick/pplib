@@ -68,6 +68,20 @@ Rect16 Rect16::fromPoints(const Point16& p1, const Point16& p2)
     return r;
 }
 
+Rect16 Rect16::fromCoordsInclusive(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
+{
+    /// Hilfsfunktion, um ein Rechteck aus den Koordinaten der oberen linken und unteren rechten Ecke zu erstellen,
+    /// wobei die unteren rechten Koordinaten "inklusiv" sind, also innerhalb des Rechtecks liegen.
+    /// Falls die Koordinaten nicht in der richtigen Reihenfolge angegeben werden, wird automatisch das obere linke und das
+    /// untere rechte Ende des Rechtecks bestimmt.
+    Rect16 r;
+    r.x = min(x1, x2);
+    r.y = min(y1, y2);
+    r.w = abs(x2 - x1) + 1;
+    r.h = abs(y2 - y1) + 1;
+    return r;
+}
+
 Rect16::Rect16()
 {
     x = 0;

@@ -159,6 +159,8 @@ private:
     Identifier format_id = unknown;
 
 public:
+    RGBFormat() noexcept = default;
+
     /** @brief Konstruktor mit Identifier
      *
      * Mit diesem Konstruktor wird die Klasse mit einem vorgegebenen Farbformat initialisiert

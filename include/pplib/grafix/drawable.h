@@ -110,7 +110,7 @@ class DrawableData
 public:
     DRAWABLE_FUNCTIONS* fn = nullptr;
     union {
-        void* base = nullptr;
+        void* base;
         uint8_t* base8;
         uint16_t* base16;
         uint32_t* base32;
@@ -119,6 +119,11 @@ public:
     uint32_t width = 0;
     uint32_t height = 0;
     RGBFormat rgbformat;
+
+    DrawableData()
+        : base(nullptr)
+    {
+    }
 };
 
 /** @class Drawable
@@ -151,14 +156,7 @@ public:
      */
     //@{
 
-    /** @class Konstruktor
-     *
-     * Mit diesem Konstruktor wird ein leeres Drawable erstellt. Bevor es verwendet werden
-     * kann, muss zunächst mit Drawable::copy eine Kopie eines anderen Drawable oder davon
-     * abgeleiteten Objekts erstellt werden oder mit Drawable::create ein neues Drawable
-     * anhand eines Speicherbereichs erstellt werden.
-     */
-    Drawable() {};
+    Drawable() noexcept = default;
 
     /** @class Copy-Konstruktor
      *
@@ -465,21 +463,47 @@ public:
     /** @name Farben
      */
     //@{
+
+    /** @brief Konvertiert eine Farbe in das native Farbformat des Drawables
+     *
+     * Diese Funktion konvertiert eine Farbe in das native Farbformat des Drawables.
+     *
+     * @param c Die zu konvertierende Farbe
+     * @return Die Farbe im nativen Farbformat des Drawables
+     */
     inline SurfaceColor toNativeColor(const Color& c) const
     {
         return data.fn->ToNativeColor(c);
     }
 
+    /** @brief Konvertiert eine Farbe aus dem nativen Farbformat des Drawables
+     *
+     * Diese Funktion konvertiert eine Farbe aus dem nativen Farbformat des Drawables
+     * in das Color-Objekt.
+     *
+     * @param c Die zu konvertierende Farbe im nativen Farbformat des Drawables
+     * @return Die Farbe als Color-Objekt
+     */
     inline Color fromNativeColor(SurfaceColor c) const
     {
         return data.fn->FromNativeColor(c);
     }
 
+    /** @brief Löscht die Grafik und füllt sie mit der angegebenen Farbe
+     *
+     * Diese Funktion löscht die Grafik und füllt sie mit der angegebenen Farbe.
+     *
+     * @param c Die Farbe, mit der die Grafik gefüllt werden soll
+     */
     inline void cls(const Color& c)
     {
         data.fn->Clear(data, data.fn->ToNativeColor(c));
     }
 
+    /** @brief Löscht die Grafik und füllt sie mit der Farbe 0
+     *
+     * Diese Funktion löscht die Grafik und füllt sie mit der Farbe 0.
+     */
     inline void cls()
     {
         data.fn->Clear(data, 0);
@@ -490,40 +514,119 @@ public:
     /** @name Pixel
      */
     //@{
+
+    /** @brief Setzt einen Pixel an die angegebene Position
+     *
+     * Diese Funktion setzt einen Pixel an die angegebene Position (x, y) in das Drawable.
+     * Die Farbe des Pixels wird durch den Parameter c angegeben. Die Funktion überprüft, ob
+     * die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     *
+     * @param x X-Koordinate des Pixels
+     * @param y Y-Koordinate des Pixels
+     * @param c Die Farbe des Pixels
+     */
     inline void putPixel(int x, int y, const Color& c)
     {
         data.fn->PutPixel(data, x, y, data.fn->ToNativeColor(c));
     }
+
+    /** @brief Setzt einen Pixel an die angegebene Position
+     *
+     * Diese Funktion setzt einen Pixel an die angegebene Position (p.x, p.y) in das Drawable.
+     * Die Farbe des Pixels wird durch den Parameter c angegeben. Die Funktion überprüft, ob
+     * die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     *
+     * @param p Punkt, der die Position des Pixels angibt
+     * @param c Die Farbe des Pixels
+     */
     inline void putPixel(const Point& p, const Color& c)
     {
         data.fn->PutPixel(data, p.x, p.y, data.fn->ToNativeColor(c));
     }
 
+    /** @brief Setzt einen Pixel an die angegebene Position mit Transparenz
+     *
+     * Diese Funktion setzt einen Pixel an die angegebene Position (x, y) in das Drawable.
+     * Dabei wird der Alpha-Kanal der Farbe berücksichtigt, um die Transparenz zu bestimmen.
+     * Die Funktion überprüft, ob die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     *
+     * @param x X-Koordinate des Pixels
+     * @param y Y-Koordinate des Pixels
+     * @param c Die Farbe des Pixels
+     */
     inline void alphaPixel(int x, int y, const Color& c)
     {
         data.fn->AlphaPixel(data, x, y, data.fn->ToNativeColor(c));
     }
 
+    /** @brief Setzt einen Pixel an die angegebene Position mit Transparenz
+     *
+     * Diese Funktion setzt einen Pixel an die angegebene Position (p.x, p.y) in das Drawable.
+     * Dabei wird der Alpha-Kanal der Farbe berücksichtigt, um die Transparenz zu bestimmen.
+     * Die Funktion überprüft, ob die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     *
+     * @param p Punkt, der die Position des Pixels angibt
+     * @param c Die Farbe des Pixels
+     */
     inline void alphaPixel(const Point& p, const Color& c)
     {
         data.fn->AlphaPixel(data, p.x, p.y, data.fn->ToNativeColor(c));
     }
 
-    inline void blendPixel(int x, int y, const Color& c, float brightness)
+    /** @brief Setzt einen Pixel an die angegebene Position mit Intensität
+     *
+     * Diese Funktion setzt einen Pixel an die angegebene Position (x, y) in das Drawable.
+     * Dabei wird die Helligkeit der Farbe berücksichtigt, um die Intensität des Pixels zu bestimmen.
+     * Die Funktion überprüft, ob die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     *
+     * @param x X-Koordinate des Pixels
+     * @param y Y-Koordinate des Pixels
+     * @param c Die Farbe des Pixels
+     * @param intensity Helligkeit des Pixels als float-Wert zwischen 0.0 und 1.0
+     */
+    inline void blendPixel(int x, int y, const Color& c, float intensity)
     {
-        data.fn->BlendPixel(data, x, y, data.fn->ToNativeColor(c), (int)(brightness * 255.0f));
+        data.fn->BlendPixel(data, x, y, data.fn->ToNativeColor(c), (int)(intensity * 255.0f));
     }
 
-    inline void blendPixel(int x, int y, const Color& c, int brightness)
+    /** @brief Setzt einen Pixel an die angegebene Position mit Intensität
+     *
+     * Diese Funktion setzt einen Pixel an die angegebene Position (x, y) in das Drawable.
+     * Dabei wird die Helligkeit der Farbe berücksichtigt, um die Intensität des Pixels zu bestimmen.
+     * Die Funktion überprüft, ob die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     *
+     * @param x X-Koordinate des Pixels
+     * @param y Y-Koordinate des Pixels
+     * @param c Die Farbe des Pixels
+     * @param intensity Helligkeit des Pixels als Integer-Wert zwischen 0 und 255
+     */
+    inline void blendPixel(int x, int y, const Color& c, uint8_t intensity)
     {
-        data.fn->BlendPixel(data, x, y, data.fn->ToNativeColor(c), brightness);
+        data.fn->BlendPixel(data, x, y, data.fn->ToNativeColor(c), intensity);
     }
 
+    /** @brief Liest die Farbe eines Pixels an der angegebenen Position aus
+     *
+     * Diese Funktion liest die Farbe eines Pixels an der angegebenen Position (x, y) im Drawable aus.
+     * Die Funktion überprüft, ob die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     *
+     * @param x X-Koordinate des Pixels
+     * @param y Y-Koordinate des Pixels
+     * @return Die Farbe des Pixels als Color-Objekt
+     */
     inline Color getPixel(int x, int y) const
     {
         return data.fn->FromNativeColor(data.fn->GetPixel(data, x, y));
     }
 
+    /** @brief Liest die Farbe eines Pixels an der angegebenen Position aus
+     *
+     * Diese Funktion liest die Farbe eines Pixels an der angegebenen Position (p.x, p.y) im Drawable aus.
+     * Die Funktion überprüft, ob die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     *
+     * @param p Punkt, der die Position des Pixels angibt
+     * @return Die Farbe des Pixels als Color-Objekt
+     */
     inline Color getPixel(const Point& p) const
     {
         return data.fn->FromNativeColor(data.fn->GetPixel(data, p.x, p.y));
@@ -533,23 +636,114 @@ public:
     /** @name Geometrische Formen
      */
     //@{
-    void drawRect(const Rect& rect, const Color& c);
-    void drawRect(int x1, int y1, int x2, int y2, const Color& c);
-    void fillRect(const Rect& rect, const Color& c);
-    void fillRect(int x1, int y1, int x2, int y2, const Color& c);
+
+    /** @brief Zeichnet ein Rechteck auf das Drawable
+     *
+     * Diese Funktion zeichnet ein Rechteck auf das Drawable. Die Position und Größe des Rechtecks
+     * wird durch das Rect-Objekt angegeben. Die Farbe des Rechtecks wird durch den Parameter c angegeben.
+     *
+     * @param rect Das Rechteck, das gezeichnet werden soll
+     * @param c Die Farbe des Rechtecks
+     */
+    inline void drawRect(const Rect& rect, const Color& c)
+    {
+        data.fn->DrawRect(data, rect, data.fn->ToNativeColor(c));
+    }
+
+    /** @brief Zeichnet ein Rechteck auf das Drawable
+     *
+     * Diese Funktion zeichnet ein Rechteck auf das Drawable. Die Position und Größe des Rechtecks
+     * wird durch die angegebenen Koordinaten (x1, y1) und (x2, y2) definiert. Die Farbe des Rechtecks
+     * wird durch den Parameter c angegeben.
+     *
+     * @param x1 X-Koordinate der linken oberen Ecke des Rechtecks
+     * @param y1 Y-Koordinate der linken oberen Ecke des Rechtecks
+     * @param x2 X-Koordinate der rechten unteren Ecke des Rechtecks
+     * @param y2 Y-Koordinate der rechten unteren Ecke des Rechtecks
+     * @param c Die Farbe des Rechtecks
+     *
+     * @note die Koordinaten (x2, y2) sind inklusive, d.h. das Rechteck wird bis zu diesen Koordinaten gezeichnet.
+     */
+    inline void drawRect(int x1, int y1, int x2, int y2, const Color& c)
+    {
+        data.fn->DrawRect(data, Rect::fromCoordsInclusive(x1, y1, x2, y2), data.fn->ToNativeColor(c));
+    }
+
+    /** @brief Füllt ein Rechteck auf das Drawable
+     *
+     * Diese Funktion füllt ein Rechteck auf das Drawable. Die Position und Größe des Rechtecks
+     * wird durch das Rect-Objekt angegeben. Die Farbe des Rechtecks wird durch den Parameter c angegeben.
+     *
+     * @param rect Das Rechteck, das gefüllt werden soll
+     * @param c Die Farbe des Rechtecks
+     */
+    inline void fillRect(const Rect& rect, const Color& c)
+    {
+        data.fn->FillRect(data, rect, data.fn->ToNativeColor(c));
+    }
+
+    /** @brief Füllt ein Rechteck auf das Drawable
+     *
+     * Diese Funktion füllt ein Rechteck auf das Drawable. Die Position und Größe des Rechtecks
+     * wird durch die angegebenen Koordinaten (x1, y1) und (x2, y2) definiert. Die Farbe des Rechtecks
+     * wird durch den Parameter c angegeben.
+     *
+     * @param x1 X-Koordinate der linken oberen Ecke des Rechtecks
+     * @param y1 Y-Koordinate der linken oberen Ecke des Rechtecks
+     * @param x2 X-Koordinate der rechten unteren Ecke des Rechtecks
+     * @param y2 Y-Koordinate der rechten unteren Ecke des Rechtecks
+     * @param c Die Farbe des Rechtecks
+     *
+     * @note die Koordinaten (x2, y2) sind inklusive, d.h. das Rechteck wird bis zu diesen Koordinaten gefüllt.
+     */
+    inline void fillRect(int x1, int y1, int x2, int y2, const Color& c)
+    {
+        data.fn->FillRect(data, Rect::fromCoordsInclusive(x1, y1, x2, y2), data.fn->ToNativeColor(c));
+    }
+
+    /** @brief Füllt eine Fläche mit der angegebenen Farbe, bis eine Grenze erreicht wird
+     *
+     * Diese Funktion füllt eine Fläche mit der angegebenen Farbe, beginnend an den Koordinaten (x, y),
+     * bis eine Grenze erreicht wird, die durch die Farbe \p border definiert ist. Die Funktion überprüft,
+     * ob die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     *
+     * @param x X-Koordinate des Startpunkts
+     * @param y Y-Koordinate des Startpunkts
+     * @param color Die Farbe, mit der die Fläche gefüllt werden soll
+     * @param border Die Farbe, die als Grenze für das Füllen dient
+     */
     void floodFill(int x, int y, const Color& color, const Color& border);
+
     void elipse(int x, int y, int radx, int rady, const Color& c, bool fill = false);
     void elipse(int x, int y, int radx, int rady, const Color& c, bool fill, const Color& fillcolor, int startangle, int endangle);
-    void circle(int x, int y, int rad, const Color& c, bool fill = false);
-    void circle(const Point& p, int rad, const Color& c, bool fill = false);
+    inline void circle(int x, int y, int rad, const Color& c, bool fill = false)
+    {
+        elipse(x, y, rad, rad, c, fill);
+    }
+    inline void circle(const Point& p, int rad, const Color& c, bool fill = false)
+    {
+        elipse(p.x, p.y, rad, rad, c, fill);
+    }
     //@}
 
     /** @name Effekte
      */
     //@{
-    void xchange(const Rect& rect, const Color& color, const Color& replace);
-    void invert(const Rect& rect, const Color& color1, const Color& color2);
-    void negativ(const Rect& rect);
+    inline void xchange(const Rect& rect, const Color& color, const Color& replace)
+    {
+        data.fn->Xchange(data, rect, data.fn->ToNativeColor(color), data.fn->ToNativeColor(replace));
+    }
+
+    inline void invert(const Rect& rect, const Color& color1, const Color& color2)
+    {
+        data.fn->Invert(data, rect, data.fn->ToNativeColor(color1), data.fn->ToNativeColor(color2));
+    }
+
+    inline void negativ(const Rect& rect)
+    {
+        data.fn->Negativ(data, rect);
+    }
+
     void colorGradient(const Rect& rect, const Color& c1, const Color& c2, int direction);
     void colorGradient(int x1, int y1, int x2, int y2, const Color& c1, const Color& c2, int direction);
     //@}
@@ -575,27 +769,383 @@ public:
      * Kopieren von Grafiken mit verschiedenen Methoden
      */
     //@{
-    int fitRect(int& x, int& y, Rect& r);
-    void blt(const Drawable& source, int x = 0, int y = 0);
-    void blt(const Drawable& source, const Rect& srect, int x = 0, int y = 0);
-    void bltDiffuse(const Drawable& source, int x = 0, int y = 0, const Color& c = Color());
-    void bltDiffuse(const Drawable& source, const Rect& srect, int x = 0, int y = 0, const Color& c = Color());
-    void bltColorKey(const Drawable& source, int x = 0, int y = 0, const Color& c = Color());
-    void bltColorKey(const Drawable& source, const Rect& srect, int x = 0, int y = 0, const Color& c = Color());
-    void bltAlpha(const Drawable& source, int x = 0, int y = 0);
-    void bltAlpha(const Drawable& source, const Rect& srect, int x = 0, int y = 0);
-    void bltAlphaMod(const Drawable& source, const Color& mod, int x = 0, int y = 0);
-    void bltAlphaMod(const Drawable& source, const Rect& srect, const Color& mod, int x = 0, int y = 0);
-    void bltBlend(const Drawable& source, float factor, int x = 0, int y = 0);
-    void bltBlend(const Drawable& source, float factor, const Rect& srect, int x = 0, int y = 0);
-    void bltChromaKey(const Drawable& source, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0);
-    void bltChromaKey(const Drawable& source, const Rect& srect, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0);
-    void bltBackgroundOnChromaKey(const Drawable& background, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0);
-    void bltBackgroundOnChromaKey(
-        const Drawable& background, const Rect& srect, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0);
 
+    /** @brief Bit-Blit, Rechteck 1:1 kopieren
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y der Zielzeichenfläche kopiert, wobei alle Farbinformationen 1:1 übernommen werden.
+     * Es wird weder Alphablending (siehe Drawable::bltAlpha) noch Colorkeying (siehe
+     * Drawable::bltColorKey) verwendet.
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] x Optionale X-Koordinate der linken oberen Ecke in der Zielzeichenfläche. Wird der Parameter nicht
+     *            angegeben, wird 0 verwendet.
+     * @param[in] y Optionale Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche. Wird der Parameter
+     *            nicht angegebenm wird 0 verwendet.
+     *
+     */
+    inline void blt(const Drawable& source, int x = 0, int y = 0)
+    {
+        data.fn->Blt(data, source.data, source.rect(), x, y);
+    }
+
+    /** @brief Bit-Blit, Rechteck 1:1 kopieren
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y der Zielzeichenfläche kopiert, wobei alle Farbinformationen 1:1 übernommen werden.
+     * Es wird weder Alphablending (siehe Drawable::bltAlpha) noch Colorkeying (siehe
+     * Drawable::bltColorKey) verwendet.
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] srect Das Rechteck in der Quellzeichenfläche, das kopiert werden soll
+     * @param[in] x Optionale X-Koordinate der linken oberen Ecke in der Zielzeichenfläche. Wird der Parameter nicht
+     *            angegeben, wird 0 verwendet.
+     * @param[in] y Optionale Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche. Wird der Parameter
+     *            nicht angegebenm wird 0 verwendet.
+     */
+    inline void blt(const Drawable& source, const Rect& srect, int x = 0, int y = 0)
+    {
+        data.fn->Blt(data, source.data, srect, x, y);
+    }
+
+    /** @brief Rechteck anhand der Intensität der Quellfarbe kopieren
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y kopiert, wobei die Intensität der Quellpixel geprüft wird und
+     * diese in gleicher Intensität mit der angegebenen Farbe \c gezeichnet werden. Bei
+     * halbtransparenten Pixeln wird die Farbe mit dem Hintergrund gemischt. Die Funktion ist daher
+     * zum Zeichnen von einfarbigen Grafiken unterschiedlicher Intensität gedacht (z.B. grafische Elemente
+     * einer GUI).
+     *
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] c Die gewünschte Pixelfarbe
+     *
+     */
+    inline void bltDiffuse(const Drawable& source, int x = 0, int y = 0, const Color& c = Color())
+    {
+        data.fn->BltDiffuse(data, source.data, source.rect(), x, y, data.fn->ToNativeColor(c));
+    }
+
+    /** @brief Rechteck anhand der Intensität der Quellfarbe kopieren
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y kopiert, wobei die Intensität der Quellpixel geprüft wird und
+     * diese in gleicher Intensität mit der angegebenen Farbe \c gezeichnet werden. Bei
+     * halbtransparenten Pixeln wird die Farbe mit dem Hintergrund gemischt. Die Funktion ist daher
+     * zum Zeichnen von einfarbigen Grafiken unterschiedlicher Intensität gedacht (z.B. grafische Elemente
+     * einer GUI).
+     *
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] srect Das Rechteck in der Quellzeichenfläche, das kopiert werden soll
+     * @param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] c Die gewünschte Pixelfarbe
+     *
+     */
+    inline void bltDiffuse(const Drawable& source, const Rect& srect, int x = 0, int y = 0, const Color& c = Color())
+    {
+        data.fn->BltDiffuse(data, source.data, srect, x, y, data.fn->ToNativeColor(c));
+    }
+
+    /** @brief Rechteck anhand der Quellfarbe kopieren, wobei eine bestimmte Farbe als transparent behandelt wird
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y kopiert, wobei die angegebene Farbe \c c als transparent behandelt wird.
+     * Alle Pixel in der Quellzeichenfläche, die die Farbe \c c haben, werden nicht gezeichnet und der Hintergrund bleibt sichtbar.
+     *
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] c Die Farbe, die als transparent behandelt werden soll
+     *
+     */
+    inline void bltColorKey(const Drawable& source, int x = 0, int y = 0, const Color& c = Color())
+    {
+        data.fn->BltColorKey(data, source.data, source.rect(), x, y, data.fn->ToNativeColor(c));
+    }
+
+    /** @brief Rechteck anhand der Quellfarbe kopieren, wobei eine bestimmte Farbe als transparent behandelt wird
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y kopiert, wobei die angegebene Farbe \c c als transparent behandelt wird.
+     * Alle Pixel in der Quellzeichenfläche, die die Farbe \c c haben, werden nicht gezeichnet und der Hintergrund bleibt sichtbar.
+     *
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] srect Das Rechteck in der Quellzeichenfläche, das kopiert werden soll
+     * @param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] c Die Farbe, die als transparent behandelt werden soll
+     *
+     */
+    inline void bltColorKey(const Drawable& source, const Rect& srect, int x = 0, int y = 0, const Color& c = Color())
+    {
+        data.fn->BltColorKey(data, source.data, srect, x, y, data.fn->ToNativeColor(c));
+    }
+
+    /** @brief Rechteck unter Berücksichtigung des Alphakanals kopieren
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y kopiert, wobei die Transparenz der Quellpixel (Alphakanal) berücksichtigt wird.
+     * Der Alphakanal bestimmt die Transparenz eines Pixels. Ist sie 0, wird der Pixel nicht
+     * kopiert, bei einem Wert von 255 wird er 1:1 kopiert. Dazwischen wird die Farbe abhängig
+     * vom Transparenz-Wert mit dem Hintergrund vermischt.
+     *
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     */
+    inline void bltAlpha(const Drawable& source, int x = 0, int y = 0)
+    {
+        data.fn->BltAlpha(data, source.data, source.rect(), x, y);
+    }
+
+    /** @brief Rechteck unter Berücksichtigung des Alphakanals kopieren
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y kopiert, wobei die Transparenz der Quellpixel (Alphakanal) berücksichtigt wird.
+     * Der Alphakanal bestimmt die Transparenz eines Pixels. Ist sie 0, wird der Pixel nicht
+     * kopiert, bei einem Wert von 255 wird er 1:1 kopiert. Dazwischen wird die Farbe abhängig
+     * vom Transparenz-Wert mit dem Hintergrund vermischt.
+     *
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] srect Das Rechteck in der Quellzeichenfläche, das kopiert werden soll
+     * @param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     */
+    inline void bltAlpha(const Drawable& source, const Rect& srect, int x = 0, int y = 0)
+    {
+        data.fn->BltAlpha(data, source.data, srect, x, y);
+    }
+
+    /** @brief Rechteck unter Berücksichtigung des Alphakanals und Modulation der Farbe kopieren
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y kopiert, wobei die Transparenz der Quellpixel (Alphakanal) berücksichtigt wird.
+     * Zusätzlich wird die Farbe der Quellpixel mit der angegebenen Modulationsfarbe \c mod multipliziert.
+     *
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] mod Die Modulationsfarbe, mit der die Quellpixel multipliziert werden
+     * @param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     */
+    inline void bltAlphaMod(const Drawable& source, const Color& mod, int x = 0, int y = 0)
+    {
+        data.fn->BltAlphaMod(data, source.data, source.rect(), data.fn->ToNativeColor(mod), x, y);
+    }
+
+    /** @brief Rechteck unter Berücksichtigung des Alphakanals und Modulation der Farbe kopieren
+     *
+     * Mit dieser Funktion wird die Quellzeichenfläche \p source
+     * an die Position \p x / \p y kopiert, wobei die Transparenz der Quellpixel (Alphakanal) berücksichtigt wird.
+     * Zusätzlich wird die Farbe der Quellpixel mit der angegebenen Modulationsfarbe \c mod multipliziert.
+     *
+     * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert (Clipping).
+     * Falls die Quelle komplett außerhalb der Zeichenfläche liegt, passiert nichts.
+     *
+     * @param[in] source Die Quellzeichenfläche
+     * @param[in] srect Das Rechteck in der Quellzeichenfläche, das kopiert werden soll
+     * @param[in] mod Die Modulationsfarbe, mit der die Quellpixel multipliziert werden
+     * @param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     * @param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+     */
+    inline void bltAlphaMod(const Drawable& source, const Rect& srect, const Color& mod, int x = 0, int y = 0)
+    {
+        data.fn->BltAlphaMod(data, source.data, srect, data.fn->ToNativeColor(mod), x, y);
+    }
+
+    inline void bltBlend(const Drawable& source, float factor, int x = 0, int y = 0)
+    {
+        data.fn->BltBlend(data, source.data, source.rect(), x, y, factor);
+    }
+
+    inline void bltBlend(const Drawable& source, float factor, const Rect& srect, int x = 0, int y = 0)
+    {
+        data.fn->BltBlend(data, source.data, srect, x, y, factor);
+    }
+
+    /** @brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
+     *
+     * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe https://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
+     * Dabei wird die Quellgrafik \p source mittels eines Farbschlüssels \p key (Chroma Key), sowie zwei Toleranz-Werten
+     * über den Hintergrund gelegt.
+     *
+     * @param source Quellgrafik
+     * @param key Farbschlüssel (z.B. Color(0,0,255) für einen Bluescreen oder Color(0,255,0) für
+     * einen Greenscreen)
+     * @param tol1 Untere Toleranz: Farbabweichungen bis zu diesem Toleranzwert, werden komplett Transparent,
+     * das heisst der Hintergrund wird übernommen
+     * @param tol2 Obere Toleranz: Farbabweichungen, die zwischen \p tol1 und \p tol2 liegen, werden je nach
+     * Stärke der Abweichung überblendet. Je stärker die Abweichung, desto mehr Hintergrund ist zu sehen
+     * @param x Zielkoordinate für das Rechteck (optional, Default ist 0)
+     * @param y Zielkoordinate für das Rechteck (optional, Default ist 0)
+     *
+     * @remarks Auf 64-Bit-Systemen mit SSE2-Unterstützung werden optimierte Assembler-Routinen verwendet.
+     * Sofern Bildbreite durch 4 und die Speicheradressen durch 16 teilbar sind, werden jeweils 4 Pixel
+     * gleichzeitig berechnet.
+     *
+     * @see Die Funktion bltChromaKey wendet den Farbschlüssel auf das Quellbild \p source an.
+     * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
+     * sondern den Hintergrund an.
+     */
+    inline void bltChromaKey(const Drawable& source, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0)
+    {
+        data.fn->BltChromaKey(data, source.data, source.rect(), key, tol1, tol2, x, y);
+    }
+
+    /** @brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
+     *
+     * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe https://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
+     * Dabei wird die Quellgrafik \p source mittels eines Farbschlüssels \p key (Chroma Key), sowie zwei Toleranz-Werten
+     * über den Hintergrund gelegt.
+     *
+     * @param source Quellgrafik
+     * @param srect Rechteck in der Quellgrafik, das kopiert werden soll
+     * @param key Farbschlüssel (z.B. Color(0,0,255) für einen Bluescreen oder Color(0,255,0) für
+     * einen Greenscreen)
+     * @param tol1 Untere Toleranz: Farbabweichungen bis zu diesem Toleranzwert, werden komplett Transparent,
+     * das heisst der Hintergrund wird übernommen
+     * @param tol2 Obere Toleranz: Farbabweichungen, die zwischen \p tol1 und \p tol2 liegen, werden je nach
+     * Stärke der Abweichung überblendet. Je stärker die Abweichung, desto mehr Hintergrund ist zu sehen
+     * @param x Zielkoordinate für das Rechteck (optional, Default ist 0)
+     * @param y Zielkoordinate für das Rechteck (optional, Default ist 0)
+     *
+     * @remarks Auf 64-Bit-Systemen mit SSE2-Unterstützung werden optimierte Assembler-Routinen verwendet.
+     * Sofern Bildbreite durch 4 und die Speicheradressen durch 16 teilbar sind, werden jeweils 4 Pixel
+     * gleichzeitig berechnet.
+     *
+     * @see Die Funktion bltChromaKey wendet den Farbschlüssel auf das Quellbild \p source an.
+     * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
+     * sondern den Hintergrund an.
+     */
+    inline void bltChromaKey(const Drawable& source, const Rect& srect, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0)
+    {
+        data.fn->BltChromaKey(data, source.data, srect, key, tol1, tol2, x, y);
+    }
+
+    /** @brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
+     *
+     * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
+     * Dabei wird die Hintergundgrafik \p background mittels eines Farbschlüssels \p key (Chroma Key), sowie zwei Toleranz-Werten
+     * über die Grafik gelegt.
+     *
+     * @param source Quellgrafik
+     * @param key Farbschlüssel (z.B. Color(0,0,255) für einen Bluescreen oder Color(0,255,0) für
+     * einen Greenscreen)
+     * @param tol1 Untere Toleranz: Farbabweichungen bis zu diesem Toleranzwert, werden komplett Transparent,
+     * das heisst der Hintergrund wird übernommen
+     * @param tol2 Obere Toleranz: Farbabweichungen, die zwischen \p tol1 und \p tol2 liegen, werden je nach
+     * Stärke der Abweichung überblendet. Je stärker die Abweichung, desto mehr Hintergrund ist zu sehen
+     * @param x Zielkoordinate für das Rechteck (optional, Default ist 0)
+     * @param y Zielkoordinate für das Rechteck (optional, Default ist 0)
+     *
+     * @remarks Auf 64-Bit-Systemen mit SSE2-Unterstützung werden optimierte Assembler-Routinen verwendet.
+     * Sofern Bildbreite durch 4 und die Speicheradressen durch 16 teilbar sind, werden jeweils 4 Pixel
+     * gleichzeitig berechnet.
+     *
+     * @see Die Funktion bltChromaKey wendet den Farbschlüssel auf das Quellbild \p source an.
+     * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
+     * sondern den Hintergrund an.
+     */
+    inline void bltBackgroundOnChromaKey(const Drawable& background, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0)
+    {
+        data.fn->BltBackgroundOnChromaKey(data, background.data, background.rect(), key, tol1, tol2, x, y);
+    }
+
+    /** @brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
+     *
+     * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
+     * Dabei wird die Hintergundgrafik \p background mittels eines Farbschlüssels \p key (Chroma Key), sowie zwei Toleranz-Werten
+     * über die Grafik gelegt.
+     *
+     * @param source Quellgrafik
+     * @param srect Rechteck in der Quellgrafik, das kopiert werden soll
+     * @param key Farbschlüssel (z.B. Color(0,0,255) für einen Bluescreen oder Color(0,255,0) für
+     * einen Greenscreen)
+     * @param tol1 Untere Toleranz: Farbabweichungen bis zu diesem Toleranzwert, werden komplett Transparent,
+     * das heisst der Hintergrund wird übernommen
+     * @param tol2 Obere Toleranz: Farbabweichungen, die zwischen \p tol1 und \p tol2 liegen, werden je nach
+     * Stärke der Abweichung überblendet. Je stärker die Abweichung, desto mehr Hintergrund ist zu sehen
+     * @param x Zielkoordinate für das Rechteck (optional, Default ist 0)
+     * @param y Zielkoordinate für das Rechteck (optional, Default ist 0)
+     *
+     * @remarks Auf 64-Bit-Systemen mit SSE2-Unterstützung werden optimierte Assembler-Routinen verwendet.
+     * Sofern Bildbreite durch 4 und die Speicheradressen durch 16 teilbar sind, werden jeweils 4 Pixel
+     * gleichzeitig berechnet.
+     *
+     * @see Die Funktion bltChromaKey wendet den Farbschlüssel auf das Quellbild \p source an.
+     * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
+     * sondern den Hintergrund an.
+     */
+    inline void bltBackgroundOnChromaKey(
+        const Drawable& background, const Rect& srect, const Color& key, uint8_t tol1, uint8_t tol2, int x = 0, int y = 0)
+    {
+        data.fn->BltBackgroundOnChromaKey(data, background.data, srect, key, tol1, tol2, x, y);
+    }
+
+    /** @brief Grafik aus einer Image-Liste kopieren
+     *
+     * Mit dieser Funktion wird eine Grafik aus einer Image-Liste (siehe CImageList) kopiert.
+     * Jenachdem welche Zeichenmethode in der Image-Liste definiert ist, wird dazu entweder
+     * Drawable::blt, Drawable::bltDiffuse, Drawable::bltColorKey oder Drawable::bltAlpha
+     * verwendet.
+     *
+     * @param iml Image-Liste
+     * @param nr Nummer der Grafik innerhalb der Image-Liste
+     * @param x X-Koordinate der Zielposition
+     * @param y Y-Koordinate der Zielposition
+     *
+     * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+     * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
+     * \exception UnknownBltMethodException Die Zeichenmethode der ImageList ist unbekannt
+     */
     void draw(const ImageList& iml, int nr, int x, int y);
+
+    /** @brief Grafik aus einer Image-Liste kopieren
+     *
+     * Mit dieser Funktion wird eine Grafik aus einer Image-Liste (siehe CImageList) kopiert.
+     * Jenachdem welche Zeichenmethode in der Image-Liste definiert ist, wird dazu entweder
+     * Drawable::blt, Drawable::bltDiffuse, Drawable::bltColorKey oder Drawable::bltAlpha
+     * verwendet. Ist die Methode CImageList::DIFFUSE, wird die Farbe \p diffuse statt der
+     * in der Image-Liste definierten Farbe verwendet.
+     *
+     * @param iml Image-Liste
+     * @param nr Nummer der Grafik innerhalb der Image-Liste
+     * @param x X-Koordinate der Zielposition
+     * @param y Y-Koordinate der Zielposition
+     * @param diffuse Farbwert, sofern die Diffuse Zeichenmethode verwendet wird. Bei allen
+     * anderen Zeichenmethoden wird der Parameter ignoriert.
+     *
+     * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+     */
     void draw(const ImageList& iml, int nr, int x, int y, const Color& diffuse);
+
     void draw(const ImageReference& imgref, int x, int y);
     void drawBlend(const ImageReference& imgref, int x, int y, float factor);
 
@@ -603,6 +1153,20 @@ public:
     //@}
 };
 
+/** @brief Berechnet den Ausschnitt des Quell-Drawables, der auf das Ziel-Drawable gezeichnet werden kann
+ *
+ * Diese Funktion berechnet den Ausschnitt des Quell-Drawables, der auf das Ziel-Drawable gezeichnet werden kann.
+ * Sie überprüft, ob der angegebene Ausschnitt innerhalb der Grenzen des Quell-Drawables liegt und passt die Koordinaten
+ * entsprechend an. Die Funktion gibt true zurück, wenn der Ausschnitt gültig ist und gezeichnet werden kann, andernfalls false.
+ *
+ * @param[in] target Das Ziel-Drawable, auf das gezeichnet werden soll
+ * @param[in] source Das Quell-Drawable, von dem gezeichnet werden soll
+ * @param[in] srect Der gewünschte Ausschnitt des Quell-Drawables
+ * @param[in,out] x Die X-Koordinate im Ziel-Drawable, an der der Ausschnitt gezeichnet werden soll (wird angepasst)
+ * @param[in,out] y Die Y-Koordinate im Ziel-Drawable, an der der Ausschnitt gezeichnet werden soll (wird angepasst)
+ * @param[out] clipped_srect Der berechnete und angepasste Ausschnitt des Quell-Drawables (Ausgabeparameter)
+ * @return true, wenn der Ausschnitt gültig ist und gezeichnet werden kann, andernfalls false
+ */
 bool clip(const DrawableData& target, const DrawableData& source, const Rect& srect, int& x, int& y, Rect& clipped_srect);
 
 } // namespace pplib::grafix

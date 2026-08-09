@@ -299,6 +299,21 @@ public:
      * @return Rechteck, das die beiden Punkte als gegenüberliegende Ecken hat
      */
     static Rect fromPoints(const Point& p1, const Point& p2);
+
+    /** @brief Erstellt ein Rechteck aus den Koordinaten der oberen linken und unteren rechten Ecke
+     *
+     * Diese Funktion erstellt ein Rechteck aus den Koordinaten der oberen linken und unteren rechten Ecke,
+     * wobei die unteren rechten Koordinaten "inklusiv" sind, also innerhalb des Rechtecks liegen.
+     * Falls die Koordinaten nicht in der richtigen Reihenfolge angegeben werden, wird automatisch das obere linke
+     * und das untere rechte Ende des Rechtecks bestimmt.
+     *
+     * @param[in] x1 X-Koordinate der oberen linken Ecke des Rechtecks
+     * @param[in] y1 Y-Koordinate der oberen linken Ecke des Rechtecks
+     * @param[in] x2 X-Koordinate der unteren rechten Ecke des Rechtecks. Dieser ist "inklusiv", liegt also innerhalb des Rechtecks
+     * @param[in] y2 Y-Koordinate der unteren rechten Ecke des Rechtecks. Dieser ist "inklusiv", liegt also innerhalb des Rechtecks
+     * @return Rechteck, das die angegebenen Koordinaten als obere linke und untere rechte Ecke hat
+     */
+    static Rect fromCoordsInclusive(int x1, int y1, int x2, int y2);
 };
 
 bool operator!=(const Rect& r1, const Rect& r2);
@@ -560,6 +575,21 @@ public:
      * @return Rechteck, das die beiden Punkte als gegenüberliegende Ecken hat
      */
     static Rect16 fromPoints(const Point16& p1, const Point16& p2);
+
+    /** @brief Erstellt ein Rechteck aus den Koordinaten der oberen linken und unteren rechten Ecke
+     *
+     * Diese Funktion erstellt ein Rechteck aus den Koordinaten der oberen linken und unteren rechten Ecke,
+     * wobei die unteren rechten Koordinaten "inklusiv" sind, also innerhalb des Rechtecks liegen.
+     * Falls die Koordinaten nicht in der richtigen Reihenfolge angegeben werden, wird automatisch das obere linke
+     * und das untere rechte Ende des Rechtecks bestimmt.
+     *
+     * @param[in] x1 X-Koordinate der oberen linken Ecke des Rechtecks
+     * @param[in] y1 Y-Koordinate der oberen linken Ecke des Rechtecks
+     * @param[in] x2 X-Koordinate der unteren rechten Ecke des Rechtecks. Dieser ist "inklusiv", liegt also innerhalb des Rechtecks
+     * @param[in] y2 Y-Koordinate der unteren rechten Ecke des Rechtecks. Dieser ist "inklusiv", liegt also innerhalb des Rechtecks
+     * @return Rechteck, das die angegebenen Koordinaten als obere linke und untere rechte Ecke hat
+     */
+    static Rect16 fromCoordsInclusive(int16_t x1, int16_t y1, int16_t x2, int16_t y2);
 };
 
 bool operator!=(const Rect16& r1, const Rect16& r2);

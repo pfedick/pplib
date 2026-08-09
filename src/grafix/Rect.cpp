@@ -61,6 +61,20 @@ Rect Rect::fromPoints(const Point& p1, const Point& p2)
     return r;
 }
 
+Rect Rect::fromCoordsInclusive(int x1, int y1, int x2, int y2)
+{
+    /// Hilfsfunktion, um ein Rechteck aus den Koordinaten der oberen linken und unteren rechten Ecke zu erstellen,
+    /// wobei die unteren rechten Koordinaten "inklusiv" sind, also innerhalb des Rechtecks liegen.
+    /// Falls die Koordinaten nicht in der richtigen Reihenfolge angegeben werden, wird automatisch das obere linke und das
+    /// untere rechte Ende des Rechtecks bestimmt.
+    Rect r;
+    r.x = min(x1, x2);
+    r.y = min(y1, y2);
+    r.w = abs(x2 - x1) + 1;
+    r.h = abs(y2 - y1) + 1;
+    return r;
+}
+
 Rect::Rect()
 {
     x = 0;
