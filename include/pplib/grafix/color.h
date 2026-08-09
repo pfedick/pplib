@@ -324,7 +324,7 @@ public:
      *
      * @return Negativ-Farbe
      */
-    inline Color negativ() const noexcept
+    inline Color negative() const noexcept
     {
         return Color(255 - r, 255 - g, 255 - b, a);
     }

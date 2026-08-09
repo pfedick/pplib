@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,26 +22,19 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_MATH_H
-#include <math.h>
-#endif
-
-#include "pplib-grafix.h"
+#include <config_pplib.h>
+#include <pplib/grafix/drawable.h>
+#include <pplib/grafix/image.h>
+#include <pplib/grafix/grafix.h>
+#include <pplib/grafix/imagereference.h>
+#include <pplib/types/string.h>
+#include <pplib/exceptions.h>
 
 #ifdef HAVE_X86_ASSEMBLER
 
@@ -57,29 +45,8 @@ extern "C"
 }
 #endif
 
-namespace pplib
+namespace pplib::grafix
 {
-namespace grafix
-{
-
-static SurfaceColor RGB_NULL(int red, int green, int blue, int alpha)
-{
-    return 0;
-}
-static Color Surface2RGB_NULL(SurfaceColor color)
-{
-    return Color();
-}
-
-static SurfaceColor RGBBlend_NULL(SurfaceColor ground, SurfaceColor top, float intensity)
-{
-    return 0;
-}
-
-static SurfaceColor RGBBlend_255_NULL(SurfaceColor ground, SurfaceColor top, int intensity)
-{
-    return 0;
-}
 
 // Grey 8-Bit ************************************************************************
 static SurfaceColor RGB_GREY8(int red, int green, int blue, int alpha)
@@ -191,7 +158,7 @@ static SurfaceColor RGBBlend_32(SurfaceColor ground, SurfaceColor top, float int
  * @param c Farbe
  * @return Farbwert
  */
-SurfaceColor Drawable::rgb(const Color& c) const
+SurfaceColor Drawable::toNativeColor(const Color& c) const
 {
     return fn->GetRGB(c.red(), c.green(), c.blue(), c.alpha());
 }
@@ -293,5 +260,4 @@ void Grafix::initColors(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
     }
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

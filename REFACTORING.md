@@ -94,7 +94,12 @@ Ein grundsätzliches Problem der Tests waren in der Vergangenheit die unterschie
 - Database überarbeiten (oder in separates Projekt auslagern?)
 - Tests wieder lauffähig bekommen
 
+## Drawable
+Die Implementierung der DRAWABLE_FUNCTIONS muss überarbeitet werden. Sie erstreckt sich über mehrere Dateien und unterstützt eigentlich nur ein 32-Bit-Format. Es wäre besser, wenn wir pro Format eine Datei mit der vollständigen Implementierung hätten. Die Verwendung von Assembler verkompliziert das ganze zusätzlich und ist für so simple-Methoden wie PutPixel eigentlich nicht notwendig.
 
+Methoden, wie Line oder LineAA verwenden am Ende dann doch PutPixel, weshalb wir sie auch direkt in der Drawable-Klasse einheitlich für alle Formate implementieren können.
+
+Einige Funktionen bekommen das native Farbformat, müssen dass dann aber wieder nach RGBA konvertieren, um zum Beispiel Pixel zu blenden. Vielleicht wäre es an einigen Stellen sinnvoller Color als parameter zu verwenden.
 
 ## NEU
 - HttpRequest, HttpResponse, HttpClient
@@ -118,3 +123,19 @@ Ein grundsätzliches Problem der Tests waren in der Vergangenheit die unterschie
 
 
 
+# Pico
+
+Im Raspberry-Pico werden die Pixel-Daten im 16-Bit-Format beim Zeichnen vertauscht, weshalb
+das Format R5G6B5 eigentlich ein Byte-Swapped-Format ist. Host ist Little-Endian, TFT ond OLED sind BigEndian.
+
+Es gibt aber Möglichkeiten den Tausch über die Hardware zu machen.
+
+Beim ST7789 den RAMCTL-Befehl (0xB0), der allerdings bei SPI oft nicht funktioniert. Eine Alternative wäre aber, mit #sym:spi_set_format  den SPI-Modus auf 16 Bit umzuschalten, wodurch der SPI-Controller wohl das höherwertige Byte zuerst schickt. Allerdings muss ich danach dann auch spi_write16_blocking statt spi_write_blocking verwenden, vermutlich größere Änderungen:
+
+// Für Befehle: 8-Bit-Modus
+spi_set_format(spi_default, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+spi_write_blocking(spi_default, cmd, 1);
+
+// Für Pixeldaten: Wechsel auf 16-Bit-Modus
+spi_set_format(spi_default, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
+spi_write16_blocking(spi_default, frame_buffer, buffer_size);

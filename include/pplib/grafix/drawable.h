@@ -50,26 +50,42 @@ class ImageReference;
 
 typedef struct DRAWABLE_FUNCTIONS
 {
-    void (*Clear)(DrawableData& data, SurfaceColor c);
-    void (*PutPixel)(const DrawableData& data, int x, int y, SurfaceColor c);
-    void (*BlendPixel)(const DrawableData& data, int x, int y, SurfaceColor c, int brightness);
-    void (*AlphaPixel)(const DrawableData& data, int x, int y, SurfaceColor c);
-    SurfaceColor (*GetPixel)(const DrawableData& data, int x, int y);
+    ///@name Minimal-Implementierung, die für jedes Drawable implementiert werden muss
+    //@{
 
+    /** @brief Schreibt einen Pixel an die angegebene Position
+     *
+     * Diese Funktion schreibt einen Pixel an die angegebene Position (x, y) in das Drawable.
+     * Die Farbe des Pixels wird durch den Parameter c angegeben. Die Implementierung dieser
+     * Funktion hängt vom spezifischen Drawable-Typ ab und muss entsprechend angepasst werden.
+     * Ferner prüft die Funktion, ob die angegebenen Koordinaten innerhalb der Grenzen des Drawables liegen.
+     * @param[in] data Die Daten des Drawables
+     * @param[in] x X-Koordinate des Pixels
+     * @param[in] y Y-Koordinate des Pixels
+     * @param[in] c Die Farbe des Pixels
+     */
+    void (*PutPixel)(const DrawableData& data, int x, int y, SurfaceColor c);
+    SurfaceColor (*GetPixel)(const DrawableData& data, int x, int y);
+    SurfaceColor (*ToNativeColor)(const Color& c);
+    Color (*FromNativeColor)(const SurfaceColor c);
+
+    //@}
+
+    ///@name Erweiterte Funktionen, die optional implementiert werden können
+    //@{
+    void (*BlendPixel)(const DrawableData& data, int x, int y, SurfaceColor c, uint8_t intensity);
+    void (*AlphaPixel)(const DrawableData& data, int x, int y, SurfaceColor c);
+
+    void (*Clear)(const DrawableData& data, SurfaceColor c);
     void (*DrawRect)(const DrawableData& data, const Rect& r, SurfaceColor c);
+    /// @brief Füllt ein Rechteck mit der angegebenen Farbe. Der Aufrufer muss sicherstellen,
+    /// dass das Rechteck innerhalb der Grenzen des Drawables liegt.
     void (*FillRect)(const DrawableData& data, const Rect& r, SurfaceColor c);
     void (*Xchange)(const DrawableData& data, const Rect& r, SurfaceColor farbe, SurfaceColor ersatzfarbe);
     void (*Invert)(const DrawableData& data, const Rect& r, SurfaceColor farbe1, SurfaceColor farbe2);
     void (*Negativ)(const DrawableData& data, const Rect& r);
 
-    SurfaceColor (*ToNativeColor)(const Color& c);
-    Color (*FromNativeColor)(const SurfaceColor c);
-
-    SurfaceColor (*RGBBlend)(SurfaceColor ground, SurfaceColor top, float intensity);
-    SurfaceColor (*RGBBlend255)(SurfaceColor ground, SurfaceColor top, int intensity);
-
-    void (*LineAA)(const DrawableData& data, int x1, int y1, int x2, int y2, SurfaceColor color, int strength);
-    void (*Line)(const DrawableData& data, int x1, int y1, int x2, int y2, SurfaceColor color);
+    SurfaceColor (*RGBBlend255)(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity);
 
     void (*Blt)(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y);
     void (*BltDiffuse)(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y, SurfaceColor c);
@@ -79,8 +95,9 @@ typedef struct DRAWABLE_FUNCTIONS
     void (*BltBlend)(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y, float factor);
     void (*BltChromaKey)(
         const DrawableData& target, const DrawableData& source, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
-    void (*BltBackgoundOnChromaKey)(
+    void (*BltBackgroundOnChromaKey)(
         const DrawableData& target, const DrawableData& background, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
+    //@}
 
 } DRAWABLE_FUNCTIONS;
 
@@ -585,6 +602,8 @@ public:
     void draw(const Sprite& sprite, int nr, int x, int y);
     //@}
 };
+
+bool clip(const DrawableData& target, const DrawableData& source, const Rect& srect, int& x, int& y, Rect& clipped_srect);
 
 } // namespace pplib::grafix
 #endif // PPLIB_INCLUDE_GRAFIX_DRAWABLE_H

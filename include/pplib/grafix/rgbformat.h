@@ -53,6 +53,7 @@ public:
 
         Monochrome1BitVertical, ///< 1 Bit pro Pixel, vertikal gepackt (z.B. SSD1322)
         GREY8,                  ///< 8 Bit pro Pixel: 8 Bit Graustufe
+        A8,                     ///< 8 Bit pro Pixel: 8 Bit Alpha (Transparenz)
         R5G6B5,                 ///< 16 Bit pro Pixel: 5 Bit Rot, 6 Bit Grün, 5 Bit Blau
         A8R8G8B8,               ///< 32 Bit pro Pixel: 8 Bit Alpha, 8 Bit Rot, 8 Bit Grün, 8 Bit Blau
 
@@ -62,7 +63,6 @@ public:
         // 8 Bit
         Palette,
         R3G3B2,
-        A8,
 
         // 16 Bit
 
@@ -83,9 +83,13 @@ public:
 
         // 32 Bit
         A8B8G8R8,
+        R8G8B8A8, // RGBA
+        B8G8R8A8, // BGRA
         X8R8G8B8,
         X8B8G8R8,
-        GREYALPHA32,
+        R8G8B8X8, // RGBX
+        B8G8R8X8, // BGRX
+
 #endif
 
         MaxIdentifiers ///< Obergrenze der Identifikatoren

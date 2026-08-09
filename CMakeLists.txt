@@ -222,6 +222,7 @@ if(PPLIB_ENABLE_GRAFIX)
 
     if(CMAKE_ASM_NASM_COMPILER_LOADED)
         target_compile_definitions(pplib_grafix PRIVATE HAVE_X86_ASSEMBLER=1)
+        set (HAVE_X86_ASSEMBLER 1)
     endif()
 
     # Formate & Bildbibliotheken

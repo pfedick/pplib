@@ -371,6 +371,29 @@ void Drawable::drawRect(int x1, int y1, int x2, int y2, const Color& c)
  */
 void Drawable::fillRect(const Rect& rect, const Color& c)
 {
+    if (!data.base) return;
+    // Das Rechteck könnte teilweise außerhalb der Zeichenfläche liegen.
+    // In diesem Fall wird das Rechteck angepasst.
+    Rect q(rect);
+    if (q.left() < 0) {
+        q.setLeft(0);
+        q.setWidth(rect.width() + rect.left());
+    }
+
+    // Quellrechteck
+
+    if (srect.isNull()) {
+        q = source.rect();
+    } else {
+        q = srect;
+        if (q.left() < 0) q.setLeft(0);
+        if (q.width() > source.width()) q.setWidth(source.width());
+        if (q.top() < 0) q.setTop(0);
+        if (q.height() > source.height()) q.setHeight(source.height());
+    }
+    //::printf ("rect=(%i/%i)-(%i/%i)\n", q.x1, q.y1, q.x2, q.y2);
+    if (!fitRect(x, y, q)) return;
+
     if (!fn) throw EmptyDrawableException();
     if (fn->FillRect) fn->FillRect(data, rect, rgb(c));
 }
