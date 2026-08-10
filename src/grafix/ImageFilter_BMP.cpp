@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,27 +22,18 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#include "pplib.h"
-#include "pplib-grafix.h"
+#include <pplib/core/fileobject.h>
+#include <pplib/core/functions.h>
+#include <pplib/grafix/image.h>
+#include <pplib/grafix/grafix.h>
+#include <pplib/grafix/imagefilter.h>
 
-namespace pplib
-{
-namespace grafix
+namespace pplib::grafix
 {
 
 /*!\class ImageFilter_BMP
@@ -57,7 +43,6 @@ namespace grafix
 
 #undef tagBITMAPFILEHEADER
 
-#ifndef _WIN32
 /*
 typedef struct tagBITMAPFILEHEADER {
         uint16_t		bfType;
@@ -92,8 +77,6 @@ typedef struct tagBITMAPINFOHEADER {    //
 } BITMAPINFOHEADER;
 */
 
-#endif
-
 #ifndef _WIN32
 /*
 typedef struct tagBITMAPINFO {
@@ -111,7 +94,7 @@ ImageFilter_BMP::~ImageFilter_BMP()
 {
 }
 
-int ImageFilter_BMP::ident(FileObject& file, IMAGE& img)
+bool ImageFilter_BMP::ident(FileObject& file, IMAGE& img) noexcept
 {
     try {
         const char* address = file.map(0, 256);
@@ -182,7 +165,7 @@ void ImageFilter_BMP::load(FileObject& file, Drawable& surface, IMAGE& img)
             if ((sourcebytesperline & 3) != 0) sourcebytesperline = ((sourcebytesperline + 3) / 4) * 4;
             uint8_t* b2 = (uint8_t*)surface.adr();
             // Ist eine Umwandlung der Bittiefe notwendig?
-            if (surface.bitdepth() == img.bitdepth) { // nein
+            if (surface.rgbformat().bitdepth() == img.bitdepth) { // nein
                 int i;
                 for (i = 0; i < (int32_t)img.height; i++) {
                     memcpy((char*)(b2 + i * img.pitch), (char*)(b1 + (img.height - 1 - i) * sourcebytesperline), img.pitch);
@@ -241,7 +224,7 @@ void ImageFilter_BMP::save(const Drawable& surface, FileObject& file, const Asso
 {
     Color pixel;
     uint32_t bpp, bfOffBits;
-    bpp = surface.bytesPerPixel();
+    bpp = surface.rgbformat().bytesPerPixel();
     if (bpp == 3) {
         bfOffBits = 54;
     } else if (bpp == 4) {
@@ -334,15 +317,14 @@ void ImageFilter_BMP::save(const Drawable& surface, FileObject& file, const Asso
     free(buffer);
 }
 
-String ImageFilter_BMP::name()
+String ImageFilter_BMP::name() const
 {
     return "BMP";
 }
 
-String ImageFilter_BMP::description()
+String ImageFilter_BMP::description() const
 {
     return "Windows Bitmap-Dateien";
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

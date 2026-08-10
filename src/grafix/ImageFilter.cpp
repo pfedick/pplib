@@ -70,7 +70,7 @@ ImageFilter* Grafix::findImageFilter(const String& name) noexcept
     return nullptr;
 }
 
-ImageFilter* Grafix::findImageFilter(FileObject& ff, IMAGE& img)
+ImageFilter* Grafix::findImageFilter(FileObject& ff, IMAGE& img) noexcept
 {
     MutexLock lock(myMutex);
     // Wir gehen die Liste rückwärts durch
@@ -82,36 +82,11 @@ ImageFilter* Grafix::findImageFilter(FileObject& ff, IMAGE& img)
     return nullptr;
 }
 
-bool ImageFilter::ident(FileObject& file, IMAGE& img)
-{
-    throw UnimplementedVirtualFunctionException();
-}
-
-void ImageFilter::load(FileObject& file, Drawable& surface, IMAGE& img)
-{
-    throw UnimplementedVirtualFunctionException();
-}
-
-void ImageFilter::save(const Drawable& surface, FileObject& file, const AssocArray& param)
-{
-    throw UnimplementedVirtualFunctionException();
-}
-
 void ImageFilter::saveFile(const String& filename, const Drawable& surface, const AssocArray& param)
 {
     File ff;
     ff.open(filename, File::FileMode::WRITE);
     save(surface, ff, param);
-}
-
-String ImageFilter::name()
-{
-    return "unknown";
-}
-
-String ImageFilter::description()
-{
-    return "Baseclass for image filter";
 }
 
 } // namespace pplib::grafix

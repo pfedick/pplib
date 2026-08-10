@@ -58,7 +58,7 @@ typedef struct IMAGE
  * @ingroup PPLGroupGrafik
  * @brief Basisklasse für Import-/Export-Filter verschiedener Grafikformate
  *
- * Dies ist die Basisklasse für alle Import- und Export-Filter für verschiedene
+ * Dies ist die Abstrakte Basisklasse für alle Import- und Export-Filter für verschiedene
  * Grafikformate. Eine Instanz des Filters muss mit "new" angelegt und mit der Funktion
  * Grafix::addFilter in der Grafik-Engine registriert werden. Die Grafik-Engine
  * kümmert sich bei Programmende selbst um das Löschen des Filters.
@@ -73,18 +73,12 @@ public:
     PPLIBEXCEPTION(IllegalImageFormatException, Exception);
     PPLIBEXCEPTION(EmptyImageException, Exception);
 
-    /** @brief Konstruktor
-     *
-     * Im Konstruktor werden interne Daten der Klasse initialisiert
-     */
-    ImageFilter() {};
-
     /** @brief Destruktor
      *
      * Der Destruktor sorgt dafür, dass durch die Klasse allokierter Speicher
      * wieder freigegeben wird.
      */
-    virtual ~ImageFilter() {};
+    virtual ~ImageFilter() = default;
 
     /** @brief Grafikformat identifizieren
      *
@@ -97,7 +91,7 @@ public:
      * @param[out] img Referenz auf eine IMAGE-Struktur
      * @return True, wenn das Format unterstützt wird, ansonsten False.
      */
-    virtual bool ident(FileObject& file, IMAGE& img);
+    virtual bool ident(FileObject& file, IMAGE& img) noexcept = 0;
 
     /** @brief Grafik in ein Drawable laden
      *
@@ -109,7 +103,7 @@ public:
      * @param[out] surface Referenz auf eine Drawable-Struktur
      * @param[in] img Referenz auf eine IMAGE-Struktur
      */
-    virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+    virtual void load(FileObject& file, Drawable& surface, IMAGE& img) = 0;
 
     /** @brief Grafik in eine Datei speichern
      *
@@ -122,14 +116,14 @@ public:
      * @param[in] file Eine geöffnete Datei
      * @param[in] param Referenz auf eine AssocArray-Struktur mit zusätzlichen Parametern
      */
-    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
+    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) = 0;
 
     /** @brief Name des Filters
      *
      * Diese Funktion gibt den Namen des Filters zurück, z.B. "PNG", "JPEG", "BMP" usw.
      * @return String mit dem Namen des Filters
      */
-    virtual String name();
+    virtual String name() const = 0;
 
     /** @brief Beschreibung des Filters
      *
@@ -137,7 +131,7 @@ public:
      * für den PNG-Filter.
      * @return String mit der Beschreibung des Filters
      */
-    virtual String description();
+    virtual String description() const = 0;
 
     /** @brief Grafik in eine Datei speichern
      *
@@ -157,85 +151,86 @@ class ImageFilter_PNG : public ImageFilter
 {
 public:
     ImageFilter_PNG();
-    virtual ~ImageFilter_PNG();
-    virtual bool ident(FileObject& file, IMAGE& img);
-    virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
-    virtual String name();
-    virtual String description();
+    ~ImageFilter_PNG() override;
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
+    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
+    String name() const override;
+    String description() const override;
 };
 
 class ImageFilter_JPEG : public ImageFilter
 {
 public:
     ImageFilter_JPEG();
-    virtual ~ImageFilter_JPEG();
-    virtual bool ident(FileObject& file, IMAGE& img);
-    virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
-    virtual String name();
-    virtual String description();
+    ~ImageFilter_JPEG() override;
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
+    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
+    String name() const override;
+    String description() const override;
 };
 
 class ImageFilter_BMP : public ImageFilter
 {
 public:
     ImageFilter_BMP();
-    virtual ~ImageFilter_BMP();
-    virtual bool ident(FileObject& file, IMAGE& img);
-    virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
-    virtual String name();
-    virtual String description();
+    ~ImageFilter_BMP() override;
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
+    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
+    String name() const override;
+    String description() const override;
 };
 
 class ImageFilter_TIFF : public ImageFilter
 {
 public:
     ImageFilter_TIFF();
-    virtual ~ImageFilter_TIFF();
-    virtual bool ident(FileObject& file, IMAGE& img);
-    virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
-    virtual String name();
-    virtual String description();
+    ~ImageFilter_TIFF() override;
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
+    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
+    String name() const override;
+    String description() const override;
 };
 
 class ImageFilter_GIF : public ImageFilter
 {
 public:
     ImageFilter_GIF();
-    virtual ~ImageFilter_GIF();
-    virtual bool ident(FileObject& file, IMAGE& img);
-    virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
-    virtual String name();
-    virtual String description();
+    ~ImageFilter_GIF() override;
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
+    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
+    String name() const override;
+    String description() const override;
 };
 
 class ImageFilter_PPM : public ImageFilter
 {
 public:
     ImageFilter_PPM();
-    virtual ~ImageFilter_PPM();
-    virtual bool ident(FileObject& file, IMAGE& img);
-    virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
-    virtual String name();
-    virtual String description();
+    ~ImageFilter_PPM() override;
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
+    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
+    String name() const override;
+    String description() const override;
 };
 
 class ImageFilter_TGA : public ImageFilter
 {
 public:
     ImageFilter_TGA();
-    virtual ~ImageFilter_TGA();
-    virtual bool ident(FileObject& file, IMAGE& img);
-    virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
-    virtual String name();
-    virtual String description();
+    ~ImageFilter_TGA() override;
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
+    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
+    String name() const override;
+    String description() const override;
 };
 
 } // namespace pplib::grafix
+
 #endif // PPLIB_INCLUDE_GRAFIX_IMAGEFILTER_H
