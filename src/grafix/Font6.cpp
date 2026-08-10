@@ -756,7 +756,10 @@ void Font6Renderer::loadGlyph(Font6Face& Face, const char* data, size_t size)
     if (Face.Flags & 8) { // Wir haben Hints
         wchar_t c;
         while ((c = Peek16(data + p))) {
+#ifndef PICO_BUILD
+            // Hints kosten auf dem Pico zuviel Speicher!
             Glyph.Hints.insert(std::pair<wchar_t, int>(c, (short)Peek16(data + p + 2)));
+#endif
             p += 4;
         }
         p += 4;

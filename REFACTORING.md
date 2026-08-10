@@ -101,6 +101,9 @@ Methoden, wie Line oder LineAA verwenden am Ende dann doch PutPixel, weshalb wir
 
 Einige Funktionen bekommen das native Farbformat, müssen dass dann aber wieder nach RGBA konvertieren, um zum Beispiel Pixel zu blenden. Vielleicht wäre es an einigen Stellen sinnvoller Color als parameter zu verwenden.
 
+## Font6
+Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-Option generell deaktivieren. Oder Fonts ohne Hints generieren?
+
 ## NEU
 - HttpRequest, HttpResponse, HttpClient
 
