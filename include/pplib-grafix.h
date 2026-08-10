@@ -55,17 +55,7 @@ PPLIBEXCEPTION(UnknownBltMethodException, Exception);
 PPLIBEXCEPTION(FunctionUnavailableException, Exception);
 PPLIBEXCEPTION(InvalidImageSizeException, Exception);
 PPLIBEXCEPTION(UnknownImageFormatException, Exception);
-PPLIBEXCEPTION(FontEngineInitializationException, Exception);
-PPLIBEXCEPTION(FontEngineUninitializedException, Exception);
-
-PPLIBEXCEPTION(FontNotFoundException, Exception);
-PPLIBEXCEPTION(InvalidFontEngineException, Exception);
 PPLIBEXCEPTION(InvalidSpriteException, Exception);
-
-// Font6 Exceptions
-PPLIBEXCEPTION(InvalidFontFormatException, Exception);
-PPLIBEXCEPTION(InvalidFontFaceException, Exception);
-PPLIBEXCEPTION(UnknownFontFaceException, Exception);
 
 } // namespace grafix
 } // end of namespace pplib

@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,24 +22,23 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
+#include <stdint.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/core/pfpfile.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/mutex.h>
+#include <pplib/grafix/fonts.h>
+#include <pplib/grafix/drawable.h>
 
-#include "pplib.h"
-#include "pplib-grafix.h"
+namespace pplib::grafix
+{
 
 // Font-Blitter
 typedef struct tagGLYPH
@@ -54,15 +48,6 @@ typedef struct tagGLYPH
     uint32_t pitch;
     int32_t color;
 } GLYPH;
-
-extern "C"
-{
-    int BltGlyph_M8_32(GLYPH* g);
-    int BltGlyph_M1_32(GLYPH* g);
-    int BltGlyph_AA8_32(GLYPH* g);
-    int BltGlyph_AA2_32(GLYPH* g);
-    int BltGlyph_AA4_32(GLYPH* g);
-}
 
 /*!\page PFPFont5Format Format PFP Font, Version 5
  *
@@ -166,11 +151,6 @@ Position= 12 + Anzahl Sprungtabellen * 8 + Anzahl Chars in jeder Sprungtabelle *
 
  */
 
-namespace pplib
-{
-namespace grafix
-{
-
 /*!\class FontEngineFont5
  * \ingroup PPLGroupGrafik
  * \brief Font-Engine für PFP Version 5 Fonts
@@ -192,11 +172,6 @@ String FontEngineFont5::name() const
 String FontEngineFont5::description() const
 {
     return "Rendering of PPLib Version 5 Fonts";
-}
-
-void FontEngineFont5::init()
-{
-    // Es gibt nichts zu tun
 }
 
 int FontEngineFont5::ident(FileObject& file) throw()
@@ -249,32 +224,7 @@ void FontEngineFont5::deleteFont(FontFile* file)
     file->engine = NULL;
 }
 
-#ifndef HAVE_X86_ASSEMBLER
-extern "C"
-{
-    int BltGlyph_M8_32(GLYPH* g)
-    {
-        int16_t width = Peek16(g->data);
-        int16_t height = Peek16(g->data + 2);
-        const char* bitmap = g->data + 10;
-        uint32_t* t = (uint32_t*)g->target;
-        int pitch = g->pitch >> 2;
-        SurfaceColor c = g->color;
-        int v;
-        for (int yy = 0; yy < height; yy++) {
-            for (int xx = 0; xx < width; xx++) {
-                v = bitmap[0];
-                if (v) t[xx] = c;
-                bitmap++;
-            }
-            t += pitch;
-        }
-        return 0;
-    }
-}
-#endif
-
-static int DrawGlyphMono8(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono8(const DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -294,10 +244,9 @@ static int DrawGlyphMono8(DrawableData& data, const char* glyph, int x, int y, S
             bitmap++;
         }
     }
-    return 1;
 }
 
-static int DrawGlyphMono1(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono1(const DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -325,10 +274,9 @@ static int DrawGlyphMono1(DrawableData& data, const char* glyph, int x, int y, S
             bitcount--;
         }
     }
-    return 1;
 }
 
-static int DrawGlyphAA2(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA2(const DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -361,10 +309,9 @@ static int DrawGlyphAA2(DrawableData& data, const char* glyph, int x, int y, Sur
             bitcount -= 2;
         }
     }
-    return 1;
 }
 
-static int DrawGlyphAA4(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA4(const DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -393,10 +340,9 @@ static int DrawGlyphAA4(DrawableData& data, const char* glyph, int x, int y, Sur
             bitcount -= 4;
         }
     }
-    return 1;
 }
 
-static int DrawGlyphAA8(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA8(const DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)
 {
     int16_t width = Peek16(glyph);
     int16_t height = Peek16(glyph + 2);
@@ -416,7 +362,6 @@ static int DrawGlyphAA8(DrawableData& data, const char* glyph, int x, int y, Sur
             bitmap++;
         }
     }
-    return 1;
 }
 
 PFPChunk* FontEngineFont5::selectFont(const FontFile& file, const Font& font)
@@ -426,7 +371,6 @@ PFPChunk* FontEngineFont5::selectFont(const FontFile& file, const Font& font)
     PFPChunk* c;
 
     // Wir mussen zuerst den passenden Chunk finden
-    f->myMutex.lock();
     PFPFile::Iterator it;
     f->reset(it);
     int flags = 0;
@@ -441,7 +385,6 @@ PFPChunk* FontEngineFont5::selectFont(const FontFile& file, const Font& font)
             break;
         }
     }
-    f->myMutex.unlock();
     return c;
 }
 
@@ -484,7 +427,7 @@ void FontEngineFont5::render(
 void FontEngineFont5::renderInternal(
     PFPChunk* c, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color)
 {
-    DrawableData* data = draw.getData();
+    const DrawableData& data = draw.getData();
     const char* header = (char*)c->data();
     const char* jump = NULL;
     const char* glyph;
@@ -499,78 +442,27 @@ void FontEngineFont5::renderInternal(
     int lastx = x;
     int lasty = y;
 
-    int (*BltGlyph)(GLYPH* surface) = NULL;
-    int (*ErsatzGlyph)(DrawableData& data, const char* glyph, int x, int y, SurfaceColor c) = NULL;
+    void (*BltGlyph)(const DrawableData& data, const char* glyph, int x, int y, SurfaceColor c) = NULL;
     GLYPH g;
-    g.color = draw.rgb(color);
+    g.color = draw.toNativeColor(color);
     switch (pixelformat) {
     case 1: // Monochrom, 8 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            BltGlyph = BltGlyph_M8_32;
-#endif
-            break;
-        };
-        ErsatzGlyph = DrawGlyphMono8;
+        BltGlyph = DrawGlyphMono8;
         break;
     case 2: // Monochrom, 1 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            BltGlyph = BltGlyph_M1_32;
-#endif
-            break;
-        };
-        ErsatzGlyph = DrawGlyphMono1;
+        BltGlyph = DrawGlyphMono1;
         break;
     case 3: // Antialiased, 8 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            // BltGlyph=BltGlyph_AA8_32;
-#endif
-            break;
-        };
-        ErsatzGlyph = DrawGlyphAA8;
+        BltGlyph = DrawGlyphAA8;
         break;
     case 4: // Antialiased, 2 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            BltGlyph = BltGlyph_AA2_32;
-#endif
-            break;
-        };
-        ErsatzGlyph = DrawGlyphAA2;
+        BltGlyph = DrawGlyphAA2;
         break;
     case 5: // Antialiased, 4 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            BltGlyph = BltGlyph_AA4_32;
-#endif
-            break;
-        };
-        ErsatzGlyph = DrawGlyphAA4;
+        BltGlyph = DrawGlyphAA4;
         break;
     default:
-        throw InvalidFontException();
+        return; // Unbekanntes Pixelformat
     };
     int orgx = x;
     size_t p = 0;
@@ -601,29 +493,8 @@ void FontEngineFont5::renderInternal(
             // Glyph holen
             glyph = header + Peek32(jump + ((code - start) << 2));
             if (glyph) {
-                drawn = false;
                 advance = Peek16(glyph + 8);
-                if (BltGlyph) {
-                    width = Peek16(glyph);
-                    height = Peek16(glyph + 2);
-                    bearingy = Peek16(glyph + 6);
-                    bearingx = Peek16(glyph + 4);
-                    x = lastx + bearingx;
-                    y = lasty - bearingy;
-                    if (x >= 0 && x + width < draw.width() && y >= 0 && y + height < draw.height()) {
-                        // if (y>590)
-                        //	printf("Char: %i, x: %i, y: %i, height: %i, clipper.bottom: %i, bearingy:
-                        //%i\n",code,x,y,height,s->clipper.bottom,bearingy);
-                        g.data = glyph;
-                        g.pitch = draw.pitch();
-                        g.target = (char*)draw.adr(x, y);
-                        // HexDump(&g,sizeof(g));
-                        if (BltGlyph(&g)) {
-                            drawn = true;
-                        }
-                    }
-                }
-                if (!drawn) ErsatzGlyph(*data, glyph, lastx, lasty, g.color);
+                BltGlyph(data, glyph, lastx, lasty, g.color);
                 lastx += advance;
             }
         }
@@ -688,5 +559,4 @@ Size FontEngineFont5::measure(const FontFile& file, const Font& font, const Wide
     return s;
 }
 
-} // namespace grafix
-} // namespace pplib
+} // end of namespace pplib::grafix

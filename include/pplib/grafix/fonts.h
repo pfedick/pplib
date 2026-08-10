@@ -36,6 +36,7 @@
 #include <pplib/types/widestring.h>
 #include <pplib/types/bytearray.h>
 #include <pplib/core/fileobject.h>
+#include <pplib/core/baseexception.h>
 #include <pplib/grafix/color.h>
 #include <pplib/grafix/size.h>
 #include <pplib/grafix/rect.h>
@@ -46,6 +47,21 @@ class PFPChunk;
 }
 namespace pplib::grafix
 {
+
+PPLIBEXCEPTION(InvalidFontException, Exception);
+PPLIBEXCEPTION(NoSuitableFontEngineException, Exception);
+
+PPLIBEXCEPTION(FontEngineInitializationException, Exception);
+PPLIBEXCEPTION(FontEngineUninitializedException, Exception);
+
+PPLIBEXCEPTION(FontNotFoundException, Exception);
+PPLIBEXCEPTION(InvalidFontEngineException, Exception);
+
+// Font6 Exceptions
+PPLIBEXCEPTION(InvalidFontFormatException, Exception);
+PPLIBEXCEPTION(InvalidFontFaceException, Exception);
+PPLIBEXCEPTION(UnknownFontFaceException, Exception);
+
 class Drawable;
 class FontEngine;
 

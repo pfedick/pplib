@@ -47,8 +47,6 @@ PPLIBEXCEPTION(DuplicateGrafixEngineException, Exception);
 PPLIBEXCEPTION(UnknownColorFormatException, Exception);
 PPLIBEXCEPTION(DuplicateFontEngineException, Exception);
 PPLIBEXCEPTION(DuplicateImageFilterException, Exception);
-PPLIBEXCEPTION(InvalidFontException, Exception);
-PPLIBEXCEPTION(NoSuitableFontEngineException, Exception);
 
 class ImageFilter;
 class ImageList;
