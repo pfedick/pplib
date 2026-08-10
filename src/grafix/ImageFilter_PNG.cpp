@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,23 +22,18 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#include "pplib.h"
-#include "pplib-grafix.h"
+#include <pplib/core/fileobject.h>
+#include <pplib/core/functions.h>
+#include <pplib/grafix/image.h>
+#include <pplib/grafix/grafix.h>
+#include <pplib/grafix/imagefilter.h>
+
+#include <config_pplib.h>
 
 #ifdef HAVE_LIBZ
 #include <zlib.h>
@@ -53,9 +43,7 @@
 #include <png.h>
 #endif
 
-namespace pplib
-{
-namespace grafix
+namespace pplib::grafix
 {
 
 /*!\class ImageFilter_PNG
@@ -105,17 +93,17 @@ ImageFilter_PNG::~ImageFilter_PNG()
 {
 }
 
-String ImageFilter_PNG::name()
+String ImageFilter_PNG::name() const
 {
     return "png";
 }
 
-String ImageFilter_PNG::description()
+String ImageFilter_PNG::description() const
 {
     return "Filter for Portable Network Graphics (PNG)";
 }
 
-int ImageFilter_PNG::ident(FileObject& file, IMAGE& img)
+bool ImageFilter_PNG::ident(FileObject& file, IMAGE& img) noexcept
 {
 #ifdef HAVE_PNG
     try {
@@ -179,8 +167,8 @@ int ImageFilter_PNG::ident(FileObject& file, IMAGE& img)
             break;
         case PNG_COLOR_TYPE_GRAY_ALPHA:
             img.colors = 256;
-            img.bitdepth = 32;
-            img.format = RGBFormat::GREYALPHA32;
+            img.bitdepth = 16;
+            img.format = RGBFormat::GREY8_ALPHA8;
             break;
         };
 
@@ -449,7 +437,7 @@ void ImageFilter_PNG::save(const Drawable& surface, FileObject& file, const Asso
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         farbe = surface.getPixel(x, y);
-                        buffer[x] = (uint8_t)(farbe.color() & 0xff);
+                        buffer[x] = (uint8_t)(farbe.rgba() & 0xff);
                     }
                     png_write_row(png_ptr, buffer);
                 }
@@ -543,5 +531,4 @@ void ImageFilter_PNG::save(const Drawable& surface, FileObject& file, const Asso
 #endif
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

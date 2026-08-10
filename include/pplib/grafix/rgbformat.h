@@ -116,6 +116,8 @@ public:
         /// ist und in den höchstwertigen 8-Bit der Alphakanal (Transparenz).
         A8R3G3B2,
 
+        GREY8_ALPHA8, /// 16-Bit, 8 Bit Graustufe und 8 Bit Alphakanal (Trans
+
         /// 24-Bit Truecolor, jeweils 8 Bit für Rot, Grün und Blau, wobei Blau im untersten Byte gespeichert wird.
         R8G8B8,
 

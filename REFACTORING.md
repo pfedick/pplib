@@ -94,15 +94,46 @@ Ein grundsätzliches Problem der Tests waren in der Vergangenheit die unterschie
 - Database überarbeiten (oder in separates Projekt auslagern?)
 - Tests wieder lauffähig bekommen
 
-## Drawable
-Die Implementierung der DRAWABLE_FUNCTIONS muss überarbeitet werden. Sie erstreckt sich über mehrere Dateien und unterstützt eigentlich nur ein 32-Bit-Format. Es wäre besser, wenn wir pro Format eine Datei mit der vollständigen Implementierung hätten. Die Verwendung von Assembler verkompliziert das ganze zusätzlich und ist für so simple-Methoden wie PutPixel eigentlich nicht notwendig.
 
-Methoden, wie Line oder LineAA verwenden am Ende dann doch PutPixel, weshalb wir sie auch direkt in der Drawable-Klasse einheitlich für alle Formate implementieren können.
-
-Einige Funktionen bekommen das native Farbformat, müssen dass dann aber wieder nach RGBA konvertieren, um zum Beispiel Pixel zu blenden. Vielleicht wäre es an einigen Stellen sinnvoller Color als parameter zu verwenden.
 
 ## Font6
 Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-Option generell deaktivieren. Oder Fonts ohne Hints generieren?
+
+## Imagefilter
+Die save-Methode mit dem AssocArray für Parameter ist schlecht
+
+Aufteilen in mehrere Klassen, eine zum laden, eine zum speichern.
+
+Vorschlag:
+
+ImageImporter (Abstrakte Basisklasse)
+// 1. Nur für das Laden
+class ImageImporter {
+public:
+    virtual ~ImageImporter() = default;
+    virtual bool ident(FileObject& file, IMAGE& img) noexcept = 0;
+    virtual void load(FileObject& file, Drawable& surface, IMAGE& img) = 0;
+};
+
+// 2. Nur für das Speichern (mit konkreten Options-Typen)
+class ImageExporter {
+public:
+    virtual ~ImageExporter() = default;
+    // Hier gibt es KEIN save() mit AssocArray mehr!
+};
+
+// 3. Die konkrete Implementierung kombiniert beides
+class ImageFilter_PNG : public ImageImporter, public ImageExporter {
+public:
+    // Implementiert ImageImporter
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
+
+    // Implementiert ImageExporter mit TYPSICHER Methode
+    void save(const Drawable& surface, FileObject& file, int compressionLevel) {
+        // PNG-spezifische Logik mit int compressionLevel
+    }
+};
 
 ## NEU
 - HttpRequest, HttpResponse, HttpClient
@@ -112,6 +143,13 @@ Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-O
 - Dir-Klasse komplett überarbeitet
 - DirEntry-Klasse überarbeitet
 - Alle Quellcode-Dateien unter "core", "crypto", "math" und "types" kompilieren wieder ohne Fehler
+
+### Drawable
+Die Implementierung der DRAWABLE_FUNCTIONS muss überarbeitet werden. Sie erstreckt sich über mehrere Dateien und unterstützt eigentlich nur ein 32-Bit-Format. Es wäre besser, wenn wir pro Format eine Datei mit der vollständigen Implementierung hätten. Die Verwendung von Assembler verkompliziert das ganze zusätzlich und ist für so simple-Methoden wie PutPixel eigentlich nicht notwendig.
+
+Methoden, wie Line oder LineAA verwenden am Ende dann doch PutPixel, weshalb wir sie auch direkt in der Drawable-Klasse einheitlich für alle Formate implementieren können.
+
+Einige Funktionen bekommen das native Farbformat, müssen dass dann aber wieder nach RGBA konvertieren, um zum Beispiel Pixel zu blenden. Vielleicht wäre es an einigen Stellen sinnvoller Color als parameter zu verwenden.
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft

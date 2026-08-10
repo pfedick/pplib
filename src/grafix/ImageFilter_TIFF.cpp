@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,32 +22,25 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
+#include <stdint.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
+#include <pplib/core/functions.h>
+#include <pplib/grafix/image.h>
+#include <pplib/grafix/grafix.h>
+#include <pplib/grafix/imagefilter.h>
+#include <config_pplib.h>
 
 #ifdef HAVE_TIFF
 #include <tiffio.h>
 #endif
 
-#include "pplib.h"
-#include "pplib-grafix.h"
-
-namespace pplib
-{
-namespace grafix
+namespace pplib::grafix
 {
 
 /*!\class ImageFilter_TIFF
@@ -131,15 +119,15 @@ ImageFilter_TIFF::~ImageFilter_TIFF()
 {
 }
 
-int ImageFilter_TIFF::ident(FileObject& file, IMAGE& img)
+bool ImageFilter_TIFF::ident(FileObject& file, IMAGE& img) noexcept
 {
 #ifdef HAVE_TIFF
     try {
         file.seek(0);
         TIFF* tif = TIFFClientOpen("no name", "r", &file, readproc, writeproc, seekproc, closeproc, sizeproc, NULL, NULL);
         if (tif == NULL) return 0;
-        uint32 w, h, depth;
-        uint16 bits;
+        uint32_t w, h, depth;
+        uint16_t bits;
         TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
         TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
         TIFFGetField(tif, TIFFTAG_BITSPERSAMPLE, &bits);
@@ -171,8 +159,8 @@ void ImageFilter_TIFF::load(FileObject& file, Drawable& surface, IMAGE& img)
     file.seek(0);
     TIFF* tif = TIFFClientOpen("no name", "r", &file, readproc, writeproc, seekproc, closeproc, sizeproc, NULL, NULL);
     if (tif == NULL) throw UnknownImageFormatException();
-    uint32 w, h;
-    uint16 o;
+    uint32_t w, h;
+    uint16_t o;
     TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
     TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
     TIFFGetField(tif, TIFFTAG_ORIENTATION, &o);
@@ -180,7 +168,7 @@ void ImageFilter_TIFF::load(FileObject& file, Drawable& surface, IMAGE& img)
     // printf ("Orientation: %i\n",o);
 
     size_t npixels = w * h;
-    uint32* raster = (uint32*)_TIFFmalloc(npixels * sizeof(uint32));
+    uint32_t* raster = (uint32_t*)_TIFFmalloc(npixels * sizeof(uint32_t));
     if (raster == NULL) {
         TIFFClose(tif);
         throw OutOfMemoryException();
@@ -188,8 +176,8 @@ void ImageFilter_TIFF::load(FileObject& file, Drawable& surface, IMAGE& img)
     if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
         uint32_t p = 0, abgr;
         Color c;
-        for (uint32 y = 0; y < h; y++) {
-            for (uint32 x = 0; x < w; x++) {
+        for (uint32_t y = 0; y < h; y++) {
+            for (uint32_t x = 0; x < w; x++) {
                 abgr = raster[p++];
                 c.setColor(abgr & 255, (abgr >> 8) & 255, (abgr >> 16) & 255, (abgr >> 24) & 255);
                 surface.putPixel(x, h - y - 1, c);
@@ -216,15 +204,14 @@ void ImageFilter_TIFF::save(const Drawable& surface, FileObject& file, const Ass
 #endif
 }
 
-String ImageFilter_TIFF::name()
+String ImageFilter_TIFF::name() const
 {
     return "TIFF";
 }
 
-String ImageFilter_TIFF::description()
+String ImageFilter_TIFF::description() const
 {
     return "TIFF (Loader only)";
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix
