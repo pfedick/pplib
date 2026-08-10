@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,25 +22,24 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#include <map>
+#include <stdint.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
+#include <pplib/core/pfpfile.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/mutex.h>
+#include <pplib/grafix/fonts.h>
+#include <pplib/grafix/drawable.h>
 
-#include "pplib.h"
-#include "pplib-grafix.h"
+namespace pplib::grafix
+{
 
 // #include "grafix6.h"
 
@@ -198,11 +192,6 @@ typedef struct tagRenderContext
     int16_t height;
 } RENDER_CONTEXT;
 
-namespace pplib
-{
-namespace grafix
-{
-
 class Font6Glyph
 {
 private:
@@ -278,7 +267,7 @@ Font6Glyph::Font6Glyph()
     bitmap = NULL;
 }
 
-static void DrawGlyphMono8_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono8_0(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -291,7 +280,7 @@ static void DrawGlyphMono8_0(DrawableData& data, const Font6Glyph& glyph, int x,
     }
 }
 
-static void DrawGlyphMono8_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono8_90(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -304,7 +293,7 @@ static void DrawGlyphMono8_90(DrawableData& data, const Font6Glyph& glyph, int x
     }
 }
 
-static void DrawGlyphMono8_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono8_180(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -317,7 +306,7 @@ static void DrawGlyphMono8_180(DrawableData& data, const Font6Glyph& glyph, int 
     }
 }
 
-static void DrawGlyphMono8_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono8_270(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -330,7 +319,7 @@ static void DrawGlyphMono8_270(DrawableData& data, const Font6Glyph& glyph, int 
     }
 }
 
-static void DrawGlyphMono1_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono1_0(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0;
@@ -351,7 +340,7 @@ static void DrawGlyphMono1_0(DrawableData& data, const Font6Glyph& glyph, int x,
     }
 }
 
-static void DrawGlyphMono1_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono1_90(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0;
@@ -372,7 +361,7 @@ static void DrawGlyphMono1_90(DrawableData& data, const Font6Glyph& glyph, int x
     }
 }
 
-static void DrawGlyphMono1_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono1_180(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0;
@@ -393,7 +382,7 @@ static void DrawGlyphMono1_180(DrawableData& data, const Font6Glyph& glyph, int 
     }
 }
 
-static void DrawGlyphMono1_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphMono1_270(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0;
@@ -414,7 +403,7 @@ static void DrawGlyphMono1_270(DrawableData& data, const Font6Glyph& glyph, int 
     }
 }
 
-static void DrawGlyphAA2_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA2_0(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -440,7 +429,7 @@ static void DrawGlyphAA2_0(DrawableData& data, const Font6Glyph& glyph, int x, i
     }
 }
 
-static void DrawGlyphAA2_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA2_90(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -466,7 +455,7 @@ static void DrawGlyphAA2_90(DrawableData& data, const Font6Glyph& glyph, int x, 
     }
 }
 
-static void DrawGlyphAA2_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA2_180(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -492,7 +481,7 @@ static void DrawGlyphAA2_180(DrawableData& data, const Font6Glyph& glyph, int x,
     }
 }
 
-static void DrawGlyphAA2_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA2_270(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -518,7 +507,7 @@ static void DrawGlyphAA2_270(DrawableData& data, const Font6Glyph& glyph, int x,
     }
 }
 
-static void DrawGlyphAA4_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA4_0(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -540,7 +529,7 @@ static void DrawGlyphAA4_0(DrawableData& data, const Font6Glyph& glyph, int x, i
     }
 }
 
-static void DrawGlyphAA4_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA4_90(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -562,7 +551,7 @@ static void DrawGlyphAA4_90(DrawableData& data, const Font6Glyph& glyph, int x, 
     }
 }
 
-static void DrawGlyphAA4_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA4_180(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -584,7 +573,7 @@ static void DrawGlyphAA4_180(DrawableData& data, const Font6Glyph& glyph, int x,
     }
 }
 
-static void DrawGlyphAA4_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA4_270(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v = 0, v2 = 0;
@@ -606,7 +595,7 @@ static void DrawGlyphAA4_270(DrawableData& data, const Font6Glyph& glyph, int x,
     }
 }
 
-static void DrawGlyphAA8_0(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA8_0(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -619,7 +608,7 @@ static void DrawGlyphAA8_0(DrawableData& data, const Font6Glyph& glyph, int x, i
     }
 }
 
-static void DrawGlyphAA8_90(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA8_90(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -632,7 +621,7 @@ static void DrawGlyphAA8_90(DrawableData& data, const Font6Glyph& glyph, int x, 
     }
 }
 
-static void DrawGlyphAA8_180(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA8_180(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -644,7 +633,7 @@ static void DrawGlyphAA8_180(DrawableData& data, const Font6Glyph& glyph, int x,
         }
     }
 }
-static void DrawGlyphAA8_270(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
+static void DrawGlyphAA8_270(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c)
 {
     const char* bitmap = glyph.bitmap;
     int v;
@@ -693,7 +682,7 @@ size_t Font6Renderer::numFaces() const
 void Font6Renderer::loadFont(const String& filename)
 {
     File file;
-    file.open(filename, File::READ);
+    file.open(filename, File::FileMode::READ);
     loadFont(file);
 }
 
@@ -829,163 +818,106 @@ void Font6Renderer::render(grafix::Drawable& draw, const Font& font, int x, int 
             return;
         }
     }
-    throw UnknownFontFaceException();
+    // throw UnknownFontFaceException();
 }
 
 static void getBlitter(const Font6Face& face,
                        const grafix::Drawable& draw,
                        int rotate,
-                       void (**BltGlyph)(RENDER_CONTEXT* context),
-                       void (**ErsatzGlyph)(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c))
+                       void (**BltGlyph)(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c))
 {
     *BltGlyph = NULL;
-    *ErsatzGlyph = NULL;
     switch (face.Pixelformat) {
     case 1: // Monochrom, 8 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            // BltGlyph=BltGlyph_M8_32;
-#endif
-            break;
-        };
         switch (rotate) {
         case 0:
-            *ErsatzGlyph = DrawGlyphMono8_0;
+            *BltGlyph = DrawGlyphMono8_0;
             break;
         case 90:
-            *ErsatzGlyph = DrawGlyphMono8_90;
+            *BltGlyph = DrawGlyphMono8_90;
             break;
         case 180:
-            *ErsatzGlyph = DrawGlyphMono8_180;
+            *BltGlyph = DrawGlyphMono8_180;
             break;
         case 270:
-            *ErsatzGlyph = DrawGlyphMono8_270;
+            *BltGlyph = DrawGlyphMono8_270;
             break;
         }
-
         break;
     case 2: // Monochrom, 1 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            // BltGlyph=BltGlyph_M1_32;
-#endif
-            break;
-        };
         switch (rotate) {
         case 0:
-            *ErsatzGlyph = DrawGlyphMono1_0;
+            *BltGlyph = DrawGlyphMono1_0;
             break;
         case 90:
-            *ErsatzGlyph = DrawGlyphMono1_90;
+            *BltGlyph = DrawGlyphMono1_90;
             break;
         case 180:
-            *ErsatzGlyph = DrawGlyphMono1_180;
+            *BltGlyph = DrawGlyphMono1_180;
             break;
         case 270:
-            *ErsatzGlyph = DrawGlyphMono1_270;
+            *BltGlyph = DrawGlyphMono1_270;
             break;
         }
         break;
     case 3: // Antialiased, 8 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            // BltGlyph=BltGlyph_AA8_32;
-#endif
-            break;
-        };
         switch (rotate) {
         case 0:
-            *ErsatzGlyph = DrawGlyphAA8_0;
+            *BltGlyph = DrawGlyphAA8_0;
             break;
         case 90:
-            *ErsatzGlyph = DrawGlyphAA8_90;
+            *BltGlyph = DrawGlyphAA8_90;
             break;
         case 180:
-            *ErsatzGlyph = DrawGlyphAA8_180;
+            *BltGlyph = DrawGlyphAA8_180;
             break;
         case 270:
-            *ErsatzGlyph = DrawGlyphAA8_270;
+            *BltGlyph = DrawGlyphAA8_270;
             break;
         }
-
         break;
     case 4: // Antialiased, 2 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            // BltGlyph=BltGlyph_AA2_32;
-#endif
-            break;
-        };
         switch (rotate) {
         case 0:
-            *ErsatzGlyph = DrawGlyphAA2_0;
+            *BltGlyph = DrawGlyphAA2_0;
             break;
         case 90:
-            *ErsatzGlyph = DrawGlyphAA2_90;
+            *BltGlyph = DrawGlyphAA2_90;
             break;
         case 180:
-            *ErsatzGlyph = DrawGlyphAA2_180;
+            *BltGlyph = DrawGlyphAA2_180;
             break;
         case 270:
-            *ErsatzGlyph = DrawGlyphAA2_270;
+            *BltGlyph = DrawGlyphAA2_270;
             break;
         }
         break;
     case 5: // Antialiased, 4 Bit pro Pixel
-        switch (draw.rgbformat()) {
-        case RGBFormat::X8R8G8B8:
-        case RGBFormat::X8B8G8R8:
-        case RGBFormat::A8R8G8B8:
-        case RGBFormat::A8B8G8R8:
-#ifdef HAVE_X86_ASSEMBLER
-            // BltGlyph=BltGlyph_AA4_32;
-#endif
-            break;
-        };
         switch (rotate) {
         case 0:
-            *ErsatzGlyph = DrawGlyphAA4_0;
+            *BltGlyph = DrawGlyphAA4_0;
             break;
         case 90:
-            *ErsatzGlyph = DrawGlyphAA4_90;
+            *BltGlyph = DrawGlyphAA4_90;
             break;
         case 180:
-            *ErsatzGlyph = DrawGlyphAA4_180;
+            *BltGlyph = DrawGlyphAA4_180;
             break;
         case 270:
-            *ErsatzGlyph = DrawGlyphAA4_270;
+            *BltGlyph = DrawGlyphAA4_270;
             break;
         }
         break;
-    default:
-        throw InvalidFontException();
     };
 }
 
 void Font6Renderer::renderInternal(
     const Font6Face& face, grafix::Drawable& draw, const Font& font, int x, int y, const WideString& text, const Color& color)
 {
-    DrawableData* data = draw.getData();
+    const DrawableData& data = draw.getData();
     const Font6Glyph *glyph = NULL, *previous = NULL;
-    RENDER_CONTEXT rc;
-    void (*BltGlyph)(RENDER_CONTEXT* context) = NULL;
-    void (*ErsatzGlyph)(DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c) = NULL;
+    // RENDER_CONTEXT rc;
+    void (*BltGlyph)(const DrawableData& data, const Font6Glyph& glyph, int x, int y, SurfaceColor c) = NULL;
     int startx = x;
     int starty = y;
     int lastx = x;
@@ -994,8 +926,9 @@ void Font6Renderer::renderInternal(
     int rotate = (int)font.rotation();
     size_t textlen = text.len();
     size_t p = 0;
-    getBlitter(face, draw, rotate, &BltGlyph, &ErsatzGlyph);
-    rc.color = draw.rgb(color);
+    getBlitter(face, draw, rotate, &BltGlyph);
+    SurfaceColor nativeColor = draw.toNativeColor(color);
+    // rc.color = draw.toNativeColor(color);
     if (font.orientation() == Font::TOP) {
         lasty += face.MaxBearingY;
     }
@@ -1041,7 +974,7 @@ void Font6Renderer::renderInternal(
             }
         } else {
             glyph = face.getGlyph(code);
-            if (glyph == NULL || (BltGlyph == NULL && ErsatzGlyph == NULL)) {
+            if (glyph == NULL || BltGlyph == NULL) {
                 x = lastx;
                 y = lasty;
                 draw.drawRect(x, y - face.MaxBearingY, x + 4, y, font.color());
@@ -1053,25 +986,25 @@ void Font6Renderer::renderInternal(
                 case 0:
                     x = lastx + glyph->bearingX + kerningx;
                     y = lasty - glyph->bearingY;
-                    ErsatzGlyph(*data, *glyph, x, y, rc.color);
+                    BltGlyph(data, *glyph, x, y, nativeColor);
                     lastx += glyph->advance + kerningx;
                     break;
                 case 90:
                     x = lastx + glyph->bearingY;
                     y = lasty + glyph->bearingX + kerningx;
-                    ErsatzGlyph(*data, *glyph, x, y, rc.color);
+                    BltGlyph(data, *glyph, x, y, nativeColor);
                     lasty += glyph->advance + kerningx;
                     break;
                 case 180:
                     x = lastx - glyph->bearingX - kerningx;
                     y = lasty + glyph->bearingY;
-                    ErsatzGlyph(*data, *glyph, x, y, rc.color);
+                    BltGlyph(data, *glyph, x, y, nativeColor);
                     lastx -= glyph->advance + kerningx;
                     break;
                 case 270:
                     x = lastx - glyph->bearingY;
                     y = lasty - glyph->bearingX - kerningx;
-                    ErsatzGlyph(*data, *glyph, x, y, rc.color);
+                    BltGlyph(data, *glyph, x, y, nativeColor);
                     lasty -= glyph->advance + kerningx;
                     break;
                 }
@@ -1185,12 +1118,7 @@ String FontEngineFont6::description() const
     return "Rendering of PPLib Version 6 Fonts";
 }
 
-void FontEngineFont6::init()
-{
-    // Es gibt nichts zu tun
-}
-
-int FontEngineFont6::ident(FileObject& file) throw()
+bool FontEngineFont6::ident(FileObject& file) noexcept
 {
     PFPFile ff;
     if (!ff.ident(file)) return 0;
@@ -1255,5 +1183,4 @@ Rect FontEngineFont6::boundary(const FontFile& file, const Font& font, const Wid
     return render->boundary(font, text, x, y);
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

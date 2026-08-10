@@ -53,8 +53,7 @@ PPLIBEXCEPTION(EmptyDrawableException, Exception);
 PPLIBEXCEPTION(UnknownBltMethodException, Exception);
 
 PPLIBEXCEPTION(FunctionUnavailableException, Exception);
-PPLIBEXCEPTION(InvalidImageSizeException, Exception);
-PPLIBEXCEPTION(UnknownImageFormatException, Exception);
+
 PPLIBEXCEPTION(InvalidSpriteException, Exception);
 
 } // namespace grafix

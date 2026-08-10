@@ -32,8 +32,19 @@
 
 #include <stdint.h>
 
+#include <pplib/types/bytearray.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/types/string.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/core/baseexception.h>
+#include <pplib/grafix/rgbformat.h>
+#include <pplib/grafix/drawable.h>
+
 namespace pplib::grafix
 {
+
+PPLIBEXCEPTION(InvalidImageSizeException, Exception);
+PPLIBEXCEPTION(UnknownImageFormatException, Exception);
 class Image : public Drawable
 {
 private:
@@ -45,6 +56,7 @@ public:
     //@{
     Image();
     Image(const Image& other);
+    Image(Image&& other) noexcept;
     Image(const Drawable& other);
     Image(int width, int height, const RGBFormat& format = RGBFormat::A8R8G8B8);
     Image(const String& Filename, const RGBFormat& format = RGBFormat::unknown);
@@ -56,7 +68,7 @@ public:
     /** @name Verschiedenes
      */
     //@{
-    void clear();
+    void clear() noexcept;
     void create(int width, int height, const RGBFormat& format = RGBFormat::A8R8G8B8);
     void create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format = RGBFormat::A8R8G8B8);
     void load(const String& Filename, const RGBFormat& format = RGBFormat::unknown);
@@ -67,6 +79,7 @@ public:
     void copy(const Image& other);
     Image& operator=(const Drawable& other);
     Image& operator=(const Image& other);
+    Image& operator=(Image&& other);
     size_t numBytes() const;
     ByteArrayPtr memory() const;
     operator ByteArrayPtr() const;

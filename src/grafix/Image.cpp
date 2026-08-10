@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,29 +22,18 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
+#include <pplib/core/file.h>
+#include <pplib/core/memfile.h>
+#include <pplib/grafix/image.h>
+#include <pplib/grafix/grafix.h>
+#include <pplib/grafix/imagefilter.h>
 
-#include "pplib.h"
-#include "pplib-grafix.h"
-// #include "grafix6.h"
-
-namespace pplib
-{
-namespace grafix
+namespace pplib::grafix
 {
 
 /*!\class Image
@@ -101,9 +85,14 @@ Image::Image()
  * @param other Anderes Image
  */
 Image::Image(const Image& other)
-    : Drawable()
 {
     copy(other);
+}
+
+Image::Image(Image&& other) noexcept
+    : Drawable(std::move(other)),
+      myMemory(std::move(other.myMemory))
+{
 }
 
 /*!\brief Copy-Konstruktor
@@ -154,7 +143,7 @@ Image::Image(const String& Filename, const RGBFormat& format)
     : Drawable()
 {
     File ff;
-    ff.open(Filename, File::READ);
+    ff.open(Filename, File::FileMode::READ);
     load(ff, format);
 }
 
@@ -211,11 +200,10 @@ Image::~Image()
  * freigegeben. Es darf anschließend nicht mehr für Zeichenoperationen verwendet
  * werden. Mit Image::create kann es reinitialisiert werden.
  */
-void Image::clear()
+void Image::clear() noexcept
 {
+    Drawable::clear();
     myMemory.clear();
-    fn = NULL;
-    clearDrawableData();
 }
 
 /*!\brief Grafik von einem Drawable kopieren
@@ -228,21 +216,19 @@ void Image::clear()
  */
 void Image::copy(const Drawable& other)
 {
-    clearDrawableData();
-    fn = NULL;
+    clear();
     if (other.isEmpty()) return;
     // Das andere Drawable kann auch einen Ausschnitt aus einem größeren Bild
     // repräsentieren, daher kopieren wir die Pixeldaten Zeilenweise
-    size_t size = other.data.width * other.data.height * (other.data.rgbformat.bitdepth() / 8);
-    if (!size) throw EmptyDrawableException();
+    size_t size = other.data.height * other.data.rgbformat.bytesForWidth(other.data.width);
+
+    if (!size) return;
     data.base = myMemory.malloc(size);
-    if (!data.base) throw OutOfMemoryException();
     data.fn = other.data.fn;
-    fn = other.fn;
     data.width = other.data.width;
     data.height = other.data.height;
     data.rgbformat = other.data.rgbformat;
-    data.pitch = data.width * (data.rgbformat.bitdepth() / 8);
+    data.pitch = other.data.rgbformat.bytesForWidth(data.width);
     // Jetzt die Pixel kopieren
     uint8_t* qq = other.data.base8;
     uint8_t* tt = data.base8;
@@ -251,6 +237,23 @@ void Image::copy(const Drawable& other)
         qq += other.data.pitch;
         tt += data.pitch;
     }
+}
+
+/*!\brief Grafik kopieren
+ *
+ * \desc
+ * Grafik von einem anderen Image kopieren.
+ *
+ * @param other Anderes Image
+ * @return Im Erfolgsfall gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+void Image::copy(const Image& other)
+{
+    clear();
+    if (other.isEmpty()) return;
+    myMemory = other.myMemory;
+    Drawable::create((void*)myMemory.adr(), other.rgbformat().bytesForWidth(other.width()), other.width(), other.height(),
+                     other.rgbformat());
 }
 
 /*!\brief Grafikausschnitt von einem Drawable kopieren
@@ -264,28 +267,7 @@ void Image::copy(const Drawable& other)
  */
 void Image::copy(const Drawable& other, const Rect& rect)
 {
-    copy(Drawable(other, rect));
-}
-
-/*!\brief Grafik kopieren
- *
- * \desc
- * Grafik von einem anderen Image kopieren.
- *
- * @param other Anderes Image
- * @return Im Erfolgsfall gibt die Funktion 1 zurück, im Fehlerfall 0.
- */
-void Image::copy(const Image& other)
-{
-    clearDrawableData();
-    fn = NULL;
-    if (other.isEmpty()) return;
-    if (!myMemory.copy(other.myMemory)) {
-        throw OutOfMemoryException();
-    }
-    copyDrawableData(other.data);
-    fn = other.fn;
-    data.base = (void*)myMemory.adr();
+    copy(other.getDrawable(rect));
 }
 
 /*!\brief Neues Image erstellen
@@ -301,26 +283,10 @@ void Image::copy(const Image& other)
  */
 void Image::create(int width, int height, const RGBFormat& format)
 {
-    if (data.width == width && data.height == height && data.rgbformat == format) {
-        myMemory.memset(0);
-        return;
-    }
-    fn = NULL;
-    clearDrawableData();
-    myMemory.free();
-
-    if (format == RGBFormat::unknown || format >= RGBFormat::MaxIdentifiers) {
-        throw UnknownColorFormatException();
-    }
     if (width > 65535 || height > 65535 || width < 1 || height < 1) throw InvalidImageSizeException();
-    size_t size = width * height * (format.bytesPerPixel());
-    data.base = myMemory.calloc(size);
-    if (!data.base) throw OutOfMemoryException();
-    data.pitch = width * (format.bitdepth() / 8);
-    data.rgbformat = format;
-    data.width = width;
-    data.height = height;
-    initFunctions(data.rgbformat);
+    size_t bytes = height * format.bytesForWidth(width);
+    void* data = myMemory.calloc(bytes);
+    Drawable::create(data, format.bytesForWidth(width), width, height, format);
 }
 
 /*!\brief Neues Image aus einem Speicherbereich erstellen
@@ -355,7 +321,7 @@ void Image::create(void* base, uint32_t pitch, int width, int height, const RGBF
 void Image::load(const String& Filename, const RGBFormat& format)
 {
     File ff;
-    ff.open(Filename, File::READ);
+    ff.open(Filename, File::FileMode::READ);
     load(ff, format);
 }
 
@@ -387,12 +353,11 @@ void Image::load(const ByteArrayPtr& Mem, const RGBFormat& format)
  */
 void Image::load(FileObject& file, const RGBFormat& format)
 {
-    Grafix* gfx = GetGrafix();
+    Grafix& gfx = GetGrafix();
     IMAGE img;
-    ImageFilter* filter = gfx->findImageFilter(file, img);
+    ImageFilter* filter = gfx.findImageFilter(file, img);
     if (!filter) throw UnknownImageFormatException();
     if (format != RGBFormat::unknown) img.format = format;
-
     create(img.width, img.height, img.format);
     filter->load(file, *this, img);
 }
@@ -437,6 +402,15 @@ Image& Image::operator=(const Image& other)
     return *this;
 }
 
+Image& Image::operator=(Image&& other)
+{
+    if (this != &other) {
+        Drawable::operator=(std::move(other));
+        myMemory = std::move(other.myMemory);
+    }
+    return *this;
+}
+
 /*!\brief Referenz auf den Speicherbereich der Grafik holen
  *
  * \desc
@@ -463,5 +437,4 @@ Image::operator ByteArrayPtr() const
     return myMemory;
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

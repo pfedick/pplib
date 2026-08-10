@@ -32,6 +32,8 @@
 
 #include <stdint.h>
 
+#include <pplib/grafix/image.h>
+
 namespace pplib::grafix
 {
 class ImageList : public Image

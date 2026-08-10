@@ -399,7 +399,7 @@ void Grafix::listFonts() noexcept
     }
 }
 
-FontFile* Grafix::findFont(const Font& font)
+FontFile* Grafix::findFont(const Font& font) noexcept
 {
     return findFont(font.name());
 }
@@ -477,9 +477,9 @@ FontEngine::~FontEngine()
 {
 }
 
-int FontEngine::ident(FileObject& ff) throw()
+bool FontEngine::ident(FileObject& ff) throw()
 {
-    return 0;
+    return false;
 }
 
 FontFile* FontEngine::loadFont(FileObject& ff, const String& fontname)

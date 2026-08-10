@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,32 +22,30 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_MATH_H
-#include <math.h>
-#endif
-
-#include "pplib.h"
-#include "pplib-grafix.h"
+#include <stdint.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
+#include <pplib/core/pfpfile.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/mutex.h>
+#include <pplib/grafix/fonts.h>
+#include <pplib/grafix/drawable.h>
+#include <config_pplib.h>
 
 #ifdef HAVE_FREETYPE2
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #endif
+
+namespace pplib::grafix
+{
 
 // #undef HAVE_X86_ASSEMBLER
 
@@ -64,20 +57,6 @@ typedef struct tagGLYPH
     uint32_t pitch;
     int32_t color;
 } GLYPH;
-
-extern "C"
-{
-    int BltGlyph_M8_32(GLYPH* g);
-    int BltGlyph_M1_32(GLYPH* g);
-    int BltGlyph_AA8_32(GLYPH* g);
-    int BltGlyph_AA2_32(GLYPH* g);
-    int BltGlyph_AA4_32(GLYPH* g);
-}
-
-namespace pplib
-{
-namespace grafix
-{
 
 /*!\class FontEngineFreeType
  * \ingroup PPLGroupGrafik
@@ -91,6 +70,7 @@ namespace grafix
  */
 
 #ifdef HAVE_FREETYPE2
+
 typedef struct tagFreeTypeEngineData
 {
     FT_Library ftlib;
@@ -108,16 +88,24 @@ FontEngineFreeType::FontEngineFreeType()
 {
     ft = NULL;
 #ifdef HAVE_FREETYPE2
+    FREETYPE_ENGINE_DATA* f = new FREETYPE_ENGINE_DATA;
+    int error = FT_Init_FreeType(&f->ftlib);
+    if (error) {
+        delete f;
+        throw FontEngineInitializationException();
+    }
+    ft = f;
 #endif
 }
 
 FontEngineFreeType::~FontEngineFreeType()
 {
 #ifdef HAVE_FREETYPE2
-    FREETYPE_ENGINE_DATA* f = (FREETYPE_ENGINE_DATA*)ft;
-    if (f) {
+    if (ft) {
+        FREETYPE_ENGINE_DATA* f = (FREETYPE_ENGINE_DATA*)ft;
         FT_Done_FreeType(f->ftlib);
-        free(f);
+        delete f;
+        ft = NULL;
     }
 #endif
 }
@@ -132,37 +120,19 @@ String FontEngineFreeType::description() const
     return "Rendering of TrueType and OpenType fonts";
 }
 
-void FontEngineFreeType::init()
-{
-#ifndef HAVE_FREETYPE2
-    throw UnsupportedFeatureException("Freetype2");
-#else
-    if (ft) return;
-    FREETYPE_ENGINE_DATA* f = (FREETYPE_ENGINE_DATA*)malloc(sizeof(FREETYPE_ENGINE_DATA));
-    if (!f) throw OutOfMemoryException();
-    int error = FT_Init_FreeType(&f->ftlib);
-    if (error) {
-        free(f);
-        throw FontEngineInitializationException();
-    }
-    ft = f;
-#endif
-}
-
-int FontEngineFreeType::ident(FileObject& file) throw()
+bool FontEngineFreeType::ident(FileObject& file) throw()
 {
 #ifndef HAVE_FREETYPE2
     return 0;
 #else
-    FREETYPE_ENGINE_DATA* f = (FREETYPE_ENGINE_DATA*)ft;
-    if (!f) return 0;
+    if (!ft) return false;
     const FT_Byte* buffer = (const FT_Byte*)file.map();
     size_t size = file.size();
     FT_Face face;
-    int error = FT_New_Memory_Face(f->ftlib, buffer, (FT_Long)size, 0, &face);
-    if (error != 0) return 0;
+    int error = FT_New_Memory_Face(static_cast<FREETYPE_ENGINE_DATA*>(ft)->ftlib, buffer, (FT_Long)size, 0, &face);
+    if (error != 0) return false;
     FT_Done_Face(face);
-    return 1;
+    return true;
 #endif
 }
 
@@ -171,13 +141,12 @@ FontFile* FontEngineFreeType::loadFont(FileObject& file, const String& fontname)
 #ifndef HAVE_FREETYPE2
     throw UnsupportedFeatureException("Freetype2");
 #else
-    FREETYPE_ENGINE_DATA* f = (FREETYPE_ENGINE_DATA*)ft;
-    if (!f) throw FontEngineUninitializedException();
+    if (!ft) throw FontEngineUninitializedException();
     FREETYPE_FACE_DATA* face = (FREETYPE_FACE_DATA*)malloc(sizeof(FREETYPE_FACE_DATA));
     if (!face) throw OutOfMemoryException();
     face->buffer = (FT_Byte*)file.load();
     size_t size = file.size();
-    int error = FT_New_Memory_Face(f->ftlib, face->buffer, (FT_Long)size, 0, &face->face);
+    int error = FT_New_Memory_Face(static_cast<FREETYPE_ENGINE_DATA*>(ft)->ftlib, face->buffer, (FT_Long)size, 0, &face->face);
     if (error != 0) {
         free(face->buffer);
         free(face);
@@ -213,37 +182,14 @@ void FontEngineFreeType::deleteFont(FontFile* file)
 }
 
 #ifdef HAVE_FREETYPE2
-static void putPixel(Drawable& draw, int x, int y, const Color& color, int intensity)
-{
-    Color vg = color;
-    Color bg = draw.getPixel(x, y);
-    int a = vg.alpha() * intensity / 255;
-    if (a == 0) return;
-    if (a == 255) {
-        vg.setAlpha(255);
-        draw.putPixel(x, y, vg);
-        return;
-    }
-
-    int reva = 255 - a;
-    int red = (bg.red() * reva + vg.red() * a) / 255;
-    int green = (bg.green() * reva + vg.green() * a) / 255;
-    int blue = (bg.blue() * reva + vg.blue() * a) / 255;
-    // int alpha=(bg.alpha() * reva + vg.alpha() * a) / 255;
-    int alpha = bg.alpha() + (255 - bg.alpha()) * a / 255;
-    draw.putPixel(x, y, Color(red, green, blue, alpha));
-}
-
 static void renderGlyphAA(Drawable& draw, FT_Bitmap* bitmap, int x, int y, const Color& color)
 {
-    uint8_t v = 0;
     uint8_t* glyph = (uint8_t*)bitmap->buffer;
     for (unsigned int gy = 0; gy < (unsigned int)bitmap->rows; gy++) {
         for (unsigned int gx = 0; gx < (unsigned int)bitmap->width; gx++) {
-            v = glyph[gx];
+            uint8_t v = glyph[gx];
             if (v > 0) {
-                putPixel(draw, x + gx, y + gy, color, v);
-                // draw.blendPixel(x+gx,y+gy,color,v);
+                draw.blendPixel(x + gx, y + gy, color, v);
             }
         }
         glyph += bitmap->pitch;
@@ -252,9 +198,9 @@ static void renderGlyphAA(Drawable& draw, FT_Bitmap* bitmap, int x, int y, const
 
 static void renderGlyphMono(Drawable& draw, FT_Bitmap* bitmap, int x, int y, const Color& color)
 {
-    uint8_t v = 0;
     uint8_t* glyph = (uint8_t*)bitmap->buffer;
     for (unsigned int gy = 0; gy < (unsigned int)bitmap->rows; gy++) {
+        uint8_t v = 0;
         uint8_t bitcount = 0;
         uint8_t bytecount = 0;
         for (unsigned int gx = 0; gx < (unsigned int)bitmap->width; gx++) {
@@ -264,8 +210,7 @@ static void renderGlyphMono(Drawable& draw, FT_Bitmap* bitmap, int x, int y, con
                 bytecount++;
             }
             if (v & 128) {
-                putPixel(draw, x + gx, y + gy, color, 255);
-                // draw.alphaPixel(x+gx,y+gy,color);
+                draw.alphaPixel(x + gx, y + gy, color);
             }
             v = v << 1;
             bitcount--;
@@ -412,5 +357,4 @@ Size FontEngineFreeType::measure(const FontFile& file, const Font& font, const W
 #endif
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

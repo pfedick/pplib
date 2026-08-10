@@ -80,6 +80,16 @@ const DrawableData& Drawable::getData() const
     return data;
 }
 
+void Drawable::clear() noexcept
+{
+    data.fn = nullptr;
+    data.base = nullptr;
+    data.pitch = 0;
+    data.width = 0;
+    data.height = 0;
+    data.rgbformat = RGBFormat::unknown;
+}
+
 void Drawable::copy(const Drawable& other)
 {
     data.fn = other.data.fn;

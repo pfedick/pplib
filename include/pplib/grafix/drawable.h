@@ -196,6 +196,13 @@ public:
      */
     //@{
 
+    /** @brief Drawable zurücksetzen
+     *
+     * Mit dieser Funktion wird das Drawable zurückgesetzt. Alle internen Daten werden auf
+     * ihre Standardwerte gesetzt, und das Drawable ist nicht mehr initialisiert.
+     */
+    void clear() noexcept;
+
     /** @brief Pointer auf die Grafik-Funktionen für das Farbformat dieses Drawable holen
      *
      * Diese Funktion liefert einen Pointer auf die Grafik-Funktionen für das Farbformat

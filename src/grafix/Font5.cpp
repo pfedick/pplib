@@ -174,7 +174,7 @@ String FontEngineFont5::description() const
     return "Rendering of PPLib Version 5 Fonts";
 }
 
-int FontEngineFont5::ident(FileObject& file) throw()
+bool FontEngineFont5::ident(FileObject& file) throw()
 {
     PFPFile ff;
     if (!ff.ident(file)) return 0;

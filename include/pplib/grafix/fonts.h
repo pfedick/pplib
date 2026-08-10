@@ -167,7 +167,7 @@ public:
     FontEngine();
     virtual ~FontEngine();
 
-    virtual int ident(FileObject& file) throw();
+    virtual bool ident(FileObject& file) noexcept;
     virtual FontFile* loadFont(FileObject& file, const String& fontname);
     virtual void deleteFont(FontFile* file);
     virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
@@ -185,14 +185,14 @@ private:
 
 public:
     FontEngineFont5();
-    virtual ~FontEngineFont5();
-    virtual int ident(FileObject& file) throw();
-    virtual FontFile* loadFont(FileObject& file, const String& fontname);
-    virtual void deleteFont(FontFile* file);
-    virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
-    virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
-    virtual String name() const;
-    virtual String description() const;
+    ~FontEngineFont5();
+    bool ident(FileObject& file) noexcept override;
+    FontFile* loadFont(FileObject& file, const String& fontname) override;
+    void deleteFont(FontFile* file) override;
+    void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color) override;
+    Size measure(const FontFile& file, const Font& font, const WideString& text) override;
+    String name() const override;
+    String description() const override;
 };
 
 class FontEngineFont6 : public FontEngine
@@ -200,15 +200,15 @@ class FontEngineFont6 : public FontEngine
 private:
 public:
     FontEngineFont6();
-    virtual ~FontEngineFont6();
-    virtual int ident(FileObject& file) throw();
-    virtual FontFile* loadFont(FileObject& file, const String& fontname);
-    virtual void deleteFont(FontFile* file);
-    virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
-    virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
-    virtual Rect boundary(const FontFile& file, const Font& font, const WideString& text, int x, int y);
-    virtual String name() const;
-    virtual String description() const;
+    ~FontEngineFont6();
+    bool ident(FileObject& file) noexcept override;
+    FontFile* loadFont(FileObject& file, const String& fontname) override;
+    void deleteFont(FontFile* file) override;
+    void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color) override;
+    Size measure(const FontFile& file, const Font& font, const WideString& text) override;
+    Rect boundary(const FontFile& file, const Font& font, const WideString& text, int x, int y) override;
+    String name() const override;
+    String description() const override;
 };
 
 class FontEngineFreeType : public FontEngine
@@ -218,14 +218,14 @@ private:
 
 public:
     FontEngineFreeType();
-    virtual ~FontEngineFreeType();
-    virtual int ident(FileObject& file) throw();
-    virtual FontFile* loadFont(FileObject& file, const String& fontname);
-    virtual void deleteFont(FontFile* file);
-    virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
-    virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
-    virtual String name() const;
-    virtual String description() const;
+    ~FontEngineFreeType();
+    bool ident(FileObject& file) noexcept override;
+    FontFile* loadFont(FileObject& file, const String& fontname) override;
+    void deleteFont(FontFile* file) override;
+    void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color) override;
+    Size measure(const FontFile& file, const Font& font, const WideString& text) override;
+    String name() const override;
+    String description() const override;
 };
 
 } // namespace pplib::grafix
