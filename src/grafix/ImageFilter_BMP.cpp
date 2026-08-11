@@ -121,9 +121,9 @@ bool ImageFilter_BMP::ident(FileObject& file, IMAGE& img) noexcept
                     return false;
                 }
                 img.pitch = img.width * img.bitdepth / 8;
-                if (img.bitdepth == 24) {
-                    if ((img.pitch & 3) != 0) img.pitch = ((img.pitch + 3) / 4) * 4;
-                }
+                // Pitch auf 4-Byte-Grenze runden
+                img.pitch = ((img.pitch + 3) / 4) * 4;
+
                 if (img.bitdepth == 8) {
                     img.colors = 256;
                     img.format = RGBFormat::Palette;
@@ -142,7 +142,7 @@ bool ImageFilter_BMP::ident(FileObject& file, IMAGE& img) noexcept
     }
     catch (...) {
     }
-    return 0;
+    return false;
 }
 
 void ImageFilter_BMP::load(FileObject& file, Drawable& surface, IMAGE& img)
@@ -183,7 +183,7 @@ void ImageFilter_BMP::load(FileObject& file, Drawable& surface, IMAGE& img)
             // Surface hat eine hoehere Bittiefe, jeder Pixel muss
             // umgerechnet werden
             b1 = b1 + img.height * sourcebytesperline;
-            RGBQUAD* basergbq = (RGBQUAD*)(address + 18 + 36) - 1;
+            RGBQUAD* basergbq = (RGBQUAD*)(address + 18 + 36);
             // Debug.Printf ("basergbq=%u\n",basergbq);
 
             for (int y = 0; y < img.height; y++) {
