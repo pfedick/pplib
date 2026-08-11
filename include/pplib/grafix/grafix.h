@@ -142,20 +142,6 @@ public:
      */
     void unloadImageFilter(ImageFilter* filter) noexcept;
 
-    /** @brief Filter anhand seines Namens finden
-     *
-     * Jeder Filter muss einen eindeutigen Namen haben. Mit dieser Funktion kann ein
-     * registrierter Filter anhand seines Namens gefunden werden.
-     *
-     * @param[in] name String mit dem Namen des gesuchten Filters
-     * @return Bei Erfolg liefert die Funktion einen Pointer auf den gefundenen Filter
-     * zurück, im Fehlerfall einen nullptr.
-     *
-     * @exception
-     * UnknownImageFormatException
-     */
-    ImageFilter* findImageFilter(const String& name) noexcept;
-
     /** @brief Filter anhand des Inhalts einer geöffneten Datei finden
      *
      * Mit dieser Funktion kann ein registrierter Filter anhand des Inhalts einer

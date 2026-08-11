@@ -28,6 +28,7 @@
  *******************************************************************************/
 #include <string.h>
 #include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
 #include <pplib/core/functions.h>
 #include <pplib/grafix/image.h>
 #include <pplib/grafix/grafix.h>
@@ -93,16 +94,6 @@ ImageFilter_PNG::~ImageFilter_PNG()
 {
 }
 
-String ImageFilter_PNG::name() const
-{
-    return "png";
-}
-
-String ImageFilter_PNG::description() const
-{
-    return "Filter for Portable Network Graphics (PNG)";
-}
-
 bool ImageFilter_PNG::ident(FileObject& file, IMAGE& img) noexcept
 {
 #ifdef HAVE_PNG
@@ -127,6 +118,11 @@ bool ImageFilter_PNG::ident(FileObject& file, IMAGE& img) noexcept
             png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
             return 0;
         }
+        if (setjmp(png_jmpbuf(png_ptr))) {
+            png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+            return 0;
+        }
+
         png_set_read_fn(png_ptr, &file, (png_rw_ptr)user_read_data);
         // png_set_write_fn(png_structp write_ptr, voidp write_io_ptr, png_rw_ptr write_data_fn,
         //     png_flush_ptr output_flush_fn);
@@ -207,6 +203,11 @@ void ImageFilter_PNG::load(FileObject& file, Drawable& surface, IMAGE& img)
     png_infop end_info = png_create_info_struct(png_ptr);
     if (!end_info) {
         png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+        throw IllegalImageFormatException();
+    }
+
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
         throw IllegalImageFormatException();
     }
 
@@ -336,58 +337,75 @@ void ImageFilter_PNG::load(FileObject& file, Drawable& surface, IMAGE& img)
 #endif
 }
 
-void ImageFilter_PNG::save(const Drawable& surface, FileObject& file, const AssocArray& param)
+void ImageFilter_PNG::saveFile(const String& filename, const Drawable& surface, ColorType color_type, Compression compression) const
+{
+    File ff;
+    ff.open(filename, File::FileMode::WRITE);
+    save(surface, ff, color_type, compression);
+}
+
+void ImageFilter_PNG::save(const Drawable& surface, FileObject& file, ColorType color_type, Compression compression) const
 {
 #ifdef HAVE_PNG
-    Color farbe;
-    int pitch, colortype;
-    // int r,g,b,a;
-    int width, height;
-    png_byte* buffer;
-    png_color pc[256];
-    // RGBA	rgb;
 
     if (surface.isEmpty()) throw EmptyImageException();
 
     file.seek(0);
-    width = surface.width();
-    height = surface.height();
+    int width = surface.width();
+    int height = surface.height();
 
-    pitch = colortype = 0;
-    int png_color_type = PNG_COLOR_TYPE_GRAY;
+    if (color_type == ColorType::Auto) {
+        RGBFormat fmt = surface.rgbformat();
+        if (fmt == RGBFormat::GREY8 || fmt == RGBFormat::A8) {
+            color_type = ColorType::Gray;
+        } else if (fmt == RGBFormat::GREY8_ALPHA8) {
+            color_type = ColorType::GrayAlpha;
+        } else if (fmt == RGBFormat::A8R8G8B8 || fmt == RGBFormat::R8G8B8A8 || fmt == RGBFormat::A8B8G8R8 || fmt == RGBFormat::B8G8R8A8) {
+            color_type = ColorType::RGBA;
+        } else {
+            color_type = ColorType::RGB;
+        }
+    }
+
     int compression_level = Z_BEST_COMPRESSION;
-    RGBFormat srgb = surface.rgbformat();
-    if (srgb == RGBFormat::A8R8G8B8) png_color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+    switch (compression) {
+    case Compression::Default:
+        compression_level = Z_DEFAULT_COMPRESSION;
+        break;
+    case Compression::None:
+        compression_level = Z_NO_COMPRESSION;
+        break;
+    case Compression::Fast:
+        compression_level = Z_BEST_SPEED;
+        break;
+    case Compression::Best:
+        compression_level = Z_BEST_COMPRESSION;
+        break;
+    }
 
-    if (param.exists("colortype")) png_color_type = param.getString("colortype").toInt();
-    if (!png_color_type) png_color_type = PNG_COLOR_TYPE_RGB;
-
-    switch (png_color_type) {
-    case PNG_COLOR_TYPE_GRAY:
-        colortype = PNG_COLOR_TYPE_GRAY;
-        pitch = width * 1;
+    int png_color_type = PNG_COLOR_TYPE_RGB;
+    int bpp = 3;
+    switch (color_type) {
+    case ColorType::Gray:
+        png_color_type = PNG_COLOR_TYPE_GRAY;
+        bpp = 1;
         break;
-    case PNG_COLOR_TYPE_PALETTE:
-        colortype = PNG_COLOR_TYPE_PALETTE;
-        pitch = width * 1;
+    case ColorType::GrayAlpha:
+        png_color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
+        bpp = 2;
         break;
-    case PNG_COLOR_TYPE_RGB:
-        colortype = PNG_COLOR_TYPE_RGB;
-        pitch = width * 3;
+    case ColorType::RGB:
+        png_color_type = PNG_COLOR_TYPE_RGB;
+        bpp = 3;
         break;
-    case PNG_COLOR_TYPE_RGB_ALPHA:
-        colortype = PNG_COLOR_TYPE_RGB_ALPHA;
-        pitch = width * 4;
-        break;
-    case PNG_COLOR_TYPE_GRAY_ALPHA:
-        colortype = PNG_COLOR_TYPE_GRAY_ALPHA;
-        pitch = width * 2;
+    case ColorType::RGBA:
+        png_color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+        bpp = 4;
         break;
     default:
-        colortype = PNG_COLOR_TYPE_RGB;
-        pitch = width * 3;
         break;
-    };
+    }
+    int pitch = width * bpp;
 
     png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (!png_ptr) throw OperationFailedException("ImageFilter_PNG::save");
@@ -409,120 +427,63 @@ void ImageFilter_PNG::save(const Drawable& surface, FileObject& file, const Asso
 
     png_set_compression_level(png_ptr, compression_level);
 
-    png_set_IHDR(png_ptr, info_ptr, width, height, 8, colortype, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+    png_set_IHDR(png_ptr, info_ptr, width, height, 8, png_color_type, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT,
+                 PNG_FILTER_TYPE_DEFAULT);
 
-    buffer = (png_byte*)png_malloc(png_ptr, pitch);
+    png_byte* buffer = (png_byte*)png_malloc(png_ptr, pitch);
     if (!buffer) {
         png_destroy_write_struct(&png_ptr, &info_ptr);
         throw OutOfMemoryException();
     }
-    if (buffer != NULL) {
-        // png_write_row(png_ptr, row_pointer);
-        int bpp;
-        switch (colortype) {
-        case PNG_COLOR_TYPE_PALETTE:
-            bpp = 1;
-            if (surface.rgbformat() == RGBFormat::Palette) { // Surface verwendet Palette
-                for (int i = 0; i < 256; i++) {
-                    // TODO:
-                    // surface->GetColor(i,&rgb);
-                    // pc[i].red=rgb.red;
-                    // pc[i].green=rgb.green;
-                    // pc[i].blue=rgb.blue;
-                }
-                png_set_PLTE(png_ptr, info_ptr, &pc[0], 256);
-                png_write_info(png_ptr, info_ptr);
-                // png_write_PLTE (png_ptr, &pc[0],256);
 
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        farbe = surface.getPixel(x, y);
-                        buffer[x] = (uint8_t)(farbe.rgba() & 0xff);
-                    }
-                    png_write_row(png_ptr, buffer);
-                }
-            } else { // Surface verwendet keine Palette -> Konvertierung
-                     /* TODO:
-                     RGBA *pal=Get8BitTrueColorPalette ();
-                     for (int i=0;i<256;i++) {
-                         pc[i].red=pal[i].c.red;
-                         pc[i].green=pal[i].c.green;
-                         pc[i].blue=pal[i].c.blue;
-                         DLOG ("Farbe %i: RGB=%u, %u, %u",i,pc[i].red,pc[i].green,pc[i].blue);
-                     }
-                     png_set_PLTE(png_ptr,info_ptr, &pc[0], 256);
-                     png_write_info(png_ptr, info_ptr);
-                     //png_write_PLTE (png_ptr, &pc[0],256);
-     
-                     for (y=area->top;y<area->bottom;y++) {
-                         DLOGLEVEL(2) ("png_write_row Zeile %u",y);
-                         for (x=0;x<width;x++) {
-                             farbe=surface->Surface2RGB(surface->GetPixel(area->left+x,y));
-                             r=(farbe&255)*7/255;
-                             g=((farbe>>8)&255)*7/255;
-                             b=((farbe>>16)&255)*3/255;
-                             buffer[x]=(ppldb)(r+(g<<3)+(b<<6));
-                         }
-                         png_write_row(png_ptr, buffer);
-                     }
-                      */
-            }
-            break;
-        case PNG_COLOR_TYPE_RGB:
-            bpp = 3;
-            png_write_info(png_ptr, info_ptr);
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    // farbe=surface->GetPixel(area->left+x,y);
-                    farbe = surface.getPixel(x, y);
-                    buffer[x * bpp + 0] = (uint8_t)farbe.red();
-                    buffer[x * bpp + 1] = (uint8_t)farbe.green();
-                    buffer[x * bpp + 2] = (uint8_t)farbe.blue();
-                }
-                png_write_row(png_ptr, buffer);
-            }
-            break;
-        case PNG_COLOR_TYPE_RGB_ALPHA:
-            bpp = 4;
-            png_write_info(png_ptr, info_ptr);
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    farbe = surface.getPixel(x, y);
-                    buffer[x * bpp + 0] = (uint8_t)farbe.red();
-                    buffer[x * bpp + 1] = (uint8_t)farbe.green();
-                    buffer[x * bpp + 2] = (uint8_t)farbe.blue();
-                    buffer[x * bpp + 3] = (uint8_t)farbe.alpha();
-                }
-                png_write_row(png_ptr, buffer);
-            }
-            break;
-        case PNG_COLOR_TYPE_GRAY:
-            bpp = 1;
-            png_write_info(png_ptr, info_ptr);
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    farbe = surface.getPixel(x, y);
-                    buffer[x * bpp] = (uint8_t)farbe.brightness();
-                }
-                png_write_row(png_ptr, buffer);
-            }
+    png_write_info(png_ptr, info_ptr);
 
-            break;
-        case PNG_COLOR_TYPE_GRAY_ALPHA:
-            bpp = 2;
-            png_write_info(png_ptr, info_ptr);
-            for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                    farbe = surface.getPixel(x, y);
-                    buffer[x * bpp] = (uint8_t)farbe.brightness();
-                    buffer[x * bpp + 1] = (uint8_t)farbe.alpha();
-                }
-                png_write_row(png_ptr, buffer);
+    switch (png_color_type) {
+    case PNG_COLOR_TYPE_RGB:
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Color farbe = surface.getPixel(x, y);
+                buffer[x * bpp + 0] = (uint8_t)farbe.red();
+                buffer[x * bpp + 1] = (uint8_t)farbe.green();
+                buffer[x * bpp + 2] = (uint8_t)farbe.blue();
             }
-            break;
+            png_write_row(png_ptr, buffer);
         }
-        png_free(png_ptr, buffer);
+        break;
+    case PNG_COLOR_TYPE_RGB_ALPHA:
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Color farbe = surface.getPixel(x, y);
+                buffer[x * bpp + 0] = (uint8_t)farbe.red();
+                buffer[x * bpp + 1] = (uint8_t)farbe.green();
+                buffer[x * bpp + 2] = (uint8_t)farbe.blue();
+                buffer[x * bpp + 3] = (uint8_t)farbe.alpha();
+            }
+            png_write_row(png_ptr, buffer);
+        }
+        break;
+    case PNG_COLOR_TYPE_GRAY:
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Color farbe = surface.getPixel(x, y);
+                buffer[x * bpp] = (uint8_t)farbe.brightness();
+            }
+            png_write_row(png_ptr, buffer);
+        }
+
+        break;
+    case PNG_COLOR_TYPE_GRAY_ALPHA:
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Color farbe = surface.getPixel(x, y);
+                buffer[x * bpp] = (uint8_t)farbe.brightness();
+                buffer[x * bpp + 1] = (uint8_t)farbe.alpha();
+            }
+            png_write_row(png_ptr, buffer);
+        }
+        break;
     }
+    png_free(png_ptr, buffer);
 
     png_write_end(png_ptr, info_ptr);
     png_destroy_write_struct(&png_ptr, &info_ptr);

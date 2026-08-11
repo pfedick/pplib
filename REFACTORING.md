@@ -99,41 +99,7 @@ Ein grundsätzliches Problem der Tests waren in der Vergangenheit die unterschie
 ## Font6
 Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-Option generell deaktivieren. Oder Fonts ohne Hints generieren?
 
-## Imagefilter
-Die save-Methode mit dem AssocArray für Parameter ist schlecht
 
-Aufteilen in mehrere Klassen, eine zum laden, eine zum speichern.
-
-Vorschlag:
-
-ImageImporter (Abstrakte Basisklasse)
-// 1. Nur für das Laden
-class ImageImporter {
-public:
-    virtual ~ImageImporter() = default;
-    virtual bool ident(FileObject& file, IMAGE& img) noexcept = 0;
-    virtual void load(FileObject& file, Drawable& surface, IMAGE& img) = 0;
-};
-
-// 2. Nur für das Speichern (mit konkreten Options-Typen)
-class ImageExporter {
-public:
-    virtual ~ImageExporter() = default;
-    // Hier gibt es KEIN save() mit AssocArray mehr!
-};
-
-// 3. Die konkrete Implementierung kombiniert beides
-class ImageFilter_PNG : public ImageImporter, public ImageExporter {
-public:
-    // Implementiert ImageImporter
-    bool ident(FileObject& file, IMAGE& img) noexcept override;
-    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
-
-    // Implementiert ImageExporter mit TYPSICHER Methode
-    void save(const Drawable& surface, FileObject& file, int compressionLevel) {
-        // PNG-spezifische Logik mit int compressionLevel
-    }
-};
 
 ## NEU
 - HttpRequest, HttpResponse, HttpClient
@@ -160,6 +126,10 @@ Einige Funktionen bekommen das native Farbformat, müssen dass dann aber wieder 
 - WideString Klasse refakturiert und geprüft
 - DateTime Klasse refakturiert und geprüft
 
+### Imagefilter
+Die save-Methode mit dem AssocArray für Parameter war schlecht.
+
+Ich habe die save-Methode aus der Abstrakten Basisklasse ImageFilter entfernt und in den konkreten Klassen implementiert. Dort habe ich bei bedarf dedizierte und passende Parameter-Typen definiert, die die jeweiligen Optionen enthalten. Damit ist die save-Methode typsicher und es gibt keine Probleme mehr mit dem AssocArray.
 
 
 

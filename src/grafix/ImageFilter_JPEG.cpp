@@ -28,7 +28,9 @@
  *******************************************************************************/
 #include <string.h>
 #include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
 #include <pplib/core/functions.h>
+#include <pplib/types/bytearray.h>
 #include <pplib/grafix/image.h>
 #include <pplib/grafix/grafix.h>
 #include <pplib/grafix/imagefilter.h>
@@ -460,31 +462,23 @@ void ImageFilter_JPEG::load(FileObject& file, Drawable& surface, IMAGE& img)
 #endif
 }
 
-void ImageFilter_JPEG::save(const Drawable& surface, FileObject& file, const AssocArray& param)
+void ImageFilter_JPEG::saveFile(const String& filename, const Drawable& surface, const Options& options) const
+{
+    File ff;
+    ff.open(filename, File::FileMode::WRITE);
+    save(surface, ff, options);
+}
+
+void ImageFilter_JPEG::save(const Drawable& surface, FileObject& file, const Options& options) const
 {
 #ifdef HAVE_JPEG
-    int x, y;
-    char* buffer;
 
-    int quality = 85;            // 0-100									default=85
-    int smooth = 0;              // 0-100, 0=off, 1=minimal, 100=maximal		default=0
-    bool force_baseline = true;  //									default=true
-    bool optimized = false;      //									default=false
-    int dct_method = JDCT_ISLOW; //									default=JDCT_ISLOW
+    Options opt = options;
+    if (opt.quality > 100) opt.quality = 100;
+    if (opt.smooth > 100) opt.smooth = 100;
 
-    if (param.exists("quality")) quality = param.getString("quality").toInt();
-    if (param.exists("smooth")) smooth = param.getString("smooth").toInt();
-    if (param.exists("force_baseline")) force_baseline = param.getString("force_baseline").toBool();
-    if (param.exists("optimized")) optimized = param.getString("optimized").toBool();
-    if (param.exists("dct_method")) dct_method = param.getString("dct_method").toInt();
-
-    if (quality < 0) quality = 0;
-    if (quality > 100) quality = 100;
-    if (smooth < 0) smooth = 0;
-    if (smooth > 100) smooth = 100;
-
-    buffer = (char*)malloc(surface.width() * 3); // Buffer fuer Scanline
-    if (buffer == 0) throw OutOfMemoryException();
+    ByteArray ba;
+    char* buffer = (char*)ba.malloc(surface.width() * 3); // Buffer fuer Scanline
 
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -509,15 +503,25 @@ void ImageFilter_JPEG::save(const Drawable& surface, FileObject& file, const Ass
     cinfo.input_components = 3;
     cinfo.in_color_space = JCS_RGB;
     jpeg_set_defaults(&cinfo);
-    jpeg_set_quality(&cinfo, quality, force_baseline);
-    cinfo.dct_method = (J_DCT_METHOD)dct_method;
-    cinfo.optimize_coding = optimized;
-    cinfo.smoothing_factor = smooth;
+    jpeg_set_quality(&cinfo, opt.quality, opt.force_baseline);
+    switch (opt.dct_method) {
+    case DctMethod::SlowAccurate:
+        cinfo.dct_method = JDCT_ISLOW;
+        break;
+    case DctMethod::FastInt:
+        cinfo.dct_method = JDCT_IFAST;
+        break;
+    default:
+        cinfo.dct_method = JDCT_ISLOW;
+        break;
+    }
+    cinfo.optimize_coding = opt.optimized;
+    cinfo.smoothing_factor = opt.smooth;
 
     jpeg_start_compress(&cinfo, true);
     Color farbe;
-    for (y = 0; y < surface.height(); y++) {
-        for (x = 0; x < surface.width(); x++) {
+    for (int y = 0; y < surface.height(); y++) {
+        for (int x = 0; x < surface.width(); x++) {
             farbe = surface.getPixel(x, y);
             buffer[x * 3] = (uint8_t)farbe.red();
             buffer[x * 3 + 1] = (uint8_t)farbe.green();
@@ -527,20 +531,9 @@ void ImageFilter_JPEG::save(const Drawable& surface, FileObject& file, const Ass
     }
     jpeg_finish_compress(&cinfo);
     jpeg_destroy_compress(&cinfo);
-    free(buffer);
 #else
     throw UnsupportedFeatureException("ImageFilter_JPEG");
 #endif
-}
-
-String ImageFilter_JPEG::name() const
-{
-    return "JPG";
-}
-
-String ImageFilter_JPEG::description() const
-{
-    return "JPEG";
 }
 
 } // namespace pplib::grafix

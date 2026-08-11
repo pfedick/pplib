@@ -557,19 +557,4 @@ void ImageFilter_GIF::load(FileObject& file, Drawable& surface, IMAGE& img)
     }
 }
 
-void ImageFilter_GIF::save(const Drawable& surface, FileObject& file, const AssocArray& param)
-{
-    throw UnsupportedFeatureException("ImageFilter_GIF::save");
-}
-
-String ImageFilter_GIF::name() const
-{
-    return "GIF";
-}
-
-String ImageFilter_GIF::description() const
-{
-    return "GIF";
-}
-
 } // namespace pplib::grafix

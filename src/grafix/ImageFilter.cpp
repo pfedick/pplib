@@ -58,18 +58,6 @@ void Grafix::unloadImageFilter(ImageFilter* filter) noexcept
     }
 }
 
-ImageFilter* Grafix::findImageFilter(const String& name) noexcept
-{
-    MutexLock lock(myMutex);
-    // Wir gehen die Liste rückwärts durch
-    for (auto it = ImageFilterList.rbegin(); it != ImageFilterList.rend(); ++it) {
-        if (name.strCaseCmp((*it)->name()) == 0) {
-            return *it;
-        }
-    }
-    return nullptr;
-}
-
 ImageFilter* Grafix::findImageFilter(FileObject& ff, IMAGE& img) noexcept
 {
     MutexLock lock(myMutex);
@@ -80,13 +68,6 @@ ImageFilter* Grafix::findImageFilter(FileObject& ff, IMAGE& img) noexcept
         }
     }
     return nullptr;
-}
-
-void ImageFilter::saveFile(const String& filename, const Drawable& surface, const AssocArray& param)
-{
-    File ff;
-    ff.open(filename, File::FileMode::WRITE);
-    save(surface, ff, param);
 }
 
 } // namespace pplib::grafix

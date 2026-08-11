@@ -28,9 +28,11 @@
  *******************************************************************************/
 #include <string.h>
 #include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
 #include <pplib/core/functions.h>
 #include <pplib/version.h>
 #include <pplib/types/array.h>
+#include <pplib/types/bytearray.h>
 #include <pplib/grafix/image.h>
 #include <pplib/grafix/grafix.h>
 #include <pplib/grafix/imagefilter.h>
@@ -119,15 +121,20 @@ void ImageFilter_PPM::load(FileObject& file, Drawable& surface, IMAGE& img)
     }
 }
 
-void ImageFilter_PPM::save(const Drawable& surface, FileObject& file, const AssocArray& param)
+void ImageFilter_PPM::saveFile(const String& filename, const Drawable& surface, bool asAscii) const
+{
+    File ff;
+    ff.open(filename, File::FileMode::WRITE);
+    save(surface, ff);
+}
+
+void ImageFilter_PPM::save(const Drawable& surface, FileObject& file, bool asAscii) const
 {
     Color farbe;
     // int haupt,unter,build;
-    bool SaveAsASCII = false;
-    if (param.exists("ascii")) SaveAsASCII = param.getString("ascii").toBool();
 
     if (surface.rgbformat().bitdepth() > 8) {
-        if (SaveAsASCII == false)
+        if (asAscii == false)
             file.puts("P6\n");
         else
             file.puts("P3\n");
@@ -142,7 +149,7 @@ void ImageFilter_PPM::save(const Drawable& surface, FileObject& file, const Asso
                 uint8_t r = (uint8_t)farbe.red();
                 uint8_t g = (uint8_t)farbe.green();
                 uint8_t b = (uint8_t)farbe.blue();
-                if (SaveAsASCII == false) {
+                if (asAscii == false) {
                     file.write((char*)&r, 1);
                     file.write((char*)&g, 1);
                     file.write((char*)&b, 1);
@@ -156,23 +163,12 @@ void ImageFilter_PPM::save(const Drawable& surface, FileObject& file, const Asso
                 }
             }
         }
-        if (SaveAsASCII == true) {
+        if (asAscii == true) {
             file.puts("\n");
         }
         return;
-    } else { // Farbpalette wurde benutzt
-        throw UnsupportedFeatureException("ImageFilter_PPM::save with palette");
     }
     throw UnsupportedFeatureException("ImageFilter_PPM::save unsupported bitdepth");
-}
-
-String ImageFilter_PPM::name() const
-{
-    return "PPM";
-}
-String ImageFilter_PPM::description() const
-{
-    return "PPM";
 }
 
 } // namespace pplib::grafix

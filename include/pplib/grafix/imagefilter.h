@@ -104,6 +104,32 @@ public:
      * @param[in] img Referenz auf eine IMAGE-Struktur
      */
     virtual void load(FileObject& file, Drawable& surface, IMAGE& img) = 0;
+};
+
+class ImageFilter_PNG : public ImageFilter
+{
+public:
+    enum class ColorType
+    {
+        Auto = 0, ///< Automatisch anhand des Drawable-Formats wählen
+        RGB,      ///< 24 Bit TrueColor (RGB)
+        RGBA,     ///< 32 Bit TrueColor mit Alpha (RGBA)
+        Gray,     ///< 8 Bit Graustufe
+        GrayAlpha ///< 16 Bit Graustufe mit Alpha
+    };
+
+    enum class Compression
+    {
+        Default = -1, ///< Zlib-Standard (Level 6)
+        None = 0,     ///< Keine Kompression (schnellstmöglich)
+        Fast = 1,     ///< Schnelle Kompression
+        Best = 9      ///< Maximale Kompression (kleinste Datei)
+    };
+
+    ImageFilter_PNG();
+    ~ImageFilter_PNG() override;
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
 
     /** @brief Grafik in eine Datei speichern
      *
@@ -116,22 +142,10 @@ public:
      * @param[in] file Eine geöffnete Datei
      * @param[in] param Referenz auf eine AssocArray-Struktur mit zusätzlichen Parametern
      */
-    virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) = 0;
-
-    /** @brief Name des Filters
-     *
-     * Diese Funktion gibt den Namen des Filters zurück, z.B. "PNG", "JPEG", "BMP" usw.
-     * @return String mit dem Namen des Filters
-     */
-    virtual String name() const = 0;
-
-    /** @brief Beschreibung des Filters
-     *
-     * Diese Funktion gibt eine kurze Beschreibung des Filters zurück, z.B. "Portable Network Graphics"
-     * für den PNG-Filter.
-     * @return String mit der Beschreibung des Filters
-     */
-    virtual String description() const = 0;
+    void save(const Drawable& surface,
+              FileObject& file,
+              ColorType color_type = ColorType::Auto,
+              Compression compression = Compression::Default) const;
 
     /** @brief Grafik in eine Datei speichern
      *
@@ -144,31 +158,40 @@ public:
      * @param[in] filename Name der Zieldatei
      * @param[in] param Referenz auf eine AssocArray-Struktur mit zusätzlichen Parametern
      */
-    void saveFile(const String& filename, const Drawable& surface, const AssocArray& param = AssocArray());
-};
-
-class ImageFilter_PNG : public ImageFilter
-{
-public:
-    ImageFilter_PNG();
-    ~ImageFilter_PNG() override;
-    bool ident(FileObject& file, IMAGE& img) noexcept override;
-    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
-    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
-    String name() const override;
-    String description() const override;
+    void saveFile(const String& filename,
+                  const Drawable& surface,
+                  ColorType color_type = ColorType::Auto,
+                  Compression compression = Compression::Default) const;
 };
 
 class ImageFilter_JPEG : public ImageFilter
 {
 public:
+    enum class DctMethod : uint8_t
+    {
+        SlowAccurate = 0, ///< JDCT_ISLOW
+        FastInt = 1,      ///< JDCT_IFAST, legacy integer method
+        Float = 2         ///< JDCT_FLOAT
+    };
+
+    class Options
+    {
+    public:
+        uint8_t quality = 85; ///< 0-100
+        uint8_t smooth = 0;   ///< 0-100
+        DctMethod dct_method = DctMethod::SlowAccurate;
+        bool force_baseline = true;
+        bool optimized = false;
+
+        Options() {};
+    };
+
     ImageFilter_JPEG();
     ~ImageFilter_JPEG() override;
     bool ident(FileObject& file, IMAGE& img) noexcept override;
     void load(FileObject& file, Drawable& surface, IMAGE& img) override;
-    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
-    String name() const override;
-    String description() const override;
+    void save(const Drawable& surface, FileObject& file, const Options& options = Options()) const;
+    void saveFile(const String& filename, const Drawable& surface, const Options& options = Options()) const;
 };
 
 class ImageFilter_BMP : public ImageFilter
@@ -178,21 +201,8 @@ public:
     ~ImageFilter_BMP() override;
     bool ident(FileObject& file, IMAGE& img) noexcept override;
     void load(FileObject& file, Drawable& surface, IMAGE& img) override;
-    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
-    String name() const override;
-    String description() const override;
-};
-
-class ImageFilter_TIFF : public ImageFilter
-{
-public:
-    ImageFilter_TIFF();
-    ~ImageFilter_TIFF() override;
-    bool ident(FileObject& file, IMAGE& img) noexcept override;
-    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
-    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
-    String name() const override;
-    String description() const override;
+    void save(const Drawable& surface, FileObject& file) const;
+    void saveFile(const String& filename, const Drawable& surface) const;
 };
 
 class ImageFilter_GIF : public ImageFilter
@@ -202,9 +212,7 @@ public:
     ~ImageFilter_GIF() override;
     bool ident(FileObject& file, IMAGE& img) noexcept override;
     void load(FileObject& file, Drawable& surface, IMAGE& img) override;
-    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
-    String name() const override;
-    String description() const override;
+    // Keine save-Funktion, da GIF nur 256 Farben unterstützt und das Drawable das noch nicht unterstützt.
 };
 
 class ImageFilter_PPM : public ImageFilter
@@ -214,9 +222,8 @@ public:
     ~ImageFilter_PPM() override;
     bool ident(FileObject& file, IMAGE& img) noexcept override;
     void load(FileObject& file, Drawable& surface, IMAGE& img) override;
-    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
-    String name() const override;
-    String description() const override;
+    void saveFile(const String& filename, const Drawable& surface, bool asAscii = false) const;
+    void save(const Drawable& surface, FileObject& file, bool asAscii = false) const;
 };
 
 class ImageFilter_TGA : public ImageFilter
@@ -226,9 +233,15 @@ public:
     ~ImageFilter_TGA() override;
     bool ident(FileObject& file, IMAGE& img) noexcept override;
     void load(FileObject& file, Drawable& surface, IMAGE& img) override;
-    void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray()) override;
-    String name() const override;
-    String description() const override;
+};
+
+class ImageFilter_TIFF : public ImageFilter
+{
+public:
+    ImageFilter_TIFF();
+    ~ImageFilter_TIFF() override;
+    bool ident(FileObject& file, IMAGE& img) noexcept override;
+    void load(FileObject& file, Drawable& surface, IMAGE& img) override;
 };
 
 } // namespace pplib::grafix

@@ -28,7 +28,9 @@
  *******************************************************************************/
 #include <string.h>
 #include <pplib/core/fileobject.h>
+#include <pplib/core/file.h>
 #include <pplib/core/functions.h>
+#include <pplib/types/bytearray.h>
 #include <pplib/grafix/image.h>
 #include <pplib/grafix/grafix.h>
 #include <pplib/grafix/imagefilter.h>
@@ -220,7 +222,14 @@ void ImageFilter_BMP::load(FileObject& file, Drawable& surface, IMAGE& img)
     throw IllegalImageFormatException();
 }
 
-void ImageFilter_BMP::save(const Drawable& surface, FileObject& file, const AssocArray& param)
+void ImageFilter_BMP::saveFile(const String& filename, const Drawable& surface) const
+{
+    File ff;
+    ff.open(filename, File::FileMode::WRITE);
+    save(surface, ff);
+}
+
+void ImageFilter_BMP::save(const Drawable& surface, FileObject& file) const
 {
     Color pixel;
     uint32_t bpp, bfOffBits;
@@ -234,97 +243,80 @@ void ImageFilter_BMP::save(const Drawable& surface, FileObject& file, const Asso
         bpp=1;
         bfOffBits=54 + 768;
         */
-        throw UnsupportedFeatureException("ImageFilter_BMP::save with Palette");
+        throw UnsupportedFeatureException("ImageFilter_BMP::save only supports 24-bit and 32-bit images");
     }
 
-    uint32_t size = bfOffBits + (surface.width() * surface.height()) * bpp;
-    char* buffer = (char*)calloc(1, size);
-    if (!buffer) throw OutOfMemoryException();
-    try {
-        char* bmh = buffer;
-        char* bmia = bmh + 14;
-        Poke8(bmh, 'B');
-        Poke8(bmh + 1, 'M');
-        Poke32(bmh + 2, size);
-        Poke16(bmh + 6, 0);
-        Poke16(bmh + 8, 0);
-        Poke32(bmh + 10, bfOffBits); // bfOffBits=Beginn der Bitmap
-        if (bpp == 3) {
-            Poke32(bmia + 0, 40);               // biSize
-            Poke32(bmia + 4, surface.width());  // biWidth
-            Poke32(bmia + 8, surface.height()); // biHeight
-            Poke16(bmia + 12, 1);               // biPlanes
-            Poke16(bmia + 14, bpp * 8);         // biBitCount
-            Poke32(bmia + 16, 0);               // biCompression
-            Poke32(bmia + 20, 0);               // biSizeImage
-            Poke32(bmia + 24, 0);               // biXPelsPerMeter
-            Poke32(bmia + 28, 0);               // biYPelsPerMeter
-            Poke32(bmia + 32, 0);               // biClrUsed
-            Poke32(bmia + 36, 0);               // biClrImportant
-        } else if (bpp == 4) {
-            Poke32(bmia + 0, 108);                                     // biSize
-            Poke32(bmia + 4, surface.width());                         // biWidth
-            Poke32(bmia + 8, surface.height());                        // biHeight
-            Poke16(bmia + 12, 1);                                      // biPlanes
-            Poke16(bmia + 14, 32);                                     // biBitCount
-            Poke32(bmia + 16, 3);                                      // biCompression
-            Poke32(bmia + 20, surface.height() * surface.width() * 4); // biSizeImage
-            Poke32(bmia + 24, 2835);                                   // biXPelsPerMeter 72 DPI
-            Poke32(bmia + 28, 2835);                                   // biYPelsPerMeter 72 DPI
-            Poke32(bmia + 32, 0);                                      // biClrUsed
-            Poke32(bmia + 36, 0);                                      // biClrImportant
-            Poke32(bmia + 40, 0x00ff0000);                             // red channel bit mask
-            Poke32(bmia + 44, 0x0000ff00);                             // green channel bit mask
-            Poke32(bmia + 48, 0x000000ff);                             // blue channel bit mask
-            Poke32(bmia + 52, 0xff000000);                             // alpha channel bit mask
-            Poke32(bmia + 56, 0x57696e20);                             // LCS_WINDOWS_COLOR_SPACE
+    size_t size = bfOffBits + (surface.width() * surface.height()) * bpp;
+    ByteArray ba;
+    char* buffer = (char*)ba.calloc(size);
+    char* bmh = buffer;
+    char* bmia = bmh + 14;
+    Poke8(bmh, 'B');
+    Poke8(bmh + 1, 'M');
+    Poke32(bmh + 2, size);
+    Poke16(bmh + 6, 0);
+    Poke16(bmh + 8, 0);
+    Poke32(bmh + 10, bfOffBits); // bfOffBits=Beginn der Bitmap
+    if (bpp == 3) {
+        Poke32(bmia + 0, 40);               // biSize
+        Poke32(bmia + 4, surface.width());  // biWidth
+        Poke32(bmia + 8, surface.height()); // biHeight
+        Poke16(bmia + 12, 1);               // biPlanes
+        Poke16(bmia + 14, bpp * 8);         // biBitCount
+        Poke32(bmia + 16, 0);               // biCompression
+        Poke32(bmia + 20, 0);               // biSizeImage
+        Poke32(bmia + 24, 0);               // biXPelsPerMeter
+        Poke32(bmia + 28, 0);               // biYPelsPerMeter
+        Poke32(bmia + 32, 0);               // biClrUsed
+        Poke32(bmia + 36, 0);               // biClrImportant
+    } else if (bpp == 4) {
+        Poke32(bmia + 0, 108);                                     // biSize
+        Poke32(bmia + 4, surface.width());                         // biWidth
+        Poke32(bmia + 8, surface.height());                        // biHeight
+        Poke16(bmia + 12, 1);                                      // biPlanes
+        Poke16(bmia + 14, 32);                                     // biBitCount
+        Poke32(bmia + 16, 3);                                      // biCompression
+        Poke32(bmia + 20, surface.height() * surface.width() * 4); // biSizeImage
+        Poke32(bmia + 24, 2835);                                   // biXPelsPerMeter 72 DPI
+        Poke32(bmia + 28, 2835);                                   // biYPelsPerMeter 72 DPI
+        Poke32(bmia + 32, 0);                                      // biClrUsed
+        Poke32(bmia + 36, 0);                                      // biClrImportant
+        Poke32(bmia + 40, 0x00ff0000);                             // red channel bit mask
+        Poke32(bmia + 44, 0x0000ff00);                             // green channel bit mask
+        Poke32(bmia + 48, 0x000000ff);                             // blue channel bit mask
+        Poke32(bmia + 52, 0xff000000);                             // alpha channel bit mask
+        Poke32(bmia + 56, 0x57696e20);                             // LCS_WINDOWS_COLOR_SPACE
 
-        } else {
-            throw pplib::UnsupportedFeatureException("Cannot save a pplib::Drawable with bitdepth of 8");
-        }
+    } else {
+        throw pplib::UnsupportedFeatureException("Cannot save a pplib::Drawable with bitdepth of 8");
+    }
 
-        char* img = bmh + bfOffBits;
+    char* img = bmh + bfOffBits;
 
-        if (bpp == 3) {
-            for (int y = (surface.height() - 1); y >= 0; y--) {
-                for (int x = 0; x < (surface.width()); x++) {
-                    pixel = surface.getPixel(x, y);
-                    img[x * bpp] = (uint8_t)pixel.blue();
-                    img[x * bpp + 1] = (uint8_t)pixel.green();
-                    img[x * bpp + 2] = (uint8_t)pixel.red();
-                }
-                img += surface.width() * bpp;
+    if (bpp == 3) {
+        for (int y = (surface.height() - 1); y >= 0; y--) {
+            for (int x = 0; x < (surface.width()); x++) {
+                pixel = surface.getPixel(x, y);
+                img[x * bpp] = (uint8_t)pixel.blue();
+                img[x * bpp + 1] = (uint8_t)pixel.green();
+                img[x * bpp + 2] = (uint8_t)pixel.red();
             }
-        } else if (bpp == 4) {
-            for (int y = (surface.height() - 1); y >= 0; y--) {
-                for (int x = 0; x < (surface.width()); x++) {
-                    pixel = surface.getPixel(x, y);
-                    img[x * bpp] = (uint8_t)pixel.blue();
-                    img[x * bpp + 1] = (uint8_t)pixel.green();
-                    img[x * bpp + 2] = (uint8_t)pixel.red();
-                    img[x * bpp + 3] = (uint8_t)pixel.alpha();
-                }
-                img += surface.width() * bpp;
-            }
+            img += surface.width() * bpp;
         }
-
-        file.write(buffer, size);
+    } else if (bpp == 4) {
+        for (int y = (surface.height() - 1); y >= 0; y--) {
+            for (int x = 0; x < (surface.width()); x++) {
+                pixel = surface.getPixel(x, y);
+                img[x * bpp] = (uint8_t)pixel.blue();
+                img[x * bpp + 1] = (uint8_t)pixel.green();
+                img[x * bpp + 2] = (uint8_t)pixel.red();
+                img[x * bpp + 3] = (uint8_t)pixel.alpha();
+            }
+            img += surface.width() * bpp;
+        }
     }
-    catch (...) {
-        free(buffer);
-        throw;
-    }
-    free(buffer);
-}
 
-String ImageFilter_BMP::name() const
-{
-    return "BMP";
-}
-
-String ImageFilter_BMP::description() const
-{
-    return "Windows Bitmap-Dateien";
+    file.write(buffer, size);
 }
 
 } // namespace pplib::grafix

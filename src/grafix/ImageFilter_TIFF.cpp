@@ -195,23 +195,4 @@ void ImageFilter_TIFF::load(FileObject& file, Drawable& surface, IMAGE& img)
 #endif
 }
 
-void ImageFilter_TIFF::save(const Drawable& surface, FileObject& file, const AssocArray& param)
-{
-#ifdef HAVE_TIFF
-    throw UnsupportedFeatureException("ImageFilter_TIFF::save");
-#else
-    throw UnsupportedFeatureException("ImageFilter_TIFF");
-#endif
-}
-
-String ImageFilter_TIFF::name() const
-{
-    return "TIFF";
-}
-
-String ImageFilter_TIFF::description() const
-{
-    return "TIFF (Loader only)";
-}
-
 } // namespace pplib::grafix

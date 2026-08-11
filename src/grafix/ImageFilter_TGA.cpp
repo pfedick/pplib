@@ -226,19 +226,4 @@ void ImageFilter_TGA::load(FileObject& file, Drawable& surface, IMAGE& img)
     throw UnknownImageFormatException();
 }
 
-void ImageFilter_TGA::save(const Drawable& surface, FileObject& file, const AssocArray& param)
-{
-    throw UnsupportedFeatureException("ImageFilter_TGA::save");
-}
-
-String ImageFilter_TGA::name() const
-{
-    return "TGA";
-}
-
-String ImageFilter_TGA::description() const
-{
-    return "TGA (Loader only)";
-}
-
 } // namespace pplib::grafix
