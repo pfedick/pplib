@@ -1,18 +1,18 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library" for Raspberry Pico,
- * based on PPLib Version 7.
- * Web: https://github.com/pfedick/pico-pplib
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -22,16 +22,16 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
-#include "picopplib-grafix.h"
-#include <math.h>
+#include <cmath>
 #include <assert.h>
+#include <pplib/grafix/point.h>
+#include <pplib/grafix/rect.h>
 
-namespace picopplib
+namespace pplib::grafix
 {
 
 static inline int16_t clamp16(int value)
@@ -41,91 +41,10 @@ static inline int16_t clamp16(int value)
     return value;
 }
 
-Point16::Point16()
-{
-    x = 0;
-    y = 0;
-}
-
-/*!\brief Konstruktor mit Initialisierung auf die angegebenen Koordinaten
- *
- * \desc
- * Durch Verwendung dieses Konstruktors wird der Punkt mit den Koordinaten (\p x /\p y ) initialisiert.
- * \param[in] x Die gewünschte X-Koordinate
- * \param[in] y Die gewünschte Y-Koordinate
- */
-Point16::Point16(int16_t x, int16_t y)
-{
-    this->x = x;
-    this->y = y;
-}
-
 Point16::Point16(const Point& other) noexcept
 {
     x = clamp16(other.x);
     y = clamp16(other.y);
-}
-
-/*!\brief Liefert \c true zurück, wenn sowohl x als auch y 0 sind.
- *
- * \desc
- * Diese Funktion liefert \c true zurück, wenn der Punkt die Koordinaten (0/0) enthält.
- * \return
- * Liefert \c true zurück, wenn x und y 0 sind. Ist dies nicht der Fall, gibt die Funktion false zurück.
- *
- */
-bool Point16::isNull() const
-{
-    if (x == 0 && y == 0) return true;
-    return false;
-}
-
-/*!\brief X-Koordinate setzen
- *
- * \desc
- * Mit dieser Funktion kann die X-Koordinate des Punktes gesetzt werden.
- * \param[in] x X-Koordinate
- */
-void Point16::setX(int16_t x)
-{
-    this->x = x;
-}
-
-/*!\brief Y-Koordinate setzen
- *
- * \desc
- * Mit dieser Funktion kann die Y-Koordinate des Punktes gesetzt werden.
- * \param[in] y Y-Koordinate
- */
-void Point16::setY(int16_t y)
-{
-    this->y = y;
-}
-
-/*!\brief X und Y-Koordinate gleichzeitig setzen
- *
- * \desc
- * Mit dieser Funktion kann die X- und Y-Koordinate des Punktes gleichzeitig gesetzt werden.
- * \param[in] x X-Koordinate
- * \param[in] y Y-Koordinate
- */
-void Point16::setPoint(int16_t x, int16_t y)
-{
-    this->x = x;
-    this->y = y;
-}
-
-/*!\brief X und Y-Koordinate von einem anderen Point16 übernehmen
- *
- * \desc
- * Mit dieser Funktion werden die Koordinaten des Punktes \p other
- * übernommen.
- * \param[in] other Ein anderer Punkt
- */
-void Point16::setPoint(const Point16& other)
-{
-    x = other.x;
-    y = other.y;
 }
 
 void Point16::setPoint(const Point& other)
@@ -313,7 +232,7 @@ static int cmp(const Point16& p1, const Point16& p2)
     if (p1.y < p2.y) return -1;
     if (p1.y > p2.y) return 1;
     if (p1.x < p2.x) return -1;
-    if (p1.x > p2.x) return -1;
+    if (p1.x > p2.x) return 1;
     return 0;
 }
 
@@ -358,4 +277,4 @@ bool Point16::operator>(const Point16& other) const
     if (c > 0) return true;
     return false;
 }
-}; // namespace picopplib
+}; // namespace pplib::grafix
