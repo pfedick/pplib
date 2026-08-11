@@ -52,8 +52,8 @@ static SurfaceColor GetPixel_32(const DrawableData& data, int x, int y)
     return ((SurfaceColor)data.base32[(data.pitch >> 2) * y + x]);
 }
 
-/// A8R8G8B8
-SurfaceColor RGBBlend255_A8R8G8B8(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
+/// A8R8G8B8 + A8B8G8R8
+static SurfaceColor RGBBlend255_A8X8X8X8(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
 {
     uint8_t a_src = (((top >> 24) & 0xFF) * intensity) / 255;
     if (a_src == 0) return ground;
@@ -76,32 +76,8 @@ SurfaceColor RGBBlend255_A8R8G8B8(const DrawableData& data, SurfaceColor ground,
     return ((uint32_t)a_out << 24) | (r << 16) | (g << 8) | b;
 }
 
-// A8B8G8R8
-SurfaceColor RGBBlend255_A8B8G8R8(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
-{
-    uint8_t a_src = (((top >> 24) & 0xFF) * intensity) / 255;
-    if (a_src == 0) return ground;
-
-    uint8_t a_dst = (ground >> 24) & 0xFF;
-    if (a_src == 255 && a_dst == 255) return top;
-
-    uint32_t inv_a_src = 255 - a_src;
-    uint32_t a_out_32 = a_src + (a_dst * inv_a_src) / 255;
-    uint8_t a_out = (a_out_32 > 255) ? 255 : (uint8_t)a_out_32;
-    if (a_out == 0) return ground;
-
-    uint32_t r_src = top & 0xFF, g_src = (top >> 8) & 0xFF, b_src = (top >> 16) & 0xFF;
-    uint32_t r_dst = ground & 0xFF, g_dst = (ground >> 8) & 0xFF, b_dst = (ground >> 16) & 0xFF;
-
-    uint32_t r = (r_src * a_src + r_dst * a_dst * inv_a_src / 255) / a_out;
-    uint32_t g = (g_src * a_src + g_dst * a_dst * inv_a_src / 255) / a_out;
-    uint32_t b = (b_src * a_src + b_dst * a_dst * inv_a_src / 255) / a_out;
-
-    return ((uint32_t)a_out << 24) | (b << 16) | (g << 8) | r;
-}
-
-// R8G8B8A8
-SurfaceColor RGBBlend255_R8G8B8A8(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
+// R8G8B8A8 + B8G8R8A8
+static SurfaceColor RGBBlend255_X8X8X8A8(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
 {
     uint8_t a_src = (top & 0xFF) * intensity / 255;
     if (a_src == 0) return ground;
@@ -122,30 +98,6 @@ SurfaceColor RGBBlend255_R8G8B8A8(const DrawableData& data, SurfaceColor ground,
     uint32_t b = (b_src * a_src + b_dst * a_dst * inv_a_src / 255) / a_out;
 
     return (r << 24) | (g << 16) | (b << 8) | a_out;
-}
-
-// B8G8R8A8
-SurfaceColor RGBBlend255_B8G8R8A8(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
-{
-    uint8_t a_src = (top & 0xFF) * intensity / 255;
-    if (a_src == 0) return ground;
-
-    uint8_t a_dst = ground & 0xFF;
-    if (a_src == 255 && a_dst == 255) return top;
-
-    uint32_t inv_a_src = 255 - a_src;
-    uint32_t a_out_32 = a_src + (a_dst * inv_a_src) / 255;
-    uint8_t a_out = (a_out_32 > 255) ? 255 : (uint8_t)a_out_32;
-    if (a_out == 0) return ground;
-
-    uint32_t r_src = (top >> 8) & 0xFF, g_src = (top >> 16) & 0xFF, b_src = (top >> 24) & 0xFF;
-    uint32_t r_dst = (ground >> 8) & 0xFF, g_dst = (ground >> 16) & 0xFF, b_dst = (ground >> 24) & 0xFF;
-
-    uint32_t r = (r_src * a_src + r_dst * a_dst * inv_a_src / 255) / a_out;
-    uint32_t g = (g_src * a_src + g_dst * a_dst * inv_a_src / 255) / a_out;
-    uint32_t b = (b_src * a_src + b_dst * a_dst * inv_a_src / 255) / a_out;
-
-    return (b << 24) | (g << 16) | (r << 8) | a_out;
 }
 
 static void AlphaPixel_32(const DrawableData& data, int x, int y, SurfaceColor color)
@@ -271,14 +223,55 @@ static void BltColorKey_32(const DrawableData& target, const DrawableData& sourc
     }
 }
 
+inline static void BltAlpha_32_A8X8X8X8(const DrawableData& target, const DrawableData& source, const Rect& q, int x, int y)
+{
+    uint32_t target_pitch32 = target.pitch >> 2;
+    uint32_t source_pitch32 = source.pitch >> 2;
+
+    for (int sy = 0; sy < q.height(); sy++) {
+        const uint32_t* src = source.base32 + (q.top() + sy) * (source_pitch32) + q.left();
+        uint32_t* tgt = target.base32 + (y + sy) * target_pitch32 + x;
+        for (int sx = 0; sx < q.width(); sx++) {
+            SurfaceColor top_pixel = src[sx];
+            SurfaceColor blended_pixel = RGBBlend255_A8X8X8X8(target, tgt[sx], top_pixel, 255);
+            tgt[sx] = blended_pixel;
+        }
+    }
+}
+
+inline static void BltAlpha_32_X8X8X8A8(const DrawableData& target, const DrawableData& source, const Rect& q, int x, int y)
+{
+    uint32_t target_pitch32 = target.pitch >> 2;
+    uint32_t source_pitch32 = source.pitch >> 2;
+
+    for (int sy = 0; sy < q.height(); sy++) {
+        const uint32_t* src = source.base32 + (q.top() + sy) * (source_pitch32) + q.left();
+        uint32_t* tgt = target.base32 + (y + sy) * target_pitch32 + x;
+        for (int sx = 0; sx < q.width(); sx++) {
+            SurfaceColor top_pixel = src[sx];
+            SurfaceColor blended_pixel = RGBBlend255_X8X8X8A8(target, tgt[sx], top_pixel, 255);
+            tgt[sx] = blended_pixel;
+        }
+    }
+}
+
 static void BltAlpha_32(const DrawableData& target, const DrawableData& source, const Rect& srect, int x, int y)
 {
     Rect q;
     if (!clip(target, source, srect, x, y, q)) return;
 
-    uint32_t target_pitch32 = target.pitch >> 2;
-
     if (target.rgbformat == source.rgbformat) {
+        switch (target.rgbformat) {
+        case RGBFormat::A8R8G8B8:
+        case RGBFormat::A8B8G8R8:
+            BltAlpha_32_A8X8X8X8(target, source, q, x, y);
+            return;
+        case RGBFormat::R8G8B8A8:
+        case RGBFormat::B8G8R8A8:
+            BltAlpha_32_X8X8X8A8(target, source, q, x, y);
+            return;
+        }
+        uint32_t target_pitch32 = target.pitch >> 2;
         uint32_t source_pitch32 = source.pitch >> 2;
         for (int sy = 0; sy < q.height(); sy++) {
             const uint32_t* src = source.base32 + (q.top() + sy) * source_pitch32 + q.left();
@@ -288,6 +281,7 @@ static void BltAlpha_32(const DrawableData& target, const DrawableData& source, 
             }
         }
     } else {
+        uint32_t target_pitch32 = target.pitch >> 2;
         for (int sy = 0; sy < q.height(); sy++) {
             uint32_t* tgt = target.base32 + (y + sy) * target_pitch32 + x;
             for (int sx = 0; sx < q.width(); sx++) {
@@ -574,7 +568,7 @@ void Grafix::initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color((c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF, (c >> 24) & 0xFF);
         };
-        fn->RGBBlend255 = RGBBlend255_A8R8G8B8;
+        fn->RGBBlend255 = RGBBlend255_A8X8X8X8;
         break;
 #ifndef PICO_BUILD
     case RGBFormat::A8B8G8R8:
@@ -584,7 +578,7 @@ void Grafix::initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(c & 0xFF, (c >> 8) & 0xFF, (c >> 16) & 0xFF, (c >> 24) & 0xFF);
         };
-        fn->RGBBlend255 = RGBBlend255_A8B8G8R8;
+        fn->RGBBlend255 = RGBBlend255_A8X8X8X8;
         break;
     case RGBFormat::R8G8B8A8:
         fn->ToNativeColor = [](const Color& c) -> SurfaceColor {
@@ -593,7 +587,7 @@ void Grafix::initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color((c >> 24) & 0xFF, (c >> 16) & 0xFF, (c >> 8) & 0xFF, c & 0xFF);
         };
-        fn->RGBBlend255 = RGBBlend255_R8G8B8A8;
+        fn->RGBBlend255 = RGBBlend255_X8X8X8A8;
         break;
     case RGBFormat::B8G8R8A8:
         fn->ToNativeColor = [](const Color& c) -> SurfaceColor {
@@ -602,7 +596,7 @@ void Grafix::initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color((c >> 8) & 0xFF, (c >> 16) & 0xFF, (c >> 24) & 0xFF, c & 0xFF);
         };
-        fn->RGBBlend255 = RGBBlend255_B8G8R8A8;
+        fn->RGBBlend255 = RGBBlend255_X8X8X8A8;
         break;
     case RGBFormat::X8R8G8B8:
         fn->ToNativeColor = [](const Color& c) -> SurfaceColor { return (255 << 24 | c.red() << 16) | (c.green() << 8) | c.blue(); };
