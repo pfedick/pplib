@@ -1127,10 +1127,6 @@ public:
      * @param nr Nummer der Grafik innerhalb der Image-Liste
      * @param x X-Koordinate der Zielposition
      * @param y Y-Koordinate der Zielposition
-     *
-     * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
-     * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
-     * \exception UnknownBltMethodException Die Zeichenmethode der ImageList ist unbekannt
      */
     void draw(const ImageList& iml, int nr, int x, int y);
 

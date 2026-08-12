@@ -27,8 +27,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPLIB_INCLUDE_GRAFIX
-#define _PPLIB_INCLUDE_GRAFIX
+#ifndef _PPLIB_INCLUDE_PPLIB_GRAFIX
+#define _PPLIB_INCLUDE_PPLIB_GRAFIX
 
 #include <pplib/grafix/color.h>
 #include <pplib/grafix/point.h>
@@ -44,4 +44,4 @@
 #include <pplib/grafix/imagereference.h>
 #include <pplib/grafix/sprite.h>
 
-#endif // _PPLIB_INCLUDE_GRAFIX
+#endif // _PPLIB_INCLUDE_PPLIB_GRAFIX
