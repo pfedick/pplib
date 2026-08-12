@@ -27,22 +27,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#include "pplib.h"
-#include "pplib-grafix.h"
+#include <pplib/grafix/sprite.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/compression.h>
+#include <pplib/core/pfpfile.h>
+#include <pplib/core/file.h>
 
-namespace pplib
-{
-namespace grafix
+namespace pplib::grafix
 {
 
 /*!\page PFPSpriteTexture1 Format PFP Sprite-Textures, Version 1
@@ -237,10 +228,10 @@ void Sprite::loadIndex(PFPChunk* chunk)
     for (int i = 0; i < num; i++) {
         item.id = Peek32(p + 0);
         item.surface = findTexture(Peek16(p + 4));
-        item.r.x1 = Peek16(p + 6 + 0);
-        item.r.y1 = Peek16(p + 6 + 2);
-        item.r.x2 = Peek16(p + 6 + 4) + 1;
-        item.r.y2 = Peek16(p + 6 + 6) + 1;
+        item.r.setX(Peek16(p + 6 + 0));
+        item.r.setY(Peek16(p + 6 + 2));
+        item.r.setRight(Peek16(p + 6 + 4) + 1);
+        item.r.setBottom(Peek16(p + 6 + 6) + 1);
         item.Pivot.x = Peek16(p + 14 + 0);
         item.Pivot.y = Peek16(p + 14 + 2);
         item.Offset.x = Peek16(p + 18 + 0);
@@ -398,5 +389,4 @@ int Sprite::numSprites() const
     return (int)SpriteList.size();
 }
 
-} // namespace grafix
-} // namespace pplib
+} // namespace pplib::grafix

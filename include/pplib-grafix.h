@@ -47,14 +47,10 @@ namespace pplib
 namespace grafix
 {
 
-PPLIBEXCEPTION(UnsupportedColorFormatException, Exception);
-
 PPLIBEXCEPTION(EmptyDrawableException, Exception);
 PPLIBEXCEPTION(UnknownBltMethodException, Exception);
 
 PPLIBEXCEPTION(FunctionUnavailableException, Exception);
-
-PPLIBEXCEPTION(InvalidSpriteException, Exception);
 
 } // namespace grafix
 } // end of namespace pplib

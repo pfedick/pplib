@@ -40,10 +40,12 @@ class String;
 namespace pplib::grafix
 {
 
+#ifndef real_t
 #ifdef PICO_BUILD
 typedef float real_t;
 #else
 typedef double real_t;
+#endif
 #endif
 
 class Point;

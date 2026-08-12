@@ -35,70 +35,285 @@
 namespace pplib::grafix
 {
 class Size16;
+
+#ifndef real_t
+#ifdef PICO_BUILD
+typedef float real_t;
+#else
+typedef double real_t;
+#endif
+#endif
+
+/** @class Size
+ * \ingroup PPLGroupGrafik
+ * \brief Repräsentiert Breite und Höhe eines beliebigen Objekts in einem zweidimensionalen Koordinatensystem
+ */
 class Size
 {
 public:
-    int width, height;
+    int width;  /// Breite des Objekts
+    int height; /// Höhe des Objekts
 
-    Size();
-    Size(int width, int height);
-    Size(const Size& other);
+    Size()
+    {
+        width = 0;
+        height = 0;
+    }
+    Size(int width, int height)
+    {
+        this->width = width;
+        this->height = height;
+    }
+
     Size(const Size16& other);
-    bool isNull() const;
-    bool isEmpty() const;
-    bool isValid() const;
-    void setHeight(int height);
-    void setWidth(int width);
-    void setSize(int width, int height);
-    void setSize(const Size& s);
-    Size& operator=(const Size16& other);
-    Size& operator*=(double factor);
-    Size& operator+=(const Size& size);
-    Size& operator-=(const Size& size);
-    Size& operator/=(double divisor);
 
-    static Size invalid();
+    inline bool isNull() const
+    {
+        return (width == 0 && height == 0);
+    }
+
+    inline bool isEmpty() const
+    {
+        return (width == 0 || height == 0);
+    }
+
+    inline bool isValid() const
+    {
+        return (width >= 0 && height >= 0);
+    }
+
+    inline void setHeight(int height)
+    {
+        this->height = height;
+    }
+
+    inline void setWidth(int width)
+    {
+        this->width = width;
+    }
+
+    inline void setSize(int width, int height)
+    {
+        this->width = width;
+        this->height = height;
+    }
+
+    inline void setSize(const Size& s)
+    {
+        width = s.width;
+        height = s.height;
+    }
+
+    void setSize(const Size16& s);
+    Size& operator=(const Size16& other);
+
+    inline Size& operator*=(real_t factor)
+    {
+        width = (int)((real_t)width * factor);
+        height = (int)((real_t)height * factor);
+        return *this;
+    }
+
+    inline Size& operator+=(const Size& size)
+    {
+        width += size.width;
+        height += size.height;
+        return *this;
+    }
+
+    inline Size& operator-=(const Size& size)
+    {
+        width -= size.width;
+        height -= size.height;
+        return *this;
+    }
+
+    inline Size& operator/=(real_t divisor)
+    {
+        width = (int)((real_t)width / divisor);
+        height = (int)((real_t)height / divisor);
+        return *this;
+    }
+
+    inline static Size invalid()
+    {
+        return Size(-1, -1);
+    };
 };
 
-bool operator!=(const Size& s1, const Size& s2);
-bool operator==(const Size& s1, const Size& s2);
-const Size operator*(const Size& size, double factor);
-const Size operator*(double factor, const Size& size);
-const Size operator+(const Size& s1, const Size& s2);
-const Size operator-(const Size& s1, const Size& s2);
-const Size operator-(const Size& size);
-const Size operator/(const Size& size, double divisor);
+inline bool operator!=(const Size& s1, const Size& s2)
+{
+    return (s1.width != s2.width || s1.height != s2.height);
+}
 
+inline bool operator==(const Size& s1, const Size& s2)
+{
+    return (s1.width == s2.width && s1.height == s2.height);
+}
+
+inline const Size operator*(const Size& size, real_t factor)
+{
+    return Size((int)((real_t)size.width * factor), (int)((real_t)size.height * factor));
+}
+
+inline const Size operator*(real_t factor, const Size& size)
+{
+    return Size((int)((real_t)size.width * factor), (int)((real_t)size.height * factor));
+}
+
+inline const Size operator+(const Size& s1, const Size& s2)
+{
+    return Size(s1.width + s2.width, s1.height + s2.height);
+}
+
+inline const Size operator-(const Size& s1, const Size& s2)
+{
+    return Size(s1.width - s2.width, s1.height - s2.height);
+}
+
+inline const Size operator-(const Size& size)
+{
+    return Size(0 - size.width, 0 - size.height);
+}
+
+inline const Size operator/(const Size& size, real_t divisor)
+{
+    return Size((int)((real_t)size.width / divisor), (int)((real_t)size.height / divisor));
+}
+
+/** @class Size16
+ * \ingroup PPLGroupGrafik
+ * \brief Repräsentiert Breite und Höhe eines beliebigen Objekts in einem zweidimensionalen Koordinatensystem mit 16-Bit-Ganzzahlen
+ */
 class Size16
 {
 public:
-    int16_t width, height;
+    int16_t width;  /// Breite des Objekts
+    int16_t height; /// Höhe des Objekts
 
-    Size16();
-    Size16(int16_t width, int16_t height);
+    Size16()
+    {
+        width = 0;
+        height = 0;
+    }
+
+    Size16(int16_t width, int16_t height)
+    {
+        this->width = width;
+        this->height = height;
+    }
+
     Size16(const Size& other);
-    bool isNull() const;
-    bool isEmpty() const;
-    bool isValid() const;
-    void setHeight(int16_t height);
-    void setWidth(int16_t width);
-    void setSize(int16_t width, int16_t height);
-    void setSize(const Size16& s);
+
+    inline bool isNull() const
+    {
+        return (width == 0 && height == 0);
+    }
+
+    inline bool isEmpty() const
+    {
+        return (width == 0 || height == 0);
+    }
+
+    inline bool isValid() const
+    {
+        return (width >= 0 && height >= 0);
+    }
+
+    inline void setHeight(int16_t height)
+    {
+        this->height = height;
+    }
+
+    inline void setWidth(int16_t width)
+    {
+        this->width = width;
+    }
+
+    inline void setSize(int16_t width, int16_t height)
+    {
+        this->width = width;
+        this->height = height;
+    }
+
+    inline void setSize(const Size16& s)
+    {
+        width = s.width;
+        height = s.height;
+    }
+
+    void setSize(const Size& s);
+
     Size16& operator=(const Size& other);
-    Size16& operator*=(float factor);
-    Size16& operator+=(const Size16& size);
-    Size16& operator-=(const Size16& size);
-    Size16& operator/=(float divisor);
+
+    inline Size16& operator*=(float factor)
+    {
+        width = (int)((float)width * factor);
+        height = (int)((float)height * factor);
+        return *this;
+    }
+
+    inline Size16& operator+=(const Size16& size)
+    {
+        width += size.width;
+        height += size.height;
+        return *this;
+    }
+
+    inline Size16& operator-=(const Size16& size)
+    {
+        width -= size.width;
+        height -= size.height;
+        return *this;
+    }
+
+    inline Size16& operator/=(float divisor)
+    {
+        width = (int)((float)width / divisor);
+        height = (int)((float)height / divisor);
+        return *this;
+    }
 };
 
-bool operator!=(const Size16& s1, const Size16& s2);
-bool operator==(const Size16& s1, const Size16& s2);
-const Size16 operator*(const Size16& size, float factor);
-const Size16 operator*(float factor, const Size16& size);
-const Size16 operator+(const Size16& s1, const Size16& s2);
-const Size16 operator-(const Size16& s1, const Size16& s2);
-const Size16 operator-(const Size16& size);
-const Size16 operator/(const Size16& size, float divisor);
+inline bool operator!=(const Size16& s1, const Size16& s2)
+{
+    return (s1.width != s2.width || s1.height != s2.height);
+}
+
+inline bool operator==(const Size16& s1, const Size16& s2)
+{
+    return (s1.width == s2.width && s1.height == s2.height);
+}
+
+inline const Size16 operator*(const Size16& size, float factor)
+{
+    return Size16((int)(size.width * factor), (int)(size.height * factor));
+}
+
+inline const Size16 operator*(float factor, const Size16& size)
+{
+    return Size16((int)(size.width * factor), (int)(size.height * factor));
+}
+
+inline const Size16 operator+(const Size16& s1, const Size16& s2)
+{
+    return Size16(s1.width + s2.width, s1.height + s2.height);
+}
+
+inline const Size16 operator-(const Size16& s1, const Size16& s2)
+{
+    return Size16(s1.width - s2.width, s1.height - s2.height);
+}
+
+inline const Size16 operator-(const Size16& size)
+{
+    return Size16(0 - size.width, 0 - size.height);
+}
+
+inline const Size16 operator/(const Size16& size, float divisor)
+{
+    return Size16((int)((float)size.width / divisor), (int)((float)size.height / divisor));
+}
 
 } // namespace pplib::grafix
 #endif // PPLIB_INCLUDE_GRAFIX_SIZE_H

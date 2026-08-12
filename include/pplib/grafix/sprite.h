@@ -32,6 +32,22 @@
 
 #include <stdint.h>
 
+#include <map>
+#include <pplib/grafix/rgbformat.h>
+#include <pplib/grafix/drawable.h>
+#include <pplib/grafix/image.h>
+#include <pplib/grafix/rect.h>
+#include <pplib/grafix/point.h>
+#include <pplib/core/baseexception.h>
+
+namespace pplib
+{
+class String;
+class FileObject;
+class PFPChunk;
+class PFPFile;
+} // namespace pplib
+
 namespace pplib::grafix
 {
 class Sprite
@@ -86,6 +102,9 @@ private:
     const Drawable* findTexture(int id) const;
 
 public:
+    PPLIBEXCEPTION(UnsupportedColorFormatException, Exception);
+    PPLIBEXCEPTION(InvalidSpriteException, Exception);
+
     Sprite();
     ~Sprite();
     void load(const String& filename);
