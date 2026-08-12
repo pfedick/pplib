@@ -30,10 +30,10 @@
 #ifndef PPLIB_INET_H_
 #define PPLIB_INET_H_
 
-#include <pplib.h>
-
 #include <list>
 #include <map>
+
+#include <pplib/core/baseexception.h>
 
 namespace pplib
 {
@@ -496,95 +496,6 @@ public:
     int SetReadTimeout(int seconds, int useconds);
     int Bind(const char* host, int port);
     int GetDescriptor();
-};
-
-//! \brief CURL-Klasse
-class Curl
-{
-private:
-    void* handle;
-    void *httppost, *last_httppost;
-    void* headers;
-    char* resultbuffer;
-    Logger* log;
-    size_t resultbuffer_size;
-    String Header;
-    String Browser, Url, UserPassword, Referer, Proxy;
-    String GetCall;
-    char* errorbuffer;
-    bool aboard;
-    void curlResultOk(int ret) const;
-
-public:
-    PPLIBEXCEPTION(InitializationFailedException, Exception);
-    PPLIBEXCEPTION(MiscException, Exception);
-    PPLIBEXCEPTION(StringEscapeException, Exception);
-    PPLIBEXCEPTION(InvalidURLException, Exception);
-    PPLIBEXCEPTION(NoResultException, Exception);
-    PPLIBEXCEPTION(OperationFailedException, Exception);
-
-    enum HTTPVERSION
-    {
-        HTTP_1_0 = 1,
-        HTTP_1_1,
-        HTTP_2_0,
-    };
-
-    static bool isSupported();
-
-    Curl();
-    Curl(const Curl& other);
-    ~Curl();
-
-    // TODO: CNotifyHandler call_receive;
-    // TODO: CNotifyHandler call_send;
-    // TODO: CNotifyHandler call_done;
-
-    void debugHandler(int type, const char* data, size_t size);
-    size_t storeResult(void* ptr, size_t bytes, int type);
-    void setLogger(Logger* log);
-
-    void setBrowser(const String& browser);
-    void setURL(const String& url);
-    void setReferer(const String& url);
-    void setUserPassword(const String& username, const String& password);
-    void setUsername(const String& username);
-    void setPassword(const String& password);
-    void setUserPassword(const String& userpassword); // Format: username:password
-    void setProxy(const String& proxy, int port);
-    void setHttpVersion(Curl::HTTPVERSION version);
-    void setTimeout(int seconds);
-    void setHeader(const String& name, const String& value);
-    void setMaximumPersistantConnects(int value);
-    void enableSignals(bool enable);
-    void reset();
-    void clearHeader();
-    void get();
-    void get(const String& parameter);
-    void get(const AssocArray& param);
-    void getResultBuffer(void** buffer, size_t* size) const;
-    ByteArrayPtr getResultBuffer() const;
-    void copyResultBuffer(ByteArray& bin) const;
-    String getResultBufferAsString() const;
-    String getHeader() const;
-    String getURL() const;
-    String getLastURL() const;
-    void escape(String& target, const AssocArray& source);
-    void escape(String& string);
-    void addPostVar(const String& name, const String& data, const String& contenttype = String());
-    void addPostVar(const String& name, int val, const String& contenttype = String());
-    void addPostVar(const AssocArray& param, const String& prefix = String());
-    void post();
-    void post(const AssocArray& param);
-    void postFields(const AssocArray& param);
-    void clear();
-
-    void addCAFile(const String& filename);
-    void verifyPeer(bool verify);
-
-    void* getCurlHandle() const;
-
-    static String getUri(const String& uri);
 };
 
 class WikiParser
