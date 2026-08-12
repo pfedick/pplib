@@ -34,6 +34,8 @@
 #include <map>
 
 #include <pplib/core/baseexception.h>
+#include <pplib/types/string.h>
+#include <pplib/types/bytearray.h>
 
 namespace pplib
 {

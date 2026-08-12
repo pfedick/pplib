@@ -27,12 +27,18 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-namespace pplib
-{
+#ifndef PPLIB_INCLUDE_INTERNAL_SOCKET_H
+#define PPLIB_INCLUDE_INTERNAL_SOCKET_H
 
 #ifdef _WIN32
-int inet_aton(const char* cp, struct in_addr* pin);
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#else
+#include <sys/socket.h>
 #endif
+
+namespace pplib
+{
 
 typedef struct tagPPLSocket
 {
@@ -48,3 +54,5 @@ typedef struct tagPPLSocket
 } PPLSOCKET;
 
 } // namespace pplib
+
+#endif // PPLIB_INCLUDE_INTERNAL_SOCKET_H

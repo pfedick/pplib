@@ -27,66 +27,47 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
+#include <config_pplib.h>
+
 #include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
 #include <stdarg.h>
-#endif
 
 #include <time.h>
+#include <unistd.h>
+
+#include <fcntl.h>
+#include <sys/types.h>
+#include <errno.h>
+#include <signal.h>
+
 #ifdef _WIN32
 #include <winsock2.h>
 #include <Ws2tcpip.h>
 #include <windows.h>
-#ifndef MSG_DONTWAIT
+#ifndef MSG_DONOTWAIT
 #define MSG_DONTWAIT 0
 #endif
 #else
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#endif
-#ifdef HAVE_SYS_POLL_H
 #include <sys/poll.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#endif
-#ifdef HAVE_NETDB_H
 #include <netdb.h>
-#endif
-#ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
-#endif
-#endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef HAVE_SIGNAL_H
-#include <signal.h>
 #endif
 
 // #define DEBUGOUT
 
-#include "pplib.h"
-#include "pplib-inet.h"
-#include "socket_pplib.h"
+#include <pplib-internal/socket.h>
+
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/threads.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib-inet.h>
 
 namespace pplib
 {
@@ -1392,8 +1373,8 @@ void TCPSocket::listen(int backlog, int timeout)
         if (newSd > 0) {
             char hostname[1024];
             char servname[32];
-            bzero(hostname, 1024);
-            bzero(servname, 32);
+            memset(&hostname, 0, sizeof(hostname));
+            memset(&servname, 0, sizeof(servname));
             if (getnameinfo((const sockaddr*)&cliAddr, sizeof(cliAddr), hostname, 1023, servname, 31, NI_NUMERICHOST | NI_NUMERICSERV) !=
                 0) {
 #ifdef _WIN32
@@ -1479,4 +1460,3 @@ const String& TCPSocket::hostname() const
 }
 
 } // namespace pplib
-  // EOF namespace ppl
