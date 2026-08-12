@@ -47,7 +47,7 @@ Point16::Point16(const Point& other) noexcept
     y = clamp16(other.y);
 }
 
-void Point16::setPoint(const Point& other)
+void Point16::setPoint(const Point& other) noexcept
 {
     x = clamp16(other.x);
     y = clamp16(other.y);
