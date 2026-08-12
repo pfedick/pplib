@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,24 +22,14 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
+#include <config_pplib.h>
+#include <pplib/exceptions.h>
+#include <strings.h>
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
 #ifdef _WIN32
 #include <winsock2.h>
 #endif
@@ -64,9 +49,7 @@ namespace pplib
 
 SocketMessage::SocketMessage()
 {
-    payload_size = 0;
     payload_type = 0;
-    payload = NULL;
     commandId = 0;
     ClientSupportsCompression = false;
     Version = 1;
@@ -76,14 +59,8 @@ SocketMessage::SocketMessage()
 }
 
 SocketMessage::SocketMessage(const SocketMessage& other)
+    : SocketMessage()
 {
-    payload = NULL;
-    commandId = 0;
-    ClientSupportsCompression = false;
-    Version = 1;
-    UseCompression = true;
-    SupportMsgChannel = false;
-    Id = 0;
     copy(other);
 }
 
@@ -94,9 +71,7 @@ SocketMessage::~SocketMessage()
 
 void SocketMessage::clear()
 {
-    if (!payload) return;
-    free(payload);
-    payload = NULL;
+    payload.clear();
 }
 
 void SocketMessage::copy(const SocketMessage& other)
@@ -106,14 +81,8 @@ void SocketMessage::copy(const SocketMessage& other)
     Id = other.Id;
     Version = other.Version;
     UseCompression = other.UseCompression;
-    payload_size = other.payload_size;
+    payload = other.payload;
     payload_type = other.payload_type;
-
-    if (other.payload) {
-        payload = malloc(payload_size);
-        if (!payload) throw OutOfMemoryException();
-        memcpy(payload, other.payload, payload_size);
-    }
 }
 
 void SocketMessage::enableCompression(bool flag)
@@ -150,38 +119,30 @@ void SocketMessage::setPayload(const String& msg)
 {
     clear();
     payload_type = Variant::TYPE_STRING;
-    payload_size = msg.size();
-    payload = strndup(msg.c_str(), payload_size);
-    if (!payload) throw OutOfMemoryException();
+    payload.copy(msg.c_str(), msg.size());
 }
 
 void SocketMessage::setPayload(const AssocArray& msg)
 {
     clear();
     payload_type = Variant::TYPE_ASSOCARRAY;
-    payload_size = msg.binarySize();
-    payload = malloc(payload_size);
-    if (!payload) throw OutOfMemoryException();
-    msg.exportBinary(payload, payload_size, NULL);
+    msg.exportBinary(payload);
 }
 
 void SocketMessage::setPayload(const ByteArrayPtr& msg)
 {
     clear();
     payload_type = Variant::TYPE_BYTEARRAY;
-    payload_size = msg.size();
-    payload = malloc(payload_size);
-    if (!payload) throw OutOfMemoryException();
-    memcpy(payload, msg.ptr(), payload_size);
+    payload.copy(msg.ptr(), msg.size());
 }
 
 void SocketMessage::getPayload(String& msg) const
 {
-    if (!payload) {
+    if (payload.isEmpty()) {
         throw NoDataAvailableException();
     }
     if (payload_type == 1 || payload_type == Variant::TYPE_STRING) {
-        msg.set((const char*)payload, payload_size);
+        msg.set((const char*)payload, payload.size());
         return;
     }
     throw DataInOtherFormatException();
@@ -189,24 +150,24 @@ void SocketMessage::getPayload(String& msg) const
 
 void SocketMessage::getPayload(AssocArray& msg) const
 {
-    if (!payload) {
+    if (payload.isEmpty()) {
         throw NoDataAvailableException();
     }
     if (payload_type != Variant::TYPE_ASSOCARRAY) {
         throw DataInOtherFormatException();
     }
-    msg.importBinary(payload, payload_size);
+    msg.importBinary(payload);
 }
 
 void SocketMessage::getPayload(ByteArray& msg) const
 {
-    if (!payload) {
+    if (payload.isEmpty()) {
         throw NoDataAvailableException();
     }
     if (payload_type != Variant::TYPE_BYTEARRAY) {
         throw DataInOtherFormatException();
     }
-    msg.copy(payload, payload_size);
+    msg.copy(payload);
 }
 
 int SocketMessage::getId() const
@@ -221,7 +182,7 @@ int SocketMessage::getCommandId() const
 
 int SocketMessage::getPayloadType()
 {
-    if (!payload) {
+    if (payload.isEmpty()) {
         throw NoDataAvailableException();
     }
     return payload_type;
@@ -231,7 +192,7 @@ void SocketMessage::compilePacketHeader(
     char* buffer, size_t* buffer_size, const void* payload, size_t payload_size, bool is_compressed) const
 {
     if (*buffer_size < 24) throw BufferTooSmallException();
-    bzero(buffer, 24);
+    memset(buffer, 0, 24);
     int flags = 0;
     if (UseCompression) flags |= 2;    // Bit 1: Client supports ZLib
     if (SupportMsgChannel) flags |= 4; // Bit 2: Client supports MsgChannel
@@ -254,13 +215,13 @@ void SocketMessage::compilePacketHeader(
     *buffer_size = 24;
 }
 
-void SocketMessage::readFromPacketHeader(const char* msgbuffer, int& flags)
+size_t SocketMessage::readFromPacketHeader(const char* msgbuffer, int& flags)
 {
     commandId = PeekN16(msgbuffer + 2);
     flags = PeekN8(msgbuffer + 12);
     payload_type = PeekN8(msgbuffer + 13);
     Id = PeekN32(msgbuffer + 4);
-    payload_size = PeekN32(msgbuffer + 8);
+    size_t payload_size = PeekN32(msgbuffer + 8);
     if (Version == 1) {
         if (PeekN32(msgbuffer + 16) != Crc32(msgbuffer, 16)) throw InvalidPacketException("CRC checksum");
     } else if (PeekN8(msgbuffer) == 'V' && PeekN8(msgbuffer + 1) == 2) {
@@ -276,6 +237,7 @@ void SocketMessage::readFromPacketHeader(const char* msgbuffer, int& flags)
         SupportMsgChannel = true;
     else
         SupportMsgChannel = false;
+    return payload_size;
 }
 
 // #define DEBUG_LOG 1
@@ -291,8 +253,8 @@ size_t TCPSocket::write(const SocketMessage& msg)
     Compression comp(Compression::Algo_ZLIB, Compression::Level_High);
     ByteArray compressed;
     comp.usePrefix(Compression::Prefix_V1);
-    const void* msg_payload = msg.payload;
-    size_t msg_size = msg.payload_size;
+    const void* msg_payload = msg.payload.ptr();
+    size_t msg_size = msg.payload.size();
     bool is_compressed = false;
     if (msg_size > 64 && msg.ClientSupportsCompression == true && msg.UseCompression == true) {
         try {
@@ -347,7 +309,7 @@ bool TCPSocket::waitForMessage(SocketMessage& msg, int timeout_seconds, Thread* 
                 return false;
             }
         }
-        bzero(msgbuffer, 24);
+        memset(msgbuffer, 0, 24);
         if (!waitForIncomingData(0, 100000)) continue;
 
         // Datenpaket vorhanden
@@ -367,35 +329,24 @@ bool TCPSocket::waitForMessage(SocketMessage& msg, int timeout_seconds, Thread* 
             throw SocketMessage::InvalidProtocolVersion();
         }
         msg.clear();
-        msg.readFromPacketHeader(msgbuffer, flags);
-        if (msg.payload_size) {
-            buffer = malloc(msg.payload_size);
-            if (!buffer) throw OutOfMemoryException();
-            try {
-                this->readLoop(buffer, msg.payload_size, timeout_seconds, watch_thread);
-            }
-            catch (...) {
-                free(buffer);
-                throw;
-            }
+        size_t payload_size = msg.readFromPacketHeader(msgbuffer, flags);
+        if (payload_size) {
+            ByteArray buffer;
+            buffer.malloc(payload_size);
+            this->readLoop((void*)buffer.ptr(), payload_size, timeout_seconds, watch_thread);
 #ifdef DEBUG_LOG
             printf("received Payload:\n");
             HexDump(buffer, msg.payload_size);
 #endif
 
             if (msg.Version > 1) { // CRC prüfen
-                if (PeekN32(msgbuffer + 16) != Crc32(buffer, msg.payload_size)) {
-                    free(buffer);
+                if (PeekN32(msgbuffer + 16) != Crc32(buffer.ptr(), payload_size)) {
                     throw SocketMessage::InvalidPacketException("CRC checksum of payload");
                 }
             }
             if (flags & 1) {
-                comp.uncompress(uncompressed, buffer, msg.payload_size);
-                free(buffer);
-                msg.payload_size = uncompressed.size();
-                msg.payload = malloc(msg.payload_size);
-                if (!msg.payload) throw OutOfMemoryException();
-                memcpy(msg.payload, uncompressed.ptr(), msg.payload_size);
+                comp.uncompress(uncompressed, buffer.ptr(), payload_size);
+                msg.payload.copy(uncompressed.ptr(), uncompressed.size());
             } else {
                 msg.payload = buffer;
             }

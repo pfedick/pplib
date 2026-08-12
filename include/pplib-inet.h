@@ -290,8 +290,7 @@ class SocketMessage
     friend class TCPSocket;
 
 private:
-    void* payload;
-    size_t payload_size;
+    ByteArray payload;
     int payload_type;
     int commandId;
     int Id;
@@ -300,7 +299,7 @@ private:
     bool SupportMsgChannel;
 
     void compilePacketHeader(char* buffer, size_t* buffer_size, const void* payload, size_t payload_size, bool is_compressed) const;
-    void readFromPacketHeader(const char* msgbuffer, int& flags);
+    size_t readFromPacketHeader(const char* msgbuffer, int& flags);
 
 public:
     PPLIBEXCEPTION(NoDataAvailableException, Exception);

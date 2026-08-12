@@ -26,23 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
+#include <config_pplib.h>
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -55,9 +39,9 @@
 #include <windows.h>
 #endif
 
-#include "pplib.h"
-#include "pplib-inet.h"
-#include "pplib/inet/httpclient.h"
+#include <pplib/core/mutex.h>
+#include <pplib/exceptions.h>
+#include <pplib/inet/httpclient.h>
 
 #ifdef HAVE_LIBCURL
 #include <curl/curl.h>
@@ -136,7 +120,7 @@ void HttpClient::Init()
     if (!CurlInitialized) {
         if (curl_global_init(CURL_GLOBAL_WIN32 | CURL_GLOBAL_SSL) != 0) {
             InitMutex.unlock();
-            throw Curl::InitializationFailedException();
+            throw InitializationFailedException("Curl global initialization failed");
         }
         CurlInitialized = true;
         atexit(curl_cleanup_handler);
