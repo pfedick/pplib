@@ -55,6 +55,11 @@
 #define fileno _fileno
 #include <windows.h>
 
+#ifdef _MSC_VER
+#define fseeko _fseeki64
+#define ftello _ftelli64
+#endif
+
 #endif // _WIN32
 
 #include <pplib/exceptions.h>
@@ -219,9 +224,6 @@ namespace pplib
  */
 File::File()
 {
-#ifdef USEWIN32
-    hf = 0;
-#endif
     MapBase = NULL;
     ff = NULL;
     mysize = pos = 0;
@@ -241,9 +243,6 @@ File::File()
 File::File(const String& filename, FileMode mode)
 {
     MapBase = NULL;
-#ifdef USEWIN32
-    hf = 0;
-#endif
     ff = NULL;
     mysize = pos = 0;
     LastMapStart = LastMapSize = 0;
@@ -300,7 +299,7 @@ File::~File()
  * @param mode Filemodus aus der Enumeration FileMode
  * @return C-String
  */
-#ifdef WIN32
+#ifdef _WIN32
 static const wchar_t* fmode(File::FileMode mode)
 {
     switch (mode) {
@@ -343,7 +342,7 @@ static const char* fmode(File::FileMode mode)
  * @param mode Filemodus aus der Enumeration FileMode
  * @return C-String
  */
-#ifdef WIN32
+#ifdef _WIN32
 const wchar_t* fmodepopen(File::FileMode mode)
 {
     switch (mode) {
@@ -413,7 +412,7 @@ void File::open(const String& filename, FileMode mode)
 {
     close();
     if (filename.isEmpty()) throw IllegalArgumentException();
-#ifdef WIN32
+#ifdef _WIN32
     if ((ff = (FILE*)::_wfopen((const wchar_t*)WideString(filename), fmode(mode))) == NULL) {
         throwErrno(errno, filename);
     }
@@ -426,55 +425,6 @@ void File::open(const String& filename, FileMode mode)
     mysize = size();
     seek(0);
     setFilename(filename);
-}
-
-/*!\brief Datei zum Lesen oder Schreiben öffnen
- *
- * \desc
- * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
- *
- * \param filename Dateiname als C-String
- * \param mode String, der angibt, wie die Datei geöffnet werden soll (siehe \ref pplib_File_Filemodi)
- *
- * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
-void File::open(const char* filename, FileMode mode)
-{
-    if (filename == NULL || strlen(filename) == 0) throw IllegalArgumentException();
-    close();
-#ifdef WIN32
-    if ((ff = (FILE*)::_wfopen((const wchar_t*)WideString(String(filename)), fmode(mode))) == NULL) {
-        throwErrno(errno, filename);
-    }
-#else
-    if ((ff = (FILE*)::fopen(filename, fmode(mode))) == NULL) {
-        throwErrno(errno, filename);
-    }
-#endif
-    mysize = size();
-    seek(0);
-    setFilename(filename);
-}
-
-/*!\brief Eine temporäre Datei zum Lesen und Schreiben öffnen
- *
- * \desc
- * Diese Funktion erzeugt eine temporäre Datei mit einem eindeutigen Namen.
- * Dieser Name wird aus \p filetemplate erzeugt. Dazu  müssen  die letzten
- * sechs  Buchstaben  des  Parameters template XXXXXX sein, diese werden dann
- * durch eine Zeichenkette ersetzt, die diesen Dateinamen eindeutig  macht.
- * Die  Datei  wird dann mit dem Modus read/write und den Rechten 0666 erzeugt.
- *
- * @param[in] filetemplate Pfad und Vorlage für den zu erstellenden Dateinamen
- * als C-String
- *
- * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
-void File::openTemp(const char* filetemplate)
-{
-    if (filetemplate == NULL || strlen(filetemplate) == 0) throw IllegalArgumentException();
-    String t = filetemplate;
-    openTemp(t);
 }
 
 /*!\brief Eine temporäre Datei zum Lesen und Schreiben öffnen
@@ -492,7 +442,6 @@ void File::openTemp(const char* filetemplate)
  */
 void File::openTemp(const String& filetemplate)
 {
-#ifdef HAVE_MKSTEMP
     close();
     String tmpname = filetemplate;
     int f = ::mkstemp((char*)((const char*)tmpname));
@@ -512,9 +461,6 @@ void File::openTemp(const String& filetemplate)
         throw;
     }
     setFilename((const char*)tmpname);
-#else
-    throw UnsupportedFeatureException("pplib::File::openTemp, no mkstemp available");
-#endif
 }
 
 /*!\brief Datei schließen
@@ -543,15 +489,11 @@ void File::close()
             free(buffer);
             buffer = NULL;
         }
-#ifdef WIN32FILES
-        CloseHandle((HANDLE)ff);
-#else
         if (isPopen) {
             if (::pclose((FILE*)ff) != 0) ret = 0;
         } else {
             if (::fclose((FILE*)ff) != 0) ret = 0;
         }
-#endif
         isPopen = false;
         ff = NULL;
         mysize = 0;
@@ -571,15 +513,10 @@ bool File::isOpen() const
 uint64_t File::size() const
 {
     if (ff != NULL) {
-#ifdef WIN32FILES
-        BY_HANDLE_FILE_INFORMATION info;
-        if (GetFileInformationByHandle((HANDLE)ff, &info)) return (((uint64_t)info.nFileSizeHigh) << 32) + info.nFileSizeLow;
-        throwErrno(errno, filename()); // ???
-#elifdef WIN32
+#ifdef _WIN32
         struct _stat buf;
         if ((::_fstat(_fileno((FILE*)ff), &buf)) == 0) return ((uint64_t)buf.st_size);
         throwErrno(errno, filename());
-
 #else
         struct stat buf;
         if ((::fstat(fileno((FILE*)ff), &buf)) == 0) return ((uint64_t)buf.st_size);
@@ -609,48 +546,13 @@ void File::popen(const String& command, FileMode mode)
 {
     close();
     if (command.isEmpty()) throw IllegalArgumentException();
-#ifdef WIN32
+#ifdef _WIN32
     if ((ff = (FILE*)::_wpopen((const wchar_t*)WideString(command), fmodepopen(mode))) == NULL) {
         throwErrno(errno, command);
     }
 
 #else
     if ((ff = (FILE*)::popen((const char*)command, fmodepopen(mode))) == NULL) {
-        throwErrno(errno, command);
-    }
-#endif
-    isPopen = true;
-    mysize = size();
-    setFilename(command);
-}
-
-/*!\brief Prozess öffnen
- *
- * \desc
- * Die  Funktion \c Popen öffnet einen Prozess dadurch, dass sie sich nach
- * Erzeugen einer Pipe aufteilt und eine Shell öffnet.  Da eine Pipe  nach
- * Definition  unidirektional  ist,  darf das Argument \p mode nur Lesen oder
- * Schreiben angeben,  nicht  beides;  der  resultierende  Datenkanal  ist
- * demzufolge nur-lesend oder nur-schreibend.
- *
- * \param[in] command Das  Argument \p command  enthält einen String,
- * der ein Shell-Kommandozeile enthält.  Dieses Kommando  wird  an \c /bin/sh
- * unter Verwendung des Flags \c -c übergeben. Interpretation, falls nötig, wird von
- * der Shell durchgeführt.
- * \param[in] mode Dateimodus
- *
- * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
-void File::popen(const char* command, FileMode mode)
-{
-    if (command == NULL || strlen(command) == 0) throw IllegalArgumentException();
-    close();
-#ifdef WIN32
-    if ((ff = (FILE*)::_wpopen((const wchar_t*)WideString(String(command)), fmodepopen(mode))) == NULL) {
-        throwErrno(errno, command);
-    }
-#else
-    if ((ff = (FILE*)::popen(command, fmodepopen(mode))) == NULL) {
         throwErrno(errno, command);
     }
 #endif
@@ -691,29 +593,10 @@ void File::seek(uint64_t position)
     if (ff == NULL) {
         throw FileNotOpenException();
     }
-#ifdef WIN32FILES
-    LARGE_INTEGER in, out;
-    in.QuadPart = position;
-    if (SetFilePointerEx((HANDLE)ff, in, &out, FILE_BEGIN)) {
-        pos = out.QuadPart;
-    } else {
-        SetError(11);
-    }
-#else
-    fpos_t p;
-#ifdef FPOS_T_STRUCT
-    p.__pos = (__off64_t)position;
-#else
-    p = (fpos_t)position;
-#endif
-    if (::fsetpos((FILE*)ff, &p) != 0) {
-        int errnosave = errno;
-        pos = tell();
-        errno = errnosave;
+    if (::fseeko((FILE*)ff, (off_t)position, SEEK_SET) != 0) {
         throwErrno(errno, filename());
     }
     pos = tell();
-#endif
     if (pos != position) throw FileSeekException();
     return;
 }
@@ -721,11 +604,6 @@ void File::seek(uint64_t position)
 uint64_t File::seek(int64_t offset, SeekOrigin origin)
 {
     if (ff == NULL) throw FileNotOpenException();
-#ifdef _HAVE_FSEEKO
-    fpos_t p;
-    p = (fpos_t)offset;
-    int suberr = ::fseeko((FILE*)ff, p, origin);
-#else
     int o = 0;
     switch (origin) {
     case File::SEEKCUR:
@@ -741,7 +619,6 @@ uint64_t File::seek(int64_t offset, SeekOrigin origin)
         throw IllegalArgumentException();
     }
     int suberr = ::fseek((FILE*)ff, (long)offset, o);
-#endif
     if (suberr == 0) {
         pos = tell();
         return pos;
@@ -753,25 +630,9 @@ uint64_t File::seek(int64_t offset, SeekOrigin origin)
 uint64_t File::tell()
 {
     if (ff != NULL) {
-#ifdef WIN32FILES
-        LARGE_INTEGER in, out;
-        in.QuadPart = 0;
-        if (SetFilePointerEx((HANDLE)ff, in, &out, FILE_CURRENT)) {
-            return out.QuadPart;
-        }
-        SetError(11);
-        return 0;
-#else
-        fpos_t p;
-        if (fgetpos((FILE*)ff, &p) != 0) throwErrno(errno, filename());
-        uint64_t ret;
-#ifdef FPOS_T_STRUCT
-        ret = (int64_t)p.__pos;
-#else
-        ret = (int64_t)p;
-#endif
-        return ret;
-#endif
+        off_t p = ::ftello((FILE*)ff);
+        if (p != (off_t)-1) return p;
+        throwErrno(errno, filename());
     }
     throw FileNotOpenException();
 }
@@ -826,9 +687,6 @@ wchar_t* File::fgetws(wchar_t* buffer, size_t num)
 {
     if (ff == NULL) throw FileNotOpenException();
     if (buffer == NULL) throw IllegalArgumentException();
-#ifndef HAVE_FGETWS
-    throw UnsupportedFeatureException("pplib::File::getws: No fgetws available");
-#else
     // int suberr;
     wchar_t* res;
     res = ::fgetws(buffer, num, (FILE*)ff);
@@ -842,7 +700,6 @@ wchar_t* File::fgetws(wchar_t* buffer, size_t num)
     uint64_t by = (uint64_t)wcslen(buffer) * sizeof(wchar_t);
     pos += by;
     return buffer;
-#endif
 }
 
 void File::fputs(const char* str)
@@ -861,16 +718,12 @@ void File::fputws(const wchar_t* str)
 {
     if (ff == NULL) throw FileNotOpenException();
     if (str == NULL) throw IllegalArgumentException();
-#ifndef HAVE_FPUTWS
-    throw UnsupportedFeatureException("pplib::File::putws: No fputws available");
-#else
     if (::fputws(str, (FILE*)ff) != -1) {
         pos += wcslen(str) * sizeof(wchar_t);
         if (pos > mysize) mysize = pos;
         return;
     }
     throwErrno(errno, filename());
-#endif
 }
 
 void File::fputc(int c)
@@ -901,9 +754,6 @@ int File::fgetc()
 void File::fputwc(wchar_t c)
 {
     if (ff == NULL) throw FileNotOpenException();
-#ifndef HAVE_FPUTWC
-    throw UnsupportedFeatureException("pplib::File::putwc: No fputwc available");
-#else
     wint_t ret = ::fputwc(c, (FILE*)ff);
     if (ret != WEOF) {
         pos += sizeof(wchar_t);
@@ -911,15 +761,11 @@ void File::fputwc(wchar_t c)
         return;
     }
     throwErrno(errno);
-#endif
 }
 
 wchar_t File::fgetwc()
 {
     if (ff == NULL) throw FileNotOpenException();
-#ifndef HAVE_FGETWC
-    throw UnsupportedFeatureException("pplib::File::putwc: No fputwc available");
-#else
     wint_t ret = ::fgetwc((FILE*)ff);
     if (ret != WEOF) {
         pos += sizeof(wchar_t);
@@ -927,7 +773,6 @@ wchar_t File::fgetwc()
     }
     if (errno != 0) throwErrno(errno);
     return 0;
-#endif
 }
 
 bool File::eof() const
@@ -946,30 +791,22 @@ int File::getFileNo() const
 void File::flush()
 {
     if (ff == NULL) throw FileNotOpenException();
-#ifdef WIN32FILES
-    FlushFileBuffers((HANDLE)ff);
-#else
     if (fflush((FILE*)ff) == 0) return;
     throwErrno(errno);
-#endif
 }
 
 void File::sync()
 {
     if (ff == NULL) throw FileNotOpenException();
-#ifdef HAVE_FSYNC
     int ret = fsync(fileno((FILE*)ff));
     if (ret == 0) return;
     throwErrno(errno);
-#else
-    throw UnsupportedFeatureException("pplib::File::sync: No fsync available");
-#endif
 }
 
 void File::truncate(uint64_t length)
 {
     if (ff == NULL) throw FileNotOpenException();
-#ifdef HAVE_FTRUNCATE
+#ifndef _WIN32
     int fd = fileno((FILE*)ff);
     int ret = ::ftruncate(fd, (off_t)length);
     if (ret == 0) {
@@ -979,27 +816,15 @@ void File::truncate(uint64_t length)
     }
     throwErrno(errno);
 #else
-    throw UnsupportedFeatureException("pplib::File::truncate: No ftruncate available");
+    // TODO : Implement file truncation for Windows
+    throw UnsupportedFeatureException("pplib::File::truncate: No file truncation available");
 #endif
 }
 
 void File::lockExclusive(bool block)
 {
     if (ff == NULL) throw FileNotOpenException();
-#if defined HAVE_FCNTL
-    int fd = fileno((FILE*)ff);
-    int cmd = F_SETLK;
-    if (block) cmd = F_SETLKW;
-    struct flock f;
-    f.l_start = 0;
-    f.l_len = 0;
-    f.l_whence = 0;
-    f.l_pid = getpid();
-    f.l_type = F_WRLCK;
-    int ret = fcntl(fd, cmd, &f);
-    if (ret != -1) return;
-    throwErrno(errno);
-#elif defined HAVE_FLOCK
+#ifndef _WIN32
     int fd = fileno((FILE*)ff);
     int flags = LOCK_EX;
     if (!block) flags |= LOCK_NB;
@@ -1007,6 +832,7 @@ void File::lockExclusive(bool block)
     if (ret == 0) return;
     throwErrno(errno);
 #else
+    // TODO : Implement file locking for Windows
     throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
 #endif
 }
@@ -1014,21 +840,7 @@ void File::lockExclusive(bool block)
 void File::lockShared(bool block)
 {
     if (ff == NULL) throw FileNotOpenException();
-#if defined HAVE_FCNTL
-    int fd = fileno((FILE*)ff);
-    int cmd = F_SETLK;
-    if (block) cmd = F_SETLKW;
-    struct flock f;
-    f.l_start = 0;
-    f.l_len = 0;
-    f.l_whence = 0;
-    f.l_pid = getpid();
-    f.l_type = F_RDLCK;
-    int ret = fcntl(fd, cmd, &f);
-    if (ret != -1) return;
-    throwErrno(errno);
-
-#elif defined HAVE_FLOCK
+#ifndef _WIN32
     int fd = fileno((FILE*)ff);
     int flags = LOCK_SH;
     if (!block) flags |= LOCK_NB;
@@ -1036,6 +848,7 @@ void File::lockShared(bool block)
     if (ret == 0) return;
     throwErrno(errno);
 #else
+    // TODO : Implement file locking for Windows
     throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
 
 #endif
@@ -1044,24 +857,13 @@ void File::lockShared(bool block)
 void File::unlock()
 {
     if (ff == NULL) throw FileNotOpenException();
-#if defined HAVE_FCNTL
-    int fd = fileno((FILE*)ff);
-    struct flock f;
-    f.l_start = 0;
-    f.l_len = 0;
-    f.l_whence = 0;
-    f.l_pid = getpid();
-    f.l_type = F_UNLCK;
-    int ret = fcntl(fd, F_SETLKW, &f);
-    if (ret != -1) return;
-    throwErrno(errno);
-
-#elif defined HAVE_FLOCK
+#ifndef _WIN32
     int fd = fileno((FILE*)ff);
     int ret = flock(fd, LOCK_UN);
     if (ret == 0) return;
     throwErrno(errno);
 #else
+    // TODO : Implement file locking for Windows
     throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
 #endif
 }
@@ -1123,7 +925,7 @@ void File::unmap()
 int File::munmap(void* addr, size_t len)
 {
     if (!addr) return 1;
-#ifdef HAVE_MMAP
+#ifndef _WIN32
     ::munmap(addr, len);
 #else
     if ((LastMapProtection & 2)) { // Speicher war schreibbar und muss
@@ -1138,19 +940,17 @@ int File::munmap(void* addr, size_t len)
     return 1;
 }
 
-#ifdef HAVE_SYSCONF
+#ifndef _WIN32
 static int __pagesize = 0;
 #endif
-
 void* File::mmap(uint64_t position, size_t size, int prot, int flags)
 {
-#ifdef HAVE_MMAP
+#ifndef _WIN32
     int mflags = 0;
     if (prot & 1) mflags |= PROT_READ;
     if (prot & 2) mflags |= PROT_WRITE;
     if (prot & 4) mflags |= PROT_EXEC;
     size_t rest = 0;
-#ifdef HAVE_SYSCONF
     if (!__pagesize) __pagesize = sysconf(_SC_PAGE_SIZE);
     // position muss an einer pagesize aligned sein
     rest = position % __pagesize;
@@ -1160,8 +960,6 @@ void* File::mmap(uint64_t position, size_t size, int prot, int flags)
         position = multiplyer * __pagesize;
         size += rest;
     }
-#endif
-
     void* adr = ::mmap(NULL, size, mflags, MAP_PRIVATE, fileno((FILE*)ff), (off_t)position);
     if (adr == MAP_FAILED) {
         MapBase = NULL;
@@ -1320,17 +1118,16 @@ ByteArray File::load(const String& filename)
  */
 void File::truncate(const String& filename, uint64_t bytes)
 {
-#ifdef HAVE_TRUNCATE
+#ifndef _WIN32
     if (filename.isEmpty()) throw IllegalArgumentException();
     // truncate-Funktion vorhanden
     if (::truncate((const char*)filename, (off_t)bytes) == 0) return;
     throwErrno(errno, filename);
 #else
-    throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
+    // TODO : Implement file truncation for Windows
+    throw UnsupportedFeatureException("pplib::File::truncate: No file truncation available");
 #endif
 }
-
-#include <sys/stat.h>
 
 /*!\ingroup PPLGroupFileIO
  * \brief Prüfen, ob eine Datei existiert
@@ -1345,7 +1142,7 @@ bool File::exists(const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException("filename is empty");
 
-#ifdef WIN32
+#ifdef _WIN32
     struct _stat buffer;
     WideString wide_filename(filename);
     return (_wstat((const wchar_t*)wide_filename, &buffer) == 0);
@@ -1440,35 +1237,20 @@ void File::rename(const String& oldfile, const String& newfile)
 
     String desc;
     desc.setf("rename %s => %s", (const char*)oldfile, (const char*)newfile);
-#ifdef WIN32
+#ifdef _WIN32
     if (::_wrename((const wchar_t*)WideString(oldfile), (const wchar_t*)WideString(newfile)) == 0) {
-#else
-    if (::rename((const char*)oldfile, (const char*)newfile) == 0) {
-#endif
         FILE* fd = NULL;
         // printf ("buffer=%s\n",buff);
-#ifdef WIN32
         fd = _wfopen((const wchar_t*)WideString(oldfile), L"rb"); // Ist die alte Datei noch da?
-#else
-        fd = fopen((const char*)oldfile, "rb"); // Ist die alte Datei noch da?
-#endif
         if (fd) {
             // Ja, wir löschen sie manuell
             fclose(fd);
-#ifdef WIN32
             pplib::String o1 = oldfile.toLowerCase();
             pplib::String n1 = newfile.toLowerCase();
             if (n1 == o1) return;
             if (::_wunlink((const wchar_t*)WideString(oldfile)) == 0) return;
-#else
-            if (::unlink((const char*)oldfile) == 0) return;
-#endif
             int saveerrno = errno;
-#ifdef WIN32
             ::_wunlink((const wchar_t*)WideString(newfile));
-#else
-            ::unlink((const char*)newfile);
-#endif
             errno = saveerrno;
             throwErrno(errno, desc);
         }
@@ -1476,13 +1258,31 @@ void File::rename(const String& oldfile, const String& newfile)
     }
     if (errno == EXDEV) { // oldfile und newfile befinden sich nicht im gleichen Filesystem.
         copy(oldfile, newfile);
-#ifdef WIN32
         if (::_wunlink((const wchar_t*)WideString(oldfile)) == 0) return;
-#else
-        if (::unlink((const char*)oldfile) == 0) return;
-#endif
     }
     throwErrno(errno, desc);
+#else
+    if (::rename((const char*)oldfile, (const char*)newfile) == 0) {
+        FILE* fd = NULL;
+        // printf ("buffer=%s\n",buff);
+        fd = fopen((const char*)oldfile, "rb"); // Ist die alte Datei noch da?
+        if (fd) {
+            // Ja, wir löschen sie manuell
+            fclose(fd);
+            if (::unlink((const char*)oldfile) == 0) return;
+            int saveerrno = errno;
+            ::unlink((const char*)newfile);
+            errno = saveerrno;
+            throwErrno(errno, desc);
+        }
+        return;
+    }
+    if (errno == EXDEV) { // oldfile und newfile befinden sich nicht im gleichen Filesystem.
+        copy(oldfile, newfile);
+        if (::unlink((const char*)oldfile) == 0) return;
+    }
+    throwErrno(errno, desc);
+#endif
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1501,20 +1301,14 @@ void File::rename(const String& oldfile, const String& newfile)
 void File::erase(const String& filename)
 {
     if (filename.isEmpty()) return;
-#ifdef WIN32
+#ifdef _WIN32
     if (::_wunlink((const wchar_t*)WideString(filename)) == 0) return;
     if (errno == ENOENT) return;
     throwErrno(errno, filename);
-#elif defined HAVE_REMOVE
-    if (::remove((const char*)filename) == 0) return;
-    if (errno == ENOENT) return;
-    throwErrno(errno, filename);
-#elif defined HAVE_UNLINK
+#else
     if (::unlink((const char*)filename) == 0) return;
     if (errno == ENOENT) return;
     throwErrno(errno, filename);
-#else
-    throw UnsupportedFeatureException("File::erase");
 #endif
 }
 
@@ -1653,7 +1447,7 @@ String File::md5Hash(const String& filename)
     return ff.md5();
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 static void getResultFromStat(struct _stat& st, DirEntry& result, const pplib::String& filename)
 #else
 static void getResultFromStat(struct stat& st, DirEntry& result, const pplib::String& filename)
@@ -1670,7 +1464,7 @@ static void getResultFromStat(struct stat& st, DirEntry& result, const pplib::St
     result.AttrStr.set(L"----------");
     result.Uid = st.st_uid;
     result.Gid = st.st_gid;
-#ifndef WIN32
+#ifndef _WIN32
     result.Blocks = st.st_blocks;
     result.BlockSize = st.st_blksize;
 #else
@@ -1779,16 +1573,14 @@ DirEntry File::statFile(const String& filename)
 bool File::tryStatFile(const String& filename, DirEntry& result)
 {
     if (filename.isEmpty()) return false;
-#ifdef WIN32
+#ifdef _WIN32
     struct _stat st;
     String File = filename;
     File.replace("/", "\\");
     if (_wstat((const wchar_t*)WideString(File), &st) != 0) return false;
-#elif defined HAVE_STAT
+#else
     struct stat st;
     if (::stat((const char*)filename, &st) != 0) return false;
-#else
-    throw UnsupportedFeatureException("File::stat");
 #endif
     getResultFromStat(st, result, filename);
     return true;

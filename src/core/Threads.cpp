@@ -45,6 +45,7 @@
 #endif
 
 #include <limits.h>
+#include <string.h>
 
 #ifdef _WIN32
 #define _WINSOCKAPI_ /* Prevent inclusion of winsock.h in windows.h */
@@ -69,8 +70,8 @@ typedef struct tagTHREADDATA
     HANDLE thread = 0;
     DWORD dwThreadID = 0;
 #elif defined HAVE_PTHREADS
-    pthread_t thread = 0;
-    pthread_attr_t attr = 0;
+    pthread_t thread;
+    pthread_attr_t attr;
 #endif
 } THREADDATA;
 

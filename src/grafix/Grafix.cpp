@@ -27,6 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <string.h>
 #include <pplib/grafix/drawable.h>
 #include <pplib/grafix/grafix.h>
 #include <pplib/grafix/imagefilter.h>

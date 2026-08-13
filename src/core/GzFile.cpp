@@ -27,6 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <string.h>
 #include <pplib/core/fileobject.h>
 #include <pplib/core/file.h>
 #include <pplib/core/gzfile.h>

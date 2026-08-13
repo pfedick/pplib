@@ -28,8 +28,7 @@
  *******************************************************************************/
 #include <config_pplib.h>
 #include <pplib/exceptions.h>
-#include <strings.h>
-
+#include <string.h>
 #ifdef _WIN32
 #include <winsock2.h>
 #endif

@@ -27,6 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <string.h>
 #include <pplib/core/file.h>
 #include <pplib/core/memfile.h>
 #include <pplib/grafix/image.h>

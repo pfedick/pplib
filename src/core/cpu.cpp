@@ -27,9 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stdio.h>
 #include <stdint.h>
-#include <ctype.h>
 #include <pplib/types/string.h>
 #include <pplib/core/functions.h>
 

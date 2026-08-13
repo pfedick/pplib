@@ -27,6 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <string.h>
 #include <pplib/types/bytearray.h>
 #include <pplib/exceptions.h>
 #include <pplib/types/string.h>

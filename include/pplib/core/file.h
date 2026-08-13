@@ -104,11 +104,8 @@ public:
     virtual ~File();
 
     void open(const String& filename, FileMode mode = FileMode::READ);
-    void open(const char* filename, FileMode mode = FileMode::READ);
     void open(FILE* handle);
     void openTemp(const String& filetemplate);
-    void openTemp(const char* filetemplate);
-    void popen(const char* command, FileMode mode = FileMode::READ);
     void popen(const String& command, FileMode mode = FileMode::READ);
     void erase();
 
