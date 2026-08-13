@@ -29,10 +29,21 @@
 
 #ifndef PPLIB_AUDIO_ID3TAG_H
 #define PPLIB_AUDIO_ID3TAG_H
-#include <pplib.h>
+
+#include <pplib/types/string.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/core/fileobject.h>
+#include <pplib/core/baseexception.h>
+#include <list>
+#include <map>
 
 namespace pplib
 {
+
+PPLIBEXCEPTION(UnsupportedAudioFormatException, Exception);
+PPLIBEXCEPTION(UnsupportedID3TagVersionException, Exception);
+PPLIBEXCEPTION(FilenameNotSetException, Exception);
+PPLIBEXCEPTION(NoID3TagFoundException, Exception);
 
 /**@ingroup PPLGroupSound
  * @brief Genre-Bezeichnung

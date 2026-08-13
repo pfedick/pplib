@@ -42,10 +42,6 @@ namespace pplib
 {
 
 PPLIBEXCEPTION(InvalidGenreException, Exception);
-PPLIBEXCEPTION(UnsupportedAudioFormatException, Exception);
-PPLIBEXCEPTION(UnsupportedID3TagVersionException, Exception);
-PPLIBEXCEPTION(FilenameNotSetException, Exception);
-PPLIBEXCEPTION(NoID3TagFoundException, Exception);
 
 PPLIBEXCEPTION(EncoderException, Exception);
 PPLIBEXCEPTION(EncoderAlreadyStartedException, EncoderException);
@@ -58,39 +54,6 @@ PPLIBEXCEPTION(EncoderAudioFormatMismatchException, EncoderException);
 
 PPLIBEXCEPTION(DecoderException, Exception);
 PPLIBEXCEPTION(DecoderInitializationException, DecoderException);
-
-//!\brief Struktur zum Speichern eines MP3-Headers
-typedef struct tagMPEGHeader
-{
-    uint64_t start, end; // Beginn und Ende der Daten
-    uint64_t size, filesize;
-    int version;
-    int layer;
-    int error_protection;
-    int bitrate_index;
-    int bitrate;
-    int frequency_index;
-    int frequency;
-    int padding;
-    int extension;
-    int mode;
-    int mode_ext;
-    int copyright;
-    int original;
-    int emphasis;
-    int stereo;
-    int framesize;
-    int frames;
-    uint64_t mslength; // Laenge in ms
-    uint64_t length;   // Laenge in s
-    uint64_t samples;
-    bool vbr;
-} PPL_MPEG_HEADER;
-
-//!\brief Identifizieren von MP3-Dateien und Einlesen der Header
-bool IdentMPEG(FileObject& file, PPL_MPEG_HEADER* mpg);
-
-void GetMP3Frame(FileObject& file, PPL_MPEG_HEADER& mpg, ByteArray& buffer);
 
 class AudioInfo
 {

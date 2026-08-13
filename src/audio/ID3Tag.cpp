@@ -27,12 +27,17 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
-#include <pplib.h>
-#include <pplib-audio.h>
+#include <config_pplib.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/iconv.h>
+#include <pplib/core/file.h>
+#include <pplib/core/regex.h>
+#include <pplib/exceptions.h>
+#include <pplib/audio/id3tag.h>
+#include <pplib/audio/mp3.h>
+
+#include <vector>
 
 // #define ID3DEBUG
 
@@ -441,7 +446,7 @@ void ID3Tag::load(const String& filename)
 {
     Filename = filename;
     File ff;
-    ff.open(filename, File::READ);
+    ff.open(filename, File::FileMode::READ);
     load(ff);
 }
 
@@ -587,7 +592,7 @@ bool ID3Tag::tryLoad(const String& filename)
     try {
         Filename = filename;
         File ff;
-        ff.open(filename, File::READ);
+        ff.open(filename, File::FileMode::READ);
         load(ff);
         return true;
     }
@@ -1027,8 +1032,8 @@ void ID3Tag::saveMP3()
     tmpfile += ".rename.tmp";
     File n;
     File o;
-    n.open(tmpfile, File::WRITE);
-    o.open(Filename, File::READWRITE);
+    n.open(tmpfile, File::FileMode::WRITE);
+    o.open(Filename, File::FileMode::READWRITE);
     // Wir benötigen exklusiven Zugriff auf das File
     // if (!o.LockExclusive(false)) return 0;		// TODO: Hat unter Windows keine Wirkung
 
@@ -1199,7 +1204,7 @@ void ID3Tag::saveAiff()
     ByteArray tagV2;
     generateId3V2Tag(tagV2);
 
-    o.open(Filename, File::READWRITE);
+    o.open(Filename, File::FileMode::READWRITE);
     if (tagV2.size() > 0) {
         try {
             if (trySaveAiffInExistingFile(o, tagV2)) {
@@ -1212,7 +1217,7 @@ void ID3Tag::saveAiff()
     }
     // create temporary file for new tag
     n.touch(tmpfile);
-    n.open(tmpfile, File::READWRITE);
+    n.open(tmpfile, File::FileMode::READWRITE);
     try {
         copyAiffToNewFile(o, n, tagV2);
     }
@@ -1700,7 +1705,7 @@ void ID3Tag::saveWave()
     File n, o;
     ByteArray tagV2;
     generateId3V2Tag(tagV2);
-    o.open(Filename, File::READWRITE);
+    o.open(Filename, File::FileMode::READWRITE);
     if (tagV2.size() > 0) {
         try {
             if (trySaveWaveInExistingFile(o, tagV2)) {
@@ -1712,7 +1717,7 @@ void ID3Tag::saveWave()
         }
     }
     n.touch(tmpfile);
-    n.open(tmpfile, File::READWRITE);
+    n.open(tmpfile, File::FileMode::READWRITE);
     try {
         copyWaveToNewFile(o, n, tagV2);
     }

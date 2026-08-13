@@ -27,12 +27,29 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include "prolog_pplib.h"
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STRING_H
 #include <string.h>
-#include <config_pplib.h>
-#include <pplib/core/file.h>
-#include <pplib/audio/mp3.h>
+#endif
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
-// #define ID3DEBUG
+/*
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN		// Keine MFCs
+#include <windows.h>
+#endif
+*/
+
+#include "pplib.h"
+#include "pplib-audio.h"
 
 namespace pplib
 {
