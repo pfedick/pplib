@@ -33,6 +33,7 @@
 #include <pplib/core/configparser.h>
 #include <pplib/core/file.h>
 #include <pplib/core/memfile.h>
+#include <pplib/exceptions.h>
 
 namespace pplib
 {

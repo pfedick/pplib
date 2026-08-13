@@ -32,9 +32,9 @@
 #include <stdint.h>
 #include <map>
 
-#include "pplib/types/variant.h"
-#include "pplib/types/string.h"
-#include "pplib/exceptions.h"
+#include <pplib/types/variant.h>
+#include <pplib/types/string.h>
+#include <pplib/core/baseexception.h>
 
 namespace pplib
 {

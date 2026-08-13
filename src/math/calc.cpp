@@ -34,7 +34,7 @@
 #include <list>
 
 #include <pplib/core/functions.h>
-
+#include <pplib/exceptions.h>
 namespace pplib
 {
 

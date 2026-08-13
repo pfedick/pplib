@@ -46,6 +46,7 @@
 #include <pplib/types/array.h>
 #include <pplib/core/functions.h>
 #include <pplib/core/iconv.h>
+#include <pplib/exceptions.h>
 
 namespace pplib
 {

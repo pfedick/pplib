@@ -39,7 +39,7 @@
 #include <pplib/types/array.h>
 #include <pplib/types/assocarray.h>
 #include <pplib/types/datetime.h>
-
+#include <pplib/exceptions.h>
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
 #endif

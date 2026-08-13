@@ -32,8 +32,13 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <pplib.h>
 #include <gtest/gtest.h>
+
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/exceptions.h>
+
 #include "pplib-tests.h"
 
 namespace

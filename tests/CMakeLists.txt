@@ -35,6 +35,7 @@ endmacro()
 
 if(PPLIB_ENABLE_CORE)
     add_pplib_test_suite(test_core "src/core/*.cpp" pplib::core)
+    add_pplib_test_suite(test_core "src/types/*.cpp" pplib::core)
 endif()
 
 if(PPLIB_ENABLE_CRYPTO)

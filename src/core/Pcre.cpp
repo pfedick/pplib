@@ -38,7 +38,7 @@
 #include <pplib/types/array.h>
 #include <pplib/types/bytearray.h>
 #include <pplib/core/functions.h>
-
+#include <pplib/exceptions.h>
 #ifdef HAVE_PCRE2
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>

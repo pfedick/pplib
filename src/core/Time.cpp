@@ -37,6 +37,7 @@
 #include <pplib/core/functions.h>
 #include <pplib/core/timer.h>
 #include <pplib/core/regex.h>
+#include <pplib/exceptions.h>
 
 /*
        The glibc version of struct tm has additional fields
