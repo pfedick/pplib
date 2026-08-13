@@ -77,6 +77,7 @@ public:
     char* load();
     int load(ByteArray& target);
     String md5();
+    String sha256();
 
     // Virtuelle Funktionen
     virtual void close();

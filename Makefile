@@ -52,8 +52,9 @@ all:	release debug
 test_core:
 	cmake --build build/debug --target test_core
 	cp build/debug/tests/test_core$(EXE) tests
-	cd tests && ./test_core$(EXE) --gtest_color=yes --gtest_filter=WideStringTest*
-
+	#cd tests && ./test_core$(EXE) --gtest_color=yes --gtest_filter=WideStringTest*
+	cd tests && ./test_core$(EXE) --gtest_color=yes
+	
 test: debug
 	cmake --build build/debug --target test_core test_audio test_crypto test_grafix test_database test_inet
 	cd tests && ../build/debug/tests/test_core$(EXE) --gtest_color=yes

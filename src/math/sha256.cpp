@@ -32,6 +32,7 @@
 #include <string.h>
 
 #include <pplib/core/functions.h>
+#include <pplib/core/fileobject.h>
 #include <pplib/types/bytearray.h>
 #include <pplib/exceptions.h>
 
@@ -191,6 +192,31 @@ String Sha256(const void* buffer, size_t size)
 String Sha256(const ByteArrayPtr& buffer)
 {
     return Sha256(buffer.ptr(), buffer.size());
+}
+
+String FileObject::sha256()
+{
+    if (!isOpen()) throw FileNotOpenException();
+
+    ByteArray buffer(1024 * 1024);
+    unsigned char digest[32];
+    Sha256Context ctx;
+    SHA256Init(ctx);
+    while (!eof()) {
+        size_t bytesRead = read(buffer, buffer.size());
+        if (bytesRead > 0) {
+            SHA256Update(ctx, (const unsigned char*)buffer.ptr(), bytesRead);
+        }
+    }
+    SHA256Final(ctx, digest);
+    static const char hex[] = "0123456789abcdef";
+    char hexbuf[65];
+    for (int i = 0; i < 32; i++) {
+        hexbuf[i * 2] = hex[digest[i] >> 4];
+        hexbuf[i * 2 + 1] = hex[digest[i] & 0x0f];
+    }
+    hexbuf[64] = '\0';
+    return String(hexbuf);
 }
 
 } // namespace pplib

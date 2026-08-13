@@ -33,6 +33,7 @@
 #include <pplib/types/widestring.h>
 #include <pplib/types/bytearrayptr.h>
 #include <pplib/types/bytearray.h>
+#include <pplib/core/functions.h>
 
 namespace pplib
 {
