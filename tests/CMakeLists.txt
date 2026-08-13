@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 # GoogleTest (im Unterordner) einbinden
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-add_subdirectory(googletest-release-1.12.1 EXCLUDE_FROM_ALL)
+add_subdirectory(googletest-1.18.0 EXCLUDE_FROM_ALL)
 
 # Gemeinsame Test-Ressourcen/Klassen (main.cpp, textsnippets.cpp, wordlist.cpp)
 add_library(pplib_test_common STATIC
