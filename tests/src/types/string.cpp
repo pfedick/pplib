@@ -36,6 +36,7 @@
 
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
+#include <pplib/types/bytearrayptr.h>
 #include <pplib/types/array.h>
 #include <pplib/exceptions.h>
 
@@ -44,23 +45,7 @@
 namespace
 {
 
-// The fixture for testing class Foo.
-class StringTest : public ::testing::Test
-{
-protected:
-    StringTest()
-    {
-        if (setlocale(LC_ALL, DEFAULT_LOCALE) == NULL) {
-            printf("setlocale fehlgeschlagen\n");
-            throw std::exception();
-        }
-    }
-    virtual ~StringTest()
-    {
-    }
-};
-
-TEST_F(StringTest, ConstructorSimple)
+TEST(StringTest, ConstructorSimple)
 {
     ASSERT_NO_THROW({
         pplib::String s1;
@@ -71,7 +56,7 @@ TEST_F(StringTest, ConstructorSimple)
     });
 }
 
-TEST_F(StringTest, ConstructorFromCharPtr)
+TEST(StringTest, ConstructorFromCharPtr)
 {
     ASSERT_NO_THROW({
         pplib::String s1("A test string with unicode characters: äöü");
@@ -83,7 +68,7 @@ TEST_F(StringTest, ConstructorFromCharPtr)
     });
 }
 
-TEST_F(StringTest, ConstructorFromString)
+TEST(StringTest, ConstructorFromString)
 {
     ASSERT_NO_THROW({
         pplib::String s1("A test string with unicode characters: äöü");
@@ -96,7 +81,17 @@ TEST_F(StringTest, ConstructorFromString)
     });
 }
 
-TEST_F(StringTest, ConstructorFromStdString)
+TEST(StringTest, ConstructorWithMoveOperator)
+{
+    ASSERT_NO_THROW({
+        pplib::String s1("A test string with unicode characters: äöü");
+        pplib::String s2(std::move(s1));
+        ASSERT_EQ((size_t)45, s2.len()) << "String does not have length of 45";
+        ASSERT_EQ(pplib::String("A test string with unicode characters: äöü"), s2) << "String does not have expected value";
+    });
+}
+
+TEST(StringTest, ConstructorFromStdString)
 {
     ASSERT_NO_THROW({
         std::string s1("A test string with unicode characters: äöü");
@@ -109,7 +104,7 @@ TEST_F(StringTest, ConstructorFromStdString)
     });
 }
 
-TEST_F(StringTest, ConstructorFromStdWString)
+TEST(StringTest, ConstructorFromStdWString)
 {
 
     std::wstring s1(L"A test string with unicode characters: äöü");
@@ -122,7 +117,7 @@ TEST_F(StringTest, ConstructorFromStdWString)
     ASSERT_EQ(188, (unsigned char)s2[44]) << "Unexpected Character in string";
 }
 
-TEST_F(StringTest, ConstructorFromWideString)
+TEST(StringTest, ConstructorFromWideString)
 {
 
     pplib::WideString s1(L"A test string with unicode characters: äöü");
@@ -135,7 +130,16 @@ TEST_F(StringTest, ConstructorFromWideString)
     ASSERT_EQ(188, (unsigned char)s2[44]) << "Unexpected Character in string";
 }
 
-TEST_F(StringTest, clear)
+TEST(StringTest, ConstructorFromByteArrayPtr)
+{
+    const char* data = "A test string with unicode characters: äöü";
+    pplib::ByteArrayPtr b1((const unsigned char*)data, 45);
+    pplib::String s2(b1);
+    ASSERT_EQ((size_t)45, s2.len()) << "String does not have length of 45";
+    ASSERT_EQ(pplib::String("A test string with unicode characters: äöü"), s2) << "String does not have expected value";
+}
+
+TEST(StringTest, clear)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     s1.clear();
@@ -145,7 +149,7 @@ TEST_F(StringTest, clear)
     ASSERT_THROW({ ASSERT_EQ(0, (unsigned char)s1[0]) << "Unexpected Character in string"; }, pplib::OutOfBoundsException);
 }
 
-TEST_F(StringTest, CapacityAndReserve)
+TEST(StringTest, CapacityAndReserve)
 {
     pplib::String s1;
     ASSERT_EQ((size_t)0, s1.capacity()) << "capacity did not return 0";
@@ -159,25 +163,35 @@ TEST_F(StringTest, CapacityAndReserve)
     ASSERT_EQ((size_t)128, s1.capacity()) << "capacity did not return expected value";
 }
 
-TEST_F(StringTest, len)
+TEST(StringTest, ReserveThrowsExceptions)
+{
+    pplib::String s1;
+    ASSERT_THROW(s1.reserve(std::numeric_limits<size_t>::max()), pplib::IllegalArgumentException)
+        << "reserve did not throw IllegalArgumentException";
+
+    ASSERT_THROW(s1.reserve(std::numeric_limits<size_t>::max() - 1), pplib::OutOfMemoryException)
+        << "reserve did not throw OutOfMemoryException";
+}
+
+TEST(StringTest, len)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     ASSERT_EQ(s1.len(), (size_t)45) << "String has unexpected size";
 }
 
-TEST_F(StringTest, length)
+TEST(StringTest, length)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     ASSERT_EQ(s1.length(), (size_t)45) << "String has unexpected size";
 }
 
-TEST_F(StringTest, size)
+TEST(StringTest, size)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     ASSERT_EQ(s1.size(), (size_t)45) << "String has unexpected size";
 }
 
-TEST_F(StringTest, isEmpty)
+TEST(StringTest, isEmpty)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     pplib::String s2;
@@ -185,7 +199,7 @@ TEST_F(StringTest, isEmpty)
     ASSERT_EQ(s2.isEmpty(), true) << "String not empty";
 }
 
-TEST_F(StringTest, notEmpty)
+TEST(StringTest, notEmpty)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     pplib::String s2;
@@ -193,7 +207,7 @@ TEST_F(StringTest, notEmpty)
     ASSERT_EQ(s2.notEmpty(), false) << "String is empty";
 }
 
-TEST_F(StringTest, isNumeric)
+TEST(StringTest, isNumeric)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     ASSERT_EQ(s1.isNumeric(), false) << "String should not be numeric";
@@ -213,9 +227,20 @@ TEST_F(StringTest, isNumeric)
     ASSERT_EQ(s1.isNumeric(), false) << "String should be numeric";
     s1.set("-123.451,12-9");
     ASSERT_EQ(s1.isNumeric(), false) << "String should not be numeric";
+
+    ASSERT_FALSE(pplib::String("123.45.67").isNumeric()) << "String should not be numeric";
+    ASSERT_FALSE(pplib::String("123,45,67").isNumeric()) << "String should not be numeric";
+    ASSERT_FALSE(pplib::String("123.45,67").isNumeric()) << "String should not be numeric";
+    ASSERT_FALSE(pplib::String("123,45.67").isNumeric()) << "String should not be numeric";
+    ASSERT_FALSE(pplib::String("123-45-67").isNumeric()) << "String should not be numeric";
+    ASSERT_FALSE(pplib::String("123-45.67").isNumeric()) << "String should not be numeric";
+    ASSERT_FALSE(pplib::String("123-45,67").isNumeric()) << "String should not be numeric";
+    ASSERT_FALSE(pplib::String("123.45-67").isNumeric()) << "String should not be numeric";
+    ASSERT_FALSE(pplib::String("123,45-67").isNumeric()) << "String should not be numeric";
+    ASSERT_FALSE(pplib::String("123.").isNumeric()) << "String should not be numeric";
 }
 
-TEST_F(StringTest, isInteger)
+TEST(StringTest, isInteger)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     ASSERT_EQ(s1.isInteger(), false) << "String should not be an integer";
@@ -237,7 +262,7 @@ TEST_F(StringTest, isInteger)
     ASSERT_EQ(s1.isInteger(), false) << "String should not be an integer";
 }
 
-TEST_F(StringTest, isTrue)
+TEST(StringTest, isTrue)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     ASSERT_EQ(s1.isTrue(), false) << "String should not be true";
@@ -265,9 +290,11 @@ TEST_F(StringTest, isTrue)
     ASSERT_EQ(s1.isTrue(), false) << "String should not be true";
     s1.set("no");
     ASSERT_EQ(s1.isTrue(), false) << "String should not be true";
+
+    ASSERT_TRUE(pplib::String("t").isTrue()) << "String should be true";
 }
 
-TEST_F(StringTest, isFalse)
+TEST(StringTest, isFalse)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     ASSERT_EQ(s1.isFalse(), true) << "String should be false";
@@ -297,7 +324,7 @@ TEST_F(StringTest, isFalse)
     ASSERT_EQ(s1.isFalse(), true) << "String should be false";
 }
 
-TEST_F(StringTest, setConstCharWithoutSize)
+TEST(StringTest, setConstCharWithoutSize)
 {
     pplib::String s2("äöü, a test string with unicode characters");
     pplib::String s1;
@@ -306,7 +333,7 @@ TEST_F(StringTest, setConstCharWithoutSize)
     ASSERT_EQ((size_t)45, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setConstCharWithSize)
+TEST(StringTest, setConstCharWithSize)
 {
     pplib::String s2("äöü, a tes");
     pplib::String s1;
@@ -315,25 +342,43 @@ TEST_F(StringTest, setConstCharWithSize)
     ASSERT_EQ((size_t)13, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setConstWChartWithoutSize)
+TEST(StringTest, setConstWChartWithoutSize)
 {
     pplib::String s2("äöü, a test string with unicode characters");
     pplib::String s1;
-    s1.set("äöü, a test string with unicode characters");
+    s1.set(L"äöü, a test string with unicode characters");
     ASSERT_EQ(s1, s2) << "String as unexpected value";
     ASSERT_EQ((size_t)45, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setConstWChartWithSize)
+TEST(StringTest, setConstWChartWithSize)
 {
-    pplib::String s2("äöü, a tes");
+    pplib::String s2("äöü, a test s");
     pplib::String s1;
-    s1.set("äöü, a test string with unicode characters", 13);
-    ASSERT_EQ(s2, s1) << "String has unexpected value";
-    ASSERT_EQ((size_t)13, s1.size()) << "String has unexpected length";
+    s1.set(L"äöü, a test string with unicode characters", 13);
+    ASSERT_EQ(pplib::String("äöü, a test s"), s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)16, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setStringRefWithoutSize)
+TEST(StringTest, setConstWChartWithNULL)
+{
+    pplib::String s1;
+    s1.set((wchar_t*)NULL, 13);
+    ASSERT_EQ((size_t)0, s1.size()) << "String has unexpected length";
+    s1.set((wchar_t*)L"Hello World", 0);
+    ASSERT_EQ((size_t)0, s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, SetWcharInvalidCharacterEncoding)
+{
+    // 0xD800 ist ein ungültiger UTF-32 Code-Point (Surrogate Half)
+    wchar_t invalid_wstr[] = {static_cast<wchar_t>(0xD800), 0};
+
+    pplib::String str;
+    EXPECT_THROW(str.set(invalid_wstr), pplib::CharacterEncodingException);
+}
+
+TEST(StringTest, setStringRefWithoutSize)
 {
     pplib::String s2("äöü, a test string with unicode characters");
     pplib::String s1;
@@ -342,7 +387,7 @@ TEST_F(StringTest, setStringRefWithoutSize)
     ASSERT_EQ((size_t)45, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setStringRefWithSize)
+TEST(StringTest, setStringRefWithSize)
 {
     pplib::String s2("äöü, a tes");
     pplib::String s3("äöü, a test string with unicode characters");
@@ -350,9 +395,13 @@ TEST_F(StringTest, setStringRefWithSize)
     s1.set(s3, 13);
     ASSERT_EQ(s2, s1) << "String has unexpected value";
     ASSERT_EQ((size_t)13, s1.size()) << "String has unexpected length";
+
+    s1.set(s3, 500);
+    ASSERT_EQ(s3, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)45, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setSTDStringRefWithoutSize)
+TEST(StringTest, setSTDStringRefWithoutSize)
 {
     pplib::String s2("äöü, a test string with unicode characters");
     std::string s3("äöü, a test string with unicode characters");
@@ -362,7 +411,7 @@ TEST_F(StringTest, setSTDStringRefWithoutSize)
     ASSERT_EQ((size_t)45, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setSTDStringRefWithSize)
+TEST(StringTest, setSTDStringRefWithSize)
 {
     pplib::String s2("äöü, a tes");
     std::string s3("äöü, a test string with unicode characters");
@@ -372,7 +421,7 @@ TEST_F(StringTest, setSTDStringRefWithSize)
     ASSERT_EQ((size_t)13, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setSTDWStringRefWithoutSize)
+TEST(StringTest, setSTDWStringRefWithoutSize)
 {
     pplib::String s2("äöü, a test string with unicode characters");
     std::wstring s3(L"äöü, a test string with unicode characters");
@@ -382,7 +431,7 @@ TEST_F(StringTest, setSTDWStringRefWithoutSize)
     ASSERT_EQ(s2.size(), s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setSTDWStringRefWithSize)
+TEST(StringTest, setSTDWStringRefWithSize)
 {
     pplib::String s2("äöü, a tes");
     std::wstring s3(L"äöü, a test string with unicode characters");
@@ -392,7 +441,63 @@ TEST_F(StringTest, setSTDWStringRefWithSize)
     ASSERT_EQ(s2.size(), s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setf)
+TEST(StringTest, setWideString)
+{
+    pplib::WideString ws(L"Hello World");
+    pplib::String s1;
+    s1.set(ws);
+    ASSERT_EQ(pplib::String("Hello World"), s1) << "String has unexpected value";
+    s1.set(ws, 5);
+    ASSERT_EQ(pplib::String("Hello"), s1) << "String has unexpected value";
+    s1.set(ws, 500);
+    ASSERT_EQ(pplib::String("Hello World"), s1) << "String has unexpected value";
+}
+
+TEST(StringTest, setWithSelfAssignment)
+{
+    pplib::String s1("äöü, a test string with unicode characters");
+    s1.set(s1);
+    ASSERT_EQ((size_t)45, s1.size()) << "String has unexpected length";
+    ASSERT_EQ(pplib::String("äöü, a test string with unicode characters"), s1) << "String has unexpected value";
+}
+
+TEST(StringTest, setWithSecondSetAndBiggerContent)
+{
+    pplib::String s1("äöü, a test string with unicode characters");
+    s1.set("äöü, a test string with unicode characters and more content");
+    ASSERT_EQ((size_t)62, s1.size()) << "String has unexpected length";
+    ASSERT_EQ(pplib::String("äöü, a test string with unicode characters and more content"), s1) << "String has unexpected value";
+}
+
+TEST(StringTest, setWithSecondSetAndSmallerContent)
+{
+    pplib::String s1("äöü, a test string with unicode characters");
+    s1.set("äöü, a test");
+    ASSERT_EQ((size_t)14, s1.size()) << "String has unexpected length";
+    ASSERT_EQ(pplib::String("äöü, a test"), s1) << "String has unexpected value";
+}
+
+TEST(StringTest, setWithByteArrayPtrWithoutSize)
+{
+    pplib::ByteArrayPtr b1((const unsigned char*)"Hello World", 11);
+    pplib::String s1;
+    s1.set(b1);
+    ASSERT_EQ(pplib::String("Hello World"), s1) << "String has unexpected value";
+    s1.set(b1, 5);
+    ASSERT_EQ(pplib::String("Hello"), s1) << "String has unexpected value";
+    s1.set(b1, 500);
+    ASSERT_EQ(pplib::String("Hello World"), s1) << "String has unexpected value";
+}
+
+TEST(StringTest, setCharWithPosition)
+{
+    pplib::String s1("Hello World");
+    s1.set(5, '-');
+    ASSERT_EQ(pplib::String("Hello-World"), s1) << "String has unexpected value";
+    ASSERT_THROW(s1.set(11, '-'), pplib::OutOfBoundsException) << "set() did not throw OutOfBoundsException";
+}
+
+TEST(StringTest, setf)
 {
     pplib::String s2("Ein Test, 42, Wide, 10000");
     pplib::String s1;
@@ -401,7 +506,15 @@ TEST_F(StringTest, setf)
     ASSERT_EQ((size_t)25, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, setWchart)
+TEST(StringTest, format)
+{
+    pplib::String s1 = pplib::String::format("Ein %s, %i, %ls, %u", "Test", 42, L"Wide", 10000);
+    pplib::String s2("Ein Test, 42, Wide, 10000");
+    ASSERT_EQ(s2, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)25, s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, setWchart)
 {
     pplib::String s2("a");
     pplib::String s1;
@@ -418,7 +531,7 @@ static void test_vasprintf(pplib::String& str, const char* fmt, ...)
     va_end(args);
 }
 
-TEST_F(StringTest, vasprintf)
+TEST(StringTest, vasprintf)
 {
     pplib::String s2("Ein Test, 42, Wide, 10000");
     pplib::String s1;
@@ -427,7 +540,16 @@ TEST_F(StringTest, vasprintf)
     ASSERT_EQ((size_t)25, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendConstWchartWithoutSize)
+TEST(StringTest, VasprintfEncodingError)
+{
+    wchar_t invalid_wstr[] = {static_cast<wchar_t>(0xD800), 0};
+
+    // %ls versucht den wchar_t* in die lokale Multibyte-Kodierung umzuwandeln.
+    // Bei ungültigen Zeichen liefert vsnprintf -1 zurück.
+    EXPECT_THROW(pplib::String::format("%ls", invalid_wstr), pplib::Exception);
+}
+
+TEST(StringTest, appendConstWchartWithoutSize)
 {
     pplib::String expected("First Part äöü, äöü Second Part");
     pplib::String s1("First Part äöü, ");
@@ -437,7 +559,7 @@ TEST_F(StringTest, appendConstWchartWithoutSize)
     ASSERT_EQ(expected.size(), s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendConstWchartWithSize)
+TEST(StringTest, appendConstWchartWithSize)
 {
     pplib::String expected("First Part äöü, äöü S");
     pplib::String s1("First Part äöü, ");
@@ -447,7 +569,7 @@ TEST_F(StringTest, appendConstWchartWithSize)
     ASSERT_EQ(expected.size(), s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendConstCharPtrWithoutSize)
+TEST(StringTest, appendConstCharPtrWithoutSize)
 {
     pplib::String expected("First Part äöü, äöü Second Part");
     pplib::String s1("First Part äöü, ");
@@ -457,7 +579,7 @@ TEST_F(StringTest, appendConstCharPtrWithoutSize)
     ASSERT_EQ((size_t)37, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendConstCharPtrWithSize)
+TEST(StringTest, appendConstCharPtrWithSize)
 {
     pplib::String expected("First Part äöü, äöü S");
     pplib::String s1("First Part äöü, ");
@@ -467,7 +589,7 @@ TEST_F(StringTest, appendConstCharPtrWithSize)
     ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendStringWithoutSize)
+TEST(StringTest, appendStringWithoutSize)
 {
     pplib::String expected("First Part äöü, äöü Second Part");
     pplib::String s1("First Part äöü, ");
@@ -477,7 +599,7 @@ TEST_F(StringTest, appendStringWithoutSize)
     ASSERT_EQ((size_t)37, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendStringWithSize)
+TEST(StringTest, appendStringWithSize)
 {
     pplib::String expected("First Part äöü, äöü S");
     pplib::String s1("First Part äöü, ");
@@ -487,7 +609,7 @@ TEST_F(StringTest, appendStringWithSize)
     ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendStdStringWithoutSize)
+TEST(StringTest, appendStdStringWithoutSize)
 {
     pplib::String expected("First Part äöü, äöü Second Part");
     pplib::String s1("First Part äöü, ");
@@ -497,7 +619,7 @@ TEST_F(StringTest, appendStdStringWithoutSize)
     ASSERT_EQ((size_t)37, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendStdStringWithSize)
+TEST(StringTest, appendStdStringWithSize)
 {
     pplib::String expected("First Part äöü, äöü S");
     pplib::String s1("First Part äöü, ");
@@ -507,7 +629,7 @@ TEST_F(StringTest, appendStdStringWithSize)
     ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendStdWStringWithoutSize)
+TEST(StringTest, appendStdWStringWithoutSize)
 {
     pplib::String expected("First Part äöü, äöü Second Part");
     pplib::String s1("First Part äöü, ");
@@ -517,7 +639,7 @@ TEST_F(StringTest, appendStdWStringWithoutSize)
     ASSERT_EQ(expected.size(), s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendStdWStringWithSize)
+TEST(StringTest, appendStdWStringWithSize)
 {
     pplib::String expected("First Part äöü, äöü Seco");
     pplib::String s1("First Part äöü, ");
@@ -527,7 +649,7 @@ TEST_F(StringTest, appendStdWStringWithSize)
     ASSERT_EQ(expected.size(), s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendf)
+TEST(StringTest, appendf)
 {
     pplib::String expected("First Part äöü, Ein Test, 42, Wide, 10000");
     pplib::String s1("First Part äöü, ");
@@ -536,7 +658,7 @@ TEST_F(StringTest, appendf)
     ASSERT_EQ((size_t)44, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, appendWchart)
+TEST(StringTest, appendWchart)
 {
     pplib::String expected("First Part äöü, a");
     pplib::String s1("First Part äöü, ");
@@ -545,7 +667,7 @@ TEST_F(StringTest, appendWchart)
     ASSERT_EQ((size_t)20, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, append_same_string)
+TEST(StringTest, append_same_string)
 {
     pplib::String expected("It's me, It's me, It's me, It's me, ");
     pplib::String s1("It's me, ");
@@ -555,7 +677,25 @@ TEST_F(StringTest, append_same_string)
     ASSERT_EQ((size_t)36, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependConstWchartWithoutSize)
+TEST(StringTest, prependConstWchartWithoutSize)
+{
+    pplib::String expected("äöü Second PartFirst Part äöü, ");
+    pplib::String s1("First Part äöü, ");
+    s1.prepend(L"äöü Second Part");
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)37, s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, prependConstWchartWithSize)
+{
+    pplib::String expected("äöü SFirst Part äöü, ");
+    pplib::String s1("First Part äöü, ");
+    s1.prepend(L"äöü Second Part", 8);
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, prependConstCharPtrWithoutSize)
 {
     pplib::String expected("äöü Second PartFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -564,7 +704,7 @@ TEST_F(StringTest, prependConstWchartWithoutSize)
     ASSERT_EQ((size_t)37, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependConstWchartWithSize)
+TEST(StringTest, prependConstCharPtrWithSize)
 {
     pplib::String expected("äöü SFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -573,25 +713,7 @@ TEST_F(StringTest, prependConstWchartWithSize)
     ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependConstCharPtrWithoutSize)
-{
-    pplib::String expected("äöü Second PartFirst Part äöü, ");
-    pplib::String s1("First Part äöü, ");
-    s1.prepend("äöü Second Part");
-    ASSERT_EQ(expected, s1) << "String has unexpected value";
-    ASSERT_EQ((size_t)37, s1.size()) << "String has unexpected length";
-}
-
-TEST_F(StringTest, prependConstCharPtrWithSize)
-{
-    pplib::String expected("äöü SFirst Part äöü, ");
-    pplib::String s1("First Part äöü, ");
-    s1.prepend("äöü Second Part", 8);
-    ASSERT_EQ(expected, s1) << "String has unexpected value";
-    ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
-}
-
-TEST_F(StringTest, prependStringWithoutSize)
+TEST(StringTest, prependStringWithoutSize)
 {
     pplib::String expected("äöü Second PartFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -601,7 +723,7 @@ TEST_F(StringTest, prependStringWithoutSize)
     ASSERT_EQ((size_t)37, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependStringWithSize)
+TEST(StringTest, prependStringWithSize)
 {
     pplib::String expected("äöü SFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -611,7 +733,7 @@ TEST_F(StringTest, prependStringWithSize)
     ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependStdStringWithoutSize)
+TEST(StringTest, prependStdStringWithoutSize)
 {
     pplib::String expected("äöü Second PartFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -621,7 +743,7 @@ TEST_F(StringTest, prependStdStringWithoutSize)
     ASSERT_EQ((size_t)37, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependStdStringWithSize)
+TEST(StringTest, prependStdStringWithSize)
 {
     pplib::String expected("äöü SFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -631,7 +753,7 @@ TEST_F(StringTest, prependStdStringWithSize)
     ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependStdWStringWithoutSize)
+TEST(StringTest, prependStdWStringWithoutSize)
 {
     pplib::String expected("äöü Second PartFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -641,7 +763,7 @@ TEST_F(StringTest, prependStdWStringWithoutSize)
     ASSERT_EQ(expected.size(), s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependStdWStringWithSize)
+TEST(StringTest, prependStdWStringWithSize)
 {
     pplib::String expected("äöü SFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -651,7 +773,7 @@ TEST_F(StringTest, prependStdWStringWithSize)
     ASSERT_EQ(expected.size(), s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependf)
+TEST(StringTest, prependf)
 {
     pplib::String expected("Ein Test, 42, Wide, 10000First Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -660,7 +782,7 @@ TEST_F(StringTest, prependf)
     ASSERT_EQ((size_t)44, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prependWchart)
+TEST(StringTest, prependWchart)
 {
     pplib::String expected("aFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
@@ -669,7 +791,7 @@ TEST_F(StringTest, prependWchart)
     ASSERT_EQ((size_t)20, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, prepend_same_string)
+TEST(StringTest, prepend_same_string)
 {
     pplib::String expected("It's me, It's me, It's me, It's me, ");
     pplib::String s1("It's me, ");
@@ -679,7 +801,7 @@ TEST_F(StringTest, prepend_same_string)
     ASSERT_EQ((size_t)36, s1.size()) << "String has unexpected length";
 }
 
-TEST_F(StringTest, chopRight)
+TEST(StringTest, chopRight)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     pplib::String s2("A test string with unicode characters: ä");
@@ -697,7 +819,7 @@ TEST_F(StringTest, chopRight)
     ASSERT_EQ(s2, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, chopLeft)
+TEST(StringTest, chopLeft)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     pplib::String s2("est string with unicode characters: äöü");
@@ -714,7 +836,7 @@ TEST_F(StringTest, chopLeft)
     ASSERT_EQ(s2, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, chop)
+TEST(StringTest, chop)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     pplib::String s2("A test string with unicode characters: ä");
@@ -732,7 +854,7 @@ TEST_F(StringTest, chop)
     ASSERT_EQ(s2, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, chomp)
+TEST(StringTest, chomp)
 {
     pplib::String s1("\n\r\nA test string\näöü\n\r\n");
     pplib::String s2("A test string\näöü");
@@ -744,7 +866,7 @@ TEST_F(StringTest, chomp)
     ASSERT_EQ(s2, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, cut_WithPos)
+TEST(StringTest, cut_WithPos)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String expected("The quick ");
@@ -753,7 +875,7 @@ TEST_F(StringTest, cut_WithPos)
     ASSERT_EQ(expected, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, cut_WithPos0)
+TEST(StringTest, cut_WithPos0)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String expected("");
@@ -762,7 +884,7 @@ TEST_F(StringTest, cut_WithPos0)
     ASSERT_EQ(expected, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, cut_WithPosBeyondStringLength)
+TEST(StringTest, cut_WithPosBeyondStringLength)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String expected("The quick brown fox jumps over the lazy dog");
@@ -771,7 +893,7 @@ TEST_F(StringTest, cut_WithPosBeyondStringLength)
     ASSERT_EQ(expected, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, cut_WithLetter)
+TEST(StringTest, cut_WithLetter)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String expected("The quick ");
@@ -780,7 +902,7 @@ TEST_F(StringTest, cut_WithLetter)
     ASSERT_EQ(expected, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, cut_WithNonexistingLetter)
+TEST(StringTest, cut_WithNonexistingLetter)
 {
     pplib::String s1("The quick brown fox");
     pplib::String expected("The quick brown fox");
@@ -789,7 +911,7 @@ TEST_F(StringTest, cut_WithNonexistingLetter)
     ASSERT_EQ(expected, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, cut_WithString)
+TEST(StringTest, cut_WithString)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String expected("The quick ");
@@ -798,7 +920,7 @@ TEST_F(StringTest, cut_WithString)
     ASSERT_EQ(expected, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, strstr)
+TEST(StringTest, strstr)
 {
     pplib::String s1("A test haystack string");
     pplib::String s3("haystack string");
@@ -815,7 +937,7 @@ TEST_F(StringTest, strstr)
     ASSERT_EQ(s2, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, repeated)
+TEST(StringTest, repeated)
 {
     pplib::String s1("_repeat_");
     pplib::String s3("_repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat_");
@@ -825,7 +947,7 @@ TEST_F(StringTest, repeated)
     ASSERT_EQ(s3, s2) << "String has unexpected value";
 }
 
-TEST_F(StringTest, repeat_by_count)
+TEST(StringTest, repeat_by_count)
 {
     pplib::String s1("_repeat_");
     s1.repeat(10);
@@ -834,7 +956,7 @@ TEST_F(StringTest, repeat_by_count)
     ASSERT_EQ(s3, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, repeat_with_string)
+TEST(StringTest, repeat_with_string)
 {
     pplib::String s1("blah");
     s1.repeat(pplib::String("_repeat_"), 10);
@@ -843,7 +965,7 @@ TEST_F(StringTest, repeat_with_string)
     ASSERT_EQ(s3, s1) << "String has unexpected value";
 }
 
-TEST_F(StringTest, trimLeft)
+TEST(StringTest, trimLeft)
 {
     pplib::String s1("\n\n    abc  \n");
     s1.trimLeft();
@@ -851,7 +973,7 @@ TEST_F(StringTest, trimLeft)
     ASSERT_EQ(pplib::String("abc  \n"), s1);
 }
 
-TEST_F(StringTest, trimRight)
+TEST(StringTest, trimRight)
 {
     pplib::String s1(" \n  abc  \n");
     s1.trimRight();
@@ -859,7 +981,7 @@ TEST_F(StringTest, trimRight)
     ASSERT_EQ(pplib::String(" \n  abc"), s1);
 }
 
-TEST_F(StringTest, trim)
+TEST(StringTest, trim)
 {
     pplib::String s1("\n\n    abc  \n");
     s1.trim();
@@ -867,7 +989,7 @@ TEST_F(StringTest, trim)
     ASSERT_EQ(pplib::String("abc"), s1);
 }
 
-TEST_F(StringTest, trim_empty)
+TEST(StringTest, trim_empty)
 {
     pplib::String s1;
     s1.trim();
@@ -875,7 +997,7 @@ TEST_F(StringTest, trim_empty)
     ASSERT_EQ(pplib::String(), s1);
 }
 
-TEST_F(StringTest, trimmed)
+TEST(StringTest, trimmed)
 {
     pplib::String s1("\n\n    abc  \n");
     pplib::String s2 = s1.trimmed();
@@ -889,7 +1011,7 @@ TEST_F(StringTest, trimmed)
     ASSERT_EQ(pplib::String(""), pplib::String("   \n\t   \n").trimmed());
 }
 
-TEST_F(StringTest, trimLeftEmptyResult)
+TEST(StringTest, trimLeftEmptyResult)
 {
     pplib::String s1("\n\n   \n   \n");
     s1.trimLeft();
@@ -897,7 +1019,7 @@ TEST_F(StringTest, trimLeftEmptyResult)
     ASSERT_EQ(pplib::String(""), s1);
 }
 
-TEST_F(StringTest, trimRightEmptyResult)
+TEST(StringTest, trimRightEmptyResult)
 {
     pplib::String s1("\n\n   \n   \n");
     s1.trimRight();
@@ -905,7 +1027,7 @@ TEST_F(StringTest, trimRightEmptyResult)
     ASSERT_EQ(pplib::String(""), s1);
 }
 
-TEST_F(StringTest, trimEmptyResult)
+TEST(StringTest, trimEmptyResult)
 {
     pplib::String s1("\n\n   \n   \n");
     s1.trim();
@@ -913,7 +1035,7 @@ TEST_F(StringTest, trimEmptyResult)
     ASSERT_EQ(pplib::String(""), s1);
 }
 
-TEST_F(StringTest, trimLeftChars)
+TEST(StringTest, trimLeftChars)
 {
     pplib::String s1("\n\n    abc  \n");
     s1.trimLeft(" \n");
@@ -921,7 +1043,7 @@ TEST_F(StringTest, trimLeftChars)
     ASSERT_EQ(pplib::String("abc  \n"), s1);
 }
 
-TEST_F(StringTest, trimRightChars)
+TEST(StringTest, trimRightChars)
 {
     pplib::String s1(" \n  abc  \n");
     s1.trimRight(" \n");
@@ -929,7 +1051,7 @@ TEST_F(StringTest, trimRightChars)
     ASSERT_EQ(pplib::String(" \n  abc"), s1);
 }
 
-TEST_F(StringTest, trimChars)
+TEST(StringTest, trimChars)
 {
     pplib::String s1("\n\n    abc  \n");
     s1.trim(" \n");
@@ -937,7 +1059,7 @@ TEST_F(StringTest, trimChars)
     ASSERT_EQ(pplib::String("abc"), s1);
 }
 
-TEST_F(StringTest, trimLeftCharsEmptyResult)
+TEST(StringTest, trimLeftCharsEmptyResult)
 {
     pplib::String s1("\n\n   \n   \n");
     s1.trimLeft(" \n");
@@ -945,7 +1067,7 @@ TEST_F(StringTest, trimLeftCharsEmptyResult)
     ASSERT_EQ(pplib::String(""), s1);
 }
 
-TEST_F(StringTest, trimRightCharsEmptyResult)
+TEST(StringTest, trimRightCharsEmptyResult)
 {
     pplib::String s1("\n\n   \n   \n");
     s1.trimRight(" \n");
@@ -953,7 +1075,7 @@ TEST_F(StringTest, trimRightCharsEmptyResult)
     ASSERT_EQ(pplib::String(""), s1);
 }
 
-TEST_F(StringTest, trimEmptyCharsResult)
+TEST(StringTest, trimEmptyCharsResult)
 {
     pplib::String s1("\n\n   \n   \n");
     s1.trim(" \n");
@@ -961,140 +1083,140 @@ TEST_F(StringTest, trimEmptyCharsResult)
     ASSERT_EQ(pplib::String(""), s1);
 }
 
-TEST_F(StringTest, operatorEqualEmpty)
+TEST(StringTest, operatorEqualEmpty)
 {
     pplib::String s1("");
     pplib::String s2("");
     ASSERT_EQ(s1, s2);
 }
 
-TEST_F(StringTest, strcmpEmpty)
+TEST(StringTest, strcmpEmpty)
 {
     pplib::String s1("");
     pplib::String s2("");
     ASSERT_EQ(0, s1.strcmp(s2));
 }
 
-TEST_F(StringTest, strcmpLower)
+TEST(StringTest, strcmpLower)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("Defghi");
     ASSERT_LT(s1.strcmp(s2), 0);
 }
 
-TEST_F(StringTest, strcmpLowerWithCase)
+TEST(StringTest, strcmpLowerWithCase)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("abcdef");
     ASSERT_LT(s1.strcmp(s2), 0);
 }
 
-TEST_F(StringTest, strcmpHigher)
+TEST(StringTest, strcmpHigher)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("Defghi");
     ASSERT_GT(s2.strcmp(s1), 0);
 }
 
-TEST_F(StringTest, strcmpHigherWithCase)
+TEST(StringTest, strcmpHigherWithCase)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("abcdef");
     ASSERT_GT(s2.strcmp(s1), 0);
 }
 
-TEST_F(StringTest, strcmpEqual)
+TEST(StringTest, strcmpEqual)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("ABcdef");
     ASSERT_EQ(s2.strcmp(s1), 0);
 }
 
-TEST_F(StringTest, strcasecmpEmpty)
+TEST(StringTest, strcasecmpEmpty)
 {
     pplib::String s1("");
     pplib::String s2("");
     ASSERT_EQ(0, s1.strCaseCmp(s2));
 }
 
-TEST_F(StringTest, strcasecmpLower)
+TEST(StringTest, strcasecmpLower)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("Defghi");
     ASSERT_LT(s1.strCaseCmp(s2), 0);
 }
 
-TEST_F(StringTest, strcasecmpLowerWithCase)
+TEST(StringTest, strcasecmpLowerWithCase)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("abcdef");
     ASSERT_EQ(s1.strCaseCmp(s2), 0);
 }
 
-TEST_F(StringTest, strcasecmpHigher)
+TEST(StringTest, strcasecmpHigher)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("Defghi");
     ASSERT_GT(s2.strCaseCmp(s1), 0);
 }
 
-TEST_F(StringTest, strcasecmpHigherWithCase)
+TEST(StringTest, strcasecmpHigherWithCase)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("abcdef");
     ASSERT_EQ(s2.strCaseCmp(s1), 0);
 }
 
-TEST_F(StringTest, strcasecmpEqual)
+TEST(StringTest, strcasecmpEqual)
 {
     pplib::String s1("ABcdef");
     pplib::String s2("ABcdef");
     ASSERT_EQ(s2.strCaseCmp(s1), 0);
 }
 
-TEST_F(StringTest, left)
+TEST(StringTest, left)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.left(10);
     ASSERT_EQ(pplib::String("The quick "), s2);
 }
 
-TEST_F(StringTest, right)
+TEST(StringTest, right)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.right(9);
     ASSERT_EQ(pplib::String(" lazy dog"), s2);
 }
 
-TEST_F(StringTest, midWithLength)
+TEST(StringTest, midWithLength)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.mid(10, 10);
     ASSERT_EQ(pplib::String("brown fox "), s2);
 }
 
-TEST_F(StringTest, midWithoutLength)
+TEST(StringTest, midWithoutLength)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.mid(10);
     ASSERT_EQ(pplib::String("brown fox jumps over the lazy dog"), s2);
 }
 
-TEST_F(StringTest, substrWithLength)
+TEST(StringTest, substrWithLength)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.substr(10, 10);
     ASSERT_EQ(pplib::String("brown fox "), s2);
 }
 
-TEST_F(StringTest, substrWithoutLength)
+TEST(StringTest, substrWithoutLength)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.substr(10);
     ASSERT_EQ(pplib::String("brown fox jumps over the lazy dog"), s2);
 }
 
-TEST_F(StringTest, lowerCase)
+TEST(StringTest, lowerCase)
 {
     pplib::String s1("The Quick Brown Fox Jumps over ÄÖÜ");
     pplib::String expected("the quick brown fox jumps over äöü");
@@ -1102,7 +1224,7 @@ TEST_F(StringTest, lowerCase)
     ASSERT_EQ(expected, s1);
 }
 
-TEST_F(StringTest, upperCase)
+TEST(StringTest, upperCase)
 {
     pplib::String s1("The Quick Brown Fox Jumps over äöü");
     pplib::String expected("THE QUICK BROWN FOX JUMPS OVER ÄÖÜ");
@@ -1110,45 +1232,45 @@ TEST_F(StringTest, upperCase)
     ASSERT_EQ(expected, s1);
 }
 
-TEST_F(StringTest, toLowerCase)
+TEST(StringTest, toLowerCase)
 {
     ASSERT_EQ(pplib::String(L"the quick brown fox jumps over äöü"), pplib::String(L"The Quick Brown Fox Jumps over ÄÖÜ").toLowerCase());
 }
 
-TEST_F(StringTest, toUpperCase)
+TEST(StringTest, toUpperCase)
 {
     ASSERT_EQ(pplib::String(L"THE QUICK BROWN FOX JUMPS OVER ÄÖÜ"), pplib::String(L"The Quick Brown Fox Jumps over äöü").toUpperCase());
 }
 
-TEST_F(StringTest, strchr_ExistingChar)
+TEST(StringTest, strchr_ExistingChar)
 {
     pplib::String s1("The Quick Brown Fox Jumps over äöü");
     pplib::String expected("Fox Jumps over äöü");
     ASSERT_EQ(expected, s1.strchr('F')) << "Unexpected Result";
 }
 
-TEST_F(StringTest, strchr_NonExistingChar)
+TEST(StringTest, strchr_NonExistingChar)
 {
     pplib::String s1("The Quick Brown Fox Jumps over äöü");
     pplib::String expected("");
     ASSERT_EQ(expected, s1.strchr('L')) << "Unexpected Result";
 }
 
-TEST_F(StringTest, strrchr_ExistingChar)
+TEST(StringTest, strrchr_ExistingChar)
 {
     pplib::String s1("The Quick Brown Fox Jumps over äöü");
     pplib::String expected("over äöü");
     ASSERT_EQ(expected, s1.strrchr('o')) << "Unexpected Result";
 }
 
-TEST_F(StringTest, strrchr_NonExistingChar)
+TEST(StringTest, strrchr_NonExistingChar)
 {
     pplib::String s1("The Quick Brown Fox Jumps over äöü");
     pplib::String expected("");
     ASSERT_EQ(expected, s1.strrchr('L')) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toInt)
+TEST(StringTest, toInt)
 {
     EXPECT_EQ((int)1234, pplib::String("1234").toInt()) << "Unexpected Result";
     EXPECT_EQ((int)-1234, pplib::String("-1234").toInt()) << "Unexpected Result";
@@ -1158,7 +1280,7 @@ TEST_F(StringTest, toInt)
     EXPECT_EQ((int)0, pplib::String("0x1234").toInt()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toUnsignedInt)
+TEST(StringTest, toUnsignedInt)
 {
     EXPECT_EQ((unsigned int)1234, pplib::String("1234").toUnsignedInt()) << "Unexpected Result";
     EXPECT_EQ((unsigned int)-1234, pplib::String("-1234").toUnsignedInt()) << "Unexpected Result";
@@ -1168,7 +1290,7 @@ TEST_F(StringTest, toUnsignedInt)
     EXPECT_EQ((unsigned int)0, pplib::String("0x1234").toUnsignedInt()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toInt64)
+TEST(StringTest, toInt64)
 {
     EXPECT_EQ((int64_t)1234, pplib::String("1234").toInt64()) << "Unexpected Result";
     EXPECT_EQ((int64_t)-1234, pplib::String("-1234").toInt64()) << "Unexpected Result";
@@ -1178,7 +1300,7 @@ TEST_F(StringTest, toInt64)
     EXPECT_EQ((int64_t)0, pplib::String("0x1234").toInt64()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toUnsignedInt64)
+TEST(StringTest, toUnsignedInt64)
 {
     EXPECT_EQ((uint64_t)1234, pplib::String("1234").toUnsignedInt64()) << "Unexpected Result";
     EXPECT_EQ((uint64_t)-1234, pplib::String("-1234").toUnsignedInt64()) << "Unexpected Result";
@@ -1188,43 +1310,43 @@ TEST_F(StringTest, toUnsignedInt64)
     EXPECT_EQ((uint64_t)0, pplib::String("0x1234").toUnsignedInt64()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toInt_withoutNumber)
+TEST(StringTest, toInt_withoutNumber)
 {
     pplib::String s1("The Quick Brown Fox Jumps over the lazy dog");
     EXPECT_EQ((int)0, s1.toInt()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toInt_123456)
+TEST(StringTest, toInt_123456)
 {
     pplib::String s1("123456");
     EXPECT_EQ((int)123456, s1.toInt()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, ToInt_minus123456)
+TEST(StringTest, ToInt_minus123456)
 {
     pplib::String s1("-123456");
     EXPECT_EQ((int)-123456, s1.toInt()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toInt_123456_point_567)
+TEST(StringTest, toInt_123456_point_567)
 {
     pplib::String s1("123456.567");
     EXPECT_EQ((int)123456, s1.toInt()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toInt64_1242346214893456)
+TEST(StringTest, toInt64_1242346214893456)
 {
     pplib::String s1("1242346214893456");
     EXPECT_EQ((int64_t)1242346214893456, s1.toInt64()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toInt64_minus1242346214893456)
+TEST(StringTest, toInt64_minus1242346214893456)
 {
     pplib::String s1("-1242346214893456");
     EXPECT_EQ((int64_t)-1242346214893456, s1.toInt64()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toBool)
+TEST(StringTest, toBool)
 {
     pplib::String s1("A test string with unicode characters: äöü");
     ASSERT_EQ(s1.toBool(), false) << "String should not be true";
@@ -1254,31 +1376,31 @@ TEST_F(StringTest, toBool)
     ASSERT_EQ(s1.toBool(), false) << "String should not be true";
 }
 
-TEST_F(StringTest, ToLong_1124234674)
+TEST(StringTest, ToLong_1124234674)
 {
     pplib::String s1("124234674");
     EXPECT_EQ((long)124234674, s1.toLong()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, toLongLong_1242346214893456)
+TEST(StringTest, toLongLong_1242346214893456)
 {
     pplib::String s1("1242346214893456");
     EXPECT_EQ((long long)1242346214893456, s1.toLongLong()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, ToFloat_182566142_346214893456)
+TEST(StringTest, ToFloat_182566142_346214893456)
 {
     pplib::String s1("182566142.346214893456");
     EXPECT_EQ((float)182566142.346214893456, s1.toFloat()) << "Unexpected Result";
 }
 
-TEST_F(StringTest, ToDouble_182566142_346214893456)
+TEST(StringTest, ToDouble_182566142_346214893456)
 {
     pplib::String s1("182566142.346214893456");
     EXPECT_EQ(((float)182566142.346214893456), ((float)s1.toDouble())) << "Unexpected Result";
 }
 
-TEST_F(StringTest, OperatorCharPositionPositiv)
+TEST(StringTest, OperatorCharPositionPositiv)
 {
     pplib::String s1("Hello World!");
     EXPECT_EQ((char)'H', s1[0]) << "Unexpected Result";
@@ -1297,7 +1419,7 @@ TEST_F(StringTest, OperatorCharPositionPositiv)
     ASSERT_THROW({ ASSERT_EQ((char)0, s1[12]); }, pplib::OutOfBoundsException);
 }
 
-TEST_F(StringTest, OperatorCharPositionNegativ)
+TEST(StringTest, OperatorCharPositionNegativ)
 {
     pplib::String s1("Hello World!");
     EXPECT_EQ((char)'H', s1[0]) << "Unexpected Result";
@@ -1316,7 +1438,7 @@ TEST_F(StringTest, OperatorCharPositionNegativ)
     ASSERT_THROW({ ASSERT_EQ((char)0, s1[-13]); }, pplib::OutOfBoundsException);
 }
 
-TEST_F(StringTest, join)
+TEST(StringTest, join)
 {
     pplib::Array a;
     a.add("One");

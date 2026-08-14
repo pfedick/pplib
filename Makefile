@@ -75,10 +75,10 @@ coverage:
 	cmake --build build/coverage --target test_core
 	ln -sf build/coverage/compile_commands.json compile_commands.json
 	cd tests && ../build/coverage/tests/test_core$(EXE)
-	gcovr --root . build/coverage --xml-pretty -o coverage.xml --exclude 'tests/.*'
 	mkdir -p coverage_html
 	gcovr --root . build/coverage --html-details coverage_html/index.html --exclude 'tests/.*'
 	@echo "Report: coverage_html/index.html"
+	gcovr --root . build/coverage --xml-pretty -o coverage.xml --exclude 'tests/.*'
 
 clean:
 	-rm -rf build

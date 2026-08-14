@@ -27,12 +27,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <limits>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
 #include <stdarg.h>
-#include <ctype.h>
 #include <wchar.h>
 #include <wctype.h>
 #include <locale.h>
@@ -154,6 +154,7 @@ size_t String::capacity() const
 
 void String::reserve(size_t size)
 {
+    if (size == std::numeric_limits<size_t>::max()) throw IllegalArgumentException();
     size_t bytes = size + 1;
     if (s >= bytes) return; // Nothing to do
     char* p;
@@ -232,16 +233,8 @@ String& String::set(const char* str, size_t size)
         str = temp_holder.c_str();
     }
 
-    size_t outbytes = inbytes + 1;
-    if (outbytes > s) {
-        free(ptr);
-        stringlen = 0;
-        s = outbytes;
-        ptr = (char*)malloc(s);
-        if (!ptr) {
-            s = 0;
-            throw OutOfMemoryException();
-        }
+    if (inbytes > s) {
+        reserve(inbytes);
     }
     memmove((char*)ptr, str, inbytes);
     stringlen = inbytes;
@@ -383,7 +376,7 @@ String& String::vasprintf(const char* fmt, va_list args)
 
     // 2. Speicher direkt im String-Objekt reservieren (+1 für das Nullbyte)
     size_t required_bytes = size + 1;
-    reserve(size + 1);
+    reserve(required_bytes);
 
     // 3. Direkt in den eigenen Puffer schreiben
     ::vsnprintf(ptr, required_bytes, fmt, args);

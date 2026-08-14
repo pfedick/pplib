@@ -28,19 +28,9 @@
  *******************************************************************************/
 
 #include <string.h>
-// #include <wchar.h>
-
-/*
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <stdarg.h>
-#include <ctype.h>
-
+#include <wchar.h>
 #include <wctype.h>
-#include <locale.h>
-#include <errno.h>
-*/
+
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
 #include <pplib/types/bytearray.h>
@@ -1584,19 +1574,12 @@ int WideString::strCaseCmp(const WideString& str, size_t size) const
 {
     const wchar_t* mystr = ptr ? ptr : L"";
     const wchar_t* otherstr = str.ptr ? str.ptr : L"";
-#ifdef HAVE_WCSCASECMP
+#ifndef _WIN32
     if (size != (size_t)-1) return wcsncasecmp(mystr, otherstr, size);
     return wcscasecmp(mystr, otherstr);
-#elif defined WIN32
+#else
     if (size != (size_t)-1) return _wcsnicmp(mystr, otherstr, size);
     return _wcsicmp(mystr, otherstr);
-#else
-    WideString b = mystr;
-    WideString s = otherstr;
-    s.lowerCase();
-    b.lowerCase();
-    if (size) return wcsncmp(b.ptr, s.ptr, size);
-    return wcscmp(b.ptr, s.ptr);
 #endif
 }
 
@@ -2661,24 +2644,20 @@ unsigned int WideString::toUnsignedInt() const
 int64_t WideString::toInt64() const
 {
     if (!stringlen) return 0;
-#ifdef HAVE_WCSTOLL
+#ifndef _WIN32
     return (int64_t)wcstoll(ptr, NULL, 10);
-#elif defined WIN32
-    return (int64_t)_wcstoi64(ptr, NULL, 10);
 #else
-    return String(*this).toInt64();
+    return (int64_t)_wcstoi64(ptr, NULL, 10);
 #endif
 }
 
 uint64_t WideString::toUnsignedInt64() const
 {
     if (!stringlen) return 0;
-#ifdef HAVE_WCSTOULL
-    return (uint64_t)wcstoll(ptr, NULL, 10);
-#elif defined WIN32
-    return (uint64_t)_wcstoi64(ptr, NULL, 10);
+#ifndef _WIN32
+    return (uint64_t)wcstoull(ptr, NULL, 10);
 #else
-    return String(*this).toUnsignedInt64();
+    return (uint64_t)_wcstoui64(ptr, NULL, 10);
 #endif
 }
 
@@ -2703,52 +2682,40 @@ unsigned long WideString::toUnsignedLong() const
 long long WideString::toLongLong() const
 {
     if (!stringlen) return 0;
-#ifdef HAVE_WCSTOLL
+#ifndef _WIN32
     return (long long)wcstoll(ptr, NULL, 10);
-#elif defined WIN32
-    return (long long)_wcstoi64(ptr, NULL, 10);
 #else
-    return String(*this).toLongLong();
+    return (long long)_wcstoi64(ptr, NULL, 10);
 #endif
 }
 
 unsigned long long WideString::toUnsignedLongLong() const
 {
     if (!stringlen) return 0;
-#ifdef HAVE_WCSTOULL
+#ifndef _WIN32
     return (unsigned long long)wcstoull(ptr, NULL, 10);
-#elif defined HAVE_WCSTOLL
-    return (unsigned long long)wcstoll(ptr, NULL, 10);
-#elif defined WIN32
-    return (unsigned long long)_wcstoi64(ptr, NULL, 10);
 #else
-    return String(*this).toUnsignedLongLong();
+    return (unsigned long long)_wcstoui64(ptr, NULL, 10);
 #endif
 }
 
 float WideString::toFloat() const
 {
     if (!stringlen) return 0;
-#ifdef WIN32
-    return (float)wcstod(ptr, NULL);
-#elif defined HAVE_WCSTOF
+#ifndef _WIN32
     return (float)wcstof(ptr, NULL);
-#elif defined HAVE_WCSTOD
-    return (float)wcstod(ptr, NULL);
 #else
-    return String(*this).toFloat();
+    return (float)wcstod(ptr, NULL);
 #endif
 }
 
 double WideString::toDouble() const
 {
     if (!stringlen) return 0;
-#ifdef WIN32
-    return wcstod(ptr, NULL);
-#elif defined HAVE_WCSTOD
+#ifndef _WIN32
     return wcstod(ptr, NULL);
 #else
-    return String(*this).toDouble();
+    return wcstod(ptr, NULL);
 #endif
 }
 

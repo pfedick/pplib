@@ -72,6 +72,11 @@ static void setupTestAssocArray()
 
 int main(int argc, char** argv)
 {
+    if (setlocale(LC_ALL, DEFAULT_LOCALE) == NULL) {
+        printf("setlocale fehlgeschlagen\n");
+        throw std::exception();
+    }
+
     if (pplib::HaveArgv(argc, argv, "-h") || pplib::HaveArgv(argc, argv, "--help")) help();
     try {
         if ((pplib::HaveArgv(argc, argv, "-c"))) {
