@@ -1006,17 +1006,10 @@ String& String::lowerCase()
     // Wir wandeln den String zunächst nach Unicode um
     std::vector<wchar_t> buffer(stringlen + 1);
     size_t l;
-#ifdef HAVE_MBSTOWCS_S
-    if (::mbstowcs_s(&l, buffer.data(), buffer.size(), ptr, stringlen) != 0) {
-        throw CharacterEncodingException();
-    }
-    if (l > 0) l--; // Nullbyte abziehen, da mbstowcs_s dieses mitzählt
-#else
     l = ::mbstowcs(buffer.data(), ptr, stringlen);
     if (l == (size_t)-1) {
         throw CharacterEncodingException();
     }
-#endif
     // Umwandeln mittels towlower, das die aktuelle Locale berücksichtigt
     for (size_t i = 0; i < l; i++) {
         wchar_t wc = buffer[i];
@@ -1036,17 +1029,10 @@ String& String::upperCase()
     // Wir wandeln den String zunächst nach Unicode um
     std::vector<wchar_t> buffer(stringlen + 1);
     size_t l;
-#ifdef HAVE_MBSTOWCS_S
-    if (::mbstowcs_s(&l, buffer.data(), buffer.size(), ptr, stringlen) != 0) {
-        throw CharacterEncodingException();
-    }
-    if (l > 0) l--; // Nullbyte abziehen, da mbstowcs_s dieses mitzählt
-#else
     l = ::mbstowcs(buffer.data(), ptr, stringlen);
     if (l == (size_t)-1) {
         throw CharacterEncodingException();
     }
-#endif
     // Umwandeln mittels towlower, das die aktuelle Locale berücksichtigt
     for (size_t i = 0; i < l; i++) {
         wchar_t wc = buffer[i];
@@ -1861,26 +1847,20 @@ unsigned int String::toUnsignedInt() const
 int64_t String::toInt64() const
 {
     if (!stringlen) return 0;
-#ifdef HAVE_STRTOLL
-    return (int64_t)strtoll(ptr, NULL, 10);
-#elif defined WIN32
+#ifdef _WIN32
     return (int64_t)_strtoi64(ptr, NULL, 10);
 #else
-    throw TypeConversionException();
+    return (int64_t)strtoll(ptr, NULL, 10);
 #endif
 }
 
 uint64_t String::toUnsignedInt64() const
 {
     if (!stringlen) return 0;
-#ifdef HAVE_STRTOULL
-    return (uint64_t)strtoull(ptr, NULL, 10);
-#elif defined HAVE_STRTOLL
-    return (uint64_t)strtoll(ptr, NULL, 10);
-#elif defined WIN32
-    return (uint64_t)_strtoi64(ptr, NULL, 10);
+#ifdef _WIN32
+    return (uint64_t)_strtoui64(ptr, NULL, 10);
 #else
-    throw TypeConversionException();
+    return (uint64_t)strtoull(ptr, NULL, 10);
 #endif
 }
 
@@ -1905,26 +1885,20 @@ unsigned long String::toUnsignedLong() const
 long long String::toLongLong() const
 {
     if (!stringlen) return 0;
-#ifdef HAVE_STRTOLL
-    return (long long)strtoll(ptr, NULL, 10);
-#elif defined WIN32
+#ifdef _WIN32
     return (long long)_strtoi64(ptr, NULL, 10);
 #else
-    throw TypeConversionException();
+    return (long long)strtoll(ptr, NULL, 10);
 #endif
 }
 
 unsigned long long String::toUnsignedLongLong() const
 {
     if (!stringlen) return 0;
-#ifdef HAVE_STRTOULL
-    return (unsigned long long)strtoull(ptr, NULL, 10);
-#elif defined HAVE_STRTOLL
-    return (unsigned long long)strtoll(ptr, NULL, 10);
-#elif defined WIN32
-    return (unsigned long long)_strtoi64(ptr, NULL, 10);
+#ifdef _WIN32
+    return (unsigned long long)_strtoui64(ptr, NULL, 10);
 #else
-    throw TypeConversionException();
+    return (unsigned long long)strtoull(ptr, NULL, 10);
 #endif
 }
 

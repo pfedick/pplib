@@ -33,6 +33,7 @@
 #include <pplib/grafix/image.h>
 #include <pplib/grafix/grafix.h>
 #include <pplib/grafix/imagefilter.h>
+#include <pplib/exceptions.h>
 
 #include <config_pplib.h>
 

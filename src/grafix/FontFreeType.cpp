@@ -38,6 +38,7 @@
 #include <pplib/grafix/fonts.h>
 #include <pplib/grafix/drawable.h>
 #include <config_pplib.h>
+#include <pplib/exceptions.h>
 
 #ifdef HAVE_FREETYPE2
 #include <ft2build.h>

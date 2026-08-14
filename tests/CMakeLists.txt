@@ -34,9 +34,17 @@ macro(add_pplib_test_suite name source_glob link_lib)
 endmacro()
 
 if(PPLIB_ENABLE_CORE)
-    add_pplib_test_suite(test_core "src/core/*.cpp" pplib::core)
-    add_pplib_test_suite(test_core "src/types/*.cpp" pplib::core)
+    file(GLOB CORE_TEST_SOURCES CONFIGURE_DEPENDS "src/core/*.cpp" "src/types/*.cpp")
+    if(CORE_TEST_SOURCES)
+        add_executable(test_core ${CORE_TEST_SOURCES})
+        target_link_libraries(test_core PRIVATE pplib_test_common pplib::core)
+        gtest_discover_tests(test_core
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            EXTRA_ARGS "--gtest_output=xml:${CMAKE_BINARY_DIR}/testresult_test_core.xml"
+        )
+    endif()
 endif()
+
 
 if(PPLIB_ENABLE_CRYPTO)
     add_pplib_test_suite(test_crypto "src/crypto/*.cpp" pplib::crypto)

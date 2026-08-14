@@ -35,6 +35,7 @@
 #include <pplib/grafix/grafix.h>
 #include <pplib/grafix/imagefilter.h>
 #include <config_pplib.h>
+#include <pplib/exceptions.h>
 
 #ifdef HAVE_TIFF
 #include <tiffio.h>

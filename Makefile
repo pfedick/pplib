@@ -70,9 +70,12 @@ xml: debug
 
 coverage:
 	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
-	cmake --build build/coverage
-	-cd tests && ../build/coverage/tests/test_core$(EXE)
-	gcovr --root . --build-dir build/coverage --xml-pretty -o coverage.xml --exclude 'tests/.*'
+	cmake --build build/coverage --target test_core
+	cd tests && ../build/coverage/tests/test_core$(EXE)
+	gcovr --root . build/coverage --xml-pretty -o coverage.xml --exclude 'tests/.*'
+	mkdir -p coverage_html
+	gcovr --root . build/coverage --html-details coverage_html/index.html --exclude 'tests/.*'
+	@echo "Report: coverage_html/index.html"
 
 clean:
 	-rm -rf build

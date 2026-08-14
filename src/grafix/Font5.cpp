@@ -36,6 +36,7 @@
 #include <pplib/core/mutex.h>
 #include <pplib/grafix/fonts.h>
 #include <pplib/grafix/drawable.h>
+#include <pplib/exceptions.h>
 
 namespace pplib::grafix
 {
