@@ -83,20 +83,6 @@ TEST_F(StringTest, ConstructorFromCharPtr)
     });
 }
 
-#ifdef DEPR
-TEST_F(StringTest, ConstructorFromWideCharPtr)
-{
-    ASSERT_NO_THROW({
-        pplib::String s1(L"A test string with unicode characters: äöü");
-        ASSERT_TRUE(s1.len() == 42) << "String does not length of 42";
-        const char* buf = s1.getPtr();
-        ASSERT_TRUE(NULL != buf) << "Class did not return a pointer to a widecharacter string";
-        ASSERT_TRUE(L'A' == buf[0]) << "Class did not return an empty widecharacter string";
-        ASSERT_TRUE(L'ü' == buf[41]) << "unexpected unicode character";
-    });
-}
-#endif
-
 TEST_F(StringTest, ConstructorFromString)
 {
     ASSERT_NO_THROW({
@@ -128,6 +114,19 @@ TEST_F(StringTest, ConstructorFromStdWString)
 
     std::wstring s1(L"A test string with unicode characters: äöü");
     ASSERT_EQ((size_t)42, s1.size()) << "std:wstring has unexpected size";
+    pplib::String s2(s1);
+    const char* buf = s2.getPtr();
+    ASSERT_TRUE(NULL != buf) << "Class did not return a pointer to a c-string";
+    ASSERT_EQ('A', (unsigned char)s2[0]) << "Unexpected Character in string";
+    ASSERT_EQ((size_t)45, s2.len()) << "String does not have length of 45";
+    ASSERT_EQ(188, (unsigned char)s2[44]) << "Unexpected Character in string";
+}
+
+TEST_F(StringTest, ConstructorFromWideString)
+{
+
+    pplib::WideString s1(L"A test string with unicode characters: äöü");
+    ASSERT_EQ((size_t)42, s1.size()) << "pplib::WideString has unexpected size";
     pplib::String s2(s1);
     const char* buf = s2.getPtr();
     ASSERT_TRUE(NULL != buf) << "Class did not return a pointer to a c-string";

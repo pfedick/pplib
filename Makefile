@@ -39,10 +39,12 @@ endif
 release:
 	cmake -B build/release -DCMAKE_BUILD_TYPE=Release
 	cmake --build build/release
+	ln -sf build/release/compile_commands.json compile_commands.json
 
 debug:
 	cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug
 	cmake --build build/debug -j1
+	ln -sf build/debug/compile_commands.json compile_commands.json
 
 configure:
 	cmake -B build/release -DCMAKE_BUILD_TYPE=Release
@@ -71,6 +73,7 @@ xml: debug
 coverage:
 	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
 	cmake --build build/coverage --target test_core
+	ln -sf build/coverage/compile_commands.json compile_commands.json
 	cd tests && ../build/coverage/tests/test_core$(EXE)
 	gcovr --root . build/coverage --xml-pretty -o coverage.xml --exclude 'tests/.*'
 	mkdir -p coverage_html
@@ -80,7 +83,7 @@ coverage:
 clean:
 	-rm -rf build
 	-rm -rf coverage
-	-rm -rf coverage.xml tests/testresult_*.xml
+	-rm -rf coverage.xml tests/testresult_*.xml compile_commands.json
 	-rm -rf documentation
 	-cd tests; make clean
 
