@@ -1232,7 +1232,7 @@ void Array::makeUnique()
     for (size_t i = 0; i < numElements; i++) {
         const String& value = get(i);
         auto it = s.find(value);
-        if (it == s.end()) {
+        if (it != s.end()) {
             erase(i);
             i--;
         } else {
