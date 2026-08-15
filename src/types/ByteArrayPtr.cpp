@@ -262,7 +262,8 @@ int ByteArrayPtr::memcmp(const ByteArrayPtr& other) const
     if (other.ptrsize < min) min = other.ptrsize;
     if (min > 0 && ptradr != NULL && other.ptradr != NULL) {
         int res = ::memcmp(ptradr, other.ptradr, min);
-        if (res != 0) return res;
+        if (res < 0) return -1;
+        if (res > 0) return 1;
     }
     if (ptrsize < other.ptrsize) return -1;
     if (ptrsize > other.ptrsize) return 1;

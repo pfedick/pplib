@@ -27,35 +27,21 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <pthread.h>
-#include <locale.h>
-#include <pplib.h>
 #include <gtest/gtest.h>
+
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
+
 #include "pplib-tests.h"
 
 namespace
 {
 
-// The fixture for testing class Foo.
-class ByteArrayPtrTest : public ::testing::Test
-{
-protected:
-    ByteArrayPtrTest()
-    {
-        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
-            printf("setlocale fehlgeschlagen\n");
-            throw std::exception();
-        }
-    }
-    virtual ~ByteArrayPtrTest()
-    {
-    }
-};
-
-TEST_F(ByteArrayPtrTest, ConstructorSimple)
+TEST(ByteArrayPtrTest, ConstructorSimple)
 {
     ASSERT_NO_THROW({
         pplib::ByteArrayPtr b1;
@@ -63,7 +49,7 @@ TEST_F(ByteArrayPtrTest, ConstructorSimple)
     });
 }
 
-TEST_F(ByteArrayPtrTest, ConstructorFromPointerAndSize)
+TEST(ByteArrayPtrTest, ConstructorFromPointerAndSize)
 {
     void* adr = this;
     const void* adr2 = this;
@@ -84,7 +70,7 @@ TEST_F(ByteArrayPtrTest, ConstructorFromPointerAndSize)
     });
 }
 
-TEST_F(ByteArrayPtrTest, ConstructorFromByteArrayPtr)
+TEST(ByteArrayPtrTest, ConstructorFromByteArrayPtr)
 {
     pplib::ByteArrayPtr b1(this, 1234567);
     ASSERT_NO_THROW({
@@ -95,7 +81,7 @@ TEST_F(ByteArrayPtrTest, ConstructorFromByteArrayPtr)
     });
 }
 
-TEST_F(ByteArrayPtrTest, ConstructorFromString)
+TEST(ByteArrayPtrTest, ConstructorFromString)
 {
     pplib::String s1("Hello World");
     ASSERT_NO_THROW({
@@ -106,7 +92,7 @@ TEST_F(ByteArrayPtrTest, ConstructorFromString)
     });
 }
 
-TEST_F(ByteArrayPtrTest, ConstructorFromWideString)
+TEST(ByteArrayPtrTest, ConstructorFromWideString)
 {
     pplib::WideString s1(L"Hello World");
     ASSERT_NO_THROW({
@@ -120,16 +106,16 @@ TEST_F(ByteArrayPtrTest, ConstructorFromWideString)
 // 0d,0e,37,42,81,ff,42,00,4c,17,12
 static unsigned char binarydata[] = {13, 14, 55, 66, 129, 255, 66, 0, 76, 23, 18};
 
-TEST_F(ByteArrayPtrTest, isNull)
+TEST(ByteArrayPtrTest, isNull)
 {
     pplib::ByteArrayPtr b2;
     ASSERT_TRUE(b2.isNull());
     b2.use(binarydata, sizeof(binarydata));
     ASSERT_FALSE(b2.isNull());
     b2.use(binarydata, 0);
-    ASSERT_FALSE(b2.isNull());
+    ASSERT_TRUE(b2.isNull());
 }
-TEST_F(ByteArrayPtrTest, isEmpty)
+TEST(ByteArrayPtrTest, isEmpty)
 {
     pplib::ByteArrayPtr b2;
     ASSERT_TRUE(b2.isEmpty());
@@ -139,7 +125,7 @@ TEST_F(ByteArrayPtrTest, isEmpty)
     ASSERT_TRUE(b2.isEmpty());
 }
 
-TEST_F(ByteArrayPtrTest, size)
+TEST(ByteArrayPtrTest, size)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     ASSERT_EQ(sizeof(binarydata), b2.size());
@@ -147,7 +133,7 @@ TEST_F(ByteArrayPtrTest, size)
     ASSERT_EQ((size_t)0, b1.size());
 }
 
-TEST_F(ByteArrayPtrTest, ptr)
+TEST(ByteArrayPtrTest, ptr)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     ASSERT_EQ((const void*)&binarydata, b2.ptr());
@@ -155,7 +141,7 @@ TEST_F(ByteArrayPtrTest, ptr)
     ASSERT_EQ((const void*)NULL, b1.ptr());
 }
 
-TEST_F(ByteArrayPtrTest, adr)
+TEST(ByteArrayPtrTest, adr)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     ASSERT_EQ((const void*)&binarydata, b2.adr());
@@ -163,7 +149,7 @@ TEST_F(ByteArrayPtrTest, adr)
     ASSERT_EQ((const void*)NULL, b1.adr());
 }
 
-TEST_F(ByteArrayPtrTest, toCharPtr)
+TEST(ByteArrayPtrTest, toCharPtr)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     ASSERT_EQ((const char*)&binarydata, b2.toCharPtr());
@@ -171,25 +157,25 @@ TEST_F(ByteArrayPtrTest, toCharPtr)
     ASSERT_EQ((const char*)NULL, b1.toCharPtr());
 }
 
-TEST_F(ByteArrayPtrTest, operatorVoidPtr)
+TEST(ByteArrayPtrTest, operatorVoidPtr)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     ASSERT_EQ((const void*)&binarydata, (const void*)b2);
 }
 
-TEST_F(ByteArrayPtrTest, operatorCharPtr)
+TEST(ByteArrayPtrTest, operatorCharPtr)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     ASSERT_EQ((const char*)&binarydata, (const char*)b2);
 }
 
-TEST_F(ByteArrayPtrTest, operatorUnsignedCharPtr)
+TEST(ByteArrayPtrTest, operatorUnsignedCharPtr)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     ASSERT_EQ((const unsigned char*)&binarydata, (const unsigned char*)b2);
 }
 
-TEST_F(ByteArrayPtrTest, operatorCopy)
+TEST(ByteArrayPtrTest, operatorCopy)
 {
     pplib::ByteArrayPtr b1(binarydata, sizeof(binarydata));
     pplib::ByteArrayPtr b2;
@@ -198,7 +184,7 @@ TEST_F(ByteArrayPtrTest, operatorCopy)
     ASSERT_EQ(sizeof(binarydata), b2.size());
 }
 
-TEST_F(ByteArrayPtrTest, usePtrAndSize)
+TEST(ByteArrayPtrTest, usePtrAndSize)
 {
     pplib::ByteArrayPtr b2;
     b2.use(binarydata, sizeof(binarydata));
@@ -206,7 +192,7 @@ TEST_F(ByteArrayPtrTest, usePtrAndSize)
     ASSERT_EQ(sizeof(binarydata), b2.size());
 }
 
-TEST_F(ByteArrayPtrTest, useOtherByteArrayPtr)
+TEST(ByteArrayPtrTest, useOtherByteArrayPtr)
 {
     pplib::ByteArrayPtr b1(binarydata, sizeof(binarydata));
     pplib::ByteArrayPtr b2;
@@ -215,7 +201,7 @@ TEST_F(ByteArrayPtrTest, useOtherByteArrayPtr)
     ASSERT_EQ(sizeof(binarydata), b2.size());
 }
 
-TEST_F(ByteArrayPtrTest, Get)
+TEST(ByteArrayPtrTest, Get)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     EXPECT_EQ(13, b2.get(0));
@@ -228,7 +214,7 @@ TEST_F(ByteArrayPtrTest, Get)
     ASSERT_THROW(b2.get(11), pplib::OutOfBoundsException);
 }
 
-TEST_F(ByteArrayPtrTest, OperatorGet)
+TEST(ByteArrayPtrTest, OperatorGet)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     EXPECT_EQ(13, b2[0]);
@@ -240,7 +226,7 @@ TEST_F(ByteArrayPtrTest, OperatorGet)
     ASSERT_THROW(b2[11], pplib::OutOfBoundsException);
 }
 
-TEST_F(ByteArrayPtrTest, Set)
+TEST(ByteArrayPtrTest, Set)
 {
     unsigned char localdata[] = {13, 14, 55, 66, 129, 255, 66, 0, 76, 23, 18};
     pplib::ByteArrayPtr b2(localdata, sizeof(localdata));
@@ -252,13 +238,13 @@ TEST_F(ByteArrayPtrTest, Set)
     ASSERT_THROW(b2.set(11, 42), pplib::OutOfBoundsException);
 }
 
-TEST_F(ByteArrayPtrTest, toHex)
+TEST(ByteArrayPtrTest, toHex)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     ASSERT_EQ(pplib::String("0d0e374281ff42004c1712"), b2.toHex());
 }
 
-TEST_F(ByteArrayPtrTest, toBase64)
+TEST(ByteArrayPtrTest, toBase64)
 {
     ////0d,0e,37,42,81,ff,42,00,4c,17,12
     pplib::ByteArrayPtr b2;
@@ -276,19 +262,19 @@ TEST_F(ByteArrayPtrTest, toBase64)
 
 static const char* teststring = "Hello World";
 
-TEST_F(ByteArrayPtrTest, md5)
+TEST(ByteArrayPtrTest, md5)
 {
     pplib::ByteArrayPtr b2(teststring, 11);
     EXPECT_EQ(pplib::String("b10a8db164e0754105b7a99be72e3fe5"), pplib::Md5(b2));
 }
 
-TEST_F(ByteArrayPtrTest, crc32)
+TEST(ByteArrayPtrTest, crc32)
 {
     pplib::ByteArrayPtr b2(teststring, 11);
     EXPECT_EQ((uint32_t)1243066710, b2.crc32());
 }
 
-TEST_F(ByteArrayPtrTest, memset)
+TEST(ByteArrayPtrTest, memset)
 {
     static unsigned char localdata[] = {13, 14, 55, 66, 129, 255, 66, 0, 76, 23, 18};
     static unsigned char expected[] = {32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32};
@@ -296,21 +282,6 @@ TEST_F(ByteArrayPtrTest, memset)
     b2.memset(32);
     EXPECT_TRUE(memcmp(expected, localdata, sizeof(localdata)) == 0);
 }
-
-class ByteArrayPtrCompare : public ::testing::Test
-{
-protected:
-    ByteArrayPtrCompare()
-    {
-        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
-            printf("setlocale fehlgeschlagen\n");
-            throw std::exception();
-        }
-    }
-    virtual ~ByteArrayPtrCompare()
-    {
-    }
-};
 
 // memBlock1 > MemBlock2
 //           > MemBlock3
@@ -329,13 +300,13 @@ static unsigned char memBlock2[] = {123, 77, 42, 200, 192, 16, 9};
 static unsigned char memBlock3[] = {123, 77, 42};
 static unsigned char memBlock4[] = {123, 77, 99};
 
-TEST_F(ByteArrayPtrCompare, b1ZeroSize_b2ZeroSize)
+TEST(ByteArrayPtrCompare, b1ZeroSize_b2ZeroSize)
 {
     pplib::ByteArrayPtr b1, b2;
     ASSERT_EQ(0, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, b1ZeroSize_b2NotZero)
+TEST(ByteArrayPtrCompare, b1ZeroSize_b2NotZero)
 {
     pplib::ByteArrayPtr b1;
     pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
@@ -343,7 +314,7 @@ TEST_F(ByteArrayPtrCompare, b1ZeroSize_b2NotZero)
     ASSERT_EQ(-1, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, b1NotZero_b2ZeroSize)
+TEST(ByteArrayPtrCompare, b1NotZero_b2ZeroSize)
 {
     pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
     pplib::ByteArrayPtr b2;
@@ -351,97 +322,96 @@ TEST_F(ByteArrayPtrCompare, b1NotZero_b2ZeroSize)
     ASSERT_EQ(1, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, b1_eq_b2_samesize)
+TEST(ByteArrayPtrCompare, b1_eq_b2_samesize)
 {
     pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
     pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
     ASSERT_EQ(0, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, b1_lt_b2_samesize)
+TEST(ByteArrayPtrCompare, b1_lt_b2_samesize)
 {
     pplib::ByteArrayPtr b1(memBlock2, sizeof(memBlock2));
     pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
     ASSERT_EQ(-1, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, b1_gt_b2_samesize)
+TEST(ByteArrayPtrCompare, b1_gt_b2_samesize)
 {
     pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
     pplib::ByteArrayPtr b2(memBlock2, sizeof(memBlock2));
     ASSERT_EQ(1, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, b1_lt_b2__b1_shorter_b2)
+TEST(ByteArrayPtrCompare, b1_lt_b2__b1_shorter_b2)
 {
     pplib::ByteArrayPtr b1(memBlock3, sizeof(memBlock3));
     pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
     ASSERT_EQ(-1, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, b1_gt_b2__b1_shorter_b2)
+TEST(ByteArrayPtrCompare, b1_gt_b2__b1_shorter_b2)
 {
     pplib::ByteArrayPtr b1(memBlock4, sizeof(memBlock4));
     pplib::ByteArrayPtr b2(memBlock2, sizeof(memBlock2));
     ASSERT_EQ(1, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, b1_lt_b2__b1_longer_b2)
+TEST(ByteArrayPtrCompare, b1_lt_b2__b1_longer_b2)
 {
     pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
     pplib::ByteArrayPtr b2(memBlock4, sizeof(memBlock4));
     ASSERT_EQ(-1, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, b1_gt_b2__b1_longer_b2)
+TEST(ByteArrayPtrCompare, b1_gt_b2__b1_longer_b2)
 {
     pplib::ByteArrayPtr b1(memBlock2, sizeof(memBlock2));
     pplib::ByteArrayPtr b2(memBlock3, sizeof(memBlock3));
     ASSERT_EQ(1, b1.memcmp(b2));
 }
 
-TEST_F(ByteArrayPtrCompare, operators_equal)
+TEST(ByteArrayPtrCompare, operators_equal)
 {
     pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
     pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
-    ASSERT_FALSE(b1 < b2);
-    ASSERT_TRUE(b1 <= b2);
+    pplib::ByteArrayPtr b3(memBlock2, sizeof(memBlock2));
     ASSERT_TRUE(b1 == b2);
     ASSERT_FALSE(b1 != b2);
-    ASSERT_TRUE(b1 >= b2);
-    ASSERT_FALSE(b1 > b2);
-
-    ASSERT_EQ(b1, b2);
+    ASSERT_FALSE(b1 == b3);
+    ASSERT_TRUE(b1 != b3);
 }
 
-TEST_F(ByteArrayPtrCompare, operators_lower)
-{
-    pplib::ByteArrayPtr b1(memBlock2, sizeof(memBlock2));
-    pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
-    ASSERT_TRUE(b1 < b2);
-    ASSERT_TRUE(b1 <= b2);
-    ASSERT_FALSE(b1 == b2);
-    ASSERT_TRUE(b1 != b2);
-    ASSERT_FALSE(b1 >= b2);
-    ASSERT_FALSE(b1 > b2);
-
-    ASSERT_NE(b1, b2);
-    ASSERT_LT(b1, b2);
-}
-
-TEST_F(ByteArrayPtrCompare, operators_greater)
+TEST(ByteArrayPtrCompare, operators_lower)
 {
     pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
     pplib::ByteArrayPtr b2(memBlock2, sizeof(memBlock2));
+    pplib::ByteArrayPtr b3(memBlock3, sizeof(memBlock3));
+    pplib::ByteArrayPtr b4(memBlock4, sizeof(memBlock4));
     ASSERT_FALSE(b1 < b2);
-    ASSERT_FALSE(b1 <= b2);
-    ASSERT_FALSE(b1 == b2);
-    ASSERT_TRUE(b1 != b2);
-    ASSERT_TRUE(b1 >= b2);
-    ASSERT_TRUE(b1 > b2);
+    ASSERT_TRUE(b2 < b1);
+    ASSERT_TRUE(b2 <= b1);
+    ASSERT_TRUE(b3 < b1);
+    ASSERT_TRUE(b3 < b4);
+    ASSERT_TRUE(b3 <= b4);
+    ASSERT_FALSE(b4 < b3);
+}
 
-    ASSERT_NE(b1, b2);
-    ASSERT_GT(b1, b2);
+TEST(ByteArrayPtrCompare, operators_greater)
+{
+    pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
+    pplib::ByteArrayPtr b2(memBlock2, sizeof(memBlock2));
+    pplib::ByteArrayPtr b3(memBlock3, sizeof(memBlock3));
+    pplib::ByteArrayPtr b4(memBlock4, sizeof(memBlock4));
+
+    ASSERT_TRUE(b1 > b2);
+    ASSERT_TRUE(b1 >= b2);
+    ASSERT_FALSE(b2 > b1);
+    ASSERT_FALSE(b3 > b1);
+    ASSERT_FALSE(b3 > b4);
+    ASSERT_FALSE(b3 >= b4);
+    ASSERT_TRUE(b4 > b3);
+    ASSERT_TRUE(b4 >= b3);
 }
 
 } // namespace

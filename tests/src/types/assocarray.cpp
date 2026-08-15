@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -35,10 +30,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
-#include <locale.h>
-#include <pplib.h>
 #include <gtest/gtest.h>
+
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/datetime.h>
+#include <pplib/types/array.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/file.h>
+
 #include "pplib-tests.h"
 
 extern pplib::Array Wordlist;
@@ -46,23 +49,7 @@ extern pplib::Array Wordlist;
 namespace
 {
 
-// The fixture for testing class Foo.
-class AssocArrayTest : public ::testing::Test
-{
-protected:
-    AssocArrayTest()
-    {
-        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
-            printf("setlocale fehlgeschlagen\n");
-            throw std::exception();
-        }
-    }
-    virtual ~AssocArrayTest()
-    {
-    }
-};
-
-TEST_F(AssocArrayTest, ConstructorSimple)
+TEST(AssocArrayTest, ConstructorSimple)
 {
     ASSERT_NO_THROW({
         pplib::AssocArray a;
@@ -70,7 +57,7 @@ TEST_F(AssocArrayTest, ConstructorSimple)
     });
 }
 
-TEST_F(AssocArrayTest, addStringsLevel1)
+TEST(AssocArrayTest, addStringsLevel1)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({
@@ -81,7 +68,7 @@ TEST_F(AssocArrayTest, addStringsLevel1)
     // a.list();
 }
 
-TEST_F(AssocArrayTest, addStringsMultiLevels)
+TEST(AssocArrayTest, addStringsMultiLevels)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({
@@ -103,7 +90,7 @@ TEST_F(AssocArrayTest, addStringsMultiLevels)
     ASSERT_EQ(pplib::String("value5"), a.getString("array1/unterkey2")) << "unexpected value";
 }
 
-TEST_F(AssocArrayTest, addMixed)
+TEST(AssocArrayTest, addMixed)
 {
     pplib::AssocArray a;
     pplib::DateTime now = pplib::DateTime::currentTime();
@@ -132,7 +119,7 @@ TEST_F(AssocArrayTest, addMixed)
     // a.list();
 }
 
-TEST_F(AssocArrayTest, append)
+TEST(AssocArrayTest, append)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({
@@ -144,7 +131,7 @@ TEST_F(AssocArrayTest, append)
     // a.list();
 }
 
-TEST_F(AssocArrayTest, appendRecursive)
+TEST(AssocArrayTest, appendRecursive)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({
@@ -156,7 +143,7 @@ TEST_F(AssocArrayTest, appendRecursive)
     // a.list();
 }
 
-TEST_F(AssocArrayTest, appendNonExisting)
+TEST(AssocArrayTest, appendNonExisting)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({
@@ -169,7 +156,7 @@ TEST_F(AssocArrayTest, appendNonExisting)
     // a.list();
 }
 
-TEST_F(AssocArrayTest, getAssocArray)
+TEST(AssocArrayTest, getAssocArray)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({
@@ -194,7 +181,7 @@ TEST_F(AssocArrayTest, getAssocArray)
     });
 }
 
-TEST_F(AssocArrayTest, addAndDeleteWordlist)
+TEST(AssocArrayTest, addAndDeleteWordlist)
 {
     pplib::AssocArray a;
     size_t total = Wordlist.count();
@@ -218,7 +205,7 @@ TEST_F(AssocArrayTest, addAndDeleteWordlist)
     ASSERT_EQ((size_t)0, a.count()) << "Tree has unexpected size";
 }
 
-TEST_F(AssocArrayTest, fromTemplate)
+TEST(AssocArrayTest, fromTemplate)
 {
     pplib::AssocArray a1, a2;
     pplib::String Template("key=line1\n"
@@ -244,7 +231,7 @@ TEST_F(AssocArrayTest, fromTemplate)
     ASSERT_EQ(pplib::String("world"), a2.getString("hello")) << "unexpected value";
 }
 
-TEST_F(AssocArrayTest, fromConfig)
+TEST(AssocArrayTest, fromConfig)
 {
     pplib::AssocArray a1, a2;
     pplib::String Template("[Abschnitt_1]\n"
@@ -334,14 +321,14 @@ static void createDefaultAssocArray(pplib::AssocArray& a)
     // a.list();
 }
 
-TEST_F(AssocArrayTest, binarySize)
+TEST(AssocArrayTest, binarySize)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({ createDefaultAssocArray(a); });
     ASSERT_EQ((size_t)1335, a.binarySize());
 }
 
-TEST_F(AssocArrayTest, exportAndImportBinary)
+TEST(AssocArrayTest, exportAndImportBinary)
 {
     pplib::AssocArray a;
     pplib::AssocArray b;
@@ -400,7 +387,7 @@ static void createWalkingArray(pplib::AssocArray& a)
     a.set("array2/unterkey1", "value9");
 }
 
-TEST_F(AssocArrayTest, IterateResetGetNextWithoutDatatype)
+TEST(AssocArrayTest, IterateResetGetNextWithoutDatatype)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -411,7 +398,7 @@ TEST_F(AssocArrayTest, IterateResetGetNextWithoutDatatype)
     ASSERT_TRUE(it.value().isString());
 }
 
-TEST_F(AssocArrayTest, IterateGetFirstGetNextWithoutDatatype)
+TEST(AssocArrayTest, IterateGetFirstGetNextWithoutDatatype)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -465,7 +452,7 @@ TEST_F(AssocArrayTest, IterateGetFirstGetNextWithoutDatatype)
     ASSERT_FALSE(a.getNext(it));
 }
 
-TEST_F(AssocArrayTest, IterateResetGetNextWithDatatypeString)
+TEST(AssocArrayTest, IterateResetGetNextWithDatatypeString)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -477,7 +464,7 @@ TEST_F(AssocArrayTest, IterateResetGetNextWithDatatypeString)
     ASSERT_EQ(pplib::String("first element"), it.value().toString());
 }
 
-TEST_F(AssocArrayTest, IterateGetFirstGetNextWithDatatypeString)
+TEST(AssocArrayTest, IterateGetFirstGetNextWithDatatypeString)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -508,7 +495,7 @@ TEST_F(AssocArrayTest, IterateGetFirstGetNextWithDatatypeString)
     ASSERT_FALSE(a.getNext(it, pplib::Variant::TYPE_STRING));
 }
 
-TEST_F(AssocArrayTest, IterateResetGetNextWithKeyValueParams)
+TEST(AssocArrayTest, IterateResetGetNextWithKeyValueParams)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -520,7 +507,7 @@ TEST_F(AssocArrayTest, IterateResetGetNextWithKeyValueParams)
     ASSERT_EQ(pplib::String("first element"), value);
 }
 
-TEST_F(AssocArrayTest, IterateGetFirstGetNextWithKeyValueParams)
+TEST(AssocArrayTest, IterateGetFirstGetNextWithKeyValueParams)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -549,7 +536,7 @@ TEST_F(AssocArrayTest, IterateGetFirstGetNextWithKeyValueParams)
     ASSERT_FALSE(a.getNext(it, key, value));
 }
 
-TEST_F(AssocArrayTest, IterateResetGetPreviousWithoutDatatype)
+TEST(AssocArrayTest, IterateResetGetPreviousWithoutDatatype)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -560,7 +547,7 @@ TEST_F(AssocArrayTest, IterateResetGetPreviousWithoutDatatype)
     ASSERT_TRUE(it.value().isDateTime());
 }
 
-TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithoutDatatype)
+TEST(AssocArrayTest, IterateGetLastGetPreviousWithoutDatatype)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -614,7 +601,7 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithoutDatatype)
     ASSERT_FALSE(a.getPrevious(it));
 }
 
-TEST_F(AssocArrayTest, IterateResetGetPreviousWithDatatypeString)
+TEST(AssocArrayTest, IterateResetGetPreviousWithDatatypeString)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -625,7 +612,7 @@ TEST_F(AssocArrayTest, IterateResetGetPreviousWithDatatypeString)
     ASSERT_TRUE(it.value().isString());
 }
 
-TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString)
+TEST(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -656,7 +643,7 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString)
     ASSERT_FALSE(a.getPrevious(it, pplib::Variant::TYPE_STRING));
 }
 
-TEST_F(AssocArrayTest, IterateResetGetPreviousWithKeyValueParams)
+TEST(AssocArrayTest, IterateResetGetPreviousWithKeyValueParams)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -669,7 +656,7 @@ TEST_F(AssocArrayTest, IterateResetGetPreviousWithKeyValueParams)
     ASSERT_EQ(pplib::String("value7"), value);
 }
 
-TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams)
+TEST(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams)
 {
     pplib::AssocArray a;
     createWalkingArray(a);
@@ -698,7 +685,7 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams)
     ASSERT_FALSE(a.getPrevious(it, key, value));
 }
 
-TEST_F(AssocArrayTest, CountNonRecursive)
+TEST(AssocArrayTest, CountNonRecursive)
 {
     pplib::AssocArray a1;
     ASSERT_EQ((size_t)0, a1.count(false));
@@ -718,7 +705,7 @@ TEST_F(AssocArrayTest, CountNonRecursive)
     ASSERT_EQ((size_t)5, a1.size());
 }
 
-TEST_F(AssocArrayTest, CountRecursive)
+TEST(AssocArrayTest, CountRecursive)
 {
     pplib::AssocArray a1;
     ASSERT_EQ((size_t)0, a1.count(true));
@@ -738,7 +725,7 @@ TEST_F(AssocArrayTest, CountRecursive)
     ASSERT_EQ((size_t)5, a1.size());
 }
 
-TEST_F(AssocArrayTest, OperatorPlus)
+TEST(AssocArrayTest, OperatorPlus)
 {
     pplib::AssocArray a1, a2;
     a1.set("key1", "value1");
@@ -777,7 +764,7 @@ TEST_F(AssocArrayTest, OperatorPlus)
     ASSERT_EQ(pplib::String("value9"), ret.getString("array3/key1"));
 }
 
-TEST_F(AssocArrayTest, OperatorPlusEqual)
+TEST(AssocArrayTest, OperatorPlusEqual)
 {
     pplib::AssocArray a1, a2;
     a1.set("key1", "value1");
@@ -811,7 +798,7 @@ TEST_F(AssocArrayTest, OperatorPlusEqual)
     ASSERT_EQ(pplib::String("value9"), a1.getString("array3/key1"));
 }
 
-TEST_F(AssocArrayTest, OperatorEqualEqual)
+TEST(AssocArrayTest, OperatorEqualEqual)
 {
     pplib::AssocArray a1, a2;
     a1.set("key1", "value1");
@@ -832,7 +819,7 @@ TEST_F(AssocArrayTest, OperatorEqualEqual)
     ASSERT_FALSE(a1 != a2);
 }
 
-TEST_F(AssocArrayTest, OperatorNotEqual)
+TEST(AssocArrayTest, OperatorNotEqual)
 {
     pplib::AssocArray a1, a2;
     a1.set("key1", "value1");
@@ -853,7 +840,7 @@ TEST_F(AssocArrayTest, OperatorNotEqual)
     ASSERT_FALSE(a1 == a2);
 }
 
-TEST_F(AssocArrayTest, OperatorElement)
+TEST(AssocArrayTest, OperatorElement)
 {
     pplib::AssocArray a1, a2;
     a1.set("key1", "value1");
@@ -867,7 +854,7 @@ TEST_F(AssocArrayTest, OperatorElement)
     ASSERT_EQ(pplib::Variant(pplib::String("value4")), a1["key2"]);
 }
 
-TEST_F(AssocArrayTest, ToTemplate)
+TEST(AssocArrayTest, ToTemplate)
 {
     pplib::AssocArray a;
     pplib::ByteArray bin;
@@ -879,7 +866,7 @@ TEST_F(AssocArrayTest, ToTemplate)
     a.set("array1/noch ein array/unterkey1", "value4");
     a.set("array1/unterkey2", "value5");
     a.set("key2", "value6");
-    a.set("dateien/main.cpp", &bin);
+    a.set("dateien/main.cpp", bin);
     a.set("array2/unterkey1", "value7");
     a.set("array2/unterkey2", "value8");
     a.set("array2/unterkey1", "value9");

@@ -27,35 +27,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <pthread.h>
-#include <locale.h>
-#include <pplib.h>
 #include <gtest/gtest.h>
+
+#include <pplib/types/string.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/file.h>
+
 #include "pplib-tests.h"
 
 namespace
 {
 
-// The fixture for testing class Foo.
-class ByteArrayTest : public ::testing::Test
-{
-protected:
-    ByteArrayTest()
-    {
-        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
-            printf("setlocale fehlgeschlagen\n");
-            throw std::exception();
-        }
-    }
-    virtual ~ByteArrayTest()
-    {
-    }
-};
-
-TEST_F(ByteArrayTest, ConstructorSimple)
+TEST(ByteArrayTest, ConstructorSimple)
 {
     ASSERT_NO_THROW({
         pplib::ByteArray b1;
@@ -63,13 +48,13 @@ TEST_F(ByteArrayTest, ConstructorSimple)
     });
 }
 
-TEST_F(ByteArrayTest, CopyConstructorWithEmptyObject)
+TEST(ByteArrayTest, CopyConstructorWithEmptyObject)
 {
     pplib::ByteArray b1;
     ASSERT_NO_THROW({ pplib::ByteArray b2(b1); });
 }
 
-TEST_F(ByteArrayTest, AssignmentWithEmptyObject)
+TEST(ByteArrayTest, AssignmentWithEmptyObject)
 {
     pplib::ByteArray b1;
     ASSERT_NO_THROW({ pplib::ByteArray b2 = b1; });
@@ -82,7 +67,7 @@ TEST_F(ByteArrayTest, AssignmentWithEmptyObject)
     b4 = b1;
 }
 
-TEST_F(ByteArrayTest, load_and_base64)
+TEST(ByteArrayTest, load_and_base64)
 {
     pplib::ByteArray ba;
     pplib::File::load(ba, "testdata/screenshot1.png");
@@ -97,7 +82,7 @@ TEST_F(ByteArrayTest, load_and_base64)
 static unsigned char memBlock1[] = {123, 77, 42, 255, 192, 16, 9};
 static unsigned char memBlock2[] = {123, 77, 42, 200, 192, 16, 9};
 
-TEST_F(ByteArrayTest, operators_equal)
+TEST(ByteArrayTest, operators_equal)
 {
     pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
     pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
@@ -109,7 +94,7 @@ TEST_F(ByteArrayTest, operators_equal)
     ASSERT_FALSE(b1 > b2);
 }
 
-TEST_F(ByteArrayTest, operators_lower)
+TEST(ByteArrayTest, operators_lower)
 {
     pplib::ByteArrayPtr b1(memBlock2, sizeof(memBlock2));
     pplib::ByteArrayPtr b2(memBlock1, sizeof(memBlock1));
@@ -121,7 +106,7 @@ TEST_F(ByteArrayTest, operators_lower)
     ASSERT_FALSE(b1 > b2);
 }
 
-TEST_F(ByteArrayTest, operators_greater)
+TEST(ByteArrayTest, operators_greater)
 {
     pplib::ByteArrayPtr b1(memBlock1, sizeof(memBlock1));
     pplib::ByteArrayPtr b2(memBlock2, sizeof(memBlock2));
