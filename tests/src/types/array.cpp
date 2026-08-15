@@ -69,6 +69,13 @@ TEST(ArrayTest, ConstructorfromOtherArray)
     });
 }
 
+TEST(ArrayTest, MoveConstructorfromOtherArray)
+{
+    pplib::Array a1("red green blue yellow black white", " ");
+    pplib::Array a2 = std::move(a1);
+    ASSERT_EQ((size_t)6, a2.count()) << "Array does not contain 6 elements";
+}
+
 TEST(ArrayTest, OperatorEQ)
 {
     ASSERT_NO_THROW({
@@ -100,6 +107,24 @@ TEST(ArrayTest, OperatorCopy)
     });
 }
 
+TEST(ArrayTest, OperatorMove)
+{
+    ASSERT_NO_THROW({
+        pplib::Array a1("red green blue yellow black white", " ");
+        pplib::Array a2;
+        a2 = std::move(a1);
+        ASSERT_EQ((size_t)6, a2.count()) << "Array does not contain 6 elements";
+    });
+}
+TEST(ArrayTest, OperatorMoveOnSameObject)
+{
+    ASSERT_NO_THROW({
+        pplib::Array a1("red green blue yellow black white", " ");
+        a1 = std::move(a1);
+        ASSERT_EQ((size_t)6, a1.count()) << "Array does not contain 6 elements";
+    });
+}
+
 TEST(ArrayTest, OperatorPlusEqual)
 {
     ASSERT_NO_THROW({
@@ -112,12 +137,39 @@ TEST(ArrayTest, OperatorPlusEqual)
     });
 }
 
+TEST(ArrayTest, OperatorGetElement)
+{
+    pplib::Array a1("red green blue yellow black white", " ");
+    ASSERT_EQ(pplib::String("red"), a1[0]) << "Element 0 has wrong value";
+    ASSERT_EQ(pplib::String("green"), a1[1]) << "Element 1 has wrong value";
+    ASSERT_EQ(pplib::String("white"), a1[-1]) << "Element -1 has wrong value";
+}
+
+TEST(ArrayTest, OperatorSetElement)
+{
+    pplib::Array a1("red green blue yellow black white", " ");
+    a1[-1] = "cyan";
+    a1[5] = "grey";
+    ASSERT_EQ(pplib::String("grey"), a1[5]) << "Element 5 has wrong value";
+    ASSERT_EQ(pplib::String("cyan"), a1[0]) << "Element 0 has wrong value";
+}
+
 TEST(ArrayTest, add1Element)
 {
     ASSERT_NO_THROW({
         pplib::Array a1;
         a1.add("First Line");
         ASSERT_EQ((size_t)1, a1.count()) << "Array does not contain 1 elements";
+    });
+}
+
+TEST(ArrayTest, addElementWithSize)
+{
+    ASSERT_NO_THROW({
+        pplib::Array a1;
+        a1.add("First Line", 5);
+        ASSERT_EQ((size_t)1, a1.count()) << "Array does not contain 1 elements";
+        ASSERT_EQ(pplib::String("First"), a1.get(0)) << "Element has wrong value";
     });
 }
 
@@ -149,13 +201,16 @@ TEST(ArrayTest, add100000Elements)
 TEST(ArrayTest, addArray)
 {
     pplib::Array a1("red green blue yellow black white", " ");
+    ASSERT_EQ((size_t)6, a1.count()) << "Array contains unexpected amount of elements";
     pplib::Array a2;
     ASSERT_NO_THROW({
         a2.set(0, pplib::String("salt"));
         a2.set(2, pplib::String("suggar"));
     });
+    ASSERT_EQ((size_t)6, a1.count()) << "Array contains unexpected amount of elements";
+    ASSERT_EQ((size_t)3, a2.count()) << "Array contains unexpected amount of elements";
 
-    a1.add(a2);
+    a1.add(a2); // a2 hat 3 Elemente, eins ist leer
     ASSERT_EQ((size_t)9, a1.count()) << "Array contains unexpected amount of elements";
     ASSERT_EQ(pplib::String("red"), a1.get(0)) << "unexpected value";
     ASSERT_EQ(pplib::String("white"), a1.get(5)) << "unexpected value";
@@ -284,6 +339,15 @@ TEST(ArrayTest, get)
     ASSERT_EQ(pplib::String("red"), a1.get(-6)) << "Element 0 has wrong value";
 }
 
+TEST(ArrayTest, getIsOutOfBounds)
+{
+    const pplib::Array a1("red green blue yellow black white", " ");
+    ASSERT_THROW(a1.get(6), pplib::OutOfBoundsException);
+    ASSERT_THROW(a1.get(30), pplib::OutOfBoundsException);
+    ASSERT_THROW(a1.get(-7), pplib::OutOfBoundsException);
+    ASSERT_THROW(a1.get(-30), pplib::OutOfBoundsException);
+}
+
 TEST(ArrayTest, getOnConstArray)
 {
     pplib::Array a2("red green blue yellow black white", " ");
@@ -301,27 +365,6 @@ TEST(ArrayTest, getOnConstArray)
     ASSERT_EQ(pplib::String("blue"), a1.get(-4)) << "Element 2 has wrong value";
     ASSERT_EQ(pplib::String("green"), a1.get(-5)) << "Element 1 has wrong value";
     ASSERT_EQ(pplib::String("red"), a1.get(-6)) << "Element 0 has wrong value";
-}
-
-TEST(ArrayTest, getPtr)
-{
-    pplib::Array a1("red green blue yellow black white", " ");
-    ASSERT_TRUE(strcmp("red", a1.getPtr(0)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("green", a1.getPtr(1)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("blue", a1.getPtr(2)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("yellow", a1.getPtr(3)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("black", a1.getPtr(4)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("white", a1.getPtr(5)) == 0) << "Element 0 has wrong value";
-
-    ASSERT_TRUE(strcmp("white", a1.getPtr(-1)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("black", a1.getPtr(-2)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("yellow", a1.getPtr(-3)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("blue", a1.getPtr(-4)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("green", a1.getPtr(-5)) == 0) << "Element 0 has wrong value";
-    ASSERT_TRUE(strcmp("red", a1.getPtr(-6)) == 0) << "Element 0 has wrong value";
-
-    ASSERT_THROW(a1.getPtr(6), pplib::OutOfBoundsException);
-    ASSERT_THROW(a1.getPtr(-7), pplib::OutOfBoundsException);
 }
 
 TEST(ArrayTest, operatorOnIndex)
@@ -371,13 +414,13 @@ TEST(ArrayTest, reserveThrowsOutOfMemory)
     ASSERT_THROW({ a1.reserve(0xffffffffffffffff / sizeof(pplib::String*)); }, pplib::OutOfMemoryException);
 }
 
-TEST(ArrayTest, empty)
+TEST(ArrayTest, isEmpty)
 {
     ASSERT_NO_THROW({
         pplib::Array a1;
-        ASSERT_EQ(true, a1.empty()) << "Array should be empty";
+        ASSERT_EQ(true, a1.isEmpty()) << "Array should be empty";
         a1.add("Element 0");
-        ASSERT_EQ(false, a1.empty()) << "Array should not be empty";
+        ASSERT_EQ(false, a1.isEmpty()) << "Array should not be empty";
     });
 }
 
@@ -546,15 +589,15 @@ TEST(ArrayTest, insertEmptyArray)
 TEST(ArrayTest, forwardWalkIterator)
 {
     pplib::Array a1("red green blue yellow black white", " ");
-    pplib::Array::Iterator it;
-    a1.reset(it);
-    ASSERT_EQ(pplib::String("red"), a1.getNext(it)) << "Element 0 has wrong value";
-    ASSERT_EQ(pplib::String("green"), a1.getNext(it)) << "Element 1 has wrong value";
-    ASSERT_EQ(pplib::String("blue"), a1.getNext(it)) << "Element 2 has wrong value";
-    ASSERT_EQ(pplib::String("yellow"), a1.getNext(it)) << "Element 3 has wrong value";
-    ASSERT_EQ(pplib::String("black"), a1.getNext(it)) << "Element 4 has wrong value";
-    ASSERT_EQ(pplib::String("white"), a1.getNext(it)) << "Element 5 has wrong value";
-    ASSERT_THROW(a1.getNext(it), pplib::OutOfBoundsException);
+    pplib::Array::const_iterator it = a1.begin();
+
+    ASSERT_EQ(pplib::String("red"), *it++) << "Element 0 has wrong value";
+    ASSERT_EQ(pplib::String("green"), *it++) << "Element 1 has wrong value";
+    ASSERT_EQ(pplib::String("blue"), *it++) << "Element 2 has wrong value";
+    ASSERT_EQ(pplib::String("yellow"), *it++) << "Element 3 has wrong value";
+    ASSERT_EQ(pplib::String("black"), *it++) << "Element 4 has wrong value";
+    ASSERT_EQ(pplib::String("white"), *it++) << "Element 5 has wrong value";
+    ASSERT_EQ(it, a1.end()) << "Iterator is not at end";
 }
 
 TEST(ArrayTest, explode)
@@ -747,7 +790,7 @@ TEST(ArrayTest, list)
     // 3. Ausgabe als std::string holen
     std::string output = testing::internal::GetCapturedStdout();
     // 4. Inhalt prüfen
-    std::cout << "Output of list():\n" << output << std::endl;
+    // std::cout << "Output of list():\n" << output << std::endl;
     EXPECT_NE(output.find("array,      0: red"), std::string::npos);
     EXPECT_NE(output.find("array,      8: white"), std::string::npos);
 }
@@ -761,7 +804,7 @@ TEST(ArrayTest, listWithoutPrefix)
     // 3. Ausgabe als std::string holen
     std::string output = testing::internal::GetCapturedStdout();
     // 4. Inhalt prüfen
-    std::cout << "Output of list():\n" << output << std::endl;
+    // std::cout << "Output of list():\n" << output << std::endl;
     EXPECT_NE(output.find("     0: red"), std::string::npos);
     EXPECT_NE(output.find("     8: white"), std::string::npos);
 }
@@ -775,7 +818,7 @@ TEST(ArrayTest, listOnEmptyArray)
     // 3. Ausgabe als std::string holen
     std::string output = testing::internal::GetCapturedStdout();
     // 4. Inhalt prüfen
-    std::cout << "Output of list():\n" << output << std::endl;
+    // std::cout << "Output of list():\n" << output << std::endl;
     EXPECT_NE(output.find("Array ist leer"), std::string::npos);
 
     testing::internal::CaptureStdout();
@@ -783,8 +826,51 @@ TEST(ArrayTest, listOnEmptyArray)
     // 3. Ausgabe als std::string holen
     output = testing::internal::GetCapturedStdout();
     // 4. Inhalt prüfen
-    std::cout << "Output of list():\n" << output << std::endl;
+    // std::cout << "Output of list():\n" << output << std::endl;
     EXPECT_NE(output.find("Array \"array\" ist leer"), std::string::npos);
+}
+
+TEST(ArrayTest, getRandomConst)
+{
+    pplib::Array a1("red white green blue red yellow  black white", " ");
+    const pplib::Array a2 = a1;
+    ASSERT_NO_THROW({
+        const pplib::String& s1 = a2.getRandom();
+        ASSERT_NE(pplib::String(""), s1) << "getRandom() returned empty string";
+        ASSERT_TRUE(a2.has(s1)) << "getRandom() returned value not in array";
+    });
+}
+
+TEST(ArrayTest, getRandom)
+{
+    pplib::Array a1("red white green blue red yellow  black white", " ");
+    ASSERT_NO_THROW({
+        pplib::String& s1 = a1.getRandom();
+        ASSERT_NE(pplib::String(""), s1) << "getRandom() returned empty string";
+        ASSERT_TRUE(a1.has(s1)) << "getRandom() returned value not in array";
+    });
+}
+
+TEST(ArrayTest, getRandomOnEmptyArray)
+{
+    pplib::Array a1;
+    ASSERT_EQ(pplib::String(""), a1.getRandom()) << "getRandom() didn't return empty string on empty array";
+}
+
+TEST(ArrayTest, pop)
+{
+    pplib::Array a1("red white green blue red yellow black white", " ");
+    ASSERT_EQ(pplib::String("white"), a1.pop()) << "pop() returned wrong value";
+    ASSERT_EQ((size_t)7, a1.count()) << "Array does not contain 8 elements after pop()";
+    ASSERT_EQ(pplib::String("black"), a1.pop()) << "pop() returned wrong value";
+    ASSERT_EQ((size_t)6, a1.count()) << "Array does not contain 7 elements after pop()";
+    a1.pop();
+    a1.pop();
+    a1.pop();
+    a1.pop();
+    a1.pop();
+    ASSERT_EQ(pplib::String("red"), a1.pop()) << "pop() returned wrong value";
+    ASSERT_THROW(a1.pop(), pplib::EmptyDataException) << "pop() didn't throw exception on empty array";
 }
 
 } // namespace

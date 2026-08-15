@@ -103,29 +103,38 @@ void Array::copy(const Array& other)
 {
     clear();
     reserve(other.numElements);
-    ROW* r = (ROW*)other.rows;
+    ROW* r_other = (ROW*)other.rows;
+    ROW* r = (ROW*)rows;
     for (size_t i = 0; i < other.numElements; i++) {
-        if (r[i].value != NULL) set(i, *r[i].value);
+        if (r_other[i].value != NULL) {
+            if (r[i].value == NULL) {
+                r[i].value = new String;
+                if (!r[i].value) throw OutOfMemoryException();
+            }
+            r[i].value->set(*r_other[i].value);
+        }
     }
+    numElements = other.numElements;
 }
 
 void Array::add(const Array& other)
 {
-    ROW* r = (ROW*)other.rows;
+    ROW* r_other = (ROW*)other.rows;
     size_t first = numElements;
     reserve(numElements + other.numElements);
+    ROW* r = (ROW*)rows;
     for (size_t i = 0; i < other.numElements; i++) {
-        if (r[i].value != NULL) set(first + i, *r[i].value);
+        if (r_other[i].value != NULL) {
+            if (r[first + i].value == NULL) {
+                r[first + i].value = new String;
+                if (!r[first + i].value) throw OutOfMemoryException();
+            }
+            r[first + i].value->set(*r_other[i].value);
+        }
     }
+    numElements += other.numElements;
 }
 
-/*!\brief String anhängen
- *
- * \desc
- * Der Inhalt des Strings \p value wird dem Array hinzugefügt.
- *
- * @param value String
- */
 void Array::add(const String& value)
 {
     set(numElements, value);
@@ -159,7 +168,7 @@ void Array::set(size_t index, const String& value)
         reserve(newsize);
     }
     r = (ROW*)rows;
-    if ((index + 1) > numElements) numElements = index + 1;
+    if (index >= numElements) numElements = index + 1;
     if (value.notEmpty()) {
         if (r[index].value == NULL) {
             r[index].value = new String;
@@ -186,7 +195,7 @@ void Array::setf(size_t index, const char* fmt, ...)
 
 void Array::insert(size_t index, const String& value)
 {
-    if (index > numElements) {
+    if (index >= numElements) {
         set(index, value);
         return;
     }
@@ -208,12 +217,12 @@ void Array::insert(size_t index, const String& value)
 void Array::insert(size_t index, const Array& other)
 {
     if (other.numElements == 0) return; // Anderes Array ist leer
-    if (index > numElements) {
-        // Wir sorgen erstmal dafür, dass das Array bis zu index mit leeren Elementen aufgefüllt wird
-        set(index, String());
-    }
     // Zunächst sorgen wir dafür, dass im Array genug Platz ist
-    reserve(numElements + other.numElements + 2);
+    reserve(index + other.numElements + 2);
+
+    if (index > numElements) {
+        numElements = index;
+    }
     ROW* r = (ROW*)rows;
     // Nun verschieben wir alle Elemente ab Position index um die größe des anderen
     // Arrays nach hinten
@@ -231,9 +240,10 @@ void Array::insert(size_t index, const Array& other)
             r[index + i].value = new String;
             if (!r[index + i].value) throw OutOfMemoryException();
             r[index + i].value->set(*r2[i].value);
+        } else {
+            r[index + i].value = NULL;
         }
     }
-    if (index > numElements) numElements += (index - numElements);
     numElements += other.numElements;
 }
 
@@ -378,7 +388,7 @@ String Array::pop()
     ROW* r = (ROW*)rows;
     String ret;
     if (r[numElements - 1].value != NULL) {
-        ret = *r[numElements].value;
+        ret = *r[numElements - 1].value;
         delete r[numElements - 1].value;
         r[numElements - 1].value = NULL;
     }
@@ -545,7 +555,7 @@ void Array::makeUnique()
     }
 }
 
-ssize_t Array::indexOf(const String& search)
+ssize_t Array::indexOf(const String& search) const
 {
     if (!numElements) return -1;
     ROW* r = (ROW*)rows;
@@ -555,7 +565,7 @@ ssize_t Array::indexOf(const String& search)
     return -1;
 }
 
-bool Array::has(const String& search)
+bool Array::has(const String& search) const
 {
     if (!numElements) return false;
     ROW* r = (ROW*)rows;

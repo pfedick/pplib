@@ -76,9 +76,9 @@ coverage:
 	ln -sf build/coverage/compile_commands.json compile_commands.json
 	cd tests && ../build/coverage/tests/test_core$(EXE)
 	mkdir -p coverage_html
-	gcovr --root . build/coverage --html-details coverage_html/index.html --exclude 'tests/.*'
+	gcovr --root . build/coverage --exclude-throw-branches --html-details coverage_html/index.html --exclude 'tests/.*'
 	@echo "Report: coverage_html/index.html"
-	gcovr --root . build/coverage --xml-pretty -o coverage.xml --exclude 'tests/.*'
+	gcovr --root . build/coverage --exclude-throw-branches --xml-pretty -o coverage.xml --exclude 'tests/.*'
 
 clean:
 	-rm -rf build

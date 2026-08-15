@@ -476,7 +476,7 @@ public:
      * @param search String, dessen Index gesucht werden soll
      * @return Index des Strings im Array oder \c -1, wenn der String nicht gefunden wurde
      */
-    ssize_t indexOf(const String& search);
+    ssize_t indexOf(const String& search) const;
 
     /** @brief Prüfen, ob ein Element im Array enthalten ist
      *
@@ -485,7 +485,7 @@ public:
      * @param search String, der gesucht werden soll
      * @return \c true, wenn der String im Array enthalten ist, sonst \c false
      */
-    bool has(const String& search);
+    bool has(const String& search) const;
     //@}
 
     //! @name Operatoren
@@ -579,6 +579,10 @@ public:
         typedef std::ptrdiff_t difference_type;
         typedef String* pointer;
         typedef String& reference;
+        ptr_iterator() noexcept
+            : ptr(nullptr)
+        {
+        }
         ptr_iterator(void* p)
             : ptr(p)
         {
@@ -613,7 +617,7 @@ public:
     };
 
     typedef ptr_iterator iterator;
-    typedef const ptr_iterator const_iterator;
+    typedef ptr_iterator const_iterator;
 
     iterator begin() noexcept;
     const_iterator begin() const noexcept;

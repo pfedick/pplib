@@ -96,6 +96,16 @@ Ein grundsätzliches Problem der Tests waren in der Vergangenheit die unterschie
 
 
 ## Array
+Mit dem Array besteht ein grundsätzliches Problem, weshalb ich es später noch refakturieren will.
+
+Elemente, die keinen Inhalt enthalten, werden nicht als leerer String abgelegt, sondern als nullptr. Methoden, die darauf zugreifen, wie zum Beispiel #sym:get  prüfen auf den nullptr und geben dann das globale, statische Objekt #sym:EmptyString zurück. Sofern es sich um einen const getter handelt, ist das ok, aber es gibt auch getter, die eine schreibbare referenz zurückgeben, und da ist EmptyString dann völlig falsch.
+
+Ferner verkompliziert dieses Herangehen den Code an diversen Stellen unnötig. Ich denke, es wäre besser, immer ein String-Objekt zu allokieren. Was denkst Du?
+
+Wenn jedes Element immer ein String enthält, könnte ich außerdem statt "String *" einen normalen String verwenden. Und wenn ich da angekommen bin, stellt sich mir die Frage, ob ich nicht besser einen Vektor verwenden sollte.
+
+Bevor ich das alles mache, 
+
 - Refakturieren auf std::vector?
 - Keine EmptyStrings mehr, sondern nur noch Strings, die auch einen Wert enthalten?
 
