@@ -1335,21 +1335,17 @@ size_t AssocArray::fromTemplate(
     const String& templ, const String& linedelimiter, const String& splitchar, const String& concat, bool dotrim)
 {
     String Row, Line;
-    Array a;
-    Array::Iterator it;
+
     String Key, Value;
     size_t rows = 0;
     ssize_t p;
     size_t ssc = splitchar.size();
+    Array a;
     a.explode(templ, linedelimiter);
-    a.reset(it);
-    while (1) {
-        try {
-            Line = a.getNext(it);
-        }
-        catch (OutOfBoundsException&) {
-            return rows;
-        }
+
+    Array::const_iterator it;
+    for (it = a.begin(); it != a.end(); ++it) {
+        Line = *it;
         Row = Trim(Line);
         if (Row.len() > 0 && Row[0] != L'#') { // Leere Zeilen und Kommentare ignorieren
             Row = Line;
@@ -1414,20 +1410,14 @@ size_t AssocArray::fromConfig(
 {
     String Row, Line, Section;
     Array a;
-    Array::Iterator it;
     String Key, Value;
     size_t rows = 0;
     ssize_t p;
     size_t ssc = splitchar.size();
     a.explode(content, linedelimiter);
-    a.reset(it);
-    while (1) {
-        try {
-            Line = a.getNext(it);
-        }
-        catch (OutOfBoundsException&) {
-            return rows;
-        }
+    pplib::Array::const_iterator it;
+    for (it = a.begin(); it != a.end(); ++it) {
+        Line = *it;
         Row = Trim(Line);
         if (Row.len() > 0 && Row[0] != L'#') { // Leere Zeilen und Kommentare ignorieren
             if (Row[0] == L'[' && Row[-1] == L']') {

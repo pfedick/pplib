@@ -712,6 +712,7 @@ TEST(ArrayTest, set_and_clear)
     ASSERT_EQ(pplib::String("Value 2"), a1.get(2)) << "Element 2 has wrong value";
     ASSERT_NO_THROW({ a1.clear(); });
     ASSERT_EQ((size_t)0, a1.count()) << "Array does contain elements";
+    ASSERT_EQ((size_t)0, a1.capacity()) << "Array has capacity after clear";
 }
 
 TEST(ArrayTest, copy)

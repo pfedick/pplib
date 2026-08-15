@@ -414,7 +414,7 @@ static void writeArray(const pplib::Array& data, pplib::FileObject& file)
     file.fputc('[');
     for (size_t i = 0; i < data.size(); i++) {
         if (i > 0) file.fputc(',');
-        file.putsf("\"%s\"", (const char*)data.getPtr(i));
+        file.putsf("\"%s\"", (const char*)data.get(i));
     }
     file.fputc(']');
 }
