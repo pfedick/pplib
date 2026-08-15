@@ -40,6 +40,14 @@ namespace pplib
 
 class String;
 
+/** @class Array
+ * @ingroup PPLGroupDataTypes
+ * @brief Ein Array mit Strings
+ *
+ * Diese Klasse repräsentiert ein Array aus Strings, die über einen Index angesprochen werden
+ * können. Die Zählung der Elemente beginnt dabei bei 0, das heisst das erste Element hat den
+ * Index 0 (vergleichbar mit Arrays in C/C++).
+ */
 class Array
 {
 private:
@@ -48,8 +56,19 @@ private:
         String* value;
     } ROW;
 
+    /// Anzahl Elemente im Array
     size_t numElements;
+
+    /// Maximale Anzahl Elemente im Array, für die bereits Speicher reserviert wurde
     size_t numCapacity;
+
+    /** @brief Array mit den Datenelementen
+     *
+     * Diese Variable enthält einen Pointer auf die interne Datenstruktur, die die Werte
+     * der einzelnen Elemente enthält. Die Größe des Speicherbereichs ergibt sich aus der
+     * maximalen Anzahl Elemente im Array (Array::numCapacity) multipliziert mit der größe der
+     * Datenstruktur für jedes Element.
+     */
     void* rows;
 
 public:

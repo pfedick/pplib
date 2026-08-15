@@ -95,6 +95,10 @@ Ein grundsätzliches Problem der Tests waren in der Vergangenheit die unterschie
 - Tests wieder lauffähig bekommen
 
 
+## Array
+- Refakturieren auf std::vector?
+- Keine EmptyStrings mehr, sondern nur noch Strings, die auch einen Wert enthalten?
+
 
 ## Font6
 Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-Option generell deaktivieren. Oder Fonts ohne Hints generieren?

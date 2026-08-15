@@ -232,6 +232,17 @@ TEST(ArrayTest, count)
     });
 }
 
+TEST(ArrayTest, size)
+{
+    ASSERT_NO_THROW({
+        pplib::Array a1;
+        a1.add("First Line");
+        a1.add("Second Line");
+        a1.add("Third Line");
+        ASSERT_EQ((size_t)3, a1.size()) << "Array does not contain 3 elements";
+    });
+}
+
 TEST(ArrayTest, countAfterSet)
 {
     ASSERT_NO_THROW({
@@ -512,6 +523,26 @@ TEST(ArrayTest, insertArrayBeyondEnd)
     });
 }
 
+TEST(ArrayTest, insertIntoEmptyArray)
+{
+    ASSERT_NO_THROW({
+        pplib::Array a1("red green blue yellow black white", " ");
+        pplib::Array a2;
+        a2.insert(0, a1);
+        ASSERT_EQ((size_t)6, a2.size()) << "Unexpected amount of Elements";
+        ASSERT_EQ(pplib::String("red"), a2.get(0)) << "Element has wrong value";
+    });
+}
+
+TEST(ArrayTest, insertEmptyArray)
+{
+    pplib::Array a1("red green blue yellow black white", " ");
+    pplib::Array a2;
+    a1.insert(0, a2);
+    ASSERT_EQ((size_t)6, a1.size()) << "Unexpected amount of Elements";
+    ASSERT_EQ(pplib::String("red"), a1.get(0)) << "Element has wrong value";
+}
+
 TEST(ArrayTest, forwardWalkIterator)
 {
     pplib::Array a1("red green blue yellow black white", " ");
@@ -696,6 +727,63 @@ TEST(ArrayTest, copy)
     ASSERT_EQ(pplib::String("Value 0"), a1.get(0)) << "Element 0 has wrong value";
     ASSERT_EQ(pplib::String(""), a1.get(1)) << "Element 1 has wrong value";
     ASSERT_EQ(pplib::String("Value 2"), a1.get(2)) << "Element 2 has wrong value";
+}
+
+TEST(ArrayTest, insertf)
+{
+    pplib::Array a1;
+    ASSERT_NO_THROW({ a1.insertf(0, "The big brown %s jumps %d times over the lazy dog", "fox", 10); });
+    ASSERT_EQ((size_t)1, a1.count()) << "Array does not contain 1 elements";
+    ASSERT_EQ(pplib::String("The big brown fox jumps 10 times over the lazy dog"), a1.get(0)) << "Element 0 has wrong value";
+}
+#include <iostream>
+TEST(ArrayTest, list)
+{
+    pplib::Array a1("red white green blue red yellow  black white", " ");
+    // 1. stdout-Abfangvorgang starten
+    testing::internal::CaptureStdout();
+    a1.list("array");
+    // 3. Ausgabe als std::string holen
+    std::string output = testing::internal::GetCapturedStdout();
+    // 4. Inhalt prüfen
+    std::cout << "Output of list():\n" << output << std::endl;
+    EXPECT_NE(output.find("array,      0: red"), std::string::npos);
+    EXPECT_NE(output.find("array,      8: white"), std::string::npos);
+}
+
+TEST(ArrayTest, listWithoutPrefix)
+{
+    pplib::Array a1("red white green blue red yellow  black white", " ");
+    // 1. stdout-Abfangvorgang starten
+    testing::internal::CaptureStdout();
+    a1.list();
+    // 3. Ausgabe als std::string holen
+    std::string output = testing::internal::GetCapturedStdout();
+    // 4. Inhalt prüfen
+    std::cout << "Output of list():\n" << output << std::endl;
+    EXPECT_NE(output.find("     0: red"), std::string::npos);
+    EXPECT_NE(output.find("     8: white"), std::string::npos);
+}
+
+TEST(ArrayTest, listOnEmptyArray)
+{
+    pplib::Array a1;
+    // 1. stdout-Abfangvorgang starten
+    testing::internal::CaptureStdout();
+    a1.list();
+    // 3. Ausgabe als std::string holen
+    std::string output = testing::internal::GetCapturedStdout();
+    // 4. Inhalt prüfen
+    std::cout << "Output of list():\n" << output << std::endl;
+    EXPECT_NE(output.find("Array ist leer"), std::string::npos);
+
+    testing::internal::CaptureStdout();
+    a1.list("array");
+    // 3. Ausgabe als std::string holen
+    output = testing::internal::GetCapturedStdout();
+    // 4. Inhalt prüfen
+    std::cout << "Output of list():\n" << output << std::endl;
+    EXPECT_NE(output.find("Array \"array\" ist leer"), std::string::npos);
 }
 
 } // namespace

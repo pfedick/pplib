@@ -42,46 +42,6 @@
 namespace pplib
 {
 
-/*!\class Array
- * \ingroup PPLGroupDataTypes
- * \brief Ein Array mit Strings
- *
- * \desc
- * Diese Klasse repräsentiert ein Array aus Strings, die über einen Index angesprochen werden
- * können. Die Zählung der Elemente beginnt dabei bei 0, das heisst das erste Element hat den
- * Index 0 (vergleichbar mit Arrays in C/C++).
- *
- */
-
-/*!\var Array::numElements
- * \brief Anzahl Elemente im Array
- *
- * \desc
- * Diese Variable enthält die tatsächliche Anzahl Elemente im Array
- */
-
-/*!\var Array::numCapacity
- * \brief Maximale Anzahl Elemente im Array
- *
- * \desc
- * Diese Variable enthält die maximal mögliche Anzahl Elemente im Array, ohne dass
- * Speicher reallokiert werden muss. Wird dieser Wert überschritten, wird das Array
- * durch Reallokation von Speicher vergrößert.
- * \see
- * - Array::capacity: Mit dieser Funktion kann die Variable ausgelesen werden
- * - Array::reserve: Speicher wird vorab für eine beliebige Anzahl Elemente allokiert
- */
-
-/*!\var Array::rows
- * \brief Array mit den Datenelementen
- *
- * \desc
- * Diese Variable enthält einen Pointer auf die interne Datenstruktur, die die Werte
- * der einzelnen Elemente enthält. Die Größe des Speicherbereichs ergibt sich aus der
- * maximalen Anzahl Elemente im Array (Array::numCapacity) multipliziert mit der größe der
- * Datenstruktur für jedes Element.
- */
-
 static String EmptyString;
 
 /*!\brief Konstruktor
