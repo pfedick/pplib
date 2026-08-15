@@ -560,7 +560,7 @@ ssize_t Array::indexOf(const String& search) const
     if (!numElements) return -1;
     ROW* r = (ROW*)rows;
     for (size_t i = 0; i < numElements; i++) {
-        if (*r[i].value == search) return i;
+        if (r[i].value && *r[i].value == search) return i;
     }
     return -1;
 }
@@ -570,7 +570,7 @@ bool Array::has(const String& search) const
     if (!numElements) return false;
     ROW* r = (ROW*)rows;
     for (size_t i = 0; i < numElements; i++) {
-        if (*r[i].value == search) return true;
+        if (r[i].value && *r[i].value == search) return true;
     }
     return false;
 }
@@ -621,70 +621,57 @@ Array SortReverse(const Array& array, bool unique)
     return (ret);
 }
 
-Array& Array::fromArgs(int argc, const char** argv)
+Array Array::fromArgs(int argc, const char* argv[])
 {
-    clear();
+    Array result;
+    if (argc <= 0 || argv == NULL) return result;
     for (int i = 0; i < argc; i++) {
-        add(argv[i]);
+        result.add(argv[i]);
     }
-    return *this;
+    return result;
 }
 
-Array& Array::fromArgs(const String& args)
+Array Array::fromArgs(const String& args)
 {
-    clear();
-    String buffer(args);
-    String arg;
-    // Kommandozeile in argc und argv[] umwandeln
+    Array result;
+    if (args.isEmpty()) return result;
 
-    size_t l = buffer.len();
-    add(args);
+    String currentArg;
     bool inDoubleQuote = false;
     bool inSingleQuote = false;
-    size_t start = 0;
-    for (size_t i = 0; i < l; i++) {
-        if (buffer[i] == 34 && inDoubleQuote == false && inSingleQuote == false) {
-            if (i == 0) {
-                inDoubleQuote = true;
-                start = i + 1;
-            } else if (buffer[i - 1] != '\\') {
-                inDoubleQuote = true;
-                start = i + 1;
+    bool inArg = false;
+    size_t len = args.len();
+
+    for (size_t i = 0; i < len; i++) {
+        char c = args[i];
+
+        if (c == '\\' && !inSingleQuote && i + 1 < len) {
+            i++;
+            currentArg.append(args[i]);
+            inArg = true;
+        } else if (c == '"' && !inSingleQuote) {
+            inDoubleQuote = !inDoubleQuote;
+            inArg = true;
+        } else if (c == '\'' && !inDoubleQuote) {
+            inSingleQuote = !inSingleQuote;
+            inArg = true;
+        } else if ((c == ' ' || c == '\t' || c == '\r' || c == '\n') && !inDoubleQuote && !inSingleQuote) {
+            if (inArg) {
+                result.add(currentArg);
+                currentArg.clear();
+                inArg = false;
             }
-        } else if (buffer[i] == '\'' && inDoubleQuote == false && inSingleQuote == false) {
-            if (i == 0) {
-                inSingleQuote = true;
-                start = i + 1;
-            } else if (buffer[i - 1] != '\\') {
-                inSingleQuote = true;
-                start = i + 1;
-            }
-
-        } else if (buffer[i] == 34 && inDoubleQuote == true && buffer[i - 1] != '\\') {
-            inDoubleQuote = false;
-            arg = buffer.mid(start, i - start);
-            if (arg.notEmpty()) add(arg);
-
-            // if(argv[argc][0]!=0) argc++;
-            start = i + 1;
-        } else if (buffer[i] == '\'' && inSingleQuote == true && buffer[i - 1] != '\\') {
-            inSingleQuote = false;
-            arg = buffer.mid(start, i - start);
-            if (arg.notEmpty()) add(arg);
-
-            // if(argv[argc][0]!=0) argc++;
-            start = i + 1;
-        } else if ((buffer[i] == ' ' || buffer[i] == '\t') && inDoubleQuote == false && inSingleQuote == false) {
-            arg = Trim(buffer.mid(start, i - start));
-            if (arg.notEmpty()) add(arg);
-            start = i + 1;
+        } else {
+            currentArg.append(c);
+            inArg = true;
         }
     }
-    if (start < l) {
-        arg = Trim(buffer.mid(start, l - start));
-        if (arg.notEmpty()) add(arg);
+
+    if (inArg) {
+        result.add(currentArg);
     }
-    return *this;
+
+    return result;
 }
 
 Array::iterator Array::begin() noexcept

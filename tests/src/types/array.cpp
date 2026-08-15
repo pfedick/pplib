@@ -137,9 +137,21 @@ TEST(ArrayTest, OperatorPlusEqual)
     });
 }
 
+TEST(ArrayTest, OperatorPlus)
+{
+    ASSERT_NO_THROW({
+        pplib::Array a1("red green blue yellow black white", " ");
+        pplib::Array a2("cyan grey magenta mint", " ");
+        pplib::Array a3 = a1 + a2;
+        ASSERT_EQ((size_t)10, a3.count()) << "Array does not contain 10 elements";
+        pplib::String merged = a3.implode(" ");
+        ASSERT_EQ(pplib::String("red green blue yellow black white cyan grey magenta mint"), merged) << "Elements with wrong value";
+    });
+}
+
 TEST(ArrayTest, OperatorGetElement)
 {
-    pplib::Array a1("red green blue yellow black white", " ");
+    const pplib::Array a1("red green blue yellow black white", " ");
     ASSERT_EQ(pplib::String("red"), a1[0]) << "Element 0 has wrong value";
     ASSERT_EQ(pplib::String("green"), a1[1]) << "Element 1 has wrong value";
     ASSERT_EQ(pplib::String("white"), a1[-1]) << "Element -1 has wrong value";
@@ -149,9 +161,9 @@ TEST(ArrayTest, OperatorSetElement)
 {
     pplib::Array a1("red green blue yellow black white", " ");
     a1[-1] = "cyan";
-    a1[5] = "grey";
-    ASSERT_EQ(pplib::String("grey"), a1[5]) << "Element 5 has wrong value";
-    ASSERT_EQ(pplib::String("cyan"), a1[0]) << "Element 0 has wrong value";
+    a1[0] = "grey";
+    ASSERT_EQ(pplib::String("cyan"), a1[5]) << "Element 5 has wrong value";
+    ASSERT_EQ(pplib::String("grey"), a1[0]) << "Element 0 has wrong value";
 }
 
 TEST(ArrayTest, add1Element)
@@ -589,6 +601,20 @@ TEST(ArrayTest, insertEmptyArray)
 TEST(ArrayTest, forwardWalkIterator)
 {
     pplib::Array a1("red green blue yellow black white", " ");
+    pplib::Array::iterator it = a1.begin();
+
+    ASSERT_EQ(pplib::String("red"), *it++) << "Element 0 has wrong value";
+    ASSERT_EQ(pplib::String("green"), *it++) << "Element 1 has wrong value";
+    ASSERT_EQ(pplib::String("blue"), *it++) << "Element 2 has wrong value";
+    ASSERT_EQ(pplib::String("yellow"), *it++) << "Element 3 has wrong value";
+    ASSERT_EQ(pplib::String("black"), *it++) << "Element 4 has wrong value";
+    ASSERT_EQ(pplib::String("white"), *it++) << "Element 5 has wrong value";
+    ASSERT_EQ(it, a1.end()) << "Iterator is not at end";
+}
+
+TEST(ArrayTest, forwardWalkIteratorConst)
+{
+    const pplib::Array a1("red green blue yellow black white", " ");
     pplib::Array::const_iterator it = a1.begin();
 
     ASSERT_EQ(pplib::String("red"), *it++) << "Element 0 has wrong value";
@@ -598,6 +624,16 @@ TEST(ArrayTest, forwardWalkIterator)
     ASSERT_EQ(pplib::String("black"), *it++) << "Element 4 has wrong value";
     ASSERT_EQ(pplib::String("white"), *it++) << "Element 5 has wrong value";
     ASSERT_EQ(it, a1.end()) << "Iterator is not at end";
+}
+
+TEST(ArrayTest, iteratorsOnEmptyArray)
+{
+    pplib::Array a1;
+    ASSERT_EQ(a1.begin(), a1.end()) << "Iterator is not at end";
+    // ASSERT_EQ(a1.cbegin(), a1.cend()) << "Iterator is not at end";
+    const pplib::Array a2;
+    ASSERT_EQ(a2.begin(), a2.end()) << "Iterator is not at end";
+    // ASSERT_EQ(a1.cbegin(), a1.cend()) << "Iterator is not at end";
 }
 
 TEST(ArrayTest, explode)
@@ -832,7 +868,7 @@ TEST(ArrayTest, listOnEmptyArray)
 
 TEST(ArrayTest, getRandomConst)
 {
-    pplib::Array a1("red white green blue red yellow  black white", " ");
+    pplib::Array a1("red white green blue red yellow black white", " ");
     const pplib::Array a2 = a1;
     ASSERT_NO_THROW({
         const pplib::String& s1 = a2.getRandom();
@@ -843,7 +879,7 @@ TEST(ArrayTest, getRandomConst)
 
 TEST(ArrayTest, getRandom)
 {
-    pplib::Array a1("red white green blue red yellow  black white", " ");
+    pplib::Array a1("red white green blue red yellow black white", " ");
     ASSERT_NO_THROW({
         pplib::String& s1 = a1.getRandom();
         ASSERT_NE(pplib::String(""), s1) << "getRandom() returned empty string";
@@ -871,6 +907,142 @@ TEST(ArrayTest, pop)
     a1.pop();
     ASSERT_EQ(pplib::String("red"), a1.pop()) << "pop() returned wrong value";
     ASSERT_THROW(a1.pop(), pplib::EmptyDataException) << "pop() didn't throw exception on empty array";
+}
+
+TEST(ArrayTest, popOnEmptyArray)
+{
+    pplib::Array a1;
+    ASSERT_THROW(a1.pop(), pplib::EmptyDataException) << "pop() didn't throw exception on empty array";
+}
+
+TEST(ArrayTest, indexOf)
+{
+    pplib::Array a1("red white green blue red  yellow black white", " ");
+    ASSERT_EQ((ssize_t)0, a1.indexOf("red")) << "indexOf() returned wrong value";
+    ASSERT_EQ((ssize_t)1, a1.indexOf("white")) << "indexOf() returned wrong value";
+    ASSERT_EQ((ssize_t)2, a1.indexOf("green")) << "indexOf() returned wrong value";
+    ASSERT_EQ((ssize_t)3, a1.indexOf("blue")) << "indexOf() returned wrong value";
+    ASSERT_EQ((ssize_t)6, a1.indexOf("yellow")) << "indexOf() returned wrong value";
+    ASSERT_EQ((ssize_t)7, a1.indexOf("black")) << "indexOf() returned wrong value";
+    ASSERT_EQ((ssize_t)-1, a1.indexOf("notfound")) << "indexOf() returned wrong value";
+}
+
+TEST(ArrayTest, indexOfOnEmptyArray)
+{
+    pplib::Array a1;
+    ASSERT_EQ((ssize_t)-1, a1.indexOf("red")) << "indexOf() returned wrong value";
+}
+
+TEST(ArrayTest, has)
+{
+    pplib::Array a1("red white green blue red  yellow black white", " ");
+    ASSERT_EQ(true, a1.has("red")) << "has() returned wrong value";
+    ASSERT_EQ(true, a1.has("white")) << "has() returned wrong value";
+    ASSERT_EQ(false, a1.has("notfound")) << "has() returned wrong value";
+
+    pplib::Array a2;
+    ASSERT_EQ(false, a2.has("red")) << "has() returned wrong value";
+}
+
+TEST(ArrayTest, SortFunction)
+{
+    pplib::Array a1("red white green blue red yellow  black white", " ");
+    ASSERT_EQ((size_t)9, a1.count()) << "Array does not contain 8 elements";
+    pplib::Array a2 = Sort(a1);
+    ASSERT_EQ((size_t)9, a2.count()) << "Array does not contain 8 elements";
+    pplib::String merged = a2.implode(" ");
+    ASSERT_EQ(pplib::String(" black blue green red red white white yellow"), merged) << "Elements with wrong value";
+}
+
+TEST(ArrayTest, SortFunctionUnique)
+{
+    pplib::Array a1("red white green blue red yellow  black white", " ");
+    ASSERT_EQ((size_t)9, a1.count()) << "Array does not contain 8 elements";
+    pplib::Array a2 = Sort(a1, true);
+    ASSERT_EQ((size_t)7, a2.count()) << "Array does not contain 8 elements";
+    pplib::String merged = a2.implode(" ");
+    ASSERT_EQ(pplib::String(" black blue green red white yellow"), merged) << "Elements with wrong value";
+}
+
+TEST(ArrayTest, SortReverseFunction)
+{
+    pplib::Array a1("red white green blue red yellow  black white", " ");
+    ASSERT_EQ((size_t)9, a1.count()) << "Array does not contain 8 elements";
+    pplib::Array a2 = SortReverse(a1);
+    ASSERT_EQ((size_t)9, a2.count()) << "Array does not contain 8 elements";
+    pplib::String merged = a2.implode(" ");
+    ASSERT_EQ(pplib::String("yellow white white red red green blue black "), merged) << "Elements with wrong value";
+}
+
+TEST(ArrayTest, SortReverseFunctionUnique)
+{
+    pplib::Array a1("red white green blue red yellow  black white", " ");
+    ASSERT_EQ((size_t)9, a1.count()) << "Array does not contain 8 elements";
+    pplib::Array a2 = SortReverse(a1, true);
+    ASSERT_EQ((size_t)7, a2.count()) << "Array does not contain 8 elements";
+    pplib::String merged = a2.implode(" ");
+    ASSERT_EQ(pplib::String("yellow white red green blue black "), merged) << "Elements with wrong value";
+}
+
+TEST(ArrayTest, fromArgs)
+{
+    int argc = 7;
+    const char* argv[] = {(char*)"program", (char*)"red", (char*)"green", (char*)"blue", (char*)"yellow", (char*)"black", (char*)"white"};
+    pplib::Array a1 = pplib::Array::fromArgs(argc, argv);
+
+    ASSERT_EQ((size_t)7, a1.count()) << "Array does not contain 6 elements";
+    ASSERT_EQ(pplib::String("program"), a1.get(0)) << "Element 0 has wrong value";
+    ASSERT_EQ(pplib::String("red"), a1.get(1)) << "Element 0 has wrong value";
+    ASSERT_EQ(pplib::String("green"), a1.get(2)) << "Element 1 has wrong value";
+    ASSERT_EQ(pplib::String("blue"), a1.get(3)) << "Element 2 has wrong value";
+    ASSERT_EQ(pplib::String("yellow"), a1.get(4)) << "Element 3 has wrong value";
+    ASSERT_EQ(pplib::String("black"), a1.get(5)) << "Element 4 has wrong value";
+    ASSERT_EQ(pplib::String("white"), a1.get(6)) << "Element 5 has wrong value";
+}
+
+TEST(ArrayTest, fromArgsWithNull)
+{
+    int argc = 7;
+    const char* argv[] = {(char*)"program", (char*)"red", (char*)"green", (char*)"blue", (char*)"yellow", (char*)"black", nullptr};
+    pplib::Array a1 = pplib::Array::fromArgs(argc, argv);
+
+    ASSERT_EQ((size_t)7, a1.count()) << "Array does not contain 6 elements";
+    ASSERT_EQ(pplib::String("program"), a1.get(0)) << "Element 0 has wrong value";
+    ASSERT_EQ(pplib::String("red"), a1.get(1)) << "Element 0 has wrong value";
+    ASSERT_EQ(pplib::String("green"), a1.get(2)) << "Element 1 has wrong value";
+    ASSERT_EQ(pplib::String("blue"), a1.get(3)) << "Element 2 has wrong value";
+    ASSERT_EQ(pplib::String("yellow"), a1.get(4)) << "Element 3 has wrong value";
+    ASSERT_EQ(pplib::String("black"), a1.get(5)) << "Element 4 has wrong value";
+    ASSERT_EQ(pplib::String(""), a1.get(6)) << "Element 4 has wrong value";
+}
+
+TEST(ArrayTest, fromArgsEmpty)
+{
+    pplib::Array a1 = pplib::Array::fromArgs(0, nullptr);
+
+    ASSERT_EQ((size_t)0, a1.count()) << "Array does not contain 6 elements";
+}
+
+TEST(ArrayTest, fromArgsAsString)
+{
+    pplib::String args =
+        "program -a -b red --green=blue --red black -f\"/tmp/testfile.tmp\" -s \"blah blah blah\" -u 'blah blah blah' white";
+    pplib::Array a1 = pplib::Array::fromArgs(args);
+    ASSERT_EQ((size_t)13, a1.count()) << "Array does not contain 13 elements";
+
+    ASSERT_EQ(pplib::String("program"), a1.get(0)) << "Element 0 has wrong value";
+    ASSERT_EQ(pplib::String("-a"), a1.get(1)) << "Element 1 has wrong value";
+    ASSERT_EQ(pplib::String("-b"), a1.get(2)) << "Element 2 has wrong value";
+    ASSERT_EQ(pplib::String("red"), a1.get(3)) << "Element 3 has wrong value";
+    ASSERT_EQ(pplib::String("--green=blue"), a1.get(4)) << "Element 4 has wrong value";
+    ASSERT_EQ(pplib::String("--red"), a1.get(5)) << "Element 5 has wrong value";
+    ASSERT_EQ(pplib::String("black"), a1.get(6)) << "Element 6 has wrong value";
+    ASSERT_EQ(pplib::String("-f/tmp/testfile.tmp"), a1.get(7)) << "Element 7 has wrong value";
+    ASSERT_EQ(pplib::String("-s"), a1.get(8)) << "Element 8 has wrong value";
+    ASSERT_EQ(pplib::String("blah blah blah"), a1.get(9)) << "Element 9 has wrong value";
+    ASSERT_EQ(pplib::String("-u"), a1.get(10)) << "Element 10 has wrong value";
+    ASSERT_EQ(pplib::String("blah blah blah"), a1.get(11)) << "Element 11 has wrong value";
+    ASSERT_EQ(pplib::String("white"), a1.get(12)) << "Element 12 has wrong value";
 }
 
 } // namespace

@@ -234,18 +234,18 @@ public:
      *
      * @param argc Anzahl Parameter
      * @param argv Pointer auf ein Array mit C-Strings
-     * @return Gibt eine Referenz auf das Array zurück.
+     * @return Gibt eine Array zurück.
      */
-    Array& fromArgs(int argc, const char** argv);
+    static Array fromArgs(int argc, const char* argv[]);
 
     /** @brief Array aus den Aufrufparametern des Programms erzeugen
      *
      * Ein Array wird aus den Aufrufparametern des Programms erstellt.
      *
      * @param args Aufrufstring
-     * @return Gibt eine Referenz auf das Array zurück.
+     * @return Gibt eine Array zurück.
      */
-    Array& fromArgs(const String& args);
+    static Array fromArgs(const String& args);
 
     /** @brief String in Array zerlegen
      *
