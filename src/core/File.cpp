@@ -798,9 +798,15 @@ void File::flush()
 void File::sync()
 {
     if (ff == NULL) throw FileNotOpenException();
+#ifndef _WIN32
     int ret = fsync(fileno((FILE*)ff));
     if (ret == 0) return;
     throwErrno(errno);
+#else
+    ::fflush((FILE*)ff);
+    if (::_commit(fileno((FILE*)ff)) == 0) return;
+    throwErrno(errno);
+#endif
 }
 
 void File::truncate(uint64_t length)
