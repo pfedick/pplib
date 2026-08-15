@@ -76,6 +76,7 @@ int main(int argc, char** argv)
         printf("setlocale fehlgeschlagen\n");
         throw std::exception();
     }
+    setlocale(LC_NUMERIC, "C"); // Wir wollen immer '.' als Dezimaltrennzeichen haben, egal welche Locale gesetzt ist
 
     if (pplib::HaveArgv(argc, argv, "-h") || pplib::HaveArgv(argc, argv, "--help")) help();
     try {

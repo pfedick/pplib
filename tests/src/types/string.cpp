@@ -540,6 +540,9 @@ TEST(StringTest, vasprintf)
     ASSERT_EQ((size_t)25, s1.size()) << "String has unexpected length";
 }
 
+#ifndef _WIN32
+// Der Test wird unter Windows nicht ausgeführt, da dort die Funktion vsnprintf() keine
+// Fehler bei der Umwandlung von wchar_t* in die lokale Multibyte-Kodierung liefert.
 TEST(StringTest, VasprintfEncodingError)
 {
     wchar_t invalid_wstr[] = {static_cast<wchar_t>(0xD800), 0};
@@ -548,6 +551,7 @@ TEST(StringTest, VasprintfEncodingError)
     // Bei ungültigen Zeichen liefert vsnprintf -1 zurück.
     EXPECT_THROW(pplib::String::format("%ls", invalid_wstr), pplib::Exception);
 }
+#endif
 
 TEST(StringTest, appendConstWchartWithoutSize)
 {

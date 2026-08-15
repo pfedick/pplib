@@ -1151,7 +1151,7 @@ TEST(WideStringTest, ISO88591toUtf8)
     EXPECT_EQ((size_t)45, a.size()) << "String does not have expected length";
     EXPECT_EQ((unsigned char)'A', (unsigned char)a.get(0)) << "Unexpected Character in string";
     EXPECT_EQ(188, (unsigned char)a.get(44)) << "Unexpected Character in string";
-    if (setlocale(LC_ALL, "C") == NULL) {
+    if (setlocale(LC_ALL, DEFAULT_LOCALE) == NULL) {
         printf("setlocale fehlgeschlagen\n");
         throw std::exception();
     }
@@ -1305,12 +1305,14 @@ TEST(WideStringTest, toLongLong_1242346214893456)
 
 TEST(WideStringTest, ToFloat_182566142_346214893456)
 {
+    setlocale(LC_NUMERIC, "C");
     pplib::WideString s1(L"182566142.346214893456");
     EXPECT_EQ((float)182566142.346214893456, s1.toFloat()) << "Unexpected Result";
 }
 
 TEST(WideStringTest, ToDouble_182566142_346214893456)
 {
+    setlocale(LC_NUMERIC, "C");
     pplib::WideString s1(L"182566142.346214893456");
     EXPECT_EQ((double)182566142.346214893456, s1.toDouble()) << "Unexpected Result";
 }
