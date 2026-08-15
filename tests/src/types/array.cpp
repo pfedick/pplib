@@ -107,6 +107,15 @@ TEST(ArrayTest, OperatorCopy)
     });
 }
 
+TEST(ArrayTest, OperatorCopyOnSameObject)
+{
+    ASSERT_NO_THROW({
+        pplib::Array a1("red green blue yellow black white", " ");
+        a1 = a1;
+        ASSERT_EQ((size_t)6, a1.count()) << "Array does not contain 6 elements";
+    });
+}
+
 TEST(ArrayTest, OperatorMove)
 {
     ASSERT_NO_THROW({
@@ -776,6 +785,8 @@ TEST(ArrayTest, getRest)
 {
     pplib::Array a1("red white green blue red yellow  black white", " ");
     ASSERT_EQ(pplib::String("red.yellow..black.white"), a1.getRest(4, "."));
+
+    ASSERT_EQ(pplib::String(""), a1.getRest(10, "."));
 }
 
 TEST(ArrayTest, set_and_clear)
@@ -890,7 +901,7 @@ TEST(ArrayTest, getRandom)
 TEST(ArrayTest, getRandomOnEmptyArray)
 {
     pplib::Array a1;
-    ASSERT_EQ(pplib::String(""), a1.getRandom()) << "getRandom() didn't return empty string on empty array";
+    ASSERT_THROW(a1.getRandom(), pplib::EmptyDataException);
 }
 
 TEST(ArrayTest, pop)
@@ -913,6 +924,28 @@ TEST(ArrayTest, popOnEmptyArray)
 {
     pplib::Array a1;
     ASSERT_THROW(a1.pop(), pplib::EmptyDataException) << "pop() didn't throw exception on empty array";
+}
+
+TEST(ArrayTest, shift)
+{
+    pplib::Array a1("red white green blue red yellow black white", " ");
+    ASSERT_EQ(pplib::String("red"), a1.shift()) << "shift() returned wrong value";
+    ASSERT_EQ((size_t)7, a1.count()) << "Array does not contain 8 elements after shift()";
+    ASSERT_EQ(pplib::String("white"), a1.shift()) << "shift() returned wrong value";
+    ASSERT_EQ((size_t)6, a1.count()) << "Array does not contain 7 elements after shift()";
+    a1.shift();
+    a1.shift();
+    a1.shift();
+    a1.shift();
+    a1.shift();
+    ASSERT_EQ(pplib::String("white"), a1.shift()) << "shift() returned wrong value";
+    ASSERT_THROW(a1.shift(), pplib::EmptyDataException) << "shift() didn't throw exception on empty array";
+}
+
+TEST(ArrayTest, shiftOnEmptyArray)
+{
+    pplib::Array a1;
+    ASSERT_THROW(a1.shift(), pplib::EmptyDataException) << "shift() didn't throw exception on empty array";
 }
 
 TEST(ArrayTest, indexOf)

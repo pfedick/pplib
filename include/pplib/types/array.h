@@ -32,6 +32,7 @@
 
 #include <stdint.h>
 #include <iterator>
+#include <vector>
 
 #include "pplib/types/string.h"
 
@@ -51,49 +52,38 @@ class String;
 class Array
 {
 private:
-    typedef struct
-    {
-        String* value;
-    } ROW;
-
-    /// Anzahl Elemente im Array
-    size_t numElements;
-
-    /// Maximale Anzahl Elemente im Array, für die bereits Speicher reserviert wurde
-    size_t numCapacity;
-
-    /** @brief Array mit den Datenelementen
-     *
-     * Diese Variable enthält einen Pointer auf die interne Datenstruktur, die die Werte
-     * der einzelnen Elemente enthält. Die Größe des Speicherbereichs ergibt sich aus der
-     * maximalen Anzahl Elemente im Array (Array::numCapacity) multipliziert mit der größe der
-     * Datenstruktur für jedes Element.
-     */
-    void* rows;
+    std::vector<String> elements;
 
 public:
     //! @name Konstruktoren und Destruktor
     //@{
 
-    /** @brief Konstruktor mit leerem Array
+    /** @brief Default Konstruktor mit leerem Array
      */
-    Array();
+    Array() = default;
 
     /** @brief Copy-Konstruktor
      *
-     * Mit dem Copy-Konstruktor wird der Inhalt des Arrays \p other 1:1 kopiert.
+     * Mit diesem Konstruktor wird der Inhalt des Arrays \p other in das neue Array kopiert.
      *
-     * @param other Anderes Array
+     * @param other Zu kopierendes Array
      */
-    Array(const Array& other);
+    Array(const Array& other) = default;
 
     /** @brief Move-Konstruktor
      *
-     * Mit dem Move-Konstruktor wird der Inhalt des Arrays \p other 1:1 übernommen.
+     * Mit diesem Konstruktor wird der Inhalt des Arrays \p other in das neue Array verschoben.
+     * Das Array \p other ist anschließend leer.
      *
-     * @param other Anderes Array
+     * @param other Zu verschiebendes Array
      */
-    Array(Array&& other);
+    Array(Array&& other) noexcept = default;
+
+    /** @brief Destruktor
+     *
+     * Mit dem Destruktor wird das Array gelöscht und der belegte Speicher freigegeben.
+     */
+    ~Array() = default;
 
     /** @brief Konstruktor aus String
      *
@@ -109,11 +99,6 @@ public:
      */
     Array(const String& str, const String& delimiter = String("\n"), size_t limit = 0, bool skipemptylines = false);
 
-    /** @brief Destruktor
-     *
-     * Mit dem Destruktor wird das Array gelöscht und der Speicher wieder freigegeben.
-     */
-    ~Array();
     //@}
 
     //! @name Elemente hinzufügen/verändern
@@ -270,7 +255,11 @@ public:
      *
      * Der durch das Array belegte Speicher wird freigegeben. Das Array ist danach leer und kann erneut befüllt werden.
      */
-    void clear();
+    inline void clear()
+    {
+        elements.clear();
+        elements.shrink_to_fit();
+    }
 
     /** @brief Element löschen
      *
@@ -342,7 +331,7 @@ public:
      * werden kann.
      *
      * @return Referenz auf ein zufälliges Elements des Arrays.
-     * Ist das Array leer, wird immer ein leerer String zurückgegeben.
+     * @exception EmptyDataException Wird geworfen, wenn das Array leer ist.
      */
     const String& getRandom() const;
 
@@ -351,7 +340,7 @@ public:
      * Gibt eine Referenz auf ein zufälliges Element des Arrays zurück.
      *
      * @return Referenz auf ein zufälliges Elements des Arrays.
-     * Ist das Array leer, wird immer ein leerer String zurückgegeben.
+     * @exception EmptyDataException Wird geworfen, wenn das Array leer ist.
      */
     String& getRandom();
 
@@ -386,7 +375,7 @@ public:
      */
     inline size_t count() const
     {
-        return numElements;
+        return elements.size();
     }
 
     /** @brief Größe des Arrays
@@ -395,7 +384,7 @@ public:
      */
     inline size_t size() const
     {
-        return numElements;
+        return elements.size();
     }
 
     /** @brief Kapazität des Arrays
@@ -408,7 +397,7 @@ public:
      */
     inline size_t capacity() const
     {
-        return numCapacity;
+        return elements.capacity();
     }
 
     /** @brief Prüfen, ob das Array leer ist
@@ -417,7 +406,16 @@ public:
      */
     inline bool isEmpty() const
     {
-        return numElements == 0;
+        return elements.empty();
+    }
+
+    /** @brief Prüfen, ob das Array leer ist
+     *
+     * @return \c true, wenn das Array keine Elemente enthält, sonst \c false
+     */
+    inline bool empty() const
+    {
+        return elements.empty();
     }
 
     /** @brief Platz reservieren
@@ -521,7 +519,7 @@ public:
      * @param other Zu kopierendes Array
      * @return Referenz auf das Array
      */
-    Array& operator=(const Array& other);
+    Array& operator=(const Array& other) = default;
 
     /** @brief Move-Operator
      *
@@ -531,7 +529,13 @@ public:
      * @param other Zu kopierendes Array
      * @return Referenz auf das Array
      */
-    Array& operator=(Array&& other);
+    inline Array& operator=(Array&& other) noexcept
+    {
+        if (this != &other) {
+            elements = std::move(other.elements);
+        }
+        return *this;
+    }
 
     /** @brief Inhalt eines anderen Arrays hinzufügen
      *
@@ -553,7 +557,10 @@ public:
      * @param other Referenz auf ein zweites Array
      * @return Liefert \c true zurück, wenn beide Arrays identisch sind, sonst \c false.
      */
-    bool operator==(const Array& other) const;
+    inline bool operator==(const Array& other) const
+    {
+        return elements == other.elements;
+    }
 
     /** @brief Prüfen, ob zwei Arrays unterschiedlich sind
      *
@@ -564,65 +571,187 @@ public:
      * @param other Referenz auf ein zweites Array
      * @return Liefert \c true zurück, wenn beide Arrays unterschiedlich sind, sonst \c false.
      */
-    bool operator!=(const Array& other) const;
+    inline bool operator!=(const Array& other) const
+    {
+        return elements != other.elements;
+    }
     //@}
 
     //! @name Iteratoren
     //@{
-    class ptr_iterator
+
+    /** @brief Iterator für das Array
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     */
+    using iterator = std::vector<String>::iterator;
+
+    /** @brief Const-Iterator für das Array
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     */
+    using const_iterator = std::vector<String>::const_iterator;
+
+    /** @brief Reverse-Iterator für das Array
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife in umgekehrter Reihenfolge durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     */
+    using reverse_iterator = std::vector<String>::reverse_iterator;
+
+    /** @brief Const-Reverse-Iterator für das Array
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife in umgekehrter Reihenfolge durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     */
+    using const_reverse_iterator = std::vector<String>::const_reverse_iterator;
+
+    /** @brief Iterator auf das erste Element des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Iterator auf das erste Element des Arrays
+     */
+    inline iterator begin() noexcept
     {
-        void* ptr;
+        return elements.begin();
+    }
 
-    public:
-        typedef std::forward_iterator_tag iterator_category;
-        typedef String value_type;
-        typedef std::ptrdiff_t difference_type;
-        typedef String* pointer;
-        typedef String& reference;
-        ptr_iterator() noexcept
-            : ptr(nullptr)
-        {
-        }
-        ptr_iterator(void* p)
-            : ptr(p)
-        {
-        }
-        reference operator*() const
-        {
-            return *((*(ROW*)ptr).value);
-        }
-        pointer operator->() const
-        {
-            return (*(ROW*)ptr).value;
-        }
-        ptr_iterator& operator++()
-        {
-            ptr = (ROW*)ptr + 1;
-            return *this;
-        }
-        ptr_iterator operator++(int)
-        {
-            ptr_iterator tmp = *this;
-            ptr = (ROW*)ptr + 1;
-            return tmp;
-        }
-        bool operator==(const ptr_iterator& other) const
-        {
-            return ptr == other.ptr;
-        }
-        bool operator!=(const ptr_iterator& other) const
-        {
-            return ptr != other.ptr;
-        }
-    };
+    /** @brief Const-Iterator auf das erste Element des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Const-Iterator auf das erste Element des Arrays
+     */
+    inline const_iterator begin() const noexcept
+    {
+        return elements.begin();
+    }
 
-    typedef ptr_iterator iterator;
-    typedef ptr_iterator const_iterator;
+    /** @brief Const-Iterator auf das erste Element des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Const-Iterator auf das erste Element des Arrays
+     */
+    inline const_iterator cbegin() const noexcept
+    {
+        return elements.cbegin();
+    }
 
-    iterator begin() noexcept;
-    const_iterator begin() const noexcept;
-    iterator end() noexcept;
-    const_iterator end() const noexcept;
+    /** @brief Iterator auf das Ende des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Iterator auf das Ende des Arrays
+     */
+    inline iterator end() noexcept
+    {
+        return elements.end();
+    }
+
+    /** @brief Const-Iterator auf das Ende des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Const-Iterator auf das Ende des Arrays
+     */
+    inline const_iterator end() const noexcept
+    {
+        return elements.end();
+    }
+
+    /** @brief Const-Iterator auf das Ende des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Const-Iterator auf das Ende des Arrays
+     */
+    inline const_iterator cend() const noexcept
+    {
+        return elements.cend();
+    }
+
+    /** @brief Reverse-Iterator auf das erste Element des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife in umgekehrter Reihenfolge durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Reverse-Iterator auf das erste Element des Arrays
+     */
+    inline reverse_iterator rbegin() noexcept
+    {
+        return elements.rbegin();
+    }
+
+    /** @brief Const-Reverse-Iterator auf das erste Element des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife in umgekehrter Reihenfolge durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Const-Reverse-Iterator auf das erste Element des Arrays
+     */
+    inline const_reverse_iterator rbegin() const noexcept
+    {
+        return elements.rbegin();
+    }
+
+    /** @brief Const-Reverse-Iterator auf das erste Element des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife in umgekehrter Reihenfolge durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Const-Reverse-Iterator auf das erste Element des Arrays
+     */
+    inline const_reverse_iterator crbegin() const noexcept
+    {
+        return elements.crbegin();
+    }
+
+    /** @brief Reverse-Iterator auf das Ende des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife in umgekehrter Reihenfolge durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Reverse-Iterator auf das Ende des Arrays
+     */
+    inline reverse_iterator rend() noexcept
+    {
+        return elements.rend();
+    }
+
+    /** @brief Const-Reverse-Iterator auf das Ende des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife in umgekehrter Reihenfolge durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Const-Reverse-Iterator auf das Ende des Arrays
+     */
+    inline const_reverse_iterator rend() const noexcept
+    {
+        return elements.rend();
+    }
+
+    /** @brief Const-Reverse-Iterator auf das Ende des Arrays
+     *
+     * Mit dem Iterator kann das Array in einer for-Schleife in umgekehrter Reihenfolge durchlaufen werden.
+     * Die Iteratoren sind kompatibel zu den Standard-Iteratoren der C++ STL.
+     *
+     * @return Const-Reverse-Iterator auf das Ende des Arrays
+     */
+    inline const_reverse_iterator crend() const noexcept
+    {
+        return elements.crend();
+    }
+
     //@}
 };
 

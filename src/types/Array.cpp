@@ -33,6 +33,8 @@
 #include <stdarg.h>
 
 #include <set>
+#include <unordered_set>
+#include <algorithm>
 
 #include <pplib/types/array.h>
 #include <pplib/types/string.h>
@@ -42,109 +44,44 @@
 namespace pplib
 {
 
-static String EmptyString;
-
-Array::Array()
-{
-    numElements = 0;
-    numCapacity = 0;
-    rows = NULL;
-}
-
-Array::Array(const Array& other)
-{
-    numElements = 0;
-    numCapacity = 0;
-    rows = NULL;
-    add(other);
-}
-
-Array::Array(Array&& other)
-{
-    numElements = other.numElements;
-    numCapacity = other.numCapacity;
-    rows = other.rows;
-    other.numElements = 0;
-    other.numCapacity = 0;
-    other.rows = NULL;
-}
-
 Array::Array(const String& str, const String& delimiter, size_t limit, bool skipemptylines)
 {
-    numElements = 0;
-    numCapacity = 0;
-    rows = NULL;
     explode(str, delimiter, limit, skipemptylines);
 }
 
-Array::~Array()
+void Array::reserve(size_t size)
 {
-    clear();
-}
-
-void Array::clear()
-{
-    ROW* r = (ROW*)rows;
-    if (r) {
-        for (size_t i = 0; i < numCapacity; i++) {
-            if (r[i].value) {
-                delete (r[i].value);
-                r[i].value = NULL;
-            }
-        }
-        free(rows);
+    try {
+        elements.reserve(size);
     }
-    rows = NULL;
-    numCapacity = 0;
-    numElements = 0;
+    catch (const std::bad_alloc&) {
+        throw OutOfMemoryException();
+    }
+    catch (const std::length_error&) {
+        throw OutOfMemoryException();
+    }
 }
 
 void Array::copy(const Array& other)
 {
-    clear();
-    reserve(other.numElements);
-    ROW* r_other = (ROW*)other.rows;
-    ROW* r = (ROW*)rows;
-    for (size_t i = 0; i < other.numElements; i++) {
-        if (r_other[i].value != NULL) {
-            if (r[i].value == NULL) {
-                r[i].value = new String;
-                if (!r[i].value) throw OutOfMemoryException();
-            }
-            r[i].value->set(*r_other[i].value);
-        }
-    }
-    numElements = other.numElements;
+    elements = other.elements;
 }
 
 void Array::add(const Array& other)
 {
-    ROW* r_other = (ROW*)other.rows;
-    size_t first = numElements;
-    reserve(numElements + other.numElements);
-    ROW* r = (ROW*)rows;
-    for (size_t i = 0; i < other.numElements; i++) {
-        if (r_other[i].value != NULL) {
-            if (r[first + i].value == NULL) {
-                r[first + i].value = new String;
-                if (!r[first + i].value) throw OutOfMemoryException();
-            }
-            r[first + i].value->set(*r_other[i].value);
-        }
-    }
-    numElements += other.numElements;
+    elements.insert(elements.end(), other.elements.begin(), other.elements.end());
 }
 
 void Array::add(const String& value)
 {
-    set(numElements, value);
+    elements.push_back(value);
 }
 
 void Array::add(const String& value, size_t size)
 {
     String str;
     str.set(value, size);
-    set(numElements, str);
+    elements.push_back(str);
 }
 
 void Array::addf(const char* fmt, ...)
@@ -154,33 +91,15 @@ void Array::addf(const char* fmt, ...)
     va_start(args, fmt);
     value.vasprintf(fmt, args);
     va_end(args);
-    set(numElements, value);
+    elements.push_back(value);
 }
 
 void Array::set(size_t index, const String& value)
 {
-    ROW* r;
-    if (index >= numCapacity) {
-        // Array muss vergroessert werden
-        size_t newsize = numCapacity / 3;
-        if (newsize < 10) newsize = 10;
-        if (newsize < index + 10) newsize = index + 10;
-        reserve(newsize);
+    if (index >= elements.size()) {
+        elements.resize(index + 1);
     }
-    r = (ROW*)rows;
-    if (index >= numElements) numElements = index + 1;
-    if (value.notEmpty()) {
-        if (r[index].value == NULL) {
-            r[index].value = new String;
-            if (!r[index].value) throw OutOfMemoryException();
-        }
-        r[index].value->set(value);
-    } else {
-        if (r[index].value != NULL) {
-            delete r[index].value;
-            r[index].value = NULL;
-        }
-    }
+    elements[index] = value;
 }
 
 void Array::setf(size_t index, const char* fmt, ...)
@@ -195,56 +114,22 @@ void Array::setf(size_t index, const char* fmt, ...)
 
 void Array::insert(size_t index, const String& value)
 {
-    if (index >= numElements) {
+    if (index >= elements.size()) {
         set(index, value);
         return;
     }
-    ROW* r = (ROW*)rows;
-    // Zunächst sorgen wir dafür, dass im Array genug Platz ist
-    reserve(numElements + 2);
-    // Nun verschieben wir alle Elemente ab Position index um eins nach hinten
-    if (numElements > index) {
-        for (size_t i = numElements; i > index; i--) {
-            r[i].value = r[i - 1].value;
-        }
-        numElements++;
-        r[index].value = NULL;
-    }
-    // Den neuen Wert einfügen
-    set(index, value);
+    elements.insert(elements.begin() + index, value);
 }
 
 void Array::insert(size_t index, const Array& other)
 {
-    if (other.numElements == 0) return; // Anderes Array ist leer
-    // Zunächst sorgen wir dafür, dass im Array genug Platz ist
-    reserve(index + other.numElements + 2);
-
-    if (index > numElements) {
-        numElements = index;
+    if (other.elements.empty()) return; // Anderes Array ist leer
+    if (index >= elements.size()) {
+        elements.resize(index);
+        add(other);
+        return;
     }
-    ROW* r = (ROW*)rows;
-    // Nun verschieben wir alle Elemente ab Position index um die größe des anderen
-    // Arrays nach hinten
-    if (numElements > index) {
-        for (size_t i = numElements; i > index; --i) {
-            size_t ii = i - 1;
-            r[ii + other.numElements].value = r[ii].value;
-            r[ii].value = NULL;
-        }
-    }
-    // Die neuen Werte einfügen
-    ROW* r2 = (ROW*)other.rows;
-    for (size_t i = 0; i < other.numElements; i++) {
-        if (r2[i].value != NULL) {
-            r[index + i].value = new String;
-            if (!r[index + i].value) throw OutOfMemoryException();
-            r[index + i].value->set(*r2[i].value);
-        } else {
-            r[index + i].value = NULL;
-        }
-    }
-    numElements += other.numElements;
+    elements.insert(elements.begin() + index, other.elements.begin(), other.elements.end());
 }
 
 void Array::insertf(size_t index, const char* fmt, ...)
@@ -257,142 +142,94 @@ void Array::insertf(size_t index, const char* fmt, ...)
     insert(index, value);
 }
 
-void Array::reserve(size_t size)
-{
-    if (size > numCapacity) {
-        // PrintDebugTime ("Array::reserve von %zu auf %zu Elemente\n",numCapacity,size);
-        ROW* r;
-        // Array muss vergroessert werden
-        void* newrows = realloc(rows, (size) * sizeof(ROW));
-        if (!newrows) {
-            throw OutOfMemoryException();
-        }
-        r = (ROW*)newrows;
-        for (size_t i = numCapacity; i < size; i++) {
-            r[i].value = NULL;
-        }
-        rows = newrows;
-        numCapacity = size;
-    }
-}
 void Array::list(const String& prefix) const
 {
-    ROW* r = (ROW*)rows;
     if (prefix.isEmpty()) {
-        if ((!rows) || numElements == 0) {
+        if (elements.empty()) {
             PrintDebug("Array ist leer\n");
         }
-        for (size_t i = 0; i < numElements; i++) {
-            if (r[i].value != NULL) PrintDebug("%6zu: %s\n", i, (const char*)r[i].value->getPtr());
+        for (size_t i = 0; i < elements.size(); i++) {
+            PrintDebug("%6zu: %s\n", i, (const char*)elements[i]);
         }
     } else {
-        if ((!rows) || numElements == 0) {
+        if (elements.empty()) {
             PrintDebug("Array \"%s\" ist leer\n", (const char*)prefix);
         }
-        for (size_t i = 0; i < numElements; i++) {
-            if (r[i].value != NULL) PrintDebug("%s, %6zu: %s\n", (const char*)prefix, i, (const char*)r[i].value->getPtr());
+        for (size_t i = 0; i < elements.size(); i++) {
+            PrintDebug("%s, %6zu: %s\n", (const char*)prefix, i, (const char*)elements[i]);
         }
     }
 }
 
 const String& Array::get(ssize_t index) const
 {
+    ssize_t size = static_cast<ssize_t>(elements.size());
     if (index < 0) {
-        index = numElements + index;
-        if (index < 0) throw OutOfBoundsException();
+        index = size + index;
     }
-    ROW* r = (ROW*)rows;
-    if ((size_t)index >= numElements) throw OutOfBoundsException();
-    if (r[index].value != NULL) return *r[index].value;
-    return EmptyString;
+    if (index < 0 || index >= size) {
+        throw OutOfBoundsException();
+    }
+    return elements[index];
 }
 
 String& Array::get(ssize_t index)
 {
+    ssize_t size = static_cast<ssize_t>(elements.size());
     if (index < 0) {
-        index = numElements + index;
-        if (index < 0) throw OutOfBoundsException();
+        index = size + index;
     }
-    ROW* r = (ROW*)rows;
-    if ((size_t)index >= numElements) throw OutOfBoundsException();
-    if (r[index].value != NULL) return *r[index].value;
-    return EmptyString;
+    if (index < 0 || index >= size) {
+        throw OutOfBoundsException();
+    }
+    return elements[index];
 }
 
 const String& Array::getRandom() const
 {
-    if (!numElements) return EmptyString;
-    ROW* r = (ROW*)rows;
-    size_t index = pplib::rand(0, numElements - 1);
-    if (index < numElements && r[index].value != NULL) return *r[index].value;
-    return EmptyString;
+    if (elements.empty()) throw EmptyDataException();
+    size_t index = pplib::rand(0, elements.size() - 1);
+    return elements[index];
 }
 
 String& Array::getRandom()
 {
-    if (!numElements) return EmptyString;
-    ROW* r = (ROW*)rows;
-    size_t index = pplib::rand(0, numElements - 1);
-    if (index < numElements && r[index].value != NULL) return *r[index].value;
-    return EmptyString;
+    if (elements.empty()) throw EmptyDataException();
+    size_t index = pplib::rand(0, elements.size() - 1);
+    return elements[index];
 }
 
 String Array::getRest(size_t index, const String& delimiter)
 {
     String rest;
-    ROW* r = (ROW*)rows;
-    for (size_t i = index; i < numElements; i++) {
+    for (size_t i = index; i < elements.size(); i++) {
         if (i > index) rest += delimiter;
-        if (r[i].value != NULL) rest += *r[i].value;
+        rest += elements[i];
     }
     return rest;
 }
 
 String Array::erase(size_t index)
 {
-    if (index >= numElements) throw OutOfBoundsException();
-    String ret;
-    ROW* r = (ROW*)rows;
-    if (r[index].value != NULL) {
-        ret = *r[index].value;
-        delete r[index].value;
-    }
-    for (size_t i = index; i < numElements - 1; i++) {
-        r[i].value = r[i + 1].value;
-    }
-    numElements--;
-    r[numElements].value = NULL;
+    if (index >= elements.size()) throw OutOfBoundsException();
+    String ret = std::move(elements[index]);
+    elements.erase(elements.begin() + index);
     return ret;
 }
 
 String Array::shift()
 {
-    if (!numElements) throw EmptyDataException();
-    String ret;
-    ROW* r = (ROW*)rows;
-    if (r[0].value != NULL) {
-        ret = *r[0].value;
-        delete r[0].value;
-    }
-    for (size_t i = 0; i < numElements - 1; i++) {
-        r[i].value = r[i + 1].value;
-    }
-    numElements--;
-    r[numElements].value = NULL;
+    if (elements.empty()) throw EmptyDataException();
+    String ret = std::move(elements.front());
+    elements.erase(elements.begin());
     return ret;
 }
 
 String Array::pop()
 {
-    if (!numElements) throw EmptyDataException();
-    ROW* r = (ROW*)rows;
-    String ret;
-    if (r[numElements - 1].value != NULL) {
-        ret = *r[numElements - 1].value;
-        delete r[numElements - 1].value;
-        r[numElements - 1].value = NULL;
-    }
-    numElements--;
+    if (elements.empty()) throw EmptyDataException();
+    String ret = std::move(elements.back());
+    elements.pop_back();
     return ret;
 }
 
@@ -420,7 +257,7 @@ Array& Array::explode(const String& text, const String& delimiter, size_t limit,
             }
             str.set(etext, p);
             // add(etext,p);
-            set(numElements, str);
+            add(str);
             etext = etext + p + t;
             count++;
         } else {
@@ -439,9 +276,9 @@ Array& Array::explode(const String& text, const String& delimiter, size_t limit,
 String Array::implode(const String& delimiter) const
 {
     String ret;
-    for (size_t i = 0; i < numElements; i++) {
+    for (size_t i = 0; i < elements.size(); i++) {
         if (i) ret += delimiter;
-        ret += get(i);
+        ret += elements[i];
     }
     return ret;
 }
@@ -456,45 +293,10 @@ const String& Array::operator[](ssize_t index) const
     return get(index);
 }
 
-Array& Array::operator=(const Array& other)
-{
-    copy(other);
-    return *this;
-}
-
-Array& Array::operator=(Array&& other)
-{
-    if (this != &other) {
-        clear();
-        numElements = other.numElements;
-        numCapacity = other.numCapacity;
-        rows = other.rows;
-        other.numElements = 0;
-        other.numCapacity = 0;
-        other.rows = NULL;
-    }
-    return *this;
-}
-
 Array& Array::operator+=(const Array& other)
 {
     add(other);
     return *this;
-}
-bool Array::operator==(const Array& other) const
-{
-    if (numElements != other.numElements) return false;
-    for (size_t i = 0; i < numElements; i++)
-        if (get(i) != other.get(i)) return false;
-    return true;
-}
-
-bool Array::operator!=(const Array& other) const
-{
-    if (numElements != other.numElements) return true;
-    for (size_t i = 0; i < numElements; i++)
-        if (get(i) != other.get(i)) return true;
-    return false;
 }
 
 Array operator+(const Array& a1, const Array& a2)
@@ -507,10 +309,11 @@ Array operator+(const Array& a1, const Array& a2)
 void Array::sort()
 {
     std::multiset<pplib::String> s;
-    for (size_t i = 0; i < numElements; i++) {
-        s.insert(get(i));
+    for (auto it = elements.begin(); it != elements.end(); ++it) {
+        s.insert(*it);
     }
-    clear();
+    elements.clear();
+    elements.reserve(s.size());
     for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
         add(*it);
     }
@@ -519,10 +322,11 @@ void Array::sort()
 void Array::sortReverse()
 {
     std::multiset<pplib::String> s;
-    for (size_t i = 0; i < numElements; i++) {
-        s.insert(get(i));
+    for (auto it = elements.begin(); it != elements.end(); ++it) {
+        s.insert(*it);
     }
-    clear();
+    elements.clear();
+    elements.reserve(s.size());
     for (std::multiset<pplib::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
         add(*it);
     }
@@ -531,10 +335,11 @@ void Array::sortReverse()
 void Array::sortUnique()
 {
     std::set<pplib::String> s;
-    for (size_t i = 0; i < numElements; i++) {
-        s.insert(get(i));
+    for (auto it = elements.begin(); it != elements.end(); ++it) {
+        s.insert(*it);
     }
-    clear();
+    elements.clear();
+    elements.reserve(s.size());
     for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
         add(*it);
     }
@@ -542,35 +347,31 @@ void Array::sortUnique()
 
 void Array::makeUnique()
 {
-    std::set<String> s;
-    for (size_t i = 0; i < numElements; i++) {
-        const String& value = get(i);
-        auto it = s.find(value);
-        if (it != s.end()) {
-            erase(i);
-            i--;
-        } else {
-            s.insert(value);
-        }
-    }
+    std::set<String> seen;
+    // std::remove_if schiebt alle "Duplikate" ans Ende des Vectors
+    auto new_end = std::remove_if(elements.begin(), elements.end(), [&seen](const String& str) {
+        // insert().second ist true, wenn der String NEU war (noch nicht im Set)
+        return !seen.insert(str).second;
+    });
+
+    // Ein einziges erase schneidet am Ende alle Duplikate auf einmal ab
+    elements.erase(new_end, elements.end());
 }
 
 ssize_t Array::indexOf(const String& search) const
 {
-    if (!numElements) return -1;
-    ROW* r = (ROW*)rows;
-    for (size_t i = 0; i < numElements; i++) {
-        if (r[i].value && *r[i].value == search) return i;
+    if (elements.empty()) return -1;
+    for (size_t i = 0; i < elements.size(); i++) {
+        if (elements[i] == search) return i;
     }
     return -1;
 }
 
 bool Array::has(const String& search) const
 {
-    if (!numElements) return false;
-    ROW* r = (ROW*)rows;
-    for (size_t i = 0; i < numElements; i++) {
-        if (r[i].value && *r[i].value == search) return true;
+    if (elements.empty()) return false;
+    for (size_t i = 0; i < elements.size(); i++) {
+        if (elements[i] == search) return true;
     }
     return false;
 }
@@ -672,28 +473,6 @@ Array Array::fromArgs(const String& args)
     }
 
     return result;
-}
-
-Array::iterator Array::begin() noexcept
-{
-    return iterator(rows);
-}
-
-Array::const_iterator Array::begin() const noexcept
-{
-    return const_iterator(rows);
-}
-
-Array::iterator Array::end() noexcept
-{
-    if (!rows) return iterator(NULL);
-    return iterator((Array::ROW*)rows + numElements);
-}
-
-Array::const_iterator Array::end() const noexcept
-{
-    if (!rows) return const_iterator(NULL);
-    return const_iterator((Array::ROW*)rows + numElements);
 }
 
 } // namespace pplib
