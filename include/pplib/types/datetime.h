@@ -34,6 +34,7 @@
 #include "pplib/types/string.h"
 #include "pplib/types/date.h"
 #include "pplib/types/time.h"
+#include "pplib/types/timezone.h"
 
 namespace pplib
 {

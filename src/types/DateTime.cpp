@@ -79,7 +79,37 @@ static bool safe_gmtime(time_t t, struct tm* tmstruct)
 DateTime& DateTime::set(const String& datetime)
 {
     String parse = UpperCase(Trim(datetime));
-    // TODO: Timezone am Ende vorhanden?
+    // TODO: Timezone am Ende vorhanden? Würde in Eckigen Klammern stehen, z. B. "[+02:00]" oder "[-02:00]"
+    int tz_start = parse.find("[", -1);
+    if (tz_start >= 0) {
+        int tz_end = parse.find("]", tz_start);
+        if (tz_end < 0) {
+            throw IllegalArgumentException("DateTime::set: invalid datetime format (%s)", parse.c_str());
+        }
+        String tz_str = parse.substr(tz_start + 1, tz_end - tz_start - 1);
+        TimeZone tz = TimeZone::fromString(tz_str);
+        // setTimeZone(tz);
+        parse = parse.substr(0, tz_start) + parse.substr(tz_end + 1);
+    } else if (parse.length() >= 5) {
+        // Könnte auch ohne Klammern sein, z. B. "+0200" oder "-0200" am Ende
+        String end = parse.right(5);
+        if (end[0] == '+' || end[0] == '-') {
+            TimeZone tz = TimeZone::fromString(end);
+            // setTimeZone(tz);
+            parse = parse.left(parse.length() - 5);
+        } else {
+            end = parse.right(1);
+            if (end[0] == 'Z') {
+                TimeZone tz = TimeZone::utc();
+                // setTimeZone(tz);
+                parse = parse.left(parse.length() - 1);
+            } else if (parse.right(3) == "UTC") {
+                TimeZone tz = TimeZone::utc();
+                // setTimeZone(tz);
+                parse = parse.left(parse.length() - 3);
+            }
+        }
+    }
 
     parse.replace(" ", "T");
     if (parse.isEmpty() || parse == "T" || parse == "0" || parse == "NULL") {
