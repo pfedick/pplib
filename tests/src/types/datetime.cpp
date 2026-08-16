@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -35,19 +30,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
-#include <locale.h>
-#include <pplib.h>
 #include <gtest/gtest.h>
-#include "pplib-tests.h"
 
-#undef _PPLIB_CONFIG
-#undef _WIN32_WINNT
-#include "../../../include/config_pplib.h"
+#include <pplib/types/datetime.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
+
+#include "pplib-tests.h"
 
 namespace
 {
-
 // The fixture for testing class Foo.
 class DateTimeTest : public ::testing::Test
 {
@@ -241,6 +233,45 @@ TEST_F(DateTimeTest, Assignment)
         ASSERT_TRUE(d2.notEmpty() == true) << "Class is empty";
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11.159473"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
+}
+
+TEST_F(DateTimeTest, set)
+{
+    pplib::DateTime d1;
+    EXPECT_EQ(pplib::String("0000-00-00 00:00:00.000000"), d1.set("null").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("0000-00-00 00:00:00.000000"), d1.set("").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("0000-00-00 00:00:00.000000"), d1.set("T").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("0000-00-00 00:00:00.000000"), d1.set("0").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.012345"), d1.set("2026-08-16 08:35:01.012345").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.012345"), d1.set("16.08.2026 08:35:01.012345").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123000"), d1.set("16.08.2026 08:35:01.123").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:07:01.000000"), d1.set("16.8.2026 8:7:1").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 00:00:00.000000"), d1.set("16.8.2026").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 00:00:00.000000"), d1.set("2026.08.16").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 00:00:00.000000"), d1.set("2026-08-16").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.012345"), d1.set("2026-08-16T08:35:01.012345").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.012000"), d1.set("2026-08-16T08:35:01.012").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000000"), d1.set("2026-08-16T08:35:01").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026-08-16T08:35:01.123456[+02:00]").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026-08-16T08:35:01.123456[+00:00]").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123000"), d1.set("2026-08-16T08:35:01.123[+02:00]").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000000"), d1.set("2026-08-16T08:35:01[+02:00]").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026.08.16 08:35:01.123456").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026.8.16 8:35:1.123456").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123000"), d1.set("2026.8.16 8:35:1.123").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000000"), d1.set("2026.8.16 8:35:1").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, getLongInt)

@@ -39,6 +39,8 @@
 #include <pthread.h>
 #include <locale.h>
 #include <pplib.h>
+#include <pplib/core/dir.h>
+#include <pplib/core/functions.h>
 #include <gtest/gtest.h>
 #include "pplib-tests.h"
 
@@ -70,6 +72,19 @@ static void setupTestAssocArray()
     TestAssocArray.set("array2/unterkey1", "value9");
 }
 
+bool findTestConfig(const std::map<pplib::String, pplib::String>& pathfinder)
+{
+    for (const auto& [file, p] : pathfinder) {
+        if (pplib::File::exists(file)) {
+            if (!p.isEmpty()) {
+                chdir((const char*)p);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 int main(int argc, char** argv)
 {
     if (setlocale(LC_ALL, DEFAULT_LOCALE) == NULL) {
@@ -78,11 +93,19 @@ int main(int argc, char** argv)
     }
     setlocale(LC_NUMERIC, "C"); // Wir wollen immer '.' als Dezimaltrennzeichen haben, egal welche Locale gesetzt ist
 
-    if (pplib::HaveArgv(argc, argv, "-h") || pplib::HaveArgv(argc, argv, "--help")) help();
+    if (pplib::HaveArgv(argc, argv, "-h") || pplib::HaveArgv(argc, argv, "--help")) {
+        help();
+        return 0;
+    }
     try {
         if ((pplib::HaveArgv(argc, argv, "-c"))) {
             PPLIBTestConfig.load(pplib::GetArgv(argc, argv, "-c"));
         } else {
+            // TODO: config selber finden und in den richtigen pfad wechseln
+            std::map<pplib::String, pplib::String> pathfinder;
+            pathfinder["test.conf"] = "";
+            pathfinder["tests/test.conf"] = "tests";
+
             PPLIBTestConfig.load("test.conf");
         }
     }

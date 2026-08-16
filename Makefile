@@ -80,6 +80,14 @@ coverage:
 	@echo "Report: coverage_html/index.html"
 	gcovr --root . build/coverage --exclude-throw-branches --xml-pretty -o coverage.xml --exclude 'tests/.*'
 
+datetime:
+	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
+	cmake --build build/coverage --target test_core
+	ln -sf build/coverage/compile_commands.json compile_commands.json
+	-cd tests && ../build/coverage/tests/test_core$(EXE) --gtest_filter=DateTimeTest*
+	mkdir -p coverage_html
+	gcovr --root . build/coverage --medium-threshold 70 --exclude-throw-branches --html-details coverage_html/index.html --exclude 'tests/.*'
+	
 clean:
 	-rm -rf build
 	-rm -rf coverage

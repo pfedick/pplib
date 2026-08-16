@@ -218,14 +218,14 @@ static int parse_int(const char* p, size_t len)
     return val;
 }
 
-void DateTime::setWithoutRegex(const String& datetime)
+DateTime& DateTime::setWithoutRegex(const String& datetime)
 {
     String d = UpperCase(Trim(datetime));
     d.replace(",", " ");
 
     if (d.isEmpty() || d == "T" || d == "0" || d == "NULL") {
         clear();
-        return;
+        return *this;
     }
 
     const char* str = d.c_str();
@@ -259,7 +259,7 @@ void DateTime::setWithoutRegex(const String& datetime)
             }
         }
         set(y, m, day, h, min, s, msec, usec);
-        return;
+        return *this;
     }
 
     // Datums- und Uhrzeitanteil trennen (Leerzeichen)
@@ -311,7 +311,7 @@ void DateTime::setWithoutRegex(const String& datetime)
         }
     }
 
-    set(y, m, day, h, min, s, msec, usec);
+    return set(y, m, day, h, min, s, msec, usec);
 }
 
 /*!\brief Datum anhand eines Strings setzen
@@ -354,67 +354,66 @@ void DateTime::setWithoutRegex(const String& datetime)
  * Ausnahmen: Ist der String leer oder enthält nur den
  * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
  */
-void DateTime::set(const String& datetime)
+DateTime& DateTime::set(const String& datetime)
 {
+    return setWithoutRegex(datetime);
     String d = UpperCase(Trim(datetime));
     std::vector<String> m;
     d.replace(",", " ");
-    if (d.isEmpty() == true || d == "T" || d == "0") {
+    if (d.isEmpty() == true || d == "T" || d == "0" || d == "NULL") {
         clear();
-        return;
+        return *this;
     }
     if (RegEx::capture("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})/", d, m)) {
         // yyyy-mm-ddThh:ii:ss.msecusec[[+-]oo:00]
-        set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt(),
-            m.at(8).toInt());
+        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt(),
+                   m.at(8).toInt());
     } else if (RegEx::capture("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})/", d, m)) {
         // yyyy-mm-ddThh:ii:ss.msec[[+-]oo:00]
-        set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt());
+        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt());
 
     } else if (RegEx::capture("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})/", d, m)) {
         // yyyy-mm-ddThh:ii:ss[[+-]oo:00]
-        set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt());
+        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt());
     } else if (RegEx::capture(
                    "/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/",
                    d, m)) {
         // yyyy.mm.dd hh:ii:ss.msecusec
-        set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt(),
-            m.at(8).toInt());
+        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt(),
+                   m.at(8).toInt());
     } else if (RegEx::capture(
                    "/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/", d,
                    m)) {
         // yyyy.mm.dd hh:ii:ss.msec
-        set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt());
+        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt());
     } else if (RegEx::capture(
                    "/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/",
                    d, m)) {
         // dd.mm.yyyy hh:ii:ss.msecusec
-        set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt(),
-            m.at(8).toInt());
+        return set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt(),
+                   m.at(8).toInt());
     } else if (RegEx::capture(
                    "/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/", d,
                    m)) {
         // dd.mm.yyyy hh:ii:ss.msec
-        set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt());
+        return set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt());
     } else if (RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$/", d, m)) {
         // yyyy.mm.dd hh:ii:ss
-        set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt());
+        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt());
     } else if (RegEx::capture("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$/", d, m)) {
         // dd.mm.yyyy hh:ii:ss
-        set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt());
+        return set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt());
     } else if (RegEx::capture("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})$/", d, m)) {
         // dd.mm.yyyy
-        set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt());
+        return set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt());
     } else if (RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/", d, m)) {
         // yyyy.mm.dd
-        set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt());
-    } else if (RegEx::match("/^null$/i", d)) {
-        clear();
-        return;
+        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt());
     } else {
         clear();
         throw IllegalArgumentException("DateTime::set(" + datetime + ")");
     }
+    return *this;
 }
 
 /*!\brief Datum aus einer anderen DateTime-Variablen übernehmen
@@ -424,7 +423,7 @@ void DateTime::set(const String& datetime)
  *
  * @param[in] other Referenz auf eine andere DateTime-Variable, dessen Wert kopiert werden soll.
  */
-void DateTime::set(const DateTime& other)
+DateTime& DateTime::set(const DateTime& other)
 {
     yy = other.yy;
     us = other.us;
@@ -433,6 +432,7 @@ void DateTime::set(const DateTime& other)
     hh = other.hh;
     ii = other.ii;
     ss = other.ss;
+    return *this;
 }
 
 /*!\brief Datum und Uhrzeit aus unterschiedlichen Strings importieren
@@ -462,7 +462,7 @@ void DateTime::set(const DateTime& other)
  * Eine genauere Beschreibung der Formate samt Legende ist \ref DateTime::set(const String &datetime) "hier"
  * zu finden.
  */
-void DateTime::set(const String& date, const String& time)
+DateTime& DateTime::set(const String& date, const String& time)
 {
     String d, dd = Trim(date), tt = Trim(time);
     dd.replace(",", ".");
@@ -472,7 +472,7 @@ void DateTime::set(const String& date, const String& time)
     tt.replace("-", ":");
 
     d = dd + " " + tt;
-    set(d);
+    return set(d);
 }
 
 /*!\brief Datum setzen, Uhrzeit bleibt unverändert
@@ -487,10 +487,10 @@ void DateTime::set(const String& date, const String& time)
  * Ausnahmen: Ist der String leer oder enthält nur den
  * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
  */
-void DateTime::setDate(const String& date)
+DateTime& DateTime::setDate(const String& date)
 {
     String time = getTime();
-    set(date, time);
+    return set(date, time);
 }
 
 /*!\brief Uhrzeit setzen, Datum bleibt unverändert
@@ -505,7 +505,7 @@ void DateTime::setDate(const String& date)
  * Ausnahmen: Ist der String leer oder enthält nur den
  * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
  */
-void DateTime::setTime(const String& time)
+DateTime& DateTime::setTime(const String& time)
 {
     String date = getDate();
     return set(date, time);
@@ -538,11 +538,11 @@ void DateTime::setTime(const String& time)
  * Die Werte sollten daher entweder alternativ verwendet werden oder es muss sichergestellt sein,
  * dass die Mikrosekunden den Millisekundenanteil nicht enthalten.
  */
-void DateTime::set(int year, int month, int day, int hour, int minute, int sec, int msec, int usec)
+DateTime& DateTime::set(int year, int month, int day, int hour, int minute, int sec, int msec, int usec)
 {
     if (year == 0 && month == 0 && day == 0) {
         clear();
-        return;
+        return *this;
     }
 
     yy = year;
@@ -568,6 +568,7 @@ void DateTime::set(int year, int month, int day, int hour, int minute, int sec, 
     if (usec < 0) usec = 0;
     if (usec > 999999) usec = 999999;
     us = msec * 1000 + usec;
+    return *this;
 }
 
 /*!\brief Datum aus PPLTIME-Struktur übernehmen
@@ -583,9 +584,9 @@ void DateTime::set(int year, int month, int day, int hour, int minute, int sec, 
  * Geplant ist, dass bei Überlauf eines Wertes die anderen automatisch angepasst werden, so dass z.B. aus
  * dem 32.12.2010 automatisch der 01.01.2011 wird.
  */
-void DateTime::set(const PPLTIME& t)
+DateTime& DateTime::set(const PPLTIME& t)
 {
-    set(t.year, t.month, t.day, t.hour, t.min, t.sec, 0, 0);
+    return set(t.year, t.month, t.day, t.hour, t.min, t.sec, 0, 0);
 }
 
 /*!\brief Datum aus Unix-Timestamp übernehmen
@@ -597,11 +598,11 @@ void DateTime::set(const PPLTIME& t)
  *
  * @param t 64-Bit Integer mit den Sekunden seit 1970.
  */
-void DateTime::setTime_t(uint64_t t)
+DateTime& DateTime::setTime_t(uint64_t t)
 {
     if (t == 0) {
         clear();
-        return;
+        return *this;
     }
     struct tm tt;
     ::time_t tp = (::time_t)t;
@@ -614,6 +615,7 @@ void DateTime::setTime_t(uint64_t t)
     mm = tt.tm_mon + 1;
     yy = tt.tm_year + 1900;
     us = 0;
+    return *this;
 }
 
 /*!\brief Datum aus Unix-Timestamp übernehmen
@@ -626,9 +628,9 @@ void DateTime::setTime_t(uint64_t t)
  * @param t 64-Bit Integer mit den Sekunden seit 1970.
  * \see http://de.wikipedia.org/wiki/Unixzeit
  */
-void DateTime::setEpoch(uint64_t t)
+DateTime& DateTime::setEpoch(uint64_t t)
 {
-    setTime_t(t);
+    return setTime_t(t);
 }
 
 /*!\brief Datum aus einem 64-Bit-Integer übernehmen
@@ -640,7 +642,7 @@ void DateTime::setEpoch(uint64_t t)
  *
  * @param i 64-Bit Integer
  */
-void DateTime::setLongInt(uint64_t i)
+DateTime& DateTime::setLongInt(uint64_t i)
 {
     us = i % 1000000;
     i = i / 1000000;
@@ -654,6 +656,7 @@ void DateTime::setLongInt(uint64_t i)
     i = i / 31;
     mm = (i % 12) + 1;
     yy = (uint16_t)i / 12;
+    return *this;
 }
 
 /*!\brief Aktuelles Datum und Uhrzeit übernehmen
@@ -662,7 +665,7 @@ void DateTime::setLongInt(uint64_t i)
  * Mit dieser Funktion wird die Variable auf das aktuelle Datum und die aktuelle Uhrzeit gesetzt.
  * Es gibt sie auch als statische Funktion \ref DateTime::currentTime "currentTime".
  */
-void DateTime::setCurrentTime()
+DateTime& DateTime::setCurrentTime()
 {
     auto now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
@@ -682,6 +685,7 @@ void DateTime::setCurrentTime()
     dd = tt.tm_mday;
     mm = tt.tm_mon + 1;
     yy = tt.tm_year + 1900;
+    return *this;
 }
 
 //@}
