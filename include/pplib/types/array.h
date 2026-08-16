@@ -325,6 +325,34 @@ public:
      */
     String& get(ssize_t index);
 
+    /** @brief Element auslesen
+     *
+     * Gibt das Element an Position \p index des Arrays als Referenz zurück. Ist \p index größer als die Anzahl
+     * Elemente des Arrays, wird eine Exception geworfen.
+     *
+     * @param index Gewünschtes Element
+     * @return Referenz auf den Inhalt des Elements
+     * \exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+     */
+    String& at(ssize_t index)
+    {
+        return get(index);
+    }
+
+    /** @brief Element als Konstante auslesen
+     *
+     * Gibt das Element an Position \p index des Arrays als Referenz zurück, dessen Inhalt nicht
+     * verändert werden kann. Ist \p index größer als die Anzahl Elemente des Arrays, wird eine Exception geworfen.
+     *
+     * @param index Gewünschtes Element
+     * @return Referenz auf den Inhalt des Elements
+     * @exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+     */
+    const String& at(ssize_t index) const
+    {
+        return get(index);
+    }
+
     /** @brief Zufälliges Element als Konstante auslesen
      *
      * Gibt eine Referenz auf ein zufälliges Element des Arrays zurück, dessen Inhalt nicht verändert
