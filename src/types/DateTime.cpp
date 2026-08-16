@@ -74,93 +74,16 @@ static bool safe_gmtime(time_t t, struct tm* tmstruct)
 #endif
 }
 
-/*!\class DateTime
- * \ingroup PPLGroupDataTypes
- * \ingroup PPLGroupDateTime
- * \brief Datenobjekt zum Speichern von Datum und Uhrzeit
- *
- * \desc
- * Dies ist eine Klasse zum Speichern von Datum und Uhrzeit. Mit den Funktionen
- * \ref DateTime::set(const String &datetime) "set", \ref DateTime::setDate "setDate"
- * und \ref DateTime::setTime "setTime" können Datum und/oder Uhrzeit gesetzt werden,
- * mit \ref DateTime::get "get", \ref DateTime::getDate "getDate",
- * \ref DateTime::getTime "getTime" und \ref DateTime::getISO8601 "getISO8601" kann der Wert ausgelesen werden.
- * Alternativ kann mit \ref DateTime::setTime_t "setTime_t" und \ref DateTime::time_t "time_t"
- * ein Unix-Timestamp gesetzt oder gelesen werden (Sekunden seit 1970),
- * oder mit \ref DateTime::setLongInt "setLongInt" und \ref DateTime::longInt "longInt"
- * ein 64-Bit Wert gesetzt oder gelesen werden, in dem die einzelnen Bestandteile bitweise kodiert sind.
- *
- * \since
- * Die Klasse wurde mit Version 6.4.1 eingeführt.
- */
-
-/*!\var DateTime::yy
- * \brief Jahr
- */
-
-/*!\var DateTime::mm
- * \brief Monat
- */
-
-/*!\var DateTime::dd
- * \brief Tag
- */
-
-/*!\var DateTime::hh
- * \brief Stunden
- */
-
-/*!\var DateTime::ii
- * \brief Minuten
- */
-
-/*!\var DateTime::ss
- * \brief Sekunden
- */
-
-/*!\var CDateTime::us
- * \brief Mikrosekunden
- */
-
-//!\name Konstruktoren
-
-/*!\brief Konstruktor mit Initialisierung auf 0
- *
- * \desc
- * Mit diesem Konstruktor ohne Parameter wird der Wert der Datumsklasse auf 0 gesetzt. Die Funktion
- * DateTime::isEmpty "isEmpty" würde \c true zurückliefern.
- */
 DateTime::DateTime()
 {
     clear();
 }
 
-/*!\brief Konstruktor mit Datumsinitialisierung aus einem String
- *
- * \desc
- * Über diesen Konstruktor wird ein DateTime Objekt anhand des im String \p datetime enthaltenen
- * Datums und Uhrzeit erstellt. Die unterstützten Formate sind in der Funktion
- * \ref DateTime::set(const String &datetime) "set" beschrieben.
- *
- * @param[in] datetime String mit Datum und Uhrzeit
- *
- * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
- * ein ungültiges oder unbekanntes Datumsformat hat.
- * Ausnahmen: Ist der String leer oder enthält nur den
- * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
- */
 DateTime::DateTime(const String& datetime)
 {
     set(datetime);
 }
 
-/*!\brief Copy-Konstruktor
- *
- * \desc
- * Über diesen Konstruktor wird das Datum eines anderen DateTime-Wertes übernommen.
- *
- * @param[in] other Referenz auf den zu kopierenden DateTime-Wert
- */
 DateTime::DateTime(const DateTime& other)
 {
     yy = other.yy;
@@ -172,31 +95,23 @@ DateTime::DateTime(const DateTime& other)
     ss = other.ss;
 }
 
-/*!\brief Konstruktor mit Angabe von Unix-Timestamp
- *
- * \desc
- * Mit dieser Konstruktor werden Datum und Uhrzeit aus einem Unix-Timestamp übernommen (Sekunden seit 1970),
- * wie ihn Beispielsweise die C-Funktion "time()" zurückliefert. Es ist daher nicht möglich ein Datum vor
- * 1970 zu setzen.
- *
- * @param t 64-Bit Integer mit den Sekunden seit 1970.
- */
+DateTime::DateTime(DateTime&& other)
+{
+    yy = other.yy;
+    us = other.us;
+    mm = other.mm;
+    dd = other.dd;
+    hh = other.hh;
+    ii = other.ii;
+    ss = other.ss;
+    other.clear();
+}
+
 DateTime::DateTime(uint64_t t)
 {
     setTime_t(t);
 }
 
-//@}
-
-//!\name Datum setzen
-
-/*!\brief Datum auf 0 setzen
- *
- * \desc
- * Mit dieser Funktion wird der Datumswert der Klasse auf 0 gesetzt. Die Funktion
- * \ref DateTime::isEmpty "isEmpty" würde \c true zurückliefern. Die Klasse wird somit
- * wieder in den Ausgangszustand versetzt.
- */
 void DateTime::clear()
 {
     yy = 0;
@@ -212,16 +127,19 @@ void DateTime::clear()
 static int parse_int(const char* p, size_t len)
 {
     int val = 0;
-    for (size_t i = 0; i < len && p[i] >= '0' && p[i] <= '9'; ++i) {
-        val = val * 10 + (p[i] - '0');
+    for (size_t i = 0; i < len; ++i) {
+        if (p[i] >= '0' && p[i] <= '9')
+            val = val * 10 + (p[i] - '0');
+        else
+            throw IllegalArgumentException("DateTime::set(" + String(p, len) + ")");
     }
     return val;
 }
 
-DateTime& DateTime::setWithoutRegex(const String& datetime)
+DateTime& DateTime::set(const String& datetime)
 {
     String d = UpperCase(Trim(datetime));
-    d.replace(",", " ");
+    d.replace(",", ".");
 
     if (d.isEmpty() || d == "T" || d == "0" || d == "NULL") {
         clear();
@@ -229,61 +147,40 @@ DateTime& DateTime::setWithoutRegex(const String& datetime)
     }
 
     const char* str = d.c_str();
-    size_t len = d.size();
 
-    int y = 0, m = 0, day = 0, h = 0, min = 0, s = 0, msec = 0, usec = 0;
+    // Datum und Zeit trennen ('T' oder Leerzeichen)
+    const char* sep = strpbrk(str, " T");
+    const char* time_part = sep ? sep + 1 : nullptr;
 
-    // ISO 8601 Format Check (z.B. "2026-08-02T14:30:00...")
-    const char* t_ptr = strchr(str, 'T');
-    if (t_ptr && (t_ptr - str) >= 8) {
-        y = parse_int(str, 4);
-        m = parse_int(str + 5, 2);
-        day = parse_int(str + 8, 2);
-
-        const char* time_part = t_ptr + 1;
-        if (sscanf(time_part, "%d:%d:%d", &h, &min, &s) >= 3) {
-            // Optionale Milli-/Mikrosekunden
-            const char* dot = strpbrk(time_part, ".:");
-            if (dot && isdigit(dot[1])) {
-                int frac = parse_int(dot + 1, 6);
-                size_t frac_digits = 0;
-                while (isdigit(dot[1 + frac_digits]))
-                    frac_digits++;
-
-                if (frac_digits <= 3) {
-                    msec = frac;
-                } else {
-                    msec = frac / 1000;
-                    usec = frac % 1000;
-                }
-            }
-        }
-        set(y, m, day, h, min, s, msec, usec);
-        return *this;
-    }
-
-    // Datums- und Uhrzeitanteil trennen (Leerzeichen)
-    const char* space_ptr = strchr(str, ' ');
-    const char* date_part = str;
-    const char* time_part = space_ptr ? space_ptr + 1 : nullptr;
+    int y = 0, m = 0, day = 0;
 
     // 1. Datum parsen
-    if (len >= 8 && (str[4] == '-' || str[4] == '.')) {
+    const char* d1 = strpbrk(str, ".-");
+    if (!d1 || (sep && d1 > sep)) {
+        clear();
+        throw IllegalArgumentException("DateTime::set(" + datetime + ")");
+    }
+
+    size_t first_len = d1 - str;
+    const char* d2 = strpbrk(d1 + 1, ".-");
+
+    if (first_len == 4) {
         // YYYY-MM-DD
-        y = parse_int(date_part, 4);
-        m = parse_int(date_part + 5, 2);
-        day = parse_int(date_part + 8, 2);
-    } else if (len >= 8) {
+        y = parse_int(str, 4);
+        m = parse_int(d1 + 1, d2 ? (d2 - d1 - 1) : 2);
+        day = parse_int(d2 ? d2 + 1 : d1 + 1, sep ? (sep - (d2 ? d2 + 1 : d1 + 1)) : 2);
+    } else if (first_len == 1 || first_len == 2) {
         // DD.MM.YYYY
-        day = parse_int(date_part, 2);
-        const char* dot1 = strpbrk(date_part, ".-");
-        if (dot1) {
-            m = parse_int(dot1 + 1, 2);
-            const char* dot2 = strpbrk(dot1 + 1, ".-");
-            if (dot2) {
-                y = parse_int(dot2 + 1, 4);
-            }
+        day = parse_int(str, first_len);
+        if (!d2) {
+            clear();
+            throw IllegalArgumentException("DateTime::set(" + datetime + ")");
         }
+        m = parse_int(d1 + 1, d2 - d1 - 1);
+        y = parse_int(d2 + 1, sep ? (sep - d2 - 1) : 4);
+    } else {
+        clear();
+        throw IllegalArgumentException("DateTime::set(" + datetime + ")");
     }
 
     if (y == 0 && m == 0 && day == 0) {
@@ -292,21 +189,26 @@ DateTime& DateTime::setWithoutRegex(const String& datetime)
     }
 
     // 2. Uhrzeit parsen (falls vorhanden)
-    if (time_part) {
-        sscanf(time_part, "%d:%d:%d", &h, &min, &s);
+    int h = 0, min = 0, s = 0, msec = 0, usec = 0;
+    if (time_part && *time_part != '\0') {
+        int consumed = 0;
+        if (sscanf(time_part, "%d:%d:%d%n", &h, &min, &s, &consumed) >= 3) {
+            const char* frac_ptr = time_part + consumed;
+            if (*frac_ptr == '.' || *frac_ptr == ':') {
+                frac_ptr++;
+                size_t frac_digits = 0;
+                while (isdigit(frac_ptr[frac_digits]))
+                    frac_digits++;
 
-        const char* dot = strpbrk(time_part, ".:");
-        if (dot && isdigit(dot[1])) {
-            int frac = parse_int(dot + 1, 6);
-            size_t frac_digits = 0;
-            while (isdigit(dot[1 + frac_digits]))
-                frac_digits++;
-
-            if (frac_digits <= 3) {
-                msec = frac;
-            } else {
-                msec = frac / 1000;
-                usec = frac % 1000;
+                if (frac_digits >= 1 && frac_digits <= 3) {
+                    msec = parse_int(frac_ptr, frac_digits);
+                } else if (frac_digits == 6) {
+                    msec = parse_int(frac_ptr, 3);
+                    usec = parse_int(frac_ptr + 3, 3);
+                } else if (frac_digits > 0) {
+                    clear();
+                    throw IllegalArgumentException("DateTime::set(" + datetime + ")");
+                }
             }
         }
     }
@@ -314,46 +216,7 @@ DateTime& DateTime::setWithoutRegex(const String& datetime)
     return set(y, m, day, h, min, s, msec, usec);
 }
 
-/*!\brief Datum anhand eines Strings setzen
- *
- * \desc
- * Mit dieser Funktion wird das Datum anhand des Strings \p datetime gesetzt. Dabei versucht die Funktion
- * anhand mehrerer Regular Expressions zu erkennen, in welchem Format die Datumsangabe vorliegt. Es werden
- * folgende Formate erkannt:
- * - yyyy-mm-dd hh:ii:ss[.mms]
- * - yyyy.mm.dd hh:ii:ss[.mms]
- * - dd-mm-yyyy hh:ii:ss[.mms]
- * - dd.mm.yyyy hh:ii:ss[.mms]
- * - yyyy-mm-ddThh:ii:ss[.mms]+oo:oo (ISO 8601-Format)
- * - yyyy-mm-dd
- * - yyyy.mm.dd
- * - dd-mm-yyyy
- * - dd.mm.yyyy
- * - T: wird als Leerstring interpretiert und setzt das Datum auf 0
- * - Leerstring: setzt das Datum auf 0
- * \par Legende:
- * - yyyy: 4-Stellige Jahreszahl. Muss zwingend 4-stellig sein, da sonst nicht erkannt wird ob die Jahreszahl
- *   an erster oder dritter Stelle steht. Jahreszahlen < 1000 müssen daher mit führenden Nullen aufgefüllt
- *   werden, z.B. "0500" statt "500". Es werden keine negativen Jahreszahlen unterstützt.
- * - mm: Monatszahl zwischen 1 und 12. Kann ein- oder zweistellig sein
- * - dd: Monatstag zwischen 1 und 31, kann ein- oder zweistellig sein.
- * - hh: Stunden zwischen 0 und 23, kann ein- oder zweistellig sein
- * - ii: Minuten zwischen 0 und 59, kann ein- oder zweistellig sein
- * - ss: Sekunden zwischen 0 und 59, kann ein- oder zweistellig sein
- * - mms: Millisekunden oder Mikrosekunden: Ein dreistelliger Wert wird als Millisekunden
- *   interpretiert, ein sechstelliger Wert als Mikrosekunden. Wert ist optional und kann statt mit einem Punkt
- *   auch mit einem Doppelpunkt von den Sekunden der Uhrzeit getrennt sein.
- * \par
- * Bei der Datumsangabe kann als Trennzeichen wahlweise Punkt oder Minus verwendet werden. Es muss mindestens ein
- * vollständiges Datum angegeben werden und optional eine vollständige Uhrzeit (hh:ii:ss), wobei die Millisekunden
- * optional sind.
- *
- * @param[in] datetime String mit dem zu setzenden Datum und optional der Uhrzeit
- * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
- * ein ungültiges oder unbekanntes Datumsformat hat.
- * Ausnahmen: Ist der String leer oder enthält nur den
- * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
- */
+#ifdef OLD_REGEX_CODE
 DateTime& DateTime::set(const String& datetime)
 {
     return setWithoutRegex(datetime);
@@ -415,14 +278,8 @@ DateTime& DateTime::set(const String& datetime)
     }
     return *this;
 }
+#endif
 
-/*!\brief Datum aus einer anderen DateTime-Variablen übernehmen
- *
- * \desc
- * Mit dieser Funktion wird der Wert einer anderen DateTime-Variablen übernommen.
- *
- * @param[in] other Referenz auf eine andere DateTime-Variable, dessen Wert kopiert werden soll.
- */
 DateTime& DateTime::set(const DateTime& other)
 {
     yy = other.yy;
@@ -435,33 +292,6 @@ DateTime& DateTime::set(const DateTime& other)
     return *this;
 }
 
-/*!\brief Datum und Uhrzeit aus unterschiedlichen Strings importieren
- *
- * \desc
- * Mit dieser Funktion kann das Datum und die Uhrzeit aus zwei unterschiedlichen Strings
- * übernommen werden. Dazu werden beide Strings einfach mit Space getrennt hintereinander
- * gehangen und dann die \ref DateTime::set(const String &datetime) "set-Funktion"
- * aufgerufen, die nur einen String-Parameter erwartet.
- *
- * @param[in] date Referenz auf den String mit dem Datum. Dieses kann folgende Formate haben:
- * - yyyy-mm-dd
- * - yyyy.mm.dd
- * - dd-mm-yyyy
- * - dd.mm.yyyy
- * - Die Jahreszahl muss 4-stellig sein, Tag und Monat können ein- oder zweistellig sein. Statt Punkt oder Minus
- *   kann auch noch Doppelpunkt oder Komma als Trennzeichen verwendet werden.
- * @param[in] time Referenz auf den String mit der Uhrzeit. Diese muss folgendes Format haben:
- * - hh:ii:ss[.mms]
- * - Stunde, Minute und Sekunde können ein- oder zweistellig sein, Statt Doppelpunkt kann auch Komma, Punkt oder
- *   Minus als Trennzeichen verwendet werden. Die
- * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
- * ein ungültiges oder unbekanntes Datumsformat hat.
- * Ausnahmen: Ist der String leer oder enthält nur den
- * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
- * \see
- * Eine genauere Beschreibung der Formate samt Legende ist \ref DateTime::set(const String &datetime) "hier"
- * zu finden.
- */
 DateTime& DateTime::set(const String& date, const String& time)
 {
     String d, dd = Trim(date), tt = Trim(time);
@@ -475,75 +305,20 @@ DateTime& DateTime::set(const String& date, const String& time)
     return set(d);
 }
 
-/*!\brief Datum setzen, Uhrzeit bleibt unverändert
- *
- * \desc
- * Mit dieser Funktion wird nur das Datum der Klasse verändert, die Uhrzeit bleibt erhalten.
- *
- * @param[in] date Referenz auf den String mit dem zu setzenden Datum. Das Format wird bei der
- * \ref DateTime::set(const String &date, const String &time) "set-Funktion" genauer beschrieben.
- * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
- * ein ungültiges oder unbekanntes Datumsformat hat.
- * Ausnahmen: Ist der String leer oder enthält nur den
- * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
- */
 DateTime& DateTime::setDate(const String& date)
 {
     String time = getTime();
     return set(date, time);
 }
 
-/*!\brief Uhrzeit setzen, Datum bleibt unverändert
- *
- * \desc
- * Mit dieser Funktion wird nur die Uhrzeit der Klasse verändert, das Datum bleibt erhalten.
- *
- * @param[in] time Referenz auf den String mit der zu setzenden Uhrzeit. Das Format wird bei der
- * \ref DateTime::set(const String &date, const String &time) "set-Funktion" genauer beschrieben.
- * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
- * ein ungültiges oder unbekanntes Datumsformat hat.
- * Ausnahmen: Ist der String leer oder enthält nur den
- * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
- */
 DateTime& DateTime::setTime(const String& time)
 {
     String date = getDate();
     return set(date, time);
 }
 
-/*!\brief Datum und Uhrzeit anhand einzelner Integer-Wert setzen
- *
- * \desc
- * Mit dieser Funktion wird das Datum anhand einzelner Integer-Werten gesetzt.
- *
- * @param[in] year Jahreszahl zwischen 0 und 9999
- * @param[in] month Monat zwischen 1 und 12
- * @param[in] day Tag zwischen 1 und 31
- * @param[in] hour Stunde zwischen 0 und 23. Optionaler Wert, Default ist 0.
- * @param[in] minute Minute zwischen 0 und 59. Optionaler Wert, Default ist 0.
- * @param[in] sec Sekunde zwischen 0 und 59. Optionaler Wert, Default ist 0.
- * @param[in] msec Millisekunde zwischen 0 und 999. Optionaler Wert, Default ist 0.
- * @param[in] usec Mikrosekunde zwischen 0 und 999999. Optionaler Wert, Default ist 0.
- * \attention
- * Gegenwärtig werden Werte ausserhalb des Gültigkeitsbereiches abgeschnitten! Aus dem Monat 0 oder -10 würde 1
- * werden, aus 13 oder 12345 würde 12 werden. Dieses Verhalten wird sich in einer späteren Version noch ändern!
- * Geplant ist, dass bei Überlauf eines Wertes die anderen automatisch angepasst werden, so dass z.B. aus
- * dem 32.12.2010 automatisch der 01.01.2011 wird.
- *
- * \par
- * Wird bei \p year, \p month und \p day der Wert "0" angegeben, wird der Timestamp auf 0 gesetzt.
- *
- * \note
- * Millisekunden und Mikrosekunden werden intern nach der Formel msec*1000+usec zusammengerechnet.
- * Die Werte sollten daher entweder alternativ verwendet werden oder es muss sichergestellt sein,
- * dass die Mikrosekunden den Millisekundenanteil nicht enthalten.
- */
 DateTime& DateTime::set(int year, int month, int day, int hour, int minute, int sec, int msec, int usec)
 {
-    if (year == 0 && month == 0 && day == 0) {
-        clear();
-        return *this;
-    }
 
     yy = year;
     if (year < 0) yy = 0;
@@ -571,33 +346,11 @@ DateTime& DateTime::set(int year, int month, int day, int hour, int minute, int 
     return *this;
 }
 
-/*!\brief Datum aus PPLTIME-Struktur übernehmen
- *
- * \desc
- * Mit dieser Funktion wird Datum und Zeit aus einer PPLTIME-Struktur übernommen.
- *
- * @param[in] t Referenz auf eine PPLTIME-Struktur
- *
- * \attention
- * Gegenwärtig werden Werte ausserhalb des Gültigkeitsbereiches abgeschnitten! Aus dem Monat 0 oder -10 würde 1
- * werden, aus 13 oder 12345 würde 12 werden. Dieses Verhalten wird sich in einer späteren Version noch ändern!
- * Geplant ist, dass bei Überlauf eines Wertes die anderen automatisch angepasst werden, so dass z.B. aus
- * dem 32.12.2010 automatisch der 01.01.2011 wird.
- */
 DateTime& DateTime::set(const PPLTIME& t)
 {
     return set(t.year, t.month, t.day, t.hour, t.min, t.sec, 0, 0);
 }
 
-/*!\brief Datum aus Unix-Timestamp übernehmen
- *
- * \desc
- * Mit dieser Funktion werden Datum und Uhrzeit aus einem Unix-Timestamp übernommen (Sekunden seit 1970),
- * wie ihn Beispielsweise die C-Funktion "time()" zurückliefert. Es ist daher nicht möglich ein Datum vor
- * 1970 zu setzen.
- *
- * @param t 64-Bit Integer mit den Sekunden seit 1970.
- */
 DateTime& DateTime::setTime_t(uint64_t t)
 {
     if (t == 0) {
@@ -618,30 +371,11 @@ DateTime& DateTime::setTime_t(uint64_t t)
     return *this;
 }
 
-/*!\brief Datum aus Unix-Timestamp übernehmen
- *
- * \desc
- * Mit dieser Funktion werden Datum und Uhrzeit aus einem Unix-Timestamp übernommen (Sekunden seit 1970),
- * wie ihn Beispielsweise die C-Funktion "time()" zurückliefert. Es ist daher nicht möglich ein Datum vor
- * 1970 zu setzen.
- *
- * @param t 64-Bit Integer mit den Sekunden seit 1970.
- * \see http://de.wikipedia.org/wiki/Unixzeit
- */
 DateTime& DateTime::setEpoch(uint64_t t)
 {
     return setTime_t(t);
 }
 
-/*!\brief Datum aus einem 64-Bit-Integer übernehmen
- *
- * \desc
- * Mit dieser Funktion werden Datum, Uhrzeit und Millisekunden aus einem Long Integer (64 Bit) übernommen,
- * wie ihn die Funktion CDateTime::longInt zurückgibt. Der Aufbau des Integer-Wertes ist intern und kann
- * sich von Version zu Version ändern.
- *
- * @param i 64-Bit Integer
- */
 DateTime& DateTime::setLongInt(uint64_t i)
 {
     us = i % 1000000;
@@ -659,12 +393,6 @@ DateTime& DateTime::setLongInt(uint64_t i)
     return *this;
 }
 
-/*!\brief Aktuelles Datum und Uhrzeit übernehmen
- *
- * \desc
- * Mit dieser Funktion wird die Variable auf das aktuelle Datum und die aktuelle Uhrzeit gesetzt.
- * Es gibt sie auch als statische Funktion \ref DateTime::currentTime "currentTime".
- */
 DateTime& DateTime::setCurrentTime()
 {
     auto now = std::chrono::system_clock::now();
@@ -688,36 +416,6 @@ DateTime& DateTime::setCurrentTime()
     return *this;
 }
 
-//@}
-
-//!\name Datum auslesen
-
-/*!\brief Datum als String im angegebenen Format zurückgeben
- *
- * \desc
- * Datum als String im angegebenen Format zurückgeben
- *
- * @param[in] format Formatierungsstring. Wird dieser nicht angegeben, wird das Datum in folgendem Format zurückgegeben:
- * "%Y-%m-%d %H:%M:%S"
- *
- * @return String mit dem Datum im gewünschten Format
- * \par Formatierung
- *  Erlaubt sind folgende Formatzeichen:
- * - \%Y: Das Jahr als 4-stellige Angabe (z.B. 2010)
- * - \%y: Das Jahr als 2-stellige Angabe ohne Jahrhundert (z.B. 10)
- * - \%m: Der Monat als zweistellige Zahl (01 bis 12)
- * - \%d: Der Tag als zweistellige Zahl (01 bis 31)
- * - \%H: Stunden als zweistellige Zahl (00 bis 23)
- * - \%M: Minuten als zweistellige Zahl (00 bis 59)
- * - \%S: Sekunden als zweistellige Zahl (00 bis 59)
- * - \%*: Millisekunden als dreistellige Zahl (000 bis 999)
- * - \%u: Mikrosekunden als sechstellige Zahl (000000 bis 999999)
- * \par
- * Falls das im Objekt enthaltene Datum > 1900 ist, können weitere Formatanweisungen verwendet werden.
- * \par
- * \copydoc strftime.dox
- *
- */
 String DateTime::get(const String& format) const
 {
     String Tmp;
@@ -775,56 +473,16 @@ String DateTime::get(const String& format) const
     return r;
 }
 
-/*!\brief Datum als String zurückgeben
- *
- * \desc
- * Diese Funktion ist identisch zu DateTime::get, hat aber einen anderen Default für den optionalen
- * Formatstring.
- *
- * @param[in] format Formatierungsstring. Wird dieser nicht angegeben, wird das Datum in folgendem Format zurückgegeben:
- * "%Y-%m-%d"
- *
- * @return String mit dem Datum im gewünschten Format
- *
- * \see
- * Siehe DateTime::get
- */
 String DateTime::getDate(const String& format) const
 {
     return get(format);
 }
 
-/*!\brief Uhrzeit als String zurückgeben
- *
- * \desc
- * Diese Funktion ist identisch zu DateTime::get, hat aber einen anderen Default für den optionalen
- * Formatstring.
- *
- * @param[in] format Formatierungsstring. Wird dieser nicht angegeben, wird die Uhrzeit in folgendem Format zurückgegeben:
- * "%H-%M-%S"
- *
- * @return String mit der Uhrzeit im gewünschten Format
- *
- * \see
- * Siehe DateTime::get
- */
 String DateTime::getTime(const String& format) const
 {
     return get(format);
 }
 
-/*!\brief Datum als String im ISO8601-Format zurückgeben
- *
- * \desc
- * Diese Funktion gibt das Datum als String im ISO8601-Format zurück, das folgenden Aufbau hat:
- * "yyyy-mm-ddThh:ii:ss+zz:zz"
- * \par
- * Der Wert "+zz:zz" gibt den Offset zu GMT in Stunden und Minuten an und kann auch negativ sein.
- * Er wird allerdings nur ergänzt, wenn das Jahr >=1900 ist und das Betriebssystem den Wert "tm_gmtoff" in
- * seiner tm-Structure hat (siehe "man ctime").
- *
- * @return String mit dem Datum im ISO8601-Format
- */
 String DateTime::getISO8601() const
 {
     String r;
@@ -853,20 +511,6 @@ String DateTime::getISO8601() const
     return r;
 }
 
-/*!\brief Datum als String im ISO8601-Format mit Millisekunden zurückgeben
- *
- * \desc
- * Diese Funktion gibt das Datum als String im ISO8601-Format mit Millisekunden zurück, das folgenden Aufbau hat:
- * "yyyy-mm-ddThh:ii:ss.xxx+zz:zz"
- * \par
- * Der Wert "xxx" stellt die Millisekunden dar.
- * \par
- * Der Wert "+zz:zz" gibt den Offset zu GMT in Stunden und Minuten an und kann auch negativ sein.
- * Er wird allerdings nur ergänzt, wenn das Jahr >=1900 ist und das Betriebssystem den Wert "tm_gmtoff" in
- * seiner tm-Structure hat (siehe "man ctime").
- *
- * @return String mit dem Datum im ISO8601-Format
- */
 String DateTime::getISO8601withMsec() const
 {
     String r;
@@ -895,20 +539,6 @@ String DateTime::getISO8601withMsec() const
     return r;
 }
 
-/*!\brief Datum als String im ISO8601-Format mit Mikrosekunden zurückgeben
- *
- * \desc
- * Diese Funktion gibt das Datum als String im ISO8601-Format mit Mikrosekunden zurück, das folgenden Aufbau hat:
- * "yyyy-mm-ddThh:ii:ss.xxxxxx+zz:zz"
- * \par
- * Der Wert "xxxxxx" stellt die Mikrosekunden dar.
- * \par
- * Der Wert "+zz:zz" gibt den Offset zu GMT in Stunden und Minuten an und kann auch negativ sein.
- * Er wird allerdings nur ergänzt, wenn das Jahr >=1900 ist und das Betriebssystem den Wert "tm_gmtoff" in
- * seiner tm-Structure hat (siehe "man ctime").
- *
- * @return String mit dem Datum im ISO8601-Format
- */
 String DateTime::getISO8601withUsec() const
 {
     String r;
@@ -937,26 +567,6 @@ String DateTime::getISO8601withUsec() const
     return r;
 }
 
-/*!\ingroup PPLGroupDateTime
- * \brief Datumstring nach RFC-822 (Mailformat) erzeugen
- *
- * \desc
- * Mit dieser Funktion wird ein Datummstring nach RFC-822 erzeugt, wie er im Header einer Email verwendet wird.
- * Das Format lautet:
- * \code
- * weekday, day month year time zone
- * \endcode
- * und hat folgende Bedeutung:
- * - weekday: Name des Wochentags ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
- * - day: Tag des Monats mit ein oder zwei Ziffern
- * - month: Name des Monats ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
- * - year: Das Jahr mit 4 Ziffern
- * - time: Stunde:Minute:Sekunde (hh:mm:ss), jeweils mit zwei Ziffern und Doppelpunkt getrennt
- * - zone: Offset zu UTC in Stunden und Minuten (+|-HHMM)
- *
- * @return String mit dem Datum im RFC-822-Format
- * \exception Exception::FunctionFailed Die Funktion wirft eine Exception, wenn die Datumsinformation in der PPLTIME-Struktur ungültig ist.
- */
 String DateTime::getRFC822Date() const
 {
     PPLTIME t;
@@ -982,15 +592,6 @@ String DateTime::getRFC822Date() const
     return s;
 }
 
-/*!\brief Datum mit der Funktion strftime der Standard C Bibliothek formatieren
- *
- * \desc
- * Mit dieser Funktion wird das Datum mittels der Funktion strftime aus der Standard C Bibliothek
- * formatiert.
- *
- * @param[in] format Siehe Manpage zu strftime: man strftime
- * @return String im gewünschten Format
- */
 String DateTime::strftime(const String& format) const
 {
     size_t s = format.size() * 4 + 64;
@@ -1007,14 +608,6 @@ String DateTime::strftime(const String& format) const
     return String(buf.data());
 }
 
-/*!\brief Datum in Unix-Timestamp umrechnen
- *
- * \desc
- * Mit dieser Funktion wird das in der Variablen enthaltene Datum und Uhrzeit in einen
- * Unix-Timestamp umgerechnet (Sekunden seit 1970).
- *
- * @return Sekunden seit 1970 oder 0, wenn das Datum sich nicht umrechnen läßt, z.B. wenn das Jahr vor 1970 liegt.
- */
 uint64_t DateTime::time_t() const
 {
     if (yy < 1970) return 0;
@@ -1029,16 +622,6 @@ uint64_t DateTime::time_t() const
     return (uint64_t)mktime(&t);
 }
 
-/*!\brief Datum in Unix-Timestamp umrechnen
- *
- * \desc
- * Mit dieser Funktion wird das in der Variablen enthaltene Datum und Uhrzeit in einen
- * Unix-Timestamp umgerechnet (Sekunden seit 1970).
- *
- * @return Sekunden seit 1970 oder 0, wenn das Datum sich nicht umrechnen läßt, z.B. wenn das Jahr vor 1970 liegt.
- *
- * \see http://de.wikipedia.org/wiki/Unixzeit
- */
 uint64_t DateTime::epoch() const
 {
     if (yy < 1900) return 0;
@@ -1053,14 +636,6 @@ uint64_t DateTime::epoch() const
     return (uint64_t)mktime(&t);
 }
 
-/*!\brief Datum als 64-Bit-Integer auslesen
- *
- * Mit dieser Funktion werden Datum, Uhrzeit und Millisekunden als Long Integer (64 Bit) zurückgegeben,
- * wie er von der Funktion CDateTime::setLongInt eingelesen werden kann. Der Aufbau des Integer-Wertes ist intern und kann
- * sich von Version zu Version ändern.
- *
- * @return 64-Bit-Integer mit dem Timestamp
- */
 uint64_t DateTime::longInt() const
 {
     uint64_t r = yy * 12 + (mm - 1);
@@ -1072,117 +647,6 @@ uint64_t DateTime::longInt() const
     return r;
 }
 
-/*!\brief Das Jahr als Integer auslesen
- *
- * \desc
- * Diese Funktion gibt die Jahreszahl als Integer zurück.
- *
- * @return Integer-Wert mit dem Jahr
- */
-int DateTime::year() const
-{
-    return yy;
-}
-
-/*!\brief Den Monat als Integer auslesen
- *
- * \desc
- * Diese Funktion gibt den Monat als Integer zurück.
- *
- * @return Integer-Wert mit dem Monat
- */
-int DateTime::month() const
-{
-    return mm;
-}
-
-/*!\brief Den Tag als Integer auslesen
- *
- * \desc
- * Diese Funktion gibt den Tag als Integer zurück.
- *
- * @return Integer-Wert mit dem Tag
- */
-int DateTime::day() const
-{
-    return dd;
-}
-
-/*!\brief Die Stunde als Integer auslesen
- *
- * \desc
- * Diese Funktion gibt die Stunde als Integer zurück.
- *
- * @return Integer-Wert mit der Stunde
- */
-int DateTime::hour() const
-{
-    return hh;
-}
-
-/*!\brief Die Minute als Integer auslesen
- *
- * \desc
- * Diese Funktion gibt die Minute als Integer zurück.
- *
- * @return Integer-Wert mit der Minute
- */
-int DateTime::minute() const
-{
-    return ii;
-}
-
-/*!\brief Die Sekunde als Integer auslesen
- *
- * \desc
- * Diese Funktion gibt die Sekunde als Integer zurück.
- *
- * @return Integer-Wert mit der Sekunde
- */
-int DateTime::second() const
-{
-    return ss;
-}
-
-/*!\brief Die Millisekunden als Integer auslesen
- *
- * \desc
- * Diese Funktion gibt die Millisekunden als Integer zurück.
- *
- * @return Integer-Wert mit den Millisekunden
- */
-int DateTime::millisecond() const
-{
-    return us / 1000;
-}
-
-/*!\brief Die Mikrosekunden als Integer auslesen
- *
- * \desc
- * Diese Funktion gibt die Mikrosekunden als Integer zurück.
- *
- * @return Integer-Wert mit den Mikrosekunden
- */
-int DateTime::microsecond() const
-{
-    return us;
-}
-
-/*!\brief Die Wochennummer als Integer auslesen, Berechnung nach ISO 8601
- *
- * \desc
- * Diese Funktion berechnet anhand des Datums die Wochennummer innerhalb
- * des Jahres und gibt diese als Integer zurück. Die Zählweise richtet sich
- * dabei nach ISO 8601:
- *   - Jeden Montag und nur montags beginnt eine neue Kalenderwoche.
- *   - Die erste Kalenderwoche ist diejenige, die mindestens vier Tage des neuen Jahres enthält.
- * \par
- * Diese Zählweise ist die in Europa gebräuchliche.
- *
- * \see CDateTime::week
- *
- * @return Integer-Wert mit dem Jahr
- */
 int DateTime::weekISO8601() const
 {
     if (yy < 1900) throw DateOutOfRangeException("year < 1900 [%i]", yy);
@@ -1198,25 +662,13 @@ int DateTime::weekISO8601() const
 
     char buffer[10];
 #ifdef _WIN32
-    if (::strftime(buffer, 10, "%W", &t) == 0) throw InvalidDateException();
+    if (::strftime(buffer, 10, "%V", &t) == 0) throw InvalidDateException();
 #else
     if (::strftime(buffer, 10, "%V", &t) == 0) throw InvalidDateException();
 #endif
     return atoi(buffer);
 }
 
-/*!\brief Die Wochennummer als Integer auslesen
- *
- * \desc
- * Diese Funktion berechnet anhand des Datums die Wochennummer innerhalb
- * des Jahres und gibt diese als Integer zurück. Die Zählweise entspricht der in
- * den USA, Australien und vielen weiteren Ländern, in der sich die Tradition des
- * Judentums, Christentums und Islams erhalten hat. Dabei gilt folgende Regel:
- * - Jeden Sonntag beginnt eine neue Kalenderwoche
- * - Am 1. Januar beginnt stets – unabhängig vom Wochentag – die 1. Kalenderwoche
- *
- * @return Integer-Wert mit dem Jahr
- */
 int DateTime::week() const
 {
     if (yy < 1900) throw DateOutOfRangeException("year < 1900 [%i]", yy);
@@ -1229,90 +681,41 @@ int DateTime::week() const
 
     ::time_t clock = mktime(&t);
     if (!safe_gmtime(clock, &t)) throw InvalidDateException();
-
     char buffer[10];
     if (::strftime(buffer, 10, "%U", &t) == 0) throw InvalidDateException();
 
     return atoi(buffer);
 }
 
-//@}
-
-//!\name Verschiedenes
-
-/*!\brief Datum und Uhrzeit auf STDOUT ausgeben
- *
- * \desc
- * Mit dieser Funktion wird Datum und Uhrzeit auf der Konsole (STDOUT) ausgegeben. Sie ist
- * nur zu Debug-Zwecken gedacht.
- */
-void DateTime::print() const
-{
-    printf("%04i-%02i-%02i %02i:%02i:%02i\n", yy, mm, dd, hh, ii, ss);
-}
-
-/*!\brief Prüft, ob ein Datum oder Uhrzeit vorhanden ist
- *
- * \desc
- * Diese Funktion liefert \c true zurück, wenn ein Datum oder Uhrzeit gesetzt ist, der Wert also \b nicht Null ist.
- * Sie ist somit das Gegenteil zu DateTime::isEmpty.
- * @return \c true oder \c false
- *
- */
 bool DateTime::notEmpty() const
 {
-    if (yy > 0) return 1;
-    if (mm > 0) return 1;
-    if (dd > 0) return 1;
-    if (hh > 0) return 1;
-    if (ii > 0) return 1;
-    if (ss > 0) return 1;
-    if (us > 0) return 1;
-    return 0;
+    if (yy > 0) return true;
+    if (mm > 0) return true;
+    if (dd > 0) return true;
+    if (hh > 0) return true;
+    if (ii > 0) return true;
+    if (ss > 0) return true;
+    if (us > 0) return true;
+    return false;
 }
 
-/*!\brief Prüft, ob ein Datum oder Uhrzeit vorhanden ist
- *
- * \desc
- * Diese Funktion liefert \c true zurück, wenn \b kein Datum und \b keine Uhrzeit gesetzt ist,
- * der Wert also Null ist. Sie ist somit das Gegenteil zu DateTime::notEmpty.
- *
- * @return \c true oder \c false
- */
 bool DateTime::isEmpty() const
 {
-    if (yy > 0) return 0;
-    if (mm > 0) return 0;
-    if (dd > 0) return 0;
-    if (hh > 0) return 0;
-    if (ii > 0) return 0;
-    if (ss > 0) return 0;
-    if (us > 0) return 0;
-    return 1;
+    if (yy > 0) return false;
+    if (mm > 0) return false;
+    if (dd > 0) return false;
+    if (hh > 0) return false;
+    if (ii > 0) return false;
+    if (ss > 0) return false;
+    if (us > 0) return false;
+    return true;
 }
 
-/*!\brief Datum auf Schaltjahr prüfen
- *
- * \desc
- * Mit dieser Funktion wird geprüft, ob es sich bei dem in der Variable gespeicherten Jahr um ein
- * Schaltjahr handelt oder nicht.
- *
- * @return Liefert \c true zurück, wenn es sich um ein Schaltjahr handelt, andernfalls \c false.
- */
 bool DateTime::isLeapYear() const
 {
     return isLeapYear(yy);
 }
 
-/*!\brief Jahreszahl auf Schaltjahr prüfen
- *
- * \desc
- * Mit dieser statischen Funktion kann geprüft werden, ob es sich bei dem angegebenen Jahr \p year um ein
- * Schaltjahr handelt oder nicht.
- *
- * @param[in] year Das zu prüfende Jahr
- * @return Liefert \c true zurück, wenn es sich um ein Schaltjahr handelt, andernfalls \c false.
- */
 bool DateTime::isLeapYear(int year)
 {
     if (year % 4 != 0) return 0;
@@ -1321,13 +724,6 @@ bool DateTime::isLeapYear(int year)
     return 1;
 }
 
-/*!\brief Aktuelles Datum zurückgeben
- *
- * \desc
- * Diese statische Funktion liefert das aktuelle Datum und die aktuelle Uhrzeit in Form einer
- * DateTime-Variablen zurück.
- * @return DateTime-Variable mit dem aktuellen Datum und Uhrzeit.
- */
 DateTime DateTime::currentTime()
 {
     DateTime d;
@@ -1335,16 +731,6 @@ DateTime DateTime::currentTime()
     return d;
 }
 
-/*!\brief Differenz in Sekunden
- *
- * \desc
- * Diese Funktion gibt die Differenz dieses DateTime zu dem angegebenen DateTime \p other in
- * Sekunden zurück. Liegt der Zeitpunkt von \p other vor diesem, ist der Rückgabewert negativ.
- *
- * Vor dem Vergleich werden beide Zeitwerte in UTC umgewandelt.
- * @param[in] other Zu vergleichender Zeitwert
- * @return Differenz in Sekunden
- */
 int64_t DateTime::diffSeconds(const DateTime& other) const
 {
     int64_t mySecs = (int64_t)time_t();
@@ -1352,17 +738,6 @@ int64_t DateTime::diffSeconds(const DateTime& other) const
     return otherSecs - mySecs;
 }
 
-/*!\brief Differenz in Sekunden mit Toleranz vergleichen
- *
- * \desc
- * Mit dieser Funktion wird die Differenz des Zeitwerts dieses DateTime mit der angegebenen DateTime \p other
- * auf Sekundenbasis berechnet und anschließend mit der angegebenen Toleranz \p tolerance verglichen.
- *
- * @param[in] other Zu vergleichender Zeitwert
- * @param[in] tolerance Optionaler Wert, der die akzeptable Toleranz beider Werte in Sekunden angibt
- * @return Sind beide Zeitwerte identisch oder liegen im Bereich der angegebenen Toleranz, gibt die Funktion
- * 1 zurück, andernfalls 0. Es wird kein Fehlercode gesetzt.
- */
 int DateTime::compareSeconds(const DateTime& other, int tolerance) const
 {
     int64_t mySecs = (int64_t)time_t();
@@ -1372,52 +747,41 @@ int DateTime::compareSeconds(const DateTime& other, int tolerance) const
     if (diff <= tolerance) return 1;
     return 0;
 }
-//@}
 
-//!\name Operatoren
-
-/*!\brief Datum aus einem String übernehmen
- *
- * \desc
- * Mit diesem Operator werden Datum und Uhrzeit aus dem String \p datetime übernommen.
- * Die unterstützten Formate sind in der Funktion
- * \ref DateTime::set(const String &datetime) "set" beschrieben.
- *
- * @param[in] datetime String mit Datum und Uhrzeit
- * @return Gibt eine Referenz auf den DateTime-Wert zurück
- *
- * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
- * ein ungültiges oder unbekanntes Datumsformat hat.
- * Ausnahmen: Ist der String leer oder enthält nur den
- * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
- */
 DateTime& DateTime::operator=(const String& datetime)
 {
     set(datetime);
     return *this;
 }
 
-/*!\brief Datum aus einem anderen DateTime-Wert übernehmen
- *
- * \desc
- * Mit diesem Operator wird der Wert eines anderen DateTime-Wertes übernommen.
- *
- * @param[in] other Referenz auf den zu kopierenden DateTime-Wert
- * @return Gibt eine Referenz auf den DateTime-Wert zurück
- */
 DateTime& DateTime::operator=(const DateTime& other)
 {
     set(other);
     return *this;
 }
 
-/*!\brief Rueckgabe des Timestamps als String
- *
- * \desc
- * Liefert den Timestamp als String in folgendem Format zurück:
- * "yyyy-mm-dd hh:ii:ss.micses".
- * @return Datums-String
- */
+DateTime& DateTime::operator=(DateTime&& other)
+{
+    if (this != &other) {
+        yy = other.yy;
+        mm = other.mm;
+        dd = other.dd;
+        hh = other.hh;
+        ii = other.ii;
+        ss = other.ss;
+        us = other.us;
+
+        other.yy = 0;
+        other.mm = 0;
+        other.dd = 0;
+        other.hh = 0;
+        other.ii = 0;
+        other.ss = 0;
+        other.us = 0;
+    }
+    return *this;
+}
+
 String DateTime::toString() const
 {
     String r;
@@ -1425,263 +789,17 @@ String DateTime::toString() const
     return r;
 }
 
-/*!\brief Rueckgabe des Timestamps als String mittles Fomatierungsvorgabe
- * \copydoc DateTime::get
- */
 String DateTime::toString(const String& format) const
 {
     return get(format);
 }
 
-/*!\brief Operator, der einen String zurückliefert
- *
- * \desc
- * Dieser Operator liefert den Inhalt der Variablen als String in folgendem Format zurück:
- * "yyyy-mm-dd hh:ii:ss.micses".
- * @return Datums-String
- */
 DateTime::operator String() const
 {
     String r;
     r.setf("%04i-%02i-%02i %02i:%02i:%02i.%06i", yy, mm, dd, hh, ii, ss, us);
     return r;
 }
-
-/*!\brief Vergleichsoperator "kleiner": <
- *
- * \desc
- * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
- * zurück, wenn der erste Wert kleiner ist als der Zweite.
- *
- * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
- * @return Gibt \c true zurück, wenn der erste Wert kleiner ist als der Zweite.
- */
-bool DateTime::operator<(const DateTime& other) const
-{
-    if (yy < other.yy)
-        return true;
-    else if (yy > other.yy)
-        return false;
-
-    if (mm < other.mm)
-        return true;
-    else if (mm > other.mm)
-        return false;
-
-    if (dd < other.dd)
-        return true;
-    else if (dd > other.dd)
-        return false;
-
-    if (hh < other.hh)
-        return true;
-    else if (hh > other.hh)
-        return false;
-
-    if (ii < other.ii)
-        return true;
-    else if (ii > other.ii)
-        return false;
-
-    if (ss < other.ss)
-        return true;
-    else if (ss > other.ss)
-        return false;
-
-    if (us < other.us) return true;
-    return false;
-}
-
-/*!\brief Vergleichsoperator "kleiner oder gleich": <=
- *
- * \desc
- * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
- * zurück, wenn der erste Wert kleiner oder gleich groß ist, wie der Zweite.
- *
- * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
- * @return Gibt \c true zurück, wenn der erste Wert kleiner oder gleich gross ist wie der Zweite.
- */
-bool DateTime::operator<=(const DateTime& other) const
-{
-    if (yy < other.yy)
-        return true;
-    else if (yy > other.yy)
-        return false;
-
-    if (mm < other.mm)
-        return true;
-    else if (mm > other.mm)
-        return false;
-
-    if (dd < other.dd)
-        return true;
-    else if (dd > other.dd)
-        return false;
-
-    if (hh < other.hh)
-        return true;
-    else if (hh > other.hh)
-        return false;
-
-    if (ii < other.ii)
-        return true;
-    else if (ii > other.ii)
-        return false;
-
-    if (ss < other.ss)
-        return true;
-    else if (ss > other.ss)
-        return false;
-
-    if (us < other.us)
-        return true;
-    else if (ss > other.ss)
-        return false;
-    return true;
-}
-
-/*!\brief Vergleichsoperator "gleich": ==
- *
- * \desc
- * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
- * zurück, wenn beide Werte identisch sind.
- *
- * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
- * @return Gibt \c true zurück, wenn beide Werte identisch sind.
- */
-bool DateTime::operator==(const DateTime& other) const
-{
-    if (yy != other.yy) return false;
-    if (mm != other.mm) return false;
-    if (dd != other.dd) return false;
-    if (hh != other.hh) return false;
-    if (ii != other.ii) return false;
-    if (ss != other.ss) return false;
-    if (us != other.us) return false;
-    return true;
-}
-
-/*!\brief Vergleichsoperator "ungleich": !=
- *
- * \desc
- * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
- * zurück, wenn die Werte nicht übereinstimmen.
- *
- * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
- * @return Gibt \c true zurück, wenn die Werte nicht übereinstimmen.
- */
-bool DateTime::operator!=(const DateTime& other) const
-{
-    if (yy != other.yy) return true;
-    if (mm != other.mm) return true;
-    if (dd != other.dd) return true;
-    if (hh != other.hh) return true;
-    if (ii != other.ii) return true;
-    if (ss != other.ss) return true;
-    if (us != other.us) return true;
-    return false;
-    /*
-    uint64_t v1=longInt();
-    uint64_t v2=other.longInt();
-    if (v1!=v2) return true;
-    return false;
-    */
-}
-
-/*!\brief Vergleichsoperator "größer oder gleich": >=
- *
- * \desc
- * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
- * zurück, wenn der erste Wert größer oder gleich groß ist, wie der Zweite.
- *
- * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
- * @return Gibt \c true zurück, wenn der erste Wert größer oder gleich groß ist, wie der Zweite.
- */
-bool DateTime::operator>=(const DateTime& other) const
-{
-    if (yy > other.yy)
-        return true;
-    else if (yy < other.yy)
-        return false;
-
-    if (mm > other.mm)
-        return true;
-    else if (mm < other.mm)
-        return false;
-
-    if (dd > other.dd)
-        return true;
-    else if (dd < other.dd)
-        return false;
-
-    if (hh > other.hh)
-        return true;
-    else if (hh < other.hh)
-        return false;
-
-    if (ii > other.ii)
-        return true;
-    else if (ii < other.ii)
-        return false;
-
-    if (ss > other.ss)
-        return true;
-    else if (ss < other.ss)
-        return false;
-
-    if (us > other.us)
-        return true;
-    else if (us < other.us)
-        return false;
-    return true;
-}
-
-/*!\brief Vergleichsoperator "größer": >
- *
- * \desc
- * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
- * zurück, wenn der erste Wert größer ist als der Zweite.
- *
- * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
- * @return Gibt \c true zurück, wenn der erste Wert größer ist als der Zweite.
- */
-bool DateTime::operator>(const DateTime& other) const
-{
-    if (yy > other.yy)
-        return true;
-    else if (yy < other.yy)
-        return false;
-
-    if (mm > other.mm)
-        return true;
-    else if (mm < other.mm)
-        return false;
-
-    if (dd > other.dd)
-        return true;
-    else if (dd < other.dd)
-        return false;
-
-    if (hh > other.hh)
-        return true;
-    else if (hh < other.hh)
-        return false;
-
-    if (ii > other.ii)
-        return true;
-    else if (ii < other.ii)
-        return false;
-
-    if (ss > other.ss)
-        return true;
-    else if (ss < other.ss)
-        return false;
-
-    if (us > other.us) return true;
-    return false;
-}
-
-//@}
 
 std::ostream& operator<<(std::ostream& s, const DateTime& dt)
 {

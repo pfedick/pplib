@@ -214,6 +214,14 @@ TEST_F(DateTimeTest, CopyConstructor)
     });
 }
 
+TEST_F(DateTimeTest, MoveConstructor)
+{
+    pplib::DateTime d1("2012-05-18 11:50:11.159473");
+    pplib::DateTime d2 = std::move(d1);
+    ASSERT_TRUE(d2.notEmpty() == true) << "Class is empty";
+    ASSERT_EQ(pplib::String("2012-05-18 11:50:11.159473"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
 TEST_F(DateTimeTest, ConstructorWithTime_t)
 {
     uint64_t t = 1337335350; // 2012-05-18 12:02:30
@@ -272,6 +280,26 @@ TEST_F(DateTimeTest, set)
         << "Unexpected date";
     EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123000"), d1.set("2026.8.16 8:35:1.123").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000000"), d1.set("2026.8.16 8:35:1").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setWithWrongFormatThrowsException)
+{
+    pplib::DateTime d1;
+    ASSERT_THROW({ d1.set("2026:12-16T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("2026:12:16T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("16T08.35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("2a26.12.16T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("2A26.12.16T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("2!26.12.16T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("2026.1a.16T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("2026.01.aaT08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("0000.00.00T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("00.00.0000T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("0a.01.2026T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("01.0a.2026T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("01.01.2a26T08:35:01.012345"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("01T"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("01 01"); }, pplib::IllegalArgumentException);
 }
 
 TEST_F(DateTimeTest, getLongInt)
@@ -720,6 +748,20 @@ TEST_F(DateTimeTest, GreaterThanEqualMicroSecond)
         ASSERT_GE(d2, d1) << "Unexpected date";
         ASSERT_GE(d1, d1) << "Unexpected date";
     });
+}
+
+TEST_F(DateTimeTest, week)
+{
+    pplib::DateTime d1;
+    EXPECT_EQ(d1.set("2024-01-01 00:00:00").week(), 0) << "Unexpected week";
+    EXPECT_EQ(d1.set("2024-06-05T11:50:11.159473").week(), 22) << "Unexpected week";
+}
+
+TEST_F(DateTimeTest, weekISO8601)
+{
+    pplib::DateTime d1;
+    EXPECT_EQ(d1.set("2024-01-01 00:00:00").weekISO8601(), 1) << "Unexpected week";
+    EXPECT_EQ(d1.set("2024-06-05T11:50:11.159473").weekISO8601(), 23) << "Unexpected week";
 }
 
 } // namespace
