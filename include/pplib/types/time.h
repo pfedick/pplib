@@ -100,7 +100,7 @@ public:
      */
     inline Time(uint32_t seconds) noexcept
     {
-        setSeconds(seconds);
+        setFromSeconds(seconds);
     }
 
     /** @brief Konstruktor mit Angabe von Stunden, Minuten, Sekunden und Mikrosekunden
@@ -115,6 +115,18 @@ public:
     inline Time(uint8_t hour, uint8_t minute, uint8_t second, uint32_t microseconds = 0)
     {
         set(hour, minute, second, microseconds);
+    }
+
+    /** @brief Setzt die Uhrzeit auf 00:00:00.000000
+     *
+     * Mit dieser Funktion wird die Uhrzeit auf 0 Uhr gesetzt.
+     */
+    inline void clear() noexcept
+    {
+        hh = 0;
+        ii = 0;
+        ss = 0;
+        us = 0;
     }
 
     /** @brief Gibt die Uhrzeit in Mikrosekunden zurück
@@ -148,7 +160,7 @@ public:
      * @param microseconds Uhrzeit in Mikrosekunden
      * @return Referenz auf das aktuelle Objekt
      */
-    Time& setMicroseconds(uint64_t microseconds) noexcept;
+    Time& setFromMicroseconds(uint64_t microseconds) noexcept;
 
     /** @brief Setzt die Uhrzeit in Sekunden
      *
@@ -158,7 +170,7 @@ public:
      * @param seconds Uhrzeit in Sekunden
      * @return Referenz auf das aktuelle Objekt
      */
-    Time& setSeconds(uint32_t seconds) noexcept;
+    Time& setFromSeconds(uint32_t seconds) noexcept;
 
     /** @brief Setzt die Uhrzeit
      *
@@ -184,6 +196,14 @@ public:
      * @exception IllegalArgumentException: Wird geworfen, wenn der String kein gültiges Zeitformat hat.
      */
     Time& set(const String& time);
+
+    Time& setHours(uint8_t hour);
+
+    Time& setMinutes(uint8_t minute);
+
+    Time& setSeconds(uint8_t second);
+
+    Time& setMicroseconds(uint32_t microseconds);
 
     /** @brief Setzt die Uhrzeit aus einem anderen Time-Objekt
      *
@@ -220,7 +240,8 @@ public:
      * - %I: Stunde (00-11)
      * - %M: Minute (00-59)
      * - %S: Sekunde (00-59)
-     * - %f: Mikrosekunden (000000-999999)
+     * - %f: Millisekunden (000-999)
+     * - %u: Mikrosekunden als sechstellige Zahl (000000 bis 999999)
      *
      * @param format String mit dem gewünschten Format
      * @return Uhrzeit als String im angegebenen Format

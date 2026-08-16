@@ -33,6 +33,7 @@
 #include <pplib/types/string.h>
 #include <pplib/types/datetime.h>
 #include <pplib/types/bytearray.h>
+#include <pplib/types/array.h>
 
 #include <pplib/core/functions.h>
 #include <pplib/core/regex.h>
@@ -75,332 +76,96 @@ static bool safe_gmtime(time_t t, struct tm* tmstruct)
 #endif
 }
 
-DateTime::DateTime()
-{
-    clear();
-}
-
-DateTime::DateTime(const String& datetime)
-{
-    set(datetime);
-}
-
-DateTime::DateTime(const DateTime& other)
-{
-    yy = other.yy;
-    us = other.us;
-    mm = other.mm;
-    dd = other.dd;
-    hh = other.hh;
-    ii = other.ii;
-    ss = other.ss;
-}
-
-DateTime::DateTime(DateTime&& other)
-{
-    yy = other.yy;
-    us = other.us;
-    mm = other.mm;
-    dd = other.dd;
-    hh = other.hh;
-    ii = other.ii;
-    ss = other.ss;
-    other.clear();
-}
-
-DateTime::DateTime(uint64_t t)
-{
-    setTime_t(t);
-}
-
-void DateTime::clear()
-{
-    yy = 0;
-    us = 0;
-    mm = 0;
-    dd = 0;
-    hh = 0;
-    ii = 0;
-    ss = 0;
-}
-
-// Hilfsfunktion zum einfachen Konvertieren von Ziffern in Integer
-static int parse_int(const char* p, size_t len)
-{
-    int val = 0;
-    for (size_t i = 0; i < len; ++i) {
-        if (p[i] >= '0' && p[i] <= '9')
-            val = val * 10 + (p[i] - '0');
-        else
-            throw IllegalArgumentException("DateTime::set(" + String(p, len) + ")");
-    }
-    return val;
-}
-
 DateTime& DateTime::set(const String& datetime)
 {
-    String d = UpperCase(Trim(datetime));
-    d.replace(",", ".");
+    String parse = UpperCase(Trim(datetime));
+    // TODO: Timezone am Ende vorhanden?
 
-    if (d.isEmpty() || d == "T" || d == "0" || d == "NULL") {
+    parse.replace(" ", "T");
+    if (parse.isEmpty() || parse == "T" || parse == "0" || parse == "NULL") {
         clear();
         return *this;
     }
-
-    const char* str = d.c_str();
-
-    // Datum und Zeit trennen ('T' oder Leerzeichen)
-    const char* sep = strpbrk(str, " T");
-    const char* time_part = sep ? sep + 1 : nullptr;
-
-    int y = 0, m = 0, day = 0;
-
-    // 1. Datum parsen
-    const char* d1 = strpbrk(str, ".-");
-    if (!d1 || (sep && d1 > sep)) {
-        clear();
-        throw IllegalArgumentException("DateTime::set(" + datetime + ")");
-    }
-
-    size_t first_len = d1 - str;
-    const char* d2 = strpbrk(d1 + 1, ".-");
-
-    if (first_len == 4) {
-        // YYYY-MM-DD
-        y = parse_int(str, 4);
-        m = parse_int(d1 + 1, d2 ? (d2 - d1 - 1) : 2);
-        day = parse_int(d2 ? d2 + 1 : d1 + 1, sep ? (sep - (d2 ? d2 + 1 : d1 + 1)) : 2);
-    } else if (first_len == 1 || first_len == 2) {
-        // DD.MM.YYYY
-        day = parse_int(str, first_len);
-        if (!d2) {
-            clear();
-            throw IllegalArgumentException("DateTime::set(" + datetime + ")");
-        }
-        m = parse_int(d1 + 1, d2 - d1 - 1);
-        y = parse_int(d2 + 1, sep ? (sep - d2 - 1) : 4);
+    // Wie müssen in Datum und Zeit trennen
+    Array a(parse, "T");
+    if (a.size() == 1) {
+        // Kein T gefunden, nur Datum
+        my_date.set(a[0]);
+        my_time.set(0, 0, 0, 0);
+    } else if (a.size() == 2) {
+        my_date.set(a[0]);
+        my_time.set(a[1]);
     } else {
-        clear();
-        throw IllegalArgumentException("DateTime::set(" + datetime + ")");
-    }
-
-    if (y == 0 && m == 0 && day == 0) {
-        clear();
-        throw IllegalArgumentException("DateTime::set(" + datetime + ")");
-    }
-
-    // 2. Uhrzeit parsen (falls vorhanden)
-    int h = 0, min = 0, s = 0, usec = 0;
-    if (time_part && *time_part != '\0') {
-        int consumed = 0;
-        if (sscanf(time_part, "%d:%d:%d%n", &h, &min, &s, &consumed) >= 3) {
-            const char* frac_ptr = time_part + consumed;
-            if (*frac_ptr == '.' || *frac_ptr == ':') {
-                frac_ptr++;
-                size_t frac_digits = 0;
-                while (isdigit(frac_ptr[frac_digits]))
-                    frac_digits++;
-
-                if (frac_digits >= 1 && frac_digits <= 3) {
-                    usec = parse_int(frac_ptr, frac_digits) * 1000;
-                } else if (frac_digits == 6) {
-                    usec = parse_int(frac_ptr, 6);
-                } else if (frac_digits > 0) {
-                    clear();
-                    throw IllegalArgumentException("DateTime::set(" + datetime + ")");
-                }
-            }
-        }
-    }
-
-    return set(y, m, day, h, min, s, usec);
-}
-
-#ifdef OLD_REGEX_CODE
-DateTime& DateTime::set(const String& datetime)
-{
-    return setWithoutRegex(datetime);
-    String d = UpperCase(Trim(datetime));
-    std::vector<String> m;
-    d.replace(",", " ");
-    if (d.isEmpty() == true || d == "T" || d == "0" || d == "NULL") {
-        clear();
-        return *this;
-    }
-    if (RegEx::capture("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})/", d, m)) {
-        // yyyy-mm-ddThh:ii:ss.msecusec[[+-]oo:00]
-        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt(),
-                   m.at(8).toInt());
-    } else if (RegEx::capture("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})/", d, m)) {
-        // yyyy-mm-ddThh:ii:ss.msec[[+-]oo:00]
-        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt());
-
-    } else if (RegEx::capture("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})/", d, m)) {
-        // yyyy-mm-ddThh:ii:ss[[+-]oo:00]
-        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt());
-    } else if (RegEx::capture(
-                   "/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/",
-                   d, m)) {
-        // yyyy.mm.dd hh:ii:ss.msecusec
-        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt(),
-                   m.at(8).toInt());
-    } else if (RegEx::capture(
-                   "/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/", d,
-                   m)) {
-        // yyyy.mm.dd hh:ii:ss.msec
-        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt());
-    } else if (RegEx::capture(
-                   "/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/",
-                   d, m)) {
-        // dd.mm.yyyy hh:ii:ss.msecusec
-        return set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt(),
-                   m.at(8).toInt());
-    } else if (RegEx::capture(
-                   "/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/", d,
-                   m)) {
-        // dd.mm.yyyy hh:ii:ss.msec
-        return set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt(), m.at(7).toInt());
-    } else if (RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$/", d, m)) {
-        // yyyy.mm.dd hh:ii:ss
-        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt());
-    } else if (RegEx::capture("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$/", d, m)) {
-        // dd.mm.yyyy hh:ii:ss
-        return set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt(), m.at(4).toInt(), m.at(5).toInt(), m.at(6).toInt());
-    } else if (RegEx::capture("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})$/", d, m)) {
-        // dd.mm.yyyy
-        return set(m.at(3).toInt(), m.at(2).toInt(), m.at(1).toInt());
-    } else if (RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/", d, m)) {
-        // yyyy.mm.dd
-        return set(m.at(1).toInt(), m.at(2).toInt(), m.at(3).toInt());
-    } else {
-        clear();
-        throw IllegalArgumentException("DateTime::set(" + datetime + ")");
+        throw IllegalArgumentException("DateTime::set: invalid datetime format (%s)", parse.c_str());
     }
     return *this;
 }
-#endif
 
-DateTime& DateTime::set(const DateTime& other)
+DateTime& DateTime::set(const PPLTIME& pt)
 {
-    yy = other.yy;
-    us = other.us;
-    mm = other.mm;
-    dd = other.dd;
-    hh = other.hh;
-    ii = other.ii;
-    ss = other.ss;
-    return *this;
-}
-
-DateTime& DateTime::set(const String& date, const String& time)
-{
-    String d, dd = Trim(date), tt = Trim(time);
-    dd.replace(",", ".");
-    dd.replace(":", ".");
-    tt.replace(",", ":");
-    tt.replace(".", ":");
-    tt.replace("-", ":");
-
-    d = dd + " " + tt;
-    return set(d);
-}
-
-DateTime& DateTime::setDate(const String& date)
-{
-    String time = getTime();
-    return set(date, time);
-}
-
-DateTime& DateTime::setTime(const String& time)
-{
-    if (isEmpty()) {
-        throw IllegalStateException("DateTime::setTime() called on empty DateTime object");
-    }
-    String date = getDate();
-    return set(date, time);
-}
-
-DateTime& DateTime::set(int year, int month, int day, int hour, int minute, int sec, int usec)
-{
-    yy = year;
-    if (year < 0) yy = 0;
-    if (year > 9999) yy = 9999;
-    mm = month;
-    if (month < 1) mm = 0;
-    if (month > 12) mm = 12;
-    dd = day;
-    if (day < 1) dd = 0;
-    if (day > 31) dd = 31;
-    hh = hour;
-    if (hour < 0) hh = 0;
-    if (hour > 23) hh = 23;
-    ii = minute;
-    if (minute < 0) ii = 0;
-    if (minute > 59) ii = 59;
-    ss = sec;
-    if (sec < 0) ss = 0;
-    if (sec > 59) ss = 59;
-    us = usec;
-    if (usec < 0) us = 0;
-    if (usec > 999999) us = 999999;
-    return *this;
-}
-
-DateTime& DateTime::set(const PPLTIME& t)
-{
-    return set(t.year, t.month, t.day, t.hour, t.min, t.sec, 0);
+    return set(pt.year, pt.month, pt.day, pt.hour, pt.min, pt.sec, 0);
 }
 
 PPLTIME DateTime::toPPLTIME() const
 {
-    PPLTIME t;
-    memset(&t, 0, sizeof(PPLTIME));
-    t.year = yy;
-    t.month = mm;
-    t.day = dd;
-    t.hour = hh;
-    t.min = ii;
-    t.sec = ss;
-    return t;
+    PPLTIME pt;
+    memset(&pt, 0, sizeof(PPLTIME));
+    pt.year = my_date.year();
+    pt.month = my_date.month();
+    pt.day = my_date.day();
+    pt.hour = my_time.hours();
+    pt.min = my_time.minutes();
+    pt.sec = my_time.seconds();
+    pt.day_of_week = my_date.dayOfWeek();
+    pt.day_of_year = my_date.dayOfYear();
+    pt.epoch = epoch();
+    return pt;
 }
 
-DateTime& DateTime::setTime_t(uint64_t t)
+DateTime& DateTime::setTime_t(uint64_t time)
 {
-    if (t == 0) {
+    if (time == 0) {
         clear();
         return *this;
     }
     struct tm tt;
-    if (!safe_localtime((::time_t)t, &tt)) throw InvalidDateException();
-    ss = tt.tm_sec;
-    ii = tt.tm_min;
-    hh = tt.tm_hour;
-    dd = tt.tm_mday;
-    mm = tt.tm_mon + 1;
-    yy = tt.tm_year + 1900;
-    us = 0;
+    if (!safe_localtime((::time_t)time, &tt)) throw InvalidDateException();
+
+    set(tt.tm_year + 1900, tt.tm_mon + 1, tt.tm_mday, tt.tm_hour, tt.tm_min, tt.tm_sec, 0);
     return *this;
 }
 
-DateTime& DateTime::setEpoch(uint64_t t)
+DateTime& DateTime::setEpoch(uint64_t time)
 {
-    return setTime_t(t);
+    return setTime_t(time);
+}
+
+uint64_t DateTime::longInt() const
+{
+    uint64_t r = my_date.year() * 12 + (my_date.month() - 1);
+    r = r * 31 + (my_date.day() - 1);
+    r = r * 24 + my_time.hours();
+    r = r * 60 + my_time.minutes();
+    r = r * 60 + my_time.seconds();
+    r = r * 1000000 + my_time.microseconds();
+    return r;
 }
 
 DateTime& DateTime::setLongInt(uint64_t i)
 {
-    us = i % 1000000;
+    int us = i % 1000000;
     i = i / 1000000;
-    ss = i % 60;
+    int ss = i % 60;
     i = i / 60;
-    ii = i % 60;
+    int ii = i % 60;
     i = i / 60;
-    hh = i % 24;
+    int hh = i % 24;
     i = i / 24;
-    dd = (i % 31) + 1;
+    int dd = (i % 31) + 1;
     i = i / 31;
-    mm = (i % 12) + 1;
-    yy = (uint16_t)i / 12;
+    int mm = (i % 12) + 1;
+    int yy = (uint16_t)i / 12;
+    set(yy, mm, dd, hh, ii, ss, us);
     return *this;
 }
 
@@ -411,107 +176,39 @@ DateTime& DateTime::setCurrentTime()
 
     // Mikrosekunden-Anteil berechnen
     auto micros = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
-    us = static_cast<uint32_t>(micros % 1000000);
+    int us = static_cast<uint32_t>(micros % 1000000);
 
     // Sekunden seit Epoche für localtime
     ::time_t tp = std::chrono::system_clock::to_time_t(now);
     struct tm tt;
     if (!safe_localtime(tp, &tt)) throw InvalidDateException();
 
-    ss = tt.tm_sec;
-    ii = tt.tm_min;
-    hh = tt.tm_hour;
-    dd = tt.tm_mday;
-    mm = tt.tm_mon + 1;
-    yy = tt.tm_year + 1900;
+    set(tt.tm_year + 1900, tt.tm_mon + 1, tt.tm_mday, tt.tm_hour, tt.tm_min, tt.tm_sec, us);
     return *this;
-}
-
-String DateTime::get(const String& format) const
-{
-    String Tmp;
-    String r = format;
-    Tmp.setf("%03i", us / 1000);
-    r.replace("%*", Tmp);
-    Tmp.setf("%06i", us);
-    r.replace("%u", Tmp);
-
-    if (yy < 1900) {
-        Tmp.setf("%04i", yy);
-        r.replace("%Y", Tmp);
-        Tmp.setf("%02i", yy % 100);
-        r.replace("%y", Tmp);
-
-        Tmp.setf("%02i", mm);
-        r.replace("%m", Tmp);
-
-        Tmp.setf("%02i", dd);
-        r.replace("%d", Tmp);
-
-        Tmp.setf("%02i", hh);
-        r.replace("%H", Tmp);
-
-        Tmp.setf("%02i", ii);
-        r.replace("%M", Tmp);
-
-        Tmp.setf("%02i", ss);
-        r.replace("%S", Tmp);
-
-        return r;
-    }
-
-    struct tm t;
-    t.tm_sec = ss;
-    t.tm_min = ii;
-    t.tm_hour = hh;
-    t.tm_mday = dd;
-    t.tm_mon = mm - 1;
-    t.tm_year = yy - 1900;
-    t.tm_isdst = -1;
-    mktime(&t);
-
-    size_t size = r.len() * 2 + 32;
-    ByteArray buffer;
-    char* b = (char*)buffer.malloc(size);
-    if (::strftime(b, size, (const char*)r, &t) == 0) {
-        throw IllegalArgumentException("DateTime::get(\"%s\")", (const char*)r);
-    }
-    r.set(b);
-    return r;
-}
-
-String DateTime::getDate(const String& format) const
-{
-    return get(format);
-}
-
-String DateTime::getTime(const String& format) const
-{
-    return get(format);
 }
 
 String DateTime::getISO8601() const
 {
     String r;
-    r.setf("%04i-%02i-%02iT%02i:%02i:%02i", yy, mm, dd, hh, ii, ss);
+    r.setf("%04i-%02i-%02iT%02i:%02i:%02i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
+           my_time.seconds());
 
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    if (yy >= 1900) {
-        struct tm t;
-        t.tm_sec = ss;
-        t.tm_min = ii;
-        t.tm_hour = hh;
-        t.tm_mday = dd;
-        t.tm_mon = mm - 1;
-        t.tm_year = yy - 1900;
-        t.tm_isdst = -1;
-        mktime(&t);
-
-        int s = abs(t.tm_gmtoff / 60);
-        if (t.tm_gmtoff >= 0) {
-            r.appendf("+%02i:%02i", (int)(s / 60), t.tm_gmtoff % 60);
+    if (d.year() >= 1900) {
+        struct tm tt;
+        tt.tm_sec = t.seconds();
+        tt.tm_min = t.minutes();
+        tt.tm_hour = t.hours();
+        tt.tm_mday = d.day();
+        tt.tm_mon = d.month() - 1;
+        tt.tm_year = d.year() - 1900;
+        tt.tm_isdst = -1;
+        mktime(&tt);
+        int s = abs(tt.tm_gmtoff / 60);
+        if (tt.tm_gmtoff >= 0) {
+            r.appendf("+%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
         } else {
-            r.appendf("-%02i:%02i", (int)(s / 60), t.tm_gmtoff % 60);
+            r.appendf("-%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
         }
     }
 #endif
@@ -521,25 +218,24 @@ String DateTime::getISO8601() const
 String DateTime::getISO8601withMsec() const
 {
     String r;
-    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%03i", yy, mm, dd, hh, ii, ss, us / 1000);
-
+    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%03i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
+           my_time.seconds(), my_time.microseconds() / 1000);
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    if (yy >= 1900) {
-        struct tm t;
-        t.tm_sec = ss;
-        t.tm_min = ii;
-        t.tm_hour = hh;
-        t.tm_mday = dd;
-        t.tm_mon = mm - 1;
-        t.tm_year = yy - 1900;
-        t.tm_isdst = -1;
-        mktime(&t);
-
-        int s = abs(t.tm_gmtoff / 60);
-        if (t.tm_gmtoff >= 0) {
-            r.appendf("+%02i:%02i", (int)(s / 60), t.tm_gmtoff % 60);
+    if (d.year() >= 1900) {
+        struct tm tt;
+        tt.tm_sec = t.seconds();
+        tt.tm_min = t.minutes();
+        tt.tm_hour = t.hours();
+        tt.tm_mday = d.day();
+        tt.tm_mon = d.month() - 1;
+        tt.tm_year = d.year() - 1900;
+        tt.tm_isdst = -1;
+        mktime(&tt);
+        int s = abs(tt.tm_gmtoff / 60);
+        if (tt.tm_gmtoff >= 0) {
+            r.appendf("+%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
         } else {
-            r.appendf("-%02i:%02i", (int)(s / 60), t.tm_gmtoff % 60);
+            r.appendf("-%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
         }
     }
 #endif
@@ -549,25 +245,25 @@ String DateTime::getISO8601withMsec() const
 String DateTime::getISO8601withUsec() const
 {
     String r;
-    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%06i", yy, mm, dd, hh, ii, ss, us);
+    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
+           my_time.seconds(), my_time.microseconds());
 
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    if (yy >= 1900) {
-        struct tm t;
-        t.tm_sec = ss;
-        t.tm_min = ii;
-        t.tm_hour = hh;
-        t.tm_mday = dd;
-        t.tm_mon = mm - 1;
-        t.tm_year = yy - 1900;
-        t.tm_isdst = -1;
-        mktime(&t);
-
-        int s = abs(t.tm_gmtoff / 60);
-        if (t.tm_gmtoff >= 0) {
-            r.appendf("+%02i:%02i", (int)(s / 60), t.tm_gmtoff % 60);
+    if (d.year() >= 1900) {
+        struct tm tt;
+        tt.tm_sec = t.seconds();
+        tt.tm_min = t.minutes();
+        tt.tm_hour = t.hours();
+        tt.tm_mday = d.day();
+        tt.tm_mon = d.month() - 1;
+        tt.tm_year = d.year() - 1900;
+        tt.tm_isdst = -1;
+        mktime(&tt);
+        int s = abs(tt.tm_gmtoff / 60);
+        if (tt.tm_gmtoff >= 0) {
+            r.appendf("+%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
         } else {
-            r.appendf("-%02i:%02i", (int)(s / 60), t.tm_gmtoff % 60);
+            r.appendf("-%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
         }
     }
 #endif
@@ -615,127 +311,25 @@ String DateTime::strftime(const String& format) const
     return String(buf.data());
 }
 
-uint64_t DateTime::time_t() const
-{
-    if (yy < 1970) return 0;
-    struct tm t;
-    t.tm_sec = ss;
-    t.tm_min = ii;
-    t.tm_hour = hh;
-    t.tm_mday = dd;
-    t.tm_mon = mm - 1;
-    t.tm_year = yy - 1900;
-    t.tm_isdst = -1;
-    return (uint64_t)mktime(&t);
-}
-
 uint64_t DateTime::epoch() const
 {
-    if (yy < 1900) return 0;
-    struct tm t;
-    t.tm_sec = ss;
-    t.tm_min = ii;
-    t.tm_hour = hh;
-    t.tm_mday = dd;
-    t.tm_mon = mm - 1;
-    t.tm_year = yy - 1900;
-    t.tm_isdst = -1;
-    return (uint64_t)mktime(&t);
-}
-
-uint64_t DateTime::longInt() const
-{
-    uint64_t r = yy * 12 + (mm - 1);
-    r = r * 31 + (dd - 1);
-    r = r * 24 + hh;
-    r = r * 60 + ii;
-    r = r * 60 + ss;
-    r = r * 1000000 + us;
-    return r;
-}
-
-int DateTime::weekISO8601() const
-{
-    if (yy < 1900) throw DateOutOfRangeException("year < 1900 [%i]", yy);
-    struct tm t{};
-    t.tm_hour = 12;
-    t.tm_mday = dd;
-    t.tm_mon = mm - 1;
-    t.tm_year = yy - 1900;
-    t.tm_isdst = -1;
-
-    ::time_t clock = mktime(&t);
-    if (!safe_gmtime(clock, &t)) throw InvalidDateException();
-
-    char buffer[10];
-#ifdef _WIN32
-    if (::strftime(buffer, 10, "%V", &t) == 0) throw InvalidDateException();
-#else
-    if (::strftime(buffer, 10, "%V", &t) == 0) throw InvalidDateException();
-#endif
-    return atoi(buffer);
-}
-
-int DateTime::week() const
-{
-    if (yy < 1900) throw DateOutOfRangeException("year < 1900 [%i]", yy);
-    struct tm t{};
-    t.tm_hour = 12;
-    t.tm_mday = dd;
-    t.tm_mon = mm - 1;
-    t.tm_year = yy - 1900;
-    t.tm_isdst = -1;
-
-    ::time_t clock = mktime(&t);
-    if (!safe_gmtime(clock, &t)) throw InvalidDateException();
-    char buffer[10];
-    if (::strftime(buffer, 10, "%U", &t) == 0) throw InvalidDateException();
-
-    return atoi(buffer);
-}
-
-bool DateTime::notEmpty() const
-{
-    if (yy > 0) return true;
-    if (mm > 0) return true;
-    if (dd > 0) return true;
-    if (hh > 0) return true;
-    if (ii > 0) return true;
-    if (ss > 0) return true;
-    if (us > 0) return true;
-    return false;
-}
-
-bool DateTime::isEmpty() const
-{
-    if (yy > 0) return false;
-    if (mm > 0) return false;
-    if (dd > 0) return false;
-    if (hh > 0) return false;
-    if (ii > 0) return false;
-    if (ss > 0) return false;
-    if (us > 0) return false;
-    return true;
-}
-
-bool DateTime::isLeapYear() const
-{
-    return isLeapYear(yy);
-}
-
-bool DateTime::isLeapYear(int year)
-{
-    if (year % 400 == 0) return true;
-    if (year % 100 == 0) return false;
-    if (year % 4 != 0) return false;
-    return true;
+    if (my_date.year() < 1970) return 0;
+    struct tm tt;
+    tt.tm_sec = my_time.seconds();
+    tt.tm_min = my_time.minutes();
+    tt.tm_hour = my_time.hours();
+    tt.tm_mday = my_date.day();
+    tt.tm_mon = my_date.month() - 1;
+    tt.tm_year = my_date.year() - 1900;
+    tt.tm_isdst = -1;
+    return (uint64_t)mktime(&tt);
 }
 
 DateTime DateTime::currentTime()
 {
-    DateTime d;
-    d.setCurrentTime();
-    return d;
+    DateTime dt;
+    dt.setCurrentTime();
+    return dt;
 }
 
 int64_t DateTime::diffSeconds(const DateTime& other) const
@@ -761,56 +355,26 @@ DateTime& DateTime::operator=(const String& datetime)
     return *this;
 }
 
-DateTime& DateTime::operator=(const DateTime& other)
-{
-    set(other);
-    return *this;
-}
-
-DateTime& DateTime::operator=(DateTime&& other)
-{
-    if (this != &other) {
-        yy = other.yy;
-        mm = other.mm;
-        dd = other.dd;
-        hh = other.hh;
-        ii = other.ii;
-        ss = other.ss;
-        us = other.us;
-
-        other.yy = 0;
-        other.mm = 0;
-        other.dd = 0;
-        other.hh = 0;
-        other.ii = 0;
-        other.ss = 0;
-        other.us = 0;
-    }
-    return *this;
-}
-
 String DateTime::toString() const
 {
-    String r;
-    r.setf("%04i-%02i-%02i %02i:%02i:%02i.%06i", yy, mm, dd, hh, ii, ss, us);
-    return r;
+    return String::format("%04i-%02i-%02i %02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(),
+                          my_time.minutes(), my_time.seconds(), my_time.microseconds());
 }
 
-String DateTime::toString(const String& format) const
+String DateTime::toString(const String& format_string) const
 {
-    return get(format);
+    return format(format_string);
 }
 
 DateTime::operator String() const
 {
-    String r;
-    r.setf("%04i-%02i-%02i %02i:%02i:%02i.%06i", yy, mm, dd, hh, ii, ss, us);
-    return r;
+    return String::format("%04i-%02i-%02i %02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(),
+                          my_time.minutes(), my_time.seconds(), my_time.microseconds());
 }
 
 std::ostream& operator<<(std::ostream& s, const DateTime& dt)
 {
-    String str = dt.get("%Y-%m-%d %H:%M:%S.%u");
+    String str = dt.format("%Y-%m-%d %H:%M:%S.%u");
     return s.write((const char*)str, str.size());
 }
 

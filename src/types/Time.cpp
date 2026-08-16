@@ -58,7 +58,7 @@ Time::Time(Time&& other) noexcept
     other.us = 0;
 }
 
-Time& Time::setSeconds(uint32_t seconds) noexcept
+Time& Time::setFromSeconds(uint32_t seconds) noexcept
 {
     seconds %= 86400;
     hh = seconds / 3600;
@@ -68,10 +68,10 @@ Time& Time::setSeconds(uint32_t seconds) noexcept
     return *this;
 }
 
-Time& Time::setMicroseconds(uint64_t microseconds) noexcept
+Time& Time::setFromMicroseconds(uint64_t microseconds) noexcept
 {
     uint64_t seconds = microseconds / 1000000;
-    setSeconds(seconds);
+    setFromSeconds(seconds);
     us = microseconds % 1000000;
     return *this;
 }
@@ -100,13 +100,48 @@ Time& Time::set(const String& time)
     t.replace("-", ".");
     pplib::Array parts(t, ".");
 
+    // Prüfen, ob alle Werte Numerisch sind
+    for (size_t i = 0; i < parts.size(); ++i) {
+        if (!parts[i].isNumeric()) {
+            throw IllegalArgumentException("Date::set: invalid date format (%s)", time.c_str());
+        }
+    }
     if (parts.size() < 3 || parts.size() > 4) {
         throw IllegalArgumentException("Time::set: invalid time format (%s)", time.c_str());
     }
     if (parts.size() < 4) {
-        parts.add("0"); // Add microseconds part if missing
+        parts.add("000000"); // Add microseconds part if missing
     }
+
     return set(parts.at(0).toInt(), parts.at(1).toInt(), parts.at(2).toInt(), parts.at(3).toInt());
+}
+
+Time& Time::setHours(uint8_t hour)
+{
+    if (hour > 23) throw IllegalArgumentException("Time::setHours: hour > 23 (%u)", hour);
+    hh = hour;
+    return *this;
+}
+
+Time& Time::setMinutes(uint8_t minute)
+{
+    if (minute > 59) throw IllegalArgumentException("Time::setMinutes: minute > 59 (%u)", minute);
+    ii = minute;
+    return *this;
+}
+
+Time& Time::setSeconds(uint8_t second)
+{
+    if (second > 59) throw IllegalArgumentException("Time::setSeconds: second > 59 (%u)", second);
+    ss = second;
+    return *this;
+}
+
+Time& Time::setMicroseconds(uint32_t microsecond)
+{
+    if (microsecond > 999999) throw IllegalArgumentException("Time::setMicroseconds: usec > 999999 (%u)", microsecond);
+    us = microsecond;
+    return *this;
 }
 
 Time& Time::operator=(const Time& other) noexcept
@@ -151,6 +186,8 @@ String Time::format(const String& format) const
     Tmp.setf("%02d", ss);
     r.replace("%S", Tmp);
     Tmp.setf("%06d", us);
+    r.replace("%u", Tmp);
+    Tmp.setf("%03d", us / 1000);
     r.replace("%f", Tmp);
     return r;
 }

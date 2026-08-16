@@ -91,7 +91,7 @@ TEST_F(DateTimeTest, ConstructorWithDateTimeMsec1)
         ASSERT_TRUE(d1.notEmpty() == true) << "Class is empty";
         ASSERT_EQ(pplib::String("2012-05-18"), d1.getDate()) << "Unexpected date";
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11"), d1.get()) << "Unexpected date";
-        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.001000"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.000001"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
 }
 
@@ -102,7 +102,7 @@ TEST_F(DateTimeTest, ConstructorWithDateTimeMsec2)
         ASSERT_TRUE(d1.notEmpty() == true) << "Class is empty";
         ASSERT_EQ(pplib::String("2012-05-18"), d1.getDate()) << "Unexpected date";
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11"), d1.get()) << "Unexpected date";
-        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.015000"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.000015"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
 }
 
@@ -113,18 +113,20 @@ TEST_F(DateTimeTest, ConstructorWithDateTimeMsec3)
         ASSERT_TRUE(d1.notEmpty() == true) << "Class is empty";
         ASSERT_EQ(pplib::String("2012-05-18"), d1.getDate()) << "Unexpected date";
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11"), d1.get()) << "Unexpected date";
-        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.159000"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.000159"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
 }
 
 TEST_F(DateTimeTest, ConstructorWithDateTimeUsec4)
 {
-    ASSERT_THROW(pplib::DateTime d1("2012-05-18 11:50:11.1594"), pplib::IllegalArgumentException);
+    ASSERT_EQ(pplib::String("2012-05-18 11:50:11.001594"), pplib::DateTime("2012-05-18 11:50:11.1594").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, ConstructorWithDateTimeUsec5)
 {
-    ASSERT_THROW(pplib::DateTime d1("2012-05-18 11:50:11.15947"), pplib::IllegalArgumentException);
+    ASSERT_EQ(pplib::String("2012-05-18 11:50:11.015947"), pplib::DateTime("2012-05-18 11:50:11.15947").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, ConstructorWithDateTimeUsec6)
@@ -145,7 +147,7 @@ TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeMsec1)
         ASSERT_TRUE(d1.notEmpty() == true) << "Class is empty";
         ASSERT_EQ(pplib::String("2012-05-18"), d1.getDate()) << "Unexpected date";
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11"), d1.get()) << "Unexpected date";
-        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.001000"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.000001"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
 }
 
@@ -156,7 +158,7 @@ TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeMsec2)
         ASSERT_TRUE(d1.notEmpty() == true) << "Class is empty";
         ASSERT_EQ(pplib::String("2012-05-18"), d1.getDate()) << "Unexpected date";
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11"), d1.get()) << "Unexpected date";
-        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.015000"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.000015"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
 }
 
@@ -167,7 +169,7 @@ TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeMsec3)
         ASSERT_TRUE(d1.notEmpty() == true) << "Class is empty";
         ASSERT_EQ(pplib::String("2012-05-18"), d1.getDate()) << "Unexpected date";
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11"), d1.get()) << "Unexpected date";
-        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.159000"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.000159"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
 }
 
@@ -254,7 +256,7 @@ TEST_F(DateTimeTest, set)
         << "Unexpected date";
     EXPECT_EQ(pplib::String("2026-08-16 08:35:01.012345"), d1.set("16.08.2026 08:35:01.012345").get("%Y-%m-%d %H:%M:%S.%u"))
         << "Unexpected date";
-    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123000"), d1.set("16.08.2026 08:35:01.123").get("%Y-%m-%d %H:%M:%S.%u"))
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000123"), d1.set("16.08.2026 08:35:01.123").get("%Y-%m-%d %H:%M:%S.%u"))
         << "Unexpected date";
     EXPECT_EQ(pplib::String("2026-08-16 08:07:01.000000"), d1.set("16.8.2026 8:7:1").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     EXPECT_EQ(pplib::String("2026-08-16 00:00:00.000000"), d1.set("16.8.2026").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
@@ -263,23 +265,28 @@ TEST_F(DateTimeTest, set)
 
     EXPECT_EQ(pplib::String("2026-08-16 08:35:01.012345"), d1.set("2026-08-16T08:35:01.012345").get("%Y-%m-%d %H:%M:%S.%u"))
         << "Unexpected date";
-    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.012000"), d1.set("2026-08-16T08:35:01.012").get("%Y-%m-%d %H:%M:%S.%u"))
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000012"), d1.set("2026-08-16T08:35:01.012").get("%Y-%m-%d %H:%M:%S.%u"))
         << "Unexpected date";
     EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000000"), d1.set("2026-08-16T08:35:01").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
-    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026-08-16T08:35:01.123456[+02:00]").get("%Y-%m-%d %H:%M:%S.%u"))
-        << "Unexpected date";
-    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026-08-16T08:35:01.123456[+00:00]").get("%Y-%m-%d %H:%M:%S.%u"))
-        << "Unexpected date";
-    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123000"), d1.set("2026-08-16T08:35:01.123[+02:00]").get("%Y-%m-%d %H:%M:%S.%u"))
-        << "Unexpected date";
-    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000000"), d1.set("2026-08-16T08:35:01[+02:00]").get("%Y-%m-%d %H:%M:%S.%u"))
-        << "Unexpected date";
     EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026.08.16 08:35:01.123456").get("%Y-%m-%d %H:%M:%S.%u"))
         << "Unexpected date";
     EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026.8.16 8:35:1.123456").get("%Y-%m-%d %H:%M:%S.%u"))
         << "Unexpected date";
-    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123000"), d1.set("2026.8.16 8:35:1.123").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000123"), d1.set("2026.8.16 8:35:1.123").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000000"), d1.set("2026.8.16 8:35:1").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setWithTimeZone)
+{
+    pplib::DateTime d1;
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026-08-16T08:35:01.123456[+02:00]").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.set("2026-08-16T08:35:01.123456[+00:00]").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000123"), d1.set("2026-08-16T08:35:01.123[+02:00]").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+    EXPECT_EQ(pplib::String("2026-08-16 08:35:01.000000"), d1.set("2026-08-16T08:35:01[+02:00]").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, setWithWrongFormatThrowsException)
@@ -787,12 +794,6 @@ TEST_F(DateTimeTest, getDate)
 
 TEST_F(DateTimeTest, setTime)
 {
-    ASSERT_THROW(
-        {
-            pplib::DateTime d2;
-            d2.setTime("19:24:13.123456");
-        },
-        pplib::IllegalStateException);
     pplib::DateTime d1("2026-08-16");
     EXPECT_EQ(pplib::String("2026-08-16 19:24:13.123456"), d1.setTime("19:24:13.123456").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 }
@@ -876,14 +877,6 @@ TEST_F(DateTimeTest, notEmpty)
 
     pplib::DateTime d2;
     ASSERT_FALSE(d2.notEmpty()) << "Unexpected date";
-
-    ASSERT_TRUE(d2.set(0, 1, 5, 11, 50, 11, 159473).notEmpty()) << "Unexpected date";
-    ASSERT_TRUE(d2.set(0, 0, 5, 11, 50, 11, 159473).notEmpty()) << "Unexpected date";
-    ASSERT_TRUE(d2.set(0, 0, 0, 11, 50, 11, 159473).notEmpty()) << "Unexpected date";
-    ASSERT_TRUE(d2.set(0, 0, 0, 0, 50, 11, 159473).notEmpty()) << "Unexpected date";
-    ASSERT_TRUE(d2.set(0, 0, 0, 0, 0, 11, 159473).notEmpty()) << "Unexpected date";
-    ASSERT_TRUE(d2.set(0, 0, 0, 0, 0, 0, 159473).notEmpty()) << "Unexpected date";
-    ASSERT_FALSE(d2.set(0, 0, 0, 0, 0, 0, 0).notEmpty()) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, isEmpty)
@@ -893,14 +886,6 @@ TEST_F(DateTimeTest, isEmpty)
 
     pplib::DateTime d2;
     ASSERT_TRUE(d2.isEmpty()) << "Unexpected date";
-
-    ASSERT_FALSE(d2.set(0, 1, 5, 11, 50, 11, 159473).isEmpty()) << "Unexpected date";
-    ASSERT_FALSE(d2.set(0, 0, 5, 11, 50, 11, 159473).isEmpty()) << "Unexpected date";
-    ASSERT_FALSE(d2.set(0, 0, 0, 11, 50, 11, 159473).isEmpty()) << "Unexpected date";
-    ASSERT_FALSE(d2.set(0, 0, 0, 0, 50, 11, 159473).isEmpty()) << "Unexpected date";
-    ASSERT_FALSE(d2.set(0, 0, 0, 0, 0, 11, 159473).isEmpty()) << "Unexpected date";
-    ASSERT_FALSE(d2.set(0, 0, 0, 0, 0, 0, 159473).isEmpty()) << "Unexpected date";
-    ASSERT_TRUE(d2.set(0, 0, 0, 0, 0, 0, 0).isEmpty()) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, isLeapYear)

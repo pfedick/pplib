@@ -32,6 +32,8 @@
 
 #include <stdint.h>
 #include "pplib/types/string.h"
+#include "pplib/types/date.h"
+#include "pplib/types/time.h"
 
 namespace pplib
 {
@@ -77,13 +79,8 @@ typedef uint64_t ppl_time_t;
 class DateTime
 {
 private:
-    uint32_t us; //!< Mikrosekunden
-    uint16_t yy; //!< Jahr
-    uint8_t mm;  //!< Monat
-    uint8_t dd;  //!< Tag
-    uint8_t hh;  //!< Stunde
-    uint8_t ii;  //!< Minute
-    uint8_t ss;  //!< Sekunde
+    Date my_date; //!< Datumsobjekt
+    Time my_time; //!< Uhrzeitobjekt
 
 public:
     /** @brief Konstruktor mit Initialisierung auf 0
@@ -91,7 +88,7 @@ public:
      * Mit diesem Konstruktor ohne Parameter wird der Wert der Datumsklasse auf 0 gesetzt. Die Funktion
      * DateTime::isEmpty "isEmpty" würde \c true zurückliefern.
      */
-    DateTime();
+    DateTime() noexcept = default;
 
     /** @brief Konstruktor mit Datumsinitialisierung aus einem String
      *
@@ -106,23 +103,10 @@ public:
      * Ausnahmen: Ist der String leer oder enthält nur den
      * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
      */
-    DateTime(const String& datetime);
-
-    /** @brief Copy-Konstruktor
-     *
-     * Über diesen Konstruktor wird das Datum eines anderen DateTime-Wertes übernommen.
-     *
-     * @param[in] other Referenz auf den zu kopierenden DateTime-Wert
-     */
-    DateTime(const DateTime& other);
-
-    /** @brief Move-Konstruktor
-     *
-     * Über diesen Konstruktor wird das Datum eines anderen DateTime-Wertes übernommen.
-     *
-     * @param[in] other Rvalue-Referenz auf den zu kopierenden DateTime-Wert
-     */
-    DateTime(DateTime&& other);
+    explicit DateTime(const String& datetime)
+    {
+        set(datetime);
+    }
 
     /** @brief Konstruktor mit Angabe von Unix-Timestamp
      *
@@ -132,7 +116,42 @@ public:
      *
      * @param t 64-Bit Integer mit den Sekunden seit 1970.
      */
-    DateTime(uint64_t t);
+    explicit DateTime(uint64_t epoch_seconds, uint32_t microseconds = 0)
+    {
+        setEpoch(epoch_seconds);
+        my_time.setMicroseconds(microseconds);
+    }
+
+    DateTime(const DateTime& other) noexcept = default;
+    DateTime(DateTime&& other) noexcept = default;
+
+    DateTime(const Date& date, const Time& time) noexcept
+        : my_date(date),
+          my_time(time)
+    {
+    }
+    DateTime(const Date& date) noexcept
+        : my_date(date),
+          my_time()
+    {
+    }
+
+    inline const Date& date() const noexcept
+    {
+        return my_date;
+    }
+    inline const Time& time() const noexcept
+    {
+        return my_time;
+    }
+    inline Date& date() noexcept
+    {
+        return my_date;
+    }
+    inline Time& time() noexcept
+    {
+        return my_time;
+    }
 
     /** @brief Datum aus Unix-Timestamp übernehmen
      *
@@ -153,7 +172,7 @@ public:
      * @param t 64-Bit Integer mit den Sekunden seit 1970.
      * @see https://de.wikipedia.org/wiki/Unixzeit
      */
-    DateTime& setEpoch(uint64_t t);
+    DateTime& setEpoch(uint64_t epoch_seconds);
 
     /** @brief Datum aus einem 64-Bit-Integer übernehmen
      *
@@ -208,9 +227,7 @@ public:
      * - hh: Stunden zwischen 0 und 23, kann ein- oder zweistellig sein
      * - ii: Minuten zwischen 0 und 59, kann ein- oder zweistellig sein
      * - ss: Sekunden zwischen 0 und 59, kann ein- oder zweistellig sein
-     * - mms: Millisekunden oder Mikrosekunden: Ein dreistelliger Wert wird als Millisekunden
-     *   interpretiert, ein sechstelliger Wert als Mikrosekunden. Wert ist optional und kann statt mit einem Punkt
-     *   auch mit einem Doppelpunkt von den Sekunden der Uhrzeit getrennt sein.
+     * - mms: Mikrosekunden: Ein bis sechsstelliger Wert, der die Mikrosekunden angibt.
      * @par
      * Bei der Datumsangabe kann als Trennzeichen wahlweise Punkt oder Minus verwendet werden. Es muss mindestens ein
      * vollständiges Datum angegeben werden und optional eine vollständige Uhrzeit (hh:ii:ss), wobei die Millisekunden
@@ -219,6 +236,13 @@ public:
      */
     DateTime& set(const String& datetime);
 
+    DateTime& set(uint64_t epoch_seconds, uint32_t microseconds = 0)
+    {
+        setEpoch(epoch_seconds);
+        my_time.setMicroseconds(microseconds);
+        return *this;
+    }
+
     /** @brief Datum aus einem anderen DateTime-Objekt übernehmen
      *
      * Mit dieser Funktion wird der Wert eines anderen DateTime-Wertes übernommen.
@@ -226,7 +250,12 @@ public:
      * @param[in] other Referenz auf den zu kopierenden DateTime-Wert
      * @return Gibt eine Referenz auf den DateTime-Wert zurück
      */
-    DateTime& set(const DateTime& other);
+    inline DateTime& set(const DateTime& other) noexcept
+    {
+        my_date = other.my_date;
+        my_time = other.my_time;
+        return *this;
+    }
 
     /** @brief Datum und Uhrzeit aus unterschiedlichen Strings importieren
      *
@@ -251,7 +280,27 @@ public:
      * Ausnahmen: Ist der String leer oder enthält nur den
      * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
      */
-    DateTime& set(const String& date, const String& time);
+    inline DateTime& set(const String& date, const String& time)
+    {
+        my_date.set(date);
+        my_time.set(time);
+        return *this;
+    }
+
+    /** @brief Datum und Uhrzeit aus unterschiedlichen Objekten übernehmen
+     *
+     * Mit dieser Funktion kann das Datum und die Uhrzeit aus zwei unterschiedlichen Objekten übernommen werden.
+     *
+     * @param[in] date Referenz auf ein Date-Objekt mit dem Datum
+     * @param[in] time Referenz auf ein Time-Objekt mit der Uhrzeit
+     * @return Gibt eine Referenz auf den DateTime-Wert zurück
+     */
+    inline DateTime& set(const Date& date, const Time& time)
+    {
+        my_date = date;
+        my_time = time;
+        return *this;
+    }
 
     /** @brief Datum aus PPLTIME-Struktur übernehmen
      *
@@ -276,7 +325,23 @@ public:
      * Ausnahmen: Ist der String leer oder enthält nur den
      * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
      */
-    DateTime& setDate(const String& date);
+    inline DateTime& setDate(const String& date)
+    {
+        my_date.set(date);
+        return *this;
+    }
+
+    /** @brief Datum setzen, Uhrzeit bleibt unverändert
+     *
+     * Mit dieser Funktion wird nur das Datum der Klasse verändert, die Uhrzeit bleibt erhalten.
+     *
+     * @param[in] date Referenz auf ein Date-Objekt mit dem zu setzenden Datum.
+     */
+    DateTime& setDate(const Date& date)
+    {
+        my_date = date;
+        return *this;
+    }
 
     /** @brief Uhrzeit setzen, Datum bleibt unverändert
      *
@@ -289,7 +354,23 @@ public:
      * Ausnahmen: Ist der String leer oder enthält nur den
      * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
      */
-    DateTime& setTime(const String& time);
+    inline DateTime& setTime(const String& time)
+    {
+        my_time.set(time);
+        return *this;
+    }
+
+    /** @brief Uhrzeit setzen, Datum bleibt unverändert
+     *
+     * Mit dieser Funktion wird nur die Uhrzeit der Klasse verändert, das Datum bleibt erhalten.
+     *
+     * @param[in] time Referenz auf ein Time-Objekt mit der zu setzenden Uhrzeit.
+     */
+    DateTime& setTime(const Time& time)
+    {
+        my_time = time;
+        return *this;
+    }
 
     /** @brief Datum und Uhrzeit anhand einzelner Integer-Wert setzen
      *
@@ -302,13 +383,14 @@ public:
      * @param[in] minute Minute zwischen 0 und 59. Optionaler Wert, Default ist 0.
      * @param[in] sec Sekunde zwischen 0 und 59. Optionaler Wert, Default ist 0.
      * @param[in] usec Mikrosekunde zwischen 0 und 999999. Optionaler Wert, Default ist 0.
-     * @attention
-     * Gegenwärtig werden Werte ausserhalb des Gültigkeitsbereiches abgeschnitten! Aus dem Monat 0 oder -10 würde 1
-     * werden, aus 13 oder 12345 würde 12 werden. Es wird nicht geprüft, ob der Tag im Monat gültig ist!
-     *
-     * Wird bei \p year, \p month und \p day der Wert "0" angegeben, wird der Timestamp auf 0 gesetzt.
+     * @exception IllegalArgumentException: Wird geworfen, wenn einer der Parameter außerhalb des gültigen Bereichs liegt.
      */
-    DateTime& set(int year, int month, int day, int hour = 0, int minute = 0, int sec = 0, int usec = 0);
+    inline DateTime& set(int year, int month, int day, int hour = 0, int minute = 0, int sec = 0, int usec = 0)
+    {
+        my_date.set(day, month, year);
+        my_time.set(hour, minute, sec, usec);
+        return *this;
+    }
 
     /** @brief Aktuelles Datum und Uhrzeit übernehmen
      *
@@ -323,7 +405,11 @@ public:
      * \ref DateTime::isEmpty "isEmpty" würde \c true zurückliefern. Die Klasse wird somit
      * wieder in den Ausgangszustand versetzt.
      */
-    void clear();
+    inline void clear() noexcept
+    {
+        my_date.clear();
+        my_time.clear();
+    }
 
     /** @brief Prüfen ob Datum gesetzt ist
      *
@@ -332,7 +418,10 @@ public:
      *
      * @return \c true, wenn die Klasse ein Datum enthält, sonst \c false
      */
-    bool notEmpty() const;
+    inline bool notEmpty() const noexcept
+    {
+        return my_date.notEmpty();
+    }
 
     /** @brief Prüfen ob Datum nicht gesetzt ist
      *
@@ -341,7 +430,10 @@ public:
      *
      * @return \c true, wenn die Klasse kein Datum enthält, sonst \c false
      */
-    bool isEmpty() const;
+    inline bool isEmpty() const noexcept
+    {
+        return my_date.isEmpty();
+    }
 
     /** @brief Prüfen ob Jahr ein Schaltjahr ist
      *
@@ -349,7 +441,10 @@ public:
      *
      * @return \c true, wenn es sich um ein Schaltjahr handelt, sonst \c false
      */
-    bool isLeapYear() const;
+    inline bool isLeapYear() const
+    {
+        return my_date.isLeapYear();
+    }
 
     /** @brief Datum als String im angegebenen Format zurückgeben
      *
@@ -359,23 +454,49 @@ public:
      * "%Y-%m-%d %H:%M:%S"
      *
      * @return String mit dem Datum im gewünschten Format
-     * \par Formatierung
-     *  Erlaubt sind folgende Formatzeichen:
-     * - \%Y: Das Jahr als 4-stellige Angabe (z.B. 2010)
-     * - \%y: Das Jahr als 2-stellige Angabe ohne Jahrhundert (z.B. 10)
-     * - \%m: Der Monat als zweistellige Zahl (01 bis 12)
-     * - \%d: Der Tag als zweistellige Zahl (01 bis 31)
-     * - \%H: Stunden als zweistellige Zahl (00 bis 23)
-     * - \%M: Minuten als zweistellige Zahl (00 bis 59)
-     * - \%S: Sekunden als zweistellige Zahl (00 bis 59)
-     * - \%*: Millisekunden als dreistellige Zahl (000 bis 999)
-     * - \%u: Mikrosekunden als sechstellige Zahl (000000 bis 999999)
-     * \par
-     * Falls das im Objekt enthaltene Datum > 1900 ist, können weitere Formatanweisungen verwendet werden.
-     * \par
-     * \copydoc strftime.dox
+     *
+     * Erlaubt sind folgende Formatzeichen:
+     *   - %Y: Das Jahr als 4-stellige Angabe (z.B. 2010)
+     *   - %y: Das Jahr als 2-stellige Angabe ohne Jahrhundert (z.B. 10)
+     *   - %m: Der Monat als zweistellige Zahl (01 bis 12)
+     *   - %d: Der Tag als zweistellige Zahl (01 bis 31)
+     *   - %H: Stunde (00-23)
+     *   - %I: Stunde (00-11)
+     *   - %M: Minute (00-59)
+     *   - %S: Sekunde (00-59)
+     *   - %f: Millisekunden (000-999)
+     *   - %u: Mikrosekunden als sechstellige Zahl (000000 bis 999999)
      */
-    String get(const String& format = "%Y-%m-%d %H:%M:%S") const;
+    inline String format(const String& format = "%Y-%m-%d %H:%M:%S") const
+    {
+        return my_date.format(my_time.format(format));
+    }
+
+    /** @brief Datum als String im angegebenen Format zurückgeben
+     *
+     * Datum als String im angegebenen Format zurückgeben
+     *
+     * @param[in] format Formatierungsstring. Wird dieser nicht angegeben, wird das Datum in folgendem Format zurückgegeben:
+     * "%Y-%m-%d %H:%M:%S"
+     *
+     * @return String mit dem Datum im gewünschten Format
+     *
+     * Erlaubt sind folgende Formatzeichen:
+     *   - %Y: Das Jahr als 4-stellige Angabe (z.B. 2010)
+     *   - %y: Das Jahr als 2-stellige Angabe ohne Jahrhundert (z.B. 10)
+     *   - %m: Der Monat als zweistellige Zahl (01 bis 12)
+     *   - %d: Der Tag als zweistellige Zahl (01 bis 31)
+     *   - %H: Stunde (00-23)
+     *   - %I: Stunde (00-11)
+     *   - %M: Minute (00-59)
+     *   - %S: Sekunde (00-59)
+     *   - %f: Millisekunden (000-999)
+     *   - %u: Mikrosekunden als sechstellige Zahl (000000 bis 999999)
+     */
+    inline String get(const String& format = "%Y-%m-%d %H:%M:%S") const
+    {
+        return my_date.format(my_time.format(format));
+    }
 
     /** @brief Datum als String zurückgeben
      *
@@ -390,7 +511,10 @@ public:
      * @see
      * Siehe DateTime::get
      */
-    String getDate(const String& format = "%Y-%m-%d") const;
+    inline String getDate(const String& format = "%Y-%m-%d") const
+    {
+        return my_date.format(format);
+    }
 
     /** @brief Uhrzeit als String zurückgeben
      *
@@ -405,7 +529,10 @@ public:
      * \see
      * Siehe DateTime::get
      */
-    String getTime(const String& format = "%H:%M:%S") const;
+    inline String getTime(const String& format = "%H:%M:%S") const
+    {
+        return my_time.format(format);
+    }
 
     /** @brief Datum als String im ISO8601-Format zurückgeben
      *
@@ -489,7 +616,10 @@ public:
      *
      * @return Sekunden seit 1970 oder 0, wenn das Datum sich nicht umrechnen läßt, z.B. wenn das Jahr vor 1970 liegt.
      */
-    uint64_t time_t() const;
+    inline uint64_t time_t() const
+    {
+        return epoch();
+    }
 
     /** @brief Datum in Unix-Timestamp umrechnen
      *
@@ -517,72 +647,72 @@ public:
      *
      * @return Integer-Wert mit dem Jahr
      */
-    inline int year() const
+    inline int year() const noexcept
     {
-        return yy;
+        return my_date.year();
     }
 
     /** @brief Den Monat als Integer auslesen
      *
      * @return Integer-Wert mit dem Monat
      */
-    inline int month() const
+    inline int month() const noexcept
     {
-        return mm;
+        return my_date.month();
     }
 
     /** @brief Den Tag als Integer auslesen
      *
      * @return Integer-Wert mit dem Tag
      */
-    inline int day() const
+    inline int day() const noexcept
     {
-        return dd;
+        return my_date.day();
     }
 
     /** @brief Die Stunde als Integer auslesen
      *
      * @return Integer-Wert mit der Stunde
      */
-    inline int hour() const
+    inline int hour() const noexcept
     {
-        return hh;
+        return my_time.hours();
     }
 
     /** @brief Die Minute als Integer auslesen
      *
      * @return Integer-Wert mit der Minute
      */
-    inline int minute() const
+    inline int minute() const noexcept
     {
-        return ii;
+        return my_time.minutes();
     }
 
     /** @brief Die Sekunde als Integer auslesen
      *
      * @return Integer-Wert mit der Sekunde
      */
-    inline int second() const
+    inline int second() const noexcept
     {
-        return ss;
+        return my_time.seconds();
     }
 
     /** @brief Die Millisekunde als Integer auslesen
      *
      * @return Integer-Wert mit der Millisekunde
      */
-    inline int millisecond() const
+    inline int millisecond() const noexcept
     {
-        return us / 1000;
+        return my_time.microseconds() / 1000;
     }
 
     /** @brief Die Mikrosekunde als Integer auslesen
      *
      * @return Integer-Wert mit der Mikrosekunde
      */
-    inline int microsecond() const
+    inline int microsecond() const noexcept
     {
-        return us;
+        return my_time.microseconds();
     }
 
     /** @brief Die Wochennummer als Integer auslesen
@@ -596,7 +726,10 @@ public:
      *
      * @return Integer-Wert mit dem Jahr
      */
-    int week() const;
+    inline int week() const
+    {
+        return my_date.week();
+    }
 
     /** @brief Die Wochennummer als Integer auslesen, Berechnung nach ISO 8601
      *
@@ -612,7 +745,10 @@ public:
      *
      * @return Integer-Wert mit dem Jahr
      */
-    int weekISO8601() const;
+    inline int weekISO8601() const
+    {
+        return my_date.weekISO8601();
+    }
 
     /** @brief Differenz in Sekunden
      *
@@ -660,7 +796,7 @@ public:
      * @param[in] other Referenz auf den zu kopierenden DateTime-Wert
      * @return Gibt eine Referenz auf den DateTime-Wert zurück
      */
-    DateTime& operator=(const DateTime& other);
+    DateTime& operator=(const DateTime& other) noexcept = default;
 
     /** @brief Datum aus einem anderen DateTime-Objekt übernehmen
      *
@@ -669,7 +805,7 @@ public:
      * @param[in] other Rvalue-Referenz auf den zu kopierenden DateTime-Wert
      * @return Gibt eine Referenz auf den DateTime-Wert zurück
      */
-    DateTime& operator=(DateTime&& other);
+    DateTime& operator=(DateTime&& other) noexcept = default;
 
     /** @brief Jahreszahl auf Schaltjahr prüfen
      *
@@ -679,7 +815,10 @@ public:
      * @param[in] year Das zu prüfende Jahr
      * @return Liefert \c true zurück, wenn es sich um ein Schaltjahr handelt, andernfalls \c false.
      */
-    static bool isLeapYear(int year);
+    inline static bool isLeapYear(int year)
+    {
+        return Date::isLeapYear(year);
+    }
 
     /** @brief Aktuelles Datum zurückgeben
      *

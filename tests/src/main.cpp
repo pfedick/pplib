@@ -95,8 +95,10 @@ int main(int argc, char** argv)
 
     if (pplib::HaveArgv(argc, argv, "-h") || pplib::HaveArgv(argc, argv, "--help")) {
         help();
-        return 0;
     }
+    ::testing::InitGoogleTest(&argc, argv);
+    if (pplib::HaveArgv(argc, argv, "-h") || pplib::HaveArgv(argc, argv, "--help")) return 0;
+
     try {
         if ((pplib::HaveArgv(argc, argv, "-c"))) {
             PPLIBTestConfig.load(pplib::GetArgv(argc, argv, "-c"));

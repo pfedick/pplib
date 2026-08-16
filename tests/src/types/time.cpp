@@ -155,7 +155,7 @@ TEST_F(TimeTest, SetWithSeconds)
 {
     ASSERT_NO_THROW({
         pplib::Time t1;
-        t1.setSeconds(42611);
+        t1.setFromSeconds(42611);
         ASSERT_EQ((uint64_t)42611000000, t1.toMicroseconds()) << "Class has unexpected value";
     });
 }
@@ -164,7 +164,7 @@ TEST_F(TimeTest, SetWithSecondsWithOverflow)
 {
     ASSERT_NO_THROW({
         pplib::Time t1;
-        t1.setSeconds(90000); // 25 hours, should wrap to 1 hour
+        t1.setFromSeconds(90000); // 25 hours, should wrap to 1 hour
         ASSERT_EQ((uint64_t)3600000000, t1.toMicroseconds()) << "Class has unexpected value";
     });
 }
@@ -173,7 +173,7 @@ TEST_F(TimeTest, SetWithMicroseconds)
 {
     ASSERT_NO_THROW({
         pplib::Time t1;
-        t1.setMicroseconds(42611159473);
+        t1.setFromMicroseconds(42611159473);
         ASSERT_EQ((uint64_t)42611159473, t1.toMicroseconds()) << "Class has unexpected value";
     });
 }
@@ -182,7 +182,7 @@ TEST_F(TimeTest, SetWithMicrosecondsWithOverflow)
 {
     ASSERT_NO_THROW({
         pplib::Time t1;
-        t1.setMicroseconds(90000000000); // 25 hours in microseconds, should wrap to 1 hour
+        t1.setFromMicroseconds(90000000000); // 25 hours in microseconds, should wrap to 1 hour
         ASSERT_EQ((uint64_t)3600000000, t1.toMicroseconds()) << "Class has unexpected value";
     });
 }
@@ -202,7 +202,8 @@ TEST_F(TimeTest, format)
     pplib::Time t1(19, 50, 11, 159473);
 
     ASSERT_EQ(pplib::String("19:50:11"), t1.format("%H:%M:%S")) << "Unexpected formatted string";
-    ASSERT_EQ(pplib::String("19:50:11.159473"), t1.format("%H:%M:%S.%f")) << "Unexpected formatted string";
+    ASSERT_EQ(pplib::String("19:50:11.159473"), t1.format("%H:%M:%S.%u")) << "Unexpected formatted string";
+    ASSERT_EQ(pplib::String("19:50:11.159"), t1.format("%H:%M:%S.%f")) << "Unexpected formatted string";
     ASSERT_EQ(pplib::String("07:50:11"), t1.format("%I:%M:%S")) << "Unexpected formatted string";
 }
 
@@ -283,6 +284,15 @@ TEST_F(TimeTest, OutputStreamOperator)
         std::ostringstream oss;
         oss << t1;
         ASSERT_EQ("11:50:11.159473", oss.str()) << "Unexpected output from stream operator";
+    });
+}
+
+TEST_F(TimeTest, clear)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1(11, 50, 11, 159473);
+        t1.clear();
+        ASSERT_EQ((uint64_t)0, t1.toMicroseconds()) << "Expected time to be cleared to zero";
     });
 }
 
