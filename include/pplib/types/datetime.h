@@ -41,18 +41,18 @@ class String;
 /// Eine Struktur zum Erfassen von Uhrzeit und Datum
 typedef struct tagTime
 {
-    uint64_t epoch;
-    int year;
-    int month;
-    int day;
-    int hour;
-    int min;
-    int sec;
-    int day_of_week;
-    int day_of_year;
-    int summertime;
-    int gmt_offset;
-    int have_gmt_offset;
+    int64_t epoch;
+    int16_t year;
+    int8_t month;
+    int8_t day;
+    int8_t hour;
+    int8_t min;
+    int8_t sec;
+    int8_t day_of_week;
+    int16_t day_of_year;
+    int8_t gmt_offset;
+    bool have_gmt_offset;
+    bool summertime;
 } PPLTIME;
 
 /// Datentyp für Unix-Timestamps in 64 Bit
@@ -301,20 +301,14 @@ public:
      * @param[in] hour Stunde zwischen 0 und 23. Optionaler Wert, Default ist 0.
      * @param[in] minute Minute zwischen 0 und 59. Optionaler Wert, Default ist 0.
      * @param[in] sec Sekunde zwischen 0 und 59. Optionaler Wert, Default ist 0.
-     * @param[in] msec Millisekunde zwischen 0 und 999. Optionaler Wert, Default ist 0.
      * @param[in] usec Mikrosekunde zwischen 0 und 999999. Optionaler Wert, Default ist 0.
      * @attention
      * Gegenwärtig werden Werte ausserhalb des Gültigkeitsbereiches abgeschnitten! Aus dem Monat 0 oder -10 würde 1
      * werden, aus 13 oder 12345 würde 12 werden. Es wird nicht geprüft, ob der Tag im Monat gültig ist!
      *
      * Wird bei \p year, \p month und \p day der Wert "0" angegeben, wird der Timestamp auf 0 gesetzt.
-     *
-     * @note
-     * Millisekunden und Mikrosekunden werden intern nach der Formel msec*1000+usec zusammengerechnet.
-     * Die Werte sollten daher entweder alternativ verwendet werden oder es muss sichergestellt sein,
-     * dass die Mikrosekunden den Millisekundenanteil nicht enthalten.
      */
-    DateTime& set(int year, int month, int day, int hour = 0, int minute = 0, int sec = 0, int msec = 0, int usec = 0);
+    DateTime& set(int year, int month, int day, int hour = 0, int minute = 0, int sec = 0, int usec = 0);
 
     /** @brief Aktuelles Datum und Uhrzeit übernehmen
      *
@@ -641,7 +635,7 @@ public:
      * @return Sind beide Zeitwerte identisch oder liegen im Bereich der angegebenen Toleranz, gibt die Funktion
      * 1 zurück, andernfalls 0. Es wird kein Fehlercode gesetzt.
      */
-    int compareSeconds(const DateTime& other, int tolerance = 0) const;
+    bool compareSeconds(const DateTime& other, unsigned int tolerance = 0) const;
 
     /** @brief Datum aus einem String übernehmen
      *
@@ -710,6 +704,8 @@ public:
      * @return Datums-String
      */
     String toString(const String& format) const;
+
+    PPLTIME toPPLTIME() const;
 
     /** @brief Operator, der einen String zurückliefert
      *

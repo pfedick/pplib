@@ -102,6 +102,7 @@ PPLIBEXCEPTION(UnexpectedEndOfDataException, Exception);
 PPLIBEXCEPTION(InvalidEscapeSequenceException, Exception);
 PPLIBEXCEPTION(UnexpectedCharacterException, Exception);
 PPLIBEXCEPTION(SyntaxException, Exception);
+PPLIBEXCEPTION(IllegalStateException, Exception);
 
 PPLIBEXCEPTION(NoSectionSelectedException, Exception);
 PPLIBEXCEPTION(UnknownSectionException, Exception);

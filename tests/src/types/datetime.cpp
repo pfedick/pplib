@@ -764,4 +764,206 @@ TEST_F(DateTimeTest, weekISO8601)
     EXPECT_EQ(d1.set("2024-06-05T11:50:11.159473").weekISO8601(), 23) << "Unexpected week";
 }
 
+TEST_F(DateTimeTest, setWithDateAndTime)
+{
+    pplib::DateTime d1;
+    EXPECT_EQ(pplib::String("2024-06-05 11:50:11.159473"), d1.set("2024-06-05", "11:50:11.159473").get("%Y-%m-%d %H:%M:%S.%u"))
+        << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setDate)
+{
+    pplib::DateTime d1;
+    EXPECT_EQ(pplib::String("2024-06-05 00:00:00.000000"), d1.setDate("2024-06-05").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, getDate)
+{
+    pplib::DateTime d1;
+    EXPECT_EQ(pplib::String("0000-00-00"), d1.getDate()) << "Unexpected date";
+
+    EXPECT_EQ(pplib::String("2026-08-16"), d1.setDate("2026-08-16").getDate()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setTime)
+{
+    ASSERT_THROW(
+        {
+            pplib::DateTime d2;
+            d2.setTime("19:24:13.123456");
+        },
+        pplib::IllegalStateException);
+    pplib::DateTime d1("2026-08-16");
+    EXPECT_EQ(pplib::String("2026-08-16 19:24:13.123456"), d1.setTime("19:24:13.123456").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setByPPLTIME)
+{
+    pplib::DateTime d1;
+    pplib::PPLTIME t1 = {0, 2024, 6, 5, 11, 50, 11};
+    EXPECT_EQ(pplib::String("2024-06-05 11:50:11.000000"), d1.set(t1).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, getPPLTIME)
+{
+    pplib::DateTime d1("2024-06-05 11:50:11.159473");
+    pplib::PPLTIME t1 = d1.toPPLTIME();
+    EXPECT_EQ(t1.year, 2024) << "Unexpected year";
+    EXPECT_EQ(t1.month, 6) << "Unexpected month";
+    EXPECT_EQ(t1.day, 5) << "Unexpected day";
+    EXPECT_EQ(t1.hour, 11) << "Unexpected hour";
+    EXPECT_EQ(t1.min, 50) << "Unexpected minute";
+    EXPECT_EQ(t1.sec, 11) << "Unexpected second";
+}
+
+TEST_F(DateTimeTest, setTime_t)
+{
+    pplib::DateTime d1;
+    uint64_t t = 1717505411; // 2024-06-04 14:50:11
+    EXPECT_EQ(pplib::String("2024-06-04 14:50:11.000000"), d1.set(t).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+
+    EXPECT_EQ((uint64_t)0, d1.setTime_t((uint64_t)0).time_t()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setEpoch)
+{
+    pplib::DateTime d1;
+    uint64_t t = 1717505411; // 2024-06-04 14:50:11
+    EXPECT_EQ(pplib::String("2024-06-04 14:50:11.000000"), d1.setEpoch(t).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+
+    EXPECT_EQ((uint64_t)0, d1.setTime_t((uint64_t)0).time_t()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, getISO8601withUsec)
+{
+#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
+    ASSERT_EQ(pplib::String("2024-06-05T11:50:11.159473"), pplib::DateTime("2024-06-05 11:50:11.159473").getISO8601withUsec())
+        << "Unexpected date";
+#else
+    ASSERT_EQ(pplib::String("2024-06-05T11:50:11.159473"), pplib::DateTime("2024-06-05 11:50:11.159473").getISO8601withUsec())
+        << "Unexpected date";
+#endif
+}
+
+TEST_F(DateTimeTest, getRFC822Date)
+{
+#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
+    ASSERT_EQ(pplib::String("Wed, 05 Jun 2024 11:50:11 +0000"), pplib::DateTime("2024-06-05 11:50:11.159473").getRFC822Date())
+        << "Unexpected date";
+
+#else
+    ASSERT_EQ(pplib::String("Wed, 05 Jun 2024 11:50:11"), pplib::DateTime("2024-06-05 11:50:11.159473").getRFC822Date())
+        << "Unexpected date";
+#endif
+}
+
+TEST_F(DateTimeTest, strftime)
+{
+    pplib::DateTime d1("2024-06-05 11:50:11.159473");
+    ASSERT_EQ(pplib::String("2024-06-05 11:50:11"), d1.strftime("%Y-%m-%d %H:%M:%S")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, epoch)
+{
+    pplib::DateTime d1("2024-06-05 11:50:11.159473");
+    ASSERT_EQ((uint64_t)1717581011, d1.epoch()) << "Unexpected epoch";
+}
+
+TEST_F(DateTimeTest, notEmpty)
+{
+    pplib::DateTime d1("2024-06-05 11:50:11.159473");
+    ASSERT_TRUE(d1.notEmpty()) << "Unexpected date";
+
+    pplib::DateTime d2;
+    ASSERT_FALSE(d2.notEmpty()) << "Unexpected date";
+
+    ASSERT_TRUE(d2.set(0, 1, 5, 11, 50, 11, 159473).notEmpty()) << "Unexpected date";
+    ASSERT_TRUE(d2.set(0, 0, 5, 11, 50, 11, 159473).notEmpty()) << "Unexpected date";
+    ASSERT_TRUE(d2.set(0, 0, 0, 11, 50, 11, 159473).notEmpty()) << "Unexpected date";
+    ASSERT_TRUE(d2.set(0, 0, 0, 0, 50, 11, 159473).notEmpty()) << "Unexpected date";
+    ASSERT_TRUE(d2.set(0, 0, 0, 0, 0, 11, 159473).notEmpty()) << "Unexpected date";
+    ASSERT_TRUE(d2.set(0, 0, 0, 0, 0, 0, 159473).notEmpty()) << "Unexpected date";
+    ASSERT_FALSE(d2.set(0, 0, 0, 0, 0, 0, 0).notEmpty()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, isEmpty)
+{
+    pplib::DateTime d1("2024-06-05 11:50:11.159473");
+    ASSERT_FALSE(d1.isEmpty()) << "Unexpected date";
+
+    pplib::DateTime d2;
+    ASSERT_TRUE(d2.isEmpty()) << "Unexpected date";
+
+    ASSERT_FALSE(d2.set(0, 1, 5, 11, 50, 11, 159473).isEmpty()) << "Unexpected date";
+    ASSERT_FALSE(d2.set(0, 0, 5, 11, 50, 11, 159473).isEmpty()) << "Unexpected date";
+    ASSERT_FALSE(d2.set(0, 0, 0, 11, 50, 11, 159473).isEmpty()) << "Unexpected date";
+    ASSERT_FALSE(d2.set(0, 0, 0, 0, 50, 11, 159473).isEmpty()) << "Unexpected date";
+    ASSERT_FALSE(d2.set(0, 0, 0, 0, 0, 11, 159473).isEmpty()) << "Unexpected date";
+    ASSERT_FALSE(d2.set(0, 0, 0, 0, 0, 0, 159473).isEmpty()) << "Unexpected date";
+    ASSERT_TRUE(d2.set(0, 0, 0, 0, 0, 0, 0).isEmpty()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, isLeapYear)
+{
+    ASSERT_TRUE(pplib::DateTime("2024-06-05 11:50:11.159473").isLeapYear()) << "Unexpected date";
+    ASSERT_FALSE(pplib::DateTime("2023-06-05 11:50:11.159473").isLeapYear()) << "Unexpected date";
+    ASSERT_TRUE(pplib::DateTime("2000-06-05 11:50:11.159473").isLeapYear()) << "Unexpected date";
+    ASSERT_FALSE(pplib::DateTime("1900-06-05 11:50:11.159473").isLeapYear()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, currentTime)
+{
+    pplib::DateTime d1 = pplib::DateTime::currentTime();
+    pplib::DateTime d2("2026-08-16 08:35:01.123456");
+    ASSERT_TRUE(d1 >= d2) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, diffSeconds)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::DateTime d2("2026-08-16 08:35:11.123456");
+    ASSERT_EQ(d1.diffSeconds(d2), 10) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, compareSeconds)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::DateTime d2("2026-08-16 08:35:03.123456");
+    ASSERT_FALSE(d1.compareSeconds(d2, 0)) << "Unexpected date";
+    ASSERT_TRUE(d1.compareSeconds(d2, 4)) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, copyAssignmentOperator)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::DateTime d2;
+    d2 = d1;
+    ASSERT_EQ(d1, d2) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, noveAssignmentOperator)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::DateTime expected("2026-08-16 08:35:01.123456");
+    pplib::DateTime d2;
+    d2 = std::move(d1);
+    ASSERT_EQ(expected, d2) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, StringOperator)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::String expected("2026-08-16 08:35:01.123456");
+    pplib::String actual = d1;
+    ASSERT_EQ(expected, actual) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, OperatorAssignWithString)
+{
+    pplib::DateTime d1;
+    d1 = "2026-08-16 08:35:01.123456";
+    pplib::DateTime expected("2026-08-16 08:35:01.123456");
+    ASSERT_EQ(expected, d1) << "Unexpected date";
+}
+
 } // namespace

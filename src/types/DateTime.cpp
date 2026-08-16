@@ -32,6 +32,7 @@
 #include <string.h>
 #include <pplib/types/string.h>
 #include <pplib/types/datetime.h>
+#include <pplib/types/bytearray.h>
 
 #include <pplib/core/functions.h>
 #include <pplib/core/regex.h>
@@ -189,7 +190,7 @@ DateTime& DateTime::set(const String& datetime)
     }
 
     // 2. Uhrzeit parsen (falls vorhanden)
-    int h = 0, min = 0, s = 0, msec = 0, usec = 0;
+    int h = 0, min = 0, s = 0, usec = 0;
     if (time_part && *time_part != '\0') {
         int consumed = 0;
         if (sscanf(time_part, "%d:%d:%d%n", &h, &min, &s, &consumed) >= 3) {
@@ -201,10 +202,9 @@ DateTime& DateTime::set(const String& datetime)
                     frac_digits++;
 
                 if (frac_digits >= 1 && frac_digits <= 3) {
-                    msec = parse_int(frac_ptr, frac_digits);
+                    usec = parse_int(frac_ptr, frac_digits) * 1000;
                 } else if (frac_digits == 6) {
-                    msec = parse_int(frac_ptr, 3);
-                    usec = parse_int(frac_ptr + 3, 3);
+                    usec = parse_int(frac_ptr, 6);
                 } else if (frac_digits > 0) {
                     clear();
                     throw IllegalArgumentException("DateTime::set(" + datetime + ")");
@@ -213,7 +213,7 @@ DateTime& DateTime::set(const String& datetime)
         }
     }
 
-    return set(y, m, day, h, min, s, msec, usec);
+    return set(y, m, day, h, min, s, usec);
 }
 
 #ifdef OLD_REGEX_CODE
@@ -313,21 +313,23 @@ DateTime& DateTime::setDate(const String& date)
 
 DateTime& DateTime::setTime(const String& time)
 {
+    if (isEmpty()) {
+        throw IllegalStateException("DateTime::setTime() called on empty DateTime object");
+    }
     String date = getDate();
     return set(date, time);
 }
 
-DateTime& DateTime::set(int year, int month, int day, int hour, int minute, int sec, int msec, int usec)
+DateTime& DateTime::set(int year, int month, int day, int hour, int minute, int sec, int usec)
 {
-
     yy = year;
     if (year < 0) yy = 0;
     if (year > 9999) yy = 9999;
     mm = month;
-    if (month < 1) mm = 1;
+    if (month < 1) mm = 0;
     if (month > 12) mm = 12;
     dd = day;
-    if (day < 1) dd = 1;
+    if (day < 1) dd = 0;
     if (day > 31) dd = 31;
     hh = hour;
     if (hour < 0) hh = 0;
@@ -338,17 +340,28 @@ DateTime& DateTime::set(int year, int month, int day, int hour, int minute, int 
     ss = sec;
     if (sec < 0) ss = 0;
     if (sec > 59) ss = 59;
-    if (msec < 0) msec = 0;
-    if (msec > 999) msec = 999;
-    if (usec < 0) usec = 0;
-    if (usec > 999999) usec = 999999;
-    us = msec * 1000 + usec;
+    us = usec;
+    if (usec < 0) us = 0;
+    if (usec > 999999) us = 999999;
     return *this;
 }
 
 DateTime& DateTime::set(const PPLTIME& t)
 {
-    return set(t.year, t.month, t.day, t.hour, t.min, t.sec, 0, 0);
+    return set(t.year, t.month, t.day, t.hour, t.min, t.sec, 0);
+}
+
+PPLTIME DateTime::toPPLTIME() const
+{
+    PPLTIME t;
+    memset(&t, 0, sizeof(PPLTIME));
+    t.year = yy;
+    t.month = mm;
+    t.day = dd;
+    t.hour = hh;
+    t.min = ii;
+    t.sec = ss;
+    return t;
 }
 
 DateTime& DateTime::setTime_t(uint64_t t)
@@ -358,9 +371,7 @@ DateTime& DateTime::setTime_t(uint64_t t)
         return *this;
     }
     struct tm tt;
-    ::time_t tp = (::time_t)t;
-
-    if (!safe_localtime(tp, &tt)) throw InvalidDateException();
+    if (!safe_localtime((::time_t)t, &tt)) throw InvalidDateException();
     ss = tt.tm_sec;
     ii = tt.tm_min;
     hh = tt.tm_hour;
@@ -460,16 +471,12 @@ String DateTime::get(const String& format) const
     mktime(&t);
 
     size_t size = r.len() * 2 + 32;
-    char* b = (char*)malloc(size);
-    if (!b) {
-        throw OutOfMemoryException();
-    }
+    ByteArray buffer;
+    char* b = (char*)buffer.malloc(size);
     if (::strftime(b, size, (const char*)r, &t) == 0) {
-        free(b);
         throw IllegalArgumentException("DateTime::get(\"%s\")", (const char*)r);
     }
     r.set(b);
-    free(b);
     return r;
 }
 
@@ -542,7 +549,7 @@ String DateTime::getISO8601withMsec() const
 String DateTime::getISO8601withUsec() const
 {
     String r;
-    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%03i", yy, mm, dd, hh, ii, ss, us / 1000);
+    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%06i", yy, mm, dd, hh, ii, ss, us);
 
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
     if (yy >= 1900) {
@@ -580,14 +587,14 @@ String DateTime::getRFC822Date() const
 
     s = day[t.day_of_week];
     s += ", ";
-    s.appendf("%i ", t.day);
+    s.appendf("%02i ", t.day);
     s += month[t.month - 1];
-    s.appendf(" %04i %02i:%02i:%02i ", t.year, t.hour, t.min, t.sec);
+    s.appendf(" %04i %02i:%02i:%02i", t.year, t.hour, t.min, t.sec);
     if (t.have_gmt_offset) {
         if (t.gmt_offset >= 0)
-            s.appendf("+%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
+            s.appendf(" +%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
         else
-            s.appendf("-%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
+            s.appendf(" -%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
     }
     return s;
 }
@@ -718,10 +725,10 @@ bool DateTime::isLeapYear() const
 
 bool DateTime::isLeapYear(int year)
 {
-    if (year % 4 != 0) return 0;
-    if (year % 400 == 0) return 1;
-    if (year % 100 == 0) return 0;
-    return 1;
+    if (year % 400 == 0) return true;
+    if (year % 100 == 0) return false;
+    if (year % 4 != 0) return false;
+    return true;
 }
 
 DateTime DateTime::currentTime()
@@ -738,14 +745,14 @@ int64_t DateTime::diffSeconds(const DateTime& other) const
     return otherSecs - mySecs;
 }
 
-int DateTime::compareSeconds(const DateTime& other, int tolerance) const
+bool DateTime::compareSeconds(const DateTime& other, unsigned int tolerance) const
 {
     int64_t mySecs = (int64_t)time_t();
     int64_t otherSecs = (int64_t)other.time_t();
     int64_t diff = otherSecs - mySecs;
     if (diff < 0) diff = mySecs - otherSecs;
-    if (diff <= tolerance) return 1;
-    return 0;
+    if (diff <= tolerance) return true;
+    return false;
 }
 
 DateTime& DateTime::operator=(const String& datetime)
