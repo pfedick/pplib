@@ -87,25 +87,21 @@ DateTime& DateTime::set(const String& datetime)
             throw IllegalArgumentException("DateTime::set: invalid datetime format (%s)", parse.c_str());
         }
         String tz_str = parse.substr(tz_start + 1, tz_end - tz_start - 1);
-        TimeZone tz = TimeZone::fromString(tz_str);
-        // setTimeZone(tz);
+        my_tz = TimeZone::fromString(tz_str);
         parse = parse.substr(0, tz_start) + parse.substr(tz_end + 1);
     } else if (parse.length() >= 5) {
         // Könnte auch ohne Klammern sein, z. B. "+0200" oder "-0200" am Ende
         String end = parse.right(5);
         if (end[0] == '+' || end[0] == '-') {
-            TimeZone tz = TimeZone::fromString(end);
-            // setTimeZone(tz);
+            my_tz = TimeZone::fromString(end);
             parse = parse.left(parse.length() - 5);
         } else {
             end = parse.right(1);
             if (end[0] == 'Z') {
-                TimeZone tz = TimeZone::utc();
-                // setTimeZone(tz);
+                my_tz = TimeZone::utc();
                 parse = parse.left(parse.length() - 1);
             } else if (parse.right(3) == "UTC") {
-                TimeZone tz = TimeZone::utc();
-                // setTimeZone(tz);
+                my_tz = TimeZone::utc();
                 parse = parse.left(parse.length() - 3);
             }
         }
@@ -211,6 +207,7 @@ DateTime& DateTime::setCurrentTime()
     // Sekunden seit Epoche für localtime
     ::time_t tp = std::chrono::system_clock::to_time_t(now);
     struct tm tt;
+    my_tz = TimeZone::fromEpoch(tp);
     if (!safe_localtime(tp, &tt)) throw InvalidDateException();
 
     set(tt.tm_year + 1900, tt.tm_mon + 1, tt.tm_mday, tt.tm_hour, tt.tm_min, tt.tm_sec, us);

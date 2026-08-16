@@ -34,9 +34,50 @@
 #include "pplib/exceptions.h"
 #include "pplib/core/functions.h"
 #include <chrono>
+#include <atomic>
 
 namespace pplib
 {
+
+int16_t get_local_utc_offset_minutes(time_t t = 0)
+{
+    if (t == 0) {
+        time_t t = ::time(nullptr);
+    }
+    struct tm local_tm, gm_tm;
+#ifdef _WIN32
+    localtime_s(&local_tm, &t);
+    gmtime_s(&gm_tm, &t);
+#else
+    localtime_r(&t, &local_tm);
+    gmtime_r(&t, &gm_tm);
+#endif
+
+#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
+    return static_cast<int16_t>(local_tm.tm_gmtoff / 60);
+#else
+    // Portabler Fallback (z. B. Windows MSVCRT / UCRT)
+    time_t local_sec = mktime(&local_tm);
+    time_t gm_sec = mktime(&gm_tm);
+    return static_cast<int16_t>(difftime(local_sec, gm_sec) / 60);
+#endif
+}
+
+TimeZone::TimeZone() noexcept
+{
+    offset_minutes = get_local_utc_offset_minutes();
+    tz_name = String();
+}
+
+TimeZone TimeZone::fromLocalTime() noexcept
+{
+    return TimeZone(get_local_utc_offset_minutes());
+}
+
+TimeZone TimeZone::fromEpoch(time_t t) noexcept
+{
+    return TimeZone(get_local_utc_offset_minutes(t));
+}
 
 TimeZone TimeZone::fromString(const String& str)
 {

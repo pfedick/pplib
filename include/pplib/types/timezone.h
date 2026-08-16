@@ -44,7 +44,7 @@ private:
     String tz_name;             //!< Optional: "UTC", "CET", "CEST", "Europe/Berlin"
 
 public:
-    TimeZone() noexcept = default;
+    TimeZone() noexcept;
     explicit TimeZone(int16_t offset_min, const String& name = String()) noexcept
         : offset_minutes(offset_min),
           tz_name(name)
@@ -66,6 +66,9 @@ public:
         return TimeZone(sign * (abs(hours) * 60 + abs(minutes)));
     }
     static TimeZone fromString(const String& str); // parst "+02:00", "+0200", "Z", "UTC"
+
+    static TimeZone fromLocalTime() noexcept;
+    static TimeZone fromEpoch(time_t t) noexcept;
 
     // Getter
     int16_t offsetMinutes() const noexcept

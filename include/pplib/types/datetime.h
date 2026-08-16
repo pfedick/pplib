@@ -80,8 +80,9 @@ typedef uint64_t ppl_time_t;
 class DateTime
 {
 private:
-    Date my_date; //!< Datumsobjekt
-    Time my_time; //!< Uhrzeitobjekt
+    Date my_date;   //!< Datumsobjekt
+    Time my_time;   //!< Uhrzeitobjekt
+    TimeZone my_tz; //!< Zeitzonenobjekt
 
 public:
     /** @brief Konstruktor mit Initialisierung auf 0
@@ -152,6 +153,16 @@ public:
     inline Time& time() noexcept
     {
         return my_time;
+    }
+
+    inline const TimeZone& timezone() const noexcept
+    {
+        return my_tz;
+    }
+
+    inline TimeZone& timezone() noexcept
+    {
+        return my_tz;
     }
 
     /** @brief Datum aus Unix-Timestamp übernehmen
