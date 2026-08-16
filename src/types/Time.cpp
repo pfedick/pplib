@@ -33,6 +33,7 @@
 #include "pplib/types/array.h"
 #include "pplib/exceptions.h"
 #include "pplib/core/functions.h"
+#include <chrono>
 
 namespace pplib
 {
@@ -152,6 +153,26 @@ String Time::format(const String& format) const
     Tmp.setf("%06d", us);
     r.replace("%f", Tmp);
     return r;
+}
+
+Time Time::now()
+{
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    auto now_tm = *std::localtime(&now_time_t);
+    auto now_us = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count() % 1000000;
+
+    return Time(now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, static_cast<uint32_t>(now_us));
+}
+
+Time Time::utcNow()
+{
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    auto now_tm = *std::gmtime(&now_time_t);
+    auto now_us = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count() % 1000000;
+
+    return Time(now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec, static_cast<uint32_t>(now_us));
 }
 
 } // namespace pplib

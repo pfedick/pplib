@@ -31,6 +31,7 @@
 #define PPLIB_TYPES_TIME_H_
 
 #include <stdint.h>
+#include <ostream>
 #include "pplib/types/string.h"
 
 namespace pplib
@@ -336,7 +337,29 @@ public:
     {
         return toMicroseconds() >= other.toMicroseconds();
     }
+
+    /** @brief Gibt die aktuelle Uhrzeit zurück
+     *
+     * Mit dieser Funktion wird die aktuelle Uhrzeit zurückgegeben. Die Uhrzeit wird in der lokalen Zeitzone ermittelt.
+     *
+     * @return Aktuelle Uhrzeit
+     */
+    static Time now();
+
+    /** @brief Gibt die aktuelle Uhrzeit in UTC zurück
+     *
+     * Mit dieser Funktion wird die aktuelle Uhrzeit in UTC zurückgegeben.
+     *
+     * @return Aktuelle Uhrzeit in UTC
+     */
+    static Time utcNow();
 };
+
+inline std::ostream& operator<<(std::ostream& s, const Time& t)
+{
+    pplib::String tmp = t.toString();
+    return s.write(tmp.c_str(), tmp.length());
+}
 
 } // namespace pplib
 

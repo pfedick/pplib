@@ -266,4 +266,24 @@ TEST_F(TimeTest, ComparisonOperators)
     });
 }
 
+TEST_F(TimeTest, NowAndUtcNow)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1 = pplib::Time::now();
+        pplib::Time t2 = pplib::Time::utcNow();
+        ASSERT_TRUE(t1.toMicroseconds() >= 0) << "Expected now to be non-negative";
+        ASSERT_TRUE(t2.toMicroseconds() >= 0) << "Expected utcNow to be non-negative";
+    });
+}
+
+TEST_F(TimeTest, OutputStreamOperator)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1(11, 50, 11, 159473);
+        std::ostringstream oss;
+        oss << t1;
+        ASSERT_EQ("11:50:11.159473", oss.str()) << "Unexpected output from stream operator";
+    });
+}
+
 } // namespace
