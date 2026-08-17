@@ -60,6 +60,8 @@ private:
     size_t s, stringlen;
 
 public:
+    static const size_t npos = (size_t)-1; // Ergebnis von find, wenn nichts gefunden wurde
+
     //! @name Konstruktoren und Destruktor
     //@{
 
@@ -186,10 +188,10 @@ public:
     WideString strchr(wchar_t c) const;
     WideString strrchr(wchar_t c) const;
     WideString strstr(const WideString& needle) const;
-    ssize_t find(const WideString& needle, ssize_t start = 0) const;
-    ssize_t findCase(const WideString& needle, ssize_t start = 0) const;
-    ssize_t instr(const WideString& needle, size_t start = 0) const;
-    ssize_t instrCase(const WideString& needle, size_t start = 0) const;
+    size_t find(const WideString& needle, ssize_t start = 0) const;
+    size_t findCase(const WideString& needle, ssize_t start = 0) const;
+    size_t instr(const WideString& needle, size_t start = 0) const;
+    size_t instrCase(const WideString& needle, size_t start = 0) const;
 
     bool startsWith(const WideString& prefix, size_t start = 0, size_t end = (size_t)-1) const;
     bool endsWith(const WideString& suffix, size_t start = 0, size_t end = (size_t)-1) const;

@@ -76,6 +76,8 @@ private:
     size_t s, stringlen;
 
 public:
+    static const size_t npos = (size_t)-1; // Ergebnis von find, wenn nichts gefunden wurde
+
     //! @name Konstruktoren und Destruktor
     //@{
 
@@ -1031,10 +1033,10 @@ public:
     String strchr(char c) const;
     String strrchr(char c) const;
     String strstr(const String& needle) const;
-    ssize_t find(const String& needle, ssize_t start = 0) const;
-    ssize_t findCase(const String& needle, ssize_t start = 0) const;
-    ssize_t instr(const String& needle, size_t start = 0) const;
-    ssize_t instrCase(const String& needle, size_t start = 0) const;
+    size_t find(const String& needle, ssize_t start = 0) const;
+    size_t findCase(const String& needle, ssize_t start = 0) const;
+    size_t instr(const String& needle, size_t start = 0) const;
+    size_t instrCase(const String& needle, size_t start = 0) const;
     bool has(const String& needle, bool ignoreCase = false) const;
 
     bool startsWith(const String& prefix, size_t start = 0, size_t end = (size_t)-1) const;

@@ -2064,18 +2064,18 @@ WideString WideString::strstr(const WideString& needle) const
  * Ende des Strings gesucht.
  *
  * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder -1 wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+ * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-ssize_t WideString::find(const WideString& needle, ssize_t start) const
+size_t WideString::find(const WideString& needle, ssize_t start) const
 {
-    if (ptr == NULL || stringlen == 0) return -1;
+    if (ptr == NULL || stringlen == 0) return WideString::npos;
     if (needle.stringlen == 0) return 0;
-    if (start > 0 && (size_t)start >= stringlen) return -1;
-    if (start < 0 && ((size_t)((ssize_t)stringlen + start)) >= stringlen) return -1;
+    if (start > 0 && (size_t)start >= stringlen) return WideString::npos;
+    if (start < 0 && ((size_t)((ssize_t)stringlen + start)) >= stringlen) return WideString::npos;
 
     // Position to return
-    size_t p = -1;
+    size_t p = WideString::npos;
     // Length of the string to search for
     size_t lstr = needle.stringlen;
     // Current position to search from and position of found string
@@ -2120,10 +2120,10 @@ ssize_t WideString::find(const WideString& needle, ssize_t start) const
  * Ende des Strings gesucht.
  *
  * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder -1 wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+ * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-ssize_t WideString::findCase(const WideString& needle, ssize_t start) const
+size_t WideString::findCase(const WideString& needle, ssize_t start) const
 {
     WideString CaseNeedle(needle);
     WideString CaseSearch(ptr, stringlen);
@@ -2142,20 +2142,20 @@ ssize_t WideString::findCase(const WideString& needle, ssize_t start) const
  * oder nicht angegeben, wird der String vom Anfang an gesucht.
  *
  * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder -1 wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+ * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-ssize_t WideString::instr(const WideString& needle, size_t start) const
+size_t WideString::instr(const WideString& needle, size_t start) const
 {
-    if (ptr == NULL || stringlen == 0) return -1;
+    if (ptr == NULL || stringlen == 0) return WideString::npos;
     if (needle.stringlen == 0) return 0;
-    if (start >= stringlen) return -1;
+    if (start >= stringlen) return WideString::npos;
     const wchar_t* p;
     p = wcsstr((ptr + start), needle.ptr);
     if (p != NULL) {
         return ((ssize_t)(p - ptr));
     }
-    return -1;
+    return WideString::npos;
 }
 
 /*! \brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
@@ -2169,10 +2169,10 @@ ssize_t WideString::instr(const WideString& needle, size_t start) const
  * oder nicht angegeben, wird der String vom Anfang an gesucht.
  *
  * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder -1 wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+ * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-ssize_t WideString::instrCase(const WideString& needle, size_t start) const
+size_t WideString::instrCase(const WideString& needle, size_t start) const
 {
     WideString CaseNeedle(needle);
     WideString CaseSearch(ptr, stringlen);

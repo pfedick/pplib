@@ -1305,18 +1305,18 @@ String String::strstr(const String& needle) const
  * Ende des Strings gesucht.
  *
  * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder -1 wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+ * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-ssize_t String::find(const String& needle, ssize_t start) const
+size_t String::find(const String& needle, ssize_t start) const
 {
-    if (stringlen == 0) return -1;
+    if (stringlen == 0) return String::npos;
     if (needle.stringlen == 0) return 0;
-    if (start > 0 && (size_t)start >= stringlen) return -1;
-    if (start < 0 && ((size_t)((ssize_t)stringlen + start)) >= stringlen) return -1;
+    if (start > 0 && (size_t)start >= stringlen) return String::npos;
+    if (start < 0 && ((size_t)((ssize_t)stringlen + start)) >= stringlen) return String::npos;
 
     // Position to return
-    size_t p = -1;
+    size_t p = String::npos;
     // Length of the string to search for
     size_t lstr = needle.stringlen;
     // Current position to search from and position of found string
@@ -1361,10 +1361,10 @@ ssize_t String::find(const String& needle, ssize_t start) const
  * Ende des Strings gesucht.
  *
  * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder -1 wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+ * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-ssize_t String::findCase(const String& needle, ssize_t start) const
+size_t String::findCase(const String& needle, ssize_t start) const
 {
     String CaseNeedle(needle);
     String CaseSearch(ptr, stringlen);
@@ -1383,20 +1383,20 @@ ssize_t String::findCase(const String& needle, ssize_t start) const
  * oder nicht angegeben, wird der String vom Anfang an gesucht.
  *
  * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder -1 wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+ * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-ssize_t String::instr(const String& needle, size_t start) const
+size_t String::instr(const String& needle, size_t start) const
 {
-    if (stringlen == 0) return -1;
+    if (stringlen == 0) return String::npos;
     if (needle.stringlen == 0) return 0;
-    if (start >= stringlen) return -1;
+    if (start >= stringlen) return String::npos;
     const char* p;
     p = ::strstr((ptr + start), needle.ptr);
     if (p != NULL) {
         return ((ssize_t)(p - ptr));
     }
-    return -1;
+    return String::npos;
 }
 
 /*! \brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
@@ -1410,10 +1410,10 @@ ssize_t String::instr(const String& needle, size_t start) const
  * oder nicht angegeben, wird der String vom Anfang an gesucht.
  *
  * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder -1 wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+ * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-ssize_t String::instrCase(const String& needle, size_t start) const
+size_t String::instrCase(const String& needle, size_t start) const
 {
     String CaseNeedle(needle);
     String CaseSearch(ptr, stringlen);
