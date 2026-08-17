@@ -386,7 +386,7 @@ TEST_F(DateTimeTest, getISO8601)
 TEST_F(DateTimeTest, getISO8601withMsec)
 {
     ASSERT_NO_THROW({
-        pplib::DateTime d1("2012-05-18 11:50:11.159473");
+        pplib::DateTime d1("2012-05-18 11:50:11.159473+02:00");
         ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159+02:00"), d1.getISO8601withMsec()) << "Unexpected date";
     });
 }
@@ -394,7 +394,7 @@ TEST_F(DateTimeTest, getISO8601withMsec)
 TEST_F(DateTimeTest, getISO8601withMsecNoRoundUp)
 {
     ASSERT_NO_THROW({
-        pplib::DateTime d1("2012-05-18 11:50:11.159999");
+        pplib::DateTime d1("2012-05-18 11:50:11.159999+02:00");
         ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159+02:00"), d1.getISO8601withMsec()) << "Unexpected date";
     });
 }
@@ -859,7 +859,7 @@ TEST_F(DateTimeTest, setEpoch)
 
 TEST_F(DateTimeTest, getISO8601withUsec)
 {
-    ASSERT_EQ(pplib::String("2024-06-05T11:50:11.159473"), pplib::DateTime("2024-06-05 11:50:11.159473").getISO8601withUsec())
+    ASSERT_EQ(pplib::String("2024-06-05T11:50:11.159473+00:00"), pplib::DateTime("2024-06-05 11:50:11.159473").getISO8601withUsec())
         << "Unexpected date";
 }
 
