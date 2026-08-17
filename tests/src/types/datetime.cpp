@@ -873,6 +873,9 @@ TEST_F(DateTimeTest, strftime)
 {
     pplib::DateTime d1("2024-06-05 11:50:11.159473");
     ASSERT_EQ(pplib::String("2024-06-05 11:50:11"), d1.strftime("%Y-%m-%d %H:%M:%S")) << "Unexpected date";
+
+    pplib::DateTime d2("2024-06-05 11:50:11.159473+02:00");
+    ASSERT_EQ(pplib::String("2024-06-05 11:50:11"), d2.strftime("%Y-%m-%d %H:%M:%S")) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, epoch)

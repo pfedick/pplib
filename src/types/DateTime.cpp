@@ -350,7 +350,10 @@ String DateTime::strftime(const String& format) const
 
     struct tm tt;
     ::time_t tp = time_t();
-    if (!safe_localtime(tp, &tt)) throw InvalidDateException();
+    // Zeitzone fixen
+    tp += my_tz.offsetSeconds();
+
+    if (!safe_gmtime(tp, &tt)) throw InvalidDateException();
 
     size_t res = ::strftime(buf.data(), s, (const char*)format, &tt);
     if (res == 0) throw InvalidFormatException();
