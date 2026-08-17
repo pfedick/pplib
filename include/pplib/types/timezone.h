@@ -45,10 +45,23 @@ private:
 
 public:
     TimeZone() noexcept;
-    explicit TimeZone(int16_t offset_min, const String& name = String()) noexcept
-        : offset_minutes(offset_min),
-          tz_name(name)
+    explicit TimeZone(int16_t offset_min, const String& name = String())
+        : tz_name(name)
     {
+        setOffsetMinutes(offset_min);
+    }
+    // Setter
+    TimeZone& setOffsetMinutes(int16_t offset_min);
+    TimeZone& setOffsetSeconds(int16_t offset_seconds)
+    {
+        return setOffsetMinutes(offset_seconds / 60);
+    }
+
+    TimeZone& setOffset(int8_t hours, int8_t minutes);
+
+    void setName(const String& name)
+    {
+        tz_name = name;
     }
 
     // Fabriken

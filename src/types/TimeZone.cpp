@@ -42,7 +42,7 @@ namespace pplib
 int16_t get_local_utc_offset_minutes(time_t t = 0)
 {
     if (t == 0) {
-        time_t t = ::time(nullptr);
+        t = ::time(nullptr);
     }
     struct tm local_tm, gm_tm;
 #ifdef _WIN32
@@ -59,14 +59,33 @@ int16_t get_local_utc_offset_minutes(time_t t = 0)
     // Portabler Fallback (z. B. Windows MSVCRT / UCRT)
     time_t local_sec = mktime(&local_tm);
     time_t gm_sec = mktime(&gm_tm);
+    if (local_tm.tm_isdst) {
+        // Sommerzeit in der lokalen Zeitzone
+        local_sec += 3600;
+    }
+    // printf("t=%llu, local_sec=%llu, gm_sec=%llu\n", t, local_sec, gm_sec);
     return static_cast<int16_t>(difftime(local_sec, gm_sec) / 60);
 #endif
 }
 
 TimeZone::TimeZone() noexcept
 {
-    offset_minutes = get_local_utc_offset_minutes();
-    tz_name = String();
+    offset_minutes = 0;
+    tz_name = String("UTC");
+}
+
+TimeZone& TimeZone::setOffsetMinutes(int16_t offset_min)
+{
+    if (offset_min < -720 || offset_min > 840) throw InvalidArgumentsException("Invalid time offset");
+    offset_minutes = offset_min;
+    return *this;
+}
+
+TimeZone& TimeZone::setOffset(int8_t hours, int8_t minutes)
+{
+    int s = 1;
+    if (hours < 0) s = -1;
+    return setOffsetMinutes((abs(hours) * 60 + abs(minutes)) * s);
 }
 
 TimeZone TimeZone::fromLocalTime() noexcept
@@ -81,7 +100,10 @@ TimeZone TimeZone::fromEpoch(time_t t) noexcept
 
 TimeZone TimeZone::fromString(const String& str)
 {
+    if (str.isEmpty()) return TimeZone::utc();
     String s = Trim(str);
+    s.trimLeft("[");
+    s.trimRight("]");
     if (s == "Z" || s == "UTC") {
         return TimeZone::utc();
     }
