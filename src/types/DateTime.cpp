@@ -221,14 +221,14 @@ String DateTime::getISO8601() const
            my_time.seconds());
 
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    if (d.year() >= 1900) {
+    if (my_date.year() >= 1900) {
         struct tm tt;
-        tt.tm_sec = t.seconds();
-        tt.tm_min = t.minutes();
-        tt.tm_hour = t.hours();
-        tt.tm_mday = d.day();
-        tt.tm_mon = d.month() - 1;
-        tt.tm_year = d.year() - 1900;
+        tt.tm_sec = my_time.seconds();
+        tt.tm_min = my_time.minutes();
+        tt.tm_hour = my_time.hours();
+        tt.tm_mday = my_date.day();
+        tt.tm_mon = my_date.month() - 1;
+        tt.tm_year = my_date.year() - 1900;
         tt.tm_isdst = -1;
         mktime(&tt);
         int s = abs(tt.tm_gmtoff / 60);
@@ -248,14 +248,14 @@ String DateTime::getISO8601withMsec() const
     r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%03i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
            my_time.seconds(), my_time.microseconds() / 1000);
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    if (d.year() >= 1900) {
+    if (my_date.year() >= 1900) {
         struct tm tt;
-        tt.tm_sec = t.seconds();
-        tt.tm_min = t.minutes();
-        tt.tm_hour = t.hours();
-        tt.tm_mday = d.day();
-        tt.tm_mon = d.month() - 1;
-        tt.tm_year = d.year() - 1900;
+        tt.tm_sec = my_time.seconds();
+        tt.tm_min = my_time.minutes();
+        tt.tm_hour = my_time.hours();
+        tt.tm_mday = my_date.day();
+        tt.tm_mon = my_date.month() - 1;
+        tt.tm_year = my_date.year() - 1900;
         tt.tm_isdst = -1;
         mktime(&tt);
         int s = abs(tt.tm_gmtoff / 60);
@@ -276,14 +276,14 @@ String DateTime::getISO8601withUsec() const
            my_time.seconds(), my_time.microseconds());
 
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    if (d.year() >= 1900) {
+    if (my_date.year() >= 1900) {
         struct tm tt;
-        tt.tm_sec = t.seconds();
-        tt.tm_min = t.minutes();
-        tt.tm_hour = t.hours();
-        tt.tm_mday = d.day();
-        tt.tm_mon = d.month() - 1;
-        tt.tm_year = d.year() - 1900;
+        tt.tm_sec = my_time.seconds();
+        tt.tm_min = my_time.minutes();
+        tt.tm_hour = my_time.hours();
+        tt.tm_mday = my_date.day();
+        tt.tm_mon = my_date.month() - 1;
+        tt.tm_year = my_date.year() - 1900;
         tt.tm_isdst = -1;
         mktime(&tt);
         int s = abs(tt.tm_gmtoff / 60);
