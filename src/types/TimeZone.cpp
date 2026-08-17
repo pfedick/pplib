@@ -76,7 +76,7 @@ TimeZone::TimeZone() noexcept
 
 TimeZone& TimeZone::setOffsetMinutes(int16_t offset_min)
 {
-    if (offset_min < -720 || offset_min > 840) throw InvalidArgumentsException("Invalid time offset");
+    if (offset_min < -720 || offset_min > 840) throw IllegalArgumentException("Invalid time offset");
     offset_minutes = offset_min;
     return *this;
 }
@@ -102,9 +102,10 @@ TimeZone TimeZone::fromString(const String& str)
 {
     if (str.isEmpty()) return TimeZone::utc();
     String s = Trim(str);
+    // printf("TimeZone::fromString: >>%s<<\n", (const char*)str);
     s.trimLeft("[");
     s.trimRight("]");
-    if (s == "Z" || s == "UTC") {
+    if (s == "Z" || s == "UTC" || s == "-Z" || s == "+Z" || s == "-UTC" || s == "+UTC") {
         return TimeZone::utc();
     }
     if (s.size() < 3) {

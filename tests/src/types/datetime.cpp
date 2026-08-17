@@ -226,7 +226,7 @@ TEST_F(DateTimeTest, MoveConstructor)
 
 TEST_F(DateTimeTest, ConstructorWithTime_t)
 {
-    uint64_t t = 1337335350; // 2012-05-18 12:02:30
+    uint64_t t = 1337342550; // 2012-05-18 12:02:30 UTC
     ASSERT_NO_THROW({
         pplib::DateTime d1(t);
         ASSERT_TRUE(d1.notEmpty() == true) << "Class is empty";
@@ -289,6 +289,37 @@ TEST_F(DateTimeTest, setWithTimeZone)
         << "Unexpected date";
 }
 
+TEST_F(DateTimeTest, setWithTimeZoneVariations)
+{
+    pplib::DateTime d1;
+    d1.set("2026-08-16T08:35:01.123456[-02:00]");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456-02:00"), d1.getISO8601withUsec());
+    d1.set("2026-08-16T08:35:01.123456[+02:00]");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+02:00"), d1.getISO8601withUsec());
+
+    d1.set("2026-08-16T08:35:01.123456[-0200]");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456-02:00"), d1.getISO8601withUsec());
+    d1.set("2026-08-16T08:35:01.123456[+0200]");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+02:00"), d1.getISO8601withUsec());
+
+    d1.set("2026-08-16T08:35:01.123456-02:00");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456-02:00"), d1.getISO8601withUsec());
+    d1.set("2026-08-16T08:35:01.123456+02:00");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+02:00"), d1.getISO8601withUsec());
+
+    d1.set("2026-08-16T08:35:01.123456-0200");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456-02:00"), d1.getISO8601withUsec());
+    d1.set("2026-08-16T08:35:01.123456+0200");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+02:00"), d1.getISO8601withUsec());
+
+    d1.set("2026-08-16T08:35:01.123456-Z");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+00:00"), d1.getISO8601withUsec());
+    d1.set("2026-08-16T08:35:01.123456Z");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+00:00"), d1.getISO8601withUsec());
+    d1.set("2026-08-16T08:35:01.123456-UTC");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+00:00"), d1.getISO8601withUsec());
+}
+
 TEST_F(DateTimeTest, setWithWrongFormatThrowsException)
 {
     pplib::DateTime d1;
@@ -347,12 +378,8 @@ TEST_F(DateTimeTest, toStringWithFormat)
 TEST_F(DateTimeTest, getISO8601)
 {
     ASSERT_NO_THROW({
-        pplib::DateTime d1("2012-05-18 11:50:11.159473");
-#ifdef STRUCT_TM_HAS_GMTOFF
+        pplib::DateTime d1("2012-05-18 11:50:11.159473+02:00");
         ASSERT_EQ(pplib::String("2012-05-18T11:50:11+02:00"), d1.getISO8601()) << "Unexpected date";
-#else
-		ASSERT_EQ(pplib::String("2012-05-18T11:50:11"),d1.getISO8601()) << "Unexpected date";
-#endif
     });
 }
 
@@ -360,11 +387,7 @@ TEST_F(DateTimeTest, getISO8601withMsec)
 {
     ASSERT_NO_THROW({
         pplib::DateTime d1("2012-05-18 11:50:11.159473");
-#ifdef STRUCT_TM_HAS_GMTOFF
         ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159+02:00"), d1.getISO8601withMsec()) << "Unexpected date";
-#else
-		ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159"),d1.getISO8601withMsec()) << "Unexpected date";
-#endif
     });
 }
 
@@ -372,11 +395,7 @@ TEST_F(DateTimeTest, getISO8601withMsecNoRoundUp)
 {
     ASSERT_NO_THROW({
         pplib::DateTime d1("2012-05-18 11:50:11.159999");
-#ifdef STRUCT_TM_HAS_GMTOFF
         ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159+02:00"), d1.getISO8601withMsec()) << "Unexpected date";
-#else
-		ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159"),d1.getISO8601withMsec()) << "Unexpected date";
-#endif
     });
 }
 
@@ -820,7 +839,7 @@ TEST_F(DateTimeTest, getPPLTIME)
 TEST_F(DateTimeTest, setTime_t)
 {
     pplib::DateTime d1;
-    uint64_t t = 1717505411; // 2024-06-04 14:50:11
+    uint64_t t = 1717512611; // 2024-06-04 14:50:11
     EXPECT_EQ(pplib::String("2024-06-04 14:50:11.000000"), d1.set(t).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 
     EXPECT_EQ((uint64_t)0, d1.setTime_t((uint64_t)0).time_t()) << "Unexpected date";
@@ -829,33 +848,25 @@ TEST_F(DateTimeTest, setTime_t)
 TEST_F(DateTimeTest, setEpoch)
 {
     pplib::DateTime d1;
-    uint64_t t = 1717505411; // 2024-06-04 14:50:11
-    EXPECT_EQ(pplib::String("2024-06-04 14:50:11.000000"), d1.setEpoch(t).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    d1.set("2024-06-04 14:50:11.000000");
+    EXPECT_EQ((uint64_t)1717512611, d1.epoch()); // 2024-06-04 14:50:11 UTC
+    d1.setEpoch(1717512611);
+
+    EXPECT_EQ(pplib::String("2024-06-04 14:50:11.000000"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 
     EXPECT_EQ((uint64_t)0, d1.setTime_t((uint64_t)0).time_t()) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, getISO8601withUsec)
 {
-#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
     ASSERT_EQ(pplib::String("2024-06-05T11:50:11.159473"), pplib::DateTime("2024-06-05 11:50:11.159473").getISO8601withUsec())
         << "Unexpected date";
-#else
-    ASSERT_EQ(pplib::String("2024-06-05T11:50:11.159473"), pplib::DateTime("2024-06-05 11:50:11.159473").getISO8601withUsec())
-        << "Unexpected date";
-#endif
 }
 
 TEST_F(DateTimeTest, getRFC822Date)
 {
-#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
     ASSERT_EQ(pplib::String("Wed, 05 Jun 2024 11:50:11 +0000"), pplib::DateTime("2024-06-05 11:50:11.159473").getRFC822Date())
         << "Unexpected date";
-
-#else
-    ASSERT_EQ(pplib::String("Wed, 05 Jun 2024 11:50:11"), pplib::DateTime("2024-06-05 11:50:11.159473").getRFC822Date())
-        << "Unexpected date";
-#endif
 }
 
 TEST_F(DateTimeTest, strftime)
@@ -867,6 +878,11 @@ TEST_F(DateTimeTest, strftime)
 TEST_F(DateTimeTest, epoch)
 {
     pplib::DateTime d1("2024-06-05 11:50:11.159473");
+    ASSERT_EQ((int32_t)0, d1.timezone().offsetSeconds()) << "Unexpected timezone offset";
+    ASSERT_EQ((uint64_t)1717588211, d1.epoch()) << "Unexpected epoch";
+    d1.timezone().setOffsetMinutes(120); // GMT+2
+
+    ASSERT_EQ((int32_t)7200, d1.timezone().offsetSeconds()) << "Unexpected timezone offset";
     ASSERT_EQ((uint64_t)1717581011, d1.epoch()) << "Unexpected epoch";
 }
 

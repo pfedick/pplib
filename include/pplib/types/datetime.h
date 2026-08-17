@@ -173,7 +173,10 @@ public:
      *
      * @param t 64-Bit Integer mit den Sekunden seit 1970.
      */
-    DateTime& setTime_t(uint64_t t);
+    inline DateTime& setTime_t(uint64_t t)
+    {
+        return setEpoch(t);
+    }
 
     /** @brief Datum aus Unix-Timestamp übernehmen
      *
@@ -421,6 +424,7 @@ public:
     {
         my_date.clear();
         my_time.clear();
+        my_tz = TimeZone::utc();
     }
 
     /** @brief Prüfen ob Datum gesetzt ist

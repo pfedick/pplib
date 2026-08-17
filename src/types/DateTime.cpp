@@ -76,10 +76,9 @@ static bool safe_gmtime(time_t t, struct tm* tmstruct)
 #endif
 }
 
-DateTime& DateTime::set(const String& datetime)
+TimeZone parse_time(String& parse)
 {
-    String parse = UpperCase(Trim(datetime));
-    // TODO: Timezone am Ende vorhanden? Würde in Eckigen Klammern stehen, z. B. "[+02:00]" oder "[-02:00]"
+    TimeZone tz = TimeZone::utc();
     int tz_start = parse.find("[", -1);
     if (tz_start >= 0) {
         int tz_end = parse.find("]", tz_start);
@@ -87,42 +86,58 @@ DateTime& DateTime::set(const String& datetime)
             throw IllegalArgumentException("DateTime::set: invalid datetime format (%s)", parse.c_str());
         }
         String tz_str = parse.substr(tz_start + 1, tz_end - tz_start - 1);
-        my_tz = TimeZone::fromString(tz_str);
         parse = parse.substr(0, tz_start) + parse.substr(tz_end + 1);
-    } else if (parse.length() >= 5) {
-        // Könnte auch ohne Klammern sein, z. B. "+0200" oder "-0200" am Ende
-        String end = parse.right(5);
-        if (end[0] == '+' || end[0] == '-') {
-            my_tz = TimeZone::fromString(end);
-            parse = parse.left(parse.length() - 5);
-        } else {
-            end = parse.right(1);
-            if (end[0] == 'Z') {
-                my_tz = TimeZone::utc();
-                parse = parse.left(parse.length() - 1);
-            } else if (parse.right(3) == "UTC") {
-                my_tz = TimeZone::utc();
-                parse = parse.left(parse.length() - 3);
-            }
-        }
-    }
+        return TimeZone::fromString(tz_str);
 
+    } else if (parse.length() >= 6) {
+        // printf("parse=>>%s<<\n", (const char*)parse);
+        tz_start = parse.find("+", -1);
+        if (tz_start != String::npos) {
+            tz = TimeZone::fromString(parse.substr(tz_start));
+            parse = parse.substr(0, tz_start);
+            // printf("rest parse: >>%s<<\n", (const char*)parse);
+            return tz;
+        }
+        tz_start = parse.find("-", -1);
+        if (tz_start != String::npos) {
+            tz = TimeZone::fromString(parse.substr(tz_start));
+            parse = parse.substr(0, tz_start);
+            // printf("rest parse: >>%s<<\n", (const char*)parse);
+            return tz;
+        }
+        String end = parse.right(1);
+        if (end[0] == 'Z') {
+            parse = parse.left(parse.length() - 1);
+        } else if (parse.right(3) == "UTC") {
+            parse = parse.left(parse.length() - 3);
+        }
+        // printf("rest parse: >>%s<<\n", (const char*)parse);
+    }
+    return TimeZone::utc();
+}
+
+DateTime& DateTime::set(const String& datetime)
+{
+    String parse = UpperCase(Trim(datetime));
     parse.replace(" ", "T");
     if (parse.isEmpty() || parse == "T" || parse == "0" || parse == "NULL") {
         clear();
         return *this;
     }
     // Wie müssen in Datum und Zeit trennen
-    Array a(parse, "T");
-    if (a.size() == 1) {
+    Array a;
+    size_t pt = parse.find("T");
+    if (pt == String::npos) {
         // Kein T gefunden, nur Datum
-        my_date.set(a[0]);
+        my_date.set(parse);
         my_time.set(0, 0, 0, 0);
-    } else if (a.size() == 2) {
-        my_date.set(a[0]);
-        my_time.set(a[1]);
+        my_tz = TimeZone::utc(); // Default auf UTC, falls keine Zeitzone angegeben ist
+
     } else {
-        throw IllegalArgumentException("DateTime::set: invalid datetime format (%s)", parse.c_str());
+        my_date.set(parse.substr(0, pt));
+        parse = parse.substr(pt + 1);
+        my_tz = parse_time(parse);
+        my_time.set(parse);
     }
     return *this;
 }
@@ -145,25 +160,69 @@ PPLTIME DateTime::toPPLTIME() const
     pt.day_of_week = my_date.dayOfWeek();
     pt.day_of_year = my_date.dayOfYear();
     pt.epoch = epoch();
+    pt.have_gmt_offset = true;
+    pt.gmt_offset = my_tz.offsetMinutes();
     return pt;
 }
 
-DateTime& DateTime::setTime_t(uint64_t time)
+uint64_t DateTime::epoch() const
+{
+    if (my_date.year() < 1970) return 0;
+    // Wir berechnen die Sekunden von 1970 bis zum gepspeicherten Zeitstempel
+    uint64_t total_days = 0;
+
+    // 1. Tage für alle vollen Jahre seit 1970 berechnen
+    for (int y = 1970; y < my_date.year(); ++y) {
+        // Nutze die isLeapYear Logik aus der Date-Klasse
+        total_days += (Date::isLeapYear(y) ? 366 : 365);
+    }
+    // 2. Tage für die Monate im aktuellen Jahr berechnen
+    static const int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    for (int m = 1; m < my_date.month(); ++m) {
+        total_days += days_in_month[m];
+        // Schaltjahr-Check für Februar
+        if (m == 2 && my_date.isLeapYear(my_date.year())) {
+            total_days += 1;
+        }
+    }
+    // 3. Tage des aktuellen Monats addieren (minus 1, da wir am 1. starten)
+    total_days += (my_date.day() - 1);
+    return total_days * 86400 + my_time.toSeconds() - my_tz.offsetSeconds();
+}
+
+DateTime& DateTime::setEpoch(uint64_t time)
 {
     if (time == 0) {
         clear();
         return *this;
     }
-    struct tm tt;
-    if (!safe_localtime((::time_t)time, &tt)) throw InvalidDateException();
-
-    set(tt.tm_year + 1900, tt.tm_mon + 1, tt.tm_mday, tt.tm_hour, tt.tm_min, tt.tm_sec, 0);
+    my_tz = TimeZone::utc();            // Zeitzone setzen wir auf UTC
+    uint64_t total_days = time / 86400; // Ein Tag hat 86400 Sekunden
+    // Uhrzeit können wir relativ leicht anhand des Modulos setzen
+    my_time.setFromSeconds(time % 86400);
+    // 1. Das passende Jahr finden
+    int year = 1970;
+    while (true) {
+        uint32_t days_for_year = (Date::isLeapYear(year) ? 366 : 365); // Tage für das Jahr
+        if (total_days < days_for_year) break;
+        total_days -= days_for_year;
+        year++;
+    }
+    // 2. Den Monat finden
+    static const int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    int month = 1;
+    while (month <= 12) {
+        uint32_t days_for_month = days_in_month[month];
+        // Schaltjahr-Check für Februar
+        if (month == 2 && my_date.isLeapYear(year)) {
+            days_for_month += 1;
+        }
+        if (total_days < days_for_month) break;
+        total_days -= days_for_month;
+        month++;
+    }
+    my_date.set(total_days + 1, month, year);
     return *this;
-}
-
-DateTime& DateTime::setEpoch(uint64_t time)
-{
-    return setTime_t(time);
 }
 
 uint64_t DateTime::longInt() const
@@ -219,26 +278,12 @@ String DateTime::getISO8601() const
     String r;
     r.setf("%04i-%02i-%02iT%02i:%02i:%02i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
            my_time.seconds());
-
-#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    if (my_date.year() >= 1900) {
-        struct tm tt;
-        tt.tm_sec = my_time.seconds();
-        tt.tm_min = my_time.minutes();
-        tt.tm_hour = my_time.hours();
-        tt.tm_mday = my_date.day();
-        tt.tm_mon = my_date.month() - 1;
-        tt.tm_year = my_date.year() - 1900;
-        tt.tm_isdst = -1;
-        mktime(&tt);
-        int s = abs(tt.tm_gmtoff / 60);
-        if (tt.tm_gmtoff >= 0) {
-            r.appendf("+%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
-        } else {
-            r.appendf("-%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
-        }
+    int s = abs(my_tz.offsetMinutes());
+    if (my_tz.offsetMinutes() >= 0) {
+        r.appendf("+%02i:%02i", (int)(s / 60), s % 60);
+    } else {
+        r.appendf("-%02i:%02i", (int)(s / 60), s % 60);
     }
-#endif
     return r;
 }
 
@@ -247,25 +292,12 @@ String DateTime::getISO8601withMsec() const
     String r;
     r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%03i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
            my_time.seconds(), my_time.microseconds() / 1000);
-#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    if (my_date.year() >= 1900) {
-        struct tm tt;
-        tt.tm_sec = my_time.seconds();
-        tt.tm_min = my_time.minutes();
-        tt.tm_hour = my_time.hours();
-        tt.tm_mday = my_date.day();
-        tt.tm_mon = my_date.month() - 1;
-        tt.tm_year = my_date.year() - 1900;
-        tt.tm_isdst = -1;
-        mktime(&tt);
-        int s = abs(tt.tm_gmtoff / 60);
-        if (tt.tm_gmtoff >= 0) {
-            r.appendf("+%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
-        } else {
-            r.appendf("-%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
-        }
+    int s = abs(my_tz.offsetMinutes());
+    if (my_tz.offsetMinutes() >= 0) {
+        r.appendf("+%02i:%02i", (int)(s / 60), s % 60);
+    } else {
+        r.appendf("-%02i:%02i", (int)(s / 60), s % 60);
     }
-#endif
     return r;
 }
 
@@ -274,33 +306,21 @@ String DateTime::getISO8601withUsec() const
     String r;
     r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
            my_time.seconds(), my_time.microseconds());
-
-#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    if (my_date.year() >= 1900) {
-        struct tm tt;
-        tt.tm_sec = my_time.seconds();
-        tt.tm_min = my_time.minutes();
-        tt.tm_hour = my_time.hours();
-        tt.tm_mday = my_date.day();
-        tt.tm_mon = my_date.month() - 1;
-        tt.tm_year = my_date.year() - 1900;
-        tt.tm_isdst = -1;
-        mktime(&tt);
-        int s = abs(tt.tm_gmtoff / 60);
-        if (tt.tm_gmtoff >= 0) {
-            r.appendf("+%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
-        } else {
-            r.appendf("-%02i:%02i", (int)(s / 60), tt.tm_gmtoff % 60);
-        }
+    int s = abs(my_tz.offsetMinutes());
+    if (my_tz.offsetMinutes() >= 0) {
+        r.appendf("+%02i:%02i", (int)(s / 60), s % 60);
+    } else {
+        r.appendf("-%02i:%02i", (int)(s / 60), s % 60);
     }
-#endif
     return r;
 }
 
 String DateTime::getRFC822Date() const
 {
-    PPLTIME t;
-    if (!GetTime(t, time_t())) throw DateOutOfRangeException();
+    if (this->isEmpty()) throw IllegalStateException("DateTime is invalid");
+
+    PPLTIME t = toPPLTIME();
+    // if (!GetTime(t, time_t())) throw DateOutOfRangeException();
     String s;
     const char* day[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
     const char* month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
@@ -336,20 +356,6 @@ String DateTime::strftime(const String& format) const
     if (res == 0) throw InvalidFormatException();
 
     return String(buf.data());
-}
-
-uint64_t DateTime::epoch() const
-{
-    if (my_date.year() < 1970) return 0;
-    struct tm tt;
-    tt.tm_sec = my_time.seconds();
-    tt.tm_min = my_time.minutes();
-    tt.tm_hour = my_time.hours();
-    tt.tm_mday = my_date.day();
-    tt.tm_mon = my_date.month() - 1;
-    tt.tm_year = my_date.year() - 1900;
-    tt.tm_isdst = -1;
-    return (uint64_t)mktime(&tt);
 }
 
 DateTime DateTime::currentTime()

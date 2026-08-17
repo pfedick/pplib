@@ -107,8 +107,8 @@ TEST_F(TimeZoneTest, setOffsetMinutes)
     ASSERT_EQ((int16_t)840, pplib::TimeZone().setOffsetMinutes(840).offsetMinutes());
     ASSERT_EQ((int16_t)-720, pplib::TimeZone().setOffsetMinutes(-720).offsetMinutes());
 
-    ASSERT_THROW({ pplib::TimeZone().setOffsetMinutes(-721); }, pplib::InvalidArgumentsException);
-    ASSERT_THROW({ pplib::TimeZone().setOffsetMinutes(841); }, pplib::InvalidArgumentsException);
+    ASSERT_THROW({ pplib::TimeZone().setOffsetMinutes(-721); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::TimeZone().setOffsetMinutes(841); }, pplib::IllegalArgumentException);
 }
 
 TEST_F(TimeZoneTest, setOffsetSeconds)
