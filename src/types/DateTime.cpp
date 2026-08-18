@@ -438,9 +438,9 @@ static void civilFromDays(int64_t z, int& y, int& m, int& d) noexcept
     y = y_temp + (m <= 2);
 }
 
-int64_t DateTime::toMicroseconds() const noexcept
+int64_t DateTime::toMicroseconds() const
 {
-    if (isEmpty()) return 0;
+    if (isEmpty()) throw IllegalStateException("DateTime is invalid");
 
     // 1. Tage seit 1970-01-01 (kann für Daten vor 1970 auch negativ sein)
     int64_t days = daysFromCivil(my_date.year(), my_date.month(), my_date.day());

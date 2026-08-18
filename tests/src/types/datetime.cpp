@@ -318,6 +318,9 @@ TEST_F(DateTimeTest, setWithTimeZoneVariations)
     EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+00:00"), d1.getISO8601withUsec());
     d1.set("2026-08-16T08:35:01.123456-UTC");
     EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+00:00"), d1.getISO8601withUsec());
+
+    d1.set("2026-08-16T08:35:01Z");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.000000+00:00"), d1.getISO8601withUsec());
 }
 
 TEST_F(DateTimeTest, setWithWrongFormatThrowsException)
@@ -968,6 +971,48 @@ TEST_F(DateTimeTest, OperatorAssignWithString)
     d1 = "2026-08-16 08:35:01.123456";
     pplib::DateTime expected("2026-08-16 08:35:01.123456");
     ASSERT_EQ(expected, d1) << "Unexpected date";
+}
+
+// Microseconds
+
+TEST_F(DateTimeTest, toMicroseconds)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    ASSERT_EQ((int64_t)1786869301123456, d1.toMicroseconds()) << "Unexpected date";
+    pplib::DateTime d2("1970-01-01 00:00:00.0");
+    ASSERT_EQ((int64_t)0, d2.toMicroseconds()) << "Unexpected date";
+    pplib::DateTime d3("0001-01-01 00:00:00.0Z");
+    ASSERT_EQ((int64_t)-62135596800000000, d3.toMicroseconds()) << "Unexpected date";
+    pplib::DateTime d4("0000-01-01 00:00:00.0Z");
+    ASSERT_EQ((int64_t)-62167219200000000LL, d4.toMicroseconds()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setMicroseconds)
+{
+    pplib::DateTime d1;
+    d1.setMicroseconds((int64_t)1786869301123456);
+    ASSERT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    pplib::DateTime d2;
+    d2.setMicroseconds((int64_t)0);
+    ASSERT_EQ(pplib::String("1970-01-01 00:00:00.000000"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    pplib::DateTime d3;
+    d3.setMicroseconds((int64_t)-62135596800000000);
+    ASSERT_EQ(pplib::String("0001-01-01 00:00:00.000000"), d3.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    pplib::DateTime d4;
+    d4.setMicroseconds((int64_t)-62167219200000000LL);
+    ASSERT_EQ(pplib::String("0000-01-01 00:00:00.000000"), d4.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, fromMicroseconds)
+{
+    pplib::DateTime d1 = pplib::DateTime::fromMicroseconds((int64_t)1786869301123456);
+    ASSERT_EQ(pplib::String("2026-08-16 08:35:01.123456"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    pplib::DateTime d2 = pplib::DateTime::fromMicroseconds((int64_t)0);
+    ASSERT_EQ(pplib::String("1970-01-01 00:00:00.000000"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    pplib::DateTime d3 = pplib::DateTime::fromMicroseconds((int64_t)-62135596800000000);
+    ASSERT_EQ(pplib::String("0001-01-01 00:00:00.000000"), d3.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    pplib::DateTime d4 = pplib::DateTime::fromMicroseconds((int64_t)-62167219200000000LL);
+    ASSERT_EQ(pplib::String("0000-01-01 00:00:00.000000"), d4.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 }
 
 } // namespace

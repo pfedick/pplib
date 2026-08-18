@@ -661,7 +661,7 @@ public:
     uint64_t longInt() const;
 
     DateTime& setMicroseconds(int64_t epoch_microseconds) noexcept;
-    int64_t toMicroseconds() const noexcept;
+    int64_t toMicroseconds() const;
 
     /** @brief Das Jahr als Integer auslesen
      *
