@@ -1656,7 +1656,7 @@ void AssocArray::exportBinary(void* buffer, size_t buffersize, size_t* realsize)
         } else if (a->isDateTime()) {
             const DateTime& dt = a->toDateTime();
             // DateTime könnte invalid sein
-            if (!dt.isEmpty()) {
+            if (dt.isEmpty()) {
                 if (p + 4 < buffersize) PokeN32(ptr + p, 0);
                 p += 4;
             } else {
