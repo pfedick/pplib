@@ -325,7 +325,7 @@ TEST(AssocArrayTest, binarySize)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({ createDefaultAssocArray(a); });
-    ASSERT_EQ((size_t)1335, a.binarySize());
+    ASSERT_EQ((size_t)1337, a.binarySize());
 }
 
 TEST(AssocArrayTest, exportAndImportBinary)
@@ -333,7 +333,8 @@ TEST(AssocArrayTest, exportAndImportBinary)
     pplib::AssocArray a;
     pplib::AssocArray b;
     ASSERT_NO_THROW({ createDefaultAssocArray(a); });
-    void* buffer = malloc(8192);
+    pplib::ByteArray ba;
+    void* buffer = ba.malloc(8192);
     ASSERT_TRUE(buffer != NULL) << "out of memory";
     size_t realsize = 0;
     EXPECT_NO_THROW({
@@ -346,9 +347,8 @@ TEST(AssocArrayTest, exportAndImportBinary)
         }
     });
     // pplib::HexDump(buffer,realsize);
-    ASSERT_EQ((size_t)1335, realsize);
+    ASSERT_EQ((size_t)1337, realsize);
     EXPECT_NO_THROW({ b.importBinary(buffer, realsize); });
-    free(buffer);
 
     ASSERT_EQ(a.count(), b.count()) << "Unexpected size of AssocArray";
     ASSERT_EQ(a.count(true), b.count(true)) << "Unexpected size of AssocArray";

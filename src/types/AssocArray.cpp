@@ -1594,8 +1594,6 @@ void AssocArray::exportBinary(void* buffer, size_t buffersize, size_t* realsize)
     size_t p = 0;
     size_t vallen = 0;
     String key;
-    String string;
-    WideString widestring;
     ByteArray ba;
 #ifdef HAVE_ICONV
     Iconv iconv(ICONV_UNICODE, "UTF-8");
@@ -1620,29 +1618,20 @@ void AssocArray::exportBinary(void* buffer, size_t buffersize, size_t* realsize)
         if (p + keylen < buffersize) strncpy(ptr + p, (const char*)key, (int)keylen);
         p += keylen;
         if (a->isString()) {
-            string = a->toString();
+            String string = a->toString();
             vallen = string.size();
             if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
             p += 4;
             if (p + vallen < buffersize) strncpy(ptr + p, (const char*)string, vallen);
             p += vallen;
         } else if (a->isWideString()) {
-#ifdef HAVE_ICONV
-            widestring = a->toWideString();
-            iconv.transcode(ByteArrayPtr(widestring.getPtr(), widestring.byteLength()), ba);
-            vallen = ba.size();
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) memcpy(ptr + p, ba.adr(), vallen);
-            p += vallen;
-#else
-            string.set(a->toWideString());
+            String string(a->toWideString()); // Konvertierung in UTF-8
             vallen = string.size();
             if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
             p += 4;
             if (p + vallen < buffersize) strncpy(ptr + p, (const char*)string, vallen);
             p += vallen;
-#endif
+
         } else if (a->isAssocArray()) {
             size_t asize = 0;
             if (!buffer)
@@ -1663,10 +1652,13 @@ void AssocArray::exportBinary(void* buffer, size_t buffersize, size_t* realsize)
                 p += vallen;
             }
         } else if (a->isDateTime()) {
-            vallen = 8;
+            vallen = 10; // PPL8 speichert Microseconds und Zeitzone in 10 Bytes
             if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
             p += 4;
-            if (p + vallen < buffersize) PokeN64(ptr + p, a->toDateTime().longInt());
+            if (p + vallen < buffersize) {
+                PokeN64(ptr + p, a->toDateTime().toMicroseconds());
+                PokeN16(ptr + p + 8, a->toDateTime().timezone().offsetMinutes());
+            }
             p += vallen;
         } else if (a->isByteArray() == true || a->isByteArrayPtr() == true) {
             vallen = a->toByteArray().size();
@@ -1766,7 +1758,6 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
     int type;
     size_t vallen, bytes;
     String key, str;
-    DateTime dt;
     AssocArray na;
     ByteArray nb;
     WideString ws;
@@ -1789,12 +1780,7 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
         case Variant::TYPE_WIDESTRING:
             vallen = PeekN32(ptr + p);
             p += 4;
-#ifdef HAVE_ICONV
-            iconv.transcode(ByteArrayPtr((const char*)ptr + p, vallen), nb);
-            ws.set((const wchar_t*)nb.ptr(), nb.size() / sizeof(wchar_t));
-#else
             ws.set((const char*)ptr + p, vallen);
-#endif
             set(key, ws);
             p += vallen;
             break;
@@ -1824,13 +1810,19 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
             p += vallen;
             set(key, nb);
             break;
-        case Variant::TYPE_DATETIME:
+        case Variant::TYPE_DATETIME: {
             vallen = PeekN32(ptr + p);
             p += 4;
-            dt.setLongInt(PeekN64(ptr + p));
+            DateTime dt;
+            if (vallen == 8) { // Legacy PPL7-Format
+                dt.setLongInt(PeekN64(ptr + p));
+            } else if (vallen == 10) { // PPL8, mit Microseconds und Timezone (Offset in Minutes)
+                dt.setMicroseconds(PeekN64(ptr + p));
+                dt.timezone().setOffsetMinutes(PeekN16(ptr + p + 8));
+            }
             p += vallen;
             set(key, dt);
-            break;
+        } break;
         default:
             vallen = PeekN32(ptr + p);
             throw ImportFailedException("unknown datatype in AssocArray binary export [type=%d, size=%zu]", type, vallen);
