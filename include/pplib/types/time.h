@@ -197,13 +197,13 @@ public:
      */
     Time& set(const String& time);
 
-    Time& setHours(uint8_t hour);
+    Time& setHour(uint8_t hour);
 
-    Time& setMinutes(uint8_t minute);
+    Time& setMinute(uint8_t minute);
 
-    Time& setSeconds(uint8_t second);
+    Time& setSecond(uint8_t second);
 
-    Time& setMicroseconds(uint32_t microseconds);
+    Time& setMicrosecond(uint32_t microseconds);
 
     /** @brief Setzt die Uhrzeit aus einem anderen Time-Objekt
      *
@@ -266,7 +266,7 @@ public:
      *
      * @return Stunde (0-23)
      */
-    uint8_t hours() const noexcept
+    uint8_t hour() const noexcept
     {
         return hh;
     }
@@ -277,7 +277,7 @@ public:
      *
      * @return Minute (0-59)
      */
-    uint8_t minutes() const noexcept
+    uint8_t minute() const noexcept
     {
         return ii;
     }
@@ -288,7 +288,7 @@ public:
      *
      * @return Sekunde (0-59)
      */
-    uint8_t seconds() const noexcept
+    uint8_t second() const noexcept
     {
         return ss;
     }
@@ -299,7 +299,7 @@ public:
      *
      * @return Mikrosekunden (0-999999)
      */
-    uint32_t microseconds() const noexcept
+    uint32_t microsecond() const noexcept
     {
         return us;
     }

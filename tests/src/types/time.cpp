@@ -227,28 +227,28 @@ TEST_F(TimeTest, MoveOperator)
     });
 }
 
-TEST_F(TimeTest, getHours)
+TEST_F(TimeTest, getHour)
 {
     pplib::Time t1(11, 50, 37, 159473);
-    ASSERT_EQ((uint8_t)11, t1.hours()) << "Unexpected minutes value";
+    ASSERT_EQ((uint8_t)11, t1.hour()) << "Unexpected minutes value";
 }
 
-TEST_F(TimeTest, getMinutes)
+TEST_F(TimeTest, getMinute)
 {
     pplib::Time t1(11, 50, 37, 159473);
-    ASSERT_EQ((uint8_t)50, t1.minutes()) << "Unexpected minutes value";
+    ASSERT_EQ((uint8_t)50, t1.minute()) << "Unexpected minutes value";
 }
 
-TEST_F(TimeTest, getSeconds)
+TEST_F(TimeTest, getSecond)
 {
     pplib::Time t1(11, 50, 37, 159473);
-    ASSERT_EQ((uint8_t)37, t1.seconds()) << "Unexpected minutes value";
+    ASSERT_EQ((uint8_t)37, t1.second()) << "Unexpected minutes value";
 }
 
-TEST_F(TimeTest, getMicroseconds)
+TEST_F(TimeTest, getMicrosecond)
 {
     pplib::Time t1(11, 50, 37, 159473);
-    ASSERT_EQ((uint32_t)159473, t1.microseconds()) << "Unexpected minutes value";
+    ASSERT_EQ((uint32_t)159473, t1.microsecond()) << "Unexpected minutes value";
 }
 
 TEST_F(TimeTest, ComparisonOperators)

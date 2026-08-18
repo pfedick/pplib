@@ -116,28 +116,28 @@ Time& Time::set(const String& time)
     return set(parts.at(0).toInt(), parts.at(1).toInt(), parts.at(2).toInt(), parts.at(3).toInt());
 }
 
-Time& Time::setHours(uint8_t hour)
+Time& Time::setHour(uint8_t hour)
 {
     if (hour > 23) throw IllegalArgumentException("Time::setHours: hour > 23 (%u)", hour);
     hh = hour;
     return *this;
 }
 
-Time& Time::setMinutes(uint8_t minute)
+Time& Time::setMinute(uint8_t minute)
 {
     if (minute > 59) throw IllegalArgumentException("Time::setMinutes: minute > 59 (%u)", minute);
     ii = minute;
     return *this;
 }
 
-Time& Time::setSeconds(uint8_t second)
+Time& Time::setSecond(uint8_t second)
 {
     if (second > 59) throw IllegalArgumentException("Time::setSeconds: second > 59 (%u)", second);
     ss = second;
     return *this;
 }
 
-Time& Time::setMicroseconds(uint32_t microsecond)
+Time& Time::setMicrosecond(uint32_t microsecond)
 {
     if (microsecond > 999999) throw IllegalArgumentException("Time::setMicroseconds: usec > 999999 (%u)", microsecond);
     us = microsecond;
