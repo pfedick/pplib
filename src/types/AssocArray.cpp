@@ -27,6 +27,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include "pplib/types/date.h"
+#include "pplib/types/datetime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1652,14 +1654,21 @@ void AssocArray::exportBinary(void* buffer, size_t buffersize, size_t* realsize)
                 p += vallen;
             }
         } else if (a->isDateTime()) {
-            vallen = 10; // PPL8 speichert Microseconds und Zeitzone in 10 Bytes
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) {
-                PokeN64(ptr + p, a->toDateTime().toMicroseconds());
-                PokeN16(ptr + p + 8, a->toDateTime().timezone().offsetMinutes());
+            const DateTime& dt = a->toDateTime();
+            // DateTime könnte invalid sein
+            if (!dt.isEmpty()) {
+                if (p + 4 < buffersize) PokeN32(ptr + p, 0);
+                p += 4;
+            } else {
+                vallen = 10; // PPL8 speichert Microseconds und Zeitzone in 10 Bytes
+                if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
+                p += 4;
+                if (p + vallen < buffersize) {
+                    PokeN64(ptr + p, dt.toMicroseconds());
+                    PokeN16(ptr + p + 8, dt.timezone().offsetMinutes());
+                }
+                p += vallen;
             }
-            p += vallen;
         } else if (a->isByteArray() == true || a->isByteArrayPtr() == true) {
             vallen = a->toByteArray().size();
             if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
@@ -1820,6 +1829,7 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
                 dt.setMicroseconds(PeekN64(ptr + p));
                 dt.timezone().setOffsetMinutes(PeekN16(ptr + p + 8));
             }
+            // vallen könnte auch 0 sein, wenn das DateTime invalid ist
             p += vallen;
             set(key, dt);
         } break;
