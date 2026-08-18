@@ -233,7 +233,7 @@ String& String::set(const char* str, size_t size)
         str = temp_holder.c_str();
     }
 
-    if (inbytes > s) {
+    if (inbytes >= s) {
         reserve(inbytes);
     }
     memmove((char*)ptr, str, inbytes);
