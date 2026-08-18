@@ -28,7 +28,6 @@
  *******************************************************************************/
 
 #include <chrono>
-#include <cctype>
 #include <string.h>
 #include <pplib/types/string.h>
 #include <pplib/types/datetime.h>
@@ -412,6 +411,68 @@ std::ostream& operator<<(std::ostream& s, const DateTime& dt)
 {
     String str = dt.format("%Y-%m-%d %H:%M:%S.%u");
     return s.write((const char*)str, str.size());
+}
+
+// Gibt die Tage seit 0000-03-01 zurück (funktioniert für alle Jahre)
+static constexpr int64_t daysFromCivil(int y, unsigned m, unsigned d) noexcept
+{
+    y -= m <= 2;
+    const int64_t era = (y >= 0 ? y : y - 399) / 400;
+    const unsigned yoe = static_cast<unsigned>(y - era * 400);            // [0, 399]
+    const unsigned doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + d - 1; // [0, 365]
+    const unsigned doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;           // [0, 146096]
+    return era * 146097 + static_cast<int64_t>(doe) - 719468;             // 0 = 1970-01-01
+}
+
+static void civilFromDays(int64_t z, int& y, int& m, int& d) noexcept
+{
+    z += 719468;
+    const int64_t era = (z >= 0 ? z : z - 146096) / 146097;
+    const unsigned doe = static_cast<unsigned>(z - era * 146097);              // [0, 146096]
+    const unsigned yoe = (doe - doe / 1024 + doe / 1461 - doe / 142400) / 365; // [0, 399]
+    const int64_t y_temp = static_cast<int64_t>(yoe) + era * 400;
+    const unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100); // [0, 365]
+    const unsigned mp = (5 * doy + 2) / 153;                      // [0, 11]
+    d = doy - (153 * mp + 2) / 5 + 1;                             // [1, 31]
+    m = mp < 10 ? mp + 3 : mp - 9;                                // [1, 12]
+    y = y_temp + (m <= 2);
+}
+
+int64_t DateTime::toMicroseconds() const noexcept
+{
+    if (isEmpty()) return 0;
+
+    // 1. Tage seit 1970-01-01 (kann für Daten vor 1970 auch negativ sein)
+    int64_t days = daysFromCivil(my_date.year(), my_date.month(), my_date.day());
+
+    // 2. Zeitanteil am Tag in Mikrosekunden
+    int64_t time_us = static_cast<int64_t>(my_time.toMicroseconds());
+
+    // 3. Zeitzonen-Offset in Mikrosekunden abziehen (um auf UTC zu normieren)
+    int64_t tz_offset_us = static_cast<int64_t>(my_tz.offsetSeconds()) * 1000000LL;
+
+    return (days * 86400000000LL) + time_us - tz_offset_us;
+}
+
+DateTime& DateTime::setMicroseconds(int64_t epoch_microseconds) noexcept
+{
+    my_tz = TimeZone::utc();
+
+    constexpr int64_t US_PER_DAY = 86400000000LL;
+    int64_t days = epoch_microseconds / US_PER_DAY;
+    int64_t rem_us = epoch_microseconds % US_PER_DAY;
+
+    if (rem_us < 0) {
+        rem_us += US_PER_DAY;
+        days -= 1;
+    }
+
+    int y, m, d;
+    civilFromDays(days, y, m, d);
+    my_date.set(d, m, y);
+    my_time.setFromMicroseconds(static_cast<uint64_t>(rem_us));
+
+    return *this;
 }
 
 } // namespace pplib

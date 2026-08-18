@@ -30,11 +30,13 @@
 #ifndef PPLIB_TYPES_DATETIME_H_
 #define PPLIB_TYPES_DATETIME_H_
 
+#include <cstdint>
 #include <stdint.h>
 #include "pplib/types/string.h"
 #include "pplib/types/date.h"
 #include "pplib/types/time.h"
 #include "pplib/types/timezone.h"
+#include "pplib/types/timedelta.h"
 
 namespace pplib
 {
@@ -535,7 +537,6 @@ public:
     /** @brief Uhrzeit als String zurückgeben
      *
      * Diese Funktion ist identisch zu DateTime::get, hat aber einen anderen Default für den optionalen
-     * Formatstring.
      *
      * @param[in] format Formatierungsstring. Wird dieser nicht angegeben, wird die Uhrzeit in folgendem Format zurückgegeben:
      * "%H-%M-%S"
@@ -658,6 +659,9 @@ public:
      * @return 64-Bit-Integer mit dem Timestamp
      */
     uint64_t longInt() const;
+
+    DateTime& setMicroseconds(int64_t epoch_microseconds) noexcept;
+    int64_t toMicroseconds() const noexcept;
 
     /** @brief Das Jahr als Integer auslesen
      *
@@ -844,6 +848,13 @@ public:
      */
     static DateTime currentTime();
 
+    static DateTime fromMicroseconds(int64_t epoch_microseconds) noexcept
+    {
+        DateTime dt;
+        dt.setMicroseconds(epoch_microseconds);
+        return dt;
+    }
+
     /** @brief Rueckgabe des Timestamps als String
      *
      * Liefert den Timestamp als String in folgendem Format zurück:
@@ -872,34 +883,64 @@ public:
 
     inline bool operator<(const DateTime& other) const
     {
-        return this->longInt() < other.longInt();
+        return toMicroseconds() < other.toMicroseconds();
     }
 
     inline bool operator<=(const DateTime& other) const
     {
-        return this->longInt() <= other.longInt();
+        return toMicroseconds() <= other.toMicroseconds();
     }
 
     inline bool operator==(const DateTime& other) const
     {
-        return this->longInt() == other.longInt();
+        return toMicroseconds() == other.toMicroseconds();
     }
 
     inline bool operator!=(const DateTime& other) const
     {
-        return this->longInt() != other.longInt();
+        return toMicroseconds() != other.toMicroseconds();
     }
 
     inline bool operator>=(const DateTime& other) const
     {
-        return this->longInt() >= other.longInt();
+        return toMicroseconds() >= other.toMicroseconds();
     }
 
     inline bool operator>(const DateTime& other) const
     {
-        return this->longInt() > other.longInt();
+        return toMicroseconds() > other.toMicroseconds();
+    }
+
+    TimeDelta operator-(const DateTime& other) const noexcept
+    {
+        return TimeDelta::fromMicroseconds(toMicroseconds() - other.toMicroseconds());
+    }
+
+    DateTime operator+(const TimeDelta& td) const noexcept
+    {
+        return DateTime::fromMicroseconds(toMicroseconds() + td.toMicroseconds());
+    }
+
+    DateTime operator-(const TimeDelta& td) const noexcept
+    {
+        return DateTime::fromMicroseconds(toMicroseconds() - td.toMicroseconds());
+    }
+
+    DateTime& operator+=(const TimeDelta& td) noexcept
+    {
+        return setMicroseconds(toMicroseconds() + td.toMicroseconds());
+    }
+
+    DateTime& operator-=(const TimeDelta& td) noexcept
+    {
+        return setMicroseconds(toMicroseconds() - td.toMicroseconds());
     }
 };
+
+inline DateTime operator+(const TimeDelta& td, const DateTime& dt)
+{
+    return dt + td;
+}
 
 } // namespace pplib
 

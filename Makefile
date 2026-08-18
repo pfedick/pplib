@@ -84,10 +84,18 @@ time:
 	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
 	cmake --build build/coverage --target test_core
 	ln -sf build/coverage/compile_commands.json compile_commands.json
-	-cd tests && ../build/coverage/tests/test_core$(EXE) --gtest_filter=TimeZoneTest*:TimeTest*:DateTest*:DateTimeTest*
+	-cd tests && ../build/coverage/tests/test_core$(EXE) --gtest_filter=TimeZoneTest*:TimeTest*:DateTest*:DateTimeTest*:TimeDeltaTest*
 	mkdir -p coverage_html
 	gcovr --root . build/coverage --medium-threshold 70 --exclude-throw-branches --html-details coverage_html/index.html --exclude 'tests/.*'
-	
+
+timedelta:
+	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
+	cmake --build build/coverage --target test_core
+	ln -sf build/coverage/compile_commands.json compile_commands.json
+	-cd tests && ../build/coverage/tests/test_core$(EXE) --gtest_filter=TimeDeltaTest*
+	mkdir -p coverage_html
+	gcovr --root . build/coverage --medium-threshold 70 --exclude-throw-branches --html-details coverage_html/index.html --exclude 'tests/.*'
+
 clean:
 	-rm -rf build
 	-rm -rf coverage

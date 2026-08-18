@@ -38,51 +38,136 @@ namespace pplib
 class TimeDelta
 {
 private:
-    int64_t microseconds = 0;
+    int64_t us = 0;
+
+    explicit constexpr TimeDelta(int64_t microseconds) noexcept
+        : us(microseconds)
+    {
+    }
 
 public:
     TimeDelta() noexcept = default;
-    TimeDelta(int64_t microseconds) noexcept
-        : microseconds(microseconds)
+
+    explicit TimeDelta(
+        int64_t days, int64_t hours, int64_t minutes = 0, int64_t seconds = 0, int64_t milliseconds = 0, int64_t microseconds = 0) noexcept
     {
-    }
-    TimeDelta(const TimeDelta& other) noexcept
-        : microseconds(other.microseconds)
-    {
-    }
-    TimeDelta(TimeDelta&& other) noexcept
-        : microseconds(other.microseconds)
-    {
-        other.microseconds = 0;
+        set(days, hours, minutes, seconds, milliseconds, microseconds);
     }
 
     int64_t toMicroseconds() const noexcept
     {
-        return microseconds;
+        return us;
     }
     int64_t toMilliseconds() const noexcept
     {
-        return microseconds / 1000;
+        return us / 1000;
     }
     int64_t toSeconds() const noexcept
     {
-        return microseconds / 1000000;
+        return us / 1000000;
     }
-
-    TimeDelta& operator=(const TimeDelta& other) noexcept
+    // Setter
+    TimeDelta& set(int64_t days,
+                   int64_t hours = 0,
+                   int64_t minutes = 0,
+                   int64_t seconds = 0,
+                   int64_t milliseconds = 0,
+                   int64_t microseconds = 0) noexcept
     {
-        microseconds = other.microseconds;
+        us = (days * 86400000000LL) + (hours * 3600000000LL) + (minutes * 60000000LL) + (seconds * 1000000LL) + (milliseconds * 1000LL) +
+             microseconds;
         return *this;
     }
 
-    TimeDelta& operator=(TimeDelta&& other) noexcept
+    // Named Factories
+    static TimeDelta fromWeeks(int64_t weeks) noexcept
     {
-        microseconds = other.microseconds;
-        other.microseconds = 0;
+        return fromDays(weeks * 7);
+    }
+    static TimeDelta fromDays(int64_t days) noexcept
+    {
+        return TimeDelta(days * 86400000000LL);
+    }
+    static TimeDelta fromHours(int64_t hours) noexcept
+    {
+        return TimeDelta(hours * 3600000000LL);
+    }
+    static TimeDelta fromMinutes(int64_t mins) noexcept
+    {
+        return TimeDelta(mins * 60000000LL);
+    }
+    static TimeDelta fromSeconds(int64_t secs) noexcept
+    {
+        return TimeDelta(secs * 1000000LL);
+    }
+    static TimeDelta fromMilliseconds(int64_t ms) noexcept
+    {
+        return TimeDelta(ms * 1000LL);
+    }
+    static TimeDelta fromMicroseconds(int64_t us) noexcept
+    {
+        return TimeDelta(us);
+    }
+    // Operatoren
+    TimeDelta operator+(const TimeDelta& other) const noexcept
+    {
+        return TimeDelta(us + other.us);
+    }
+    TimeDelta operator-(const TimeDelta& other) const noexcept
+    {
+        return TimeDelta(us - other.us);
+    }
+    TimeDelta operator-() const noexcept
+    {
+        return TimeDelta(-us);
+    }
+
+    TimeDelta& operator+=(const TimeDelta& other) noexcept
+    {
+        us += other.us;
         return *this;
+    }
+    TimeDelta& operator-=(const TimeDelta& other) noexcept
+    {
+        us -= other.us;
+        return *this;
+    }
+
+    TimeDelta operator*(int64_t factor) const noexcept
+    {
+        return TimeDelta(us * factor);
+    }
+    TimeDelta operator/(int64_t divisor) const noexcept
+    {
+        return TimeDelta(us / divisor);
+    }
+
+    bool operator==(const TimeDelta& other) const noexcept
+    {
+        return us == other.us;
+    }
+    bool operator!=(const TimeDelta& other) const noexcept
+    {
+        return us != other.us;
+    }
+    bool operator<(const TimeDelta& other) const noexcept
+    {
+        return us < other.us;
+    }
+    bool operator<=(const TimeDelta& other) const noexcept
+    {
+        return us <= other.us;
+    }
+    bool operator>(const TimeDelta& other) const noexcept
+    {
+        return us > other.us;
+    }
+    bool operator>=(const TimeDelta& other) const noexcept
+    {
+        return us >= other.us;
     }
 };
 
 } // namespace pplib
 
-#endif /* PPLIB_TYPES_TIME_H_ */
+#endif // PPLIB_TYPES_TIMEDELTA_H_
