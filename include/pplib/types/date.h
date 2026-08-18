@@ -62,9 +62,9 @@ public:
         other.yy = 0;
     }
 
-    inline Date(uint8_t day, uint8_t month, uint16_t year)
+    inline Date(uint16_t year, uint8_t month, uint8_t day)
     {
-        set(day, month, year);
+        set(year, month, day);
     }
 
     inline Date(const String& date)
@@ -72,7 +72,7 @@ public:
         set(date);
     }
 
-    Date& set(uint8_t day, uint8_t month, uint16_t year);
+    Date& set(uint16_t year, uint8_t month, uint8_t day);
     Date& set(const String& date);
     String toString() const;
     String format(const String& format) const;

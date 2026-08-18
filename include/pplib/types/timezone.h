@@ -50,6 +50,13 @@ public:
     {
         setOffsetMinutes(offset_min);
     }
+
+    TimeZone(int8_t hours, int8_t minutes, const String& name = String())
+        : tz_name(name)
+    {
+        setOffset(hours, minutes);
+    }
+
     // Setter
     TimeZone& setOffsetMinutes(int16_t offset_min);
     TimeZone& setOffsetSeconds(int16_t offset_seconds)

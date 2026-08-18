@@ -38,7 +38,7 @@
 namespace pplib
 {
 
-Date& Date::set(uint8_t day, uint8_t month, uint16_t year)
+Date& Date::set(uint16_t year, uint8_t month, uint8_t day)
 {
     if (year > 9999 || month < 1 || month > 12 || day < 1 || day > 31) {
         throw IllegalArgumentException("Date::set: invalid date (%04u-%02u-%02u)", year, month, day);
@@ -68,10 +68,10 @@ Date& Date::set(const String& date)
     }
     if (a[0].length() == 4) {
         // YYYY.MM.DD
-        return set((uint8_t)a[2].toInt(), (uint8_t)a[1].toInt(), (uint16_t)a[0].toInt());
+        return set((uint16_t)a[0].toInt(), (uint8_t)a[1].toInt(), (uint8_t)a[2].toInt());
     } else if (a[2].length() == 4) {
         // DD.MM.YYYY
-        return set((uint8_t)a[0].toInt(), (uint8_t)a[1].toInt(), (uint16_t)a[2].toInt());
+        return set((uint16_t)a[2].toInt(), (uint8_t)a[1].toInt(), (uint8_t)a[0].toInt());
     } else {
         throw IllegalArgumentException("Date::set: invalid date format (%s)", d.c_str());
     }
@@ -181,7 +181,7 @@ int Date::week() const
         throw IllegalStateException("Date::week() called on empty Date object");
     }
     // Wochentag des 1. Januars im selben Jahr
-    Date jan1(1, 1, yy);
+    Date jan1(yy, 1, 1);
     int jan1_wday = jan1.dayOfWeek(); // 0 = Sonntag
 
     int doy = dayOfYear() - 1; // 0-basiert
@@ -204,7 +204,7 @@ int Date::weekISO8601() const
     // Fällt der Donnerstag ins Vorjahr?
     if (thu_doy < 1) {
         // Gehört zur letzten Woche des Vorjahres (Woche 52 oder 53)
-        Date prev_year_dec31(31, 12, yy - 1);
+        Date prev_year_dec31(yy - 1, 12, 31);
         return prev_year_dec31.weekISO8601();
     }
 
@@ -231,7 +231,7 @@ Date Date::today()
     auto now = std::chrono::system_clock::now();
     std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
     std::tm now_tm = *std::localtime(&now_time_t);
-    return Date(now_tm.tm_mday, now_tm.tm_mon + 1, now_tm.tm_year + 1900);
+    return Date(now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday);
 }
 
 } // namespace pplib

@@ -123,20 +123,20 @@ public:
     explicit DateTime(uint64_t epoch_seconds, uint32_t microseconds = 0)
     {
         setEpoch(epoch_seconds);
-        my_time.setMicroseconds(microseconds);
+        my_time.setMicrosecond(microseconds);
     }
 
     DateTime(const DateTime& other) noexcept = default;
     DateTime(DateTime&& other) noexcept = default;
 
-    DateTime(const Date& date, const Time& time) noexcept
+    DateTime(const Date& date, const Time& time, const TimeZone& tz = TimeZone()) noexcept
         : my_date(date),
-          my_time(time)
+          my_time(time),
+          my_tz(tz)
     {
     }
     DateTime(const Date& date) noexcept
-        : my_date(date),
-          my_time()
+        : my_date(date)
     {
     }
 
@@ -256,7 +256,7 @@ public:
     DateTime& set(uint64_t epoch_seconds, uint32_t microseconds = 0)
     {
         setEpoch(epoch_seconds);
-        my_time.setMicroseconds(microseconds);
+        my_time.setMicrosecond(microseconds);
         return *this;
     }
 
@@ -310,12 +310,14 @@ public:
      *
      * @param[in] date Referenz auf ein Date-Objekt mit dem Datum
      * @param[in] time Referenz auf ein Time-Objekt mit der Uhrzeit
+     * @param[in] tz Referenz auf ein TimeZone-Objekt mit der Zeitzone. Optionaler Parameter, Default ist UTC.
      * @return Gibt eine Referenz auf den DateTime-Wert zurück
      */
-    inline DateTime& set(const Date& date, const Time& time)
+    inline DateTime& set(const Date& date, const Time& time, const TimeZone& tz = TimeZone())
     {
         my_date = date;
         my_time = time;
+        my_tz = tz;
         return *this;
     }
 
@@ -360,6 +362,12 @@ public:
         return *this;
     }
 
+    DateTime& setDate(int year, int month, int day)
+    {
+        my_date.set(year, month, day);
+        return *this;
+    }
+
     /** @brief Uhrzeit setzen, Datum bleibt unverändert
      *
      * Mit dieser Funktion wird nur die Uhrzeit der Klasse verändert, das Datum bleibt erhalten.
@@ -389,6 +397,31 @@ public:
         return *this;
     }
 
+    DateTime& setTime(int hour, int minute, int second, int microsecond = 0)
+    {
+        my_time.set(hour, minute, second, microsecond);
+        return *this;
+    }
+
+    DateTime& setTimeZone(const String& tz)
+    {
+        my_tz = TimeZone::fromString(tz);
+        return *this;
+    }
+
+    DateTime& setTimeZone(const TimeZone& tz)
+    {
+        my_tz = tz;
+        return *this;
+    }
+
+    DateTime& setTimeZone(int16_t offset_minutes, const String& name = String())
+    {
+        my_tz.setOffsetMinutes(offset_minutes);
+        my_tz.setName(name);
+        return *this;
+    }
+
     /** @brief Datum und Uhrzeit anhand einzelner Integer-Wert setzen
      *
      * Mit dieser Funktion wird das Datum anhand einzelner Integer-Werten gesetzt.
@@ -404,7 +437,7 @@ public:
      */
     inline DateTime& set(int year, int month, int day, int hour = 0, int minute = 0, int sec = 0, int usec = 0)
     {
-        my_date.set(day, month, year);
+        my_date.set(year, month, day);
         my_time.set(hour, minute, sec, usec);
         return *this;
     }
@@ -696,7 +729,7 @@ public:
      */
     inline int hour() const noexcept
     {
-        return my_time.hours();
+        return my_time.hour();
     }
 
     /** @brief Die Minute als Integer auslesen
@@ -705,7 +738,7 @@ public:
      */
     inline int minute() const noexcept
     {
-        return my_time.minutes();
+        return my_time.minute();
     }
 
     /** @brief Die Sekunde als Integer auslesen
@@ -714,7 +747,7 @@ public:
      */
     inline int second() const noexcept
     {
-        return my_time.seconds();
+        return my_time.second();
     }
 
     /** @brief Die Millisekunde als Integer auslesen
@@ -723,7 +756,7 @@ public:
      */
     inline int millisecond() const noexcept
     {
-        return my_time.microseconds() / 1000;
+        return my_time.microsecond() / 1000;
     }
 
     /** @brief Die Mikrosekunde als Integer auslesen
@@ -732,7 +765,7 @@ public:
      */
     inline int microsecond() const noexcept
     {
-        return my_time.microseconds();
+        return my_time.microsecond();
     }
 
     /** @brief Die Wochennummer als Integer auslesen

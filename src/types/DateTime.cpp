@@ -153,9 +153,9 @@ PPLTIME DateTime::toPPLTIME() const
     pt.year = my_date.year();
     pt.month = my_date.month();
     pt.day = my_date.day();
-    pt.hour = my_time.hours();
-    pt.min = my_time.minutes();
-    pt.sec = my_time.seconds();
+    pt.hour = my_time.hour();
+    pt.min = my_time.minute();
+    pt.sec = my_time.second();
     pt.day_of_week = my_date.dayOfWeek();
     pt.day_of_year = my_date.dayOfYear();
     pt.epoch = epoch();
@@ -220,7 +220,7 @@ DateTime& DateTime::setEpoch(uint64_t time)
         total_days -= days_for_month;
         month++;
     }
-    my_date.set(total_days + 1, month, year);
+    my_date.set(year, month, total_days + 1);
     return *this;
 }
 
@@ -228,10 +228,10 @@ uint64_t DateTime::longInt() const
 {
     uint64_t r = my_date.year() * 12 + (my_date.month() - 1);
     r = r * 31 + (my_date.day() - 1);
-    r = r * 24 + my_time.hours();
-    r = r * 60 + my_time.minutes();
-    r = r * 60 + my_time.seconds();
-    r = r * 1000000 + my_time.microseconds();
+    r = r * 24 + my_time.hour();
+    r = r * 60 + my_time.minute();
+    r = r * 60 + my_time.second();
+    r = r * 1000000 + my_time.microsecond();
     return r;
 }
 
@@ -275,8 +275,8 @@ DateTime& DateTime::setCurrentTime()
 String DateTime::getISO8601() const
 {
     String r;
-    r.setf("%04i-%02i-%02iT%02i:%02i:%02i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
-           my_time.seconds());
+    r.setf("%04i-%02i-%02iT%02i:%02i:%02i", my_date.year(), my_date.month(), my_date.day(), my_time.hour(), my_time.minute(),
+           my_time.second());
     int s = abs(my_tz.offsetMinutes());
     if (my_tz.offsetMinutes() >= 0) {
         r.appendf("+%02i:%02i", (int)(s / 60), s % 60);
@@ -289,8 +289,8 @@ String DateTime::getISO8601() const
 String DateTime::getISO8601withMsec() const
 {
     String r;
-    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%03i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
-           my_time.seconds(), my_time.microseconds() / 1000);
+    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%03i", my_date.year(), my_date.month(), my_date.day(), my_time.hour(), my_time.minute(),
+           my_time.second(), my_time.microsecond() / 1000);
     int s = abs(my_tz.offsetMinutes());
     if (my_tz.offsetMinutes() >= 0) {
         r.appendf("+%02i:%02i", (int)(s / 60), s % 60);
@@ -303,8 +303,8 @@ String DateTime::getISO8601withMsec() const
 String DateTime::getISO8601withUsec() const
 {
     String r;
-    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(), my_time.minutes(),
-           my_time.seconds(), my_time.microseconds());
+    r.setf("%04i-%02i-%02iT%02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hour(), my_time.minute(),
+           my_time.second(), my_time.microsecond());
     int s = abs(my_tz.offsetMinutes());
     if (my_tz.offsetMinutes() >= 0) {
         r.appendf("+%02i:%02i", (int)(s / 60), s % 60);
@@ -369,15 +369,15 @@ DateTime DateTime::currentTime()
 
 int64_t DateTime::diffSeconds(const DateTime& other) const
 {
-    int64_t mySecs = (int64_t)time_t();
-    int64_t otherSecs = (int64_t)other.time_t();
+    int64_t mySecs = (int64_t)toMicroseconds() / 1000000;
+    int64_t otherSecs = (int64_t)other.toMicroseconds() / 1000000;
     return otherSecs - mySecs;
 }
 
 bool DateTime::compareSeconds(const DateTime& other, unsigned int tolerance) const
 {
-    int64_t mySecs = (int64_t)time_t();
-    int64_t otherSecs = (int64_t)other.time_t();
+    int64_t mySecs = (int64_t)toMicroseconds() / 1000000;
+    int64_t otherSecs = (int64_t)other.toMicroseconds() / 1000000;
     int64_t diff = otherSecs - mySecs;
     if (diff < 0) diff = mySecs - otherSecs;
     if (diff <= tolerance) return true;
@@ -392,8 +392,8 @@ DateTime& DateTime::operator=(const String& datetime)
 
 String DateTime::toString() const
 {
-    return String::format("%04i-%02i-%02i %02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(),
-                          my_time.minutes(), my_time.seconds(), my_time.microseconds());
+    return String::format("%04i-%02i-%02i %02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hour(),
+                          my_time.minute(), my_time.second(), my_time.microsecond());
 }
 
 String DateTime::toString(const String& format_string) const
@@ -403,8 +403,8 @@ String DateTime::toString(const String& format_string) const
 
 DateTime::operator String() const
 {
-    return String::format("%04i-%02i-%02i %02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hours(),
-                          my_time.minutes(), my_time.seconds(), my_time.microseconds());
+    return String::format("%04i-%02i-%02i %02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hour(),
+                          my_time.minute(), my_time.second(), my_time.microsecond());
 }
 
 std::ostream& operator<<(std::ostream& s, const DateTime& dt)
@@ -469,7 +469,7 @@ DateTime& DateTime::setMicroseconds(int64_t epoch_microseconds) noexcept
 
     int y, m, d;
     civilFromDays(days, y, m, d);
-    my_date.set(d, m, y);
+    my_date.set(y, m, d);
     my_time.setFromMicroseconds(static_cast<uint64_t>(rem_us));
 
     return *this;

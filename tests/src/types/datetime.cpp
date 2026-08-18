@@ -206,6 +206,19 @@ TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeUsec6TZ1)
     });
 }
 
+TEST_F(DateTimeTest, ConstructorWithObjectsDateTimeTZ)
+{
+    // ASSERT_NO_THROW({
+    pplib::Date d(2012, 5, 18);
+    pplib::Time t(11, 50, 11, 159473);
+    pplib::TimeZone tz(2, 0);
+
+    pplib::DateTime d1(d, t, tz);
+    ASSERT_TRUE(d1.notEmpty()) << "Class is empty";
+    ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159473+02:00"), d1.getISO8601withUsec()) << "Unexpected date";
+    //});
+}
+
 TEST_F(DateTimeTest, CopyConstructor)
 {
     ASSERT_NO_THROW({
@@ -917,6 +930,13 @@ TEST_F(DateTimeTest, isLeapYear)
     ASSERT_TRUE(pplib::DateTime("2000-06-05 11:50:11.159473").isLeapYear()) << "Unexpected date";
     ASSERT_FALSE(pplib::DateTime("1900-06-05 11:50:11.159473").isLeapYear()) << "Unexpected date";
 }
+TEST_F(DateTimeTest, isLeapYearStaticMethod)
+{
+    ASSERT_TRUE(pplib::DateTime::isLeapYear(2024));
+    ASSERT_FALSE(pplib::DateTime::isLeapYear(2023));
+    ASSERT_TRUE(pplib::DateTime::isLeapYear(2000));
+    ASSERT_FALSE(pplib::DateTime::isLeapYear(1900));
+}
 
 TEST_F(DateTimeTest, currentTime)
 {
@@ -1019,6 +1039,70 @@ TEST_F(DateTimeTest, fromMicroseconds)
     ASSERT_EQ(pplib::String("0001-01-01 00:00:00.000000"), d3.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     pplib::DateTime d4 = pplib::DateTime::fromMicroseconds((int64_t)-62167219200000000LL);
     ASSERT_EQ(pplib::String("0000-01-01 00:00:00.000000"), d4.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+// Rechnen mit DateTime und TimeDelta
+
+TEST_F(DateTimeTest, addTimeDelta)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::TimeDelta td(1, 2);
+    ASSERT_EQ(93600000000, td.toMicroseconds()); // 1 day, 2 hours = (86400+7200)*1000000 = 93600000000
+    pplib::DateTime d2 = d1 + td;
+    ASSERT_EQ(pplib::String("2026-08-17 10:35:01.123456"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, subtractTimeDelta)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::TimeDelta td(1, 2);
+    pplib::DateTime d2 = d1 - td;
+    ASSERT_EQ(pplib::String("2026-08-15 06:35:01.123456"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, subtractDateTime)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::DateTime d2("2026-08-15 06:35:01.123456");
+    pplib::TimeDelta td = d1 - d2;
+    ASSERT_EQ(93600000000, td.toMicroseconds()); // 1 day, 2 hours = (86400+7200)*1000000 = 93600000000
+}
+
+TEST_F(DateTimeTest, addTimeDeltaOperator)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::TimeDelta td(1, 2);
+    d1 += td;
+    ASSERT_EQ(pplib::String("2026-08-17 10:35:01.123456"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, subtractTimeDeltaOperator)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::TimeDelta td(1, 2);
+    d1 -= td;
+    ASSERT_EQ(pplib::String("2026-08-15 06:35:01.123456"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, operatorPlus)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::TimeDelta td(1, 2);
+
+    pplib::DateTime d2 = td + d1;
+    ASSERT_EQ(pplib::String("2026-08-17 10:35:01.123456"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, getComponents)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456+02:00");
+    ASSERT_EQ(d1.year(), 2026) << "Unexpected year";
+    ASSERT_EQ(d1.month(), 8) << "Unexpected month";
+    ASSERT_EQ(d1.day(), 16) << "Unexpected day";
+    ASSERT_EQ(d1.hour(), 8) << "Unexpected hour";
+    ASSERT_EQ(d1.minute(), 35) << "Unexpected minute";
+    ASSERT_EQ(d1.second(), 1) << "Unexpected second";
+    ASSERT_EQ(d1.microsecond(), 123456) << "Unexpected microsecond";
 }
 
 } // namespace
