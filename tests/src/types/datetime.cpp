@@ -987,6 +987,12 @@ TEST_F(DateTimeTest, toMicroseconds)
     ASSERT_EQ((int64_t)-62167219200000000LL, d4.toMicroseconds()) << "Unexpected date";
 }
 
+TEST_F(DateTimeTest, toMicrosecondsThrowsException)
+{
+    pplib::DateTime d1;
+    ASSERT_THROW({ d1.toMicroseconds(); }, pplib::IllegalStateException);
+}
+
 TEST_F(DateTimeTest, setMicroseconds)
 {
     pplib::DateTime d1;
