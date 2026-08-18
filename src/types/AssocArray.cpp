@@ -1665,7 +1665,7 @@ void AssocArray::exportBinary(void* buffer, size_t buffersize, size_t* realsize)
                 p += 4;
                 if (p + vallen < buffersize) {
                     PokeN64(ptr + p, dt.toMicroseconds());
-                    PokeN16(ptr + p + 8, dt.timezone().offsetMinutes());
+                    PokeN16(ptr + p + 8, dt.timeZone().offsetMinutes());
                 }
                 p += vallen;
             }
@@ -1827,7 +1827,7 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
                 dt.setLongInt(PeekN64(ptr + p));
             } else if (vallen == 10) { // PPL8, mit Microseconds und Timezone (Offset in Minutes)
                 dt.setMicroseconds(PeekN64(ptr + p));
-                dt.timezone().setOffsetMinutes(PeekN16(ptr + p + 8));
+                dt.timeZone().setOffsetMinutes(PeekN16(ptr + p + 8));
             }
             // vallen könnte auch 0 sein, wenn das DateTime invalid ist
             p += vallen;

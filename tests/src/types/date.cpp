@@ -167,6 +167,12 @@ TEST_F(DateTest, toString)
     ASSERT_EQ(pplib::String("0000-00-00"), pplib::Date().toString()) << "Class has unexpected value";
 }
 
+TEST_F(DateTest, operatorString)
+{
+    ASSERT_EQ(pplib::String("2020-02-01"), (pplib::String)pplib::Date(2020, 2, 1)) << "Class has unexpected value";
+    ASSERT_EQ(pplib::String("0000-00-00"), (pplib::String)pplib::Date()) << "Class has unexpected value";
+}
+
 TEST_F(DateTest, format)
 {
     ASSERT_EQ(pplib::String("2020-02-01"), pplib::Date(2020, 2, 1).format("%Y-%m-%d")) << "Class has unexpected value";

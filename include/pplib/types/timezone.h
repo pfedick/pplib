@@ -65,6 +65,7 @@ public:
     }
 
     TimeZone& setOffset(int8_t hours, int8_t minutes);
+    TimeZone& set(int8_t hours, int8_t minutes);
 
     void setName(const String& name)
     {
@@ -110,7 +111,7 @@ public:
     }
 
     // Formatierung z. B. "+02:00" oder "+0200"
-    String toISO8601String(bool colon = true) const;
+    String toString(bool colon = true) const;
 };
 
 } // namespace pplib

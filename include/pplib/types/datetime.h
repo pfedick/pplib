@@ -148,6 +148,12 @@ public:
     {
         return my_time;
     }
+
+    inline const TimeZone& timeZone() const noexcept
+    {
+        return my_tz;
+    }
+
     inline Date& date() noexcept
     {
         return my_date;
@@ -157,12 +163,7 @@ public:
         return my_time;
     }
 
-    inline const TimeZone& timezone() const noexcept
-    {
-        return my_tz;
-    }
-
-    inline TimeZone& timezone() noexcept
+    inline TimeZone& timeZone() noexcept
     {
         return my_tz;
     }
@@ -271,6 +272,7 @@ public:
     {
         my_date = other.my_date;
         my_time = other.my_time;
+        my_tz = other.my_tz;
         return *this;
     }
 
@@ -415,9 +417,9 @@ public:
         return *this;
     }
 
-    DateTime& setTimeZone(int16_t offset_minutes, const String& name = String())
+    DateTime& setTimeZone(uint8_t hours, uint8_t minutes, const String& name = String())
     {
-        my_tz.setOffsetMinutes(offset_minutes);
+        my_tz.setOffset(hours, minutes);
         my_tz.setName(name);
         return *this;
     }
@@ -543,11 +545,9 @@ public:
      *   - %S: Sekunde (00-59)
      *   - %f: Millisekunden (000-999)
      *   - %u: Mikrosekunden als sechstellige Zahl (000000 bis 999999)
+     *   - %z: Zeitzonenoffset in Stunden und Minuten (+|-HHMM|Z)
      */
-    inline String get(const String& format = "%Y-%m-%d %H:%M:%S") const
-    {
-        return my_date.format(my_time.format(format));
-    }
+    String get(const String& format = "%Y-%m-%d %H:%M:%S") const;
 
     /** @brief Datum als String zurückgeben
      *

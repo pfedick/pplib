@@ -219,6 +219,15 @@ TEST_F(DateTimeTest, ConstructorWithObjectsDateTimeTZ)
     //});
 }
 
+TEST_F(DateTimeTest, ConstructorWithDateObjectOnly)
+{
+    pplib::Date d(2012, 5, 18);
+    pplib::DateTime d1(d);
+    ASSERT_TRUE(d1.notEmpty()) << "Class is empty";
+    ASSERT_EQ(pplib::String("2012-05-18"), d1.getDate()) << "Unexpected date";
+    ASSERT_EQ(pplib::String("2012-05-18 00:00:00"), d1.get()) << "Unexpected date";
+}
+
 TEST_F(DateTimeTest, CopyConstructor)
 {
     ASSERT_NO_THROW({
@@ -256,6 +265,63 @@ TEST_F(DateTimeTest, Assignment)
         ASSERT_TRUE(d2.notEmpty() == true) << "Class is empty";
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11.159473"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
+}
+
+TEST_F(DateTimeTest, MoveAssignment)
+{
+    pplib::DateTime d1("2012-05-18 11:50:11.159473");
+    pplib::DateTime d2;
+    d2 = std::move(d1);
+    ASSERT_TRUE(d2.notEmpty() == true) << "Class is empty";
+    ASSERT_EQ(pplib::String("2012-05-18 11:50:11.159473"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setterAndGetterForDateObject)
+{
+    pplib::DateTime d1("2012-05-18 11:50:11.159473");
+    pplib::Date& d = d1.date();
+    ASSERT_EQ(pplib::String("2012-05-18"), d.toString()) << "Unexpected date";
+    d.set(2020, 12, 31);
+    ASSERT_EQ(pplib::String("2020-12-31 11:50:11.159473"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setterAndGetterForDateObjectConst)
+{
+    const pplib::DateTime d1("2012-05-18 11:50:11.159473");
+    const pplib::Date& d = d1.date();
+    ASSERT_EQ(pplib::String("2012-05-18"), d.toString()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setterAndGetterForTimeObject)
+{
+    pplib::DateTime d1("2012-05-18 11:50:11.159473");
+    pplib::Time& t = d1.time();
+    ASSERT_EQ(pplib::String("11:50:11.159473"), t.toString()) << "Unexpected time";
+    t.set(23, 59, 59, 999999);
+    ASSERT_EQ(pplib::String("2012-05-18 23:59:59.999999"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setterAndGetterForTimeObjectConst)
+{
+    const pplib::DateTime d1("2012-05-18 11:50:11.159473");
+    const pplib::Time& t = d1.time();
+    ASSERT_EQ(pplib::String("11:50:11.159473"), t.toString()) << "Unexpected time";
+}
+
+TEST_F(DateTimeTest, setterAndGetterForTimeZoneObject)
+{
+    pplib::DateTime d1("2012-05-18 11:50:11.159473");
+    pplib::TimeZone& tz = d1.timeZone();
+    ASSERT_EQ(pplib::String("Z"), tz.toString()) << "Unexpected time zone";
+    tz.set(2, 30);
+    ASSERT_EQ(pplib::String("+02:30"), d1.timeZone().toString()) << "Unexpected time zone";
+}
+
+TEST_F(DateTimeTest, setterAndGetterForTimeZoneObjectConst)
+{
+    const pplib::DateTime d1("2012-05-18 11:50:11.159473");
+    const pplib::TimeZone& tz = d1.timeZone();
+    ASSERT_EQ(pplib::String("Z"), tz.toString()) << "Unexpected time zone";
 }
 
 TEST_F(DateTimeTest, set)
@@ -373,6 +439,29 @@ TEST_F(DateTimeTest, setLongInt)
         d1.setLongInt(v);
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11.159473"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
+}
+
+TEST_F(DateTimeTest, setWithOtherDateTime)
+{
+    ASSERT_NO_THROW({
+        pplib::DateTime d1("2012-05-18 11:50:11.159473");
+        pplib::DateTime d2;
+        d2.set(d1);
+        ASSERT_EQ(pplib::String("2012-05-18 11:50:11.159473"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+        ASSERT_EQ(d1, d2);
+    });
+}
+
+TEST_F(DateTimeTest, SetWithObjectsDateTimeTZ)
+{
+    pplib::Date d(2012, 5, 18);
+    pplib::Time t(11, 50, 11, 159473);
+    pplib::TimeZone tz(2, 0);
+
+    pplib::DateTime d1;
+    d1.set(d, t, tz);
+    ASSERT_TRUE(d1.notEmpty()) << "Class is empty";
+    ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159473+02:00"), d1.getISO8601withUsec()) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, toStringWithoutFormat)
@@ -827,10 +916,67 @@ TEST_F(DateTimeTest, getDate)
     EXPECT_EQ(pplib::String("2026-08-16"), d1.setDate("2026-08-16").getDate()) << "Unexpected date";
 }
 
+TEST_F(DateTimeTest, getTime)
+{
+    pplib::DateTime d1("2026-08-16 19:24:13.123456");
+    EXPECT_EQ(pplib::String("19:24:13"), d1.getTime()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, getWithoutFormat)
+{
+    pplib::DateTime d1;
+    EXPECT_EQ(pplib::String("2026-08-16 19:24:13"), d1.set("2026-08-16 19:24:13.123456").get()) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setDateByObject)
+{
+    pplib::DateTime d1;
+    pplib::Date d(2024, 6, 5);
+    EXPECT_EQ(pplib::String("2024-06-05 00:00:00.000000"), d1.setDate(d).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setDateByYearMonthDay)
+{
+    pplib::DateTime d1;
+    EXPECT_EQ(pplib::String("2024-06-05 00:00:00.000000"), d1.setDate(2024, 6, 5).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
 TEST_F(DateTimeTest, setTime)
 {
     pplib::DateTime d1("2026-08-16");
     EXPECT_EQ(pplib::String("2026-08-16 19:24:13.123456"), d1.setTime("19:24:13.123456").get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setTimeByObject)
+{
+    pplib::DateTime d1("2026-08-16");
+    pplib::Time t(19, 24, 13, 123456);
+    EXPECT_EQ(pplib::String("2026-08-16 19:24:13.123456"), d1.setTime(t).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setTimeByHourMinuteSecondMicrosecond)
+{
+    pplib::DateTime d1("2026-08-16");
+    EXPECT_EQ(pplib::String("2026-08-16 19:24:13.123456"), d1.setTime(19, 24, 13, 123456).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setTimeZoneByString)
+{
+    pplib::DateTime d1("2026-08-16 19:24:13.123456");
+    pplib::String tz("+02:00");
+    EXPECT_EQ(pplib::String("2026-08-16 19:24:13.123456+02:00"), d1.setTimeZone(tz).get("%Y-%m-%d %H:%M:%S.%u%z")) << "Unexpected date";
+}
+
+TEST_F(DateTimeTest, setTimeZoneByObject)
+{
+    pplib::DateTime d1("2026-08-16 19:24:13.123456");
+    pplib::TimeZone tz(2, 0);
+    EXPECT_EQ(pplib::String("2026-08-16 19:24:13.123456+02:00"), d1.setTimeZone(tz).get("%Y-%m-%d %H:%M:%S.%u%z")) << "Unexpected date";
+}
+TEST_F(DateTimeTest, setTimeZoneByOffset)
+{
+    pplib::DateTime d1("2026-08-16 19:24:13.123456");
+    EXPECT_EQ(pplib::String("2026-08-16 19:24:13.123456+02:00"), d1.setTimeZone(2, 0).get("%Y-%m-%d %H:%M:%S.%u%z")) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, setByPPLTIME)
@@ -897,11 +1043,11 @@ TEST_F(DateTimeTest, strftime)
 TEST_F(DateTimeTest, epoch)
 {
     pplib::DateTime d1("2024-06-05 11:50:11.159473");
-    ASSERT_EQ((int32_t)0, d1.timezone().offsetSeconds()) << "Unexpected timezone offset";
+    ASSERT_EQ((int32_t)0, d1.timeZone().offsetSeconds()) << "Unexpected timezone offset";
     ASSERT_EQ((uint64_t)1717588211, d1.epoch()) << "Unexpected epoch";
-    d1.timezone().setOffsetMinutes(120); // GMT+2
+    d1.timeZone().setOffsetMinutes(120); // GMT+2
 
-    ASSERT_EQ((int32_t)7200, d1.timezone().offsetSeconds()) << "Unexpected timezone offset";
+    ASSERT_EQ((int32_t)7200, d1.timeZone().offsetSeconds()) << "Unexpected timezone offset";
     ASSERT_EQ((uint64_t)1717581011, d1.epoch()) << "Unexpected epoch";
 }
 
@@ -1103,6 +1249,7 @@ TEST_F(DateTimeTest, getComponents)
     ASSERT_EQ(d1.minute(), 35) << "Unexpected minute";
     ASSERT_EQ(d1.second(), 1) << "Unexpected second";
     ASSERT_EQ(d1.microsecond(), 123456) << "Unexpected microsecond";
+    ASSERT_EQ(d1.millisecond(), 123) << "Unexpected microsecond";
 }
 
 } // namespace

@@ -148,18 +148,18 @@ TEST_F(TimeZoneTest, fromEpoch)
     ASSERT_LE(tz.offsetMinutes(), 120);
 }
 
-TEST_F(TimeZoneTest, toISO8601String)
+TEST_F(TimeZoneTest, toString)
 {
     pplib::TimeZone tz1(120, "CET");
-    ASSERT_EQ(pplib::String("+02:00"), tz1.toISO8601String(true));
-    ASSERT_EQ(pplib::String("+0200"), tz1.toISO8601String(false));
+    ASSERT_EQ(pplib::String("+02:00"), tz1.toString(true));
+    ASSERT_EQ(pplib::String("+0200"), tz1.toString(false));
 
     pplib::TimeZone tz2(-90, "CST");
-    ASSERT_EQ(pplib::String("-01:30"), tz2.toISO8601String(true));
-    ASSERT_EQ(pplib::String("-0130"), tz2.toISO8601String(false));
+    ASSERT_EQ(pplib::String("-01:30"), tz2.toString(true));
+    ASSERT_EQ(pplib::String("-0130"), tz2.toString(false));
 
     pplib::TimeZone tz3(0, "UTC");
-    ASSERT_EQ(pplib::String("Z"), tz3.toISO8601String(true));
+    ASSERT_EQ(pplib::String("Z"), tz3.toString(true));
 }
 
 TEST_F(TimeZoneTest, offsetSeconds)
@@ -172,6 +172,36 @@ TEST_F(TimeZoneTest, offsetSeconds)
 
     pplib::TimeZone tz3(0, "UTC");
     ASSERT_EQ((int32_t)0, tz3.offsetSeconds());
+}
+
+TEST_F(TimeZoneTest, fromHours)
+{
+    pplib::TimeZone tz1 = pplib::TimeZone::fromHours(2);
+    ASSERT_EQ((int16_t)120, tz1.offsetMinutes());
+
+    pplib::TimeZone tz2 = pplib::TimeZone::fromHours(-3);
+    ASSERT_EQ((int16_t)-180, tz2.offsetMinutes());
+}
+
+TEST_F(TimeZoneTest, fromHoursAndMinutes)
+{
+    pplib::TimeZone tz1 = pplib::TimeZone::fromHoursAndMinutes(2, 30);
+    ASSERT_EQ((int16_t)150, tz1.offsetMinutes());
+
+    pplib::TimeZone tz2 = pplib::TimeZone::fromHoursAndMinutes(-3, -15);
+    ASSERT_EQ((int16_t)-195, tz2.offsetMinutes());
+
+    pplib::TimeZone tz3 = pplib::TimeZone::fromHoursAndMinutes(3, -15);
+    ASSERT_EQ((int16_t)-195, tz3.offsetMinutes());
+}
+
+TEST_F(TimeZoneTest, isUTC)
+{
+    pplib::TimeZone tz1(0, "UTC");
+    ASSERT_TRUE(tz1.isUTC());
+
+    pplib::TimeZone tz2(120, "CET");
+    ASSERT_FALSE(tz2.isUTC());
 }
 
 } // namespace

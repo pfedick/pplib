@@ -88,6 +88,13 @@ TimeZone& TimeZone::setOffset(int8_t hours, int8_t minutes)
     return setOffsetMinutes((abs(hours) * 60 + abs(minutes)) * s);
 }
 
+TimeZone& TimeZone::set(int8_t hours, int8_t minutes)
+{
+    int s = 1;
+    if (hours < 0) s = -1;
+    return setOffsetMinutes((abs(hours) * 60 + abs(minutes)) * s);
+}
+
 TimeZone TimeZone::fromLocalTime() noexcept
 {
     return TimeZone(get_local_utc_offset_minutes());
@@ -141,7 +148,7 @@ TimeZone TimeZone::fromString(const String& str)
     return TimeZone(sign * (hours * 60 + minutes));
 }
 
-String TimeZone::toISO8601String(bool colon) const
+String TimeZone::toString(bool colon) const
 {
     int hours = offset_minutes / 60;
     int minutes = abs(offset_minutes % 60);

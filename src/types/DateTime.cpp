@@ -341,6 +341,14 @@ String DateTime::getRFC822Date() const
     return s;
 }
 
+String DateTime::get(const String& format) const
+{
+    String fmt = format;
+    String tz = my_tz.toString();
+    fmt.replace("%z", tz);
+    return my_date.format(my_time.format(fmt));
+}
+
 String DateTime::strftime(const String& format) const
 {
     size_t s = format.size() * 4 + 64;

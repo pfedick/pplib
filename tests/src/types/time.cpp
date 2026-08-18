@@ -187,6 +187,76 @@ TEST_F(TimeTest, SetWithMicrosecondsWithOverflow)
     });
 }
 
+TEST_F(TimeTest, SetWithInvalidChars)
+{
+    ASSERT_THROW(
+        {
+            pplib::Time t1;
+            t1.set("11:50:11.159473abc");
+        },
+        pplib::IllegalArgumentException);
+}
+
+TEST_F(TimeTest, setHour)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1;
+        t1.setHour(11);
+        ASSERT_EQ((uint8_t)11, t1.hour()) << "Unexpected hour value";
+    });
+    ASSERT_THROW(
+        {
+            pplib::Time t1;
+            t1.setHour(24);
+        },
+        pplib::IllegalArgumentException);
+}
+
+TEST_F(TimeTest, setMinute)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1;
+        t1.setMinute(50);
+        ASSERT_EQ((uint8_t)50, t1.minute()) << "Unexpected minute value";
+    });
+    ASSERT_THROW(
+        {
+            pplib::Time t1;
+            t1.setMinute(60);
+        },
+        pplib::IllegalArgumentException);
+}
+
+TEST_F(TimeTest, setSecond)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1;
+        t1.setSecond(37);
+        ASSERT_EQ((uint8_t)37, t1.second()) << "Unexpected second value";
+    });
+    ASSERT_THROW(
+        {
+            pplib::Time t1;
+            t1.setSecond(60);
+        },
+        pplib::IllegalArgumentException);
+}
+
+TEST_F(TimeTest, setMicrosecond)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1;
+        t1.setMicrosecond(159473);
+        ASSERT_EQ((uint32_t)159473, t1.microsecond()) << "Unexpected microsecond value";
+    });
+    ASSERT_THROW(
+        {
+            pplib::Time t1;
+            t1.setMicrosecond(1000000);
+        },
+        pplib::IllegalArgumentException);
+}
+
 TEST_F(TimeTest, toString)
 {
     ASSERT_NO_THROW({
