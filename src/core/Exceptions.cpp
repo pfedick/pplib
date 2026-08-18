@@ -36,7 +36,6 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <winerror.h>
-#define strdup _strdup
 #endif
 
 #include <pplib/exceptions.h>
@@ -288,7 +287,7 @@ void throwExceptionFromErrno(int e, const String& info)
 
 void throwSocketException(int e, const String& info)
 {
-#ifndef WIN32
+#ifndef _WIN32
     throwExceptionFromErrno(e, info);
 #else
     switch (e) {
