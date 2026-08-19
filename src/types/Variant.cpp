@@ -27,6 +27,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include "pplib/types/date.h"
+#include "pplib/types/time.h"
 #include <pplib/types/variant.h>
 #include <pplib/types/bytearrayptr.h>
 #include <pplib/types/bytearray.h>
@@ -115,6 +117,34 @@ Variant::Variant(const DateTime& value)
     set(value);
 }
 
+Variant::Variant(const Date& value)
+{
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
+}
+
+Variant::Variant(const Time& value)
+{
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
+}
+
+Variant::Variant(const TimeDelta& value)
+{
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
+}
+
+Variant::Variant(const TimeZone& value)
+{
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
+}
+
 void Variant::clear()
 {
     if (!value) return;
@@ -140,6 +170,19 @@ void Variant::clear()
     case TYPE_BYTEARRAYPTR:
         delete (static_cast<ByteArrayPtr*>(value));
         break;
+    case TYPE_DATE:
+        delete (static_cast<Date*>(value));
+        break;
+    case TYPE_TIME:
+        delete (static_cast<Time*>(value));
+        break;
+    case TYPE_TIMEDELTA:
+        delete (static_cast<TimeDelta*>(value));
+        break;
+    case TYPE_TIMEZONE:
+        delete (static_cast<TimeZone*>(value));
+        break;
+
     default:
         break;
     }
@@ -147,10 +190,10 @@ void Variant::clear()
     t = TYPE_UNKNOWN;
 }
 
-void Variant::set(const Variant& value)
+Variant& Variant::set(const Variant& value)
 {
     clear();
-    if (!value.value) return;
+    if (!value.value) return *this;
     switch (value.t) {
     case TYPE_STRING:
         this->value = new String(*static_cast<String*>(value.value));
@@ -180,107 +223,213 @@ void Variant::set(const Variant& value)
         this->value = new ByteArrayPtr(*static_cast<ByteArrayPtr*>(value.value));
         t = TYPE_BYTEARRAYPTR;
         break;
+    case TYPE_DATE:
+        this->value = new Date(*static_cast<Date*>(value.value));
+        t = TYPE_DATE;
+        break;
+    case TYPE_TIME:
+        this->value = new Time(*static_cast<Time*>(value.value));
+        t = TYPE_TIME;
+        break;
+    case TYPE_TIMEDELTA:
+        this->value = new TimeDelta(*static_cast<TimeDelta*>(value.value));
+        t = TYPE_TIMEDELTA;
+        break;
+    case TYPE_TIMEZONE:
+        this->value = new TimeZone(*static_cast<TimeZone*>(value.value));
+        t = TYPE_TIMEZONE;
+        break;
+
     default:
         break;
     }
+    return *this;
 }
 
-void Variant::set(const String& value)
+Variant& Variant::set(Variant&& value)
+{
+    clear();
+    this->value = value.value;
+    t = value.t;
+    value.value = nullptr;
+    value.t = TYPE_UNKNOWN;
+    return *this;
+}
+
+Variant& Variant::set(const String& value)
 {
     clear();
     this->value = new String(value);
     t = TYPE_STRING;
+    return *this;
 }
 
-void Variant::set(const WideString& value)
+Variant& Variant::set(String&& value)
+{
+    clear();
+    this->value = new String(std::move(value));
+    t = TYPE_STRING;
+    return *this;
+}
+
+Variant& Variant::set(const WideString& value)
 {
     clear();
     this->value = new WideString(value);
     t = TYPE_WIDESTRING;
+    return *this;
 }
 
-void Variant::set(const Array& value)
+Variant& Variant::set(WideString&& value)
+{
+    clear();
+    this->value = new WideString(std::move(value));
+    t = TYPE_WIDESTRING;
+    return *this;
+}
+
+Variant& Variant::set(const Array& value)
 {
     clear();
     this->value = new Array(value);
     t = TYPE_ARRAY;
+    return *this;
 }
 
-void Variant::set(const AssocArray& value)
+Variant& Variant::set(Array&& value)
+{
+    clear();
+    this->value = new Array(std::move(value));
+    t = TYPE_ARRAY;
+    return *this;
+}
+
+Variant& Variant::set(const AssocArray& value)
 {
     clear();
     this->value = new AssocArray(value);
     t = TYPE_ASSOCARRAY;
+    return *this;
 }
 
-void Variant::set(const ByteArray& value)
+Variant& Variant::set(AssocArray&& value)
+{
+    clear();
+    this->value = new AssocArray(std::move(value));
+    t = TYPE_ASSOCARRAY;
+    return *this;
+}
+
+Variant& Variant::set(const ByteArray& value)
 {
     clear();
     this->value = new ByteArray(value);
     t = TYPE_BYTEARRAY;
+    return *this;
 }
 
-void Variant::set(const ByteArrayPtr& value)
+Variant& Variant::set(ByteArray&& value)
+{
+    clear();
+    this->value = new ByteArray(std::move(value));
+    t = TYPE_BYTEARRAY;
+    return *this;
+}
+
+Variant& Variant::set(const ByteArrayPtr& value)
 {
     clear();
     this->value = new ByteArrayPtr(value);
     t = TYPE_BYTEARRAYPTR;
+    return *this;
 }
 
-void Variant::set(const DateTime& value)
+Variant& Variant::set(ByteArrayPtr&& value)
+{
+    clear();
+    this->value = new ByteArrayPtr(std::move(value));
+    t = TYPE_BYTEARRAYPTR;
+    return *this;
+}
+
+Variant& Variant::set(const DateTime& value)
 {
     clear();
     this->value = new DateTime(value);
     t = TYPE_DATETIME;
+    return *this;
 }
 
-bool Variant::isType(DataType type) const
+Variant& Variant::set(DateTime&& value)
 {
-    if (this->t == type) return true;
-    return false;
+    clear();
+    this->value = new DateTime(std::move(value));
+    t = TYPE_DATETIME;
+    return *this;
 }
 
-bool Variant::isString() const
+Variant& Variant::set(const Date& value)
 {
-    if (t == TYPE_STRING) return true;
-    return false;
+    clear();
+    this->value = new Date(value);
+    t = TYPE_DATE;
+    return *this;
 }
 
-bool Variant::isWideString() const
+Variant& Variant::set(Date&& value)
 {
-    if (t == TYPE_WIDESTRING) return true;
-    return false;
+    clear();
+    this->value = new Date(std::move(value));
+    t = TYPE_DATE;
+    return *this;
 }
 
-bool Variant::isArray() const
+Variant& Variant::set(const Time& value)
 {
-    if (t == TYPE_ARRAY) return true;
-    return false;
+    clear();
+    this->value = new Time(value);
+    t = TYPE_TIME;
+    return *this;
 }
 
-bool Variant::isAssocArray() const
+Variant& Variant::set(Time&& value)
 {
-    if (t == TYPE_ASSOCARRAY) return true;
-    return false;
+    clear();
+    this->value = new Time(std::move(value));
+    t = TYPE_TIME;
+    return *this;
 }
 
-bool Variant::isByteArray() const
+Variant& Variant::set(const TimeDelta& value)
 {
-    if (t == TYPE_BYTEARRAY) return true;
-    return false;
+    clear();
+    this->value = new TimeDelta(value);
+    t = TYPE_TIMEDELTA;
+    return *this;
 }
 
-bool Variant::isByteArrayPtr() const
+Variant& Variant::set(TimeDelta&& value)
 {
-    if (t == TYPE_BYTEARRAYPTR) return true;
-    if (t == TYPE_BYTEARRAY) return true;
-    return false;
+    clear();
+    this->value = new TimeDelta(std::move(value));
+    t = TYPE_TIMEDELTA;
+    return *this;
 }
 
-bool Variant::isDateTime() const
+Variant& Variant::set(const TimeZone& value)
 {
-    if (t == TYPE_DATETIME) return true;
-    return false;
+    clear();
+    this->value = new TimeZone(value);
+    t = TYPE_TIMEZONE;
+    return *this;
+}
+
+Variant& Variant::set(TimeZone&& value)
+{
+    clear();
+    this->value = new TimeZone(std::move(value));
+    t = TYPE_TIMEZONE;
+    return *this;
 }
 
 const String& Variant::toString() const
@@ -381,87 +530,60 @@ DateTime& Variant::toDateTime()
     return *static_cast<DateTime*>(value);
 }
 
-Variant::operator String() const
+const Date& Variant::toDate() const
 {
-    return toString();
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_DATE) throw TypeConversionException();
+    return *static_cast<Date*>(value);
 }
 
-Variant::operator WideString() const
+Date& Variant::toDate()
 {
-    return toWideString();
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_DATE) throw TypeConversionException();
+    return *static_cast<Date*>(value);
 }
 
-Variant::operator Array() const
+const Time& Variant::toTime() const
 {
-    return toArray();
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_TIME) throw TypeConversionException();
+    return *static_cast<Time*>(value);
 }
 
-Variant::operator AssocArray() const
+Time& Variant::toTime()
 {
-    return toAssocArray();
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_TIME) throw TypeConversionException();
+    return *static_cast<Time*>(value);
 }
 
-Variant::operator ByteArray() const
+const TimeDelta& Variant::toTimeDelta() const
 {
-    return toByteArray();
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_TIMEDELTA) throw TypeConversionException();
+    return *static_cast<TimeDelta*>(value);
 }
 
-Variant::operator ByteArrayPtr() const
+TimeDelta& Variant::toTimeDelta()
 {
-    return toByteArrayPtr();
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_TIMEDELTA) throw TypeConversionException();
+    return *static_cast<TimeDelta*>(value);
 }
 
-Variant::operator DateTime() const
+const TimeZone& Variant::toTimeZone() const
 {
-    return toDateTime();
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_TIMEZONE) throw TypeConversionException();
+    return *static_cast<TimeZone*>(value);
 }
 
-Variant& Variant::operator=(const Variant& other)
+TimeZone& Variant::toTimeZone()
 {
-    set(other);
-    return *this;
-}
-
-Variant& Variant::operator=(const String& other)
-{
-    set(other);
-    return *this;
-}
-
-Variant& Variant::operator=(const WideString& other)
-{
-    set(other);
-    return *this;
-}
-
-Variant& Variant::operator=(const Array& other)
-{
-    set(other);
-    return *this;
-}
-
-Variant& Variant::operator=(const AssocArray& other)
-{
-    set(other);
-    return *this;
-}
-
-Variant& Variant::operator=(const ByteArray& other)
-{
-    set(other);
-    return *this;
-}
-
-Variant& Variant::operator=(const ByteArrayPtr& other)
-{
-    set(other);
-    return *this;
-}
-
-Variant& Variant::operator=(const DateTime& other)
-{
-    set(other);
-    return *this;
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_TIMEZONE) throw TypeConversionException();
+    return *static_cast<TimeZone*>(value);
 }
 
 bool Variant::operator==(const Variant& other) const
@@ -482,6 +604,15 @@ bool Variant::operator==(const Variant& other) const
         return (*static_cast<DateTime*>(value) == *static_cast<DateTime*>(other.value));
     case TYPE_BYTEARRAYPTR:
         return (*static_cast<ByteArrayPtr*>(value) == *static_cast<ByteArrayPtr*>(other.value));
+    case TYPE_DATE:
+        return (*static_cast<Date*>(value) == *static_cast<Date*>(other.value));
+    case TYPE_TIME:
+        return (*static_cast<Time*>(value) == *static_cast<Time*>(other.value));
+    case TYPE_TIMEDELTA:
+        return (*static_cast<TimeDelta*>(value) == *static_cast<TimeDelta*>(other.value));
+    case TYPE_TIMEZONE:
+        return (*static_cast<TimeZone*>(value) == *static_cast<TimeZone*>(other.value));
+
     default:
         break;
     }

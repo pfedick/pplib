@@ -169,7 +169,7 @@ TEST_F(VariantTest, TestWithByteArray)
         ASSERT_FALSE(var2.isType(pplib::Variant::TYPE_STRING)) << "Variant has unexcpected type";
 
         ASSERT_TRUE(var2.isByteArray()) << "Variant has unexcpected type";
-        ASSERT_TRUE(var2.isByteArrayPtr()) << "Variant has unexcpected type";
+        ASSERT_FALSE(var2.isByteArrayPtr()) << "Variant has unexcpected type";
         pplib::ByteArray b2 = var2.toByteArray();
         ASSERT_EQ(b1, b2) << "Variant has unexcpected value";
         ASSERT_EQ(2048, b2.size()) << "Variant has unexcpected size";
@@ -380,7 +380,7 @@ TEST_F(VariantTest, isByteArray)
     ASSERT_FALSE(var1.isWideString());
     ASSERT_FALSE(var1.isArray());
     ASSERT_FALSE(var1.isAssocArray());
-    ASSERT_TRUE(var1.isByteArrayPtr());
+    ASSERT_FALSE(var1.isByteArrayPtr());
     ASSERT_FALSE(var1.isDateTime());
 }
 
