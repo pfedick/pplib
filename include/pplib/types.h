@@ -31,7 +31,6 @@
 #define PPLIB_TYPES_H_
 
 #include <pplib/types/variant.h>
-#include <pplib/types/pointer.h>
 #include <pplib/types/bytearrayptr.h>
 #include <pplib/types/bytearray.h>
 #include <pplib/types/string.h>

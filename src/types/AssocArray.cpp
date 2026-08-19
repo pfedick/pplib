@@ -342,6 +342,7 @@ Variant* AssocArray::findInternal(const ArrayKey& key) const
  */
 void AssocArray::createTree(const ArrayKey& key, Variant* var)
 {
+    // TODO: das sollte keine Exception werfen, sondern mit Returncode arbeiten!
     Array tok(key, "/", 0, true);
     if (tok.count() == 0) throw InvalidKeyException(key);
     String firstkey = tok.shift();

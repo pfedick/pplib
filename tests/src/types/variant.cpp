@@ -1,18 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -22,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -32,9 +32,18 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include "pplib.h"
-#include "pplib-types.h"
 #include <gtest/gtest.h>
+
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/array.h>
+#include <pplib/types/assocarray.h>
+#include <pplib/types/variant.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
+
 #include "pplib-tests.h"
 
 #pragma GCC diagnostic push
@@ -216,25 +225,6 @@ TEST_F(VariantTest, TestWithDateTime)
     });
 }
 
-TEST_F(VariantTest, TestWithPointer)
-{
-    pplib::Pointer p1(this);
-    ASSERT_NO_THROW({
-        pplib::Variant var1(p1);
-        pplib::Variant var2(var1);
-        ASSERT_EQ(pplib::Variant::TYPE_POINTER, var2.type()) << "Variant has unexcpected type";
-        ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_POINTER)) << "Variant has unexcpected type";
-        ASSERT_FALSE(var2.isType(pplib::Variant::TYPE_STRING)) << "Variant has unexcpected type";
-
-        ASSERT_TRUE(var2.isPointer()) << "Variant has unexcpected type";
-        pplib::Pointer p2 = var2.toPointer();
-        ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
-        const pplib::Pointer& p2c = var2.toPointer();
-        ASSERT_EQ(p1, p2c) << "Variant has unexcpected value";
-        ASSERT_THROW({ pplib::String s3 = var1.toString(); }, pplib::TypeConversionException);
-    });
-}
-
 TEST_F(VariantTest, TestSetWithEmptyVariant)
 {
     pplib::Variant var1;
@@ -316,15 +306,6 @@ TEST_F(VariantTest, OperatorDateTime)
     ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
 }
 
-TEST_F(VariantTest, OperatorPointer)
-{
-    pplib::Pointer p1(this);
-    pplib::Variant var1;
-    var1 = p1;
-    const pplib::Pointer& p2 = var1;
-    ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
-}
-
 TEST_F(VariantTest, isString)
 {
     pplib::String p1("Hello World");
@@ -339,7 +320,6 @@ TEST_F(VariantTest, isString)
     ASSERT_FALSE(var1.isByteArray());
     ASSERT_FALSE(var1.isByteArrayPtr());
     ASSERT_FALSE(var1.isDateTime());
-    ASSERT_FALSE(var1.isPointer());
 }
 
 TEST_F(VariantTest, isWideString)
@@ -356,7 +336,6 @@ TEST_F(VariantTest, isWideString)
     ASSERT_FALSE(var1.isByteArray());
     ASSERT_FALSE(var1.isByteArrayPtr());
     ASSERT_FALSE(var1.isDateTime());
-    ASSERT_FALSE(var1.isPointer());
 }
 
 TEST_F(VariantTest, isArray)
@@ -372,7 +351,6 @@ TEST_F(VariantTest, isArray)
     ASSERT_FALSE(var1.isByteArray());
     ASSERT_FALSE(var1.isByteArrayPtr());
     ASSERT_FALSE(var1.isDateTime());
-    ASSERT_FALSE(var1.isPointer());
 }
 
 TEST_F(VariantTest, isAssocArray)
@@ -388,7 +366,6 @@ TEST_F(VariantTest, isAssocArray)
     ASSERT_FALSE(var1.isByteArray());
     ASSERT_FALSE(var1.isByteArrayPtr());
     ASSERT_FALSE(var1.isDateTime());
-    ASSERT_FALSE(var1.isPointer());
 }
 
 TEST_F(VariantTest, isByteArray)
@@ -405,7 +382,6 @@ TEST_F(VariantTest, isByteArray)
     ASSERT_FALSE(var1.isAssocArray());
     ASSERT_TRUE(var1.isByteArrayPtr());
     ASSERT_FALSE(var1.isDateTime());
-    ASSERT_FALSE(var1.isPointer());
 }
 
 TEST_F(VariantTest, isByteArrayPtr)
@@ -423,7 +399,6 @@ TEST_F(VariantTest, isByteArrayPtr)
     ASSERT_FALSE(var1.isAssocArray());
     ASSERT_FALSE(var1.isByteArray());
     ASSERT_FALSE(var1.isDateTime());
-    ASSERT_FALSE(var1.isPointer());
 }
 
 TEST_F(VariantTest, isDateTime)
@@ -440,24 +415,6 @@ TEST_F(VariantTest, isDateTime)
     ASSERT_FALSE(var1.isAssocArray());
     ASSERT_FALSE(var1.isByteArray());
     ASSERT_FALSE(var1.isByteArrayPtr());
-    ASSERT_FALSE(var1.isPointer());
-}
-
-TEST_F(VariantTest, isPointer)
-{
-    pplib::Pointer p1(this);
-    pplib::String p1a("Hello World");
-    pplib::Variant var1(p1);
-    pplib::Variant var2(p1a);
-    ASSERT_TRUE(var1.isPointer());
-    ASSERT_FALSE(var2.isPointer());
-    ASSERT_FALSE(var1.isString());
-    ASSERT_FALSE(var1.isWideString());
-    ASSERT_FALSE(var1.isArray());
-    ASSERT_FALSE(var1.isAssocArray());
-    ASSERT_FALSE(var1.isByteArray());
-    ASSERT_FALSE(var1.isByteArrayPtr());
-    ASSERT_FALSE(var1.isDateTime());
 }
 
 TEST_F(VariantTest, toString)
@@ -727,42 +684,6 @@ TEST_F(VariantTest, toDateTimeConst)
         {
             const pplib::DateTime& s3 = var3.toDateTime();
             ASSERT_TRUE(s3.isEmpty());
-        },
-        pplib::TypeConversionException);
-}
-
-TEST_F(VariantTest, toPointer)
-{
-    pplib::String p1a("Hello World");
-    pplib::Pointer p1(this);
-    pplib::Variant var1(p1);
-    pplib::Variant var2;
-    pplib::Variant var3(p1a);
-    const pplib::Pointer& p2 = var1.toPointer();
-    ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
-    ASSERT_THROW({ pplib::Pointer s3 = var2.toPointer(); }, pplib::EmptyDataException);
-    ASSERT_THROW({ pplib::Pointer s3 = var3.toPointer(); }, pplib::TypeConversionException);
-}
-
-TEST_F(VariantTest, toPointerConst)
-{
-    pplib::String p1a("Hello World");
-    pplib::Pointer p1(this);
-    const pplib::Variant var1(p1);
-    const pplib::Variant var2;
-    const pplib::Variant var3(p1a);
-    const pplib::Pointer& p2 = var1.toPointer();
-    ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
-    ASSERT_THROW(
-        {
-            const pplib::Pointer& s3 = var2.toPointer();
-            ASSERT_TRUE(s3.ptr() != NULL);
-        },
-        pplib::EmptyDataException);
-    ASSERT_THROW(
-        {
-            const pplib::Pointer& s3 = var3.toPointer();
-            ASSERT_TRUE(s3.ptr() != NULL);
         },
         pplib::TypeConversionException);
 }

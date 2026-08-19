@@ -28,7 +28,6 @@
  *******************************************************************************/
 
 #include <pplib/types/variant.h>
-#include <pplib/types/pointer.h>
 #include <pplib/types/bytearrayptr.h>
 #include <pplib/types/bytearray.h>
 #include <pplib/types/string.h>
@@ -129,12 +128,6 @@ void Variant::clear()
     case TYPE_BYTEARRAY:
         delete (static_cast<ByteArray*>(value));
         break;
-    case TYPE_POINTER:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        delete (static_cast<Pointer*>(value));
-#pragma GCC diagnostic pop
-        break;
     case TYPE_WIDESTRING:
         delete (static_cast<WideString*>(value));
         break;
@@ -170,13 +163,6 @@ void Variant::set(const Variant& value)
     case TYPE_BYTEARRAY:
         this->value = new ByteArray(*static_cast<ByteArray*>(value.value));
         t = TYPE_BYTEARRAY;
-        break;
-    case TYPE_POINTER:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        this->value = new Pointer(*static_cast<Pointer*>(value.value));
-        t = TYPE_POINTER;
-#pragma GCC diagnostic pop
         break;
     case TYPE_WIDESTRING:
         this->value = new WideString(*static_cast<WideString*>(value.value));
@@ -488,11 +474,6 @@ bool Variant::operator==(const Variant& other) const
         return (*static_cast<AssocArray*>(value) == *static_cast<AssocArray*>(other.value));
     case TYPE_BYTEARRAY:
         return (*static_cast<ByteArray*>(value) == *static_cast<ByteArray*>(other.value));
-    case TYPE_POINTER:
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        return (*static_cast<Pointer*>(value) == *static_cast<Pointer*>(other.value));
-#pragma GCC diagnostic pop
     case TYPE_WIDESTRING:
         return (*static_cast<WideString*>(value) == *static_cast<WideString*>(other.value));
     case TYPE_ARRAY:
@@ -512,53 +493,5 @@ bool Variant::operator!=(const Variant& other) const
     if (*this == other) return false;
     return true;
 }
-
-////////////////// Deprecated Pointer Support //////////////////////
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-Variant::Variant(const Pointer& value)
-{
-    this->value = nullptr;
-    t = TYPE_UNKNOWN;
-    set(value);
-}
-void Variant::set(const Pointer& value)
-{
-    clear();
-    this->value = new Pointer(value);
-    t = TYPE_POINTER;
-}
-
-Variant& Variant::operator=(const Pointer& other)
-{
-    set(other);
-    return *this;
-}
-Variant::operator Pointer() const
-{
-    return toPointer();
-}
-
-bool Variant::isPointer() const
-{
-    if (t == TYPE_POINTER) return true;
-    return false;
-}
-const Pointer& Variant::toPointer() const
-{
-    if (!value) throw EmptyDataException();
-    if (t != TYPE_POINTER) throw TypeConversionException();
-    return *static_cast<Pointer*>(value);
-}
-
-Pointer& Variant::toPointer()
-{
-    if (!value) throw EmptyDataException();
-    if (t != TYPE_POINTER) throw TypeConversionException();
-    return *static_cast<Pointer*>(value);
-}
-
-#pragma GCC diagnostic pop
 
 } // namespace pplib

@@ -39,7 +39,6 @@ class AssocArray;
 class ByteArray;
 class ByteArrayPtr;
 class DateTime;
-class Pointer;
 
 /**@class Variant
  * @ingroup PPLGroupDataTypes
@@ -62,11 +61,11 @@ public:
     /// @brief Mögliche Datentypen, die in einem Variant gespeichert werden können
     enum DataType // TODO: Das sollte eine enum class werden, aber das würde die Kompatibilität zu älteren Versionen brechen
     {
-        TYPE_UNKNOWN = 0,      /// @brief Unbekannter Datentyp
-        TYPE_STRING = 4,       /// @brief Datentyp ist String
-        TYPE_ASSOCARRAY = 5,   /// @brief Datentyp ist AssocArray
-        TYPE_BYTEARRAY = 6,    /// @brief Datentyp ist ByteArray
-        TYPE_POINTER = 7,      /// @brief Datentyp ist Pointer
+        TYPE_UNKNOWN = 0,    /// @brief Unbekannter Datentyp
+        TYPE_STRING = 4,     /// @brief Datentyp ist String
+        TYPE_ASSOCARRAY = 5, /// @brief Datentyp ist AssocArray
+        TYPE_BYTEARRAY = 6,  /// @brief Datentyp ist ByteArray
+        // TYPE_POINTER = 7,      /// @brief Datentyp ist Pointer
         TYPE_WIDESTRING = 8,   /// @brief Datentyp ist WideString
         TYPE_ARRAY = 9,        /// @brief Datentyp ist Array
         TYPE_DATETIME = 10,    /// @brief Datentyp ist DateTime
@@ -159,15 +158,6 @@ public:
      */
     Variant(const DateTime& value);
 
-    /**@brief Konstruktor mit Datentyp Pointer
-     *
-     * Der Inhalt des Pointer-Objekts \p value wird kopiert.
-     *
-     * @param value
-     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
-     */
-    [[deprecated]] Variant(const Pointer& value);
-
     /**@brief Inhalt des Objekts löschen
      *
      * Der im Objekte gespeicherte Datentyp wird gelöscht und sein Speicher
@@ -238,16 +228,6 @@ public:
      * \param value
      */
     void set(const DateTime& value);
-
-    /**@brief Wert eines Pointers kopieren
-     *
-     * Der Wert des Pointers \p value wird kopiert.
-     *
-     * @param value
-     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
-     */
-    [[deprecated("Use a different pointer type instead.")]]
-    void set(const Pointer& value);
 
     /**@brief Liefert den Datentyp des Objekts zurück
      *
@@ -325,16 +305,6 @@ public:
      * @return Liefert \c true zurück, wenn es sich um den Datentyp DateTime handelt, sonst \c false.
      */
     bool isDateTime() const;
-
-    /**@brief Prüft, ob es sich um den Datentyp Pointer handelt
-     *
-     * Prüft, ob es sich um den Datentyp Pointer handelt
-     *
-     * @return Liefert \c true zurück, wenn es sich um den Datentyp Pointer handelt, sonst \c false.
-     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
-     */
-    [[deprecated("Use a different pointer type instead.")]]
-    bool isPointer() const;
 
     /**@brief Typkonvertierung zu: const String
      *
@@ -504,34 +474,6 @@ public:
      */
     DateTime& toDateTime();
 
-    /**@brief Typkonvertierung zu: const Pointer
-     *
-     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
-     * Pointer zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
-     * wird eine Exception geworfen.
-     *
-     * @return const Referenz auf Pointer
-     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
-     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
-     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
-     */
-    [[deprecated("Use a different pointer type instead.")]]
-    const Pointer& toPointer() const;
-
-    /**@brief Typkonvertierung zu: Pointer
-     *
-     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
-     * Pointer zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
-     * wird eine Exception geworfen.
-     *
-     * @return Referenz auf Pointer
-     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
-     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
-     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
-     */
-    [[deprecated("Use a different pointer type instead.")]]
-    Pointer& toPointer();
-
     /**@brief Typkonvertierung zu: String
      *
      * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten Strings zurück, sofern der Variant diesen Datentyp enthält.
@@ -609,19 +551,6 @@ public:
      */
     operator DateTime() const;
 
-    /**@brief Typkonvertierung zu: Pointer
-     *
-     * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten Pointers zurück, sofern der Variant diesen Datentyp enthält.
-     * Ist dies nicht der Fall, wird eine Exception geworfen.
-     *
-     * @return Kopie des gespeicherten Pointers
-     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
-     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
-     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
-     */
-    [[deprecated("Use a different pointer type instead.")]]
-    operator Pointer() const;
-
     Variant& operator=(const Variant& other);
     Variant& operator=(const String& other);
     Variant& operator=(const WideString& other);
@@ -630,8 +559,6 @@ public:
     Variant& operator=(const ByteArray& other);
     Variant& operator=(const ByteArrayPtr& other);
     Variant& operator=(const DateTime& other);
-
-    [[deprecated("Use a different pointer type instead.")]] Variant& operator=(const Pointer& other);
 
     bool operator==(const Variant& other) const;
     bool operator!=(const Variant& other) const;
