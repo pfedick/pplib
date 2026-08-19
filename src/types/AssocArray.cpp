@@ -1598,9 +1598,6 @@ void AssocArray::exportBinary(void* buffer, size_t buffersize, size_t* realsize)
     size_t vallen = 0;
     String key;
     ByteArray ba;
-#ifdef HAVE_ICONV
-    Iconv iconv(ICONV_UNICODE, "UTF-8");
-#endif
     if (!buffer) buffersize = 0;
     if (p + 7 < buffersize) memcpy(ptr, "PPLASOC", 7);
     p += 7;
@@ -1771,9 +1768,6 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
     AssocArray na;
     ByteArray nb;
     WideString ws;
-#ifdef HAVE_ICONV
-    Iconv iconv("UTF-8", ICONV_UNICODE);
-#endif
     while (p < buffersize && (type = PeekN8(ptr + p)) != 0) {
         p++;
         size_t keylen = PeekN16(ptr + p);
@@ -1909,7 +1903,7 @@ AssocArray& AssocArray::operator+=(const AssocArray& other)
     return *this;
 }
 
-bool AssocArray::operator==(const AssocArray& other)
+bool AssocArray::operator==(const AssocArray& other) const
 {
     ByteArray b1, b2;
     exportBinary(b1);
@@ -1918,7 +1912,7 @@ bool AssocArray::operator==(const AssocArray& other)
     return false;
 }
 
-bool AssocArray::operator!=(const AssocArray& other)
+bool AssocArray::operator!=(const AssocArray& other) const
 {
     if (*this == other) return false;
     return true;

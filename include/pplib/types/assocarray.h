@@ -239,8 +239,8 @@ public:
     AssocArray& operator=(const AssocArray& other);
     AssocArray& operator+=(const AssocArray& other);
 
-    bool operator==(const AssocArray& other);
-    bool operator!=(const AssocArray& other);
+    bool operator==(const AssocArray& other) const;
+    bool operator!=(const AssocArray& other) const;
     //@}
 };
 AssocArray operator+(const AssocArray& a1, const AssocArray& a2);
