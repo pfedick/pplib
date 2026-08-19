@@ -86,8 +86,8 @@ public:
     };
 
 private:
-    void* value; /// @brief Pointer auf den Inhalt des Datentyps
-    DataType t;  /// @brief Variable, zum Speichern des Datentyps
+    void* value = nullptr;     /// @brief Pointer auf den Inhalt des Datentyps
+    DataType t = TYPE_UNKNOWN; /// @brief Variable, zum Speichern des Datentyps
 
 public:
     /** @brief Konstruktor der Klasse
