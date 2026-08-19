@@ -105,9 +105,34 @@ public:
         return tz_name;
     }
 
-    bool isUTC() const noexcept
+    inline bool isUTC() const noexcept
     {
         return offset_minutes == 0;
+    }
+
+    inline bool operator==(const TimeZone& other) const noexcept
+    {
+        return offset_minutes == other.offset_minutes;
+    }
+    inline bool operator!=(const TimeZone& other) const noexcept
+    {
+        return offset_minutes != other.offset_minutes;
+    }
+    inline bool operator<(const TimeZone& other) const noexcept
+    {
+        return offset_minutes < other.offset_minutes;
+    }
+    inline bool operator<=(const TimeZone& other) const noexcept
+    {
+        return offset_minutes <= other.offset_minutes;
+    }
+    inline bool operator>(const TimeZone& other) const noexcept
+    {
+        return offset_minutes > other.offset_minutes;
+    }
+    inline bool operator>=(const TimeZone& other) const noexcept
+    {
+        return offset_minutes >= other.offset_minutes;
     }
 
     // Formatierung z. B. "+02:00" oder "+0200"
