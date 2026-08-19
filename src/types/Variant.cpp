@@ -182,9 +182,6 @@ void Variant::clear()
     case TYPE_TIMEZONE:
         delete (static_cast<TimeZone*>(value));
         break;
-
-    default:
-        break;
     }
     value = nullptr;
     t = TYPE_UNKNOWN;
@@ -238,9 +235,6 @@ Variant& Variant::set(const Variant& value)
     case TYPE_TIMEZONE:
         this->value = new TimeZone(*static_cast<TimeZone*>(value.value));
         t = TYPE_TIMEZONE;
-        break;
-
-    default:
         break;
     }
     return *this;
@@ -612,11 +606,9 @@ bool Variant::operator==(const Variant& other) const
         return (*static_cast<TimeDelta*>(value) == *static_cast<TimeDelta*>(other.value));
     case TYPE_TIMEZONE:
         return (*static_cast<TimeZone*>(value) == *static_cast<TimeZone*>(other.value));
-
-    default:
-        break;
     }
-    return false;
+    // es bleibt nur noch TYPE_UNKNOWN übrig, als ein leerer Variant
+    return true;
 }
 
 bool Variant::operator!=(const Variant& other) const
