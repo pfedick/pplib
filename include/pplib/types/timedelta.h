@@ -34,6 +34,7 @@
 
 namespace pplib
 {
+class String;
 
 class TimeDelta
 {
@@ -52,6 +53,19 @@ public:
         int64_t days, int64_t hours, int64_t minutes = 0, int64_t seconds = 0, int64_t milliseconds = 0, int64_t microseconds = 0) noexcept
     {
         set(days, hours, minutes, seconds, milliseconds, microseconds);
+    }
+
+    /** @brief Konstruktor mit String
+     *
+     * Ein TimeDelta wird aus einem String erzeugt. Der String muss im Format "HH:MM" oder "HH:MM:SS" oder "HH:MM:SS.UUUUUU" vorliegen.
+     * Es werden auch die Trennzeichen "," oder "." oder "-" akzeptiert.
+     *
+     * @param str String mit der Zeitangabe
+     * @exception IllegalArgumentException
+     */
+    TimeDelta(const String& str)
+    {
+        us = fromString(str).us;
     }
 
     int64_t toMicroseconds() const noexcept
@@ -80,6 +94,18 @@ public:
     }
 
     // Named Factories
+
+    /** @brief Erzeugt ein TimeDelta aus einem String
+     *
+     * Ein TimeDelta wird aus einem String erzeugt. Der String muss im Format "HH:MM" oder "HH:MM:SS" oder "HH:MM:SS.UUUUUU" vorliegen.
+     * Es werden auch die Trennzeichen "," oder "." oder "-" akzeptiert.
+     *
+     * @param str String mit der Zeitangabe
+     * @return TimeDelta Objekt
+     * @exception IllegalArgumentException
+     */
+    static TimeDelta fromString(const String& str);
+
     static TimeDelta fromWeeks(int64_t weeks) noexcept
     {
         return fromDays(weeks * 7);
