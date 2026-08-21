@@ -276,6 +276,51 @@ public:
      */
     void truncate(size_t size);
 
+    /**@brief Speicherbereich allokieren
+     *
+     * Mit dieser Funktion wird ein neuer Speicherblock mit der Größe von \p size Bytes allokiert
+     * und dessen Adresse als Ergebnis zurückgeliefert. Das ByteArray-Objekt übernimmt die Verwaltung
+     * des Speicherblocks.
+     *
+     * @param[in] size Gewünschte Größe des Speicherblocks.
+     * @return Pointer auf den Beginn des allokierten Speichers, oder NULL, wenn ein Fehler beim
+     * Allokieren aufgetreten ist. Ein entsprechender Fehlercode wird gesetzt.
+     *
+     * @exception OutOfMemoryException Speicher konnte nicht allokiert werden
+     */
+    void* malloc(size_t size);
+
+    /**@brief Speicherbereich allokieren und mit 0 initialisieren
+     *
+     * Mit dieser Funktion wird ein neuer Speicherblock mit der Größe von \p size Bytes allokiert,
+     * der Inhalt mit 0 initialisiert und dessen Adresse als Ergebnis zurückgeliefert.
+     * Das ByteArray-Objekt übernimmt die Verwaltung des Speicherblocks.
+     *
+     * @param[in] size Gewünschte Größe des Speicherblocks.
+     * @return Pointer auf den Beginn des allokierten Speichers, oder NULL, wenn ein Fehler beim
+     * Allokieren aufgetreten ist. Ein entsprechender Fehlercode wird gesetzt.
+     *
+     * @exception OutOfMemoryException Speicher konnte nicht allokiert werden
+     */
+    void* calloc(size_t size);
+
+    /**@brief Speicher freigeben
+     *
+     * Mit dieser Funktion wird der von der ByteArray-Klasse verwaltete Speicherbereich wieder freigegeben.
+     * Die Klasse enthält danach keinen Speicherbereich mehr.
+     */
+    void free();
+
+    /**@brief Speicher freigeben
+     *
+     * Mit dieser Funktion wird der von der ByteArray-Klasse verwaltete Speicherbereich wieder freigegeben.
+     * Die Klasse enthält danach keinen Speicherbereich mehr.
+     */
+    inline void clear()
+    {
+        free();
+    }
+
     /**@brief Speicherbereich reallokieren
      *
      * Mit dieser Funktion wird der Speicherbereich der ByteArray-Klasse auf die Größe \p size Bytes
@@ -337,49 +382,21 @@ public:
      * @exception IllegalArgumentException Der Eingabe-String enthält eine ungerade Anzahl an Zeichen oder ist leer
      * @exception OutOfMemoryException Speicher konnte nicht allokiert werden
      */
-    void* fromHex(const String& hex);
+    static ByteArray fromHex(const String& hex);
 
-    /**@brief Speicherbereich allokieren
+    /**@brief Speicherbereich aus einem Base64-String kopieren
      *
-     * Mit dieser Funktion wird ein neuer Speicherblock mit der Größe von \p size Bytes allokiert
-     * und dessen Adresse als Ergebnis zurückgeliefert. Das ByteArray-Objekt übernimmt die Verwaltung
-     * des Speicherblocks.
+     * Mit dieser Funktion werden die im String \p base64 kodierten Base64-Werte
+     * dekodiert und in den Speicherbereich der ByteArray-Klasse kopiert.
      *
-     * @param[in] size Gewünschte Größe des Speicherblocks.
-     * @return Pointer auf den Beginn des allokierten Speichers, oder NULL, wenn ein Fehler beim
-     * Allokieren aufgetreten ist. Ein entsprechender Fehlercode wird gesetzt.
+     * @param[in] base64 Referenz auf einen Base64-String, der den Speicherbereich beschreibt.
+     * @return Bei erfolgreichem Kopieren liefert die Funktion einen Pointer auf den
+     * neu allokierten Speicherbereich zurück. Im Fehlerfall wird eine Exception geworfen.
      *
+     * @exception IllegalArgumentException Der Eingabe-String enthält ungültige Base64-Zeichen oder ist leer
      * @exception OutOfMemoryException Speicher konnte nicht allokiert werden
      */
-    void* malloc(size_t size);
-
-    /**@brief Speicherbereich allokieren und mit 0 initialisieren
-     *
-     * Mit dieser Funktion wird ein neuer Speicherblock mit der Größe von \p size Bytes allokiert,
-     * der Inhalt mit 0 initialisiert und dessen Adresse als Ergebnis zurückgeliefert.
-     * Das ByteArray-Objekt übernimmt die Verwaltung des Speicherblocks.
-     *
-     * @param[in] size Gewünschte Größe des Speicherblocks.
-     * @return Pointer auf den Beginn des allokierten Speichers, oder NULL, wenn ein Fehler beim
-     * Allokieren aufgetreten ist. Ein entsprechender Fehlercode wird gesetzt.
-     *
-     * @exception OutOfMemoryException Speicher konnte nicht allokiert werden
-     */
-    void* calloc(size_t size);
-
-    /**@brief Speicher freigeben
-     *
-     * Mit dieser Funktion wird der von der ByteArray-Klasse verwaltete Speicherbereich wieder freigegeben.
-     * Die Klasse enthält danach keinen Speicherbereich mehr.
-     */
-    void free();
-
-    /**@brief Speicher freigeben
-     *
-     * Mit dieser Funktion wird der von der ByteArray-Klasse verwaltete Speicherbereich wieder freigegeben.
-     * Die Klasse enthält danach keinen Speicherbereich mehr.
-     */
-    void clear();
+    static ByteArray fromBase64(const String& base64);
 
     /**@brief Speicherreferenz von anderem ByteArrayPtr-Objekt übernehmen
      *
@@ -462,6 +479,8 @@ public:
      */
     ByteArray& operator+=(const WideString& other);
 };
+
+ByteArray operator+(const ByteArrayPtr& lhs, const ByteArrayPtr& rhs);
 
 std::ostream& operator<<(std::ostream& s, const ByteArray& ba);
 

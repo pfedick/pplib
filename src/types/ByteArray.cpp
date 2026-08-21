@@ -33,9 +33,12 @@
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
 #include <vector>
+#include <limits>
 
 namespace pplib
 {
+
+constexpr size_t MAX_BYTEARRAY_SIZE = std::numeric_limits<size_t>::max() - 4;
 
 ByteArray::ByteArray()
 {
@@ -107,6 +110,9 @@ void* ByteArray::copy(const void* adr, size_t size)
         ptradr = NULL;
         return ptradr;
     }
+    if (size > MAX_BYTEARRAY_SIZE) {
+        throw OutOfMemoryException();
+    }
     if (adr == ptradr && size == ptrsize) return ptradr;
     // Self-Copy Schutz: Zeigt adr in unseren eigenen Speicher?
     std::vector<char> temp_holder;
@@ -147,6 +153,9 @@ void* ByteArray::append(const void* adr, size_t size)
         return ptradr;
     }
     if (!ptradr) return copy(adr, size);
+    if (size > MAX_BYTEARRAY_SIZE - ptrsize) {
+        throw OutOfMemoryException(); // oder OverflowException
+    }
     // Self-Append Schutz: Zeigt adr in unseren eigenen Speicher?
     std::vector<char> temp_holder;
     if ((uintptr_t)adr >= (uintptr_t)ptradr && (uintptr_t)adr < (uintptr_t)ptradr + ptrsize) {
@@ -180,6 +189,10 @@ void* ByteArray::prepend(const void* adr, size_t size)
     }
 
     if (!ptradr) return copy(adr, size);
+    if (size > MAX_BYTEARRAY_SIZE - ptrsize) {
+        throw OutOfMemoryException(); // oder OverflowException
+    }
+
     // Self-Prepend Schutz: Zeigt adr in unseren eigenen Speicher?
     std::vector<char> temp_holder;
     if ((uintptr_t)adr >= (uintptr_t)ptradr && (uintptr_t)adr < (uintptr_t)ptradr + ptrsize) {
@@ -219,8 +232,53 @@ void ByteArray::truncate(size_t size)
     ((char*)ptradr)[ptrsize + 3] = 0;
 }
 
+void* ByteArray::malloc(size_t size)
+{
+    ::free(ptradr);
+    if (size > MAX_BYTEARRAY_SIZE) {
+        throw OutOfMemoryException();
+    }
+    ptradr = ::malloc(size + 4);
+    if (ptradr) {
+        ptrsize = size;
+    } else {
+        throw OutOfMemoryException();
+    }
+    ((char*)ptradr)[ptrsize] = 0;
+    ((char*)ptradr)[ptrsize + 1] = 0;
+    ((char*)ptradr)[ptrsize + 2] = 0;
+    ((char*)ptradr)[ptrsize + 3] = 0;
+    return ptradr;
+}
+
+void* ByteArray::calloc(size_t size)
+{
+    ::free(ptradr);
+    if (size > MAX_BYTEARRAY_SIZE) {
+        throw OutOfMemoryException();
+    }
+    ptradr = ::calloc(size + 4, 1);
+    if (ptradr) {
+        ptrsize = size;
+    } else {
+        throw OutOfMemoryException();
+    }
+    return ptradr;
+}
+
+void ByteArray::free()
+{
+    ::free(ptradr);
+    ptradr = NULL;
+    ptrsize = 0;
+}
+
 void* ByteArray::realloc(size_t size)
 {
+    if (size > MAX_BYTEARRAY_SIZE) {
+        throw OutOfMemoryException();
+    }
+
     void* p = ::realloc(ptradr, size + 4);
     if (!p) throw OutOfMemoryException();
     ptradr = p;
@@ -288,46 +346,11 @@ ByteArray& ByteArray::operator+=(const WideString& other)
     return *this;
 }
 
-void* ByteArray::malloc(size_t size)
+ByteArray operator+(const ByteArrayPtr& lhs, const ByteArrayPtr& rhs)
 {
-    ::free(ptradr);
-    ptradr = ::malloc(size + 4);
-    if (ptradr) {
-        ptrsize = size;
-    } else {
-        throw OutOfMemoryException();
-    }
-    ((char*)ptradr)[ptrsize] = 0;
-    ((char*)ptradr)[ptrsize + 1] = 0;
-    ((char*)ptradr)[ptrsize + 2] = 0;
-    ((char*)ptradr)[ptrsize + 3] = 0;
-    return ptradr;
-}
-
-void* ByteArray::calloc(size_t size)
-{
-    ::free(ptradr);
-    ptradr = ::calloc(size + 4, 1);
-    if (ptradr) {
-        ptrsize = size;
-    } else {
-        throw OutOfMemoryException();
-    }
-    return ptradr;
-}
-
-void ByteArray::free()
-{
-    ::free(ptradr);
-    ptradr = NULL;
-    ptrsize = 0;
-}
-
-void ByteArray::clear()
-{
-    ::free(ptradr);
-    ptradr = NULL;
-    ptrsize = 0;
+    ByteArray result(lhs);
+    result.append(rhs);
+    return result;
 }
 
 ByteArray ByteArray::left(size_t bytes) const
@@ -349,18 +372,15 @@ ByteArray ByteArray::mid(size_t offset, size_t bytes) const
     return ByteArray((char*)ptradr + offset, bytes);
 }
 
-void* ByteArray::fromHex(const String& hex)
+ByteArray ByteArray::fromHex(const String& hex)
 {
-    free();
-    if (hex.isEmpty()) {
-        throw IllegalArgumentException("Empty string");
-    }
+    ByteArray result;
+    if (hex.isEmpty()) return result;
     size_t chars = hex.size();
     if ((chars & 1) == 1) {
         throw IllegalArgumentException("uneven number of characters");
     }
-    malloc(chars >> 1);
-    unsigned char* t = (unsigned char*)ptradr;
+    unsigned char* t = (unsigned char*)result.malloc(chars >> 1);
     unsigned char value;
     for (size_t source = 0, target = 0; source < chars; source += 2, target++) {
         wchar_t first = hex[source];
@@ -372,7 +392,6 @@ void* ByteArray::fromHex(const String& hex)
         else if (first >= 'A' && first <= 'F')
             value = (first - 'A' + 10);
         else {
-            free();
             throw IllegalArgumentException("invalid chars in input string");
         }
         value = value << 4;
@@ -383,12 +402,63 @@ void* ByteArray::fromHex(const String& hex)
         else if (second >= 'A' && second <= 'F')
             value |= (second - 'A' + 10);
         else {
-            free();
             throw IllegalArgumentException("invalid chars in input string");
         }
         t[target] = value;
     }
-    return ptradr;
+    return result;
+}
+
+ByteArray ByteArray::fromBase64(const String& base64)
+{
+    ByteArray result;
+    if (base64.isEmpty()) return result;
+    size_t chars = base64.size();
+    size_t padding = 0;
+    if (chars >= 2 && base64[chars - 1] == '=' && base64[chars - 2] == '=') {
+        padding = 2;
+    } else if (chars >= 1 && base64[chars - 1] == '=') {
+        padding = 1;
+    }
+    size_t bytes = (chars * 3) / 4 - padding;
+    unsigned char* t = (unsigned char*)result.malloc(bytes);
+    size_t source = 0, target = 0;
+    unsigned char value = 0;
+    for (; source < chars; source++) {
+        wchar_t c = base64[source];
+        if (c >= 'A' && c <= 'Z')
+            value = c - 'A';
+        else if (c >= 'a' && c <= 'z')
+            value = c - 'a' + 26;
+        else if (c >= '0' && c <= '9')
+            value = c - '0' + 52;
+        else if (c == '+')
+            value = 62;
+        else if (c == '/')
+            value = 63;
+        else if (c == '=')
+            break; // Padding erreicht
+        else {
+            throw IllegalArgumentException("invalid chars in input string");
+        }
+        switch (source % 4) {
+        case 0:
+            t[target] = value << 2;
+            break;
+        case 1:
+            t[target++] |= value >> 4;
+            t[target] = (value & 0x0F) << 4;
+            break;
+        case 2:
+            t[target++] |= value >> 2;
+            t[target] = (value & 0x03) << 6;
+            break;
+        case 3:
+            t[target++] |= value;
+            break;
+        }
+    }
+    return result;
 }
 
 std::ostream& operator<<(std::ostream& s, const ByteArray& ba)
