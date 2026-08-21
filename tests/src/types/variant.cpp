@@ -86,8 +86,6 @@ TEST_F(VariantTest, TestWithString)
     ASSERT_NO_THROW({
         pplib::Variant var1(s1);
         pplib::Variant var2(var1);
-        pplib::Variant* var3 = new pplib::Variant(var1);
-        delete var3;
         ASSERT_EQ(pplib::Variant::TYPE_STRING, var2.type()) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_STRING)) << "Variant has unexcpected type";
         ASSERT_FALSE(var2.isType(pplib::Variant::TYPE_WIDESTRING)) << "Variant has unexcpected type";
@@ -95,9 +93,12 @@ TEST_F(VariantTest, TestWithString)
         ASSERT_TRUE(var2.isString()) << "Variant has unexcpected type";
         pplib::String s2 = var2.toString();
         ASSERT_EQ(s1, s2) << "Variant has unexcpected value";
-        const pplib::String& cs2 = var1.toString();
-        ASSERT_EQ(s1, cs2) << "Variant has unexcpected value";
+
         ASSERT_THROW({ pplib::WideString s3 = var1.toWideString(); }, pplib::TypeConversionException);
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(s1, var3.toString()) << "Variant has unexcpected value";
+        ASSERT_EQ(s1, (const pplib::String&)var3) << "Variant has unexcpected value";
     });
 }
 
@@ -117,6 +118,10 @@ TEST_F(VariantTest, TestWithWideString)
         const pplib::WideString& cs2 = var1.toWideString();
         ASSERT_EQ(s1, cs2) << "Variant has unexcpected value";
         ASSERT_THROW({ pplib::String s3 = var1.toString(); }, pplib::TypeConversionException);
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(s1, var3.toWideString()) << "Variant has unexcpected value";
+        ASSERT_EQ(s1, (const pplib::WideString&)var3) << "Variant has unexcpected value";
     });
 }
 
@@ -124,7 +129,8 @@ TEST_F(VariantTest, TestWithArray)
 {
     // pplib::Array  s1(L"Hello World");
     ASSERT_NO_THROW({
-        pplib::Variant var1(Wordlist);
+        pplib::Array testdata("the quick brown fox jumps over the lazy dog", " ");
+        pplib::Variant var1(testdata);
         pplib::Variant var2(var1);
         ASSERT_EQ(pplib::Variant::TYPE_ARRAY, var2.type()) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_ARRAY)) << "Variant has unexcpected type";
@@ -132,10 +138,14 @@ TEST_F(VariantTest, TestWithArray)
 
         ASSERT_TRUE(var2.isArray()) << "Variant has unexcpected type";
         pplib::Array s2 = var2.toArray();
-        ASSERT_EQ(Wordlist.size(), s2.size()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata.size(), s2.size()) << "Variant has unexcpected value";
         const pplib::Array& cs2 = var1.toArray();
-        ASSERT_EQ(Wordlist.size(), cs2.size()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata.size(), cs2.size()) << "Variant has unexcpected value";
         ASSERT_THROW({ pplib::String s3 = var1.toString(); }, pplib::TypeConversionException);
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(testdata, var3.toArray()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (const pplib::Array&)var3) << "Variant has unexcpected value";
     });
 }
 
@@ -155,14 +165,18 @@ TEST_F(VariantTest, TestWithAssocArray)
         ASSERT_EQ(TestAssocArray.size(), a2c.size()) << "Variant has unexcpected value";
         ASSERT_THROW({ pplib::String s3 = var1.toString(); }, pplib::TypeConversionException);
         ASSERT_EQ(pplib::String("value5"), a2.getString("array1/unterkey2")) << "unexpected value";
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(TestAssocArray, var3.toAssocArray()) << "Variant has unexcpected value";
+        ASSERT_EQ(TestAssocArray, (const pplib::AssocArray&)var3) << "Variant has unexcpected value";
     });
 }
 
 TEST_F(VariantTest, TestWithByteArray)
 {
-    pplib::ByteArray b1 = pplib::Random(2048);
+    pplib::ByteArray testdata = pplib::Random(2048);
     ASSERT_NO_THROW({
-        pplib::Variant var1(b1);
+        pplib::Variant var1(testdata);
         pplib::Variant var2(var1);
         ASSERT_EQ(pplib::Variant::TYPE_BYTEARRAY, var2.type()) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_BYTEARRAY)) << "Variant has unexcpected type";
@@ -171,20 +185,24 @@ TEST_F(VariantTest, TestWithByteArray)
         ASSERT_TRUE(var2.isByteArray()) << "Variant has unexcpected type";
         ASSERT_FALSE(var2.isByteArrayPtr()) << "Variant has unexcpected type";
         pplib::ByteArray b2 = var2.toByteArray();
-        ASSERT_EQ(b1, b2) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, b2) << "Variant has unexcpected value";
         ASSERT_EQ(2048, b2.size()) << "Variant has unexcpected size";
         const pplib::ByteArray& b2c = var2.toByteArray();
-        ASSERT_EQ(b1, b2c) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, b2c) << "Variant has unexcpected value";
         ASSERT_EQ(2048, b2c.size()) << "Variant has unexcpected size";
 
         ASSERT_THROW({ pplib::String s3 = var1.toString(); }, pplib::TypeConversionException);
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(testdata, var3.toByteArray()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (const pplib::ByteArray&)var3) << "Variant has unexcpected value";
     });
 }
 
 TEST_F(VariantTest, TestWithByteArrayPtr)
 {
-    pplib::ByteArray b1 = pplib::Random(2048);
-    pplib::ByteArrayPtr p1 = b1;
+    pplib::ByteArray testdata = pplib::Random(2048);
+    pplib::ByteArrayPtr p1 = testdata;
     ASSERT_NO_THROW({
         pplib::Variant var1(p1);
         pplib::Variant var2(var1);
@@ -202,14 +220,18 @@ TEST_F(VariantTest, TestWithByteArrayPtr)
         ASSERT_EQ(2048, p2c.size()) << "Variant has unexcpected size";
 
         ASSERT_THROW({ pplib::String s3 = var1.toString(); }, pplib::TypeConversionException);
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(testdata, var3.toByteArrayPtr()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (const pplib::ByteArrayPtr&)var3) << "Variant has unexcpected value";
     });
 }
 
 TEST_F(VariantTest, TestWithDateTime)
 {
-    pplib::DateTime d1("2015-12-03 15:52:40");
+    pplib::DateTime testdata("2015-12-03 15:52:40");
     ASSERT_NO_THROW({
-        pplib::Variant var1(d1);
+        pplib::Variant var1(testdata);
         pplib::Variant var2(var1);
         ASSERT_EQ(pplib::Variant::TYPE_DATETIME, var2.type()) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_DATETIME)) << "Variant has unexcpected type";
@@ -217,80 +239,92 @@ TEST_F(VariantTest, TestWithDateTime)
 
         ASSERT_TRUE(var2.isDateTime()) << "Variant has unexcpected type";
         pplib::DateTime d2 = var2.toDateTime();
-        ASSERT_EQ(d1, d2) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, d2) << "Variant has unexcpected value";
         const pplib::DateTime& d2c = var2.toDateTime();
-        ASSERT_EQ(d1, d2c) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, d2c) << "Variant has unexcpected value";
 
         ASSERT_THROW({ pplib::String s3 = var1.toString(); }, pplib::TypeConversionException);
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(testdata, var3.toDateTime()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (const pplib::DateTime&)var3) << "Variant has unexcpected value";
     });
 }
 
 TEST_F(VariantTest, TestWithDate)
 {
-    pplib::Date d1("2015-12-03");
+    pplib::Date testdata("2015-12-03");
     ASSERT_NO_THROW({
-        pplib::Variant var1(d1);
+        pplib::Variant var1(testdata);
         pplib::Variant var2(var1);
         ASSERT_EQ(pplib::Variant::TYPE_DATE, var2.type()) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_DATE)) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isDate()) << "Variant has unexcpected type";
         pplib::Date d2 = var2.toDate();
-        ASSERT_EQ(d1, d2) << "Variant has unexcpected value";
-        const pplib::Variant var3(var1);
-        const pplib::Date& d2c = var3.toDate();
-        ASSERT_EQ(d1, d2c) << "const Variant has unexcpected value";
+        ASSERT_EQ(testdata, d2) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (pplib::Date&)var2) << "Variant has unexcpected value";
         ASSERT_THROW({ pplib::String s3 = var1.toString(); }, pplib::TypeConversionException);
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(testdata, var3.toDate()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (const pplib::Date&)var3) << "Variant has unexcpected value";
     });
 }
 
 TEST_F(VariantTest, TestWithTime)
 {
-    pplib::Time t1("15:52:40");
+    pplib::Time testdata("15:52:40");
     ASSERT_NO_THROW({
-        pplib::Variant var1(t1);
+        pplib::Variant var1(testdata);
         pplib::Variant var2(var1);
         ASSERT_EQ(pplib::Variant::TYPE_TIME, var2.type()) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_TIME)) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isTime()) << "Variant has unexcpected type";
         pplib::Time t2 = var2.toTime();
-        ASSERT_EQ(t1, t2) << "Variant has unexcpected value";
-        const pplib::Variant var3(var1);
-        const pplib::Time& t2c = var3.toTime();
-        ASSERT_EQ(t1, t2c) << "const Variant has unexcpected value";
+        ASSERT_EQ(testdata, t2) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (pplib::Time&)var2) << "Variant has unexcpected value";
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(testdata, var3.toTime()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (const pplib::Time&)var3) << "Variant has unexcpected value";
     });
 }
 
 TEST_F(VariantTest, TestWithTimeDelta)
 {
-    pplib::TimeDelta td1("15:52:40");
+    pplib::TimeDelta testdata("15:52:40");
     ASSERT_NO_THROW({
-        pplib::Variant var1(td1);
+        pplib::Variant var1(testdata);
         pplib::Variant var2(var1);
         ASSERT_EQ(pplib::Variant::TYPE_TIMEDELTA, var2.type()) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_TIMEDELTA)) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isTimeDelta()) << "Variant has unexcpected type";
         pplib::TimeDelta td2 = var2.toTimeDelta();
-        ASSERT_EQ(td1, td2) << "Variant has unexcpected value";
-        const pplib::Variant var3(var1);
-        const pplib::TimeDelta& td2c = var3.toTimeDelta();
-        ASSERT_EQ(td1, td2c) << "const Variant has unexcpected value";
+        ASSERT_EQ(testdata, td2) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (pplib::TimeDelta&)var2) << "Variant has unexcpected value";
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(testdata, var3.toTimeDelta()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (const pplib::TimeDelta&)var3) << "Variant has unexcpected value";
     });
 }
 
 TEST_F(VariantTest, TestWithTimeZone)
 {
-    pplib::TimeZone tz1(2, 0, "Europe/Berlin");
+    pplib::TimeZone testdata(2, 0, "Europe/Berlin");
     ASSERT_NO_THROW({
-        pplib::Variant var1(tz1);
+        pplib::Variant var1(testdata);
         pplib::Variant var2(var1);
         ASSERT_EQ(pplib::Variant::TYPE_TIMEZONE, var2.type()) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_TIMEZONE)) << "Variant has unexcpected type";
         ASSERT_TRUE(var2.isTimeZone()) << "Variant has unexcpected type";
         pplib::TimeZone tz2 = var2.toTimeZone();
-        ASSERT_EQ(tz1, tz2) << "Variant has unexcpected value";
-        const pplib::Variant var3(var1);
-        const pplib::TimeZone& tz2c = var3.toTimeZone();
-        ASSERT_EQ(tz1, tz2c) << "const Variant has unexcpected value";
+        ASSERT_EQ(testdata, tz2) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (pplib::TimeZone&)var2) << "Variant has unexcpected value";
+
+        const pplib::Variant var3 = var1;
+        ASSERT_EQ(testdata, var3.toTimeZone()) << "Variant has unexcpected value";
+        ASSERT_EQ(testdata, (const pplib::TimeZone&)var3) << "Variant has unexcpected value";
     });
 }
 
@@ -309,6 +343,29 @@ TEST_F(VariantTest, OperatorVariant)
     pplib::Variant var2;
     var2 = var1;
     ASSERT_EQ(s1, var2.toString()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveOperatorVariant)
+{
+    pplib::String s1("Hello World");
+    pplib::Variant var1(s1);
+    pplib::Variant var2;
+    var2 = std::move(var1);
+    ASSERT_EQ(pplib::Variant::TYPE_STRING, var2.type()) << "Variant has unexcpected type";
+    ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_STRING)) << "Variant has unexcpected type";
+
+    ASSERT_EQ(s1, var2.toString()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveOperatorVariantEqual)
+{
+    pplib::String s1("Hello World");
+    pplib::Variant var1(s1);
+    var1 = std::move(var1);
+    ASSERT_EQ(pplib::Variant::TYPE_STRING, var1.type()) << "Variant has unexcpected type";
+    ASSERT_TRUE(var1.isType(pplib::Variant::TYPE_STRING)) << "Variant has unexcpected type";
+
+    ASSERT_EQ(s1, var1.toString()) << "Variant has unexcpected value";
 }
 
 TEST_F(VariantTest, OperatorString)
@@ -372,6 +429,42 @@ TEST_F(VariantTest, OperatorDateTime)
     pplib::Variant var1;
     var1 = p1;
     const pplib::DateTime& p2 = var1;
+    ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorDate)
+{
+    pplib::Date p1("2015-12-03");
+    pplib::Variant var1;
+    var1 = p1;
+    const pplib::Date& p2 = var1;
+    ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorTime)
+{
+    pplib::Time p1("15:52:40");
+    pplib::Variant var1;
+    var1 = p1;
+    const pplib::Time& p2 = var1;
+    ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorTimeDelta)
+{
+    pplib::TimeDelta p1("15:52:40");
+    pplib::Variant var1;
+    var1 = p1;
+    const pplib::TimeDelta& p2 = var1;
+    ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorTimeZone)
+{
+    pplib::TimeZone p1(2, 0, "Europe/Berlin");
+    pplib::Variant var1;
+    var1 = p1;
+    const pplib::TimeZone& p2 = var1;
     ASSERT_EQ(p1, p2) << "Variant has unexcpected value";
 }
 
@@ -1222,6 +1315,188 @@ TEST_F(VariantTest, CompareOperatorWithUnknownType)
     pplib::Variant var2;
     ASSERT_TRUE(var1 == var2) << "Variant has unexcpected value";
     ASSERT_FALSE(var1 != var2) << "Variant has unexcpected value";
+}
+
+// Move constructor and move assignment operator tests
+TEST_F(VariantTest, MoveString)
+{
+    // Move constructor
+    pplib::String s1("Hello World");
+    pplib::Variant var1(std::move(s1));
+    ASSERT_EQ(pplib::String("Hello World"), var1.toString()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::String s2("Hello World");
+    pplib::Variant var2;
+    var2 = std::move(s2);
+    ASSERT_EQ(pplib::String("Hello World"), var2.toString()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveWideString)
+{
+    // Move constructor
+    pplib::WideString s1(L"Hello World");
+    pplib::Variant var1(std::move(s1));
+    ASSERT_EQ(pplib::WideString(L"Hello World"), var1.toWideString()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::WideString s2(L"Hello World");
+    pplib::Variant var2;
+    var2 = std::move(s2);
+    ASSERT_EQ(pplib::WideString(L"Hello World"), var2.toWideString()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveArray)
+{
+    // Move constructor
+    pplib::Array a1("red green blue white black yellow", " ");
+    pplib::Variant var1(std::move(a1));
+    ASSERT_EQ(pplib::Array("red green blue white black yellow", " "), var1.toArray()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::Array a2("red green blue white black yellow", " ");
+    pplib::Variant var2;
+    var2 = std::move(a2);
+    ASSERT_EQ(pplib::Array("red green blue white black yellow", " "), var2.toArray()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveAssocArray)
+{
+    // Testdata
+    pplib::AssocArray expected;
+    expected.set("key1", "value1");
+    expected.set("key2", "value2");
+
+    // Move constructor
+    pplib::AssocArray a1 = expected;
+    pplib::Variant var1(std::move(a1));
+    ASSERT_EQ(expected, var1.toAssocArray()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::AssocArray a2 = expected;
+    pplib::Variant var2;
+    var2 = std::move(a2);
+    ASSERT_EQ(expected, var2.toAssocArray()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveByteArray)
+{
+    // Testdata
+    pplib::ByteArray expected = pplib::Random(2048);
+
+    // Move constructor
+    pplib::ByteArray b1 = expected;
+    pplib::Variant var1(std::move(b1));
+    ASSERT_EQ(expected, var1.toByteArray()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::ByteArray b2 = expected;
+    pplib::Variant var2;
+    var2 = std::move(b2);
+    ASSERT_EQ(expected, var2.toByteArray()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveByteArrayPtr)
+{
+    // Testdata
+    pplib::ByteArray expected = pplib::Random(2048);
+    pplib::ByteArrayPtr p1 = expected;
+
+    // Move constructor
+    pplib::ByteArrayPtr p2 = p1;
+    pplib::Variant var1(std::move(p2));
+    ASSERT_EQ(p1, var1.toByteArrayPtr()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::ByteArrayPtr p3 = p1;
+    pplib::Variant var2;
+    var2 = std::move(p3);
+    ASSERT_EQ(p1, var2.toByteArrayPtr()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveDateTime)
+{
+    // Testdata
+    pplib::DateTime expected("2015-12-03 15:52:40");
+
+    // Move constructor
+    pplib::DateTime d1 = expected;
+    pplib::Variant var1(std::move(d1));
+    ASSERT_EQ(expected, var1.toDateTime()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::DateTime d2 = expected;
+    pplib::Variant var2;
+    var2 = std::move(d2);
+    ASSERT_EQ(expected, var2.toDateTime()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveDate)
+{
+    // Testdata
+    pplib::Date expected("2015-12-03");
+
+    // Move constructor
+    pplib::Date d1 = expected;
+    pplib::Variant var1(std::move(d1));
+    ASSERT_EQ(expected, var1.toDate()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::Date d2 = expected;
+    pplib::Variant var2;
+    var2 = std::move(d2);
+    ASSERT_EQ(expected, var2.toDate()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveTime)
+{
+    // Testdata
+    pplib::Time expected("15:52:40");
+
+    // Move constructor
+    pplib::Time t1 = expected;
+    pplib::Variant var1(std::move(t1));
+    ASSERT_EQ(expected, var1.toTime()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::Time t2 = expected;
+    pplib::Variant var2;
+    var2 = std::move(t2);
+    ASSERT_EQ(expected, var2.toTime()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveTimeDelta)
+{
+    // Testdata
+    pplib::TimeDelta expected("15:52:40");
+
+    // Move constructor
+    pplib::TimeDelta td1 = expected;
+    pplib::Variant var1(std::move(td1));
+    ASSERT_EQ(expected, var1.toTimeDelta()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::TimeDelta td2 = expected;
+    pplib::Variant var2;
+    var2 = std::move(td2);
+    ASSERT_EQ(expected, var2.toTimeDelta()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, MoveTimeZone)
+{
+    // Testdata
+    pplib::TimeZone expected(2, 0, "Europe/Berlin");
+
+    // Move constructor
+    pplib::TimeZone tz1 = expected;
+    pplib::Variant var1(std::move(tz1));
+    ASSERT_EQ(expected, var1.toTimeZone()) << "Variant has unexcpected value";
+
+    // Move assignment operator
+    pplib::TimeZone tz2 = expected;
+    pplib::Variant var2;
+    var2 = std::move(tz2);
+    ASSERT_EQ(expected, var2.toTimeZone()) << "Variant has unexcpected value";
 }
 
 } // namespace
