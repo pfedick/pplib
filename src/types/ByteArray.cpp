@@ -82,9 +82,7 @@ ByteArray::ByteArray(const String& str)
 {
     ptradr = NULL;
     ptrsize = 0;
-    if (str.notEmpty()) {
-        copy(str.getPtr(), str.size());
-    }
+    copy(str.getPtr(), str.size());
 }
 
 ByteArray::ByteArray(const WideString& str)
@@ -101,30 +99,33 @@ ByteArray::ByteArray(size_t size)
     malloc(size);
 }
 
-void ByteArray::useadr(void* adr, size_t size)
-{
-    ::free(ptradr);
-    ptradr = adr;
-    ptrsize = size;
-}
-
 void* ByteArray::copy(const void* adr, size_t size)
 {
+    if (adr == nullptr || size == 0) {
+        ::free(ptradr);
+        ptrsize = 0;
+        ptradr = NULL;
+        return ptradr;
+    }
+    if (adr == ptradr && size == ptrsize) return ptradr;
+    // Self-Copy Schutz: Zeigt adr in unseren eigenen Speicher?
+    std::vector<char> temp_holder;
+    if ((uintptr_t)adr >= (uintptr_t)ptradr && (uintptr_t)adr < (uintptr_t)ptradr + ptrsize) {
+        temp_holder.assign((const char*)adr, (const char*)adr + size);
+        adr = temp_holder.data(); // Zeigt jetzt auf einen sicheren Stack-Vektor
+    }
     ::free(ptradr);
     ptrsize = 0;
-    ptradr = NULL;
-    if (adr != NULL && size > 0) {
-        ptradr = ::malloc(size + 4);
-        if (!ptradr) {
-            throw OutOfMemoryException();
-        }
-        memcpy(ptradr, adr, size);
-        ptrsize = size;
-        ((char*)ptradr)[ptrsize] = 0;
-        ((char*)ptradr)[ptrsize + 1] = 0;
-        ((char*)ptradr)[ptrsize + 2] = 0;
-        ((char*)ptradr)[ptrsize + 3] = 0;
+    ptradr = ::malloc(size + 4);
+    if (!ptradr) {
+        throw OutOfMemoryException();
     }
+    memcpy(ptradr, adr, size);
+    ptrsize = size;
+    ((char*)ptradr)[ptrsize] = 0;
+    ((char*)ptradr)[ptrsize + 1] = 0;
+    ((char*)ptradr)[ptrsize + 2] = 0;
+    ((char*)ptradr)[ptrsize + 3] = 0;
     return ptradr;
 }
 
@@ -133,12 +134,18 @@ void* ByteArray::copy(const ByteArrayPtr& other)
     return copy(other.ptradr, other.ptrsize);
 }
 
+void ByteArray::useadr(void* adr, size_t size)
+{
+    ::free(ptradr);
+    ptradr = adr;
+    ptrsize = size;
+}
+
 void* ByteArray::append(const void* adr, size_t size)
 {
     if (adr == NULL || size == 0) {
         return ptradr;
     }
-
     if (!ptradr) return copy(adr, size);
     // Self-Append Schutz: Zeigt adr in unseren eigenen Speicher?
     std::vector<char> temp_holder;
@@ -322,6 +329,25 @@ void ByteArray::clear()
     ::free(ptradr);
     ptradr = NULL;
     ptrsize = 0;
+}
+
+ByteArray ByteArray::left(size_t bytes) const
+{
+    if (bytes > ptrsize) bytes = ptrsize;
+    return ByteArray(ptradr, bytes);
+}
+
+ByteArray ByteArray::right(size_t bytes) const
+{
+    if (bytes > ptrsize) bytes = ptrsize;
+    return ByteArray((char*)ptradr + (ptrsize - bytes), bytes);
+}
+
+ByteArray ByteArray::mid(size_t offset, size_t bytes) const
+{
+    if (offset > ptrsize) offset = ptrsize;
+    if (bytes > ptrsize - offset) bytes = ptrsize - offset;
+    return ByteArray((char*)ptradr + offset, bytes);
 }
 
 void* ByteArray::fromHex(const String& hex)
