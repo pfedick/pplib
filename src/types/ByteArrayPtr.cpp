@@ -98,18 +98,17 @@ const void* ByteArrayPtr::adr() const
 
 const char* ByteArrayPtr::map(size_t position, size_t size) const
 {
-    if (!ptradr) throw OutOfBoundsException("ByteArrayPtr::map has no memory assigned");
+    // if (!ptradr) throw OutOfBoundsException("ByteArrayPtr::map has no memory assigned");
     if (position > ptrsize || size > ptrsize - position)
         throw OutOfBoundsException("ByteArrayPtr::map position (%zu) + size (%zu) exceeds size of ByteArray (%zu > %zu)", position, size,
                                    position + size, ptrsize);
     return (const char*)ptradr + position;
 }
 
-void ByteArrayPtr::truncate(size_t position)
+void ByteArrayPtr::truncate(size_t size)
 {
-    if (position > ptrsize)
-        throw OutOfBoundsException("ByteArrayPtr::truncate position exceeds size of ByteArray (%zu > %zu)", position, ptrsize);
-    ptrsize = position;
+    if (size >= ptrsize) return;
+    ptrsize = size;
 }
 
 const void* ByteArrayPtr::ptr() const
@@ -158,18 +157,6 @@ unsigned char ByteArrayPtr::operator[](size_t pos) const
 }
 
 unsigned char& ByteArrayPtr::operator[](size_t pos)
-{
-    if (ptradr != NULL && pos < ptrsize) return static_cast<unsigned char*>(ptradr)[pos];
-    throw OutOfBoundsException();
-}
-
-unsigned char ByteArrayPtr::operator[](int pos) const
-{
-    if (ptradr != NULL && pos < ptrsize) return ((unsigned char*)ptradr)[pos];
-    throw OutOfBoundsException();
-}
-
-unsigned char& ByteArrayPtr::operator[](int pos)
 {
     if (ptradr != NULL && pos < ptrsize) return static_cast<unsigned char*>(ptradr)[pos];
     throw OutOfBoundsException();

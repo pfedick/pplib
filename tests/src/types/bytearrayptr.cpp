@@ -125,6 +125,16 @@ TEST(ByteArrayPtrTest, isEmpty)
     ASSERT_TRUE(b2.isEmpty());
 }
 
+TEST(ByteArrayPtrTest, NotEmpty)
+{
+    pplib::ByteArrayPtr b2;
+    ASSERT_FALSE(b2.notEmpty());
+    b2.use(binarydata, sizeof(binarydata));
+    ASSERT_TRUE(b2.notEmpty());
+    b2.use(binarydata, 0);
+    ASSERT_FALSE(b2.notEmpty());
+}
+
 TEST(ByteArrayPtrTest, size)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
@@ -147,6 +157,31 @@ TEST(ByteArrayPtrTest, adr)
     ASSERT_EQ((const void*)&binarydata, b2.adr());
     pplib::ByteArrayPtr b1;
     ASSERT_EQ((const void*)NULL, b1.adr());
+}
+
+TEST(ByteArrayPtrTest, map)
+{
+    pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
+    ASSERT_EQ((const char*)&binarydata, b2.map(0, sizeof(binarydata)));
+    ASSERT_EQ((const char*)&binarydata[3], b2.map(3, 5));
+    ASSERT_THROW(b2.map(11, 1), pplib::OutOfBoundsException);
+    ASSERT_THROW(b2.map(10, 2), pplib::OutOfBoundsException);
+    ASSERT_THROW(b2.map(12, 0), pplib::OutOfBoundsException);
+
+    pplib::ByteArrayPtr b3;
+    ASSERT_THROW(b3.map(0, 1), pplib::OutOfBoundsException);
+}
+
+TEST(ByteArrayPtrTest, truncate)
+{
+    pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
+    ASSERT_EQ(sizeof(binarydata), b2.size());
+    b2.truncate(5);
+    ASSERT_EQ((size_t)5, b2.size());
+    b2.truncate(10);
+    ASSERT_EQ((size_t)5, b2.size());
+    b2.truncate(0);
+    ASSERT_EQ((size_t)0, b2.size());
 }
 
 TEST(ByteArrayPtrTest, toCharPtr)
@@ -214,9 +249,17 @@ TEST(ByteArrayPtrTest, Get)
     ASSERT_THROW(b2.get(11), pplib::OutOfBoundsException);
 }
 
+TEST(ByteArrayPtrTest, GetOnEmptyObject)
+{
+    pplib::ByteArrayPtr b1;
+    ASSERT_THROW(b1.get(0), pplib::OutOfBoundsException);
+}
+
 TEST(ByteArrayPtrTest, OperatorGet)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
+    unsigned char val = b2[0];
+    EXPECT_EQ(13, val);
     EXPECT_EQ(13, b2[0]);
     EXPECT_EQ(14, b2[1]);
     EXPECT_EQ(55, b2[2]);
@@ -224,6 +267,31 @@ TEST(ByteArrayPtrTest, OperatorGet)
     EXPECT_EQ(23, b2[9]);
     EXPECT_EQ(18, b2[10]);
     ASSERT_THROW(b2[11], pplib::OutOfBoundsException);
+
+    const pplib::ByteArrayPtr b3(binarydata, sizeof(binarydata));
+    val = b3[0];
+    EXPECT_EQ(13, val);
+    ASSERT_THROW(b3[11], pplib::OutOfBoundsException);
+}
+
+TEST(ByteArrayPtrTest, OperatorGetOnEmptyObject)
+{
+    pplib::ByteArrayPtr b1;
+    ASSERT_THROW(b1[0], pplib::OutOfBoundsException);
+    const pplib::ByteArrayPtr b2;
+    ASSERT_THROW(b2[0], pplib::OutOfBoundsException);
+}
+
+TEST(ByteArrayPtrTest, OperatorSet)
+{
+    unsigned char localdata[] = {13, 14, 55, 66, 129, 255, 66, 0, 76, 23, 18};
+    pplib::ByteArrayPtr b2(localdata, sizeof(localdata));
+    EXPECT_EQ(13, b2[0]);
+    b2[0] = 69;
+    EXPECT_EQ(69, b2[0]);
+    b2[10] = 123;
+    EXPECT_EQ(123, b2[10]);
+    ASSERT_THROW(b2[11] = 42, pplib::OutOfBoundsException);
 }
 
 TEST(ByteArrayPtrTest, Set)
@@ -238,10 +306,42 @@ TEST(ByteArrayPtrTest, Set)
     ASSERT_THROW(b2.set(11, 42), pplib::OutOfBoundsException);
 }
 
+TEST(ByteArrayPtrTest, SetOnEmptyObject)
+{
+    pplib::ByteArrayPtr b1;
+    ASSERT_THROW(b1.set(0, 42), pplib::OutOfBoundsException);
+}
+
+TEST(ByteArrayPtrTest, toString)
+{
+    pplib::ByteArrayPtr b2("Hello World", 11);
+    ASSERT_EQ(pplib::String("Hello World"), b2.toString());
+
+    pplib::ByteArrayPtr empty;
+    ASSERT_EQ(pplib::String(""), empty.toString());
+}
+
+TEST(ByteArrayPtrTest, toWideString)
+{
+    pplib::ByteArrayPtr b2(L"Hello World", 11 * sizeof(wchar_t));
+    ASSERT_EQ(pplib::WideString(L"Hello World"), b2.toWideString());
+
+    pplib::ByteArrayPtr empty;
+    ASSERT_EQ(pplib::WideString(L""), empty.toWideString());
+}
+
 TEST(ByteArrayPtrTest, toHex)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
     ASSERT_EQ(pplib::String("0d0e374281ff42004c1712"), b2.toHex());
+}
+
+TEST(ByteArrayPtrTest, toHexOnEmptyObject)
+{
+    pplib::ByteArrayPtr b1;
+    ASSERT_EQ(pplib::String(""), b1.toHex());
+    b1.use(binarydata, 0);
+    ASSERT_EQ(pplib::String(""), b1.toHex());
 }
 
 TEST(ByteArrayPtrTest, toBase64)
@@ -272,6 +372,53 @@ TEST(ByteArrayPtrTest, crc32)
 {
     pplib::ByteArrayPtr b2(teststring, 11);
     EXPECT_EQ((uint32_t)1243066710, b2.crc32());
+    pplib::ByteArrayPtr empty;
+    ASSERT_THROW(empty.crc32(), pplib::EmptyDataException);
+}
+
+TEST(ByteArrayPtrTest, hexDump)
+{
+    pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
+    // Wir müssen stdout umleiten, da hexDump() direkt auf stdout schreibt
+    testing::internal::CaptureStdout();
+    b2.hexDump();
+    pplib::String output = testing::internal::GetCapturedStdout();
+    ASSERT_TRUE(output.has("HEXDUMP of ByteArray: 11 Bytes starting at Address"));
+    ASSERT_TRUE(output.has("0D 0E 37 42 81 FF 42 00 4C 17 12"));
+    ASSERT_TRUE(output.has(": ..7B..B.L.."));
+}
+
+TEST(ByteArrayPtrTest, hexDumpWithSize)
+{
+    pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
+    // Wir müssen stdout umleiten, da hexDump() direkt auf stdout schreibt
+    testing::internal::CaptureStdout();
+    b2.hexDump(7);
+    pplib::String output = testing::internal::GetCapturedStdout();
+    ASSERT_TRUE(output.has("HEXDUMP of ByteArray: 7 Bytes starting at Address"));
+    ASSERT_TRUE(output.has("0D 0E 37 42 81 FF 42"));
+    ASSERT_TRUE(output.has(": ..7B..B"));
+}
+
+TEST(ByteArrayPtrTest, hexDumpWithEmptyObject)
+{
+    pplib::ByteArrayPtr b1;
+    // Wir müssen stdout umleiten, da hexDump() direkt auf stdout schreibt
+    testing::internal::CaptureStdout();
+    b1.hexDump();
+    pplib::String output = testing::internal::GetCapturedStdout();
+    ASSERT_TRUE(output.has("HEXDUMP of ByteArray: No Data, address or size is 0"));
+}
+
+TEST(ByteArrayPtrTest, hexDumpOffsetIsOutOfRange)
+{
+    pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
+    // Wir müssen stdout umleiten, da hexDump() direkt auf stdout schreibt
+    testing::internal::CaptureStdout();
+    b2.hexDump(20, 11);
+    pplib::String output = testing::internal::GetCapturedStdout();
+    // output.printnl();
+    ASSERT_TRUE(output.has("HEXDUMP of ByteArray: Offset 20 exceeds size of ByteArray (11)"));
 }
 
 TEST(ByteArrayPtrTest, memset)
@@ -281,6 +428,16 @@ TEST(ByteArrayPtrTest, memset)
     pplib::ByteArrayPtr b2(localdata, sizeof(localdata));
     b2.memset(32);
     EXPECT_TRUE(memcmp(expected, localdata, sizeof(localdata)) == 0);
+    pplib::ByteArrayPtr empty;
+    empty.memset(42); // sollte keine Exception werfen
+}
+
+TEST(ByteArrayPtrTest, ostream)
+{
+    pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
+    std::ostringstream oss;
+    oss << b2;
+    ASSERT_EQ(pplib::String("0d0e374281ff42004c1712"), oss.str());
 }
 
 // memBlock1 > MemBlock2

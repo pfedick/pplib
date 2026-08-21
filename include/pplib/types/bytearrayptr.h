@@ -353,35 +353,7 @@ public:
      */
     unsigned char& operator[](size_t pos);
 
-    /**@brief Einzelnes Byte aus dem Speicherbereich auslesen
-     *
-     * Mit dieser Funktion kann ein bestimmtes Byte \p pos aus dem Speicherbereich
-     * ausgelesen werden. Ist kein Speicher referenziert oder ist \p pos größer als
-     * der Speicherblock, wird eine Exception ausgelöst.
-     *
-     * @param [in] pos Auszulesendes Byte, beginnend mit 0.
-     * @return Wert der Speicherstelle
-     * \exception OutOfBoundsException Diese Exception wird geworfen, wenn die mit
-     * \p pos angegebene Speicherstelle ausseralb des referenzierten Speichers liegt oder
-     * kein Speicher referenziert ist.
-     */
-    unsigned char operator[](int pos) const;
-
-    /**@brief Einzelnes Byte aus dem Speicherbereich referenzieren
-     *
-     * Mit dieser Funktion kann eine Referenz auf ein bestimmtes Byte \p pos aus dem Speicherbereich
-     * erhalten werden. Dies ermöglicht Lese- und Schreibzugriff. Ist kein Speicher referenziert oder ist \p pos größer als
-     * der Speicherblock, wird eine Exception ausgelöst.
-     *
-     * @param [in] pos Auszulesendes Byte, beginnend mit 0.
-     * @return Referenz auf das Byte
-     * \exception OutOfBoundsException Diese Exception wird geworfen, wenn die mit
-     * \p pos angegebene Speicherstelle ausseralb des referenzierten Speichers liegt oder
-     * kein Speicher referenziert ist.
-     */
-    unsigned char& operator[](int pos);
-
-    /**@brief Einzelnes Byte im Speicherbereich setzen
+    /** @brief Einzelnes Byte im Speicherbereich setzen
      *
      * Mit dieser Funktion kann ein bestimmtes Byte \p pos im Speicherbereich auf den Wert \p value gesetzt werden.
      * Ist kein Speicher referenziert oder ist \p pos größer als der Speicherblock, wird eine Exception ausgelöst.
@@ -394,7 +366,7 @@ public:
      */
     void set(size_t pos, unsigned char value);
 
-    /**@brief Einzelnes Byte im Speicherbereich auslesen
+    /** @brief Einzelnes Byte im Speicherbereich auslesen
      *
      * Mit dieser Funktion kann ein bestimmtes Byte \p pos aus dem Speicherbereich
      * ausgelesen werden. Ist kein Speicher referenziert oder ist \p pos größer als
