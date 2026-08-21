@@ -1133,7 +1133,7 @@ ByteArray WideString::toUtf8() const
         }
     }
     buffer[dest_len] = 0;
-    tmp_buffer.setSize(dest_len);
+    tmp_buffer.truncate(dest_len);
     return tmp_buffer;
 }
 
@@ -1148,7 +1148,7 @@ ByteArray WideString::toLocalEncoding() const
     if (ret == (size_t)-1) {
         throw CharacterEncodingException();
     }
-    tmp_buffer.setSize(ret);
+    tmp_buffer.truncate(ret);
     return tmp_buffer;
 }
 
@@ -1195,7 +1195,7 @@ ByteArray WideString::toUCS4() const
     ucs4[dest_len] = 0;
 
     // Logische Größe des ByteArrays in Bytes anpassen
-    ret.setSize(dest_len * sizeof(uint32_t));
+    ret.truncate(dest_len * sizeof(uint32_t));
     return ret;
 }
 

@@ -149,7 +149,7 @@ void* ByteArray::append(const void* adr, size_t size)
     if (!ptradr) return copy(adr, size);
     // Self-Append Schutz: Zeigt adr in unseren eigenen Speicher?
     std::vector<char> temp_holder;
-    if (adr >= ptradr && adr < (char*)ptradr + ptrsize) {
+    if ((uintptr_t)adr >= (uintptr_t)ptradr && (uintptr_t)adr < (uintptr_t)ptradr + ptrsize) {
         temp_holder.assign((const char*)adr, (const char*)adr + size);
         adr = temp_holder.data(); // Zeigt jetzt auf einen sicheren Stack-Vektor
     }
@@ -182,7 +182,7 @@ void* ByteArray::prepend(const void* adr, size_t size)
     if (!ptradr) return copy(adr, size);
     // Self-Prepend Schutz: Zeigt adr in unseren eigenen Speicher?
     std::vector<char> temp_holder;
-    if (adr >= ptradr && adr < (char*)ptradr + ptrsize) {
+    if ((uintptr_t)adr >= (uintptr_t)ptradr && (uintptr_t)adr < (uintptr_t)ptradr + ptrsize) {
         temp_holder.assign((const char*)adr, (const char*)adr + size);
         adr = temp_holder.data();
     }
@@ -209,10 +209,9 @@ void* ByteArray::prepend(const ByteArrayPtr& other)
     return prepend(other.ptradr, other.ptrsize);
 }
 
-void ByteArray::setSize(size_t size)
+void ByteArray::truncate(size_t size)
 {
-    if (size == ptrsize) return;
-    if (size > ptrsize) throw IllegalArgumentException("New size is bigger than current size");
+    if (size >= ptrsize) return;
     ptrsize = size;
     ((char*)ptradr)[ptrsize] = 0;
     ((char*)ptradr)[ptrsize + 1] = 0;

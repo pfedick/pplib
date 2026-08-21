@@ -264,16 +264,17 @@ public:
 
     /**@brief Größe des Speicherbereichs setzen
      *
-     * Mit dieser Funktion kann die Größe des Speicherbereichs der ByteArray-Klasse verkleinert
-     * werden. Es ist sichergestellt, dass am Ende des Speicherbereichs immer 4 0-Bytes angehangen werden.
-     * Es findet keine Reallokierung des Speichers statt, sondern nur eine Anpassung der Größe.
-     * Überschüssiger Speicher wird nicht freigegeben.
+     * Mit dieser Funktion kann die logische Größe des Speicherbereichs der ByteArray-Klasse
+     * verkleinert werden. Es ist sichergestellt, dass am Ende des Speicherbereichs immer
+     * 4 0-Bytes vorhanden sind. Es findet keine Reallokierung des Speichers statt, sondern
+     * nur eine Anpassung der Größe. Überschüssiger Speicher wird nicht freigegeben.
      *
      * @param[in] size Neue Größe des Speicherbereichs in Bytes
      *
-     * @exception IllegalArgumentException Die neue Größe ist größer als die bisherige Größe
+     * @note Falls die neue Größe größer als die aktuelle Größe ist, wird der Speicherbereich
+     * nicht vergrößert und der Fehler stillschweigend ignoriert.
      */
-    void setSize(size_t size);
+    void truncate(size_t size);
 
     /**@brief Speicherbereich reallokieren
      *
