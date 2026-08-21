@@ -199,6 +199,25 @@ WideString ByteArrayPtr::toWideString() const
     return WideString((const wchar_t*)ptradr, ptrsize / sizeof(wchar_t));
 }
 
+ByteArrayPtr ByteArrayPtr::left(size_t bytes) const
+{
+    if (bytes > ptrsize) bytes = ptrsize;
+    return ByteArrayPtr(ptradr, bytes);
+}
+
+ByteArrayPtr ByteArrayPtr::right(size_t bytes) const
+{
+    if (bytes > ptrsize) bytes = ptrsize;
+    return ByteArrayPtr((char*)ptradr + (ptrsize - bytes), bytes);
+}
+
+ByteArrayPtr ByteArrayPtr::mid(size_t offset, size_t bytes) const
+{
+    if (offset > ptrsize) offset = ptrsize;
+    if (bytes > ptrsize - offset) bytes = ptrsize - offset;
+    return ByteArrayPtr((char*)ptradr + offset, bytes);
+}
+
 String ByteArrayPtr::toHex() const
 {
     String str;

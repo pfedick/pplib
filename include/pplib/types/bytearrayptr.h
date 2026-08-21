@@ -218,6 +218,39 @@ public:
      */
     operator const unsigned char*() const;
 
+    /** @brief Linken Teil des Speicherbereichs ausgeben
+     *
+     * Mit dieser Funktion wird der linke Teil des Speicherbereichs als ByteArray zurückgegeben.
+     *
+     * @param[in] bytes Anzahl der Bytes, die zurückgegeben werden sollen.
+     * @return ByteArray mit dem linken Teil des Speicherbereichs
+     * @note Falls @p bytes größer als die Größe des Speicherbereichs ist, wird der gesamte Speicherbereich zurückgegeben.
+     */
+    ByteArrayPtr left(size_t bytes) const;
+
+    /** @brief Rechten Teil des Speicherbereichs ausgeben
+     *
+     * Mit dieser Funktion wird der rechte Teil des Speicherbereichs als ByteArray zurückgegeben.
+     *
+     * @param[in] bytes Anzahl der Bytes, die zurückgegeben werden sollen.
+     * @return ByteArray mit dem rechten Teil des Speicherbereichs
+     * @note Falls @p bytes größer als die Größe des Speicherbereichs ist, wird der gesamte Speicherbereich zurückgegeben.
+     */
+    ByteArrayPtr right(size_t bytes) const;
+
+    /** @brief Teil des Speicherbereichs ausgeben
+     *
+     * Mit dieser Funktion wird ein Teil des Speicherbereichs als ByteArray zurückgegeben.
+     *
+     * @param[in] offset Position innerhalb des Speicherbereichs, ab der der neue Speicherbereich beginnt
+     * @param[in] bytes Anzahl der Bytes, die zurückgegeben werden sollen.
+     * @return ByteArray mit dem Teil des Speicherbereichs
+     * @note Falls @p offset größer als die Größe des Speicherbereichs ist, wird ein leeres ByteArray zurückgegeben.
+     *       Falls @p bytes größer als die Größe des Speicherbereichs ab @p offset ist, wird nur der Teil ab @p offset bis zum Ende
+     * zurückgegeben.
+     */
+    ByteArrayPtr mid(size_t offset, size_t bytes) const;
+
     /**@brief Speicherbereich als Hexwerte in einen String exportieren
      *
      * Der referenzierte Speicherbereich wird als String mit Hexadezimalwerten

@@ -84,7 +84,7 @@ bytearray:
 	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
 	cmake --build build/coverage --target test_core
 	ln -sf build/coverage/compile_commands.json compile_commands.json
-	-cd tests && ../build/coverage/tests/test_core$(EXE) --gtest_filter=ByteArrayTest*
+	-cd tests && ../build/coverage/tests/test_core$(EXE) --gtest_filter=ByteArrayTest*:ByteArrayPtrTest*
 	mkdir -p coverage_html
 	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --exclude 'tests/.*'
 

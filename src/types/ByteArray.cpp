@@ -353,25 +353,6 @@ ByteArray operator+(const ByteArrayPtr& lhs, const ByteArrayPtr& rhs)
     return result;
 }
 
-ByteArray ByteArray::left(size_t bytes) const
-{
-    if (bytes > ptrsize) bytes = ptrsize;
-    return ByteArray(ptradr, bytes);
-}
-
-ByteArray ByteArray::right(size_t bytes) const
-{
-    if (bytes > ptrsize) bytes = ptrsize;
-    return ByteArray((char*)ptradr + (ptrsize - bytes), bytes);
-}
-
-ByteArray ByteArray::mid(size_t offset, size_t bytes) const
-{
-    if (offset > ptrsize) offset = ptrsize;
-    if (bytes > ptrsize - offset) bytes = ptrsize - offset;
-    return ByteArray((char*)ptradr + offset, bytes);
-}
-
 ByteArray ByteArray::fromHex(const String& hex)
 {
     ByteArray result;
