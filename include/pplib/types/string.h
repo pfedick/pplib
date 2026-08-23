@@ -1251,19 +1251,65 @@ public:
     String& operator+=(const std::string& str);
     String& operator+=(const std::wstring& str);
     String& operator+=(char c);
-    bool operator<(const String& str) const;
-    bool operator<=(const String& str) const;
-    bool operator==(const String& str) const;
-    bool operator!=(const String& str) const;
-    bool operator>=(const String& str) const;
-    bool operator>(const String& str) const;
 
-    bool operator<(const char* str) const;
-    bool operator<=(const char* str) const;
-    bool operator==(const char* str) const;
-    bool operator!=(const char* str) const;
-    bool operator>=(const char* str) const;
-    bool operator>(const char* str) const;
+    inline bool operator<(const String& str) const
+    {
+        return strcmp(str) < 0;
+    }
+    inline bool operator<=(const String& str) const
+    {
+        return strcmp(str) <= 0;
+    }
+
+    inline bool operator==(const String& str) const
+    {
+        return strcmp(str) == 0;
+    }
+
+    inline bool operator!=(const String& str) const
+    {
+        return strcmp(str) != 0;
+    }
+
+    inline bool operator>=(const String& str) const
+    {
+        return strcmp(str) >= 0;
+    }
+
+    inline bool operator>(const String& str) const
+    {
+        return strcmp(str) > 0;
+    }
+
+    inline bool operator<(const char* str) const
+    {
+        return strcmp(str) < 0;
+    }
+
+    inline bool operator<=(const char* str) const
+    {
+        return strcmp(str) <= 0;
+    }
+
+    inline bool operator==(const char* str) const
+    {
+        return strcmp(str) == 0;
+    }
+
+    inline bool operator!=(const char* str) const
+    {
+        return strcmp(str) != 0;
+    }
+
+    inline bool operator>=(const char* str) const
+    {
+        return strcmp(str) >= 0;
+    }
+
+    inline bool operator>(const char* str) const
+    {
+        return strcmp(str) > 0;
+    }
 
     //@}
 
