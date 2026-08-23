@@ -1802,4 +1802,146 @@ TEST(StringTest, operatorEqualPlusChar)
     ASSERT_EQ(s1, s2) << "String has unexpected value";
 }
 
+// Operator plus
+
+TEST(StringTest, operatorPlus_StringPlusString)
+{
+    pplib::String s1("Hello ");
+    pplib::String s2("World!");
+    pplib::String s3 = s1 + s2;
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_StringPlusConstCharPtr)
+{
+    pplib::String s1("Hello ");
+    pplib::String s3 = s1 + "World!";
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_StringPlusConstWcharPtr)
+{
+    pplib::String s1("Hello ");
+    pplib::String s3 = s1 + L"World!";
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_StringPlusWideString)
+{
+    pplib::String s1("Hello ");
+    pplib::String s3 = s1 + pplib::WideString(L"World!");
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_StringPlusStdString)
+{
+    pplib::String s1("Hello ");
+    pplib::String s3 = s1 + std::string("World!");
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_StringPlusStdWString)
+{
+    pplib::String s1("Hello ");
+    pplib::String s3 = s1 + std::wstring(L"World!");
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_StringPlusChar)
+{
+    pplib::String s1("He");
+    pplib::String s3 = s1 + 'l';
+    ASSERT_EQ(pplib::String("Hel"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_ConstCharPtrPlusString)
+{
+    pplib::String s1("World!");
+    pplib::String s3 = "Hello " + s1;
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_ConstWcharPtrPlusString)
+{
+    pplib::String s1("World!");
+    pplib::String s3 = L"Hello " + s1;
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_WideStringPlusString)
+{
+    pplib::String s1("World!");
+    pplib::String s3 = pplib::WideString(L"Hello ") + s1;
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_StdStringPlusString)
+{
+    pplib::String s1("World!");
+    pplib::String s3 = std::string("Hello ") + s1;
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_StdWStringPlusString)
+{
+    pplib::String s1("World!");
+    pplib::String s3 = std::wstring(L"Hello ") + s1;
+    ASSERT_EQ(pplib::String("Hello World!"), s3) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorPlus_CharPlusString)
+{
+    pplib::String s1("el");
+    pplib::String s3 = 'H' + s1;
+    ASSERT_EQ(pplib::String("Hel"), s3) << "String has unexpected value";
+}
+
+// find
+
+TEST(StringTest, find_forward)
+{
+    pplib::String s1("The quick brown fox jumps over the lazy dog");
+    ASSERT_EQ((size_t)16, s1.find("fox")) << "String has unexpected value";
+    ASSERT_EQ((size_t)0, s1.find("The")) << "String has unexpected value";
+    ASSERT_EQ((size_t)40, s1.find("dog", 15)) << "String has unexpected value";
+    ASSERT_EQ(pplib::String::npos, s1.find("cow")) << "String has unexpected value";
+    ASSERT_EQ(pplib::String::npos, s1.find("")) << "String has unexpected value";
+    ASSERT_EQ(pplib::String::npos, s1.find("brown", 100)) << "String has unexpected value";
+
+    pplib::String empty;
+    ASSERT_EQ(pplib::String::npos, empty.find("fox")) << "String has unexpected value";
+}
+
+TEST(StringTest, find_backward)
+{
+    pplib::String s1("The quick brown fox jumps over the lazy dog");
+    ASSERT_EQ((size_t)16, s1.find("fox", -1)) << "String has unexpected value";
+    ASSERT_EQ((size_t)42, s1.find("g", -1)) << "String has unexpected value";
+    ASSERT_EQ((size_t)0, s1.find("The", -20)) << "String has unexpected value";
+    ASSERT_EQ((size_t)pplib::String::npos, s1.find("cat", -1)) << "String has unexpected value";
+    ASSERT_EQ((size_t)pplib::String::npos, s1.find("dog", -100)) << "String has unexpected value";
+}
+
+TEST(StringTest, startsWith)
+{
+    pplib::String s1("The quick brown fox jumps over the lazy dog");
+    ASSERT_TRUE(s1.startsWith("The quick")) << "String has unexpected value";
+    ASSERT_TRUE(s1.startsWith("quick", 4)) << "String has unexpected value";
+    ASSERT_TRUE(s1.startsWith("quick", 4, 20)) << "String has unexpected value";
+    ASSERT_TRUE(s1.startsWith("The", 0, 20)) << "String has unexpected value";
+    ASSERT_FALSE(s1.startsWith("the quick")) << "String has unexpected value";
+    ASSERT_FALSE(s1.startsWith("quick")) << "String has unexpected value";
+}
+
+TEST(StringTest, endsWith)
+{
+    pplib::String s1("The quick brown fox jumps over the lazy dog");
+    ASSERT_TRUE(s1.endsWith("lazy dog")) << "String has unexpected value";
+    ASSERT_TRUE(s1.endsWith("dog", 40)) << "String has unexpected value";
+    ASSERT_TRUE(s1.endsWith("dog", 40, 4)) << "String has unexpected value";
+    ASSERT_TRUE(s1.endsWith("dog", 0, 100)) << "String has unexpected value";
+    ASSERT_FALSE(s1.endsWith("Lazy dog")) << "String has unexpected value";
+    ASSERT_FALSE(s1.endsWith("lazy")) << "String has unexpected value";
+}
+
 } // namespace

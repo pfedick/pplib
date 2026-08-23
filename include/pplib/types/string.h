@@ -76,7 +76,7 @@ private:
     size_t s, stringlen;
 
 public:
-    static const size_t npos = (size_t)-1; // Ergebnis von find, wenn nichts gefunden wurde
+    static constexpr size_t npos = static_cast<size_t>(-1); // Ergebnis von find, wenn nichts gefunden wurde
 
     //! @name Konstruktoren und Destruktor
     //@{
@@ -1060,11 +1060,67 @@ public:
     String strstr(const String& needle) const;
     size_t find(const String& needle, ssize_t start = 0) const;
     size_t findCase(const String& needle, ssize_t start = 0) const;
-    size_t instr(const String& needle, size_t start = 0) const;
-    size_t instrCase(const String& needle, size_t start = 0) const;
+
+    /*! @brief Sucht nach einem String
+     *
+     * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
+     *
+     * \param[in] needle Gesuchter Teilstring
+     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
+     * oder nicht angegeben, wird der String vom Anfang an gesucht. Ist der Wert jedoch negativ, wird rückwärts vom Ende des Strings
+     * gesucht.
+     *
+     * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
+     * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+     * Funktion immer String::npos zurück.
+     */
+    size_t instr(const String& needle, ssize_t start = 0) const
+    {
+        return find(needle, start);
+    }
+
+    /*! @brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
+     *
+     * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
+     * Gross-/Kleinschreibung wird dabei ignoriert.
+     *
+     * \param[in] needle Gesuchter Teilstring
+     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
+     * oder nicht angegeben, wird der String vom Anfang an gesucht. Ist der Wert jedoch negativ, wird rückwärts vom Ende des Strings
+     *
+     * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
+     * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+     * Funktion immer String::npos zurück.
+     */
+    size_t instrCase(const String& needle, ssize_t start = 0) const
+    {
+        return findCase(needle, start);
+    }
+
     bool has(const String& needle, bool ignoreCase = false) const;
 
+    /** @brief Prüft, ob der String mit einem bestimmten Präfix beginnt
+     *
+     * Diese Funktion prüft, ob der String mit dem angegebenen Präfix beginnt.
+     *
+     * @param prefix Präfix, das überprüft werden soll
+     * @param start Startposition innerhalb des Strings, ab der die Prüfung erfolgen soll
+     * @param end Endposition innerhalb des Strings, bis zu der die Prüfung erfolgen soll
+     *
+     * @return Liefert true zurück, wenn der String mit dem Präfix beginnt, andernfalls false.
+     */
     bool startsWith(const String& prefix, size_t start = 0, size_t end = (size_t)-1) const;
+
+    /** @brief Prüft, ob der String mit einem bestimmten Suffix endet
+     *
+     * Diese Funktion prüft, ob der String mit dem angegebenen Suffix endet.
+     *
+     * @param suffix Suffix, das überprüft werden soll
+     * @param start Startposition innerhalb des Strings, ab der die Prüfung erfolgen soll
+     * @param end Endposition innerhalb des Strings, bis zu der die Prüfung erfolgen soll
+     *
+     * @return Liefert true zurück, wenn der String mit dem Suffix endet, andernfalls false.
+     */
     bool endsWith(const String& suffix, size_t start = 0, size_t end = (size_t)-1) const;
     String join(const pplib::Array& iterable) const;
 
@@ -1279,14 +1335,19 @@ public:
 };
 
 String operator+(const String& str1, const String& str2);
-String operator+(const char* str1, const String& str2);
+String operator+(const String& str1, const WideString& str2);
 String operator+(const String& str1, const char* str2);
-String operator+(const wchar_t* str1, const String& str2);
 String operator+(const String& str1, const wchar_t* str2);
-String operator+(const std::string& str1, const String& str2);
 String operator+(const String& str1, const std::string& str2);
-String operator+(const std::wstring& str1, const String& str2);
 String operator+(const String& str1, const std::wstring& str2);
+String operator+(const String& str1, const char c);
+
+String operator+(const WideString& str1, const String& str2);
+String operator+(const char* str1, const String& str2);
+String operator+(const wchar_t* str1, const String& str2);
+String operator+(const std::string& str1, const String& str2);
+String operator+(const std::wstring& str1, const String& str2);
+String operator+(const char c, const String& str2);
 
 std::ostream& operator<<(std::ostream& s, const String& str);
 

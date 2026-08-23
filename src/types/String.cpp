@@ -1318,12 +1318,11 @@ String String::strstr(const String& needle) const
  *
  * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
  * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
- * Funktion immer 0 zurück.
+ * Funktion immer String::npos zurück.
  */
 size_t String::find(const String& needle, ssize_t start) const
 {
-    if (stringlen == 0) return String::npos;
-    if (needle.stringlen == 0) return 0;
+    if (stringlen == 0 || needle.stringlen == 0) return String::npos;
     if (start > 0 && (size_t)start >= stringlen) return String::npos;
     if (start < 0 && ((size_t)((ssize_t)stringlen + start)) >= stringlen) return String::npos;
 
@@ -1383,55 +1382,6 @@ size_t String::findCase(const String& needle, ssize_t start) const
     CaseNeedle.lowerCase();
     CaseSearch.lowerCase();
     return CaseSearch.find(CaseNeedle, start);
-}
-
-/*! \brief Sucht nach einem String
- *
- * \desc
- * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
- *
- * \param[in] needle Gesuchter Teilstring
- * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
- * oder nicht angegeben, wird der String vom Anfang an gesucht.
- *
- * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
- * Funktion immer 0 zurück.
- */
-size_t String::instr(const String& needle, size_t start) const
-{
-    if (stringlen == 0) return String::npos;
-    if (needle.stringlen == 0) return 0;
-    if (start >= stringlen) return String::npos;
-    const char* p;
-    p = ::strstr((ptr + start), needle.ptr);
-    if (p != NULL) {
-        return ((ssize_t)(p - ptr));
-    }
-    return String::npos;
-}
-
-/*! \brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
- *
- * \desc
- * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
- * Gross-/Kleinschreibung wird dabei ignoriert.
- *
- * \param[in] needle Gesuchter Teilstring
- * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
- * oder nicht angegeben, wird der String vom Anfang an gesucht.
- *
- * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
- * Funktion immer 0 zurück.
- */
-size_t String::instrCase(const String& needle, size_t start) const
-{
-    String CaseNeedle(needle);
-    String CaseSearch(ptr, stringlen);
-    CaseNeedle.lowerCase();
-    CaseSearch.lowerCase();
-    return CaseSearch.instr(CaseNeedle, start);
 }
 
 bool String::has(const String& needle, bool ignoreCase) const
@@ -1964,6 +1914,20 @@ String operator+(const String& str1, const String& str2)
     return s;
 }
 
+String operator+(const String& str1, const WideString& str2)
+{
+    String s = str1;
+    s.append(str2);
+    return s;
+}
+
+String operator+(const WideString& str1, const String& str2)
+{
+    String s = str1;
+    s.append(str2);
+    return s;
+}
+
 /*!\brief String addieren
  *
  * \relates pplib::String
@@ -1996,6 +1960,21 @@ String operator+(const char* str1, const String& str2)
 String operator+(const String& str1, const char* str2)
 {
     String s = str1;
+    s.append(str2);
+    return s;
+}
+
+String operator+(const String& str1, const char c)
+{
+    String s = str1;
+    s.append(c);
+    return s;
+}
+
+String operator+(const char c, const String& str2)
+{
+    String s;
+    s.set(c);
     s.append(str2);
     return s;
 }
