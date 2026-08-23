@@ -221,6 +221,7 @@ String& String::set(const char* str, size_t size)
         return *this;
     }
     size_t inbytes = (size != (size_t)-1) ? size : ::strlen(str);
+    if (size > strlen(str)) inbytes = strlen(str);
     if (inbytes == 0) {
         clear();
         return *this;
@@ -249,6 +250,7 @@ String& String::set(const wchar_t* str, size_t size)
         return *this;
     }
     size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
+    if (size > ::wcslen(str)) inchars = ::wcslen(str);
 
     // Schutz vor Buffer Overread bei Teil-Wide-Strings
     std::vector<wchar_t> temp_wstr;
@@ -431,6 +433,13 @@ String& String::append(const String& str, size_t size)
     return append(str.ptr, size);
 }
 
+String& String::append(const WideString& str, size_t size)
+{
+    String a;
+    a.set(str, size);
+    return append(a.ptr, a.stringlen);
+}
+
 String& String::append(const std::string& str, size_t size)
 {
     if (size == (size_t)-1) return append(str.data(), str.size());
@@ -471,9 +480,11 @@ String& String::prepend(const wchar_t* str, size_t size)
 
 String& String::prepend(const String& str, size_t size)
 {
-    if (ptr == nullptr) {
-        return set(str, size);
-    }
+    return prepend(str.ptr, size);
+}
+
+String& String::prepend(const WideString& str, size_t size)
+{
     String a;
     a.set(str, size);
     return prepend(a.ptr, a.stringlen);
@@ -481,12 +492,8 @@ String& String::prepend(const String& str, size_t size)
 
 String& String::prepend(const std::string& str, size_t size)
 {
-    if (ptr == nullptr) {
-        return set(str, size);
-    }
-    String a;
-    a.set(str, size);
-    return prepend(a.ptr, a.stringlen);
+    if (size == (size_t)-1) return prepend(str.data(), str.size());
+    return prepend(str.data(), size);
 }
 
 String& String::prepend(const std::wstring& str, size_t size)
@@ -843,6 +850,11 @@ String& String::operator+=(const wchar_t* str)
  * @return Referenz auf diese Instanz der Klasse
  */
 String& String::operator+=(const String& str)
+{
+    return append(str);
+}
+
+String& String::operator+=(const WideString& str)
 {
     return append(str);
 }

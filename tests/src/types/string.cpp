@@ -37,6 +37,7 @@
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
 #include <pplib/types/bytearrayptr.h>
+#include <pplib/types/bytearray.h>
 #include <pplib/types/array.h>
 #include <pplib/exceptions.h>
 
@@ -419,6 +420,10 @@ TEST(StringTest, setSTDStringRefWithSize)
     s1.set(s3, 13);
     ASSERT_EQ(s2, s1) << "String has unexpected value";
     ASSERT_EQ((size_t)13, s1.size()) << "String has unexpected length";
+
+    s1.set(s3, 500);
+    ASSERT_EQ(pplib::String("äöü, a test string with unicode characters"), s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)45, s1.size()) << "String has unexpected length";
 }
 
 TEST(StringTest, setSTDWStringRefWithoutSize)
@@ -427,6 +432,10 @@ TEST(StringTest, setSTDWStringRefWithoutSize)
     std::wstring s3(L"äöü, a test string with unicode characters");
     pplib::String s1;
     s1.set(s3);
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+    ASSERT_EQ(s2.size(), s1.size()) << "String has unexpected length";
+
+    s1.set(s3, 500);
     ASSERT_EQ(s1, s2) << "String has unexpected value";
     ASSERT_EQ(s2.size(), s1.size()) << "String has unexpected length";
 }
@@ -613,6 +622,26 @@ TEST(StringTest, appendStringWithSize)
     ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
 }
 
+TEST(StringTest, appendWideStringWithoutSize)
+{
+    pplib::String expected("First Part äöü, äöü Second Part");
+    pplib::String s1("First Part äöü, ");
+    pplib::WideString s2(L"äöü Second Part");
+    s1.append(s2);
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)37, s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, appendWideStringWithSize)
+{
+    pplib::String expected("First Part äöü, äöü Seco");
+    pplib::String s1("First Part äöü, ");
+    pplib::WideString s2(L"äöü Second Part");
+    s1.append(s2, 8);
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ(expected.size(), s1.size()) << "String has unexpected length";
+}
+
 TEST(StringTest, appendStdStringWithoutSize)
 {
     pplib::String expected("First Part äöü, äöü Second Part");
@@ -679,6 +708,45 @@ TEST(StringTest, append_same_string)
     s1.append(s1);
     ASSERT_EQ(expected, s1) << "String has unexpected value";
     ASSERT_EQ((size_t)36, s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, appendOnEmptyString)
+{
+    pplib::String expected("äöü Second Part");
+    pplib::String s1;
+    s1.append(L"äöü Second Part");
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+
+    s1.clear();
+    s1.append("äöü Second Part");
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+
+    s1.clear();
+    s1.append(pplib::String("äöü Second Part"));
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+
+    s1.clear();
+    s1.append(pplib::WideString(L"äöü Second Part"));
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+
+    s1.clear();
+    std::string s3("äöü Second Part");
+    s1.append(s3);
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, appendNull)
+{
+    pplib::String s1("First Part äöü, ");
+    s1.append((const char*)nullptr, 1);
+    ASSERT_EQ(pplib::String("First Part äöü, "), s1) << "String has unexpected value";
+
+    s1.append((const char*)"Hello World", 0);
+    ASSERT_EQ(pplib::String("First Part äöü, "), s1) << "String has unexpected value";
 }
 
 TEST(StringTest, prependConstWchartWithoutSize)
@@ -803,6 +871,48 @@ TEST(StringTest, prepend_same_string)
     s1.prepend(s1);
     ASSERT_EQ(expected, s1) << "String has unexpected value";
     ASSERT_EQ((size_t)36, s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, prependOnEmptyString)
+{
+    pplib::String expected("äöü Second Part");
+    pplib::String s1;
+    s1.prepend(L"äöü Second Part");
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+
+    s1.clear();
+    s1.prepend("äöü Second Part");
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+
+    s1.clear();
+    s1.prepend(pplib::String("äöü Second Part"));
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+
+    s1.clear();
+    s1.prepend(pplib::WideString(L"äöü Second Part"));
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+
+    s1.clear();
+    s1.prepend(std::string("äöü Second Part"));
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+
+    s1.clear();
+    s1.prepend(std::wstring(L"äöü Second Part"));
+    ASSERT_EQ((size_t)18, s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, prependNull)
+{
+    pplib::String s1("First Part äöü, ");
+    s1.prepend((const char*)nullptr, 1);
+    ASSERT_EQ(pplib::String("First Part äöü, "), s1) << "String has unexpected value";
+
+    s1.prepend((const char*)"Hello World", 0);
+    ASSERT_EQ(pplib::String("First Part äöü, "), s1) << "String has unexpected value";
 }
 
 TEST(StringTest, chopRight)
@@ -1423,6 +1533,25 @@ TEST(StringTest, OperatorCharPositionPositiv)
     ASSERT_THROW({ ASSERT_EQ((char)0, s1[12]); }, pplib::OutOfBoundsException);
 }
 
+TEST(StringTest, OperatorConstCharPositionPositiv)
+{
+    const pplib::String s1("Hello World!");
+    EXPECT_EQ((char)'H', s1[0]) << "Unexpected Result";
+    EXPECT_EQ((char)'e', s1[1]) << "Unexpected Result";
+    EXPECT_EQ((char)'l', s1[2]) << "Unexpected Result";
+    EXPECT_EQ((char)'l', s1[3]) << "Unexpected Result";
+    EXPECT_EQ((char)'o', s1[4]) << "Unexpected Result";
+    EXPECT_EQ((char)' ', s1[5]) << "Unexpected Result";
+    EXPECT_EQ((char)'W', s1[6]) << "Unexpected Result";
+    EXPECT_EQ((char)'o', s1[7]) << "Unexpected Result";
+    EXPECT_EQ((char)'r', s1[8]) << "Unexpected Result";
+    EXPECT_EQ((char)'l', s1[9]) << "Unexpected Result";
+    EXPECT_EQ((char)'d', s1[10]) << "Unexpected Result";
+    EXPECT_EQ((char)'!', s1[11]) << "Unexpected Result";
+
+    ASSERT_THROW({ ASSERT_EQ((char)0, s1[12]); }, pplib::OutOfBoundsException);
+}
+
 TEST(StringTest, OperatorCharPositionNegativ)
 {
     pplib::String s1("Hello World!");
@@ -1442,6 +1571,39 @@ TEST(StringTest, OperatorCharPositionNegativ)
     ASSERT_THROW({ ASSERT_EQ((char)0, s1[-13]); }, pplib::OutOfBoundsException);
 }
 
+TEST(StringTest, OperatorConstCharPositionNegativ)
+{
+    const pplib::String s1("Hello World!");
+    EXPECT_EQ((char)'H', s1[0]) << "Unexpected Result";
+    EXPECT_EQ((char)'!', s1[-1]) << "Unexpected Result";
+    EXPECT_EQ((char)'d', s1[-2]) << "Unexpected Result";
+    EXPECT_EQ((char)'l', s1[-3]) << "Unexpected Result";
+    EXPECT_EQ((char)'r', s1[-4]) << "Unexpected Result";
+    EXPECT_EQ((char)'o', s1[-5]) << "Unexpected Result";
+    EXPECT_EQ((char)'W', s1[-6]) << "Unexpected Result";
+    EXPECT_EQ((char)' ', s1[-7]) << "Unexpected Result";
+    EXPECT_EQ((char)'o', s1[-8]) << "Unexpected Result";
+    EXPECT_EQ((char)'l', s1[-9]) << "Unexpected Result";
+    EXPECT_EQ((char)'l', s1[-10]) << "Unexpected Result";
+    EXPECT_EQ((char)'e', s1[-11]) << "Unexpected Result";
+    EXPECT_EQ((char)'H', s1[-12]) << "Unexpected Result";
+    ASSERT_THROW({ ASSERT_EQ((char)0, s1[-13]); }, pplib::OutOfBoundsException);
+}
+
+TEST(StringTest, getChat)
+{
+    pplib::String s1("Hello World!");
+    EXPECT_EQ((char)'H', s1.get(0)) << "Unexpected Result";
+    EXPECT_EQ((char)'e', s1.get(1)) << "Unexpected Result";
+    EXPECT_EQ((char)'!', s1.get(11)) << "Unexpected Result";
+    ASSERT_THROW({ ASSERT_EQ((char)0, s1.get(12)); }, pplib::OutOfBoundsException);
+
+    EXPECT_EQ((char)'!', s1.get(-1)) << "Unexpected Result";
+    EXPECT_EQ((char)'d', s1.get(-2)) << "Unexpected Result";
+    EXPECT_EQ((char)'H', s1.get(-12)) << "Unexpected Result";
+    ASSERT_THROW({ ASSERT_EQ((char)0, s1.get(-13)); }, pplib::OutOfBoundsException);
+}
+
 TEST(StringTest, join)
 {
     pplib::Array a;
@@ -1452,79 +1614,192 @@ TEST(StringTest, join)
     EXPECT_EQ(pplib::String("One,Two,Three"), s1.join(a));
 }
 
+TEST(StringTest, toEncoding)
+{
+    pplib::String s1("Hello World!");
+    pplib::ByteArray b1 = s1.toEncoding("ISO-8859-1");
+    EXPECT_EQ((size_t)12, b1.size()) << "Unexpected Result";
+    EXPECT_EQ((unsigned char)'H', b1[0]) << "Unexpected Result";
+}
+
+TEST(StringTest, print)
+{
+    pplib::String s1("Hello World!");
+    testing::internal::CaptureStdout();
+    s1.print();
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_EQ("Hello World!", output) << "Unexpected Result";
+}
+
+TEST(StringTest, printEmptyString)
+{
+    pplib::String s1;
+    testing::internal::CaptureStdout();
+    s1.print();
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_EQ("", output) << "Unexpected Result";
+
+    testing::internal::CaptureStdout();
+    s1.print(true);
+    output = testing::internal::GetCapturedStdout();
+    EXPECT_EQ("\n", output) << "Unexpected Result";
+}
+
+TEST(StringTest, printnl)
+{
+    pplib::String s1("Hello World!");
+    testing::internal::CaptureStdout();
+    s1.printnl();
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_EQ("Hello World!\n", output) << "Unexpected Result";
+}
+
+TEST(StringTest, hexDump)
+{
+    pplib::String s1("Hello World!");
+    testing::internal::CaptureStdout();
+    s1.hexDump();
+    pplib::String output = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(output.has("48 65 6C 6C 6F 20 57 6F 72 6C 64 21")) << "Unexpected Result";
+    EXPECT_TRUE(output.has("Hello World!")) << "Unexpected Result";
+}
+TEST(StringTest, hexDumpEmptyString)
+{
+    pplib::String s2;
+    testing::internal::CaptureStdout();
+    s2.hexDump();
+    pplib::String output = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(output.has("HEXDUMP of String")) << "Unexpected Result";
+}
+
+// Equal Operatoren
+TEST(StringTest, operatorEqualConstChar)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2;
+    s2 = "Hello World!";
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualConstWchar)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2;
+    s2 = L"Hello World!";
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualString)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2;
+    s2 = pplib::String("Hello World!");
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualStringMove)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2;
+    s2 = std::move(pplib::String("Hello World!"));
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualStringMoveWithSameString)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2 = s1;
+    s2 = std::move(s2);
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualWideString)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2;
+    s2 = pplib::WideString(L"Hello World!");
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualStdString)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2;
+    s2 = std::string("Hello World!");
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualStdWString)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2;
+    s2 = std::wstring(L"Hello World!");
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualChar)
+{
+    pplib::String s1("H");
+    pplib::String s2;
+    s2 = 'H';
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+// Equal Plus Operatoren
+TEST(StringTest, operatorEqualPlusConstChar)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2("Hello ");
+    s2 += "World!";
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualPlusConstWchar)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2("Hello ");
+    s2 += L"World!";
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualPlusString)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2("Hello ");
+    s2 += pplib::String("World!");
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualPlusWideString)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2("Hello ");
+    s2 += pplib::WideString(L"World!");
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualPlusStdString)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2("Hello ");
+    s2 += std::string("World!");
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualPlusStdWString)
+{
+    pplib::String s1("Hello World!");
+    pplib::String s2("Hello ");
+    s2 += std::wstring(L"World!");
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
+TEST(StringTest, operatorEqualPlusChar)
+{
+    pplib::String s1("He");
+    pplib::String s2("H");
+    s2 += 'e';
+    ASSERT_EQ(s1, s2) << "String has unexpected value";
+}
+
 } // namespace
-
-#ifdef old
-printf("sizeof String: %zd\n", sizeof(pplib::String));
-if (setlocale(LC_CTYPE, "de_DE.UTF-8") == NULL) {
-    printf("setlocale fehlgeschlagen\n");
-    return 1;
-}
-
-try {
-    // pplib::String::setGlobalEncoding("iso-8859-1");
-    pplib::String::setGlobalEncoding("UTF-8");
-}
-catch (pplib::NullPointerException) {
-    printf("NPE\n");
-    return 1;
-}
-catch (pplib::UnsupportedFeatureException) {
-    printf("Transkodierung wird nicht unterstützt\n");
-    return 1;
-}
-catch (pplib::UnsupportedCharacterEncodingException) {
-    printf("UnsupportedFeatureException: Transkodierung wird nicht unterstützt\n");
-    return 1;
-}
-catch (...) {
-    printf("Unbekannte Exception\n");
-    throw;
-}
-
-pplib::String s1;
-s1.reserve(128);
-
-s1.setf("Test mit UTF-8 Umlaütän ß!");
-printf("capacity: %zd, length: %zd\n", s1.capacity(), s1.length());
-
-// s1.set(L"Test mit ISO-8859-1 Umla�t�n �!");
-s1.printnl();
-
-s1.append("Noch mehr UTF-8");
-printf("capacity: %zd, length: %zd\n", s1.capacity(), s1.length());
-s1.printnl();
-
-s1.appendf("capacity: %zd\n", s1.capacity());
-
-printf("capacity: %zd, length: %zd\n", s1.capacity(), s1.length());
-s1.printnl();
-
-// printf ("UTF-8 String als const char*: >>>%s<<<\n",(const char*)s1.toUtf8());
-
-printf("prepend\n");
-s1.prependf("Davor :-)  =>");
-s1.printnl();
-
-printf("ok\n");
-
-s1 = ".String1.";
-pplib::String s2;
-// s2=s1+"Hallo Welt"+s1+"Noch mehr"+s1;
-s2 = s1 + "Hallo Welt" + s1 + "Noch mehr";
-s2.printnl();
-
-pplib::String s3 = "Eiñ Täśt zµm Kôdiéren";
-pplib::ByteArray b = s3.toEncoding("UTF-8");
-b.hexDump();
-
-printf("left: %ls\n", (const wchar_t*)s3.left(3));
-printf("right: %ls\n", (const wchar_t*)s3.right(4));
-printf("mid (2): %ls\n", (const wchar_t*)s3.mid(2));
-printf("mid (2,5): %ls\n", (const wchar_t*)s3.mid(2, 5));
-printf("mid (40,5): %ls\n", (const wchar_t*)s3.mid(40, 5));
-
-// s1.hexDump();
-return 0;
-}
-#endif

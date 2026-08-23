@@ -53,7 +53,7 @@ class ByteArrayPtr;
 class ByteArray;
 class Array;
 
-/**@class String
+/** @class String
  * @ingroup PPLGroupDataTypes
  * @ingroup PPLGroupStrings
  * @brief String-Klasse
@@ -81,13 +81,13 @@ public:
     //! @name Konstruktoren und Destruktor
     //@{
 
-    /**@brief Default Konstruktor mit leeren String
+    /** @brief Default Konstruktor mit leeren String
      *
      * Es wird ein leerer String erstellt.
      */
     String() noexcept;
 
-    /**@brief Konstruktor mit C-String
+    /** @brief Konstruktor mit C-String
      *
      * Ein String wird aus einem C-String erstellt.
      *
@@ -99,7 +99,7 @@ public:
      */
     String(const char* str);
 
-    /**@brief Konstruktor mit C-String und Länge
+    /** @brief Konstruktor mit C-String und Länge
      *
      * Ein String wird aus einem C-String erstellt. Es werden maximal \p size Zeichen übernommen.
      *
@@ -112,7 +112,7 @@ public:
      */
     String(const char* str, size_t size);
 
-    /**@brief Konstruktor mit Wide-Character-String
+    /** @brief Konstruktor mit Wide-Character-String
      *
      * Ein String wird aus einem Wide-Character-String erstellt. Dabei wird der String
      * in die globale Kodierung konvertiert, die mit String::setGlobalEncoding festgelegt wurde.
@@ -126,7 +126,7 @@ public:
      */
     explicit String(const wchar_t* str, size_t size = (size_t)-1);
 
-    /**@brief Konstruktor mit anderem String
+    /** @brief Konstruktor mit anderem String
      *
      * Ein String wird aus einem anderen String erstellt.
      *
@@ -138,7 +138,7 @@ public:
      */
     String(const String& str);
 
-    /**@brief Konstruktor mit WideString
+    /** @brief Konstruktor mit WideString
      *
      * Ein String wird aus einem WideString erstellt. Dabei wird der String
      * in die globale Kodierung konvertiert, die mit String::setGlobalEncoding festgelegt wurde.
@@ -152,7 +152,7 @@ public:
      */
     String(const WideString& str);
 
-    /**@brief Konstruktor mit ByteArrayPtr
+    /** @brief Konstruktor mit ByteArrayPtr
      *
      * Ein String wird aus einem ByteArrayPtr erstellt. Dabei wird der String
      * in die globale Kodierung konvertiert, die mit String::setGlobalEncoding festgelegt wurde.
@@ -166,7 +166,7 @@ public:
      */
     explicit String(const ByteArrayPtr& str);
 
-    /**@brief Konstruktor aus Standard-Template String
+    /** @brief Konstruktor aus Standard-Template String
      *
      * \desc
      * Ein String wird aus einem String der Standard-Template-Library (STL) erstellt.
@@ -179,7 +179,7 @@ public:
      */
     String(const std::string& str);
 
-    /**@brief Konstruktor aus Standard-Template Wide-String
+    /** @brief Konstruktor aus Standard-Template Wide-String
      *
      * \desc
      * Ein String wird aus einem Wide-String der Standard-Template-Library (STL) erstellt.
@@ -192,7 +192,7 @@ public:
      */
     String(const std::wstring& str);
 
-    /**@brief Move-Konstruktor
+    /** @brief Move-Konstruktor
      *
      * Ein String wird aus einem anderen String erstellt. Dabei wird der Speicher des anderen Strings übernommen.
      *
@@ -201,7 +201,7 @@ public:
      */
     String(String&& other) noexcept;
 
-    /**@brief Destruktor
+    /** @brief Destruktor
      *
      * Der String wird gelöscht und der Speicher freigegeben.
      */
@@ -227,13 +227,13 @@ public:
 #endif
     //@}
 
-    /**\brief String löschen
+    /** @brief String löschen
      *
      * Mit dieser Funktion wird der String gelöscht und der Speicher freigegeben.
      */
     void clear() noexcept;
 
-    /**\brief Kapazität des Strings abfragen
+    /** @brief Kapazität des Strings abfragen
      *
      * Mit dieser Funktion kann die Kapazität des Strings abgefragt werden. Die Kapazität ist die
      * Anzahl Zeichen, die der String aufnehmen kann, ohne dass der Speicherbereich vergrößert werden muss.
@@ -243,7 +243,7 @@ public:
      */
     size_t capacity() const;
 
-    /**\brief Speicher für den String reservieren
+    /** @brief Speicher für den String reservieren
      *
      * Mit dieser Funktion kann Speicher für den String vorab reserviert werden. Dies ist insbesondere dann sinnvoll,
      * wenn der String während seiner Lebenszeit häufig verlängert wird.
@@ -257,7 +257,7 @@ public:
      */
     void reserve(size_t size);
 
-    /**\brief Länge des Strings abfragen
+    /** @brief Länge des Strings abfragen
      *
      * Mit dieser Funktion kann die Länge des Strings abgefragt werden. Die Länge ist die Anzahl Zeichen, die der String aktuell enthält.
      *
@@ -269,7 +269,7 @@ public:
         return stringlen;
     }
 
-    /**\brief Länge des Strings abfragen
+    /** @brief Länge des Strings abfragen
      *
      * Mit dieser Funktion kann die Länge des Strings abgefragt werden. Die Länge ist die Anzahl Zeichen, die der String aktuell enthält.
      *
@@ -281,7 +281,7 @@ public:
         return stringlen;
     }
 
-    /**\brief Länge des Strings abfragen
+    /** @brief Länge des Strings abfragen
      *
      * Mit dieser Funktion kann die Länge des Strings abgefragt werden. Die Länge ist die Anzahl Zeichen, die der String aktuell enthält.
      *
@@ -293,7 +293,7 @@ public:
         return stringlen;
     }
 
-    /**@brief Prüft, ob der String leer ist.
+    /** @brief Prüft, ob der String leer ist.
      *
      * Diese Funktion prüft, ob der String leer ist.
      *
@@ -305,7 +305,7 @@ public:
         return (stringlen == 0);
     }
 
-    /**@brief Prüft, ob der String Zeichen enthält
+    /** @brief Prüft, ob der String Zeichen enthält
      *
      * Diese Funktion prüft, ob der String Zeichen enthält.
      *
@@ -317,7 +317,7 @@ public:
         return (stringlen != 0);
     }
 
-    /**@brief Prüft, ob der String numerisch ist
+    /** @brief Prüft, ob der String numerisch ist
      *
      * Diese Funktion prüft, ob der String numerisch ist. Ein String ist numerisch, wenn er nur aus Ziffern besteht.
      * Ein Minuszeichen am Anfang ist erlaubt, ebenso ein Dezimalpunkt oder Komma.
@@ -327,7 +327,7 @@ public:
      */
     bool isNumeric() const;
 
-    /**@brief Prüft, ob der String einen Integer Wert enthält
+    /** @brief Prüft, ob der String einen Integer Wert enthält
      *
      * Diese Funktion prüft, ob im String einen integer Wert enthält, also nur die Ziffern
      * 0-9 und optional ein Minus am Anfang enthalten sind
@@ -337,7 +337,7 @@ public:
      */
     bool isInteger() const;
 
-    /**@brief Prüft, ob der String "wahr" ist
+    /** @brief Prüft, ob der String "wahr" ist
      *
      * Diese Funktion überprüft den aktuellen String, ob er "wahr" ist. Dies ist der Fall,
      * wenn eine der folgenden Bedingungen erfüllt ist:
@@ -352,7 +352,7 @@ public:
      */
     bool isTrue() const;
 
-    /**@brief Prüft, ob der String "unwahr" ist
+    /** @brief Prüft, ob der String "unwahr" ist
      *
      * Diese Funktion überprüft den aktuellen String, ob er "unwahr" ist. Dies ist der Fall,
      * wenn eine der folgenden Bedingungen erfüllt ist:
@@ -365,7 +365,7 @@ public:
      */
     bool isFalse() const;
 
-    /**@brief Vergleicht den String mit einem anderen String
+    /** @brief Vergleicht den String mit einem anderen String
      *
      * Mit dieser Funktion kann der aktuelle String mit einem anderen String verglichen werden.
      *
@@ -377,7 +377,7 @@ public:
      */
     int strcmp(const String& str, size_t size = (size_t)-1) const;
 
-    /**@brief Vergleicht den String mit einem anderen String, ohne die Gross-/Kleinschreibung zu berücksichtigen
+    /** @brief Vergleicht den String mit einem anderen String, ohne die Gross-/Kleinschreibung zu berücksichtigen
      *
      * Mit dieser Funktion kann der aktuelle String mit einem anderen String verglichen werden, ohne die Gross-/Kleinschreibung zu
      * berücksichtigen.
@@ -390,7 +390,7 @@ public:
      */
     int strCaseCmp(const String& str, size_t size = (size_t)-1) const;
 
-    /**@brief Vergleicht den String mit einem C-String
+    /** @brief Vergleicht den String mit einem C-String
      *
      * Mit dieser Funktion kann der aktuelle String mit einem C-String verglichen werden.
      *
@@ -402,7 +402,7 @@ public:
      */
     int strcmp(const char* str, size_t size = (size_t)-1) const;
 
-    /**@brief Vergleicht den String mit einem C-String, ohne die Gross-/Kleinschreibung zu berücksichtigen
+    /** @brief Vergleicht den String mit einem C-String, ohne die Gross-/Kleinschreibung zu berücksichtigen
      *
      * Mit dieser Funktion kann der aktuelle String mit einem C-String verglichen werden, ohne die Gross-/Kleinschreibung zu
      * berücksichtigen.
@@ -415,7 +415,7 @@ public:
      */
     int strCaseCmp(const char* str, size_t size = (size_t)-1) const;
 
-    /**@brief Linken Teilstring zurückgeben
+    /** @brief Linken Teilstring zurückgeben
      *
      * Gibt die ersten \p len Zeichen des Strings als neuen zurück.
      *
@@ -424,7 +424,7 @@ public:
      */
     String left(size_t len) const;
 
-    /**@brief Rechten Teilstring zurückgeben
+    /** @brief Rechten Teilstring zurückgeben
      *
      * \desc
      * Gibt die letzten \p len Zeichen des Strings als neuen zurück.
@@ -434,7 +434,7 @@ public:
      */
     String right(size_t len) const;
 
-    /**@brief Teilstring zurückgeben
+    /** @brief Teilstring zurückgeben
      *
      * \desc
      * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
@@ -447,7 +447,7 @@ public:
      */
     String mid(size_t start, size_t len = (size_t)-1) const;
 
-    /**@brief Teilstring zurückgeben
+    /** @brief Teilstring zurückgeben
      *
      * \desc
      * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
@@ -463,7 +463,7 @@ public:
     //! @name String setzen und verändern
     //@{
 
-    /**@brief String anhand eines C-Strings setzen
+    /** @brief String anhand eines C-Strings setzen
      *
      * Mit dieser Funktion wird der String anhand eines char * gesetzt. Dabei wird er
      * intern nach Unicode konvertiert.
@@ -480,7 +480,7 @@ public:
      */
     String& set(const char* str, size_t size = (size_t)-1);
 
-    /**@brief String anhand eines anderen Strings setzen
+    /** @brief String anhand eines anderen Strings setzen
      *
      * Mit dieser Funktion wird der String anhand eines anderen Strings gesetzt.
      *
@@ -493,7 +493,7 @@ public:
      */
     String& set(const String& str, size_t size = (size_t)-1);
 
-    /**@brief String anhand eines ByteArrayPtr setzen
+    /** @brief String anhand eines ByteArrayPtr setzen
      *
      * Mit dieser Funktion wird der String anhand eines ByteArrayPtr gesetzt. Dabei wird er
      * intern nach Unicode konvertiert.
@@ -510,7 +510,7 @@ public:
      */
     String& set(const ByteArrayPtr& str, size_t size = (size_t)-1);
 
-    /**@brief String anhand eines WideStrings setzen
+    /** @brief String anhand eines WideStrings setzen
      *
      * Mit dieser Funktion wird der String anhand eines WideString gesetzt. Dabei wird er
      * intern nach Unicode konvertiert.
@@ -527,7 +527,7 @@ public:
      */
     String& set(const WideString& str, size_t size = (size_t)-1);
 
-    /**@brief String anhand eines STL-Strings setzen
+    /** @brief String anhand eines STL-Strings setzen
      *
      * Mit dieser Funktion wird der String anhand eines Strings der Standard-Template-Library (STL) gesetzt.
      *
@@ -543,7 +543,7 @@ public:
      */
     String& set(const std::string& str, size_t size = (size_t)-1);
 
-    /**@brief String anhand eines STL-WideStrings setzen
+    /** @brief String anhand eines STL-WideStrings setzen
      *
      * Mit dieser Funktion wird der String anhand eines WideStrings der Standard-Template-Library (STL) gesetzt.
      *
@@ -559,7 +559,7 @@ public:
      */
     String& set(const std::wstring& str, size_t size = (size_t)-1);
 
-    /**@brief String anhand eines wchar_t* setzen
+    /** @brief String anhand eines wchar_t* setzen
      *
      * Mit dieser Funktion wird der String anhand eines wchar_t * gesetzt. Dabei wird er
      * intern nach Unicode konvertiert.
@@ -576,7 +576,7 @@ public:
      */
     String& set(const wchar_t* str, size_t size = (size_t)-1);
 
-    /**@brief Einzelnes ASCII-Zeichen übernehmen
+    /** @brief Einzelnes ASCII-Zeichen übernehmen
      *
      * Ein einzelnes ASCII-Zeichen \p c wird in den String übernommen.
      *
@@ -586,7 +586,7 @@ public:
      */
     String& set(char c);
 
-    /**@brief Einzelnes Zeichen ersetzen
+    /** @brief Einzelnes Zeichen ersetzen
      *
      * Mit dieser Funktion wird ein einzelnes Zeichen eines Strings an der Position
      * \p position durch das Zeichen \p c ersetzt.
@@ -599,7 +599,7 @@ public:
      */
     String& set(size_t position, char c);
 
-    /**@brief Erzeugt einen String anhand eines Formatstrings und beliebiger Parameter
+    /** @brief Erzeugt einen String anhand eines Formatstrings und beliebiger Parameter
      *
      * Erzeugt einen String anhand des übergebenen Formatstrings \p fmt
      * und den optionalen Parametern \p ...
@@ -613,7 +613,7 @@ public:
      */
     String& setf(const char* fmt, ...);
 
-    /**@brief Statische Methode zur erstellung eines Strings anhand eines Formatstrings und beliebiger Parameter
+    /** @brief Statische Methode zur erstellung eines Strings anhand eines Formatstrings und beliebiger Parameter
      *
      * Erzeugt einen String anhand des übergebenen Formatstrings \p fmt
      * und den optionalen Parametern in \p args.
@@ -627,7 +627,7 @@ public:
      */
     static String format(const char* fmt, ...);
 
-    /**@brief Fügt einen C-String an das Ende des bestehenden an
+    /** @brief Fügt einen C-String an das Ende des bestehenden an
      *
      * Fügt einen C-String an das Ende des bestehenden an. Der String muss entweder
      * UTF-8 kodiert sein, oder es muss mit der statischen Funktion String::setGlobalEncoding
@@ -645,7 +645,7 @@ public:
      */
     String& append(const char* str, size_t size = (size_t)-1);
 
-    /**@brief String an das Ende des bestehenden anhängen
+    /** @brief String an das Ende des bestehenden anhängen
      *
      * Mit dieser Funktion wird der String \p str an das Ende des bestehenden Strings angehangen.
      *
@@ -657,7 +657,19 @@ public:
      */
     String& append(const String& str, size_t size = (size_t)-1);
 
-    /**@brief String an das Ende des bestehenden anhängen
+    /** @brief Wide-String an das Ende des bestehenden anhängen
+     *
+     * Mit dieser Funktion wird der Wide-String \p str an das Ende des bestehenden Strings angehangen.
+     *
+     * @param[in] str Referenz auf einen anderen Wide-String
+     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * @return Referenz auf den String
+     */
+    String& append(const WideString& str, size_t size = (size_t)-1);
+
+    /** @brief String an das Ende des bestehenden anhängen
      *
      * Mit dieser Funktion wird der String \p str an das Ende des bestehenden Strings angehangen.
      *
@@ -669,7 +681,7 @@ public:
      */
     String& append(const std::string& str, size_t size = (size_t)-1);
 
-    /**@brief Wide-String an das Ende des bestehenden anhängen
+    /** @brief Wide-String an das Ende des bestehenden anhängen
      *
      * Mit dieser Funktion wird der Wide-String \p str an das Ende des bestehenden Strings angehangen.
      *
@@ -681,7 +693,7 @@ public:
      */
     String& append(const std::wstring& str, size_t size = (size_t)-1);
 
-    /**@brief Fügt einen Wide-Character String an das Ende des bestehenden an
+    /** @brief Fügt einen Wide-Character String an das Ende des bestehenden an
      *
      * Fügt einen Wide-Character String an das Ende des bestehenden an
      *
@@ -694,7 +706,7 @@ public:
      */
     String& append(const wchar_t* str, size_t size = (size_t)-1);
 
-    /**@brief Fügt einen Formatierten String an das Ende des bestehenden an
+    /** @brief Fügt einen Formatierten String an das Ende des bestehenden an
      *
      * Anhand des übergebenen Formatstrings \p fmt und den optionalen Parametern \p ...
      * wird ein neuer String gebildet, der an das Ende des bestehenden angehangen wird
@@ -707,7 +719,7 @@ public:
      */
     String& appendf(const char* fmt, ...);
 
-    /**@brief Einzelnes ASCII-Zeichen anhängen
+    /** @brief Einzelnes ASCII-Zeichen anhängen
      *
      * Ein einzelnes ASCII-Zeichen \p c wird in an den String angehangen.
      *
@@ -717,7 +729,7 @@ public:
      */
     String& append(char c);
 
-    /**@brief Fügt einen C-String am Anfang des bestehenden Strings ein
+    /** @brief Fügt einen C-String am Anfang des bestehenden Strings ein
      *
      * Fügt einen C-String am Anfang des bestehenden Strings ein
      *
@@ -730,7 +742,7 @@ public:
      */
     String& prepend(const char* str, size_t size = (size_t)-1);
 
-    /**@brief Fügt einen String am Anfang des bestehenden Strings ein
+    /** @brief Fügt einen String am Anfang des bestehenden Strings ein
      *
      * Fügt einen String am Anfang des bestehenden Strings ein
      *
@@ -742,6 +754,19 @@ public:
      * @exception OutOfMemoryException
      */
     String& prepend(const String& str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen WideString am Anfang des bestehenden Strings ein
+     *
+     * Fügt einen WideString am Anfang des bestehenden Strings ein
+     *
+     * @param[in] str Referenz auf einen anderen WideString
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
+    String& prepend(const WideString& str, size_t size = (size_t)-1);
 
     /**@brief Fügt einen STL-String am Anfang des bestehenden Strings ein
      *
@@ -1169,6 +1194,7 @@ public:
     String& operator+=(const char* str);
     String& operator+=(const wchar_t* str);
     String& operator+=(const String& str);
+    String& operator+=(const WideString& str);
     String& operator+=(const std::string& str);
     String& operator+=(const std::wstring& str);
     String& operator+=(char c);
