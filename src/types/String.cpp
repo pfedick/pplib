@@ -560,32 +560,6 @@ String& String::prepend(char c)
     return prepend(buffer, 1);
 }
 
-/*!\brief String in eine beliebige lokale Kodierung umwandeln
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des Strings in eine beliebige lokale
- * Kodierung umgewandelt und als ByteArray zurückgegeben.
- *
- * \param[in] encoding Das gewünschte Encoding
- *
- * @return ByteArray mit der UTF8-Repräsentation des Strings.
- *
- * \attention
- * Für diese Funktion wird "Iconv" benötigt. Ist keine Iconv-Bibliothek auf dem
- * System vorhanden, wird eine UnsupportedFeatureException geworfen.
- */
-ByteArray String::toEncoding(const char* encoding) const
-{
-#ifndef HAVE_ICONV
-    throw UnsupportedFeatureException();
-#else
-    Iconv iconv("UTF-8", encoding);
-    ByteArray to;
-    iconv.transcode(ByteArrayPtr(ptr, stringlen), to);
-    return to;
-#endif
-}
-
 /*!\brief Einzelnes Zeichen auslesen
  *
  * \desc
@@ -901,28 +875,9 @@ String& String::operator+=(char c)
     return append(c);
 }
 
-/*!\brief Führt einen Vergleich mit einem anderen String durch
- *
- * \desc
- * Führt einen Vergleich mit einem anderen String durch.
- *
- * \param str String, mit dem verglichen werden soll
- * \param size Optionaler Parameter, der die Anzahl zu berücksichtigender Zeichen innerhalb des
- * Strings \p str angibt. Wird er nicht angegeben, wird ein vergleich mit dem kompletten String
- * \p str durchgeführt.
- *
- * \return Ist der String innerhalb dieses Objekts kleiner als der mit \a str angegebene, wird ein
- * negativer Wert zurückgegeben, ist er größer, erfolgt ein positiver Return-Wert,
- * sind beide identisch, wird 0 zurückgegeben.
- *
- * \see strCaseCmp Vergleich zweier Strings unter Ignorierung der Gross-/Kleinschreibung
- */
 int String::strcmp(const String& str, size_t size) const
 {
-    const char* p1 = ptr ? ptr : "";
-    const char* p2 = str.ptr ? str.ptr : "";
-    if (size != (size_t)-1) return ::strncmp(p1, p2, size);
-    return ::strcmp(p1, p2);
+    return strcmp(str.ptr, size);
 }
 
 int String::strcmp(const char* str, size_t size) const
@@ -933,30 +888,9 @@ int String::strcmp(const char* str, size_t size) const
     return ::strcmp(p1, p2);
 }
 
-/*!\brief Stringvergleich mit Ignorierung von Gross-/Kleinschreibung
- *
- * \desc
- * Führt einen Vergleich mit einem anderen String durch, unter Ignorierung der
- * Gross-/Kleinschreibung.
- *
- * \param str String, mit dem verglichen werden soll
- * \param size Optionaler Parameter, der die Anzahl zu berücksichtigender Zeichen innerhalb des
- * Strings \p str angibt. Wird er nicht angegeben, wird ein vergleich mit dem kompletten String
- * \p str durchgeführt.
- *
- *
- * \return Ist der String innerhalb dieses Objekts kleiner als der mit \a str angegebene, wird ein
- * negativer Wert zurückgegeben, ist er größer, erfolgt ein positiver Return-Wert,
- * sind beide identisch, wird 0 zurückgegeben.
- *
- * \see strcmp Vergleich zweier Strings unter Berücksichtigung der Gross-/Kleinschreibung
- */
 int String::strCaseCmp(const String& str, size_t size) const
 {
-    const char* p1 = ptr ? ptr : "";
-    const char* p2 = str.ptr ? str.ptr : "";
-    if (size != (size_t)-1) return ::strncasecmp(p1, p2, size);
-    return ::strcasecmp(p1, p2);
+    return strCaseCmp(str.ptr, size);
 }
 
 int String::strCaseCmp(const char* str, size_t size) const
@@ -969,20 +903,14 @@ int String::strCaseCmp(const char* str, size_t size) const
 
 String String::left(size_t len) const
 {
-    if (stringlen > 0) {
-        if (len > stringlen) len = stringlen;
-        return String(ptr, len);
-    }
-    return String();
+    if (len > stringlen) len = stringlen;
+    return String(ptr, len);
 }
 
 String String::right(size_t len) const
 {
-    if (stringlen > 0) {
-        if (len > stringlen) len = stringlen;
-        return String(ptr + stringlen - len, len);
-    }
-    return String();
+    if (len > stringlen) len = stringlen;
+    return String(ptr + stringlen - len, len);
 }
 
 String String::mid(size_t start, size_t len) const
@@ -997,34 +925,16 @@ String String::mid(size_t start, size_t len) const
 
 String String::substr(size_t start, size_t len) const
 {
-    if (len == (size_t)-1) len = stringlen;
-    if (start < stringlen && stringlen > 0 && len > 0) {
-        if (start + len > stringlen) len = stringlen - start;
-        return String(ptr + start, len);
-    }
-    return String();
+    return mid(start, len);
 }
 
 String& String::lowerCase()
 {
     if (stringlen == 0) return *this;
     // Wir wandeln den String zunächst nach Unicode um
-    std::vector<wchar_t> buffer(stringlen + 1);
-    size_t l;
-    l = ::mbstowcs(buffer.data(), ptr, stringlen);
-    if (l == (size_t)-1) {
-        throw CharacterEncodingException();
-    }
-    // Umwandeln mittels towlower, das die aktuelle Locale berücksichtigt
-    for (size_t i = 0; i < l; i++) {
-        wchar_t wc = buffer[i];
-        wchar_t c = towlower(wc);
-        if (c != (wchar_t)WEOF) {
-            buffer[i] = c;
-        }
-    }
-    // Zurück im String speichern
-    set(buffer.data(), l);
+    WideString ws(ptr, stringlen);
+    ws.lowerCase();
+    set(ws);
     return *this;
 }
 
@@ -1032,22 +942,9 @@ String& String::upperCase()
 {
     if (stringlen == 0) return *this;
     // Wir wandeln den String zunächst nach Unicode um
-    std::vector<wchar_t> buffer(stringlen + 1);
-    size_t l;
-    l = ::mbstowcs(buffer.data(), ptr, stringlen);
-    if (l == (size_t)-1) {
-        throw CharacterEncodingException();
-    }
-    // Umwandeln mittels towlower, das die aktuelle Locale berücksichtigt
-    for (size_t i = 0; i < l; i++) {
-        wchar_t wc = buffer[i];
-        wchar_t c = towupper(wc);
-        if (c != (wchar_t)WEOF) {
-            buffer[i] = c;
-        }
-    }
-    // Zurück im String speichern
-    set(buffer.data(), l);
+    WideString ws(ptr, stringlen);
+    ws.upperCase();
+    set(ws);
     return *this;
 }
 
@@ -1202,16 +1099,6 @@ String& String::trim(const String& chars)
 }
 
 String& String::chopRight(size_t num)
-{
-    if (stringlen > 0) {
-        if (stringlen < num) num = stringlen;
-        stringlen -= num;
-        ptr[stringlen] = 0;
-    }
-    return *this;
-}
-
-String& String::chop(size_t num)
 {
     if (stringlen > 0) {
         if (stringlen < num) num = stringlen;
@@ -1395,8 +1282,7 @@ bool String::has(const String& needle, bool ignoreCase) const
     }
     if (stringlen == 0) return false;
     if (needle.stringlen == 0) return false;
-    const char* p;
-    p = ::strstr(ptr, needle.ptr);
+    const char* p = ::strstr(ptr, needle.ptr);
     if (p != NULL) return true;
     return false;
 }
@@ -1463,10 +1349,7 @@ String& String::repeat(const String& str, size_t num)
 
 String& String::repeat(char code, size_t num)
 {
-    if (!code) {
-        throw IllegalArgumentException();
-    }
-    if (!num) {
+    if (!num || !code) {
         clear();
         return *this;
     }
@@ -1529,14 +1412,14 @@ String& String::shl(char c, size_t size)
 
 String& String::shr(char c, size_t size)
 {
-    if (!stringlen || !size || !c) return *this;
+    if (!stringlen || !size) return *this;
     if (size > stringlen) size = stringlen;
     String t;
-    t.repeat(c, size);
+    if (c) {
+        t.repeat(c, size);
+    }
     t += left(stringlen - size);
-    t.cut(size);
-    set(t);
-    return *this;
+    return set(t);
 }
 
 /*!\brief Kleiner als

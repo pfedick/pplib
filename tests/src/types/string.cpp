@@ -931,6 +931,14 @@ TEST(StringTest, chopRight)
     ASSERT_EQ((size_t)0, s1.len()) << "String does not have length of 0";
     s2.clear();
     ASSERT_EQ(s2, s1) << "String has unexpected value";
+
+    s1.set("");
+    s1.chopRight(10);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have expected length";
+
+    s1.set("Hello World");
+    s1.chopRight(20);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have expected length";
 }
 
 TEST(StringTest, chopLeft)
@@ -948,6 +956,14 @@ TEST(StringTest, chopLeft)
     ASSERT_EQ((size_t)0, s1.len()) << "String does not have length of 0";
     s2.clear();
     ASSERT_EQ(s2, s1) << "String has unexpected value";
+
+    s1.set("");
+    s1.chopLeft(10);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have expected length";
+
+    s1.set("Hello World");
+    s1.chopLeft(20);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have expected length";
 }
 
 TEST(StringTest, chop)
@@ -1070,6 +1086,19 @@ TEST(StringTest, repeat_by_count)
     ASSERT_EQ(s3, s1) << "String has unexpected value";
 }
 
+TEST(StringTest, repeat_empty)
+{
+    pplib::String s1("");
+    s1.repeat(10);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have length of 0";
+    ASSERT_EQ(pplib::String(""), s1) << "String has unexpected value";
+
+    s1.set("Hello World");
+    s1.repeat(0);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have length of 0";
+    ASSERT_EQ(pplib::String(""), s1) << "String has unexpected value";
+}
+
 TEST(StringTest, repeat_with_string)
 {
     pplib::String s1("blah");
@@ -1079,12 +1108,64 @@ TEST(StringTest, repeat_with_string)
     ASSERT_EQ(s3, s1) << "String has unexpected value";
 }
 
+TEST(StringTest, StringTest_repeat_empty)
+{
+    pplib::String s1("blah");
+    s1.repeat(pplib::String(""), 10);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have length of 0";
+    ASSERT_EQ(pplib::String(""), s1) << "String has unexpected value";
+
+    s1.set("Hello World");
+    s1.repeat(pplib::String("_repeat_"), 0);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have length of 0";
+    ASSERT_EQ(pplib::String(""), s1) << "String has unexpected value";
+}
+
+TEST(StringTest, repeat_with_string_same_String)
+{
+    pplib::String s1("_repeat_");
+    s1.repeat(s1, 10);
+    pplib::String s3("_repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat_");
+    ASSERT_EQ((size_t)80, s1.len()) << "String does not have length of 80";
+    ASSERT_EQ(s3, s1) << "String has unexpected value";
+}
+
+TEST(StringTest, repeat_with_code)
+{
+    pplib::String s1("_repeat_");
+    s1.repeat('_', 10);
+    pplib::String s3("__________");
+    ASSERT_EQ((size_t)10, s1.len()) << "String does not have length of 10";
+    ASSERT_EQ(s3, s1) << "String has unexpected value";
+
+    s1.repeat(0, 10);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have expected length";
+
+    s1.repeat('_', 0);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have expected length";
+}
+
 TEST(StringTest, trimLeft)
 {
     pplib::String s1("\n\n    abc  \n");
     s1.trimLeft();
     ASSERT_EQ((size_t)6, s1.size());
     ASSERT_EQ(pplib::String("abc  \n"), s1);
+
+    s1.set("  \r\n\tHello World\r\n\t   ");
+    s1.trimLeft();
+    ASSERT_EQ((size_t)17, s1.size());
+    ASSERT_EQ(pplib::String("Hello World\r\n\t   "), s1);
+
+    s1.set("");
+    s1.trimLeft();
+    ASSERT_EQ((size_t)0, s1.size());
+    ASSERT_EQ(pplib::String(""), s1);
+
+    s1.set("Nichts zu trimmen");
+    s1.trimLeft();
+    ASSERT_EQ((size_t)17, s1.size());
+    ASSERT_EQ(pplib::String("Nichts zu trimmen"), s1);
 }
 
 TEST(StringTest, trimRight)
@@ -1093,6 +1174,21 @@ TEST(StringTest, trimRight)
     s1.trimRight();
     ASSERT_EQ((size_t)7, s1.size());
     ASSERT_EQ(pplib::String(" \n  abc"), s1);
+
+    s1.set("  \r\n\tHello World\r\n\t   ");
+    s1.trimRight();
+    ASSERT_EQ((size_t)16, s1.size());
+    ASSERT_EQ(pplib::String("  \r\n\tHello World"), s1);
+
+    s1.set("");
+    s1.trimRight();
+    ASSERT_EQ((size_t)0, s1.size());
+    ASSERT_EQ(pplib::String(""), s1);
+
+    s1.set("Nichts zu trimmen");
+    s1.trimRight();
+    ASSERT_EQ((size_t)17, s1.size());
+    ASSERT_EQ(pplib::String("Nichts zu trimmen"), s1);
 }
 
 TEST(StringTest, trim)
@@ -1101,6 +1197,16 @@ TEST(StringTest, trim)
     s1.trim();
     ASSERT_EQ((size_t)3, s1.size());
     ASSERT_EQ(pplib::String("abc"), s1);
+
+    s1.set("  \r\n\tHello World\r\n\t   ");
+    s1.trim();
+    ASSERT_EQ((size_t)11, s1.size());
+    ASSERT_EQ(pplib::String("Hello World"), s1);
+
+    s1.set("Nichts zu trimmen");
+    s1.trim();
+    ASSERT_EQ((size_t)17, s1.size());
+    ASSERT_EQ(pplib::String("Nichts zu trimmen"), s1);
 }
 
 TEST(StringTest, trim_empty)
@@ -1197,6 +1303,19 @@ TEST(StringTest, trimEmptyCharsResult)
     ASSERT_EQ(pplib::String(""), s1);
 }
 
+TEST(StringTest, trimCharsEmptry)
+{
+    pplib::String s1;
+    s1.trim(" \n");
+    ASSERT_EQ((size_t)0, s1.size());
+    ASSERT_EQ(pplib::String(""), s1);
+
+    s1.set("Hello World");
+    s1.trim("");
+    ASSERT_EQ((size_t)11, s1.size());
+    ASSERT_EQ(pplib::String("Hello World"), s1);
+}
+
 TEST(StringTest, operatorEqualEmpty)
 {
     pplib::String s1("");
@@ -1216,6 +1335,7 @@ TEST(StringTest, strcmpLower)
     pplib::String s1("ABcdef");
     pplib::String s2("Defghi");
     ASSERT_LT(s1.strcmp(s2), 0);
+    ASSERT_LT(s1.strcmp(s2, 3), 0);
 }
 
 TEST(StringTest, strcmpLowerWithCase)
@@ -1223,6 +1343,7 @@ TEST(StringTest, strcmpLowerWithCase)
     pplib::String s1("ABcdef");
     pplib::String s2("abcdef");
     ASSERT_LT(s1.strcmp(s2), 0);
+    ASSERT_LT(s1.strcmp(s2, 6), 0);
 }
 
 TEST(StringTest, strcmpHigher)
@@ -1258,6 +1379,7 @@ TEST(StringTest, strcasecmpLower)
     pplib::String s1("ABcdef");
     pplib::String s2("Defghi");
     ASSERT_LT(s1.strCaseCmp(s2), 0);
+    ASSERT_LT(s1.strCaseCmp(s2, 6), 0);
 }
 
 TEST(StringTest, strcasecmpLowerWithCase)
@@ -1293,6 +1415,8 @@ TEST(StringTest, left)
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.left(10);
     ASSERT_EQ(pplib::String("The quick "), s2);
+    s2 = s1.left(100);
+    ASSERT_EQ(pplib::String("The quick brown fox jumps over the lazy dog"), s2);
 }
 
 TEST(StringTest, right)
@@ -1300,6 +1424,8 @@ TEST(StringTest, right)
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.right(9);
     ASSERT_EQ(pplib::String(" lazy dog"), s2);
+    s2 = s1.right(100);
+    ASSERT_EQ(pplib::String("The quick brown fox jumps over the lazy dog"), s2);
 }
 
 TEST(StringTest, midWithLength)
@@ -1307,6 +1433,9 @@ TEST(StringTest, midWithLength)
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.mid(10, 10);
     ASSERT_EQ(pplib::String("brown fox "), s2);
+
+    s2 = s1.mid(10, 0);
+    ASSERT_EQ(pplib::String(""), s2);
 }
 
 TEST(StringTest, midWithoutLength)
@@ -1314,6 +1443,16 @@ TEST(StringTest, midWithoutLength)
     pplib::String s1("The quick brown fox jumps over the lazy dog");
     pplib::String s2 = s1.mid(10);
     ASSERT_EQ(pplib::String("brown fox jumps over the lazy dog"), s2);
+}
+
+TEST(StringTest, midOnEmptyString)
+{
+    pplib::String s1;
+    pplib::String s2 = s1.mid(10, 10);
+    ASSERT_EQ(pplib::String(""), s2);
+
+    s2 = s1.mid(10);
+    ASSERT_EQ(pplib::String(""), s2);
 }
 
 TEST(StringTest, substrWithLength)
@@ -1336,6 +1475,7 @@ TEST(StringTest, lowerCase)
     pplib::String expected("the quick brown fox jumps over äöü");
     ASSERT_NO_THROW(s1.lowerCase());
     ASSERT_EQ(expected, s1);
+    ASSERT_EQ(pplib::String(""), pplib::String("").lowerCase());
 }
 
 TEST(StringTest, upperCase)
@@ -1344,6 +1484,7 @@ TEST(StringTest, upperCase)
     pplib::String expected("THE QUICK BROWN FOX JUMPS OVER ÄÖÜ");
     ASSERT_NO_THROW(s1.upperCase());
     ASSERT_EQ(expected, s1);
+    ASSERT_EQ(pplib::String(""), pplib::String("").upperCase());
 }
 
 TEST(StringTest, toLowerCase)
@@ -1612,14 +1753,6 @@ TEST(StringTest, join)
     a.add("Three");
     pplib::String s1(",");
     EXPECT_EQ(pplib::String("One,Two,Three"), s1.join(a));
-}
-
-TEST(StringTest, toEncoding)
-{
-    pplib::String s1("Hello World!");
-    pplib::ByteArray b1 = s1.toEncoding("ISO-8859-1");
-    EXPECT_EQ((size_t)12, b1.size()) << "Unexpected Result";
-    EXPECT_EQ((unsigned char)'H', b1[0]) << "Unexpected Result";
 }
 
 TEST(StringTest, print)
@@ -1922,6 +2055,32 @@ TEST(StringTest, find_backward)
     ASSERT_EQ((size_t)pplib::String::npos, s1.find("dog", -100)) << "String has unexpected value";
 }
 
+TEST(StringTest, findCase)
+{
+    pplib::String s1("The quick brown fox jumps over the lazy dog");
+    ASSERT_EQ((size_t)16, s1.findCase("FOX")) << "String has unexpected value";
+    ASSERT_EQ((size_t)0, s1.findCase("the")) << "String has unexpected value";
+    ASSERT_EQ((size_t)40, s1.findCase("DOG", 15)) << "String has unexpected value";
+    ASSERT_EQ(pplib::String::npos, s1.findCase("cow")) << "String has unexpected value";
+    ASSERT_EQ(pplib::String::npos, s1.findCase("")) << "String has unexpected value";
+    ASSERT_EQ(pplib::String::npos, s1.findCase("brown", 100)) << "String has unexpected value";
+
+    pplib::String empty;
+    ASSERT_EQ(pplib::String::npos, empty.findCase("fox")) << "String has unexpected value";
+}
+
+TEST(StringTest, has)
+{
+    pplib::String s1("The quick brown fox jumps over the lazy dog");
+    ASSERT_TRUE(s1.has("fox")) << "String has unexpected value";
+    ASSERT_TRUE(s1.has("The")) << "String has unexpected value";
+    ASSERT_TRUE(s1.contains("FOX", true)) << "String has unexpected value";
+    ASSERT_FALSE(s1.contains("cat")) << "String has unexpected value";
+    ASSERT_FALSE(s1.contains("")) << "String has unexpected value";
+
+    ASSERT_FALSE(pplib::String().has("fox")) << "String has unexpected value";
+}
+
 TEST(StringTest, startsWith)
 {
     pplib::String s1("The quick brown fox jumps over the lazy dog");
@@ -1942,6 +2101,97 @@ TEST(StringTest, endsWith)
     ASSERT_TRUE(s1.endsWith("dog", 0, 100)) << "String has unexpected value";
     ASSERT_FALSE(s1.endsWith("Lazy dog")) << "String has unexpected value";
     ASSERT_FALSE(s1.endsWith("lazy")) << "String has unexpected value";
+}
+
+TEST(StringTest, replace)
+{
+    pplib::String s1("The quick brown fox jumps over the lazy dog");
+    pplib::String s2 = s1.replace("fox", "cat");
+    ASSERT_EQ(pplib::String("The quick brown cat jumps over the lazy dog"), s2) << "String has unexpected value";
+    pplib::String s3 = s1.replace("the", "a");
+    ASSERT_EQ(pplib::String("The quick brown cat jumps over a lazy dog"), s3) << "String has unexpected value";
+
+    s1.set("");
+    pplib::String s4 = s1.replace("fox", "cat");
+    ASSERT_EQ(pplib::String(""), s4) << "String has unexpected value";
+
+    s1.set("The quick brown fox jumps over the lazy dog");
+    s1.replace("", "Hello World");
+    ASSERT_EQ(pplib::String("The quick brown fox jumps over the lazy dog"), s1) << "String has unexpected value";
+}
+
+TEST(StringTest, shl)
+{
+    pplib::String s1("Hello World!");
+    s1.shl(0, 5);
+    ASSERT_EQ(pplib::String(" World!"), s1) << "String has unexpected value";
+    s1.shl(' ', 2);
+    ASSERT_EQ(pplib::String("orld!  "), s1) << "String has unexpected value";
+
+    s1.shl(' ', 0);
+    ASSERT_EQ(pplib::String("orld!  "), s1) << "String has unexpected value";
+    s1.shl(' ', 100);
+    ASSERT_EQ(pplib::String("       "), s1) << "String has unexpected value";
+
+    s1.set("");
+    s1.shl(' ', 5);
+    ASSERT_EQ(pplib::String(""), s1) << "String has unexpected value";
+}
+
+TEST(StringTest, shr)
+{
+    pplib::String s1("Hello World!");
+    s1.shr(0, 5);
+    ASSERT_EQ(pplib::String("Hello W"), s1) << "String has unexpected value";
+    s1.set("Hello World!");
+    s1.shr(' ', 2);
+    ASSERT_EQ(pplib::String("  Hello Worl"), s1) << "String has unexpected value";
+    s1.shr(' ', 0);
+    ASSERT_EQ(pplib::String("  Hello Worl"), s1) << "String has unexpected value";
+
+    s1.set("");
+    s1.shr(' ', 5);
+    ASSERT_EQ(pplib::String(""), s1) << "String has unexpected value";
+
+    s1.set("Hello World!");
+    s1.shr(' ', 100);
+    ASSERT_EQ(pplib::String("            "), s1) << "String has unexpected value";
+}
+
+TEST(StringTest, compareOperatorsWithStringObject)
+{
+    pplib::String s1("aaa");
+    pplib::String s2("bbb");
+    ASSERT_TRUE(s1 < s2) << "String has unexpected value";
+    ASSERT_TRUE(s1 <= s2) << "String has unexpected value";
+    ASSERT_TRUE(s1 <= s1) << "String has unexpected value";
+    ASSERT_FALSE(s2 <= s1) << "String has unexpected value";
+    ASSERT_TRUE(s2 > s1) << "String has unexpected value";
+    ASSERT_FALSE(s1 > s2) << "String has unexpected value";
+    ASSERT_TRUE(s2 >= s1) << "String has unexpected value";
+    ASSERT_TRUE(s2 >= s2) << "String has unexpected value";
+    ASSERT_FALSE(s1 >= s2) << "String has unexpected value";
+    ASSERT_FALSE(s2 < s1) << "String has unexpected value";
+    ASSERT_TRUE(s1 == s1) << "String has unexpected value";
+    ASSERT_TRUE(s1 != s2) << "String has unexpected value";
+    ASSERT_FALSE(s1 != s1) << "String has unexpected value";
+}
+
+TEST(StringTest, compareOperatorsWithConstCharPtr)
+{
+    pplib::String s1("bbb");
+    ASSERT_TRUE(s1 < "ccc") << "String has unexpected value";
+    ASSERT_FALSE(s1 < "aaa") << "String has unexpected value";
+    ASSERT_TRUE(s1 <= "ccc") << "String has unexpected value";
+    ASSERT_FALSE(s1 <= "aaa") << "String has unexpected value";
+    ASSERT_TRUE(s1 > "aaa") << "String has unexpected value";
+    ASSERT_TRUE(s1 >= "aaa") << "String has unexpected value";
+    ASSERT_FALSE(s1 > "ccc") << "String has unexpected value";
+    ASSERT_FALSE(s1 >= "ccc") << "String has unexpected value";
+    ASSERT_TRUE(s1 >= "aaa") << "String has unexpected value";
+    ASSERT_TRUE(s1 == "bbb") << "String has unexpected value";
+    ASSERT_TRUE(s1 != "aaa") << "String has unexpected value";
+    ASSERT_FALSE(s1 != "bbb") << "String has unexpected value";
 }
 
 } // namespace

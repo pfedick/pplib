@@ -963,8 +963,7 @@ public:
     String& trimLeft(const String& chars);
     String& trimRight(const String& chars);
 
-    /**
-     * @brief Schneidet Zeichen am Ende des Strings ab
+    /** @brief Schneidet Zeichen am Ende des Strings ab
      *
      * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
      * größer als der String ist, bleibt ein leerer String zurück.
@@ -974,8 +973,7 @@ public:
      */
     String& chopRight(size_t num = 1);
 
-    /**
-     * @brief Schneidet Zeichen am Ende des Strings ab
+    /** @brief Schneidet Zeichen am Ende des Strings ab
      *
      * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
      * größer als der String ist, bleibt ein leerer String zurück.
@@ -986,10 +984,12 @@ public:
      * @see
      * Die Funktion ist identisch zu String::chopRight
      */
-    String& chop(size_t num = 1);
+    inline String& chop(size_t num = 1)
+    {
+        return chopRight(num);
+    }
 
-    /**
-     * @brief Schneidet Zeichen am Anfang des Strings ab
+    /** @brief Schneidet Zeichen am Anfang des Strings ab
      *
      * Diese Funktion schneidet \p num Zeichen vom Anfang des Strings ab. Falls \p num
      * größer als der String ist, bleibt ein leerer String zurück.
@@ -1000,15 +1000,13 @@ public:
      */
     String& chopLeft(size_t num = 1);
 
-    /**
-     * @brief Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
+    /** @brief Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
      *
      * @return Referenz auf den String
      */
     String& chomp();
 
-    /**
-     * @brief Schneidet den String an einer bestimmten Stelle ab
+    /** @brief Schneidet den String an einer bestimmten Stelle ab
      *
      * Der String wird an einer bestimmten Stelle einfach abgeschnitten
      * @param pos Die Position, an der der String abgeschnitten wird. Bei Angabe von 0 ist der String anschließend
@@ -1018,8 +1016,7 @@ public:
      */
     String& cut(size_t pos);
 
-    /**
-     * @brief Schneidet den String beim ersten Auftauchen eines Zeichens/Strings ab
+    /** @brief Schneidet den String beim ersten Auftauchen eines Zeichens/Strings ab
      *
      * Der String wird beim ersten Auftauchen eines Zeichens oder eines Strings abgeschnitten.
      * @param[in] letter Buchstabe oder Buchstabenkombination, an der der String abgeschnitten werden
@@ -1098,6 +1095,10 @@ public:
     }
 
     bool has(const String& needle, bool ignoreCase = false) const;
+    inline bool contains(const String& needle, bool ignoreCase = false) const
+    {
+        return has(needle, ignoreCase);
+    }
 
     /** @brief Prüft, ob der String mit einem bestimmten Präfix beginnt
      *
@@ -1174,10 +1175,6 @@ public:
     {
         return ptr ? ptr : "";
     }
-
-    ByteArray toEncoding(const char* encoding) const;
-
-    String md5() const;
 
     int toInt() const;
     unsigned int toUnsignedInt() const;
