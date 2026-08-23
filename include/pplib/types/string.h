@@ -1123,7 +1123,8 @@ public:
      * @return Liefert true zurück, wenn der String mit dem Suffix endet, andernfalls false.
      */
     bool endsWith(const String& suffix, size_t start = 0, size_t end = (size_t)-1) const;
-    String join(const pplib::Array& iterable) const;
+
+        String join(const pplib::Array& iterable) const;
 
     String& replace(const String& search, const String& replacement);
 
@@ -1225,9 +1226,16 @@ public:
     operator unsigned int() const;
     operator bool() const;
     operator long() const;
+    inline operator int64_t() const
+    {
+        return toInt64();
+    }
+    operator uint64_t() const
+    {
+        return toUnsignedInt64();
+    }
+
     operator unsigned long() const;
-    operator long long() const;
-    operator unsigned long long() const;
     operator float() const;
     operator double() const;
     operator std::string() const;

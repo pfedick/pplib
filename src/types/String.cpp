@@ -1450,16 +1450,6 @@ String::operator unsigned long() const
     return toUnsignedLong();
 }
 
-String::operator long long() const
-{
-    return toLongLong();
-}
-
-String::operator unsigned long long() const
-{
-    return toUnsignedLongLong();
-}
-
 String::operator float() const
 {
     return toFloat();
@@ -1478,17 +1468,8 @@ String::operator std::string() const
 String::operator std::wstring() const
 {
     if (stringlen == 0) return std::wstring();
-
-    // std::vector verwaltet Speicher automatisch (RAII)
-    std::vector<wchar_t> w(stringlen + 1);
-
-    // Korrekte Übergabe der Element-Anzahl (w.size()) statt Byte-Größe!
-    size_t wlen = ::mbstowcs(w.data(), ptr, w.size());
-    if (wlen == (size_t)-1) {
-        throw CharacterEncodingException();
-    }
-
-    return std::wstring(w.data(), wlen);
+    WideString ws(ptr, stringlen);
+    return std::wstring(ws.c_str(), ws.size());
 }
 
 int String::toInt() const

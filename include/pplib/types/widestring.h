@@ -208,6 +208,10 @@ public:
     void hexDump() const;
     wchar_t get(ssize_t pos) const;
     const wchar_t* getPtr() const;
+    const wchar_t* c_str() const
+    {
+        return ptr ? ptr : L"";
+    }
 
     /**@brief String in UTF-8 umwandeln
      *

@@ -1050,6 +1050,24 @@ TEST(StringTest, cut_WithString)
     ASSERT_EQ(expected, s1) << "String has unexpected value";
 }
 
+TEST(StringTest, cut_onEmptyString)
+{
+    pplib::String s1("");
+    pplib::String expected("");
+    s1.cut(10);
+    ASSERT_EQ((size_t)0, s1.len()) << "String has unexpected length";
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+
+    s1.cut("a");
+    ASSERT_EQ((size_t)0, s1.len()) << "String has unexpected length";
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+
+    s1.set("Hello World");
+    s1.cut("");
+    ASSERT_EQ((size_t)11, s1.len()) << "String has unexpected length";
+    ASSERT_EQ(pplib::String("Hello World"), s1) << "String has unexpected value";
+}
+
 TEST(StringTest, strstr)
 {
     pplib::String s1("A test haystack string");
@@ -1065,6 +1083,9 @@ TEST(StringTest, strstr)
 
     s2 = s1.strstr("");
     ASSERT_EQ(s2, s1) << "String has unexpected value";
+    s1.set("");
+    s2 = s1.strstr("haystack");
+    ASSERT_EQ((size_t)0, s2.len()) << "String does not have length of 0";
 }
 
 TEST(StringTest, repeated)
@@ -1502,6 +1523,9 @@ TEST(StringTest, strchr_ExistingChar)
     pplib::String s1("The Quick Brown Fox Jumps over äöü");
     pplib::String expected("Fox Jumps over äöü");
     ASSERT_EQ(expected, s1.strchr('F')) << "Unexpected Result";
+
+    s1.set("");
+    ASSERT_EQ(pplib::String(""), s1.strchr('F')) << "Unexpected Result";
 }
 
 TEST(StringTest, strchr_NonExistingChar)
@@ -1516,6 +1540,9 @@ TEST(StringTest, strrchr_ExistingChar)
     pplib::String s1("The Quick Brown Fox Jumps over äöü");
     pplib::String expected("over äöü");
     ASSERT_EQ(expected, s1.strrchr('o')) << "Unexpected Result";
+
+    s1.set("");
+    ASSERT_EQ(pplib::String(""), s1.strrchr('F')) << "Unexpected Result";
 }
 
 TEST(StringTest, strrchr_NonExistingChar)
@@ -1533,6 +1560,7 @@ TEST(StringTest, toInt)
     EXPECT_EQ((int)-1234, pplib::String("-01234").toInt()) << "Unexpected Result";
     EXPECT_EQ((int)0, pplib::String("abc123").toInt()) << "Unexpected Result";
     EXPECT_EQ((int)0, pplib::String("0x1234").toInt()) << "Unexpected Result";
+    EXPECT_EQ((int)0, pplib::String("").toInt()) << "Unexpected Result";
 }
 
 TEST(StringTest, toUnsignedInt)
@@ -1543,6 +1571,7 @@ TEST(StringTest, toUnsignedInt)
     EXPECT_EQ((unsigned int)-1234, pplib::String("-01234").toUnsignedInt()) << "Unexpected Result";
     EXPECT_EQ((unsigned int)0, pplib::String("abc123").toUnsignedInt()) << "Unexpected Result";
     EXPECT_EQ((unsigned int)0, pplib::String("0x1234").toUnsignedInt()) << "Unexpected Result";
+    EXPECT_EQ((unsigned int)0, pplib::String("").toUnsignedInt()) << "Unexpected Result";
 }
 
 TEST(StringTest, toInt64)
@@ -1553,6 +1582,7 @@ TEST(StringTest, toInt64)
     EXPECT_EQ((int64_t)-1234, pplib::String("-01234").toInt64()) << "Unexpected Result";
     EXPECT_EQ((int64_t)0, pplib::String("abc123").toInt64()) << "Unexpected Result";
     EXPECT_EQ((int64_t)0, pplib::String("0x1234").toInt64()) << "Unexpected Result";
+    EXPECT_EQ((int64_t)0, pplib::String("").toInt64()) << "Unexpected Result";
 }
 
 TEST(StringTest, toUnsignedInt64)
@@ -1563,6 +1593,7 @@ TEST(StringTest, toUnsignedInt64)
     EXPECT_EQ((uint64_t)-1234, pplib::String("-01234").toUnsignedInt64()) << "Unexpected Result";
     EXPECT_EQ((uint64_t)0, pplib::String("abc123").toUnsignedInt64()) << "Unexpected Result";
     EXPECT_EQ((uint64_t)0, pplib::String("0x1234").toUnsignedInt64()) << "Unexpected Result";
+    EXPECT_EQ((uint64_t)0, pplib::String("").toUnsignedInt64()) << "Unexpected Result";
 }
 
 TEST(StringTest, toInt_withoutNumber)
@@ -1637,10 +1668,18 @@ TEST(StringTest, ToLong_1124234674)
     EXPECT_EQ((long)124234674, s1.toLong()) << "Unexpected Result";
 }
 
-TEST(StringTest, toLongLong_1242346214893456)
+TEST(StringTest, toLongLong)
 {
     pplib::String s1("1242346214893456");
     EXPECT_EQ((long long)1242346214893456, s1.toLongLong()) << "Unexpected Result";
+    EXPECT_EQ((long long)0, pplib::String().toLongLong()) << "Unexpected Result";
+}
+
+TEST(StringTest, toUnsignedLongLong)
+{
+    pplib::String s1("1242346214893456");
+    EXPECT_EQ((long long)1242346214893456, s1.toUnsignedLongLong()) << "Unexpected Result";
+    EXPECT_EQ((long long)0, pplib::String().toUnsignedLongLong()) << "Unexpected Result";
 }
 
 TEST(StringTest, ToFloat_182566142_346214893456)
@@ -2192,6 +2231,150 @@ TEST(StringTest, compareOperatorsWithConstCharPtr)
     ASSERT_TRUE(s1 == "bbb") << "String has unexpected value";
     ASSERT_TRUE(s1 != "aaa") << "String has unexpected value";
     ASSERT_FALSE(s1 != "bbb") << "String has unexpected value";
+}
+
+TEST(StringTest, operator_bool)
+{
+    ASSERT_TRUE((bool)pplib::String("true"));
+    ASSERT_FALSE((bool)pplib::String("false"));
+}
+
+TEST(StringTest, operator_int)
+{
+    ASSERT_EQ((int)pplib::String("1234"), 1234);
+    ASSERT_EQ((int)pplib::String("-1234"), -1234);
+    ASSERT_EQ((int)pplib::String("abc123"), 0);
+    ASSERT_EQ((int)pplib::String(""), 0);
+}
+
+TEST(StringTest, operator_unsigned_int)
+{
+    ASSERT_EQ((unsigned int)pplib::String("1234"), 1234u);
+    ASSERT_EQ((unsigned int)pplib::String("-1234"), (unsigned int)-1234);
+    ASSERT_EQ((unsigned int)pplib::String("abc123"), 0u);
+    ASSERT_EQ((unsigned int)pplib::String(""), 0u);
+}
+
+TEST(StringTest, operator_int64)
+{
+    ASSERT_EQ((int64_t)pplib::String("1234567890123456789"), (int64_t)1234567890123456789LL);
+    ASSERT_EQ((int64_t)pplib::String("-1234567890123456789"), (int64_t)-1234567890123456789LL);
+    ASSERT_EQ((int64_t)pplib::String("abc123"), (int64_t)0LL);
+    ASSERT_EQ((int64_t)pplib::String(""), (int64_t)0LL);
+}
+
+TEST(StringTest, operator_long)
+{
+    ASSERT_EQ((long)pplib::String("1234567890"), (long)1234567890L);
+    ASSERT_EQ((long)pplib::String("-1234567890"), (long)-1234567890L);
+    ASSERT_EQ((long)pplib::String("abc123"), (long)0L);
+    ASSERT_EQ((long)pplib::String(""), (long)0L);
+}
+
+TEST(StringTest, operator_unsigned_long)
+{
+    ASSERT_EQ((unsigned long)pplib::String("1234567890"), (unsigned long)1234567890UL);
+    ASSERT_EQ((unsigned long)pplib::String("-1234567890"), (unsigned long)-1234567890UL);
+    ASSERT_EQ((unsigned long)pplib::String("abc123"), (unsigned long)0UL);
+    ASSERT_EQ((unsigned long)pplib::String(""), (unsigned long)0UL);
+}
+
+TEST(StringTest, operator_float)
+{
+    ASSERT_FLOAT_EQ((float)pplib::String("123.456"), 123.456f);
+    ASSERT_FLOAT_EQ((float)pplib::String("-123.456"), -123.456f);
+    ASSERT_FLOAT_EQ((float)pplib::String("abc123"), 0.0f);
+    ASSERT_FLOAT_EQ((float)pplib::String(""), 0.0f);
+}
+
+TEST(StringTest, operator_double)
+{
+    ASSERT_DOUBLE_EQ((double)pplib::String("123.456"), 123.456);
+    ASSERT_DOUBLE_EQ((double)pplib::String("-123.456"), -123.456);
+    ASSERT_DOUBLE_EQ((double)pplib::String("abc123"), 0.0);
+    ASSERT_DOUBLE_EQ((double)pplib::String(""), 0.0);
+}
+
+TEST(StringTest, operator_std_string)
+{
+    ASSERT_EQ((std::string)pplib::String("Hello World!"), std::string("Hello World!"));
+    ASSERT_EQ((std::string)pplib::String(""), std::string(""));
+}
+
+TEST(StringTest, operator_std_wstring)
+{
+    ASSERT_EQ((std::wstring)pplib::String("Hello World!"), std::wstring(L"Hello World!"));
+    ASSERT_EQ((std::wstring)pplib::String(""), std::wstring(L""));
+}
+
+TEST(StringTest, ostreamtest)
+{
+    pplib::String s1("Hello World!");
+    testing::internal::CaptureStdout();
+    std::cout << s1;
+    std::string output = testing::internal::GetCapturedStdout();
+    EXPECT_EQ("Hello World!", output) << "Unexpected Result";
+}
+
+// Testing forward iterators const and non-const
+TEST(StringTest, forwardIterator)
+{
+    pplib::String s1("Hello World!");
+    std::string result;
+    for (auto it = s1.begin(); it != s1.end(); ++it) {
+        result += *it;
+    }
+    EXPECT_EQ("Hello World!", result) << "Unexpected Result";
+}
+
+TEST(StringTest, forwardIteratorConst)
+{
+    const pplib::String s1("Hello World!");
+    std::string result;
+    for (auto it = s1.cbegin(); it != s1.cend(); ++it) {
+        result += *it;
+    }
+    EXPECT_EQ("Hello World!", result) << "Unexpected Result";
+}
+
+TEST(StringTest, forwardIteratorRangeBasedForLoop)
+{
+    pplib::String s1("Hello World!");
+    std::string result;
+    for (const auto& c : s1) {
+        result += c;
+    }
+    EXPECT_EQ("Hello World!", result) << "Unexpected Result";
+}
+
+TEST(StringTest, backwardIterator)
+{
+    pplib::String s1("Hello World!");
+    std::string result;
+    for (auto it = s1.rbegin(); it != s1.rend(); ++it) {
+        result += *it;
+    }
+    EXPECT_EQ("!dlroW olleH", result) << "Unexpected Result";
+}
+
+TEST(StringTest, backwardIteratorConst)
+{
+    const pplib::String s1("Hello World!");
+    std::string result;
+    for (auto it = s1.crbegin(); it != s1.crend(); ++it) {
+        result += *it;
+    }
+    EXPECT_EQ("!dlroW olleH", result) << "Unexpected Result";
+}
+
+TEST(StringTest, backwardIteratorConstWith_rbegin_rend)
+{
+    const pplib::String s1("Hello World!");
+    std::string result;
+    for (auto it = s1.rbegin(); it != s1.rend(); ++it) {
+        result += *it;
+    }
+    EXPECT_EQ("!dlroW olleH", result) << "Unexpected Result";
 }
 
 } // namespace
