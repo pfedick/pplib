@@ -560,20 +560,6 @@ String& String::prepend(char c)
     return prepend(buffer, 1);
 }
 
-/*!\brief Einzelnes Zeichen auslesen
- *
- * \desc
- * Mit dieser Funktion kann Bytewert eines einzelnen Zeichens an der Position
- * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position des
- * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
- * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
- * dem letzten Zeichen des Strings entspricht.
- *
- * @param pos Position des Zeichens innerhalb des Strings
- * @return Bytewert des Zeichens
- * \exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
- * ausserhalb des Strings liegt oder der String leer ist.
- */
 char String::get(ssize_t pos) const
 {
     if (pos >= 0 && stringlen > (size_t)pos) return ptr[pos];
@@ -581,20 +567,6 @@ char String::get(ssize_t pos) const
     throw OutOfBoundsException();
 }
 
-/*!\brief Einzelnes Zeichen auslesen
- *
- * \desc
- * Mit diesem Operator kann der Bytewert eines einzelnen Zeichens an der Position
- * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position des
- * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
- * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
- * dem letzten Zeichen des Strings entspricht.
- *
- * @param pos Position des Zeichens innerhalb des Strings
- * @return Bytewert des Zeichens
- * \exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
- * ausserhalb des Strings liegt oder der String leer ist.
- */
 char String::operator[](ssize_t pos) const
 {
     if (pos >= 0 && stringlen > (size_t)pos) return ((char*)ptr)[pos];
@@ -602,17 +574,6 @@ char String::operator[](ssize_t pos) const
     throw OutOfBoundsException();
 }
 
-/*!\brief Einzelnes Zeichen referenzieren
- *
- * \desc
- * Mit diesem Operator kann eine Referenz auf ein einzelnes Zeichen an der Position
- * \p pos erhalten werden. Dies ermöglicht Lese- und Schreibzugriff.
- *
- * @param pos Position des Zeichens innerhalb des Strings
- * @return Referenz auf das Zeichen
- * \exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
- * ausserhalb des Strings liegt oder der String leer ist.
- */
 char& String::operator[](ssize_t pos)
 {
     if (pos >= 0 && stringlen > (size_t)pos) return ((char*)ptr)[pos];
@@ -620,19 +581,6 @@ char& String::operator[](ssize_t pos)
     throw OutOfBoundsException();
 }
 
-/*!\brief String auf STDOUT ausgeben
- *
- * Diese Funktion gibt den aktuellen String auf STDOUT aus. Dazu ist es notwendig den String vom internen
- * Unicode-Format in das Encoding des Betriebssystems umzurechnen. Da dieses von den lokalen Einstellungen
- * des Betriebssystems und des Users abhängig ist, wird die Environment-Variable "LANG" ausgewertet.
- * Ist diese nicht gesetzt oder enthält ein unbekanntes Encoding, wird der String immer in UTF-8 ausgegeben.
- *
- * \param withNewline Ein optionaler Parameter, der angibt, ob nach der Ausgabe ein Zeilenumbruch
- * angehangen werden soll (default=false)
- * \par Exceptions:
- * Keine
- *
- */
 void String::print(bool withNewline) const noexcept
 {
     if (stringlen > 0) {
@@ -645,87 +593,32 @@ void String::print(bool withNewline) const noexcept
     }
 }
 
-/*!\brief String auf STDOUT mit abschließendem Zeilenumbruch ausgeben
- *
- * Diese Funktion gibt den aktuellen String mit abschließendem Zeilenumbruch auf STDOUT aus.
- * Dazu ist es notwendig den String vom internen
- * Unicode-Format in das Encoding des Betriebssystems umzurechnen. Da dieses von den lokalen Einstellungen
- * des Betriebssystems und des Users abhängig ist, wird die Environment-Variable "LANG" ausgewertet.
- * Ist diese nicht gesetzt oder enthält ein unbekanntes Encoding, wird der String immer in UTF-8 ausgegeben.
- *
- * \par Exceptions:
- * Keine
- *
- */
 void String::printnl() const noexcept
 {
     print(true);
 }
 
-/*!\brief Hexdump des Strings ausgeben
- *
- * \desc
- * Mit dieser zu Debug-Zwecken gedachten Funktion wird der Inhalt des
- * Strings als HexDump auf der Konsole ausgegeben.
- */
 void String::hexDump() const
 {
     PrintDebug("HEXDUMP of String %p: %zi Bytes starting at Address %p:\n", this, stringlen * sizeof(char), ptr);
     if (stringlen) HexDump(ptr, stringlen * sizeof(char), true);
 }
 
-/*!\brief String übernehmen
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
- * ist identisch mit der Funktion String::set
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator=(const char* str)
 {
     return set(str);
 }
 
-/*!\brief String übernehmen
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
- * ist identisch mit der Funktion String::set
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator=(const wchar_t* str)
 {
     return set(str);
 }
 
-/*!\brief String übernehmen
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
- * ist identisch mit der Funktion String::set
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator=(const String& str)
 {
     return set(str);
 }
 
-/*!\brief String übernehmen (Move-Operator)
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str übernommen. Der Operator
- * verschiebt die internen Daten des Strings in das aktuelle Objekt und setzt
- * den Quellstring in einen leeren Zustand zurück.
- *
- * @param[in] str Zu übernehmender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator=(String&& other) noexcept
 {
     if (this != &other) {
@@ -745,84 +638,31 @@ String& String::operator=(const WideString& str)
     return set(str);
 }
 
-/*!\brief String übernehmen
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
- * ist identisch mit der Funktion String::set
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator=(const std::string& str)
 {
     return set(str);
 }
 
-/*!\brief String übernehmen
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
- * ist identisch mit der Funktion String::set
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator=(const std::wstring& str)
 {
     return set(str);
 }
 
-/*!\brief Zeichen übernehmen
- *
- * \desc
- * Mit diesem Operator wird ein einzelnes Zeichen in den String kopiert.
- *
- * @param[in] c Unicode Wert des zu übernehmenden Zeichens
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator=(char c)
 {
     return set(c);
 }
 
-/*!\brief String addieren
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
- * String angehangen. Der Operator ist identisch mit der Funktion String::append.
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator+=(const char* str)
 {
     return append(str);
 }
 
-/*!\brief String addieren
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
- * String angehangen. Der Operator ist identisch mit der Funktion String::append.
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator+=(const wchar_t* str)
 {
     return append(str);
 }
 
-/*!\brief String addieren
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
- * String angehangen. Der Operator ist identisch mit der Funktion String::append.
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator+=(const String& str)
 {
     return append(str);
@@ -833,43 +673,16 @@ String& String::operator+=(const WideString& str)
     return append(str);
 }
 
-/*!\brief String addieren
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
- * String angehangen. Der Operator ist identisch mit der Funktion String::append.
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator+=(const std::string& str)
 {
     return append(str);
 }
 
-/*!\brief String addieren
- *
- * \desc
- * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
- * String angehangen. Der Operator ist identisch mit der Funktion String::append.
- *
- * @param[in] str Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator+=(const std::wstring& str)
 {
     return append(str);
 }
 
-/*!\brief Zeichen anhängen
- *
- * \desc
- * Mit diesem Operator wird das angegebene Zeichen \p c an den bisher vorhandenen
- * String angehangen. Der Operator ist identisch mit der Funktion String::append.
- *
- * @param[in] c Unicode-Wert des anzuhängenden Zeichens
- * @return Referenz auf diese Instanz der Klasse
- */
 String& String::operator+=(char c)
 {
     return append(c);
@@ -1166,23 +979,6 @@ String String::strrchr(char c) const
     return ret;
 }
 
-/*!\brief Teilstring finden
- *
- * \desc
- * Diese Funktion findet die erste Position der Zeichenfolge \p needle
- * innerhalb des Strings. Abschließende `\0'-Zeichen werden nicht
- * miteinander verglichen.
- *
- * @param needle
- * @return
- * Die Funktion gibt einen String zurück, der mit der gefundenen
- * Zeichenkette beginnt und den Rest des Strings bis zum Ende enthält.
- * Wurde die Zeichenkette nicht gefunden, wird ein leerer String
- * zurückgegeben.
- * \note
- * Ein Sonderfall besteht, wenn \p needle leer ist. In diesem Fall wird
- * der komplette String zurückgegeben.
- */
 String String::strstr(const String& needle) const
 {
     String ret;
@@ -1194,19 +990,6 @@ String String::strstr(const String& needle) const
     return ret;
 }
 
-/*! \brief Sucht nach einem String
- *
- * Find sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
- *
- * \param[in] needle Gesuchter Teilstring
- * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
- * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
- * Ende des Strings gesucht.
- *
- * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
- * Funktion immer String::npos zurück.
- */
 size_t String::find(const String& needle, ssize_t start) const
 {
     if (stringlen == 0 || needle.stringlen == 0) return String::npos;
@@ -1247,21 +1030,6 @@ size_t String::find(const String& needle, ssize_t start) const
     return p;
 }
 
-/*! \brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
- *
- * \desc
- * Diese Funktion sucht innerhalb des aktuellen String nach \p needle ab der
- * gewünschten Position \a start. Gross-/Kleinschreibung wird dabei ignoriert.
- *
- * \param[in] needle Gesuchter Teilstring
- * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
- * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
- * Ende des Strings gesucht.
- *
- * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
- * Funktion immer 0 zurück.
- */
 size_t String::findCase(const String& needle, ssize_t start) const
 {
     String CaseNeedle(needle);
@@ -1581,17 +1349,6 @@ String String::join(const pplib::Array& iterable) const
     return iterable.implode(*this);
 }
 
-/*!\brief String addieren
- *
- * \relates pplib::String
- *
- * \desc
- * Zwei Strings werden zu einem neuen String zusammengefügt.
- *
- * @param[in] str1 Erster String
- * @param[in] str2 Zweiter String
- * @return Neuer String
- */
 String operator+(const String& str1, const String& str2)
 {
     String s = str1;
@@ -1613,17 +1370,6 @@ String operator+(const WideString& str1, const String& str2)
     return s;
 }
 
-/*!\brief String addieren
- *
- * \relates pplib::String
- *
- * \desc
- * Zwei Strings werden zu einem neuen String zusammengefügt.
- *
- * @param[in] str1 Erster String
- * @param[in] str2 Zweiter String
- * @return Neuer String
- */
 String operator+(const char* str1, const String& str2)
 {
     String s = str1;
@@ -1631,17 +1377,6 @@ String operator+(const char* str1, const String& str2)
     return s;
 }
 
-/*!\brief String addieren
- *
- * \relates pplib::String
- *
- * \desc
- * Zwei Strings werden zu einem neuen String zusammengefügt.
- *
- * @param[in] str1 Erster String
- * @param[in] str2 Zweiter String
- * @return Neuer String
- */
 String operator+(const String& str1, const char* str2)
 {
     String s = str1;
@@ -1664,17 +1399,6 @@ String operator+(const char c, const String& str2)
     return s;
 }
 
-/*!\brief String addieren
- *
- * \relates pplib::String
- *
- * \desc
- * Zwei Strings werden zu einem neuen String zusammengefügt.
- *
- * @param[in] str1 Erster String
- * @param[in] str2 Zweiter String
- * @return Neuer String
- */
 String operator+(const wchar_t* str1, const String& str2)
 {
     String s;
@@ -1683,17 +1407,6 @@ String operator+(const wchar_t* str1, const String& str2)
     return s;
 }
 
-/*!\brief String addieren
- *
- * \relates pplib::String
- *
- * \desc
- * Zwei Strings werden zu einem neuen String zusammengefügt.
- *
- * @param[in] str1 Erster String
- * @param[in] str2 Zweiter String
- * @return Neuer String
- */
 String operator+(const String& str1, const wchar_t* str2)
 {
     String s = str1;
@@ -1701,17 +1414,6 @@ String operator+(const String& str1, const wchar_t* str2)
     return s;
 }
 
-/*!\brief String addieren
- *
- * \relates pplib::String
- *
- * \desc
- * Zwei Strings werden zu einem neuen String zusammengefügt.
- *
- * @param[in] str1 Erster String
- * @param[in] str2 Zweiter String
- * @return Neuer String
- */
 String operator+(const std::string& str1, const String& str2)
 {
     String s = str1;
@@ -1719,17 +1421,6 @@ String operator+(const std::string& str1, const String& str2)
     return s;
 }
 
-/*!\brief String addieren
- *
- * \relates pplib::String
- *
- * \desc
- * Zwei Strings werden zu einem neuen String zusammengefügt.
- *
- * @param[in] str1 Erster String
- * @param[in] str2 Zweiter String
- * @return Neuer String
- */
 String operator+(const String& str1, const std::string& str2)
 {
     String s = str1;
@@ -1737,17 +1428,6 @@ String operator+(const String& str1, const std::string& str2)
     return s;
 }
 
-/*!\brief String addieren
- *
- * \relates pplib::String
- *
- * \desc
- * Zwei Strings werden zu einem neuen String zusammengefügt.
- *
- * @param[in] str1 Erster String
- * @param[in] str2 Zweiter String
- * @return Neuer String
- */
 String operator+(const std::wstring& str1, const String& str2)
 {
     String s = str1;
@@ -1755,17 +1435,6 @@ String operator+(const std::wstring& str1, const String& str2)
     return s;
 }
 
-/*!\brief String addieren
- *
- * \relates pplib::String
- *
- * \desc
- * Zwei Strings werden zu einem neuen String zusammengefügt.
- *
- * @param[in] str1 Erster String
- * @param[in] str2 Zweiter String
- * @return Neuer String
- */
 String operator+(const String& str1, const std::wstring& str2)
 {
     String s = str1;

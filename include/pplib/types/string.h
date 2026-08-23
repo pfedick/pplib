@@ -935,8 +935,7 @@ public:
      */
     String& upperCase();
 
-    /**
-     * @brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
+    /** @brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
      *
      * Leerzeichen, Tabs, Returns und Linefeeds werden am Anfang und Ende des Strings abgeschnitten
      * und der String wird entsprechend verkürzt.
@@ -955,12 +954,61 @@ public:
      */
     String trimmed() const;
 
+    /** @brief Gibt eine Kopie des Strings zurück, bei der alle Zeichen in Kleinbuchstaben umgewandelt wurden
+     *
+     * @return Neuer String mit allen Zeichen in Kleinbuchstaben
+     */
     String toLowerCase() const;
+
+    /** @brief Gibt eine Kopie des Strings zurück, bei der alle Zeichen in Großbuchstaben umgewandelt wurden
+     *
+     * @return Neuer String mit allen Zeichen in Großbuchstaben
+     */
     String toUpperCase() const;
+
+    /** @brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang des Strings ab
+     *
+     * Leerzeichen, Tabs, Returns und Linefeeds werden am Anfang des Strings abgeschnitten
+     * und der String wird entsprechend verkürzt.
+     *
+     * @return Referenz auf den String
+     */
     String& trimLeft();
+
+    /** @brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Ende des Strings ab
+     *
+     * Leerzeichen, Tabs, Returns und Linefeeds werden am Ende des Strings abgeschnitten
+     * und der String wird entsprechend verkürzt.
+     *
+     * @return Referenz auf den String
+     */
     String& trimRight();
+
+    /** @brief Schneidet bestimmte Zeichen am Anfang und Ende des Strings ab
+     *
+     * Die Funktion schneidet alle Zeichen, die in \p chars enthalten sind, am Anfang und Ende des Strings ab.
+     *
+     * @param chars String mit den Zeichen, die abgeschnitten werden sollen
+     * @return Referenz auf den String
+     */
     String& trim(const String& chars);
+
+    /** @brief Schneidet bestimmte Zeichen am Anfang des Strings ab
+     *
+     * Die Funktion schneidet alle Zeichen, die in \p chars enthalten sind, am Anfang des Strings ab.
+     *
+     * @param chars String mit den Zeichen, die abgeschnitten werden sollen
+     * @return Referenz auf den String
+     */
     String& trimLeft(const String& chars);
+
+    /** @brief Schneidet bestimmte Zeichen am Ende des Strings ab
+     *
+     * Die Funktion schneidet alle Zeichen, die in \p chars enthalten sind, am Ende des Strings ab.
+     *
+     * @param chars String mit den Zeichen, die abgeschnitten werden sollen
+     * @return Referenz auf den String
+     */
     String& trimRight(const String& chars);
 
     /** @brief Schneidet Zeichen am Ende des Strings ab
@@ -1052,10 +1100,68 @@ public:
      */
     String& shr(char c, size_t size);
 
+    /** @brief Findet das erste Vorkommen eines Zeichens im String und gibt den Teilstring ab diesem Zeichen zurück.
+     *
+     * @param c Das zu suchende Zeichen.
+     * @return Ein String, der das erste Vorkommen des Zeichens und alles danach enthält.
+     * Wenn das Zeichen nicht gefunden wird, wird ein leerer String zurückgegeben.
+     */
     String strchr(char c) const;
+
+    /** @brief Findet das letzte Vorkommen eines Zeichens im String und gibt den Teilstring ab diesem Zeichen zurück.
+     *
+     * @param c Das zu suchende Zeichen.
+     * @return Ein String, der das letzte Vorkommen des Zeichens und alles danach enthält.
+     * Wenn das Zeichen nicht gefunden wird, wird ein leerer String zurückgegeben.
+     */
     String strrchr(char c) const;
+
+    /** @brief Teilstring finden
+     *
+     * Diese Funktion findet die erste Position der Zeichenfolge \p needle
+     * innerhalb des Strings. Abschließende `\0'-Zeichen werden nicht
+     * miteinander verglichen.
+     *
+     * @param needle
+     * @return Die Funktion gibt einen String zurück, der mit der gefundenen
+     * Zeichenkette beginnt und den Rest des Strings bis zum Ende enthält.
+     * Wurde die Zeichenkette nicht gefunden, wird ein leerer String
+     * zurückgegeben.
+     * \note
+     * Ein Sonderfall besteht, wenn \p needle leer ist. In diesem Fall wird
+     * der komplette String zurückgegeben.
+     */
     String strstr(const String& needle) const;
+
+    /*! @brief Sucht nach einem String
+     *
+     * Find sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
+     *
+     * \param[in] needle Gesuchter Teilstring
+     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
+     * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
+     * Ende des Strings gesucht.
+     *
+     * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
+     * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+     * Funktion immer String::npos zurück.
+     */
     size_t find(const String& needle, ssize_t start = 0) const;
+
+    /*! @brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
+     *
+     * Diese Funktion sucht innerhalb des aktuellen String nach \p needle ab der
+     * gewünschten Position \a start. Gross-/Kleinschreibung wird dabei ignoriert.
+     *
+     * \param[in] needle Gesuchter Teilstring
+     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
+     * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
+     * Ende des Strings gesucht.
+     *
+     * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
+     * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+     * Funktion immer 0 zurück.
+     */
     size_t findCase(const String& needle, ssize_t start = 0) const;
 
     /*! @brief Sucht nach einem String
@@ -1094,7 +1200,26 @@ public:
         return findCase(needle, start);
     }
 
+    /** @brief Prüft, ob der String einen bestimmten Teilstring enthält
+     *
+     * Diese Funktion prüft, ob der String den angegebenen Teilstring enthält.
+     *
+     * @param needle Teilstring, der überprüft werden soll
+     * @param ignoreCase Optionaler Parameter, der angibt, ob die Groß-/Kleinschreibung ignoriert werden soll (default=false)
+     *
+     * @return Liefert true zurück, wenn der String den Teilstring enthält, andernfalls false.
+     */
     bool has(const String& needle, bool ignoreCase = false) const;
+
+    /** @brief Prüft, ob der String einen bestimmten Teilstring enthält
+     *
+     * Diese Funktion prüft, ob der String den angegebenen Teilstring enthält.
+     *
+     * @param needle Teilstring, der überprüft werden soll
+     * @param ignoreCase Optionaler Parameter, der angibt, ob die Groß-/Kleinschreibung ignoriert werden soll (default=false)
+     *
+     * @return Liefert true zurück, wenn der String den Teilstring enthält, andernfalls false.
+     */
     inline bool contains(const String& needle, bool ignoreCase = false) const
     {
         return has(needle, ignoreCase);
@@ -1124,20 +1249,69 @@ public:
      */
     bool endsWith(const String& suffix, size_t start = 0, size_t end = (size_t)-1) const;
 
-        String join(const pplib::Array& iterable) const;
+    /** @brief Inhalt eines Arrays zu einem String zusammenfügen
+     *
+     * Mit dieser Funktion wird der Inhalt eines Arrays zu einem String zusammengefügt.
+     * Dabei werden die einzelnen Elemente des Arrays durch den aktuellen String getrennt.
+     *
+     * @param iterable Referenz auf ein Array, dessen Inhalt zusammengefügt werden soll
+     * @return Neuer String, der den zusammengefügten Inhalt des Arrays enthält
+     */
+    String join(const pplib::Array& iterable) const;
 
+    /** @brief Teilstring durch einen anderen String ersetzen
+     *
+     * Mit dieser Funktion wird der Teilstring \p search durch den String \p replacement ersetzt.
+     *
+     * @param search Der zu ersetzende Teilstring
+     * @param replacement Der String, der anstelle des Teilstrings eingefügt werden soll
+     * @return Referenz auf den String
+     */
     String& replace(const String& search, const String& replacement);
 
     //@}
 
     //! @name String ausgeben und auslesen
     //@{
+
+    /** @brief String auf STDOUT ausgeben
+     *
+     * Diese Funktion gibt den aktuellen String auf STDOUT aus.
+     *
+     * @param withNewline Ein optionaler Parameter, der angibt, ob nach der Ausgabe ein Zeilenumbruch
+     * angehangen werden soll (default=false)
+     */
     void print(bool withNewline = false) const noexcept;
+
+    /** @brief String auf STDOUT mit abschließendem Zeilenumbruch ausgeben
+     *
+     * Diese Funktion gibt den aktuellen String mit abschließendem Zeilenumbruch auf STDOUT aus.
+     */
     void printnl() const noexcept;
+
+    /** @brief Hexdump des Strings ausgeben
+     *
+     * Mit dieser zu Debug-Zwecken gedachten Funktion wird der Inhalt des
+     * Strings als HexDump auf der Konsole ausgegeben.
+     */
     void hexDump() const;
+
+    /** @brief Einzelnes Zeichen auslesen
+     *
+     * Mit dieser Funktion kann Bytewert eines einzelnen Zeichens an der Position
+     * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position des
+     * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
+     * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
+     * dem letzten Zeichen des Strings entspricht.
+     *
+     * @param pos Position des Zeichens innerhalb des Strings
+     * @return Bytewert des Zeichens
+     * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
+     * ausserhalb des Strings liegt oder der String leer ist.
+     */
     char get(ssize_t pos) const;
 
-    /**\brief Pointer auf den internen C-String
+    /** @brief Pointer auf den internen C-String
      *
      * Diese Funktion liefert einen Pointer im Format "const char*" auf den internen
      * C-String der Klasse zurück. Bei einem leeren String ist sichergestellt, dass ein
@@ -1157,7 +1331,7 @@ public:
         return ptr ? ptr : "";
     }
 
-    /**\brief Pointer auf den internen C-String
+    /** @brief Pointer auf den internen C-String
      *
      * Diese Funktion liefert einen Pointer im Format "const char*" auf den internen
      * C-String der Klasse zurück. Bei einem leeren String ist sichergestellt, dass ein
@@ -1177,17 +1351,64 @@ public:
         return ptr ? ptr : "";
     }
 
+    /** @brief Konvertiert den String in einen Integer-Wert
+     * @return Integer-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     int toInt() const;
+
+    /** @brief Konvertiert den String in einen unsigned Integer-Wert
+     * @return unsigned Integer-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     unsigned int toUnsignedInt() const;
+
+    /** @brief Konvertiert den String in einen 64-Bit Integer-Wert
+     * @return 64-Bit Integer-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     int64_t toInt64() const;
+
+    /** @brief Konvertiert den String in einen unsigned 64-Bit Integer-Wert
+     * @return unsigned 64-Bit Integer-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     uint64_t toUnsignedInt64() const;
+
+    /** @brief Konvertiert den String in einen WideString
+     * @return WideString, der dem Inhalt des Strings entspricht. Bei einem leeren String wird ein leerer WideString zurückgegeben.
+     */
     WideString toWideString() const;
+
+    /** @brief Konvertiert den String in einen Boolean-Wert
+     * @return Boolean-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird false zurückgegeben.
+     */
     bool toBool() const;
+
+    /** @brief Konvertiert den String in einen long-Wert
+     * @return long-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     long toLong() const;
+
+    /** @brief Konvertiert den String in einen unsigned long-Wert
+     * @return unsigned long-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     unsigned long toUnsignedLong() const;
+
+    /** @brief Konvertiert den String in einen long long-Wert
+     * @return long long-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     long long toLongLong() const;
+
+    /** @brief Konvertiert den String in einen unsigned long long-Wert
+     * @return unsigned long long-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     unsigned long long toUnsignedLongLong() const;
+
+    /** @brief Konvertiert den String in einen float-Wert
+     * @return float-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     float toFloat() const;
+
+    /** @brief Konvertiert den String in einen double-Wert
+     * @return double-Wert, der dem Inhalt des Strings entspricht. Bei einem leeren String wird 0 zurückgegeben.
+     */
     double toDouble() const;
 
     /**\brief Pointer auf den internen C-String
@@ -1241,7 +1462,35 @@ public:
     operator std::string() const;
     operator std::wstring() const;
 
+    /** @brief Einzelnes Zeichen auslesen
+     *
+     * Mit diesem Operator kann der Bytewert eines einzelnen Zeichens an der Position
+     * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position des
+     * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
+     * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
+     * dem letzten Zeichen des Strings entspricht.
+     *
+     * @param pos Position des Zeichens innerhalb des Strings
+     * @return Bytewert des Zeichens
+     * \exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
+     * ausserhalb des Strings liegt oder der String leer ist.
+     */
     char operator[](ssize_t pos) const;
+
+    /** @brief Einzelnes Zeichen referenzieren
+     *
+     * Mit diesem Operator kann eine Referenz auf ein einzelnes Zeichen an der Position
+     * \p pos erhalten werden. Dies ermöglicht Lese- und Schreibzugriff.
+     * Enthält \p pos einen positiven Wert, wird die Position des
+     * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
+     * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
+     * dem letzten Zeichen des Strings entspricht.
+     *
+     * @param pos Position des Zeichens innerhalb des Strings
+     * @return Referenz auf das Zeichen
+     * \exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
+     * ausserhalb des Strings liegt oder der String leer ist.
+     */
     char& operator[](ssize_t pos);
 
     String& operator=(const char* str);
@@ -1408,6 +1657,16 @@ inline void PrintTo(const String& str, ::std::ostream* os)
     *os << "\"" << str.c_str() << "\"";
 }
 
+/** @brief Erstellt einen String aus einem Formatstring und den angegebenen Argumenten
+ *
+ * Diese Funktion erstellt einen String, der dem angegebenen Formatstring entspricht, wobei die Platzhalter im Formatstring
+ * durch die angegebenen Argumente ersetzt werden. Die Funktion verhält sich ähnlich wie printf, jedoch wird der resultierende
+ * String als String-Objekt zurückgegeben.
+ *
+ * @param fmt Formatstring, der die Platzhalter enthält
+ * @param ... Argumente, die in den Formatstring eingesetzt werden sollen
+ * @return Neuer String, der dem formatierten Ergebnis entspricht
+ */
 String ToString(const char* fmt, ...);
 
 } // namespace pplib
