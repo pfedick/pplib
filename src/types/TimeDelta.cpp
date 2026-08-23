@@ -42,7 +42,8 @@ TimeDelta TimeDelta::fromString(const String& str)
     s.replace(",", ":");
     s.replace(".", ":");
     s.replace("-", ":");
-    Array parts(str, ":");
+    Array parts(s, ":");
+    // parts.list("parts");
     int hours = 0, minutes = 0, seconds = 0, microseconds = 0;
     if (parts.size() < 2 || parts.size() > 4) {
         throw IllegalArgumentException("TimeDelta::fromString: invalid time delta format (%s)", str.c_str());

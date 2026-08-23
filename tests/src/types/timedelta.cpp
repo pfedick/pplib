@@ -185,4 +185,29 @@ TEST(TimeDeltaTest, MoreOperators)
     ASSERT_EQ((uint64_t)0, td.toMicroseconds()) << "Unexpected value for td after set to zero";
 }
 
+TEST(TimeDeltaTest, fromString)
+{
+    ASSERT_NO_THROW({
+        pplib::TimeDelta td1 = pplib::TimeDelta::fromString("01:02:03.004005");
+        ASSERT_EQ((uint64_t)3723004005, td1.toMicroseconds()) << "Unexpected value for td1";
+
+        pplib::TimeDelta td2 = pplib::TimeDelta::fromString("01:02:03,004005");
+        ASSERT_EQ((uint64_t)3723004005, td2.toMicroseconds()) << "Unexpected value for td2";
+
+        pplib::TimeDelta td3 = pplib::TimeDelta::fromString("01:02:03-004005");
+        ASSERT_EQ((uint64_t)3723004005, td3.toMicroseconds()) << "Unexpected value for td3";
+        pplib::TimeDelta td4 = pplib::TimeDelta::fromString("01:02:03");
+        ASSERT_EQ((uint64_t)3723000000, td4.toMicroseconds()) << "Unexpected value for td4";
+        pplib::TimeDelta td5 = pplib::TimeDelta::fromString("01:02");
+        ASSERT_EQ((uint64_t)3720000000, td5.toMicroseconds()) << "Unexpected value for td5";
+    });
+
+    ASSERT_THROW({ pplib::TimeDelta td4 = pplib::TimeDelta::fromString("invalid"); }, pplib::IllegalArgumentException);
+
+    ASSERT_THROW({ pplib::TimeDelta td5 = pplib::TimeDelta::fromString("01:02:03.004005.006"); }, pplib::IllegalArgumentException);
+
+    ASSERT_THROW({ pplib::TimeDelta td5 = pplib::TimeDelta::fromString("01"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::TimeDelta td5 = pplib::TimeDelta::fromString("aa.aa"); }, pplib::IllegalArgumentException);
+}
+
 } // namespace
