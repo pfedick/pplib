@@ -48,105 +48,9 @@
 #include <pplib/core/iconv.h>
 
 #include <config_pplib.h>
-#ifndef ICONV_UNICODE
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#define ICONV_UNICODE (sizeof(wchar_t) == 2 ? "UTF-16BE" : "UTF-32BE")
-#else
-#define ICONV_UNICODE (sizeof(wchar_t) == 2 ? "UTF-16LE" : "UTF-32LE")
-#endif
-#endif
 
 namespace pplib
 {
-
-/*!\class AssocArray
- * \ingroup PPLGroupDataTypes
- * \brief Komplexes mehrdimensionales %Array mit Strings als Schlüssel
- *
- * \desc
- * Die Klasse AssocArray dient als Container für beliebige Key-Value-Paare. Ein Schlüssel
- * (Key) besteht aus einem String, der aus beliebigen Zeichen bestehen kann. Ein Value kann
- * veschiedene Datentypen enthalten. Gegenwärtig werden folgende Datentypen unterstützt:
- * - String
- * - Array
- * - ByteArray
- * - ByteArrayPtr
- * - AssocArray
- * - DateTime
- * \par
- * Die Schlüssel werden sortiert in einer std::map verwaltet, so dass auch bei
- * sehr großen Arrays eine schnelle Verarbeitung gewährleistet ist. Gross-/Kleinschreibung wird
- * ignoriert, der Schlüssel "TEST" wäre also identisch mit "test" oder "Test".
- * \par
- * Mehrdimensionale Arrays sind möglich, indem einem Schlüssel als Wert einfach ein anderes Array
- * zugeordnet wird. In einem solchen Array kann jedes Element direkt angesprochen werden, indem man
- * die einzelnen Schlüssel durch Slash (/) getrennt zu einem einzigen Schlüssel zusammenfasst.
- * \par
- * Mehrdimensionale Arrays werden automatisch generiert. Gibt man bei einem leeren %Array dem Schlüssel
- * <tt>"ebene1/ebene2/key"</tt> einen Wert, werden automatisch folgende Aktionen ausgeführt:
- * - Es wird ein neues AssocArray generiert und mit dem Schlüssel "ebene1" in das %Array eingefügt
- * - In das %Array "ebene1" wird ein weiteres neues %Array mit dem Schlüssel "ebene2" eingefügt
- * - In das %Array "ebene2" wird der eigentliche Wert unter dem Schlüssel "key" eingefügt
- *
- * \par Beispiel:
- * Einen Wert setzen und wieder auslesen:
- * \code
- * pplib::AssocArray a;
- * // Wert setzen
- * a.set("ebene1/ebene2/key","Ein Wert");
- * // Wert auslesen
- * a.get("ebene1/ebene2/key").toString().printnl();
- * \endcode
- * \par
- * Durch ein AssocArray durchiterieren:
- * \code
-void IterateArray(const pplib::AssocArray &a)
-{
-    pplib::AssocArray::Iterator it;
-    a.reset(it);
-    while (a.getNext(it)) {
-        const pplib::String &key=it.key();
-        const pplib::Variant &var=*it.value().value;
-        if (var.isString()) {
-            cout << "Key: " << key << ", Value: " << var.toString() << endl;
-        }
-    }
-}
- * \endcode
- * \par
- * Wenn von vorneherein bekannt ist, dass im Array nur Strings vorhanden sind, kann man auch noch auf diese
- * Weise durchiterieren:
- * \code
-void IterateArray(const pplib::AssocArray &a)
-{
-    pplib::AssocArray::Iterator it;
-    pplib::String Key, Value;
-    a.reset(it);
-    while (a.GetNext(it,Key,Value)) {
-        cout << "Key: " << Key << ", Value: " << Value << endl;
-    }
-}
- * \endcode
- */
-
-/*!\class AssocArray::ArrayKey
- * \brief Datentyp für Schlüssel
- *
- * \desc
- * Das AssocArray verwendet einen eigenen von der String-Klasse abgeleiteten Datentyp. Dieser
- * unterscheidet sich von der String-Klasse nur durch die Vergleichoperatoren. Diese behandelt
- * rein nummerische Schlüssel anders als alphanummerische.
- *
- */
-
-AssocArray::ArrayKey::ArrayKey()
-{
-}
-
-AssocArray::ArrayKey::ArrayKey(const String& other)
-{
-    set(other);
-}
 
 /*!\brief Generische Vergleichfunktion
  *
@@ -174,53 +78,6 @@ int AssocArray::ArrayKey::compare(const ArrayKey& str) const
     if (cmp == 0) return 0;
     if (cmp < 0) return -1;
     return 1;
-}
-
-AssocArray::ArrayKey& AssocArray::ArrayKey::operator=(const String& str)
-{
-    set(str);
-    return *this;
-}
-
-bool AssocArray::ArrayKey::operator<(const ArrayKey& str) const
-{
-    int c = compare(str);
-    if (c < 0) return true;
-    return false;
-}
-bool AssocArray::ArrayKey::operator<=(const ArrayKey& str) const
-{
-    int c = compare(str);
-    if (c <= 0) return true;
-    return false;
-}
-
-bool AssocArray::ArrayKey::operator==(const ArrayKey& str) const
-{
-    int c = compare(str);
-    if (c == 0) return true;
-    return false;
-}
-
-bool AssocArray::ArrayKey::operator!=(const ArrayKey& str) const
-{
-    int c = compare(str);
-    if (c != 0) return true;
-    return false;
-}
-
-bool AssocArray::ArrayKey::operator>=(const ArrayKey& str) const
-{
-    int c = compare(str);
-    if (c >= 0) return true;
-    return false;
-}
-
-bool AssocArray::ArrayKey::operator>(const ArrayKey& str) const
-{
-    int c = compare(str);
-    if (c > 0) return true;
-    return false;
 }
 
 /*!\brief Konstruktor des Assoziativen Arrays

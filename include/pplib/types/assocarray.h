@@ -41,9 +41,50 @@ namespace pplib
 
 class Variant;
 
+/** @class AssocArray
+ * @ingroup PPLGroupDataTypes
+ * @brief Komplexes mehrdimensionales %Array mit Strings als Schlüssel
+ *
+ * Die Klasse AssocArray dient als Container für beliebige Key-Value-Paare. Ein Schlüssel
+ * (Key) besteht aus einem String, der aus beliebigen Zeichen bestehen kann. Ein Value kann
+ * veschiedene Datentypen enthalten. Gegenwärtig werden folgende Datentypen unterstützt:
+ * - String
+ * - WideString
+ * - Array
+ * - ByteArray
+ * - ByteArrayPtr
+ * - AssocArray
+ * - DateTime
+ * - Date
+ * - Time
+ * - TimeDelta
+ * - TimeZone
+ *
+ * Die Schlüssel werden sortiert in einer std::map verwaltet, so dass auch bei
+ * sehr großen Arrays eine schnelle Verarbeitung gewährleistet ist. Gross-/Kleinschreibung wird
+ * ignoriert, der Schlüssel "TEST" wäre also identisch mit "test" oder "Test".
+ *
+ * Mehrdimensionale Arrays sind möglich, indem einem Schlüssel als Wert einfach ein anderes Array
+ * zugeordnet wird. In einem solchen Array kann jedes Element direkt angesprochen werden, indem man
+ * die einzelnen Schlüssel durch Slash (/) getrennt zu einem einzigen Schlüssel zusammenfasst.
+ *
+ * Mehrdimensionale Arrays werden automatisch generiert. Gibt man bei einem leeren %Array dem Schlüssel
+ * <tt>"ebene1/ebene2/key"</tt> einen Wert, werden automatisch folgende Aktionen ausgeführt:
+ * - Es wird ein neues AssocArray generiert und mit dem Schlüssel "ebene1" in das %Array eingefügt
+ * - In das %Array "ebene1" wird ein weiteres neues %Array mit dem Schlüssel "ebene2" eingefügt
+ * - In das %Array "ebene2" wird der eigentliche Wert unter dem Schlüssel "key" eingefügt
+ */
 class AssocArray
 {
 private:
+    /** @class AssocArray::ArrayKey
+     * @brief Datentyp für Schlüssel
+     *
+     * Das AssocArray verwendet einen eigenen von der String-Klasse abgeleiteten Datentyp. Dieser
+     * unterscheidet sich von der String-Klasse nur durch die Vergleichoperatoren. Diese behandelt
+     * rein nummerische Schlüssel anders als alphanummerische.
+     *
+     */
     class ArrayKey : public String
     {
     private:
@@ -51,14 +92,44 @@ private:
 
     public:
         ArrayKey();
-        ArrayKey(const String& other);
-        ArrayKey& operator=(const String& str);
-        bool operator<(const ArrayKey& str) const;
-        bool operator<=(const ArrayKey& str) const;
-        bool operator==(const ArrayKey& str) const;
-        bool operator!=(const ArrayKey& str) const;
-        bool operator>=(const ArrayKey& str) const;
-        bool operator>(const ArrayKey& str) const;
+        inline ArrayKey(const String& other)
+            : String(other)
+        {
+        }
+
+        inline ArrayKey& operator=(const String& str)
+        {
+            set(str);
+            return *this;
+        }
+        inline bool operator<(const ArrayKey& str) const
+        {
+            return compare(str) < 0;
+        }
+        inline bool operator<=(const ArrayKey& str) const
+        {
+            return compare(str) <= 0;
+        }
+
+        inline bool operator==(const ArrayKey& str) const
+        {
+            return compare(str) == 0;
+        }
+
+        inline bool operator!=(const ArrayKey& str) const
+        {
+            return compare(str) != 0;
+        }
+
+        inline bool operator>=(const ArrayKey& str) const
+        {
+            return compare(str) >= 0;
+        }
+
+        inline bool operator>(const ArrayKey& str) const
+        {
+            return compare(str) > 0;
+        }
     };
 
     std::map<ArrayKey, Variant*> Tree;
@@ -219,6 +290,7 @@ public:
     reverse_iterator rend();
     const_reverse_iterator rend() const;
 
+    // TODO: brauchen wir die noch?
     void reset(Iterator& it) const;
     void reset(ReverseIterator& it) const;
     bool getFirst(Iterator& it, Variant::DataType type = Variant::TYPE_UNKNOWN) const;
