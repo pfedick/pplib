@@ -115,8 +115,7 @@ public:
     /** @brief Konstruktor mit Wide-Character-String
      *
      * Ein String wird aus einem Wide-Character-String erstellt. Dabei wird der String
-     * in die globale Kodierung konvertiert, die mit String::setGlobalEncoding festgelegt wurde.
-     * Der Defaultwert ist UTF-8.
+     * in die globale Kodierung konvertiert.
      *
      * @param str Wide-Character-String mit 0-Wert am Ende
      * @exception OutOfMemoryException
@@ -154,9 +153,7 @@ public:
 
     /** @brief Konstruktor mit ByteArrayPtr
      *
-     * Ein String wird aus einem ByteArrayPtr erstellt. Dabei wird der String
-     * in die globale Kodierung konvertiert, die mit String::setGlobalEncoding festgelegt wurde.
-     * Der Defaultwert ist UTF-8.
+     * Ein String wird aus einem ByteArrayPtr erstellt.
      *
      * @param str Referenz auf einen ByteArrayPtr
      * @exception OutOfMemoryException

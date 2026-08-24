@@ -27,6 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <limits>
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
@@ -193,6 +194,14 @@ WideString::WideString(const std::wstring& str)
     set(str.data(), str.size());
 }
 
+WideString::WideString(const ByteArrayPtr& str)
+{
+    ptr = NULL;
+    stringlen = 0;
+    s = 0;
+    set((wchar_t*)str.adr(), str.size() / sizeof(wchar_t));
+}
+
 /*!\brief Destruktor
  *
  * \desc
@@ -228,13 +237,11 @@ void WideString::clear() noexcept
  */
 size_t WideString::capacity() const
 {
-    if (!s) return 0;
-    return (s / sizeof(wchar_t)) - 1;
+    return s;
 }
 
-/*!\brief Reserviert Speicher für den String
+/** @brief Reserviert Speicher für den String
  *
- * \desc
  * Mit dieser Funktion kann vor Verwendung des Strings vorgegeben werden, wieviel
  * Speicher initial reserviert werden soll. Dies ist insbesondere dann sinnvoll,
  * wenn der String während seiner Lebenszeit häufig verlängert wird.
@@ -249,13 +256,15 @@ size_t WideString::capacity() const
  */
 void WideString::reserve(size_t size)
 {
+    if (size >= (std::numeric_limits<size_t>::max() / sizeof(wchar_t)) - 1) throw IllegalArgumentException("size is too large");
+
+    if (size <= s) return; // Nothing to do
     size_t bytes = (size + 1) * sizeof(wchar_t);
-    if (s >= bytes) return; // Nothing to do
     wchar_t* p = (wchar_t*)realloc(ptr, bytes);
     if (!p) throw OutOfMemoryException();
     ptr = p;
-    s = bytes;
-    // TODO: fehlen hier die 0-Bytes am Ende des Strings?
+    s = size;
+    ptr[stringlen] = 0;
 }
 
 /*!\brief Länge des Strings
@@ -469,6 +478,7 @@ WideString& WideString::set(const char* str, size_t size)
         return *this;
     }
     size_t inbytes = (size != (size_t)-1) ? size : ::strlen(str);
+    if (inbytes > ::strlen(str)) inbytes = ::strlen(str);
     if (inbytes == 0) {
         clear();
         return *this;
@@ -510,6 +520,7 @@ WideString& WideString::set(const wchar_t* str, size_t size)
         return *this;
     }
     size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
+    if (inchars > ::wcslen(str)) inchars = ::wcslen(str);
     if (inchars == 0) {
         clear();
         return *this;
@@ -521,16 +532,8 @@ WideString& WideString::set(const wchar_t* str, size_t size)
         str = temp_holder.getPtr();
     }
 
-    size_t outbytes = (inchars + 1) * sizeof(wchar_t);
-    if (outbytes >= s) {
-        free(ptr);
-        stringlen = 0;
-        s = outbytes;
-        ptr = (wchar_t*)malloc(s);
-        if (!ptr) {
-            s = 0;
-            throw OutOfMemoryException();
-        }
+    if (inchars > s) {
+        reserve(inchars);
     }
     wmemmove(ptr, str, inchars);
     stringlen = inchars;
@@ -743,7 +746,7 @@ WideString& WideString::vasprintf(const char* fmt, va_list args)
 WideString& WideString::append(const wchar_t* str, size_t size)
 {
     if (str == NULL || size == 0) return *this;
-    if (ptr == nullptr) {
+    if (stringlen == 0) {
         return set(str, size);
     }
     size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
@@ -755,17 +758,14 @@ WideString& WideString::append(const wchar_t* str, size_t size)
         str = temp_holder.getPtr(); // Zeigt jetzt auf einen sicheren Stack-Puffer
     }
 
-    size_t required_bytes = (stringlen + inchars + 1) * sizeof(wchar_t);
-    if (required_bytes >= s) {
-        // Geometrisches Wachstum: Wir verdoppeln die Kapazität
+    size_t required_size = (stringlen + inchars);
+    if (required_size > s) {
+        // Geometrische Vergrößerung, um die Anzahl der Speicherallokationen zu reduzieren
         size_t newbuffersize = s * 2;
-        if (newbuffersize < required_bytes) {
-            newbuffersize = required_bytes + 16; // Fallback, falls Verdopplung nicht reicht
+        if (newbuffersize < required_size) {
+            newbuffersize = required_size + 16; // Fallback, falls Verdopplung nicht reicht
         }
-        wchar_t* t = (wchar_t*)realloc(ptr, newbuffersize);
-        if (!t) throw OutOfMemoryException();
-        ptr = t;
-        s = newbuffersize;
+        reserve(newbuffersize);
     }
     wmemcpy(((wchar_t*)ptr) + stringlen, str, inchars);
     stringlen += inchars;
@@ -795,7 +795,7 @@ WideString& WideString::append(const char* str, size_t size)
 {
     WideString a;
     a.set(str, size);
-    return append((wchar_t*)a.ptr, size);
+    return append((wchar_t*)a.ptr, a.stringlen);
 }
 
 /*!\brief Fügt einen String an das Ende des bestehenden an
@@ -812,7 +812,24 @@ WideString& WideString::append(const char* str, size_t size)
  */
 WideString& WideString::append(const WideString& str, size_t size)
 {
-    return append((wchar_t*)str.ptr, size);
+    size_t inbytes;
+    if (size != (size_t)-1)
+        inbytes = size;
+    else
+        inbytes = str.length();
+    if (inbytes > str.length()) inbytes = str.length();
+    return append((wchar_t*)str.ptr, inbytes);
+}
+
+WideString& WideString::append(const String& str, size_t size)
+{
+    size_t inbytes;
+    if (size != (size_t)-1)
+        inbytes = size;
+    else
+        inbytes = str.length();
+    if (inbytes > str.length()) inbytes = str.length();
+    return append((const char*)str.c_str(), inbytes);
 }
 
 /*!\brief Fügt einen std::string an das Ende des bestehenden an
@@ -918,7 +935,7 @@ WideString& WideString::append(wchar_t c)
 WideString& WideString::prepend(const wchar_t* str, size_t size)
 {
     if (str == NULL || size == 0) return *this;
-    if (ptr == nullptr) {
+    if (stringlen == 0) {
         return set(str, size);
     }
     size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
@@ -930,17 +947,14 @@ WideString& WideString::prepend(const wchar_t* str, size_t size)
         str = temp_holder.getPtr();
     }
 
-    size_t required_bytes = (stringlen + inchars + 1) * sizeof(wchar_t);
-    if (required_bytes >= s) {
-        // Geometrisches Wachstum: Wir verdoppeln die Kapazität
+    size_t required_size = stringlen + inchars;
+    if (required_size > s) {
+        // Geometrische Vergrößerung, um die Anzahl der Speicherallokationen zu reduzieren
         size_t newbuffersize = s * 2;
-        if (newbuffersize < required_bytes) {
-            newbuffersize = required_bytes + 16; // Fallback, falls Verdopplung nicht reicht
+        if (newbuffersize < required_size) {
+            newbuffersize = required_size + 16; // Fallback, falls Verdopplung nicht reicht
         }
-        wchar_t* t = (wchar_t*)realloc(ptr, newbuffersize);
-        if (!t) throw OutOfMemoryException();
-        ptr = t;
-        s = newbuffersize;
+        reserve(newbuffersize);
     }
     // Bestehenden Speicherblock nach hinten moven
     wmemmove(((wchar_t*)ptr) + inchars, ptr, stringlen);
@@ -965,13 +979,32 @@ WideString& WideString::prepend(const wchar_t* str, size_t size)
  */
 WideString& WideString::prepend(const WideString& str, size_t size)
 {
-    if (!ptr) {
+    if (stringlen == 0) {
         set(str, size);
         return *this;
     }
-    WideString a;
-    a.set(str, size);
-    return prepend(a.ptr, a.stringlen);
+    size_t inbytes;
+    if (size != (size_t)-1)
+        inbytes = size;
+    else
+        inbytes = str.length();
+    if (inbytes > str.length()) inbytes = str.length();
+    return prepend((wchar_t*)str.ptr, inbytes);
+}
+
+WideString& WideString::prepend(const String& str, size_t size)
+{
+    if (stringlen == 0) {
+        set(str, size);
+        return *this;
+    }
+    size_t inbytes;
+    if (size != (size_t)-1)
+        inbytes = size;
+    else
+        inbytes = str.length();
+    if (inbytes > str.length()) inbytes = str.length();
+    return prepend(str.c_str(), inbytes);
 }
 
 /*!\brief Fügt einen std::string der STL am Anfang des bestehenden Strings ein
@@ -1137,33 +1170,6 @@ ByteArray WideString::toUtf8() const
     return tmp_buffer;
 }
 
-ByteArray WideString::toLocalEncoding() const
-{
-    if (stringlen == 0) return ByteArray();
-    size_t buffersize = stringlen * 4 + 8;
-    ByteArray tmp_buffer;
-    char* buffer = (char*)tmp_buffer.malloc(buffersize);
-
-    size_t ret = wcstombs(buffer, (const wchar_t*)ptr, buffersize);
-    if (ret == (size_t)-1) {
-        throw CharacterEncodingException();
-    }
-    tmp_buffer.truncate(ret);
-    return tmp_buffer;
-}
-
-ByteArray WideString::toEncoding(const char* encoding) const
-{
-#ifndef HAVE_ICONV
-    throw UnsupportedFeatureException("Iconv not available, cannot convert to encoding");
-#else
-    // Step 1: nach UTF-8 konvertieren
-    ByteArray utf8 = toUtf8();
-    // Step 2: UTF-8 nach gewünschtem Encoding konvertieren
-    return Iconv::transcode(utf8, "UTF-8", encoding);
-#endif
-}
-
 ByteArray WideString::toUCS4() const
 {
     if (stringlen == 0) return ByteArray();
@@ -1232,8 +1238,7 @@ WideString& WideString::fromUCS4(const ByteArrayPtr& bin)
 
 String WideString::toString() const
 {
-    ByteArray local = toLocalEncoding();
-    return String((const char*)local.ptr(), local.size());
+    return String((const wchar_t*)ptr, stringlen);
 }
 
 /*!\brief Einzelnes Zeichen auslesen
@@ -1272,6 +1277,13 @@ wchar_t WideString::get(ssize_t pos) const
  * ausserhalb des Strings liegt oder der String leer ist.
  */
 wchar_t WideString::operator[](ssize_t pos) const
+{
+    if (pos >= 0 && stringlen > (size_t)pos) return ptr[pos];
+    if (pos < 0 && (size_t)(0 - pos) <= stringlen) return ptr[stringlen + pos];
+    throw OutOfBoundsException();
+}
+
+wchar_t& WideString::operator[](ssize_t pos)
 {
     if (pos >= 0 && stringlen > (size_t)pos) return ptr[pos];
     if (pos < 0 && (size_t)(0 - pos) <= stringlen) return ptr[stringlen + pos];
@@ -2620,8 +2632,8 @@ WideString::operator double() const
 
 WideString::operator std::string() const
 {
-    ByteArray ba = toLocalEncoding();
-    return std::string((const char*)ba, ba.size());
+    String s((const wchar_t*)ptr, stringlen);
+    return std::string(s.c_str(), s.len());
 }
 
 WideString::operator std::wstring() const
@@ -2717,6 +2729,15 @@ double WideString::toDouble() const
 #else
     return wcstod(ptr, NULL);
 #endif
+}
+
+bool WideString::has(const WideString& needle, bool ignoreCase) const
+{
+    if (ignoreCase) {
+        return findCase(needle) != WideString::npos;
+    } else {
+        return find(needle) != WideString::npos;
+    }
 }
 
 bool WideString::startsWith(const WideString& prefix, size_t start, size_t end) const
@@ -2911,8 +2932,8 @@ WideString operator+(const WideString& str1, const std::wstring& str2)
 
 std::ostream& operator<<(std::ostream& s, const WideString& str)
 {
-    ByteArray a = str.toLocalEncoding();
-    return s.write((const char*)a.adr(), a.size());
+    String a(str);
+    return s.write((const char*)a.c_str(), a.size());
 }
 
 } // namespace pplib

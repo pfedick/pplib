@@ -162,6 +162,7 @@ void String::reserve(size_t size)
     if (!p) throw OutOfMemoryException();
     ptr = p;
     s = bytes;
+    ptr[stringlen] = 0;
 }
 
 bool String::isNumeric() const

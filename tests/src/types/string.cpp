@@ -69,6 +69,18 @@ TEST(StringTest, ConstructorFromCharPtr)
     });
 }
 
+TEST(StringTest, ConstructorFromWchartPtr)
+{
+    ASSERT_NO_THROW({
+        pplib::String s1(L"A test string with unicode characters: äöü");
+        ASSERT_EQ((size_t)45, s1.len()) << "String does not have length of 42";
+        const unsigned char* buf = (const unsigned char*)s1.getPtr();
+        ASSERT_TRUE(NULL != buf) << "Class did not return a pointer to a c-string";
+        ASSERT_EQ('A', (unsigned char)s1[0]) << "Unexpected Character in string";
+        ASSERT_EQ(188, (unsigned char)s1[44]) << "Unexpected Character in string";
+    });
+}
+
 TEST(StringTest, ConstructorFromString)
 {
     ASSERT_NO_THROW({
@@ -1770,7 +1782,7 @@ TEST(StringTest, OperatorConstCharPositionNegativ)
     ASSERT_THROW({ ASSERT_EQ((char)0, s1[-13]); }, pplib::OutOfBoundsException);
 }
 
-TEST(StringTest, getChat)
+TEST(StringTest, getChar)
 {
     pplib::String s1("Hello World!");
     EXPECT_EQ((char)'H', s1.get(0)) << "Unexpected Result";

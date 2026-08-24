@@ -56,8 +56,9 @@ class Array;
 class WideString
 {
 private:
-    wchar_t* ptr;
-    size_t s, stringlen;
+    wchar_t* ptr;     // Pointer auf den Speicherbereich, in dem der String gespeichert ist
+    size_t s;         // Anzahl Zeichen, für die Speicher reserviert wurde, exkl. 0-Byte am Ende
+    size_t stringlen; // Länge des Strings, exkl. 0-Byte am Ende
 
 public:
     static const size_t npos = (size_t)-1; // Ergebnis von find, wenn nichts gefunden wurde
@@ -73,6 +74,15 @@ public:
     explicit WideString(const String& str);
     explicit WideString(const std::string& str);
     WideString(const std::wstring& str);
+
+    /** @brief Konstruktor mit ByteArrayPtr
+     *
+     * Ein String wird aus einem ByteArrayPtr erstellt.
+     *
+     * @param str Referenz auf einen ByteArrayPtr
+     */
+    explicit WideString(const ByteArrayPtr& str);
+
     WideString(WideString&& other) noexcept;
     ~WideString() noexcept;
 #ifdef WITH_QT
@@ -145,6 +155,7 @@ public:
     WideString& append(const char* str, size_t size = (size_t)-1);
     WideString& append(const wchar_t* str, size_t size = (size_t)-1);
     WideString& append(const WideString& str, size_t size = (size_t)-1);
+    WideString& append(const String& str, size_t size = (size_t)-1);
     WideString& append(const std::string& str, size_t size = (size_t)-1);
     WideString& append(const std::wstring& str, size_t size = (size_t)-1);
     WideString& appendf(const char* fmt, ...);
@@ -153,6 +164,7 @@ public:
     WideString& prepend(const char* str, size_t size = (size_t)-1);
     WideString& prepend(const wchar_t* str, size_t size = (size_t)-1);
     WideString& prepend(const WideString& str, size_t size = (size_t)-1);
+    WideString& prepend(const String& str, size_t size = (size_t)-1);
     WideString& prepend(const std::string& str, size_t size = (size_t)-1);
     WideString& prepend(const std::wstring& str, size_t size = (size_t)-1);
     WideString& prependf(const char* fmt, ...);
@@ -192,6 +204,12 @@ public:
     size_t findCase(const WideString& needle, ssize_t start = 0) const;
     size_t instr(const WideString& needle, size_t start = 0) const;
     size_t instrCase(const WideString& needle, size_t start = 0) const;
+
+    bool has(const WideString& needle, bool ignoreCase = false) const;
+    inline bool contains(const WideString& needle, bool ignoreCase = false) const
+    {
+        return has(needle, ignoreCase);
+    }
 
     bool startsWith(const WideString& prefix, size_t start = 0, size_t end = (size_t)-1) const;
     bool endsWith(const WideString& suffix, size_t start = 0, size_t end = (size_t)-1) const;
@@ -233,33 +251,6 @@ public:
      */
     String toString() const;
 
-    /**@brief String in die lokale Kodierung umwandeln
-     *
-     * Mit dieser Funktion wird der Inhalt des Strings in die lokale Kodierung umgewandelt und als
-     * ByteArray zurückgegeben. Die lokale Kodierung wird mit der Funktion setlocale() aus der
-     * C-Standardbibliothek festgelegt.
-     *
-     * @return ByteArray mit der lokalen Repräsentation des Strings.
-     */
-    ByteArray toLocalEncoding() const;
-
-    /**@brief String in eine beliebige lokale Kodierung umwandeln
-     *
-     * Mit dieser Funktion wird der Inhalt des Strings in eine beliebige lokale
-     * Kodierung umgewandelt und als ByteArray zurückgegeben.
-     *
-     * @param[in] encoding Das gewünschte Encoding
-     *
-     * @return ByteArray mit der Lokalen Repräsentation des Strings.
-     *
-     * @attention
-     * Für diese Funktion wird "Iconv" benötigt.
-     *
-     * @exception UnsupportedFeatureException Wird geworfen, wenn keine Iconv-Bibliothek auf dem
-     * System vorhanden ist
-     */
-    ByteArray toEncoding(const char* encoding) const;
-
     ByteArray toUCS4() const;
     WideString& fromUCS4(const uint32_t* str, size_t size = (size_t)-1);
     WideString& fromUCS4(const ByteArrayPtr& bin);
@@ -295,6 +286,7 @@ public:
     operator std::wstring() const;
 
     wchar_t operator[](ssize_t pos) const;
+    wchar_t& operator[](ssize_t pos);
 
     WideString& operator=(const char* str);
     WideString& operator=(const wchar_t* str);
