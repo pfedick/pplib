@@ -994,6 +994,14 @@ TEST(StringTest, chop)
     ASSERT_EQ((size_t)0, s1.len()) << "String does not have length of 0";
     s2.clear();
     ASSERT_EQ(s2, s1) << "String has unexpected value";
+
+    s1.set("");
+    s1.chop(10);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have expected length";
+
+    s1.set("Hello World");
+    s1.chop(20);
+    ASSERT_EQ((size_t)0, s1.len()) << "String does not have expected length";
 }
 
 TEST(StringTest, chomp)
@@ -1522,12 +1530,12 @@ TEST(StringTest, upperCase)
 
 TEST(StringTest, toLowerCase)
 {
-    ASSERT_EQ(pplib::String(L"the quick brown fox jumps over äöü"), pplib::String(L"The Quick Brown Fox Jumps over ÄÖÜ").toLowerCase());
+    ASSERT_EQ(pplib::String("the quick brown fox jumps over äöü"), pplib::String("The Quick Brown Fox Jumps over ÄÖÜ").toLowerCase());
 }
 
 TEST(StringTest, toUpperCase)
 {
-    ASSERT_EQ(pplib::String(L"THE QUICK BROWN FOX JUMPS OVER ÄÖÜ"), pplib::String(L"The Quick Brown Fox Jumps over äöü").toUpperCase());
+    ASSERT_EQ(pplib::String("THE QUICK BROWN FOX JUMPS OVER ÄÖÜ"), pplib::String("The Quick Brown Fox Jumps over äöü").toUpperCase());
 }
 
 TEST(StringTest, strchr_ExistingChar)

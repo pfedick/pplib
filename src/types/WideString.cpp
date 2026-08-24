@@ -1482,6 +1482,11 @@ WideString& WideString::operator+=(const wchar_t* str)
     return append(str);
 }
 
+WideString& WideString::operator+=(const String& str)
+{
+    return append(str);
+}
+
 /*!\brief String addieren
  *
  * \desc
@@ -1605,11 +1610,8 @@ int WideString::strCaseCmp(const WideString& str, size_t size) const
  */
 WideString WideString::left(size_t len) const
 {
-    if (ptr != NULL && stringlen > 0) {
-        if (len > stringlen) len = stringlen;
-        return WideString(ptr, len);
-    }
-    return WideString();
+    if (len > stringlen) len = stringlen;
+    return WideString(ptr, len);
 }
 
 /*!\brief Rechten Teilstring zurückgeben
@@ -1622,11 +1624,8 @@ WideString WideString::left(size_t len) const
  */
 WideString WideString::right(size_t len) const
 {
-    if (ptr != NULL && stringlen > 0) {
-        if (len > stringlen) len = stringlen;
-        return WideString(ptr + stringlen - len, len);
-    }
-    return WideString();
+    if (len > stringlen) len = stringlen;
+    return WideString(ptr + stringlen - len, len);
 }
 
 /*!\brief Teilstring zurückgeben
@@ -1643,7 +1642,7 @@ WideString WideString::right(size_t len) const
 WideString WideString::mid(size_t start, size_t len) const
 {
     if (len == (size_t)-1) len = stringlen;
-    if (start < stringlen && ptr != NULL && len > 0) {
+    if (start < stringlen && stringlen > 0 && len > 0) {
         if (start + len > stringlen) len = stringlen - start;
         return WideString(ptr + start, len);
     }
@@ -1663,12 +1662,7 @@ WideString WideString::mid(size_t start, size_t len) const
  */
 WideString WideString::substr(size_t start, size_t len) const
 {
-    if (len == (size_t)-1) len = stringlen;
-    if (start < stringlen && ptr != NULL && len > 0) {
-        if (start + len > stringlen) len = stringlen - start;
-        return WideString(ptr + start, len);
-    }
-    return WideString();
+    return mid(start, len);
 }
 
 /*! \brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
@@ -1855,7 +1849,7 @@ WideString& WideString::trimRight()
 //! \brief Schneidet die definierten Zeichen am Anfang des Strings ab
 WideString& WideString::trimLeft(const WideString& chars)
 {
-    if (ptr != NULL && stringlen > 0 && chars.stringlen > 0) {
+    if (stringlen > 0 && chars.stringlen > 0) {
         size_t i, start, s, z;
         start = 0;
         s = 0;
@@ -1883,7 +1877,7 @@ WideString& WideString::trimLeft(const WideString& chars)
 //! \brief Schneidet die definierten Zeichen am Ende des Strings ab
 WideString& WideString::trimRight(const WideString& chars)
 {
-    if (ptr != NULL && stringlen > 0 && chars.stringlen > 0) {
+    if (stringlen > 0 && chars.stringlen > 0) {
         size_t i, ende, z;
         ende = 0;
         for (i = stringlen; i > 0; i--) {
@@ -1925,7 +1919,7 @@ WideString& WideString::trim(const WideString& chars)
  */
 WideString& WideString::chopRight(size_t num)
 {
-    if (ptr != NULL && stringlen > 0) {
+    if (stringlen > 0) {
         if (stringlen < num) num = stringlen;
         stringlen -= num;
         ptr[stringlen] = 0;
@@ -1946,7 +1940,7 @@ WideString& WideString::chopRight(size_t num)
  */
 WideString& WideString::chop(size_t num)
 {
-    if (ptr != NULL && stringlen > 0) {
+    if (stringlen > 0) {
         if (stringlen < num) num = stringlen;
         stringlen -= num;
         ptr[stringlen] = 0;
@@ -1964,7 +1958,7 @@ WideString& WideString::chop(size_t num)
  */
 WideString& WideString::chopLeft(size_t num)
 {
-    if (ptr != NULL && stringlen > 0) {
+    if (stringlen > 0) {
         if (stringlen < num) num = stringlen;
         memmove(ptr, ptr + num, (stringlen - num) * sizeof(wchar_t));
         stringlen -= num;
@@ -1993,7 +1987,7 @@ WideString& WideString::chomp()
  */
 WideString& WideString::cut(size_t pos)
 {
-    if (ptr == NULL && stringlen == 0) return *this;
+    if (stringlen == 0) return *this;
     if (pos > stringlen) return *this;
     ptr[pos] = 0;
     stringlen = pos;
@@ -2008,7 +2002,7 @@ WideString& WideString::cut(size_t pos)
  */
 WideString& WideString::cut(const WideString& letter)
 {
-    if (ptr == NULL && stringlen == 0) return *this;
+    if (stringlen == 0) return *this;
     if (letter.isEmpty()) return *this;
     ssize_t p = instr(letter, 0);
     if (p >= 0) {
@@ -2021,7 +2015,7 @@ WideString& WideString::cut(const WideString& letter)
 WideString WideString::strchr(wchar_t c) const
 {
     WideString ret;
-    if (ptr != NULL && stringlen > 0) {
+    if (stringlen > 0) {
         wchar_t* p = wcschr(ptr, c);
         if (p) ret.set(p);
     }
@@ -2031,7 +2025,7 @@ WideString WideString::strchr(wchar_t c) const
 WideString WideString::strrchr(wchar_t c) const
 {
     WideString ret;
-    if (ptr != NULL && stringlen > 0) {
+    if (stringlen > 0) {
         wchar_t* p = wcsrchr(ptr, c);
         if (p) ret.set(p);
     }
@@ -2058,7 +2052,7 @@ WideString WideString::strrchr(wchar_t c) const
 WideString WideString::strstr(const WideString& needle) const
 {
     WideString ret;
-    if (ptr != NULL && stringlen > 0) {
+    if (stringlen > 0) {
         if (needle.len() == 0) return *this;
         wchar_t* p = wcsstr(ptr, needle.ptr);
         if (p) ret.set(p);
@@ -2081,8 +2075,7 @@ WideString WideString::strstr(const WideString& needle) const
  */
 size_t WideString::find(const WideString& needle, ssize_t start) const
 {
-    if (ptr == NULL || stringlen == 0) return WideString::npos;
-    if (needle.stringlen == 0) return 0;
+    if (stringlen == 0 || needle.stringlen == 0) return WideString::npos;
     if (start > 0 && (size_t)start >= stringlen) return WideString::npos;
     if (start < 0 && ((size_t)((ssize_t)stringlen + start)) >= stringlen) return WideString::npos;
 
@@ -2144,55 +2137,6 @@ size_t WideString::findCase(const WideString& needle, ssize_t start) const
     return CaseSearch.find(CaseNeedle, start);
 }
 
-/*! \brief Sucht nach einem String
- *
- * \desc
- * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
- *
- * \param[in] needle Gesuchter Teilstring
- * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
- * oder nicht angegeben, wird der String vom Anfang an gesucht.
- *
- * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
- * Funktion immer 0 zurück.
- */
-size_t WideString::instr(const WideString& needle, size_t start) const
-{
-    if (ptr == NULL || stringlen == 0) return WideString::npos;
-    if (needle.stringlen == 0) return 0;
-    if (start >= stringlen) return WideString::npos;
-    const wchar_t* p;
-    p = wcsstr((ptr + start), needle.ptr);
-    if (p != NULL) {
-        return ((ssize_t)(p - ptr));
-    }
-    return WideString::npos;
-}
-
-/*! \brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
- *
- * \desc
- * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
- * Gross-/Kleinschreibung wird dabei ignoriert.
- *
- * \param[in] needle Gesuchter Teilstring
- * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
- * oder nicht angegeben, wird der String vom Anfang an gesucht.
- *
- * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
- * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
- * Funktion immer 0 zurück.
- */
-size_t WideString::instrCase(const WideString& needle, size_t start) const
-{
-    WideString CaseNeedle(needle);
-    WideString CaseSearch(ptr, stringlen);
-    CaseNeedle.lowerCase();
-    CaseSearch.lowerCase();
-    return CaseSearch.instr(CaseNeedle, start);
-}
-
 /*!\brief String wiederholen
  *
  * \desc
@@ -2204,24 +2148,19 @@ size_t WideString::instrCase(const WideString& needle, size_t start) const
  */
 WideString& WideString::repeat(size_t num)
 {
-    if (ptr == NULL || stringlen == 0) return *this;
+    if (stringlen == 0) return *this;
     if (num == 0) {
         clear();
         return *this;
     }
-    size_t newsize = (stringlen * num + 16) * sizeof(wchar_t);
-    wchar_t* buf = (wchar_t*)malloc(newsize);
-    if (!buf) throw OutOfMemoryException();
-    wchar_t* tmp = buf;
-    for (size_t i = 0; i < num; i++) {
-        wcsncpy(tmp, ptr, stringlen);
+    reserve(stringlen * num);
+    wchar_t* tmp = ptr + stringlen;
+    for (size_t i = 1; i < num; i++) {
+        wmemcpy(tmp, ptr, stringlen);
         tmp += stringlen;
     }
-    free(ptr);
-    ptr = buf;
     stringlen = stringlen * num;
     ptr[stringlen] = 0;
-    s = newsize;
     return *this;
 }
 
@@ -2234,23 +2173,15 @@ WideString& WideString::repeat(size_t num)
  */
 WideString& WideString::repeat(wchar_t unicode, size_t num)
 {
-    if (!unicode) {
-        throw IllegalArgumentException();
-    }
-    if (!num) {
+    if (!unicode || !num) {
         clear();
         return *this;
     }
-    size_t newsize = (num + 16) * sizeof(wchar_t);
-    wchar_t* buf = (wchar_t*)malloc(newsize);
-    if (!buf) throw OutOfMemoryException();
+    reserve(num);
     for (size_t i = 0; i < num; i++)
-        buf[i] = unicode;
-    free(ptr);
-    ptr = buf;
+        ptr[i] = unicode;
     stringlen = num;
     ptr[stringlen] = 0;
-    s = newsize;
     return *this;
 }
 
@@ -2266,7 +2197,7 @@ WideString& WideString::repeat(wchar_t unicode, size_t num)
  */
 WideString& WideString::repeat(const WideString& str, size_t num)
 {
-    if (str.stringlen == 0 || num == 0 || str.ptr == NULL) {
+    if (str.stringlen == 0 || num == 0) {
         clear();
         return *this;
     }
@@ -2278,23 +2209,14 @@ WideString& WideString::repeat(const WideString& str, size_t num)
         temp_holder = str;
         src_ptr = temp_holder.getPtr();
     }
-
-    size_t new_len = str.stringlen * num;
-    size_t newsize = (new_len + 1) * sizeof(wchar_t);
-    wchar_t* buf = (wchar_t*)malloc(newsize);
-    if (!buf) throw OutOfMemoryException();
-
-    wchar_t* tmp = buf;
+    reserve(str.stringlen * num);
+    wchar_t* dst = ptr;
     for (size_t i = 0; i < num; i++) {
-        wmemcpy(tmp, src_ptr, str.stringlen); // Schnelles wmemcpy!
-        tmp += str.stringlen;
+        wmemcpy(dst, src_ptr, str.stringlen);
+        dst += str.stringlen;
     }
-    buf[new_len] = 0;
-
-    free(ptr);
-    ptr = buf;
-    stringlen = new_len; // Korrekte Länge!
-    s = newsize;
+    stringlen = str.stringlen * num;
+    ptr[stringlen] = 0;
     return *this;
 }
 
@@ -2319,7 +2241,7 @@ WideString WideString::repeated(size_t count) const
 WideString& WideString::replace(const WideString& search, const WideString& replacement)
 //! \brief Ersetzt einen Teilstring durch einen anderen
 {
-    if (ptr == NULL || stringlen == 0 || search.ptr == NULL || search.stringlen == 0) return *this;
+    if (stringlen == 0 || search.stringlen == 0) return *this;
     size_t start = 0, slen = search.stringlen;
     ssize_t end;
     // collect the result
@@ -2558,7 +2480,7 @@ void PrintString(const pplib::String &text)
  */
 const wchar_t* WideString::getPtr() const
 {
-    if (ptr == NULL || stringlen == 0) return L"";
+    if (stringlen == 0) return L"";
     return (const wchar_t*)ptr;
 }
 
@@ -2568,7 +2490,7 @@ const wchar_t* WideString::getPtr() const
  */
 const wchar_t* WideString::toWchart() const
 {
-    if (ptr == NULL || stringlen == 0) return L"";
+    if (stringlen == 0) return L"";
     return (const wchar_t*)ptr;
 }
 
@@ -2578,7 +2500,7 @@ const wchar_t* WideString::toWchart() const
  */
 WideString::operator const wchar_t*() const
 {
-    if (ptr == NULL || stringlen == 0) return L"";
+    if (stringlen == 0) return L"";
     return (wchar_t*)ptr;
 }
 
@@ -2930,10 +2852,85 @@ WideString operator+(const WideString& str1, const std::wstring& str2)
     return s;
 }
 
+WideString operator+(const WideString& str1, const wchar_t c)
+{
+    WideString s = str1;
+    s.append(c);
+    return s;
+}
+
+WideString operator+(const wchar_t c, const WideString& str2)
+{
+    WideString s;
+    s.set(c);
+    s.append(str2);
+    return s;
+}
+
 std::ostream& operator<<(std::ostream& s, const WideString& str)
 {
     String a(str);
     return s.write((const char*)a.c_str(), a.size());
+}
+
+WideString::iterator WideString::begin() noexcept
+{
+    return ptr;
+}
+
+WideString::const_iterator WideString::begin() const noexcept
+{
+    return ptr;
+}
+
+WideString::const_iterator WideString::cbegin() const noexcept
+{
+    return ptr;
+}
+
+WideString::iterator WideString::end() noexcept
+{
+    return ptr + stringlen;
+}
+
+WideString::const_iterator WideString::end() const noexcept
+{
+    return ptr + stringlen;
+}
+
+WideString::const_iterator WideString::cend() const noexcept
+{
+    return ptr + stringlen;
+}
+
+WideString::reverse_iterator WideString::rbegin() noexcept
+{
+    return reverse_iterator(end());
+}
+
+WideString::const_reverse_iterator WideString::rbegin() const noexcept
+{
+    return const_reverse_iterator(end());
+}
+
+WideString::const_reverse_iterator WideString::crbegin() const noexcept
+{
+    return const_reverse_iterator(end());
+}
+
+WideString::reverse_iterator WideString::rend() noexcept
+{
+    return reverse_iterator(begin());
+}
+
+WideString::const_reverse_iterator WideString::rend() const noexcept
+{
+    return const_reverse_iterator(begin());
+}
+
+WideString::const_reverse_iterator WideString::crend() const noexcept
+{
+    return const_reverse_iterator(begin());
 }
 
 } // namespace pplib

@@ -61,7 +61,7 @@ private:
     size_t stringlen; // Länge des Strings, exkl. 0-Byte am Ende
 
 public:
-    static const size_t npos = (size_t)-1; // Ergebnis von find, wenn nichts gefunden wurde
+    static constexpr size_t npos = static_cast<size_t>(-1); // Ergebnis von find, wenn nichts gefunden wurde
 
     //! @name Konstruktoren und Destruktor
     //@{
@@ -202,8 +202,41 @@ public:
     WideString strstr(const WideString& needle) const;
     size_t find(const WideString& needle, ssize_t start = 0) const;
     size_t findCase(const WideString& needle, ssize_t start = 0) const;
-    size_t instr(const WideString& needle, size_t start = 0) const;
-    size_t instrCase(const WideString& needle, size_t start = 0) const;
+
+    /*! @brief Sucht nach einem String
+     *
+     * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
+     *
+     * \param[in] needle Gesuchter Teilstring
+     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
+     * oder nicht angegeben, wird der String vom Anfang an gesucht.
+     *
+     * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
+     * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+     * Funktion immer WideString::npos zurück.
+     */
+    inline size_t instr(const WideString& needle, size_t start = 0) const
+    {
+        return find(needle, start);
+    }
+
+    /*! @brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
+     *
+     * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
+     * Gross-/Kleinschreibung wird dabei ignoriert.
+     *
+     * \param[in] needle Gesuchter Teilstring
+     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
+     * oder nicht angegeben, wird der String vom Anfang an gesucht.
+     *
+     * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
+     * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
+     * Funktion immer WideString::npos zurück.
+     */
+    inline size_t instrCase(const WideString& needle, size_t start = 0) const
+    {
+        return findCase(needle, start);
+    }
 
     bool has(const WideString& needle, bool ignoreCase = false) const;
     inline bool contains(const WideString& needle, bool ignoreCase = false) const
@@ -298,6 +331,7 @@ public:
     WideString& operator=(WideString&& other) noexcept;
     WideString& operator+=(const char* str);
     WideString& operator+=(const wchar_t* str);
+    WideString& operator+=(const String& str);
     WideString& operator+=(const WideString& str);
     WideString& operator+=(const std::string& str);
     WideString& operator+=(const std::wstring& str);
@@ -317,6 +351,27 @@ public:
     bool operator>=(const wchar_t* str) const;
     bool operator>(const wchar_t* str) const;
 
+    //@}
+
+    //! @name Iteratoren
+    //@{
+    typedef wchar_t* iterator;
+    typedef const wchar_t* const_iterator;
+    typedef std::reverse_iterator<iterator> reverse_iterator;
+    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    iterator begin() noexcept;
+    const_iterator begin() const noexcept;
+    const_iterator cbegin() const noexcept;
+    iterator end() noexcept;
+    const_iterator end() const noexcept;
+    const_iterator cend() const noexcept;
+
+    reverse_iterator rbegin() noexcept;
+    const_reverse_iterator rbegin() const noexcept;
+    const_reverse_iterator crbegin() const noexcept;
+    reverse_iterator rend() noexcept;
+    const_reverse_iterator rend() const noexcept;
+    const_reverse_iterator crend() const noexcept;
     //@}
 
 #ifdef WITH_QT
@@ -366,6 +421,8 @@ WideString operator+(const std::string& str1, const WideString& str2);
 WideString operator+(const WideString& str1, const std::string& str2);
 WideString operator+(const std::wstring& str1, const WideString& str2);
 WideString operator+(const WideString& str1, const std::wstring& str2);
+WideString operator+(const WideString& str1, const wchar_t c);
+WideString operator+(const wchar_t, const WideString& str1);
 
 std::ostream& operator<<(std::ostream& s, const WideString& str);
 

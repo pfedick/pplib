@@ -1063,22 +1063,14 @@ String& String::repeat(size_t num)
         clear();
         return *this;
     }
-    size_t new_len = stringlen * num;
-    size_t newsize = new_len + 1;
-    char* buf = (char*)malloc(newsize);
-    if (!buf) throw OutOfMemoryException();
-
-    char* tmp = buf;
-    for (size_t i = 0; i < num; i++) {
+    reserve(stringlen * num);
+    char* tmp = ptr + stringlen;
+    for (size_t i = 1; i < num; i++) {
         memcpy(tmp, ptr, stringlen);
         tmp += stringlen;
     }
-    buf[new_len] = 0;
-
-    free(ptr);
-    ptr = buf;
-    stringlen = new_len;
-    s = newsize;
+    stringlen *= num;
+    ptr[stringlen] = 0;
     return *this;
 }
 
@@ -1096,23 +1088,14 @@ String& String::repeat(const String& str, size_t num)
         temp_holder = str;
         src_ptr = temp_holder.c_str();
     }
-
-    size_t new_len = str.stringlen * num;
-    size_t newsize = new_len + 1;
-    char* buf = (char*)malloc(newsize);
-    if (!buf) throw OutOfMemoryException();
-
-    char* tmp = buf;
+    reserve(str.stringlen * num);
+    char* dst = ptr;
     for (size_t i = 0; i < num; i++) {
-        memcpy(tmp, src_ptr, str.stringlen);
-        tmp += str.stringlen;
+        memcpy(dst, src_ptr, str.stringlen);
+        dst += str.stringlen;
     }
-    buf[new_len] = 0;
-
-    free(ptr);
-    ptr = buf;
-    stringlen = new_len;
-    s = newsize;
+    stringlen = str.stringlen * num;
+    ptr[stringlen] = 0;
     return *this;
 }
 
@@ -1122,16 +1105,11 @@ String& String::repeat(char code, size_t num)
         clear();
         return *this;
     }
-    size_t newsize = (num + 1);
-    char* buf = (char*)malloc(newsize);
-    if (!buf) throw OutOfMemoryException();
+    reserve(num);
     for (size_t i = 0; i < num; i++)
-        buf[i] = code;
-    free(ptr);
-    ptr = buf;
+        ptr[i] = code;
     stringlen = num;
     ptr[stringlen] = 0;
-    s = newsize;
     return *this;
 }
 
