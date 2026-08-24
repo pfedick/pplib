@@ -2442,50 +2442,6 @@ bool WideString::operator>(const wchar_t* str) const
 
 /*!\brief %Pointer auf den internen Unicode-String
  *
- * \desc
- * Diese Funktion liefert einen %Pointer im Format "const wchar_t*" auf den internen
- * Widecharacter-String (Unicode) der Klasse zurück. Falls der %String leer ist, wird ein
- * %Pointer auf einen leeren %String zurückgegeben. Das Ergebnis kann in \b printf und
- * verwandten Funktionen mit dem Formatstring "%ls" verwendet werden.
- *
- * @return %Pointer auf die Widecharacter Repräsentation des %Strings.
- * \example
- * \code
-void PrintString(const pplib::String &text)
-{
-    printf ("Der String lautet: %ls\n",text.getPtr());
-    // oder mittels Operator:
-    printf ("Der String lautet: %ls\n",(const wchar_t*)text);
-}
- * \endcode
- * \see
- * Die folgenden Funktionen erfüllen den gleichen Zweck:
- * - const wchar_t * WideString::getPtr() const
- * - const wchar_t * WideString::toWchart() const
- * - WideString::operator const wchar_t *() const
- * \note
- * In Version 6 der PPLib hat diese Funktion den Datentyp "const char *" zurückgeliefert,
- * der den %String im systemspezifischen Format beinhaltete (z.B. UTF-8 oder ISO-8859-1).
- * Um dieses Verhalten zu simulieren, kann die Funktion WideString::toLocalEncoding
- * verwendet werden. Beispiel:
- * \code
-void PrintString(const pplib::String &text)
-{
-    // Nutzung des Operators:
-    printf ("Der String lautet: %s\n",(const char*)text.toLocalEncoding());
-    // oder Nutzung der Funktion:
-    printf ("Der String lautet: %s\n",text.toLocalEncoding().toCharPtr());
-}
- * \endcode
- */
-const wchar_t* WideString::getPtr() const
-{
-    if (stringlen == 0) return L"";
-    return (const wchar_t*)ptr;
-}
-
-/*!\brief %Pointer auf den internen Unicode-String
- *
  * \copydetails WideString::getPtr
  */
 const wchar_t* WideString::toWchart() const

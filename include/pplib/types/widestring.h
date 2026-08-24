@@ -258,10 +258,15 @@ public:
     void printnl() const noexcept;
     void hexDump() const;
     wchar_t get(ssize_t pos) const;
-    const wchar_t* getPtr() const;
-    const wchar_t* c_str() const
+
+    inline const wchar_t* getPtr() const
     {
-        return ptr ? ptr : L"";
+        return stringlen > 0 ? ptr : L"";
+    }
+
+    inline const wchar_t* c_str() const
+    {
+        return stringlen > 0 ? ptr : L"";
     }
 
     /**@brief String in UTF-8 umwandeln

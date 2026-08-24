@@ -1325,7 +1325,7 @@ public:
      */
     const char* getPtr() const
     {
-        return ptr ? ptr : "";
+        return stringlen > 0 ? ptr : "";
     }
 
     /** @brief Pointer auf den internen C-String
@@ -1345,7 +1345,7 @@ public:
      */
     const char* c_str() const
     {
-        return ptr ? ptr : "";
+        return stringlen > 0 ? ptr : "";
     }
 
     /** @brief Konvertiert den String in einen Integer-Wert
@@ -1425,7 +1425,7 @@ public:
      */
     const char* toChar() const
     {
-        return ptr ? ptr : "";
+        return stringlen > 0 ? ptr : "";
     }
 
     //@}
@@ -1434,11 +1434,11 @@ public:
     //@{
     operator const char*() const
     {
-        return ptr ? ptr : "";
+        return stringlen > 0 ? ptr : "";
     }
     operator const unsigned char*() const
     {
-        return (const unsigned char*)(ptr ? ptr : "");
+        return (const unsigned char*)(stringlen > 0 ? ptr : "");
     }
     operator int() const;
     operator unsigned int() const;

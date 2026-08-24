@@ -398,7 +398,7 @@ String& String::append(const wchar_t* str, size_t size)
 String& String::append(const char* str, size_t size)
 {
     if (str == NULL || size == 0) return *this;
-    if (ptr == nullptr) {
+    if (stringlen == 0) {
         return set(str, size);
     }
 
@@ -499,7 +499,7 @@ String& String::prepend(const std::string& str, size_t size)
 
 String& String::prepend(const std::wstring& str, size_t size)
 {
-    if (ptr == nullptr) {
+    if (stringlen == 0) {
         return set(str, size);
     }
     String a;
@@ -510,7 +510,7 @@ String& String::prepend(const std::wstring& str, size_t size)
 String& String::prepend(const char* str, size_t size)
 {
     if (str == NULL || size == 0) return *this;
-    if (ptr == nullptr) {
+    if (stringlen == 0) {
         return set(str, size);
     }
     size_t inchars = (size != (size_t)-1) ? size : ::strlen(str);
