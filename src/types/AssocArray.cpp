@@ -148,7 +148,7 @@ Variant* AssocArray::findInternal(const String& key) const
     if (it == Tree.end()) return NULL;
     // Ist noch was im Pfad rest?
     if (tok.count() > 0) { // Ja, koennen wir iterieren?
-        if (it->second != NULL && it->second->isAssocArray()) {
+        if (it->second->isAssocArray()) {
             return it->second->toAssocArray().findInternal(rest);
         } else {
             return NULL;

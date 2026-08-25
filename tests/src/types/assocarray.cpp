@@ -222,6 +222,12 @@ static void createDefaultAssocArray(pplib::AssocArray& a)
 
     a.set("widestring", pplib::WideString(L"this is a widestring - äöü"));
     a.set("datetime", pplib::DateTime("2018-12-03 13:49:10.123456"));
+    a.set("datetimetz", pplib::DateTime("2018-12-03 13:49:10.123456+02:00"));
+    a.set("time", pplib::Time("12:45:10.123456"));
+    a.set("date", pplib::Date("2018-12-03"));
+    a.set("timedelta", pplib::TimeDelta("12:45:10.123456"));
+    a.set("timezone", pplib::TimeZone(2, 0, "Europe/Berlin"));
+    a.set("bytearray", pplib::ByteArray("this is a bytearray"));
 
     data.setf("sampleTime", "%0.6f", 22362546.32543);
     data.setf("net_receive/bytes", "%lu", (unsigned long)1);
@@ -256,22 +262,18 @@ TEST(AssocArrayTest, binarySize)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({ createDefaultAssocArray(a); });
-    ASSERT_EQ((size_t)1337, a.binarySize());
+    ASSERT_EQ((size_t)1490, a.binarySize());
 }
 
-#ifdef TODO
 TEST(AssocArrayTest, exportAndImportBinary)
 {
     pplib::AssocArray a;
     pplib::AssocArray b;
     ASSERT_NO_THROW({ createDefaultAssocArray(a); });
     pplib::ByteArray ba;
-    void* buffer = ba.malloc(8192);
-    ASSERT_TRUE(buffer != NULL) << "out of memory";
-    size_t realsize = 0;
     EXPECT_NO_THROW({
         try {
-            a.exportBinary(buffer, 8192, &realsize);
+            ba = a.exportBinary();
         }
         catch (const pplib::Exception& exp) {
             exp.print();
@@ -279,8 +281,8 @@ TEST(AssocArrayTest, exportAndImportBinary)
         }
     });
     // pplib::HexDump(buffer,realsize);
-    ASSERT_EQ((size_t)1337, realsize);
-    EXPECT_NO_THROW({ b.importBinary(buffer, realsize); });
+    ASSERT_EQ((size_t)1490, ba.size());
+    EXPECT_NO_THROW({ b.importBinary(ba); });
 
     ASSERT_EQ(a.count(), b.count()) << "Unexpected size of AssocArray";
     ASSERT_EQ(a.count(true), b.count(true)) << "Unexpected size of AssocArray";
@@ -290,337 +292,14 @@ TEST(AssocArrayTest, exportAndImportBinary)
     ASSERT_EQ(pplib::String("32324234213"), b.getString("data/1/sysinfo/uptime")) << "unexpected value";
     ASSERT_EQ(pplib::String("3"), b.getString("data/0/cpu/system")) << "unexpected value";
     ASSERT_EQ(pplib::WideString(L"this is a widestring - äöü"), b.get("widestring").toWideString()) << "unexpected value";
+    ASSERT_EQ(pplib::Time("12:45:10.123456"), b.get("time").toTime()) << "unexpected value";
+    ASSERT_EQ(pplib::Date("2018-12-03"), b.get("date").toDate()) << "unexpected value";
+    ASSERT_EQ(pplib::TimeDelta("12:45:10.123456"), b.get("timedelta").toTimeDelta()) << "unexpected value";
+    ASSERT_EQ(pplib::TimeZone(2, 0, "Europe/Berlin"), b.get("timezone").toTimeZone()) << "unexpected value";
     ASSERT_EQ(pplib::DateTime("2018-12-03 13:49:10.123456"), b.get("datetime").toDateTime()) << "unexpected value";
+    ASSERT_EQ(pplib::DateTime("2018-12-03 13:49:10.123456+02:00"), b.get("datetimetz").toDateTime()) << "unexpected value";
     ASSERT_EQ(pplib::Array("red green blue white", " "), b.get("stringarray").toArray()) << "unexpected value";
 }
-
-#endif
-
-static void createWalkingArray(pplib::AssocArray& a)
-{
-    pplib::DateTime now = pplib::DateTime::currentTime();
-    pplib::ByteArray ba(1234);
-    pplib::ByteArrayPtr bap = ba;
-    pplib::Random(ba, 1234);
-    a.set("time", now);
-    a.set("aaaa", "first element");
-    a.set("blah", "blubb");
-    a.set("bytearray", ba);
-    a.set("bytearrayptr", bap);
-    pplib::Array a1("red green blue yellow black white", " ");
-    a.set("array0", a1);
-    a.set("key1", "Dieser Wert geht über\nmehrere Zeilen");
-    a.set("key2", "value6");
-    a.set("array1/unterkey1", "value2");
-    a.set("array1/unterkey2", "value3");
-    a.set("array1/noch ein array/unterkey1", "value4");
-    a.set("array1/unterkey2", "value5");
-    a.set("key3", "value7");
-    a.set("array2/unterkey1", "value7");
-    a.set("array2/unterkey2", "value8");
-    a.set("array2/unterkey1", "value9");
-}
-
-#ifdef TODO
-TEST(AssocArrayTest, IterateResetGetNextWithoutDatatype)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::Iterator it;
-    a.reset(it);
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("aaaa"), it.key());
-    ASSERT_TRUE(it.value().isString());
-}
-
-TEST(AssocArrayTest, IterateGetFirstGetNextWithoutDatatype)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::Iterator it;
-
-    ASSERT_TRUE(a.getFirst(it));
-    ASSERT_EQ(pplib::String("aaaa"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("array0"), it.key());
-    ASSERT_TRUE(it.value().isArray());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("array1"), it.key());
-    ASSERT_TRUE(it.value().isAssocArray());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("array2"), it.key());
-    ASSERT_TRUE(it.value().isAssocArray());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("blah"), it.key());
-    ASSERT_TRUE(it.value().isString());
-    ASSERT_EQ(pplib::String("blubb"), it.value().toString());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("bytearray"), it.key());
-    ASSERT_TRUE(it.value().isByteArray());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("bytearrayptr"), it.key());
-    ASSERT_TRUE(it.value().isByteArrayPtr());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("key1"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("key2"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("key3"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getNext(it));
-    ASSERT_EQ(pplib::String("time"), it.key());
-    ASSERT_TRUE(it.value().isDateTime());
-
-    ASSERT_FALSE(a.getNext(it));
-}
-
-TEST(AssocArrayTest, IterateResetGetNextWithDatatypeString)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::Iterator it;
-    a.reset(it);
-    ASSERT_TRUE(a.getNext(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("aaaa"), it.key());
-    ASSERT_TRUE(it.value().isString());
-    ASSERT_EQ(pplib::String("first element"), it.value().toString());
-}
-
-TEST(AssocArrayTest, IterateGetFirstGetNextWithDatatypeString)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::Iterator it;
-
-    ASSERT_TRUE(a.getFirst(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("aaaa"), it.key());
-    ASSERT_TRUE(it.value().isString());
-    ASSERT_EQ(pplib::String("first element"), it.value().toString());
-
-    ASSERT_TRUE(a.getNext(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("blah"), it.key());
-    ASSERT_TRUE(it.value().isString());
-    ASSERT_EQ(pplib::String("blubb"), it.value().toString());
-
-    ASSERT_TRUE(a.getNext(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("key1"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getNext(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("key2"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getNext(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("key3"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_FALSE(a.getNext(it, pplib::Variant::TYPE_STRING));
-}
-
-TEST(AssocArrayTest, IterateResetGetNextWithKeyValueParams)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::Iterator it;
-    pplib::String key, value;
-    a.reset(it);
-    ASSERT_TRUE(a.getNext(it, key, value));
-    ASSERT_EQ(pplib::String("aaaa"), key);
-    ASSERT_EQ(pplib::String("first element"), value);
-}
-
-TEST(AssocArrayTest, IterateGetFirstGetNextWithKeyValueParams)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::Iterator it;
-    pplib::String key, value;
-    ASSERT_TRUE(a.getFirst(it, key, value));
-    ASSERT_EQ(pplib::String("aaaa"), key);
-    ASSERT_EQ(pplib::String("first element"), value);
-
-    ASSERT_TRUE(a.getNext(it, key, value));
-    ASSERT_EQ(pplib::String("blah"), key);
-    ASSERT_EQ(pplib::String("blubb"), value);
-
-    ASSERT_TRUE(a.getNext(it, key, value));
-    ASSERT_EQ(pplib::String("key1"), it.key());
-    ASSERT_EQ(pplib::String("Dieser Wert geht über\nmehrere Zeilen"), value);
-
-    ASSERT_TRUE(a.getNext(it, key, value));
-    ASSERT_EQ(pplib::String("key2"), it.key());
-    ASSERT_EQ(pplib::String("value6"), value);
-
-    ASSERT_TRUE(a.getNext(it, key, value));
-    ASSERT_EQ(pplib::String("key3"), it.key());
-    ASSERT_EQ(pplib::String("value7"), value);
-
-    ASSERT_FALSE(a.getNext(it, key, value));
-}
-
-TEST(AssocArrayTest, IterateResetGetPreviousWithoutDatatype)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::ReverseIterator it;
-    a.reset(it);
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("time"), it.key());
-    ASSERT_TRUE(it.value().isDateTime());
-}
-
-TEST(AssocArrayTest, IterateGetLastGetPreviousWithoutDatatype)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::ReverseIterator it;
-
-    ASSERT_TRUE(a.getLast(it));
-    ASSERT_EQ(pplib::String("time"), it.key());
-    ASSERT_TRUE(it.value().isDateTime());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("key3"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("key2"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("key1"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("bytearrayptr"), it.key());
-    ASSERT_TRUE(it.value().isByteArrayPtr());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("bytearray"), it.key());
-    ASSERT_TRUE(it.value().isByteArray());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("blah"), it.key());
-    ASSERT_TRUE(it.value().isString());
-    ASSERT_EQ(pplib::String("blubb"), it.value().toString());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("array2"), it.key());
-    ASSERT_TRUE(it.value().isAssocArray());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("array1"), it.key());
-    ASSERT_TRUE(it.value().isAssocArray());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("array0"), it.key());
-    ASSERT_TRUE(it.value().isArray());
-
-    ASSERT_TRUE(a.getPrevious(it));
-    ASSERT_EQ(pplib::String("aaaa"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_FALSE(a.getPrevious(it));
-}
-
-TEST(AssocArrayTest, IterateResetGetPreviousWithDatatypeString)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::ReverseIterator it;
-    a.reset(it);
-    ASSERT_TRUE(a.getPrevious(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("key3"), it.key());
-    ASSERT_TRUE(it.value().isString());
-}
-
-TEST(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::ReverseIterator it;
-
-    ASSERT_TRUE(a.getLast(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("key3"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getPrevious(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("key2"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getPrevious(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("key1"), it.key());
-    ASSERT_TRUE(it.value().isString());
-
-    ASSERT_TRUE(a.getPrevious(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("blah"), it.key());
-    ASSERT_TRUE(it.value().isString());
-    ASSERT_EQ(pplib::String("blubb"), it.value().toString());
-
-    ASSERT_TRUE(a.getPrevious(it, pplib::Variant::TYPE_STRING));
-    ASSERT_EQ(pplib::String("aaaa"), it.key());
-    ASSERT_TRUE(it.value().isString());
-    ASSERT_EQ(pplib::String("first element"), it.value().toString());
-
-    ASSERT_FALSE(a.getPrevious(it, pplib::Variant::TYPE_STRING));
-}
-
-TEST(AssocArrayTest, IterateResetGetPreviousWithKeyValueParams)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::ReverseIterator it;
-    pplib::String key, value;
-
-    a.reset(it);
-    ASSERT_TRUE(a.getPrevious(it, key, value));
-    ASSERT_EQ(pplib::String("key3"), it.key());
-    ASSERT_EQ(pplib::String("value7"), value);
-}
-
-TEST(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams)
-{
-    pplib::AssocArray a;
-    createWalkingArray(a);
-    pplib::AssocArray::ReverseIterator it;
-    pplib::String key, value;
-    ASSERT_TRUE(a.getLast(it, key, value));
-    ASSERT_EQ(pplib::String("key3"), it.key());
-    ASSERT_EQ(pplib::String("value7"), value);
-
-    ASSERT_TRUE(a.getPrevious(it, key, value));
-    ASSERT_EQ(pplib::String("key2"), it.key());
-    ASSERT_EQ(pplib::String("value6"), value);
-
-    ASSERT_TRUE(a.getPrevious(it, key, value));
-    ASSERT_EQ(pplib::String("key1"), it.key());
-    ASSERT_EQ(pplib::String("Dieser Wert geht über\nmehrere Zeilen"), value);
-
-    ASSERT_TRUE(a.getPrevious(it, key, value));
-    ASSERT_EQ(pplib::String("blah"), key);
-    ASSERT_EQ(pplib::String("blubb"), value);
-
-    ASSERT_TRUE(a.getPrevious(it, key, value));
-    ASSERT_EQ(pplib::String("aaaa"), key);
-    ASSERT_EQ(pplib::String("first element"), value);
-
-    ASSERT_FALSE(a.getPrevious(it, key, value));
-}
-
-#endif
 
 TEST(AssocArrayTest, CountNonRecursive)
 {
@@ -660,6 +339,37 @@ TEST(AssocArrayTest, CountRecursive)
     ASSERT_EQ((size_t)8, a1.count(true));
 
     ASSERT_EQ((size_t)5, a1.size());
+}
+
+TEST(AssocArrayTest, getVariant)
+{
+    pplib::AssocArray a1;
+    a1.set("key1", "value1");
+    a1.set("array1/key1", "value2");
+    pplib::Array a2("red green blue yellow black white", " ");
+    a1.set("array1/array2", a2);
+
+    ASSERT_THROW(a1.get(""), pplib::AssocArray::InvalidKeyException);
+    ASSERT_EQ(pplib::String("value1"), a1.get("key1").toString());
+    ASSERT_EQ(pplib::String("value2"), a1.get("array1/key1").toString());
+    ASSERT_THROW(a1.get("array1/array2/blah"), pplib::KeyNotFoundException);
+    ASSERT_THROW(a1.get("gibtsnicht"), pplib::KeyNotFoundException);
+}
+
+TEST(AssocArrayTest, exists)
+{
+    pplib::AssocArray a1;
+    a1.set("key1", "value1");
+    a1.set("array1/key1", "value2");
+    pplib::Array a2("red green blue yellow black white", " ");
+    a1.set("array1/array2", a2);
+
+    ASSERT_TRUE(a1.exists("key1"));
+    ASSERT_TRUE(a1.exists("array1/key1"));
+    ASSERT_TRUE(a1.exists("array1/array2"));
+    ASSERT_FALSE(a1.exists("array1/array2/blah"));
+    ASSERT_FALSE(a1.exists("gibtsnicht"));
+    ASSERT_THROW(a1.exists(""), pplib::AssocArray::InvalidKeyException);
 }
 
 TEST(AssocArrayTest, OperatorPlus)
@@ -792,6 +502,31 @@ TEST(AssocArrayTest, OperatorElement)
 }
 
 #ifdef OLDCODE
+
+static void createWalkingArray(pplib::AssocArray& a)
+{
+    pplib::DateTime now = pplib::DateTime::currentTime();
+    pplib::ByteArray ba(1234);
+    pplib::ByteArrayPtr bap = ba;
+    pplib::Random(ba, 1234);
+    a.set("time", now);
+    a.set("aaaa", "first element");
+    a.set("blah", "blubb");
+    a.set("bytearray", ba);
+    a.set("bytearrayptr", bap);
+    pplib::Array a1("red green blue yellow black white", " ");
+    a.set("array0", a1);
+    a.set("key1", "Dieser Wert geht über\nmehrere Zeilen");
+    a.set("key2", "value6");
+    a.set("array1/unterkey1", "value2");
+    a.set("array1/unterkey2", "value3");
+    a.set("array1/noch ein array/unterkey1", "value4");
+    a.set("array1/unterkey2", "value5");
+    a.set("key3", "value7");
+    a.set("array2/unterkey1", "value7");
+    a.set("array2/unterkey2", "value8");
+    a.set("array2/unterkey1", "value9");
+}
 
 TEST(AssocArrayTest, ToTemplate)
 {
