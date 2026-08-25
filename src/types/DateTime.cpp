@@ -462,13 +462,15 @@ int64_t DateTime::toMicroseconds() const
     return (days * 86400000000LL) + time_us - tz_offset_us;
 }
 
-DateTime& DateTime::setMicroseconds(int64_t epoch_microseconds) noexcept
+DateTime& DateTime::setMicroseconds(int64_t epoch_microseconds, const TimeZone& tz) noexcept
 {
-    my_tz = TimeZone::utc();
+    my_tz = tz;
+    // Lokale Mikrosekunden berechnen: UTC + TimeZone-Offset
+    int64_t local_us = epoch_microseconds + (static_cast<int64_t>(tz.offsetSeconds()) * 1000000LL);
 
     constexpr int64_t US_PER_DAY = 86400000000LL;
-    int64_t days = epoch_microseconds / US_PER_DAY;
-    int64_t rem_us = epoch_microseconds % US_PER_DAY;
+    int64_t days = local_us / US_PER_DAY;
+    int64_t rem_us = local_us % US_PER_DAY;
 
     if (rem_us < 0) {
         rem_us += US_PER_DAY;

@@ -693,7 +693,7 @@ public:
      */
     uint64_t longInt() const;
 
-    DateTime& setMicroseconds(int64_t epoch_microseconds) noexcept;
+    DateTime& setMicroseconds(int64_t epoch_microseconds_utc, const TimeZone& tz = TimeZone::utc()) noexcept;
     int64_t toMicroseconds() const;
 
     /** @brief Das Jahr als Integer auslesen
@@ -881,10 +881,10 @@ public:
      */
     static DateTime currentTime();
 
-    static DateTime fromMicroseconds(int64_t epoch_microseconds) noexcept
+    static DateTime fromMicroseconds(int64_t epoch_microseconds, const TimeZone& tz = TimeZone::utc()) noexcept
     {
         DateTime dt;
-        dt.setMicroseconds(epoch_microseconds);
+        dt.setMicroseconds(epoch_microseconds, tz);
         return dt;
     }
 
