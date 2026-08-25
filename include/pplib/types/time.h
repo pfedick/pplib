@@ -162,6 +162,13 @@ public:
      */
     Time& setFromMicroseconds(uint64_t microseconds) noexcept;
 
+    static Time fromMicroseconds(uint64_t microseconds) noexcept
+    {
+        Time t;
+        t.setFromMicroseconds(microseconds);
+        return t;
+    }
+
     /** @brief Setzt die Uhrzeit in Sekunden
      *
      * Mit dieser Funktion wird die Uhrzeit auf den angegebenen Wert in Sekunden gesetzt. Der Wert wird modulo 86400 genommen, um

@@ -178,6 +178,14 @@ TEST_F(TimeTest, SetWithMicroseconds)
     });
 }
 
+TEST_F(TimeTest, fromMicroseconds)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1 = pplib::Time::fromMicroseconds(42611159473);
+        ASSERT_EQ((uint64_t)42611159473, t1.toMicroseconds()) << "Class has unexpected value";
+    });
+}
+
 TEST_F(TimeTest, SetWithMicrosecondsWithOverflow)
 {
     ASSERT_NO_THROW({
