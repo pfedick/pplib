@@ -113,6 +113,15 @@ public:
         return (yy * 10000) + (mm * 100) + dd;
     }
 
+    static Date fromInt(uint32_t date)
+    {
+        Date d;
+        d.yy = date / 10000;
+        d.mm = (date / 100) % 100;
+        d.dd = date % 100;
+        return d;
+    }
+
     inline bool isEmpty() const
     {
         return dd == 0;
