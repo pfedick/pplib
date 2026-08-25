@@ -1443,7 +1443,6 @@ public:
     operator int() const;
     operator unsigned int() const;
     operator bool() const;
-    operator long() const;
     inline operator int64_t() const
     {
         return toInt64();
@@ -1452,8 +1451,6 @@ public:
     {
         return toUnsignedInt64();
     }
-
-    operator unsigned long() const;
     operator float() const;
     operator double() const;
     operator std::string() const;

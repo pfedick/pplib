@@ -314,10 +314,8 @@ public:
     operator int() const;
     operator unsigned int() const;
     operator bool() const;
-    operator long() const;
-    operator unsigned long() const;
-    operator long long() const;
-    operator unsigned long long() const;
+    operator int64_t() const;
+    operator uint64_t() const;
     operator float() const;
     operator double() const;
     operator std::string() const;

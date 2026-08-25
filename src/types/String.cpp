@@ -1187,16 +1187,6 @@ String::operator unsigned int() const
     return strtoul(ptr, NULL, 0);
 }
 
-String::operator long() const
-{
-    return toLong();
-}
-
-String::operator unsigned long() const
-{
-    return toUnsignedLong();
-}
-
 String::operator float() const
 {
     return toFloat();

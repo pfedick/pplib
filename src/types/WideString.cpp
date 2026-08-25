@@ -2478,24 +2478,14 @@ WideString::operator unsigned int() const
     return wcstol(ptr, NULL, 0);
 }
 
-WideString::operator long() const
+WideString::operator int64_t() const
 {
-    return toLong();
+    return toInt64();
 }
 
-WideString::operator unsigned long() const
+WideString::operator uint64_t() const
 {
-    return toUnsignedLong();
-}
-
-WideString::operator long long() const
-{
-    return toLongLong();
-}
-
-WideString::operator unsigned long long() const
-{
-    return toUnsignedLongLong();
+    return toUnsignedInt64();
 }
 
 WideString::operator float() const

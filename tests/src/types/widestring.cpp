@@ -1077,7 +1077,7 @@ TEST(WideStringTest, toUtf8)
     ASSERT_EQ(0x80, buf5[3]);
 #else
     // Direkter 32-Bit-Codepoint für Unix/macOS (U+1F680)
-    pplib::WideString s5(L"\u1F680");
+    pplib::WideString s5(L"\U0001F680");
     pplib::ByteArray res5 = s5.toUtf8();
     ASSERT_EQ((size_t)4, res5.size()) << "4-byte Codepoint (Direct 32-bit) toUtf8 size mismatch";
     const unsigned char* buf5 = (const unsigned char*)res5.ptr();
@@ -1114,7 +1114,7 @@ TEST(WideStringTest, toUCS4)
     ASSERT_EQ((size_t)4, res5.size()) << "4-byte Codepoint (Surrogate Pair) toUCS4 size mismatch";
 #else
     // Unix: Direkter 32-Bit-Codepoint für 🚀 (U+1F680)
-    pplib::WideString s5(L"\u1F680");
+    pplib::WideString s5(L"\U0001F680");
     pplib::ByteArray res5 = s5.toUCS4();
     ASSERT_EQ((size_t)4, res5.size()) << "4-byte Codepoint (Direct 32-bit) toUCS4 size mismatch";
 #endif
@@ -1162,7 +1162,7 @@ TEST(WideStringTest, fromUCS4)
     pplib::WideString s5;
     s5.fromUCS4(rocket_ucs4, 1);
     ASSERT_EQ((size_t)1, s5.len()) << "Unix: Rocket UCS4 should result in 1 wide character";
-    ASSERT_EQ(pplib::WideString(L"\u1F680"), s5) << "Unix: Rocket UCS4 conversion mismatch";
+    ASSERT_EQ(pplib::WideString(L"\U0001F680"), s5) << "Unix: Rocket UCS4 conversion mismatch";
 #endif
 }
 
@@ -2358,38 +2358,6 @@ TEST(WideStringTest, operator_int64)
     ASSERT_EQ((int64_t)pplib::WideString(L"-1234567890123456789"), (int64_t)-1234567890123456789LL);
     ASSERT_EQ((int64_t)pplib::WideString(L"abc123"), (int64_t)0LL);
     ASSERT_EQ((int64_t)pplib::WideString(L""), (int64_t)0LL);
-}
-
-TEST(WideStringTest, operator_long)
-{
-    ASSERT_EQ((long)pplib::WideString(L"1234567890"), (long)1234567890L);
-    ASSERT_EQ((long)pplib::WideString(L"-1234567890"), (long)-1234567890L);
-    ASSERT_EQ((long)pplib::WideString(L"abc123"), (long)0L);
-    ASSERT_EQ((long)pplib::WideString(L""), (long)0L);
-}
-
-TEST(WideStringTest, operator_unsigned_long)
-{
-    ASSERT_EQ((unsigned long)pplib::WideString(L"1234567890"), (unsigned long)1234567890UL);
-    ASSERT_EQ((unsigned long)pplib::WideString(L"-1234567890"), (unsigned long)-1234567890UL);
-    ASSERT_EQ((unsigned long)pplib::WideString(L"abc123"), (unsigned long)0UL);
-    ASSERT_EQ((unsigned long)pplib::WideString(L""), (unsigned long)0UL);
-}
-
-TEST(WideStringTest, operator_long_long)
-{
-    ASSERT_EQ((long long)pplib::WideString(L"1234567890123456789"), (long long)1234567890123456789LL);
-    ASSERT_EQ((long long)pplib::WideString(L"-1234567890123456789"), (long long)-1234567890123456789LL);
-    ASSERT_EQ((long long)pplib::WideString(L"abc123"), (long long)0LL);
-    ASSERT_EQ((long long)pplib::WideString(L""), (long long)0LL);
-}
-
-TEST(WideStringTest, operator_unsigned_long_long)
-{
-    ASSERT_EQ((unsigned long long)pplib::WideString(L"1234567890123456789"), (unsigned long long)1234567890123456789ULL);
-    ASSERT_EQ((unsigned long long)pplib::WideString(L"-1234567890123456789"), (unsigned long long)-1234567890123456789ULL);
-    ASSERT_EQ((unsigned long long)pplib::WideString(L"abc123"), (unsigned long long)0ULL);
-    ASSERT_EQ((unsigned long long)pplib::WideString(L""), (unsigned long long)0ULL);
 }
 
 TEST(WideStringTest, operator_float)
