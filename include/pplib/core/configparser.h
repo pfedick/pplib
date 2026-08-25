@@ -42,7 +42,7 @@ private:
     String separator;
     void *first, *last, *section;
     AssocArray sections;
-    AssocArray::Iterator it;
+    // AssocArray::Iterator it;
 
     void* findSection(const String& sectionname) const;
 
@@ -83,15 +83,17 @@ public:
     void deleteKey(const String& section, const String& key);
     bool hasKey(const String& key) const;
     bool hasKey(const String& section, const String& key) const;
-    const String& get(const String& key, const String& defaultvalue = String()) const;
+    const String get(const String& key, const String& defaultvalue = String()) const;
     bool getBool(const String& key, bool defaultvalue = false) const;
     int getInt(const String& key, int defaultvalue = 0) const;
-    const String& getFromSection(const String& section, const String& key, const String& defaultvalue = String()) const;
+    const String getFromSection(const String& section, const String& key, const String& defaultvalue = String()) const;
     bool getBoolFromSection(const String& section, const String& key, bool defaultvalue = false) const;
     int getIntFromSection(const String& section, const String& key, int defaultvalue = 0) const;
+    /*
     void reset(); // Zum Auslesen einer kompletten Section
     bool getFirst(String& key, String& value);
     bool getNext(String& key, String& value);
+    */
     void print() const;
 };
 

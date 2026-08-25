@@ -230,24 +230,6 @@ void ConfigParser::deleteSection(const String& sectionname)
     if (s == section) section = NULL;
 }
 
-void ConfigParser::reset()
-{
-    if (!section) return;
-    return ((SECTION*)section)->values.reset(it);
-}
-
-bool ConfigParser::getFirst(String& key, String& value)
-{
-    if (!section) return false;
-    return ((SECTION*)section)->values.getFirst(it, key, value);
-}
-
-bool ConfigParser::getNext(String& key, String& value)
-{
-    if (!section) return false;
-    return ((SECTION*)section)->values.getNext(it, key, value);
-}
-
 void ConfigParser::add(const String& section, const String& key, const String& value)
 {
     SECTION* s = (SECTION*)findSection(section);
@@ -321,7 +303,7 @@ void ConfigParser::deleteKey(const String& section, const String& key)
     }
 }
 
-const String& ConfigParser::get(const String& key, const String& defaultvalue) const
+const String ConfigParser::get(const String& key, const String& defaultvalue) const
 {
     if (!section) return defaultvalue;
     return ((SECTION*)section)->values.getString(key, defaultvalue);
@@ -340,7 +322,7 @@ bool ConfigParser::hasKey(const String& section, const String& key) const
     return ((SECTION*)s)->values.exists(key);
 }
 
-const String& ConfigParser::getFromSection(const String& section, const String& key, const String& defaultvalue) const
+const String ConfigParser::getFromSection(const String& section, const String& key, const String& defaultvalue) const
 {
     SECTION* s = (SECTION*)findSection(section);
     if (!s) return defaultvalue;
@@ -603,25 +585,28 @@ void ConfigParser::save(const String& filename)
  */
 void ConfigParser::save(FileObject& file)
 {
-    AssocArray::Iterator it;
-    String key, value;
+
+    // String key, value;
     if (!file.isOpen()) throw FileNotOpenException();
 
     SECTION* s = (SECTION*)first;
     while (s) {
         if (s != first) file.puts("\n");
         file.putsf("[%s]\n", s->name.getPtr());
-        s->values.reset(it);
-        while (s->values.getNext(it, key, value)) {
-            if (value.instr("\n") >= 0) { // Value muss auf mehrere Zeilen aufgesplittet werden
-                Array a;
-                a.explode(value, "\n");
-                for (size_t i = 0; i < a.size(); i++) {
-                    file.putsf("%s%s%s\n", (const char*)key, (const char*)separator, (const char*)a[i]);
-                }
+        for (auto it = s->values.begin(); it != s->values.end(); ++it) {
+            const String& key = it->first;
+            if (it->second->isString()) {
+                const String& value = it->second->toString();
+                if (value.instr("\n") >= 0) { // Value muss auf mehrere Zeilen aufgesplittet werden
+                    Array a;
+                    a.explode(value, "\n");
+                    for (size_t i = 0; i < a.size(); i++) {
+                        file.putsf("%s%s%s\n", (const char*)key, (const char*)separator, (const char*)a[i]);
+                    }
 
-            } else {
-                file.putsf("%s%s%s\n", (const char*)key, (const char*)separator, (const char*)value);
+                } else {
+                    file.putsf("%s%s%s\n", (const char*)key, (const char*)separator, (const char*)value);
+                }
             }
         }
         s = s->next;

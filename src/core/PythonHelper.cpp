@@ -68,13 +68,11 @@ static pplib::String toHashRecurse(const AssocArray& a, int indention)
 {
     String r;
     String key;
-    AssocArray::Iterator it;
-    a.reset(it);
     String indent;
     indent.repeat(' ', indention);
-    while (a.getNext(it)) {
-        const String& key = it.key();
-        const Variant& res = it.value();
+    for (auto it = a.begin(); it != a.end(); ++it) {
+        const String& key = it->first;
+        const Variant& res = *it->second;
         if (res.isAssocArray()) {
             r.appendf("%s\"%s\": {\n", (const char*)indent, (const char*)key);
             r += toHashRecurse(res.toAssocArray(), indention + 4);
@@ -85,6 +83,7 @@ static pplib::String toHashRecurse(const AssocArray& a, int indention)
             r += ",\n";
         }
     }
+
     r.trimRight(",\n");
     r += "\n";
     return r;

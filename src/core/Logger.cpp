@@ -448,11 +448,9 @@ void Logger::outputArray(PRIORITY prio,
     String key, pre, out;
     if (prefix) key.setf("%s/", prefix);
     if (!Out) Out = &out;
-    AssocArray::Iterator walk;
-    a.reset(walk);
-    while ((a.getNext(walk))) {
-        const String& k = walk.key();
-        const Variant& v = walk.value();
+    for (auto it = a.begin(); it != a.end(); ++it) {
+        const String& k = it->first;
+        const Variant& v = *it->second;
         if (v.isString()) {
             Out->appendf("%s%s=%s\n", (const char*)key, (const char*)k, (const char*)v.toString());
         } else if (v.isDateTime()) {

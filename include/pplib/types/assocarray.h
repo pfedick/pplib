@@ -77,128 +77,59 @@ class Variant;
 class AssocArray
 {
 private:
-    /** @class AssocArray::ArrayKey
-     * @brief Datentyp für Schlüssel
+    /** @brief Vergleichsfunktion für die Schlüssel in der std::map
      *
-     * Das AssocArray verwendet einen eigenen von der String-Klasse abgeleiteten Datentyp. Dieser
-     * unterscheidet sich von der String-Klasse nur durch die Vergleichoperatoren. Diese behandelt
-     * rein nummerische Schlüssel anders als alphanummerische.
+     * Diese Funktion vergleicht zwei Schlüssel aus dem AssocArray. Sind Beide Strings nummerisch,
+     * wird ein nummerischer Vergleich durchgeführt. Ist nur einer der beiden Schlüssel Nummerisch, wird
+     * der nummerische Wert vor dem anderen einsortiert. Sind beide Werte Strings, wird ein
+     * Case-Insensitiver Vergleich durchgeführt. Die Funktion wird von den Vergleichoperatoren aufgerufen.
      *
      */
-    class ArrayKey : public String
+    struct ArrayKeyCompare
     {
-    private:
-        int compare(const ArrayKey& str) const;
+        using is_transparent = void; // Ermöglicht find() mit const char*, String etc.
 
-    public:
-        ArrayKey();
-        inline ArrayKey(const String& other)
-            : String(other)
+        bool operator()(const String& a, const String& b) const
         {
-        }
-
-        inline ArrayKey& operator=(const String& str)
-        {
-            set(str);
-            return *this;
-        }
-        inline bool operator<(const ArrayKey& str) const
-        {
-            return compare(str) < 0;
-        }
-        inline bool operator<=(const ArrayKey& str) const
-        {
-            return compare(str) <= 0;
-        }
-
-        inline bool operator==(const ArrayKey& str) const
-        {
-            return compare(str) == 0;
-        }
-
-        inline bool operator!=(const ArrayKey& str) const
-        {
-            return compare(str) != 0;
-        }
-
-        inline bool operator>=(const ArrayKey& str) const
-        {
-            return compare(str) >= 0;
-        }
-
-        inline bool operator>(const ArrayKey& str) const
-        {
-            return compare(str) > 0;
+            // 1. Beide numerisch -> numerischer Vergleich
+            bool aNum = a.isNumeric();
+            bool bNum = b.isNumeric();
+            if (aNum && bNum) {
+                return a.toInt64() < b.toInt64();
+            }
+            // 2. Einer numerisch, einer Text -> Zahlen kommen vor Text (konsistente Ordnung)
+            if (aNum != bNum) {
+                return aNum; // Numerische Keys zuerst
+            }
+            // 3. Beide Text -> Case-Insensitiver Vergleich
+            return a.strCaseCmp(b) < 0;
         }
     };
 
-    std::map<ArrayKey, Variant*> Tree;
+    std::map<String, Variant*, ArrayKeyCompare> Tree;
     uint64_t maxint;
 
-    Variant* findInternal(const ArrayKey& key) const;
-    void createTree(const ArrayKey& key, Variant* var);
+    Variant* findInternal(const String& key) const;
+    Variant* createTree(const String& key);
+
+    size_t exportBinary(void* buffer, size_t buffersize) const;
+    size_t importBinary(const void* buffer, size_t buffersize);
 
 public:
     PPLIBEXCEPTION(InvalidKeyException, Exception);
     PPLIBEXCEPTION(ExportBufferToSmallException, Exception);
     PPLIBEXCEPTION(ImportFailedException, Exception);
 
-    typedef std::map<ArrayKey, Variant*>::iterator iterator;
-    typedef std::map<ArrayKey, Variant*>::const_iterator const_iterator;
-    typedef std::map<ArrayKey, Variant*>::reverse_iterator reverse_iterator;
-    typedef std::map<ArrayKey, Variant*>::const_reverse_iterator const_reverse_iterator;
-
-    class Iterator
-    {
-    private:
-        friend class AssocArray;
-        const_iterator it;
-        Variant empty;
-        bool reset;
-
-    public:
-        Iterator()
-        {
-            reset = true;
-        }
-        const String& key()
-        {
-            return (*it).first;
-        }
-        const Variant& value()
-        {
-            if ((*it).second == NULL) return empty;
-            return *(*it).second;
-        };
-    };
-    class ReverseIterator
-    {
-    private:
-        friend class AssocArray;
-        const_reverse_iterator it;
-        Variant empty;
-        bool reset;
-
-    public:
-        ReverseIterator()
-        {
-            reset = true;
-        }
-        const String& key()
-        {
-            return (*it).first;
-        }
-        const Variant& value()
-        {
-            if ((*it).second == NULL) return empty;
-            return *(*it).second;
-        };
-    };
+    typedef std::map<String, Variant*>::iterator iterator;
+    typedef std::map<String, Variant*>::const_iterator const_iterator;
+    typedef std::map<String, Variant*>::reverse_iterator reverse_iterator;
+    typedef std::map<String, Variant*>::const_reverse_iterator const_reverse_iterator;
 
     //!\name Konstruktoren und Destruktoren
     //@{
     AssocArray();
     AssocArray(const AssocArray& other);
+    AssocArray(AssocArray&& other);
     ~AssocArray();
     //@}
 
@@ -214,16 +145,102 @@ public:
     //!\name Werte setzen
     //@{
     void add(const AssocArray& other);
-    void set(const String& key, const String& value);
-    void set(const String& key, const String& value, size_t size);
-    void set(const String& key, const WideString& value);
-    void set(const String& key, const Array& value);
-    void set(const String& key, const DateTime& value);
-    void set(const String& key, const ByteArray& value);
-    void set(const String& key, const ByteArrayPtr& value);
-    void set(const String& key, const AssocArray& value);
-    void set(const String& key, const Variant& value);
+    inline void set(const String& key, const String& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const WideString& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const Array& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const ByteArray& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const ByteArrayPtr& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const AssocArray& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const DateTime& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const Date& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const Time& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const TimeDelta& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const TimeZone& value)
+    {
+        createTree(key)->set(value);
+    }
+    inline void set(const String& key, const Variant& value)
+    {
+        createTree(key)->set(value);
+    }
     void setf(const String& key, const char* fmt, ...);
+
+    // Move-Varianten
+    inline void set(const String& key, String&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, WideString&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, Array&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, ByteArray&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, AssocArray&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, DateTime&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, Date&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, Time&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, TimeDelta&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, TimeZone&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, Variant&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+
     //@}
 
     //!\name Werte erweitern (nur Strings)
@@ -241,39 +258,30 @@ public:
 
     //!\name Import und Export von Daten
     //@{
-    size_t fromTemplate(const String& templ,
-                        const String& linedelimiter = "\n",
-                        const String& splitchar = "=",
-                        const String& concat = "\n",
-                        bool dotrim = false);
-    size_t fromConfig(const String& content,
-                      const String& linedelimiter = "\n",
-                      const String& splitchar = "=",
-                      const String& concat = "\n",
-                      bool dotrim = false);
-    void toTemplate(String& s, const String& prefix = "", const String& linedelimiter = "\n", const String& splitchar = "=") const;
+
     size_t binarySize() const;
-    void exportBinary(void* buffer, size_t buffersize, size_t* realsize) const;
+    ByteArray exportBinary() const;
     void exportBinary(ByteArray& buffer) const;
-    size_t importBinary(const void* buffer, size_t buffersize);
     void importBinary(const ByteArrayPtr& buffer);
     //@}
 
     //!\name Werte direkt auslesen
     //@{
     Variant& get(const String& key) const;
-    String& getString(const String& key) const;
-    String& getString(const String& key, String& default_value) const;
-    const String& getString(const String& key, const String& default_value) const;
-    int getInt(const String& key) const;
-    int getInt(const String& key, int default_value) const;
-    long long getLongLong(const String& key) const;
-    long long getLongLong(const String& key, long long default_value) const;
-    AssocArray& getAssocArray(const String& key) const;
-    AssocArray& getAssocArray(const String& key, AssocArray& default_value) const;
-    Array& getArray(const String& key) const;
-    Array& getArray(const String& key, Array& default_value) const;
-    bool getBoolean(const String& key, bool default_value) const;
+
+    String& getString(const String& key);
+    const String& getString(const String& key) const;
+    String getString(const String& key, const String& default_value) const;
+
+    int getInt(const String& key, int default_value = 0) const;
+    int64_t getInt64t(const String& key, int64_t defaultValue = 0) const;
+    bool getBoolean(const String& key, bool default_value = false) const;
+
+    AssocArray& getAssocArray(const String& key);
+    const AssocArray& getAssocArray(const String& key) const;
+    Array& getArray(const String& key);
+    const Array& getArray(const String& key) const;
+
     bool exists(const String& key) const;
     bool isTrue(const String& key) const;
 
@@ -289,19 +297,6 @@ public:
     const_reverse_iterator rbegin() const;
     reverse_iterator rend();
     const_reverse_iterator rend() const;
-
-    // TODO: brauchen wir die noch?
-    void reset(Iterator& it) const;
-    void reset(ReverseIterator& it) const;
-    bool getFirst(Iterator& it, Variant::DataType type = Variant::TYPE_UNKNOWN) const;
-    bool getNext(Iterator& it, Variant::DataType type = Variant::TYPE_UNKNOWN) const;
-    bool getLast(ReverseIterator& it, Variant::DataType type = Variant::TYPE_UNKNOWN) const;
-    bool getPrevious(ReverseIterator& it, Variant::DataType type = Variant::TYPE_UNKNOWN) const;
-
-    bool getFirst(Iterator& it, String& key, String& value) const;
-    bool getNext(Iterator& it, String& key, String& value) const;
-    bool getLast(ReverseIterator& it, String& key, String& value) const;
-    bool getPrevious(ReverseIterator& it, String& key, String& value) const;
     //@}
 
     //!\name Operatoren
@@ -309,6 +304,7 @@ public:
     Variant& operator[](const String& key);
     const Variant& operator[](const String& key) const;
     AssocArray& operator=(const AssocArray& other);
+    AssocArray& operator=(AssocArray&& other);
     AssocArray& operator+=(const AssocArray& other);
 
     bool operator==(const AssocArray& other) const;
@@ -316,6 +312,20 @@ public:
     //@}
 };
 AssocArray operator+(const AssocArray& a1, const AssocArray& a2);
+
+/*
+size_t fromTemplate(const String& templ,
+                    const String& linedelimiter = "\n",
+                    const String& splitchar = "=",
+                    const String& concat = "\n",
+                    bool dotrim = false);
+size_t fromConfig(const String& content,
+                  const String& linedelimiter = "\n",
+                  const String& splitchar = "=",
+                  const String& concat = "\n",
+                  bool dotrim = false);
+void toTemplate(String& s, const String& prefix = "", const String& linedelimiter = "\n", const String& splitchar = "=") const;
+*/
 
 } // namespace pplib
 

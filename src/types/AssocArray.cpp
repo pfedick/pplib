@@ -27,15 +27,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "pplib/types/date.h"
-#include "pplib/types/datetime.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 
-#include <set>
-#include <ostream>
+// #include <set>
+// #include <ostream>
 
 #include <pplib/types/array.h>
 #include <pplib/types/string.h>
@@ -43,6 +41,11 @@
 #include <pplib/types/assocarray.h>
 #include <pplib/types/bytearray.h>
 #include <pplib/types/bytearrayptr.h>
+#include "pplib/types/datetime.h"
+#include "pplib/types/date.h"
+#include "pplib/types/time.h"
+#include "pplib/types/timedelta.h"
+#include "pplib/types/timezone.h"
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
 #include <pplib/core/iconv.h>
@@ -51,34 +54,6 @@
 
 namespace pplib
 {
-
-/*!\brief Generische Vergleichfunktion
- *
- * \desc
- * Diese Funktion vergleicht den eigenen Wert mit dem aus \p str. Sind Beide Strings nummerisch,
- * wird ein nummerischer Vergleich durchgeführt, andernfalls ein Stringvergleich. Die Funktion wird
- * von den Vergleichoperatoren aufgerufen.
- *
- * @param str Vergleichswert
- * @return Liefert folgende Werte zurück:
- * - 0: Beide Werte sind identisch
- * - -1: Der angegebene Wert \p str ist kleiner als der eigene
- * - 1: Der angegebene Wert \p str ist größer als der eigene
- */
-int AssocArray::ArrayKey::compare(const ArrayKey& str) const
-{
-    if (isNumeric() == true && str.isNumeric() == true) {
-        int64_t v1 = toInt64();
-        int64_t v2 = str.toInt64();
-        if (v2 < v1) return 1;
-        if (v2 > v1) return -1;
-        return 0;
-    }
-    int cmp = strCaseCmp(str);
-    if (cmp == 0) return 0;
-    if (cmp < 0) return -1;
-    return 1;
-}
 
 /*!\brief Konstruktor des Assoziativen Arrays
  *
@@ -105,6 +80,14 @@ AssocArray::AssocArray(const AssocArray& other)
 {
     maxint = 0;
     add(other);
+}
+
+AssocArray::AssocArray(AssocArray&& other)
+{
+    maxint = other.maxint;
+    Tree = std::move(other.Tree);
+    other.maxint = 0;
+    other.Tree.clear();
 }
 
 /*!\brief Destruktor der Klasse
@@ -153,13 +136,13 @@ void AssocArray::clear()
  * \note
  * Die Funktion wird von allen Get...- und Concat-Funktionen verwendet.
  */
-Variant* AssocArray::findInternal(const ArrayKey& key) const
+Variant* AssocArray::findInternal(const String& key) const
 {
     // printf ("AssocArray::findInternal (key=%ls)\n",(const wchar_t*)key);
     Array tok(key, "/", 0, true);
     if (tok.count() == 0) throw InvalidKeyException(key);
-    ArrayKey firstkey = tok.shift();
-    ArrayKey rest = tok.implode("/");
+    String firstkey = tok.shift();
+    String rest = tok.implode("/");
 
     const_iterator it = Tree.find(firstkey);
     if (it == Tree.end()) return NULL;
@@ -197,13 +180,13 @@ Variant* AssocArray::findInternal(const ArrayKey& key) const
  * das neue Element <tt>ebene1/schlüssel1/unterschlüssel1</tt> angelegt. Da Schlüssel eindeutig sein müssen,
  * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
  */
-void AssocArray::createTree(const ArrayKey& key, Variant* var)
+Variant* AssocArray::createTree(const String& key)
 {
     // TODO: das sollte keine Exception werfen, sondern mit Returncode arbeiten!
     Array tok(key, "/", 0, true);
     if (tok.count() == 0) throw InvalidKeyException(key);
     String firstkey = tok.shift();
-    ArrayKey rest = tok.implode("/");
+    String rest = tok.implode("/");
     // printf ("firstkey=%ls, rest=%ls\n",(const wchar_t *)firstkey,(const wchar_t *)rest);
     if (firstkey == "[]") {
         firstkey.setf("%llu", maxint);
@@ -220,16 +203,14 @@ void AssocArray::createTree(const ArrayKey& key, Variant* var)
         // Ist noch was im Pfad rest?
         if (tok.count() > 0) { // Ja, koennen wir iterieren?
             if (it->second->isAssocArray() == false) {
-                delete (it->second); // Nein, wir loeschen daher diesen Zweig und machen ein Array draus
-                it->second = new Variant(pplib::AssocArray());
+                // Nein, wir loeschen daher diesen Zweig und machen ein Array draus
+                it->second->set(pplib::AssocArray());
             }
-            it->second->toAssocArray().createTree(rest, var);
-            return;
+            return it->second->toAssocArray().createTree(rest);
         }
         // Nein, wir haben die Zielposition gefunden
-        delete it->second;
-        it->second = var;
-        return;
+        it->second->clear();
+        return it->second;
     }
 
     // Key ist nicht in diesem Array, wir legen ihn an
@@ -238,10 +219,12 @@ void AssocArray::createTree(const ArrayKey& key, Variant* var)
     if (tok.count() > 0) { // Ja, wir erstellen ein Array und iterieren
         // printf ("Iteration\n");
         Variant* newnode = new Variant(pplib::AssocArray());
-        Tree.insert(std::pair<ArrayKey, Variant*>(firstkey, newnode));
-        newnode->toAssocArray().createTree(rest, var);
+        Tree.insert(std::pair<String, Variant*>(firstkey, newnode));
+        return newnode->toAssocArray().createTree(rest);
     } else {
-        Tree.insert(std::pair<ArrayKey, Variant*>(firstkey, var));
+        Variant* newnode = new Variant();
+        Tree.insert(std::pair<String, Variant*>(firstkey, newnode));
+        return newnode;
     }
 }
 
@@ -370,213 +353,6 @@ void AssocArray::list(const String& prefix) const
         }
     }
 }
-
-/*!\brief %String hinzufügen
- *
- * \desc
- * Diese Funktion fügt den Inhalt eines Strings dem Array hinzu.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Wert
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
-void AssocArray::set(const String& key, const String& value)
-{
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
-void AssocArray::set(const String& key, const WideString& value)
-{
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
-/*!\brief %String mit bestimmter Länge hinzufügen
- *
- * \desc
- * Diese Funktion fügt die ersten \p size Zeichen des Strings \p value unter dem
- * Schlüssel \p key in das Assoziative Array ein.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Wert
- * \param[in] size Anzahl Zeichen, die aus dem String \p value übernommen werden sollen
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
-void AssocArray::set(const String& key, const String& value, size_t size)
-{
-    Variant* var = new Variant(String(value, size));
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
-/*!\brief %DateTime hinzufügen
- *
- * \desc
- * Diese Funktion fügt den in \p value angegebenen Zeitstempel unter dem
- * Schlüssel \p key in das Assoziative Array ein.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Zeitstempel
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
-void AssocArray::set(const String& key, const DateTime& value)
-{
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
-/*!\brief %ByteArray hinzufügen
- *
- * \desc
- * Diese Funktion fügt den Inhalt des ByteArrays \p value
- * unter dem Schlüssel \p key in das Assoziative Array ein.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Daten
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
-void AssocArray::set(const String& key, const ByteArray& value)
-{
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
-/*!\brief %ByteArrayPtr hinzufügen
- *
- * \desc
- * Diese Funktion fügt den Inhalt des ByteArrayPtrs \p value
- * unter dem Schlüssel \p key in das Assoziative Array ein.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Daten
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
-void AssocArray::set(const String& key, const ByteArrayPtr& value)
-{
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
-/*!\brief %Array hinzufügen
- *
- * \desc
- * Diese Funktion fügt den Inhalt des Arrays \p value
- * unter dem Schlüssel \p key in das Assoziative Array ein.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Daten
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
-void AssocArray::set(const String& key, const Array& value)
-{
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
-/*!\brief %AssocArray hinzufügen
- *
- * \desc
- * Diese Funktion fügt den Inhalt des AssocArrays \p value
- * unter dem Schlüssel \p key in das Assoziative Array ein.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Daten
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
-void AssocArray::set(const String& key, const AssocArray& value)
-{
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
-/*!\brief %Variant hinzufügen
- *
- * \desc
- * Diese Funktion fügt den Inhalt des Variants \p value
- * unter dem Schlüssel \p key in das Assoziative Array ein.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Daten
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- * \exception TypeConversionException: Der Datentyp des Variants wurde nicht
- * erkannt oder wird nicht unterstützt.
- */
-void AssocArray::set(const String& key, const Variant& value)
-{
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
 /*!\brief Formatierten String hinzufügen
  *
  * \desc
@@ -596,14 +372,7 @@ void AssocArray::setf(const String& key, const char* fmt, ...)
     va_start(args, fmt);
     value.vasprintf(fmt, args);
     va_end(args);
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
+    createTree(key)->set(value);
 }
 
 /*!\brief %String verlängern
@@ -629,8 +398,9 @@ void AssocArray::append(const String& key, const String& value, const String& co
         set(key, value);
         return;
     }
-    if (concat.notEmpty()) node->toString().append(concat);
-    node->toString().append(value);
+    String& str = node->toString();
+    if (concat.notEmpty()) str.append(concat);
+    str.append(value);
 }
 
 /*!\brief %String mit Formatiertem String verlängern
@@ -722,8 +492,7 @@ Variant& AssocArray::get(const String& key) const
  */
 bool AssocArray::exists(const String& key) const
 {
-    if (findInternal(key)) return true;
-    return false;
+    return findInternal(key) != nullptr;
 }
 
 /*!\brief String auslesen
@@ -737,7 +506,7 @@ bool AssocArray::exists(const String& key) const
  * \exception InvalidKeyException: Ungültiger Schlüssel
  * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
  */
-String& AssocArray::getString(const String& key) const
+String& AssocArray::getString(const String& key)
 {
     Variant* node = findInternal(key);
     if (!node) throw KeyNotFoundException(key);
@@ -745,19 +514,19 @@ String& AssocArray::getString(const String& key) const
     return node->toString();
 }
 
-String& AssocArray::getString(const String& key, String& default_value) const
+const String& AssocArray::getString(const String& key) const
 {
     Variant* node = findInternal(key);
-    if (!node) return default_value;
-    if (node->isString() || node->isWideString()) return node->toString();
-    return default_value;
+    if (!node) throw KeyNotFoundException(key);
+    if (!node->isString()) throw TypeConversionException("%s is not a String", (const char*)key);
+    return node->toString();
 }
 
-const String& AssocArray::getString(const String& key, const String& default_value) const
+String AssocArray::getString(const String& key, const String& default_value) const
 {
     Variant* node = findInternal(key);
     if (!node) return default_value;
-    if (node->isString() || node->isWideString()) return node->toString();
+    if (node->isString()) return node->toString();
     return default_value;
 }
 
@@ -770,15 +539,6 @@ bool AssocArray::getBoolean(const String& key, bool default_value) const
     return default_value;
 }
 
-int AssocArray::getInt(const String& key) const
-{
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    if (node->isString()) return node->toString().toInt();
-    if (node->isWideString()) return node->toWideString().toInt();
-    throw TypeConversionException("%s cannot be converted to Int", (const char*)key);
-}
-
 int AssocArray::getInt(const String& key, int default_value) const
 {
     Variant* node = findInternal(key);
@@ -788,21 +548,12 @@ int AssocArray::getInt(const String& key, int default_value) const
     return default_value;
 }
 
-long long AssocArray::getLongLong(const String& key) const
-{
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    if (node->isString()) return node->toString().toLongLong();
-    if (node->isWideString()) return node->toWideString().toLongLong();
-    throw TypeConversionException("%s cannot be converted to long long int", (const char*)key);
-}
-
-long long AssocArray::getLongLong(const String& key, long long default_value) const
+int64_t AssocArray::getInt64t(const String& key, int64_t default_value) const
 {
     Variant* node = findInternal(key);
     if (!node) return default_value;
-    if (node->isString()) return node->toString().toLongLong();
-    if (node->isWideString()) return node->toWideString().toLongLong();
+    if (node->isString()) return node->toString().toInt64();
+    if (node->isWideString()) return node->toWideString().toInt64();
     return default_value;
 }
 
@@ -834,7 +585,7 @@ bool AssocArray::isTrue(const String& key) const
  * \exception InvalidKeyException: Ungültiger Schlüssel
  * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
  */
-AssocArray& AssocArray::getAssocArray(const String& key) const
+AssocArray& AssocArray::getAssocArray(const String& key)
 {
     Variant* node = findInternal(key);
     if (!node) throw KeyNotFoundException(key);
@@ -842,15 +593,15 @@ AssocArray& AssocArray::getAssocArray(const String& key) const
     return node->toAssocArray();
 }
 
-AssocArray& AssocArray::getAssocArray(const String& key, AssocArray& default_value) const
+const AssocArray& AssocArray::getAssocArray(const String& key) const
 {
     Variant* node = findInternal(key);
-    if (!node) return default_value;
-    if (node->isAssocArray()) return node->toAssocArray();
-    return default_value;
+    if (!node) throw KeyNotFoundException(key);
+    if (!node->isAssocArray()) throw TypeConversionException("%s is not an AssocArray", (const char*)key);
+    return node->toAssocArray();
 }
 
-Array& AssocArray::getArray(const String& key) const
+Array& AssocArray::getArray(const String& key)
 {
     Variant* node = findInternal(key);
     if (!node) throw KeyNotFoundException(key);
@@ -858,12 +609,12 @@ Array& AssocArray::getArray(const String& key) const
     return node->toArray();
 }
 
-Array& AssocArray::getArray(const String& key, Array& default_value) const
+const Array& AssocArray::getArray(const String& key) const
 {
     Variant* node = findInternal(key);
-    if (!node) return default_value;
-    if (node->isArray()) return node->toArray();
-    return default_value;
+    if (!node) throw KeyNotFoundException(key);
+    if (!node->isArray()) throw TypeConversionException("%s is not an Array", (const char*)key);
+    return node->toArray();
 }
 
 /*!\brief Einzelnen Schlüssel löschen
@@ -878,8 +629,8 @@ void AssocArray::erase(const String& key)
 {
     Array tok(key, "/", 0, true);
     if (tok.count() == 0) throw InvalidKeyException(key);
-    ArrayKey firstkey = tok.shift();
-    ArrayKey rest = tok.implode("/");
+    String firstkey = tok.shift();
+    String rest = tok.implode("/");
     iterator it = Tree.find(firstkey);
     if (it == Tree.end()) return; // nothing to do
     // Ist noch was im Pfad rest?
@@ -891,6 +642,7 @@ void AssocArray::erase(const String& key)
             return;
         }
     }
+    delete it->second;
     Tree.erase(it);
 }
 
@@ -947,218 +699,453 @@ AssocArray::const_reverse_iterator AssocArray::rend() const
     return Tree.rend();
 }
 
-/*!\brief Zeiger für das Durchwandern des Arrays zurücksetzen
+/*!\brief Liefert Anzahl Bytes, die für exportBinary erforderlich sind
  *
  * \desc
- * Mit dieser Funktion wird der Iterator \p it, der zum Durchwandern des Arrays mit den
- * Funktion AssocArray::getNext und AssocArray::getPrevious benötigt wird,
- * auf den Anfang zurückgesetzt.
+ * Diese Funktion liefert die Anzahl Bytes zurück, die für den Buffer der Funktion AssocArray::exportBinary
+ * erforderlich sind. Es kann dadurch ein ausreichend großer Puffer vor Aufruf der Funktion exportBinary
+ * angelegt werden.
  *
- * \param[in] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
+ * \return Anzahl Bytes oder 0 im Fehlerfall
  *
+ * \see
+ * - AssocArray::exportBinary
+ * - AssocArray::importBinary
  */
-void AssocArray::reset(Iterator& it) const
+size_t AssocArray::binarySize() const
 {
-    it.reset = true;
+    return exportBinary(NULL, 0);
 }
 
-void AssocArray::reset(ReverseIterator& it) const
-{
-    it.reset = true;
-}
-
-/*!\brief Erstes Element zurückgeben
+/*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
  *
  * \desc
- * Diese Funktion liefert das erste Element des Arrays zurück. Falls der optionale Parameter
- * \p type verwendet wird, liefert die Funktion das erste Element dieses Typs zurück.
+ * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
+ * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
  *
- * @param it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
- * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
- * @return \c true, wenn ein Element vorhanden war, sonst \c false
+ * \param[in] buffer Pointer auf einen ausreichend großen Puffer. Die Größe des benötigten Puffers
+ *            kann zuvor mit der Funktion AssocArray::binarySize ermittelt werden. Wird als Buffer NULL
+ *            übergeben, wird in der Variable \p realsize ebenfalls die Anzahl Bytes zurückgegeben
+ * \param[in] buffersize Die Größe des Puffers in Bytes
+ * \param[out] realsize In dieser Variable wird gespeichert, wieviele Bytes tatsächlich für den Export
+ *            verwendet wurden
+ * \exception ExportBufferToSmallException: Wird geworfen, wenn \p buffersize nicht groß genug ist, um
+ * das Assoziative Array vollständig exportieren zu können.
+ *
+ * \attention
+ * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
+ * werden folgende Typen unterstützt:
+ * - String (Wird als UTF-8 exportiert)
+ * - Array
+ * - AssocArray
+ * - ByteArray
+ * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
+ * - DateTime
+ * \see
+ * - AssocArray::binarySize
+ * - AssocArray::importBinary
+ *
+ * \note
+ * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
  */
-bool AssocArray::getFirst(Iterator& it, Variant::DataType type) const
+size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
 {
-    it.it = Tree.begin();
-    it.reset = false;
-    while (1) {
-        if (it.it == Tree.end()) return false;
-        if (type == Variant::TYPE_UNKNOWN) break;
-        if (type == it.it->second->type()) break;
-        ++it.it;
+    char* ptr = (char*)buffer;
+    size_t p = 0;
+    size_t vallen = 0;
+    String key;
+    ByteArray ba;
+    if (!buffer) buffersize = 0;
+    if (p + 7 < buffersize) memcpy(ptr, "PPLASOC", 7);
+    p += 7;
+    AssocArray::const_iterator it;
+    for (it = Tree.begin(); it != Tree.end(); ++it) {
+        const Variant* a = it->second;
+        if (p < buffersize) {
+            if (a->isByteArrayPtr())
+                PokeN8(ptr + p, Variant::TYPE_BYTEARRAY);
+            else
+                PokeN8(ptr + p, a->type());
+        }
+        p++;
+        key = it->first;
+        size_t keylen = key.size();
+        if (p + 4 < buffersize) PokeN16(ptr + p, (int)keylen);
+        p += 2;
+        if (p + keylen < buffersize) strncpy(ptr + p, (const char*)key, (int)keylen);
+        p += keylen;
+        if (a->isString()) {
+            String string = a->toString();
+            vallen = string.size();
+            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
+            p += 4;
+            if (p + vallen < buffersize) strncpy(ptr + p, (const char*)string, vallen);
+            p += vallen;
+        } else if (a->isWideString()) {
+            String string(a->toWideString()); // Konvertierung in UTF-8
+            vallen = string.size();
+            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
+            p += 4;
+            if (p + vallen < buffersize) strncpy(ptr + p, (const char*)string, vallen);
+            p += vallen;
+
+        } else if (a->isAssocArray()) {
+            if (!buffer)
+                p += a->toAssocArray().exportBinary(NULL, 0);
+            else
+                p += a->toAssocArray().exportBinary(ptr + p, buffersize - p);
+        } else if (a->isArray()) {
+            pplib::Array aaa(a->toArray());
+            if (p + 4 < buffersize) PokeN32(ptr + p, (int)aaa.size());
+            p += 4;
+            for (ssize_t i = 0; i < (ssize_t)aaa.size(); i++) {
+                const String s = aaa.get(i);
+                if (p + 4 < buffersize) PokeN32(ptr + p, (int)s.size());
+                p += 4;
+                vallen = s.size();
+                if (p + vallen < buffersize) strncpy(ptr + p, (const char*)s, vallen);
+                p += vallen;
+            }
+        } else if (a->isDateTime()) {
+            const DateTime& dt = a->toDateTime();
+            // DateTime könnte invalid sein
+            if (dt.isEmpty()) {
+                if (p + 4 < buffersize) PokeN32(ptr + p, 0);
+                p += 4;
+            } else {
+                vallen = 10; // PPL8 speichert Microseconds und Zeitzone in 10 Bytes
+                if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
+                p += 4;
+                if (p + vallen < buffersize) {
+                    PokeN64(ptr + p, dt.toMicroseconds());
+                    PokeN16(ptr + p + 8, dt.timeZone().offsetMinutes());
+                }
+                p += vallen;
+            }
+        } else if (a->isByteArray() == true || a->isByteArrayPtr() == true) {
+            vallen = a->toByteArray().size();
+            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
+            p += 4;
+            if (p + vallen < buffersize) memcpy(ptr + p, a->toByteArrayPtr().adr(), vallen);
+            p += vallen;
+        } else if (a->isDate() == true) {
+            vallen = 4; // Date exportiert das Datum als 32Bit Integer (YYYYMMDD)
+            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
+            p += 4;
+            if (p + vallen < buffersize) {
+                PokeN32(ptr + p, a->toDate().toInt());
+            }
+            p += vallen;
+        } else if (a->isTime() == true) {
+            vallen = 8; // Time exportiert die Zeit in Microseconds als 64Bit Integer
+            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
+            p += 4;
+            if (p + vallen < buffersize) {
+                PokeN64(ptr + p, a->toTime().toMicroseconds());
+            }
+            p += vallen;
+        } else if (a->isTimeDelta()) {
+            vallen = 8; // TimeDelta exportiert die Zeit in Microseconds als 64Bit Integer
+            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
+            p += 4;
+            if (p + vallen < buffersize) {
+                PokeN64(ptr + p, a->toTimeDelta().toMicroseconds());
+            }
+            p += vallen;
+        } else if (a->isTimeZone()) {
+            const TimeZone& tz = a->toTimeZone();
+            vallen = 2;                 // TimeZone exportiert die OffsetMinutes als 16Bit Integer,
+            vallen += tz.name().size(); // und den Namen als String, der aber leer sein kann
+            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
+            p += 4;
+            if (p + vallen < buffersize) {
+                PokeN16(ptr + p, tz.offsetMinutes());
+                memcpy(ptr + p + 2, (const char*)tz.name(), tz.name().size());
+            }
+            p += vallen;
+        } else {
+            vallen = 0;
+            if (p + 4 < buffersize) PokeN32(ptr + p, 0);
+            p += 4;
+        }
     }
+    if (p < buffersize) PokeN8(ptr + p, 0);
+    p++;
+    if (buffersize == 0 || p <= buffersize) return p;
+    throw ExportBufferToSmallException("%zd < %zd", buffersize, p);
+}
+
+/*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
+ *
+ * \desc
+ * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
+ * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
+ *
+ * \param[in,out] buffer %ByteArray, in dem die exportierten Daten gespeichert werden sollen
+ *
+ * \attention
+ * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
+ * werden folgende Typen unterstützt:
+ * - String (Wird als UTF-8 exportiert)
+ * - Array
+ * - AssocArray
+ * - ByteArray
+ * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
+ * - DateTime
+ * \see
+ * - AssocArray::binarySize
+ * - AssocArray::importBinary
+ *
+ * \note
+ * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
+ */
+void AssocArray::exportBinary(ByteArray& buffer) const
+{
+    buffer.free();
+    size_t size = binarySize();
+    buffer.malloc(size);
+    exportBinary((void*)buffer.adr(), buffer.size());
+}
+
+ByteArray AssocArray::exportBinary() const
+{
+    ByteArray buffer;
+    exportBinary(buffer);
+    return buffer;
+}
+
+/*!\brief Daten aus einem vorherigen Export wieder importieren
+ *
+ * \desc
+ * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
+ * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
+ * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
+ *
+ * \param[in] bin Referenz auf ByteArray oder ByteArrayPtr mit den zu importierenden Daten
+ *
+ * \see
+ * - CAssocArray::exportBinary
+ * - CAssocArray::binarySize
+ */
+void AssocArray::importBinary(const ByteArrayPtr& bin)
+{
+    importBinary(bin.adr(), bin.size());
+}
+
+/*!\brief Daten aus einem vorherigen Export wieder importieren
+ *
+ * \desc
+ * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
+ * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
+ * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
+ *
+ * \param[in] buffer Pointer auf den Puffer, der die zu importierenden Daten enthält
+ * \param[in] buffersize Größe des Puffers
+ * \exception ImportFailedException
+ *
+ * \see
+ * - AssocArray::exportBinary
+ * - AssocArray::binarySize
+ */
+size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
+{
+    if (!buffer) throw IllegalArgumentException();
+    if (buffersize == 0) throw IllegalArgumentException();
+    const char* ptr = (const char*)buffer;
+    size_t p = 0;
+    if (buffersize < 8 || strncmp((const char*)ptr, "PPLASOC", 7) != 0) {
+        throw ImportFailedException("Not an AssocArray binary export");
+    }
+    p += 7;
+    int type;
+    size_t vallen, bytes;
+    String key;
+    while (p < buffersize && (type = PeekN8(ptr + p)) != 0) {
+        p++;
+        size_t keylen = PeekN16(ptr + p);
+        p += 2;
+        key.set(ptr + p, keylen);
+        p += keylen;
+        switch (type) {
+        case Variant::TYPE_STRING:
+            vallen = PeekN32(ptr + p);
+            p += 4;
+            set(key, String((const char*)ptr + p, vallen));
+            p += vallen;
+            break;
+        case Variant::TYPE_WIDESTRING:
+            vallen = PeekN32(ptr + p);
+            p += 4;
+            set(key, WideString((const char*)ptr + p, vallen));
+            p += vallen;
+            break;
+        case Variant::TYPE_ASSOCARRAY: {
+            AssocArray na;
+            bytes = na.importBinary(ptr + p, buffersize - p);
+            p += bytes;
+            set(key, na);
+
+        } break;
+        case Variant::TYPE_ARRAY: {
+            size_t elements = PeekN32(ptr + p);
+            p += 4;
+            Array stringarray;
+            stringarray.reserve(elements);
+            for (size_t i = 0; i < elements; i++) {
+                String str(ptr + p + 4, PeekN32(ptr + p));
+                p += PeekN32(ptr + p) + 4;
+                stringarray.add(str);
+            }
+            set(key, stringarray);
+        } break;
+        case Variant::TYPE_BYTEARRAY: {
+            vallen = PeekN32(ptr + p);
+            p += 4;
+            ByteArray nb(ptr + p, vallen);
+            set(key, nb);
+            p += vallen;
+        } break;
+        case Variant::TYPE_DATETIME: {
+            vallen = PeekN32(ptr + p);
+            p += 4;
+            DateTime dt;
+            if (vallen == 8) { // Legacy PPL7-Format
+                dt.setLongInt(PeekN64(ptr + p));
+            } else if (vallen == 10) { // PPL8, mit Microseconds und Timezone (Offset in Minutes)
+                dt.setMicroseconds(PeekN64(ptr + p));
+                dt.timeZone().setOffsetMinutes(PeekN16(ptr + p + 8));
+            }
+            // vallen könnte auch 0 sein, wenn das DateTime invalid ist
+            p += vallen;
+            set(key, dt);
+        } break;
+        case Variant::TYPE_DATE: {
+            vallen = PeekN32(ptr + p);
+            p += 4;
+            set(key, Date::fromInt(PeekN32(ptr + p)));
+            p += vallen;
+        } break;
+        case Variant::TYPE_TIME: {
+            vallen = PeekN32(ptr + p);
+            p += 4;
+            set(key, Time(PeekN64(ptr + p)));
+            p += vallen;
+        } break;
+        case Variant::TYPE_TIMEDELTA: {
+            vallen = PeekN32(ptr + p);
+            p += 4;
+            set(key, TimeDelta::fromMicroseconds((int64_t)PeekN64(ptr + p)));
+            p += vallen;
+        } break;
+        case Variant::TYPE_TIMEZONE: {
+            vallen = PeekN32(ptr + p);
+            p += 4;
+            int16_t offset = (int16_t)PeekN16(ptr + p);
+            String name;
+            if (vallen > 2) {
+                name.set((const char*)ptr + p + 2, vallen - 2);
+            }
+            set(key, TimeZone(offset, name));
+            p += vallen;
+        } break;
+        default:
+            vallen = PeekN32(ptr + p);
+            throw ImportFailedException("unknown datatype in AssocArray binary export [type=%d, size=%zu]", type, vallen);
+        };
+    }
+    p++;
+    return p;
+}
+
+/*!\brief Schlüssel auslesen
+ *
+ * \desc
+ * Dieser Operator liefert den Wert des Schlüssels \p key als Variant zurück. Dieser kann
+ * von der aufrufenden Anwendung in den jeweiligen Datentyp umgewandelt werden.
+ *
+ * @param key Name des Schlüssels
+ * @return Referenz auf den einen Variant mit dem Wert des Schlüssels
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+ */
+const Variant& AssocArray::operator[](const String& key) const
+{
+    Variant* node = findInternal(key);
+    if (!node) throw KeyNotFoundException(key);
+    return *node;
+}
+
+Variant& AssocArray::operator[](const String& key)
+{
+    Variant* node = findInternal(key);
+    if (!node) throw KeyNotFoundException(key);
+    return *node;
+}
+
+/*!\brief Assoziatives Array kopieren
+ *
+ * \desc
+ * Mit diesem Operator wird der Inhalt das Assoziativen Arrays \p other übernommen.
+ * Der bisherige Inhalt dieses Arrays geht verloren.
+ *
+ * @param other Zu kopierendes assoziatives Array
+ * @return Referenz auf dieses Array
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ *
+ */
+AssocArray& AssocArray::operator=(const AssocArray& other)
+{
+    clear();
+    add(other);
+    return *this;
+}
+
+/*!\brief Assoziatives Array hinzufügen
+ *
+ * \desc
+ * Mit diesem Operator wird der Inhalt das Assoziativen Arrays \p other dem eigenen
+ * Array hinzugefügt. Das Array wird vorher nicht gelöscht, so dass vorhandene
+ * Schlüssel erhalten bleiben. Gibt es in \p other jedoch gleichnamige Schlüssel,
+ * werden die bisherigen Werte überschrieben.
+ *
+ * @param other Zu kopierendes assoziatives Array
+ * @return Referenz auf dieses Array
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ *
+ */
+AssocArray& AssocArray::operator+=(const AssocArray& other)
+{
+    add(other);
+    return *this;
+}
+
+bool AssocArray::operator==(const AssocArray& other) const
+{
+    ByteArray b1, b2;
+    exportBinary(b1);
+    other.exportBinary(b2);
+    if (b1 == b2) return true;
+    return false;
+}
+
+bool AssocArray::operator!=(const AssocArray& other) const
+{
+    if (*this == other) return false;
     return true;
 }
 
-/*!\brief Nächstes Element zurückgeben
- *
- * \desc
- * Diese Funktion liefert das nächste Element des Arrays zurück. Falls der optionale Parameter
- * \p type verwendet wird, liefert die Funktion das nächste Element dieses Typs zurück.
- *
- * @param it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
- * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
- * @return \c true, wenn ein Element vorhanden war, sonst \c false
- */
-bool AssocArray::getNext(Iterator& it, Variant::DataType type) const
+AssocArray operator+(const AssocArray& a1, const AssocArray& a2)
 {
-    if (it.reset) return getFirst(it, type);
-    if (it.it == Tree.end()) return false;
-    while (1) {
-        ++it.it;
-        if (it.it == Tree.end()) return false;
-        if (type == Variant::TYPE_UNKNOWN) break;
-        if (type == it.it->second->type()) break;
-    }
-    return true;
+    AssocArray a(a1);
+    a.add(a2);
+    return a;
 }
 
-/*!\brief Letztes Element zurückgeben
- *
- * \desc
- * Diese Funktion liefert das letzte Element des Arrays zurück. Falls der optionale Parameter
- * \p type verwendet wird, liefert die Funktion das letzte Element dieses Typs zurück.
- *
- * @param it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
- * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
- * @return \c true, wenn ein Element vorhanden war, sonst \c false
- */
-bool AssocArray::getLast(ReverseIterator& it, Variant::DataType type) const
-{
-    it.it = Tree.rbegin();
-    it.reset = false;
-    while (1) {
-        if (it.it == Tree.rend()) return false;
-        if (type == Variant::TYPE_UNKNOWN) break;
-        if (type == it.it->second->type()) break;
-        ++it.it;
-    }
-    return true;
-}
-
-/*!\brief Vorhergehendes Element zurückgeben
- *
- * \desc
- * Diese Funktion liefert das vorhergehende Element des Arrays zurück. Falls der optionale Parameter
- * \p type verwendet wird, liefert die Funktion das vorhergehende Element dieses Typs zurück.
- *
- * @param it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
- * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
- * @return \c true, wenn ein Element vorhanden war, sonst \c false
- */
-bool AssocArray::getPrevious(ReverseIterator& it, Variant::DataType type) const
-{
-    if (it.reset) return getLast(it, type);
-    if (it.it == Tree.rend()) return false;
-    while (1) {
-        ++it.it;
-        if (it.it == Tree.rend()) return false;
-        if (type == Variant::TYPE_UNKNOWN) break;
-        if (type == it.it->second->type()) break;
-    }
-    return true;
-}
-
-/*!\brief Ersten %String im %Array finden und Key und Value in Strings speichern
- *
- * \desc
- * Diese Funktion sucht den ersten %String im %Array und speichert dessen
- * Schlüssel im Parameter \p key und den Wert in \p value;
- *
- * @param[in,out] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
- * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
- * @param[out] value String, in dem der Wert gespeichert werden soll.
- * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
- */
-bool AssocArray::getFirst(Iterator& it, String& key, String& value) const
-{
-    it.it = Tree.begin();
-    it.reset = false;
-    while (1) {
-        if (it.it == Tree.end()) return false;
-        if (it.it->second->isString()) break;
-        ++it.it;
-    }
-    key.set(it.it->first);
-    value.set(it.it->second->toString());
-    return true;
-}
-
-/*!\brief Nächsten %String im %Array finden und Key und Value in Strings speichern
- *
- * \desc
- * Diese Funktion sucht den nächsten %String im %Array und speichert dessen
- * Schlüssel im Parameter \p key und den Wert in \p value;
- *
- * @param[in,out] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
- * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
- * @param[out] value String, in dem der Wert gespeichert werden soll.
- * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
- */
-bool AssocArray::getNext(Iterator& it, String& key, String& value) const
-{
-    if (it.reset) return getFirst(it, key, value);
-    if (it.it == Tree.end()) return false;
-    while (1) {
-        ++it.it;
-        if (it.it == Tree.end()) return false;
-        if (it.it->second->isString()) break;
-    }
-    key.set(it.it->first);
-    value.set(it.it->second->toString());
-    return true;
-}
-
-/*!\brief Letzten %String im %Array finden und Key und Value in Strings speichern
- *
- * \desc
- * Diese Funktion sucht den letzten %String im %Array und speichert dessen
- * Schlüssel im Parameter \p key und den Wert in \p value;
- *
- * @param[in,out] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
- * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
- * @param[out] value String, in dem der Wert gespeichert werden soll.
- * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
- */
-bool AssocArray::getLast(ReverseIterator& it, String& key, String& value) const
-{
-    it.it = Tree.rbegin();
-    it.reset = false;
-    while (1) {
-        if (it.it == Tree.rend()) return false;
-        if (it.it->second->isString()) break;
-        ++it.it;
-    }
-    key.set(it.it->first);
-    value.set(it.it->second->toString());
-    return true;
-}
-
-/*!\brief Vorhergehenden %String im %Array finden und Key und Value in Strings speichern
- *
- * \desc
- * Diese Funktion sucht den vorhergehenden %String im %Array und speichert dessen
- * Schlüssel im Parameter \p key und den Wert in \p value;
- *
- * @param[in,out] it Iterator. Dieser muss vom Typ pplib::AssocArray::Iterator sein.
- * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
- * @param[out] value String, in dem der Wert gespeichert werden soll.
- * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
- */
-bool AssocArray::getPrevious(ReverseIterator& it, String& key, String& value) const
-{
-    if (it.reset) return getLast(it, key, value);
-    if (it.it == Tree.rend()) return false;
-    while (1) {
-        ++it.it;
-        if (it.it == Tree.rend()) return false;
-        if (it.it->second->isString()) break;
-    }
-    key.set(it.it->first);
-    value.set(it.it->second->toString());
-    return true;
-}
-
+#ifdef OLDCODE
 /*! \brief Wandelt ein Key-Value Template in ein Assoziatives Array um
  *
  * \desc
@@ -1396,390 +1383,6 @@ void AssocArray::toTemplate(String& s, const String& prefix, const String& lined
     }
 }
 
-/*!\brief Liefert Anzahl Bytes, die für exportBinary erforderlich sind
- *
- * \desc
- * Diese Funktion liefert die Anzahl Bytes zurück, die für den Buffer der Funktion AssocArray::exportBinary
- * erforderlich sind. Es kann dadurch ein ausreichend großer Puffer vor Aufruf der Funktion exportBinary
- * angelegt werden.
- *
- * \return Anzahl Bytes oder 0 im Fehlerfall
- *
- * \see
- * - AssocArray::exportBinary
- * - AssocArray::importBinary
- */
-size_t AssocArray::binarySize() const
-{
-    size_t size;
-    exportBinary(NULL, 0, &size);
-    return size;
-}
-
-/*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
- *
- * \desc
- * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
- * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
- *
- * \param[in] buffer Pointer auf einen ausreichend großen Puffer. Die Größe des benötigten Puffers
- *            kann zuvor mit der Funktion AssocArray::binarySize ermittelt werden. Wird als Buffer NULL
- *            übergeben, wird in der Variable \p realsize ebenfalls die Anzahl Bytes zurückgegeben
- * \param[in] buffersize Die Größe des Puffers in Bytes
- * \param[out] realsize In dieser Variable wird gespeichert, wieviele Bytes tatsächlich für den Export
- *            verwendet wurden
- * \exception ExportBufferToSmallException: Wird geworfen, wenn \p buffersize nicht groß genug ist, um
- * das Assoziative Array vollständig exportieren zu können.
- *
- * \attention
- * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
- * werden folgende Typen unterstützt:
- * - String (Wird als UTF-8 exportiert)
- * - Array
- * - AssocArray
- * - ByteArray
- * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
- * - DateTime
- * \see
- * - AssocArray::binarySize
- * - AssocArray::importBinary
- *
- * \note
- * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
- */
-void AssocArray::exportBinary(void* buffer, size_t buffersize, size_t* realsize) const
-{
-    char* ptr = (char*)buffer;
-    if (realsize) *realsize = 0;
-    size_t p = 0;
-    size_t vallen = 0;
-    String key;
-    ByteArray ba;
-    if (!buffer) buffersize = 0;
-    if (p + 7 < buffersize) memcpy(ptr, "PPLASOC", 7);
-    p += 7;
-    AssocArray::const_iterator it;
-    for (it = Tree.begin(); it != Tree.end(); ++it) {
-        const Variant* a = it->second;
-        if (p < buffersize) {
-            if (a->isByteArrayPtr())
-                PokeN8(ptr + p, Variant::TYPE_BYTEARRAY);
-            else
-                PokeN8(ptr + p, a->type());
-        }
-        p++;
-        key = it->first;
-        size_t keylen = key.size();
-        if (p + 4 < buffersize) PokeN16(ptr + p, (int)keylen);
-        p += 2;
-        if (p + keylen < buffersize) strncpy(ptr + p, (const char*)key, (int)keylen);
-        p += keylen;
-        if (a->isString()) {
-            String string = a->toString();
-            vallen = string.size();
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) strncpy(ptr + p, (const char*)string, vallen);
-            p += vallen;
-        } else if (a->isWideString()) {
-            String string(a->toWideString()); // Konvertierung in UTF-8
-            vallen = string.size();
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) strncpy(ptr + p, (const char*)string, vallen);
-            p += vallen;
-
-        } else if (a->isAssocArray()) {
-            size_t asize = 0;
-            if (!buffer)
-                a->toAssocArray().exportBinary(NULL, 0, &asize);
-            else
-                a->toAssocArray().exportBinary(ptr + p, buffersize - p, &asize);
-            p += asize;
-        } else if (a->isArray()) {
-            pplib::Array aaa(a->toArray());
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)aaa.size());
-            p += 4;
-            for (ssize_t i = 0; i < (ssize_t)aaa.size(); i++) {
-                const String s = aaa.get(i);
-                if (p + 4 < buffersize) PokeN32(ptr + p, (int)s.size());
-                p += 4;
-                vallen = s.size();
-                if (p + vallen < buffersize) strncpy(ptr + p, (const char*)s, vallen);
-                p += vallen;
-            }
-        } else if (a->isDateTime()) {
-            const DateTime& dt = a->toDateTime();
-            // DateTime könnte invalid sein
-            if (dt.isEmpty()) {
-                if (p + 4 < buffersize) PokeN32(ptr + p, 0);
-                p += 4;
-            } else {
-                vallen = 10; // PPL8 speichert Microseconds und Zeitzone in 10 Bytes
-                if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-                p += 4;
-                if (p + vallen < buffersize) {
-                    PokeN64(ptr + p, dt.toMicroseconds());
-                    PokeN16(ptr + p + 8, dt.timeZone().offsetMinutes());
-                }
-                p += vallen;
-            }
-        } else if (a->isByteArray() == true || a->isByteArrayPtr() == true) {
-            vallen = a->toByteArray().size();
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) memcpy(ptr + p, a->toByteArrayPtr().adr(), vallen);
-            p += vallen;
-        } else {
-            vallen = 0;
-            if (p + 4 < buffersize) PokeN32(ptr + p, 0);
-            p += 4;
-        }
-    }
-    if (p < buffersize) PokeN8(ptr + p, 0);
-    p++;
-    if (realsize) *realsize = p;
-    if (buffersize == 0 || p <= buffersize) return;
-    throw ExportBufferToSmallException("%zd < %zd", buffersize, p);
-}
-
-/*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
- *
- * \desc
- * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
- * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
- *
- * \param[in,out] buffer %ByteArray, in dem die exportierten Daten gespeichert werden sollen
- *
- * \attention
- * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
- * werden folgende Typen unterstützt:
- * - String (Wird als UTF-8 exportiert)
- * - Array
- * - AssocArray
- * - ByteArray
- * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
- * - DateTime
- * \see
- * - AssocArray::binarySize
- * - AssocArray::importBinary
- *
- * \note
- * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
- */
-void AssocArray::exportBinary(ByteArray& buffer) const
-{
-    buffer.free();
-    size_t size;
-    exportBinary(NULL, 0, &size);
-    buffer.malloc(size);
-    exportBinary((void*)buffer.adr(), buffer.size(), NULL);
-}
-
-/*!\brief Daten aus einem vorherigen Export wieder importieren
- *
- * \desc
- * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
- * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
- * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
- *
- * \param[in] bin Referenz auf ByteArray oder ByteArrayPtr mit den zu importierenden Daten
- *
- * \see
- * - CAssocArray::exportBinary
- * - CAssocArray::binarySize
- */
-void AssocArray::importBinary(const ByteArrayPtr& bin)
-{
-    importBinary(bin.adr(), bin.size());
-}
-
-/*!\brief Daten aus einem vorherigen Export wieder importieren
- *
- * \desc
- * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
- * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
- * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
- *
- * \param[in] buffer Pointer auf den Puffer, der die zu importierenden Daten enthält
- * \param[in] buffersize Größe des Puffers
- * \exception ImportFailedException
- *
- * \see
- * - AssocArray::exportBinary
- * - AssocArray::binarySize
- */
-size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
-{
-    if (!buffer) throw IllegalArgumentException();
-    if (buffersize == 0) throw IllegalArgumentException();
-    const char* ptr = (const char*)buffer;
-    size_t p = 0;
-    if (buffersize < 8 || strncmp((const char*)ptr, "PPLASOC", 7) != 0) {
-        throw ImportFailedException("Not an AssocArray binary export");
-    }
-    p += 7;
-    int type;
-    size_t vallen, bytes;
-    String key, str;
-    AssocArray na;
-    ByteArray nb;
-    WideString ws;
-    while (p < buffersize && (type = PeekN8(ptr + p)) != 0) {
-        p++;
-        size_t keylen = PeekN16(ptr + p);
-        p += 2;
-        key.set(ptr + p, keylen);
-        p += keylen;
-        switch (type) {
-        case Variant::TYPE_STRING:
-            vallen = PeekN32(ptr + p);
-            p += 4;
-            set(key, (const char*)ptr + p, vallen);
-            p += vallen;
-            break;
-        case Variant::TYPE_WIDESTRING:
-            vallen = PeekN32(ptr + p);
-            p += 4;
-            ws.set((const char*)ptr + p, vallen);
-            set(key, ws);
-            p += vallen;
-            break;
-        case Variant::TYPE_ASSOCARRAY:
-            na.clear();
-            bytes = na.importBinary(ptr + p, buffersize - p);
-            p += bytes;
-            set(key, na);
-            break;
-        case Variant::TYPE_ARRAY: {
-            size_t elements = PeekN32(ptr + p);
-            p += 4;
-            Array stringarray;
-            stringarray.reserve(elements);
-            for (size_t i = 0; i < elements; i++) {
-                str.set(ptr + p + 4, PeekN32(ptr + p));
-                p += PeekN32(ptr + p) + 4;
-                stringarray.add(str);
-            }
-            set(key, stringarray);
-        } break;
-        case Variant::TYPE_BYTEARRAY:
-            vallen = PeekN32(ptr + p);
-            p += 4;
-            nb.free();
-            nb.copy(ptr + p, vallen);
-            p += vallen;
-            set(key, nb);
-            break;
-        case Variant::TYPE_DATETIME: {
-            vallen = PeekN32(ptr + p);
-            p += 4;
-            DateTime dt;
-            if (vallen == 8) { // Legacy PPL7-Format
-                dt.setLongInt(PeekN64(ptr + p));
-            } else if (vallen == 10) { // PPL8, mit Microseconds und Timezone (Offset in Minutes)
-                dt.setMicroseconds(PeekN64(ptr + p));
-                dt.timeZone().setOffsetMinutes(PeekN16(ptr + p + 8));
-            }
-            // vallen könnte auch 0 sein, wenn das DateTime invalid ist
-            p += vallen;
-            set(key, dt);
-        } break;
-        default:
-            vallen = PeekN32(ptr + p);
-            throw ImportFailedException("unknown datatype in AssocArray binary export [type=%d, size=%zu]", type, vallen);
-        };
-    }
-    p++;
-    return p;
-}
-
-/*!\brief Schlüssel auslesen
- *
- * \desc
- * Dieser Operator liefert den Wert des Schlüssels \p key als Variant zurück. Dieser kann
- * von der aufrufenden Anwendung in den jeweiligen Datentyp umgewandelt werden.
- *
- * @param key Name des Schlüssels
- * @return Referenz auf den einen Variant mit dem Wert des Schlüssels
- * \exception InvalidKeyException: Ungültiger Schlüssel
- * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
- */
-const Variant& AssocArray::operator[](const String& key) const
-{
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    return *node;
-}
-
-Variant& AssocArray::operator[](const String& key)
-{
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    return *node;
-}
-
-/*!\brief Assoziatives Array kopieren
- *
- * \desc
- * Mit diesem Operator wird der Inhalt das Assoziativen Arrays \p other übernommen.
- * Der bisherige Inhalt dieses Arrays geht verloren.
- *
- * @param other Zu kopierendes assoziatives Array
- * @return Referenz auf dieses Array
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- *
- */
-AssocArray& AssocArray::operator=(const AssocArray& other)
-{
-    clear();
-    add(other);
-    return *this;
-}
-
-/*!\brief Assoziatives Array hinzufügen
- *
- * \desc
- * Mit diesem Operator wird der Inhalt das Assoziativen Arrays \p other dem eigenen
- * Array hinzugefügt. Das Array wird vorher nicht gelöscht, so dass vorhandene
- * Schlüssel erhalten bleiben. Gibt es in \p other jedoch gleichnamige Schlüssel,
- * werden die bisherigen Werte überschrieben.
- *
- * @param other Zu kopierendes assoziatives Array
- * @return Referenz auf dieses Array
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- *
- */
-AssocArray& AssocArray::operator+=(const AssocArray& other)
-{
-    add(other);
-    return *this;
-}
-
-bool AssocArray::operator==(const AssocArray& other) const
-{
-    ByteArray b1, b2;
-    exportBinary(b1);
-    other.exportBinary(b2);
-    if (b1 == b2) return true;
-    return false;
-}
-
-bool AssocArray::operator!=(const AssocArray& other) const
-{
-    if (*this == other) return false;
-    return true;
-}
-
-AssocArray operator+(const AssocArray& a1, const AssocArray& a2)
-{
-    AssocArray a(a1);
-    a.add(a2);
-    return a;
-}
+#endif
 
 } // namespace pplib
