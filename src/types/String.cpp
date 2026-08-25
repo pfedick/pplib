@@ -991,7 +991,7 @@ String String::strstr(const String& needle) const
     return ret;
 }
 
-size_t String::find(const String& needle, ssize_t start) const
+ssize_t String::find(const String& needle, ssize_t start) const
 {
     if (stringlen == 0 || needle.stringlen == 0) return String::npos;
     if (start > 0 && (size_t)start >= stringlen) return String::npos;
@@ -1031,7 +1031,7 @@ size_t String::find(const String& needle, ssize_t start) const
     return p;
 }
 
-size_t String::findCase(const String& needle, ssize_t start) const
+ssize_t String::findCase(const String& needle, ssize_t start) const
 {
     String CaseNeedle(needle);
     String CaseSearch(ptr, stringlen);

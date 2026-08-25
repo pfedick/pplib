@@ -61,7 +61,7 @@ private:
     size_t stringlen; // Länge des Strings, exkl. 0-Byte am Ende
 
 public:
-    static constexpr size_t npos = static_cast<size_t>(-1); // Ergebnis von find, wenn nichts gefunden wurde
+    static constexpr ssize_t npos = static_cast<ssize_t>(-1); // Ergebnis von find, wenn nichts gefunden wurde
 
     //! @name Konstruktoren und Destruktor
     //@{
@@ -200,8 +200,8 @@ public:
     WideString strchr(wchar_t c) const;
     WideString strrchr(wchar_t c) const;
     WideString strstr(const WideString& needle) const;
-    size_t find(const WideString& needle, ssize_t start = 0) const;
-    size_t findCase(const WideString& needle, ssize_t start = 0) const;
+    ssize_t find(const WideString& needle, ssize_t start = 0) const;
+    ssize_t findCase(const WideString& needle, ssize_t start = 0) const;
 
     /*! @brief Sucht nach einem String
      *
@@ -215,7 +215,7 @@ public:
      * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
      * Funktion immer WideString::npos zurück.
      */
-    inline size_t instr(const WideString& needle, size_t start = 0) const
+    inline ssize_t instr(const WideString& needle, size_t start = 0) const
     {
         return find(needle, start);
     }
@@ -233,7 +233,7 @@ public:
      * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
      * Funktion immer WideString::npos zurück.
      */
-    inline size_t instrCase(const WideString& needle, size_t start = 0) const
+    inline ssize_t instrCase(const WideString& needle, size_t start = 0) const
     {
         return findCase(needle, start);
     }

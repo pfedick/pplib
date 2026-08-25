@@ -2073,7 +2073,7 @@ WideString WideString::strstr(const WideString& needle) const
  * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-size_t WideString::find(const WideString& needle, ssize_t start) const
+ssize_t WideString::find(const WideString& needle, ssize_t start) const
 {
     if (stringlen == 0 || needle.stringlen == 0) return WideString::npos;
     if (start > 0 && (size_t)start >= stringlen) return WideString::npos;
@@ -2128,7 +2128,7 @@ size_t WideString::find(const WideString& needle, ssize_t start) const
  * oder WideString::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
  * Funktion immer 0 zurück.
  */
-size_t WideString::findCase(const WideString& needle, ssize_t start) const
+ssize_t WideString::findCase(const WideString& needle, ssize_t start) const
 {
     WideString CaseNeedle(needle);
     WideString CaseSearch(ptr, stringlen);

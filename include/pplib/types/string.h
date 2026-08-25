@@ -76,7 +76,7 @@ private:
     size_t s, stringlen;
 
 public:
-    static constexpr size_t npos = static_cast<size_t>(-1); // Ergebnis von find, wenn nichts gefunden wurde
+    static constexpr ssize_t npos = static_cast<ssize_t>(-1); // Ergebnis von find, wenn nichts gefunden wurde
 
     //! @name Konstruktoren und Destruktor
     //@{
@@ -1143,7 +1143,7 @@ public:
      * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
      * Funktion immer String::npos zurück.
      */
-    size_t find(const String& needle, ssize_t start = 0) const;
+    ssize_t find(const String& needle, ssize_t start = 0) const;
 
     /*! @brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
      *
@@ -1159,7 +1159,7 @@ public:
      * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
      * Funktion immer 0 zurück.
      */
-    size_t findCase(const String& needle, ssize_t start = 0) const;
+    ssize_t findCase(const String& needle, ssize_t start = 0) const;
 
     /*! @brief Sucht nach einem String
      *
@@ -1174,7 +1174,7 @@ public:
      * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
      * Funktion immer String::npos zurück.
      */
-    size_t instr(const String& needle, ssize_t start = 0) const
+    ssize_t instr(const String& needle, ssize_t start = 0) const
     {
         return find(needle, start);
     }
@@ -1192,7 +1192,7 @@ public:
      * oder String::npos wenn er nicht gefunden wurde. Ist \p needle ein leerer String, liefert die
      * Funktion immer String::npos zurück.
      */
-    size_t instrCase(const String& needle, ssize_t start = 0) const
+    ssize_t instrCase(const String& needle, ssize_t start = 0) const
     {
         return findCase(needle, start);
     }
