@@ -187,6 +187,12 @@ TEST_F(DateTest, toInt)
     ASSERT_EQ((uint32_t)0, pplib::Date().toInt()) << "Class has unexpected value";
 }
 
+TEST_F(DateTest, fromInt)
+{
+    ASSERT_EQ(pplib::Date(2020, 2, 1), pplib::Date::fromInt(20200201)) << "Class has unexpected value";
+    ASSERT_EQ(pplib::Date(), pplib::Date::fromInt(0)) << "Class has unexpected value";
+}
+
 TEST_F(DateTest, ComparisonOperators)
 {
     ASSERT_TRUE(pplib::Date(2020, 1, 1) == pplib::Date(2020, 1, 1)) << "Class has unexpected value";
