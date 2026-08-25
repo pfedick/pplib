@@ -813,12 +813,14 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
                 if (p + 4 < buffersize) PokeN32(ptr + p, 0);
                 p += 4;
             } else {
-                vallen = 10; // PPL8 speichert Microseconds und Zeitzone in 10 Bytes
+                vallen = 10;                           // PPL8 speichert Microseconds in 8 und Zeitzone in 2 Bytes,
+                vallen += dt.timeZone().name().size(); // plus die Länge des Zeitzonen-Namens, der aber leer sein kann.
                 if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
                 p += 4;
                 if (p + vallen < buffersize) {
                     PokeN64(ptr + p, dt.toMicroseconds());
                     PokeN16(ptr + p + 8, dt.timeZone().offsetMinutes());
+                    memcpy(ptr + p + 10, (const char*)dt.timeZone().name(), dt.timeZone().name().size());
                 }
                 p += vallen;
             }
@@ -1011,9 +1013,13 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
             DateTime dt;
             if (vallen == 8) { // Legacy PPL7-Format
                 dt.setLongInt(PeekN64(ptr + p));
-            } else if (vallen == 10) { // PPL8, mit Microseconds und Timezone (Offset in Minutes)
-                dt.setMicroseconds(PeekN64(ptr + p));
-                dt.timeZone().setOffsetMinutes(PeekN16(ptr + p + 8));
+            } else if (vallen >= 10) { // PPL8, mit Microseconds und Timezone (Offset in Minutes)
+                int64_t us = (int64_t)PeekN64(ptr + p);
+                int16_t tz_offset = (int16_t)PeekN16(ptr + p + 8);
+                dt.setMicroseconds(us, TimeZone(tz_offset));
+                if (vallen > 10) { // Wir haben auch einen Zeitzonen-Namen
+                    dt.timeZone().setName(String(ptr + p + 10, vallen - 10));
+                }
             }
             // vallen könnte auch 0 sein, wenn das DateTime invalid ist
             p += vallen;
@@ -1028,7 +1034,7 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
         case Variant::TYPE_TIME: {
             vallen = PeekN32(ptr + p);
             p += 4;
-            set(key, Time(PeekN64(ptr + p)));
+            set(key, Time::fromMicroseconds(PeekN64(ptr + p)));
             p += vallen;
         } break;
         case Variant::TYPE_TIMEDELTA: {
