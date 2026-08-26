@@ -27,6 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include "pplib/types/assocarray.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -66,6 +67,12 @@ TEST(AssocArrayTest, addStringsLevel1)
     });
     ASSERT_EQ((size_t)2, a.count()) << "Unexpected size of AssocArray";
     // a.list();
+}
+
+TEST(AssocArrayTest, addEmptyKey)
+{
+    pplib::AssocArray a;
+    ASSERT_THROW({ a.set("", "Dieser Wert geht über\nmehrere Zeilen"); }, pplib::AssocArray::InvalidKeyException);
 }
 
 TEST(AssocArrayTest, addStringsMultiLevels)
@@ -153,6 +160,16 @@ TEST(AssocArrayTest, appendNonExisting)
     ASSERT_EQ((size_t)2, a.count()) << "Unexpected size of AssocArray";
     ASSERT_EQ(pplib::String("First Value"), a.getString("key")) << "unexpected value";
     ASSERT_EQ(pplib::String("Second Value"), a.getString("level1/key")) << "unexpected value";
+    // a.list();
+}
+
+TEST(AssocArrayTest, appendf)
+{
+    pplib::AssocArray a;
+    a.set("key", "Initial Value");
+    ASSERT_NO_THROW({ a.appendf("key", ",", "This is a formatted value: %d", 42); });
+    ASSERT_EQ((size_t)1, a.count()) << "Unexpected size of AssocArray";
+    ASSERT_EQ(pplib::String("Initial Value,This is a formatted value: 42"), a.getString("key")) << "unexpected value";
     // a.list();
 }
 
@@ -258,6 +275,22 @@ static void createDefaultAssocArray(pplib::AssocArray& a)
     // a.list();
 }
 
+TEST(AssocArrayTest, replaceStringValueByAssocArray)
+{
+    pplib::AssocArray a;
+    ASSERT_NO_THROW({ createDefaultAssocArray(a); });
+    pplib::AssocArray b;
+    b.set("key1", "value1");
+    b.set("key2", "value1");
+    size_t count_before = a.count(true);
+    a.set("key2/array", b);
+    ASSERT_EQ(count_before + b.count(true) + 1, a.count(true)) << "Unexpected size of AssocArray";
+    ASSERT_TRUE(a.get("key2").isAssocArray()) << "Unexpected type of AssocArray";
+    ASSERT_EQ(pplib::String("value1"), a.get("key2/array/key1").toString()) << "unexpected value";
+    ASSERT_EQ(pplib::String("value1"), a.get("key2/array/key2").toString()) << "unexpected value";
+    // a.list();
+}
+
 TEST(AssocArrayTest, binarySize)
 {
     pplib::AssocArray a;
@@ -340,6 +373,17 @@ TEST(AssocArrayTest, CountRecursive)
     ASSERT_EQ((size_t)8, a1.count(true));
 
     ASSERT_EQ((size_t)5, a1.size());
+}
+
+TEST(AssocArrayTest, countForKey)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+
+    ASSERT_EQ((size_t)3, a.count("array1", false));
+    ASSERT_EQ((size_t)4, a.count("array1", true));
+    ASSERT_EQ((size_t)0, a.count("notfound", true));
+    ASSERT_EQ((size_t)1, a.count("key2", true));
 }
 
 TEST(AssocArrayTest, getVariant)
