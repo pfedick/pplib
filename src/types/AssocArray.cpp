@@ -154,6 +154,9 @@ Variant* AssocArray::findInternal(const String& key) const
             return NULL;
         }
     }
+    // Der Value könnte ein leerer Variant sein (TYPE_UNKNOWN). Das ist ein Fall,
+    // der bei createTree() vorkommen kann, wenn ein BadAlloc in set() geworfen wurde.
+    if (it->second->type() == Variant::TYPE_UNKNOWN) return NULL;
     return it->second;
 }
 
@@ -196,6 +199,7 @@ Variant* AssocArray::createTree(const String& key)
     if (firstkey.isNumeric()) {
         uint64_t keyint = firstkey.toInt64();
         if (keyint >= maxint) maxint = keyint + 1;
+        firstkey.setf("%llu", keyint);
     }
 
     iterator it = Tree.find(firstkey);
@@ -348,6 +352,15 @@ void AssocArray::list(const String& prefix) const
             }
         } else if (p->isDateTime()) {
             PrintDebug("%s%s=DateTime %s\n", (const char*)key, (const char*)it->first, (const char*)p->toDateTime().getISO8601withMsec());
+        } else if (p->isDate()) {
+            PrintDebug("%s%s=Date %s\n", (const char*)key, (const char*)it->first, (const char*)p->toDate().toString());
+        } else if (p->isTime()) {
+            PrintDebug("%s%s=Time %s\n", (const char*)key, (const char*)it->first, (const char*)p->toTime().toString());
+        } else if (p->isTimeDelta()) {
+            PrintDebug("%s%s=TimeDelta TODO\n", (const char*)key, (const char*)it->first);
+        } else if (p->isTimeZone()) {
+            PrintDebug("%s%s=TimeZone %s\n", (const char*)key, (const char*)it->first, (const char*)p->toTimeZone().toString(true));
+
         } else {
             PrintDebug("%s%s=UnknownDataType Id=%i\n", (const char*)key, (const char*)it->first, p->type());
         }
@@ -447,6 +460,7 @@ void AssocArray::appendf(const String& key, const String& concat, const char* fm
  */
 void AssocArray::add(const AssocArray& other)
 {
+    if (this == &other) return; // Self-Reference, nichts zu tun
     const_iterator it;
     for (it = other.Tree.begin(); it != other.Tree.end(); ++it) {
         Variant* existing = findInternal(it->first);
@@ -456,6 +470,7 @@ void AssocArray::add(const AssocArray& other)
         } else
             set(it->first, *it->second);
     }
+    if (other.maxint > maxint) maxint = other.maxint;
 }
 
 /*!\brief Schlüssel auslesen
@@ -474,7 +489,14 @@ void AssocArray::add(const AssocArray& other)
 pplib::String &str=a.get(L"key1").toString();
 \endcode
  */
-Variant& AssocArray::get(const String& key) const
+const Variant& AssocArray::get(const String& key) const
+{
+    Variant* node = findInternal(key);
+    if (!node) throw KeyNotFoundException(key);
+    return (*node);
+}
+
+Variant& AssocArray::get(const String& key)
 {
     Variant* node = findInternal(key);
     if (!node) throw KeyNotFoundException(key);
@@ -617,12 +639,18 @@ const Array& AssocArray::getArray(const String& key) const
     return node->toArray();
 }
 
-/*!\brief Einzelnen Schlüssel löschen
+/** @brief Einzelnen Schlüssel löschen
  *
- * \desc
  * Mit dieser Funktion wird ein einzelner Schlüssel aus dem Array gelöscht.
+ * Handelt es sich dabei um den einzigen Schlüssel eines verschachtelten Arrays,
+ * wird nur dieser Schlüssel gelöscht, nicht aber das danach leere Array.
+ * Ist der Schlüssel ein verschachteltes Array, dann wird dieses und alle darin enthaltenen
+ * Schlüssel rekursiv gelöscht.
  *
  * \param[in] key String mit dem Namen des zu löschenden Schlüssels
+ *
+ * @note
+
  *
  */
 void AssocArray::erase(const String& key)
@@ -635,7 +663,7 @@ void AssocArray::erase(const String& key)
     if (it == Tree.end()) return; // nothing to do
     // Ist noch was im Pfad rest?
     if (tok.count() > 0) { // Ja, koennen wir iterieren?
-        if (it->second != NULL && it->second->isAssocArray()) {
+        if (it->second->isAssocArray()) {
             it->second->toAssocArray().erase(rest);
             return;
         } else {
@@ -756,8 +784,12 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
     String key;
     ByteArray ba;
     if (!buffer) buffersize = 0;
-    if (p + 7 < buffersize) memcpy(ptr, "PPLASOC", 7);
-    p += 7;
+    if (p + 8 < buffersize) memcpy(ptr, "PPL8ASOC", 8);
+    p += 8;
+    if (p + 1 < buffersize) PokeN8(ptr + p, 1); // Version
+    p++;
+    if (p + 8 < buffersize) PokeN64(ptr + p, maxint);
+    p += 8;
     AssocArray::const_iterator it;
     for (it = Tree.begin(); it != Tree.end(); ++it) {
         const Variant* a = it->second;
@@ -865,10 +897,6 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
                 memcpy(ptr + p + 2, (const char*)tz.name(), tz.name().size());
             }
             p += vallen;
-        } else {
-            vallen = 0;
-            if (p + 4 < buffersize) PokeN32(ptr + p, 0);
-            p += 4;
         }
     }
     if (p < buffersize) PokeN8(ptr + p, 0);
@@ -955,10 +983,16 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
     if (buffersize == 0) throw IllegalArgumentException();
     const char* ptr = (const char*)buffer;
     size_t p = 0;
-    if (buffersize < 8 || strncmp((const char*)ptr, "PPLASOC", 7) != 0) {
-        throw ImportFailedException("Not an AssocArray binary export");
+    if (buffersize < 8 || strncmp((const char*)ptr, "PPL8ASOC", 8) != 0) {
+        throw ImportFailedException("Not an PPL8 AssocArray binary export");
     }
-    p += 7;
+    p += 8;
+    if (p + 1 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
+    int version = PeekN8(ptr + p);
+    if (version != 1) throw ImportFailedException("Invalid PPL8 AssocArray binary export version %d", version);
+    p++;
+    if (p + 8 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
+    maxint = PeekN64(ptr + p);
     int type;
     size_t vallen, bytes;
     String key;
@@ -1103,8 +1137,19 @@ Variant& AssocArray::operator[](const String& key)
  */
 AssocArray& AssocArray::operator=(const AssocArray& other)
 {
+    if (this == &other) return *this;
     clear();
     add(other);
+    maxint = other.maxint;
+    return *this;
+}
+
+AssocArray& AssocArray::operator=(AssocArray&& other) noexcept
+{
+    if (this == &other) return *this;
+    clear();
+    Tree = std::move(other.Tree);
+    maxint = other.maxint;
     return *this;
 }
 

@@ -165,7 +165,6 @@ public:
 
     /** @brief Konstruktor aus Standard-Template String
      *
-     * \desc
      * Ein String wird aus einem String der Standard-Template-Library (STL) erstellt.
      *
      * @param str Referenz auf String der STL
@@ -178,7 +177,6 @@ public:
 
     /** @brief Konstruktor aus Standard-Template Wide-String
      *
-     * \desc
      * Ein String wird aus einem Wide-String der Standard-Template-Library (STL) erstellt.
      *
      * @param str Referenz auf Wide-String der STL
@@ -423,7 +421,6 @@ public:
 
     /** @brief Rechten Teilstring zurückgeben
      *
-     * \desc
      * Gibt die letzten \p len Zeichen des Strings als neuen zurück.
      *
      * @param len Länge des Teilstrings
@@ -433,7 +430,6 @@ public:
 
     /** @brief Teilstring zurückgeben
      *
-     * \desc
      * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
      * neuen String zurück.
      *
@@ -446,7 +442,6 @@ public:
 
     /** @brief Teilstring zurückgeben
      *
-     * \desc
      * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
      * neuen String zurück.
      *
@@ -708,11 +703,11 @@ public:
      * Anhand des übergebenen Formatstrings \p fmt und den optionalen Parametern \p ...
      * wird ein neuer String gebildet, der an das Ende des bestehenden angehangen wird
      *
-     * \param fmt Der Formatstring
-     * \param ... Optionale Parameter
+     * @param fmt Der Formatstring
+     * @param ... Optionale Parameter
      * @return Referenz auf den String
      *
-     * \copydoc sprintf.dox
+     * @copydoc sprintf.dox
      */
     String& appendf(const char* fmt, ...);
 
@@ -765,7 +760,7 @@ public:
      */
     String& prepend(const WideString& str, size_t size = (size_t)-1);
 
-    /**@brief Fügt einen STL-String am Anfang des bestehenden Strings ein
+    /** @brief Fügt einen STL-String am Anfang des bestehenden Strings ein
      *
      * Fügt einen STL-String am Anfang des bestehenden Strings ein
      *
@@ -778,7 +773,7 @@ public:
      */
     String& prepend(const std::string& str, size_t size = (size_t)-1);
 
-    /**@brief Fügt einen STL-Wide-String am Anfang des bestehenden Strings ein
+    /** @brief Fügt einen STL-Wide-String am Anfang des bestehenden Strings ein
      *
      * Fügt einen STL-Wide-String am Anfang des bestehenden Strings ein
      *
@@ -791,7 +786,7 @@ public:
      */
     String& prepend(const std::wstring& str, size_t size = (size_t)-1);
 
-    /**@brief Fügt einen Wide-Character String am Anfang des bestehenden Strings ein
+    /** @brief Fügt einen Wide-Character String am Anfang des bestehenden Strings ein
      *
      * Fügt einen Wide-Character String am Anfang des bestehenden Strings ein
      *
@@ -804,20 +799,20 @@ public:
      */
     String& prepend(const wchar_t* str, size_t size = (size_t)-1);
 
-    /**@brief Fügt einen Formatierten String am Anfang des bestehenden Strings ein
+    /** @brief Fügt einen Formatierten String am Anfang des bestehenden Strings ein
      *
      * Anhand des übergebenen Formatstrings \p fmt und den optionalen Parametern \p ...
      * wird ein neuer String gebildet, der am Anfang des bestehenden eingefügt wird
      *
-     * \param fmt Der Formatstring
-     * \param ... Optionale Parameter
+     * @param fmt Der Formatstring
+     * @param ... Optionale Parameter
      * @return Referenz auf den String
      *
-     * \copydoc sprintf.dox
+     * @copydoc sprintf.dox
      */
     String& prependf(const char* fmt, ...);
 
-    /**@brief Einzelnes ASCII-Zeichen am Anfang des bestehenden Strings einfügen
+    /** @brief Einzelnes ASCII-Zeichen am Anfang des bestehenden Strings einfügen
      *
      * Ein einzelnes ASCII-Zeichen \p c wird am Anfang des Strings eingefügt.
      *
@@ -827,7 +822,7 @@ public:
      */
     String& prepend(char c);
 
-    /**@brief Erzeugt einen formatierten String
+    /** @brief Erzeugt einen formatierten String
      *
      * Erzeugt einen String anhand des übergebenen Formatstrings \p fmt
      * und den optionalen Parametern in \p args.
@@ -873,7 +868,7 @@ public:
      */
     String& repeat(const String& str, size_t num);
 
-    /**@brief String multiplizieren
+    /** @brief String multiplizieren
      *
      * Der aktuelle String wird \p count mal hintereinander wiederholt und
      * als neuer String zurückgegeben.
@@ -1134,8 +1129,8 @@ public:
      *
      * Find sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
      *
-     * \param[in] needle Gesuchter Teilstring
-     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
+     * @param[in] needle Gesuchter Teilstring
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
      * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
      * Ende des Strings gesucht.
      *
@@ -1150,8 +1145,8 @@ public:
      * Diese Funktion sucht innerhalb des aktuellen String nach \p needle ab der
      * gewünschten Position \a start. Gross-/Kleinschreibung wird dabei ignoriert.
      *
-     * \param[in] needle Gesuchter Teilstring
-     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
+     * @param[in] needle Gesuchter Teilstring
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
      * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
      * Ende des Strings gesucht.
      *
@@ -1165,8 +1160,8 @@ public:
      *
      * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
      *
-     * \param[in] needle Gesuchter Teilstring
-     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
+     * @param[in] needle Gesuchter Teilstring
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
      * oder nicht angegeben, wird der String vom Anfang an gesucht. Ist der Wert jedoch negativ, wird rückwärts vom Ende des Strings
      * gesucht.
      *
@@ -1184,8 +1179,8 @@ public:
      * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
      * Gross-/Kleinschreibung wird dabei ignoriert.
      *
-     * \param[in] needle Gesuchter Teilstring
-     * \param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
+     * @param[in] needle Gesuchter Teilstring
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
      * oder nicht angegeben, wird der String vom Anfang an gesucht. Ist der Wert jedoch negativ, wird rückwärts vom Ende des Strings
      *
      * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
@@ -1466,7 +1461,7 @@ public:
      *
      * @param pos Position des Zeichens innerhalb des Strings
      * @return Bytewert des Zeichens
-     * \exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
+     * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
      * ausserhalb des Strings liegt oder der String leer ist.
      */
     char operator[](ssize_t pos) const;
@@ -1482,7 +1477,7 @@ public:
      *
      * @param pos Position des Zeichens innerhalb des Strings
      * @return Referenz auf das Zeichen
-     * \exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
+     * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
      * ausserhalb des Strings liegt oder der String leer ist.
      */
     char& operator[](ssize_t pos);

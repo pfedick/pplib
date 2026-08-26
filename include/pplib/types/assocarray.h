@@ -87,7 +87,7 @@ private:
      */
     struct ArrayKeyCompare
     {
-        using is_transparent = void; // Ermöglicht find() mit const char*, String etc.
+        // using is_transparent = void; // Ermöglicht find() mit const char*, String etc.
 
         bool operator()(const String& a, const String& b) const
         {
@@ -120,10 +120,10 @@ public:
     PPLIBEXCEPTION(ExportBufferToSmallException, Exception);
     PPLIBEXCEPTION(ImportFailedException, Exception);
 
-    typedef std::map<String, Variant*>::iterator iterator;
-    typedef std::map<String, Variant*>::const_iterator const_iterator;
-    typedef std::map<String, Variant*>::reverse_iterator reverse_iterator;
-    typedef std::map<String, Variant*>::const_reverse_iterator const_reverse_iterator;
+    typedef std::map<String, Variant*, ArrayKeyCompare>::iterator iterator;
+    typedef std::map<String, Variant*, ArrayKeyCompare>::const_iterator const_iterator;
+    typedef std::map<String, Variant*, ArrayKeyCompare>::reverse_iterator reverse_iterator;
+    typedef std::map<String, Variant*, ArrayKeyCompare>::const_reverse_iterator const_reverse_iterator;
 
     //!\name Konstruktoren und Destruktoren
     //@{
@@ -267,7 +267,8 @@ public:
 
     //!\name Werte direkt auslesen
     //@{
-    Variant& get(const String& key) const;
+    const Variant& get(const String& key) const;
+    Variant& get(const String& key);
 
     String& getString(const String& key);
     const String& getString(const String& key) const;
@@ -304,7 +305,7 @@ public:
     Variant& operator[](const String& key);
     const Variant& operator[](const String& key) const;
     AssocArray& operator=(const AssocArray& other);
-    AssocArray& operator=(AssocArray&& other);
+    AssocArray& operator=(AssocArray&& other) noexcept;
     AssocArray& operator+=(const AssocArray& other);
 
     bool operator==(const AssocArray& other) const;

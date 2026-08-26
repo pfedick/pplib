@@ -62,7 +62,7 @@ public:
      *
      * @param str String mit der Zeitangabe
      * @exception IllegalArgumentException
-     */
+     */ // TODO: Days mit einbringen
     TimeDelta(const String& str)
     {
         us = fromString(str).us;
@@ -80,6 +80,9 @@ public:
     {
         return us / 1000000;
     }
+
+    // TODO: toString() mit optionalen Parametern (nur HH:MM, HH:MM:SS, HH:MM:SS.UUUUUU, optional mit Vorzeichen)
+
     // Setter
     TimeDelta& set(int64_t days,
                    int64_t hours = 0,
