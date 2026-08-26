@@ -262,7 +262,7 @@ TEST(AssocArrayTest, binarySize)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({ createDefaultAssocArray(a); });
-    ASSERT_EQ((size_t)1490, a.binarySize());
+    ASSERT_EQ((size_t)1640, a.binarySize());
 }
 
 TEST(AssocArrayTest, exportAndImportBinary)
@@ -281,7 +281,8 @@ TEST(AssocArrayTest, exportAndImportBinary)
         }
     });
     // pplib::HexDump(buffer,realsize);
-    ASSERT_EQ((size_t)1490, ba.size());
+    ASSERT_EQ((size_t)1640, ba.size());
+    // ba.hexDump();
     EXPECT_NO_THROW({ b.importBinary(ba); });
 
     ASSERT_EQ(a.count(), b.count()) << "Unexpected size of AssocArray";

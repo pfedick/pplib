@@ -37,8 +37,8 @@ Abhängigkeiten in `variant.h`, `Variant.cpp`, `datetime.h` verifiziert.
   überschreibt der nächste `set("[]", ...)` still importierte Werte (`createTree` macht `clear()` + set).
   Fix: beim Import den max. numerischen Key tracken und `maxint` daraus setzen.
 
-  => Das Problem ist auch mein mergen/hinzufügen weiterer AssocArrays vorhanden
-  => Import- und Export verwenden un das Magic-Byte "PPL8ASOC" und die Version 1. Die Export-Funktion schreibt den maxint-Wert in das Binary.
+  => Das Problem ist auch bein mergen/hinzufügen weiterer AssocArrays vorhanden
+  => Import- und Export verwenden nun das Magic-Byte "PPL8ASOC" und die Version 1. Die Export-Funktion schreibt den maxint-Wert in das Binary, die Import-Funktion liest ihn wieder ein. Damit ist das Problem behoben.
 
 - [ ] **`operator==` vergleicht Serialisierungs-Bytes → Key-Schreibweise-sensitiv** (Zeile ~1132)
   ```cpp
@@ -49,15 +49,17 @@ Abhängigkeiten in `variant.h`, `Variant.cpp`, `datetime.h` verifiziert.
   aber der Byte-Vergleich sieht die gespeicherte Original-Schreibweise.
   Fix: strukturell vergleichen (Keys iterieren, per `findInternal` auf beiden Seiten abgleichen) statt Bytes.
 
-  => Interessantes Problem. Um dem zu entgehen, könnte man die Keys in der Map immer in einer Normalform speichern (z.B. immer lowercase
+  => Interessantes Problem. Um dem zu entgehen, könnte man die Keys in der Map immer in einer Normalform speichern (z.B. immer lowercase). Was war der Grund, dass wir das nicht gemacht haben?
 
-  => TODO
+  => Bleibt so
 
 - [ ] **`fromConfig`: `Row[-1]` – negativer Index** (OLDCODE-Block, Zeile ~1290)
   ```cpp
   if (Row[0] == L'[' && Row[-1] == L']') {
   ```
   Sollte `Row[Row.len()-1]` sein. OOB-Read, sobald der Block wieder aktiviert wird.
+
+  => Out of Scope, da der Codeblock deaktiviert ist. Bleibt so.
 
 ## Risiken / Edge Cases
 
@@ -86,6 +88,8 @@ Abhängigkeiten in `variant.h`, `Variant.cpp`, `datetime.h` verifiziert.
       negativer Key macht `maxint` als `uint64_t` zu einer riesigen Zahl.
 
       => Gedanken dazu: der numeric-key ist ein Workaround, um im AssocArray sowas wie ein Array bzw. eine Liste abzubilden, deren Elemente auch wieder AssocArrays sein können. Vielleicht wäre es besser für diesen Anwendungsfall eine eigene Klasse zu haben, die eine Liste von AssocArrays abbildet?
+      
+      => Aufwand lohnt sich nicht, bleibt so.
 
 - [ ] **DateTime-Import mit `vallen` in (0,8) oder (8,10)**: weder Legacy- noch PPL8-Zweig greift →
       leeres DateTime wird still importiert statt Exception.

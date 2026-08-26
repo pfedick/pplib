@@ -1,6 +1,7 @@
 /debug/
 /release/
 /build/
+/tmp/
 /config.log
 /config.status
 /pplib-config
@@ -24,3 +25,4 @@ tests/cmake_test_discovery_04c0110ec6.json
 coverage.xml
 coverage_html
 compile_commands.json
+__pycache__

@@ -199,7 +199,6 @@ Variant* AssocArray::createTree(const String& key)
     if (firstkey.isNumeric()) {
         uint64_t keyint = firstkey.toInt64();
         if (keyint >= maxint) maxint = keyint + 1;
-        firstkey.setf("%llu", keyint);
     }
 
     iterator it = Tree.find(firstkey);
@@ -784,12 +783,8 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
     String key;
     ByteArray ba;
     if (!buffer) buffersize = 0;
-    if (p + 8 < buffersize) memcpy(ptr, "PPL8ASOC", 8);
-    p += 8;
-    if (p + 1 < buffersize) PokeN8(ptr + p, 1); // Version
-    p++;
-    if (p + 8 < buffersize) PokeN64(ptr + p, maxint);
-    p += 8;
+    if (p + 7 < buffersize) memcpy(ptr, "PPLASOC", 7);
+    p += 7;
     AssocArray::const_iterator it;
     for (it = Tree.begin(); it != Tree.end(); ++it) {
         const Variant* a = it->second;
@@ -983,41 +978,29 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
     if (buffersize == 0) throw IllegalArgumentException();
     const char* ptr = (const char*)buffer;
     size_t p = 0;
-    if (buffersize < 8 || strncmp((const char*)ptr, "PPL8ASOC", 8) != 0) {
-        throw ImportFailedException("Not an PPL8 AssocArray binary export");
+    if (buffersize < 8 || strncmp((const char*)ptr, "PPLASOC", 7) != 0) {
+        throw ImportFailedException("Not an AssocArray binary export");
     }
-    p += 8;
-    if (p + 1 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
-    int version = PeekN8(ptr + p);
-    if (version != 1) throw ImportFailedException("Invalid PPL8 AssocArray binary export version %d", version);
-    p++;
-    if (p + 8 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
-    maxint = PeekN64(ptr + p);
-    p += 8;
+    p += 7;
     int type;
     size_t vallen, bytes;
     String key;
-    while (p + 2 < buffersize && (type = PeekN8(ptr + p)) != 0) {
+    while (p < buffersize && (type = PeekN8(ptr + p)) != 0) {
         p++;
         size_t keylen = PeekN16(ptr + p);
         p += 2;
-        if (p + keylen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
         key.set(ptr + p, keylen);
         p += keylen;
         switch (type) {
         case Variant::TYPE_STRING:
-            if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             vallen = PeekN32(ptr + p);
             p += 4;
-            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             set(key, String((const char*)ptr + p, vallen));
             p += vallen;
             break;
         case Variant::TYPE_WIDESTRING:
-            if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             vallen = PeekN32(ptr + p);
             p += 4;
-            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             set(key, WideString((const char*)ptr + p, vallen));
             p += vallen;
             break;
@@ -1029,36 +1012,27 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
 
         } break;
         case Variant::TYPE_ARRAY: {
-            if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             size_t elements = PeekN32(ptr + p);
             p += 4;
             Array stringarray;
             stringarray.reserve(elements);
             for (size_t i = 0; i < elements; i++) {
-                if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
-                vallen = PeekN32(ptr + p);
-                p += 4;
-                if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
-                String str(ptr + p, vallen);
-                p += vallen;
+                String str(ptr + p + 4, PeekN32(ptr + p));
+                p += PeekN32(ptr + p) + 4;
                 stringarray.add(str);
             }
             set(key, stringarray);
         } break;
         case Variant::TYPE_BYTEARRAY: {
-            if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             vallen = PeekN32(ptr + p);
             p += 4;
-            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             ByteArray nb(ptr + p, vallen);
             set(key, nb);
             p += vallen;
         } break;
         case Variant::TYPE_DATETIME: {
-            if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             vallen = PeekN32(ptr + p);
             p += 4;
-            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             DateTime dt;
             if (vallen == 8) { // Legacy PPL7-Format
                 dt.setLongInt(PeekN64(ptr + p));
@@ -1075,34 +1049,26 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
             set(key, dt);
         } break;
         case Variant::TYPE_DATE: {
-            if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             vallen = PeekN32(ptr + p);
             p += 4;
-            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             set(key, Date::fromInt(PeekN32(ptr + p)));
             p += vallen;
         } break;
         case Variant::TYPE_TIME: {
-            if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             vallen = PeekN32(ptr + p);
             p += 4;
-            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             set(key, Time::fromMicroseconds(PeekN64(ptr + p)));
             p += vallen;
         } break;
         case Variant::TYPE_TIMEDELTA: {
-            if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             vallen = PeekN32(ptr + p);
             p += 4;
-            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             set(key, TimeDelta::fromMicroseconds((int64_t)PeekN64(ptr + p)));
             p += vallen;
         } break;
         case Variant::TYPE_TIMEZONE: {
-            if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             vallen = PeekN32(ptr + p);
             p += 4;
-            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             int16_t offset = (int16_t)PeekN16(ptr + p);
             String name;
             if (vallen > 2) {
@@ -1112,6 +1078,7 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
             p += vallen;
         } break;
         default:
+            vallen = PeekN32(ptr + p);
             throw ImportFailedException("unknown datatype in AssocArray binary export [type=%d, size=%zu]", type, vallen);
         };
     }
