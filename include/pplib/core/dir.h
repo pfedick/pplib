@@ -320,6 +320,11 @@ public:
      */
     bool tryOpen(const String& path, Sort sortOrder = Sort::None);
 
+    inline void clear() noexcept
+    {
+        Files.clear();
+    }
+
     /**@brief Sortierung ändern
      *
      * Durch Aufruf dieser Funktion kann die Sortierreihenfolge der bereits eingelesenen

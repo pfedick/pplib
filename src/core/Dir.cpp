@@ -434,13 +434,9 @@ void Dir::open(const String& path, Sort sortOrder)
     }
 
     // 2. Einträge einlesen und Meta-Daten via File::statFile ermitteln
-    DirEntry de;
     for (const auto& entry : it) {
-#ifdef _WIN32
-        String currentFile = String(WideString(entry.path().c_str()));
-#else
         String currentFile = entry.path().string();
-#endif
+        DirEntry de;
         try {
             File::statFile(currentFile, de);
             Files.push_back(de);
