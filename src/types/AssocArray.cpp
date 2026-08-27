@@ -683,6 +683,26 @@ AssocArray::const_reverse_iterator AssocArray::rend() const
     return Tree.rend();
 }
 
+AssocArray::const_iterator AssocArray::cbegin() const
+{
+    return Tree.cbegin();
+}
+
+AssocArray::const_iterator AssocArray::cend() const
+{
+    return Tree.cend();
+}
+
+AssocArray::const_reverse_iterator AssocArray::crbegin() const
+{
+    return Tree.crbegin();
+}
+
+AssocArray::const_reverse_iterator AssocArray::crend() const
+{
+    return Tree.crend();
+}
+
 /*!\brief Liefert Anzahl Bytes, die für exportBinary erforderlich sind
  *
  * \desc
@@ -813,11 +833,12 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
                 p += vallen;
             }
         } else if (a->isByteArray() == true || a->isByteArrayPtr() == true) {
-            vallen = a->toByteArray().size();
+            vallen = a->toByteArrayPtr().size();
             if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
             p += 4;
             if (p + vallen < buffersize) memcpy(ptr + p, a->toByteArrayPtr().adr(), vallen);
             p += vallen;
+
         } else if (a->isDate() == true) {
             vallen = 4; // Date exportiert das Datum als 32Bit Integer (YYYYMMDD)
             if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
@@ -842,7 +863,7 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
                 PokeN64(ptr + p, a->toTimeDelta().toMicroseconds());
             }
             p += vallen;
-        } else if (a->isTimeZone()) {
+        } else if (a->isTimeZone()) { // keine vollständige Coverage hier erreichbar, da keine anderen Typen exportiert werden
             const TimeZone& tz = a->toTimeZone();
             vallen = 2;                 // TimeZone exportiert die OffsetMinutes als 16Bit Integer,
             vallen += tz.name().size(); // und den Namen als String, der aber leer sein kann
@@ -1014,11 +1035,9 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
             if (p + 4 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             vallen = PeekN32(ptr + p);
             p += 4;
-            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             DateTime dt;
-            if (vallen == 8) { // Legacy PPL7-Format
-                dt.setLongInt(PeekN64(ptr + p));
-            } else if (vallen >= 10) { // PPL8, mit Microseconds und Timezone (Offset in Minutes)
+            if (vallen >= 10) {
+                if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
                 int64_t us = (int64_t)PeekN64(ptr + p);
                 int16_t tz_offset = (int16_t)PeekN16(ptr + p + 8);
                 dt.setMicroseconds(us, TimeZone(tz_offset));
@@ -1088,16 +1107,12 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
  */
 const Variant& AssocArray::operator[](const String& key) const
 {
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    return *node;
+    return get(key);
 }
 
 Variant& AssocArray::operator[](const String& key)
 {
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    return *node;
+    return get(key);
 }
 
 /*!\brief Assoziatives Array kopieren
@@ -1241,18 +1256,18 @@ void AssocArray::list(const String& prefix) const
                 PrintDebug("%s%s/Array(%zu)=%s\n", (const char*)key, (const char*)it->first, i, (const char*)a[i]);
             }
         } else if (p->isDateTime()) {
-            PrintDebug("%s%s=DateTime %s\n", (const char*)key, (const char*)it->first, (const char*)p->toDateTime().getISO8601withMsec());
+            PrintDebug("%s%s=DateTime(%s)\n", (const char*)key, (const char*)it->first, (const char*)p->toDateTime().getISO8601withMsec());
         } else if (p->isDate()) {
-            PrintDebug("%s%s=Date %s\n", (const char*)key, (const char*)it->first, (const char*)p->toDate().toString());
+            PrintDebug("%s%s=Date(%s)\n", (const char*)key, (const char*)it->first, (const char*)p->toDate().toString());
         } else if (p->isTime()) {
-            PrintDebug("%s%s=Time %s\n", (const char*)key, (const char*)it->first, (const char*)p->toTime().toString());
+            PrintDebug("%s%s=Time(%s)\n", (const char*)key, (const char*)it->first, (const char*)p->toTime().toString());
         } else if (p->isTimeDelta()) {
-            PrintDebug("%s%s=TimeDelta TODO\n", (const char*)key, (const char*)it->first);
+            PrintDebug("%s%s=TimeDelta(TODO)\n", (const char*)key, (const char*)it->first);
         } else if (p->isTimeZone()) {
-            PrintDebug("%s%s=TimeZone %s\n", (const char*)key, (const char*)it->first, (const char*)p->toTimeZone().toString(true));
+            PrintDebug("%s%s=TimeZone(%s)\n", (const char*)key, (const char*)it->first, (const char*)p->toTimeZone().toString(true));
 
-        } else {
-            PrintDebug("%s%s=UnknownDataType Id=%i\n", (const char*)key, (const char*)it->first, p->type());
+            //} else {
+            //    PrintDebug("%s%s=UnknownDataType Id=%i\n", (const char*)key, (const char*)it->first, p->type());
         }
     }
 }

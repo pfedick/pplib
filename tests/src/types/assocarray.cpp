@@ -47,6 +47,7 @@
 #include "pplib/types/date.h"
 
 extern pplib::Array Wordlist;
+extern const char* loremipsum;
 
 namespace
 {
@@ -436,9 +437,12 @@ static void createDefaultAssocArray(pplib::AssocArray& a)
     a.set("datetimetz", pplib::DateTime("2018-12-03 13:49:10.123456+02:00"));
     a.set("time", pplib::Time("12:45:10.123456"));
     a.set("date", pplib::Date("2018-12-03"));
+    a.set("invaliddatetime", pplib::DateTime());
     a.set("timedelta", pplib::TimeDelta("12:45:10.123456"));
     a.set("timezone", pplib::TimeZone(2, 0, "Europe/Berlin"));
     a.set("bytearray", pplib::ByteArray("this is a bytearray"));
+
+    a.set("bytearrayptr", pplib::ByteArrayPtr(loremipsum, strlen(loremipsum)));
 
     data.setf("sampleTime", "%0.6f", 22362546.32543);
     data.setf("net_receive/bytes", "%lu", (unsigned long)1);
@@ -489,7 +493,7 @@ TEST(AssocArrayTest, binarySize)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({ createDefaultAssocArray(a); });
-    ASSERT_EQ((size_t)1640, a.binarySize());
+    ASSERT_EQ((size_t)2272, a.binarySize());
 }
 
 TEST(AssocArrayTest, exportAndImportBinary)
@@ -508,7 +512,7 @@ TEST(AssocArrayTest, exportAndImportBinary)
         }
     });
     // pplib::HexDump(buffer,realsize);
-    ASSERT_EQ((size_t)1640, ba.size());
+    ASSERT_EQ((size_t)2272, ba.size());
     // ba.hexDump();
     EXPECT_NO_THROW({ b.importBinary(ba); });
 
@@ -684,6 +688,48 @@ TEST(AssocArrayTest, erase)
     size_t original_size = a.count(true);
     ASSERT_NO_THROW(a.erase("nonexisting_key"));
     ASSERT_EQ(original_size, a.count(true));
+
+    // tief verschachtelte Schlüssel
+    ASSERT_NO_THROW(a.erase("array1/unterkey1"));
+    ASSERT_EQ(original_size - 1, a.count(true));
+    ASSERT_NO_THROW(a.erase("array1/unterkey2"));
+    ASSERT_EQ(original_size - 2, a.count(true));
+
+    // Schlüssel auf oberster Ebene
+    ASSERT_NO_THROW(a.erase("key1"));
+    ASSERT_EQ(original_size - 3, a.count(true));
+
+    // Verschachtelten Schlüssel löschen, der eigentlich ein AssocArray ist.
+    // "key2" ist ein String, und kein Array. Letzlich ist "key2/unterkey" ein nicht existierender Schlüssel.
+    ASSERT_NO_THROW(a.erase("key2/unterkey"));
+    ASSERT_EQ(original_size - 3, a.count(true));
+}
+
+TEST(AssocArrayTest, remove)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+
+    ASSERT_THROW(a.remove(""), pplib::AssocArray::InvalidKeyException);
+
+    size_t original_size = a.count(true);
+    ASSERT_NO_THROW(a.remove("nonexisting_key"));
+    ASSERT_EQ(original_size, a.count(true));
+
+    // tief verschachtelte Schlüssel
+    ASSERT_NO_THROW(a.remove("array1/unterkey1"));
+    ASSERT_EQ(original_size - 1, a.count(true));
+    ASSERT_NO_THROW(a.remove("array1/unterkey2"));
+    ASSERT_EQ(original_size - 2, a.count(true));
+
+    // Schlüssel auf oberster Ebene
+    ASSERT_NO_THROW(a.remove("key1"));
+    ASSERT_EQ(original_size - 3, a.count(true));
+
+    // Verschachtelten Schlüssel löschen, der eigentlich ein AssocArray ist.
+    // "key2" ist ein String, und kein Array. Letzlich ist "key2/unterkey" ein nicht existierender Schlüssel.
+    ASSERT_NO_THROW(a.remove("key2/unterkey"));
+    ASSERT_EQ(original_size - 3, a.count(true));
 }
 
 TEST(AssocArrayTest, OperatorPlus)
@@ -815,6 +861,248 @@ TEST(AssocArrayTest, OperatorElement)
     ASSERT_EQ(pplib::Variant(pplib::String("value4")), a1["key2"]);
 }
 
+TEST(AssocArrayTest, OperatorElementConst)
+{
+    pplib::AssocArray a1;
+    a1.set("key1", "value1");
+    a1.set("key2", "value2");
+    const pplib::AssocArray& a1c = a1;
+
+    ASSERT_EQ(pplib::Variant(pplib::String("value1")), a1c["key1"]);
+    ASSERT_EQ(pplib::Variant(pplib::String("value2")), a1c["key2"]);
+}
+
+TEST(AssocArrayTest, OperatorAssign)
+{
+    pplib::AssocArray a1, a2;
+    a1.set("key1", "value1");
+    a1.set("key2", "value2");
+    a2 = a1;
+    ASSERT_EQ(a1, a2);
+}
+
+TEST(AssocArrayTest, OperatorAssignSelfAssignment)
+{
+    pplib::AssocArray a1;
+    a1.set("key1", "value1");
+    a1.set("key2", "value2");
+    a1 = a1;
+    ASSERT_EQ(a1["key1"], pplib::Variant(pplib::String("value1")));
+    ASSERT_EQ(a1["key2"], pplib::Variant(pplib::String("value2")));
+}
+
+TEST(AssocArrayTest, OperatorMove)
+{
+    pplib::AssocArray a1;
+    a1.set("key1", "value1");
+    a1.set("key2", "value2");
+    pplib::AssocArray a2;
+    a2 = std::move(a1);
+    ASSERT_EQ(a2["key1"], pplib::Variant(pplib::String("value1")));
+    ASSERT_EQ(a2["key2"], pplib::Variant(pplib::String("value2")));
+}
+
+TEST(AssocArrayTest, OperatorMoveSelfAssignment)
+{
+    pplib::AssocArray a1;
+    a1.set("key1", "value1");
+    a1.set("key2", "value2");
+    a1 = std::move(a1);
+    ASSERT_EQ(a1["key1"], pplib::Variant(pplib::String("value1")));
+    ASSERT_EQ(a1["key2"], pplib::Variant(pplib::String("value2")));
+}
+
+// Iterators
+
+TEST(AssocArrayTest, IteratorForward)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    a.set("key2", "value1");
+    a.set("key3", "value1");
+
+    pplib::AssocArray::iterator it;
+    it = a.begin();
+    ASSERT_EQ(it->first, pplib::String("key1"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key2"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key3"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it, a.end());
+}
+
+TEST(AssocArrayTest, IteratorBackward)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    a.set("key2", "value1");
+    a.set("key3", "value1");
+
+    pplib::AssocArray::reverse_iterator it;
+    it = a.rbegin();
+    ASSERT_EQ(it->first, pplib::String("key3"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key2"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key1"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it, a.rend());
+}
+
+TEST(AssocArrayTest, IteratorForwardConst)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    a.set("key2", "value1");
+    a.set("key3", "value1");
+
+    const pplib::AssocArray& ca = a;
+
+    pplib::AssocArray::const_iterator it;
+    it = ca.begin();
+    ASSERT_EQ(it->first, pplib::String("key1"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key2"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key3"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it, ca.end());
+
+    // Und das gleiche nochmal aber mit cbegin
+    it = ca.cbegin();
+    ASSERT_EQ(it->first, pplib::String("key1"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key2"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key3"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it, ca.cend());
+}
+
+TEST(AssocArrayTest, IteratorBackwardConst)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    a.set("key2", "value1");
+    a.set("key3", "value1");
+
+    const pplib::AssocArray& ca = a;
+    pplib::AssocArray::const_reverse_iterator it;
+    it = ca.rbegin();
+    ASSERT_EQ(it->first, pplib::String("key3"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key2"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key1"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it, ca.rend());
+
+    // Und das gleiche nochmal aber mit crbegin und crend
+    it = ca.crbegin();
+    ASSERT_EQ(it->first, pplib::String("key3"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key2"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key1"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it, ca.crend());
+}
+
+// Sortierung mit ArrayKeyCompare testen
+
+TEST(AssocArrayTest, ArrayKeyCompare)
+{
+    pplib::AssocArray a;
+    a.set("CaSe0", "value0");
+    a.set("case1", "value1");
+    a.set("key1", "value1");
+    a.set("key3", "value3");
+    a.set("key2", "value2");
+    a.set("CASE3", "value3");
+    a.set("100", "100");
+    a.set("0", "0");
+    a.set("10", "10");
+    a.set("1", "1");
+    ASSERT_EQ(a.count(), 10);
+    a.list();
+    // Drüber itterieren
+    pplib::AssocArray::const_iterator it;
+    it = a.cbegin();
+    ASSERT_EQ(it->first, pplib::String("0"));
+    ASSERT_EQ(it->second->toString(), pplib::String("0"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("1"));
+    ASSERT_EQ(it->second->toString(), pplib::String("1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("10"));
+    ASSERT_EQ(it->second->toString(), pplib::String("10"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("100"));
+    ASSERT_EQ(it->second->toString(), pplib::String("100"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("CaSe0"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value0"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("case1"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("CASE3"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value3"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key1"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value1"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key2"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value2"));
+    ++it;
+    ASSERT_EQ(it->first, pplib::String("key3"));
+    ASSERT_EQ(it->second->toString(), pplib::String("value3"));
+
+    ++it;
+    ASSERT_EQ(it, a.cend());
+}
+
+// Debug
+
+TEST(AssocArrayTest, list)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+
+    testing::internal::CaptureStdout();
+    a.list();
+    pplib::String output = testing::internal::GetCapturedStdout();
+    ASSERT_FALSE(output.isEmpty());
+    // output.printnl();
+
+    // Stichproben
+    ASSERT_TRUE(output.contains("array1/noch ein array/unterkey1=value4"));
+    ASSERT_TRUE(output.contains("data/0/cpu/idle=4"));
+    ASSERT_TRUE(output.contains("bytearray=ByteArray, 19 Bytes"));
+    ASSERT_TRUE(output.contains("bytearrayptr=ByteArrayPtr, 591 Bytes"));
+    ASSERT_TRUE(output.contains("stringarray/Array(1)=green"));
+    ASSERT_TRUE(output.contains("datetimetz=DateTime(2018-12-03T13:49:10.123+02:00)"));
+}
+
 #ifdef OLDCODE
 
 static void createWalkingArray(pplib::AssocArray& a)
@@ -942,3 +1230,5 @@ TEST(AssocArrayTest, fromConfig)
 #endif
 
 } // namespace
+
+#
