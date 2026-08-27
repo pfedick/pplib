@@ -64,8 +64,8 @@ class Variant;
  * sehr großen Arrays eine schnelle Verarbeitung gewährleistet ist. Gross-/Kleinschreibung wird
  * ignoriert, der Schlüssel "TEST" wäre also identisch mit "test" oder "Test".
  *
- * Mehrdimensionale Arrays sind möglich, indem einem Schlüssel als Wert einfach ein anderes Array
- * zugeordnet wird. In einem solchen Array kann jedes Element direkt angesprochen werden, indem man
+ * Mehrdimensionale Arrays sind möglich, indem einem Schlüssel als Wert einfach ein anderes AssocArray
+ * zugeordnet wird. In einem solchen AssocArray kann jedes Element direkt angesprochen werden, indem man
  * die einzelnen Schlüssel durch Slash (/) getrennt zu einem einzigen Schlüssel zusammenfasst.
  *
  * Mehrdimensionale Arrays werden automatisch generiert. Gibt man bei einem leeren %Array dem Schlüssel
@@ -77,13 +77,12 @@ class Variant;
 class AssocArray
 {
 private:
-    /** @brief Vergleichsfunktion für die Schlüssel in der std::map
+    /** @brief Inzterne Vergleichsfunktion für die Schlüssel in der std::map
      *
      * Diese Funktion vergleicht zwei Schlüssel aus dem AssocArray. Sind Beide Strings nummerisch,
      * wird ein nummerischer Vergleich durchgeführt. Ist nur einer der beiden Schlüssel Nummerisch, wird
      * der nummerische Wert vor dem anderen einsortiert. Sind beide Werte Strings, wird ein
      * Case-Insensitiver Vergleich durchgeführt. Die Funktion wird von den Vergleichoperatoren aufgerufen.
-     *
      */
     struct ArrayKeyCompare
     {
@@ -528,21 +527,25 @@ public:
      * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
      * @param[in,out] buffer %ByteArray, in dem die exportierten Daten gespeichert werden sollen
      *
-     * @attention
-     * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
-     * werden folgende Typen unterstützt:
-     * - String (Wird als UTF-8 exportiert)
+     * @note
+     * Alle Datentypen werden beim Export und Import Unterstützt:
+     * - String
+     * - WideString (Wird als String exportiert)
      * - Array
      * - AssocArray
      * - ByteArray
-     * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
+     * - ByteArrayPtr (wird in ein ByteArray umgewandelt und beim Import zu einem ByteArray!)
      * - DateTime
+     * - Date
+     * - Time
+     * - TimeDelta
+     * - TimeZone
      * @see
      * - AssocArray::binarySize
      * - AssocArray::importBinary
      *
      * @note
-     * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
+     * Das exportierte Binary ist nicht kompatibel mit vorherigen Versionen!
      */
     void exportBinary(ByteArray& buffer) const;
 
@@ -739,20 +742,6 @@ public:
     //@}
 };
 AssocArray operator+(const AssocArray& a1, const AssocArray& a2);
-
-/*
-size_t fromTemplate(const String& templ,
-                    const String& linedelimiter = "\n",
-                    const String& splitchar = "=",
-                    const String& concat = "\n",
-                    bool dotrim = false);
-size_t fromConfig(const String& content,
-                  const String& linedelimiter = "\n",
-                  const String& splitchar = "=",
-                  const String& concat = "\n",
-                  bool dotrim = false);
-void toTemplate(String& s, const String& prefix = "", const String& linedelimiter = "\n", const String& splitchar = "=") const;
-*/
 
 } // namespace pplib
 
