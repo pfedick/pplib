@@ -39,6 +39,7 @@ namespace pplib
 
 /** @class Time
  * @brief Datentyp für Uhrzeit
+ * @ingroup PPLGroupDataTypes
  *
  * Mit diesem Datentyp kann eine Uhrzeit mit Stunden, Minuten, Sekunden und Mikrosekunden gespeichert werden.
  * Die Uhrzeit wird intern in Mikrosekunden gespeichert. Die maximale Uhrzeit ist 23:59:59.999999.

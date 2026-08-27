@@ -1,11 +1,11 @@
 /*!\mainpage PPLib-Dokumentation
 \image html resource/pplib-icon-256x256.png
 \section Einleitung
-PPL steht für "Patrick's Programming Library" und ist eine Sammlung nützlicher
-Funktionen und Klassen für C++-Anwendungen, geschrieben von Patrick Fedick <patrick@pfp.de>.
+PPLib (manchmal auch PPL abgekürzt) steht für "Patrick's Programming Library" und ist eine Sammlung
+von Klassen und Funktionen für C++-Anwendungen, geschrieben von Patrick Fedick <patrick@pfp.de>.
 Sie beinhaltet Funktionen aus verschiedenen Bereichen, wie
 
-- Datei- und Verzeichniss-Zugriff
+- Platform-unabhängiger Datei- und Verzeichniss-Zugriff
 - Strings, Arrays, Listen, Trees
 - Multithreading
 - Sockets (TCP, UDP)
@@ -15,20 +15,19 @@ Sie beinhaltet Funktionen aus verschiedenen Bereichen, wie
 - Zeit, Datum und mathematische Funktionen
 - Grafik
 - Sound
-- Speicherverwaltung
 
 Die erste Version erschien bereits im Jahr 1997 und bestand fast vollständig
 aus Assembler-Code für Windows. Seitdem wurde die Library mehrfach umstrukturiert und erweitert
 und besteht nun zum größten Teil aus plattform-unabhängigem C und C++-Code. Unterstützt werden
 folgende Systeme:
 
-- Linux (getestet unter CentOS 6/7, Ubuntu 16.04, 18.04 in der 64-Bit-Version)
-- FreeBSD (Version 10.x und 11.x in 64-Bit)
-- Windows 7/10 (mit MinGW in 32- und 64-Bit)
+- Linux (getestet unter Fedora 43, 64-Bit)
+- FreeBSD (Version 13.x in 64-Bit)
+- Windows 10/11 (mit MinGW64)
 
-Als Compiler wird gcc ab Version 4.4 benötigt oder clang ab Version 3.
+Als Compiler wird gcc oder clang benötigt, Version muss den C++17-Standard unterstützen.
 
-Seit Version 6.2.0 steht die PPL-Library unter einer Open Source BSD-Lizenz und darf somit fast
+Die Library steht unter einer Open Source BSD-Lizenz und darf somit fast
 uneingeschränkt auch in kommerziellen oder "closed source" Programmen verwendet werden. Die
 genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
 

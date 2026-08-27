@@ -37,6 +37,12 @@
 namespace pplib
 {
 
+/** @class TimeZone
+ * @brief Datentyp für Zeitzonen
+ * @ingroup PPLGroupDataTypes
+ *
+ * Diese Klasse stellt Methoden zum Verwalten und Formatieren von Zeitzonen bereit.
+ */
 class TimeZone
 {
 private:

@@ -21,6 +21,9 @@ diese auf allen Platformen gleich groß sind. Diese sind:
 \li \link pplib::String String-Klasse \endlink \n
 Die String-Klasse pplib::String wird zum Verwalten von beliebig großen Strings verwendet
 
+\li \link pplib::WideString String-Klasse für UTF-16 oder Unicode\endlink \n
+Die String-Klasse pplib::WideString wird zum Verwalten von beliebig großen Strings verwendet
+
 \li \link pplib::Array Einfache Arrays mit Strings\endlink \n
 Die Klasse pplib::Array wird für einfache zweidimensionale Array verwendet, wobei der
 Schlüssel eine laufende Nummer ist und der Wert ein String.
@@ -35,6 +38,23 @@ Die Klasse pplib::ByteArray wird zum Speichern von Binären Daten verwendet.
 
 \li \link pplib::ByteArrayPtr Ein Datentyp zum Speichern von Pointern \endlink \n
 Die Klasse pplib::ByteArrayPtr wird zum Speichern von Pointern auf beliebige Speicherbereiche
-verwendet. Sie dient als Basisklasse für pplib::ByteArray. 
+verwendet. Sie dient als Basisklasse für pplib::ByteArray.
+
+\li \link pplib::Date Datentyp für Datum \endlink \n
+Die Klasse pplib::Date wird zum Verwalten von Datum verwendet.
+
+\li \link pplib::Time Datentyp für Zeit \endlink \n
+Die Klasse pplib::Time wird zum Verwalten von Zeit verwendet.
+
+\li \link pplib::DateTime Datentyp für Datum und Zeit \endlink \n
+Die Klasse pplib::DateTime wird zum Verwalten von Datum und Zeit verwendet.
+
+\li \link pplib::TimeZone Datentyp für Zeitzonen \endlink \n
+Die Klasse pplib::TimeZone wird zum Verwalten von Zeitzonen verwendet.
+
+\li \link pplib::TimeDelta Datentyp für Zeitintervalle \endlink \n
+Die Klasse pplib::TimeDelta wird zum Verwalten von Zeitintervallen verwendet.
+
+
 */
 

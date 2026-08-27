@@ -36,6 +36,12 @@ namespace pplib
 {
 class String;
 
+/** @class TimeDelta
+ * @brief Datentyp für Zeitintervalle
+ * @ingroup PPLGroupDataTypes
+ *
+ * Diese Klasse stellt Methoden zum Verwalten und Formatieren von Zeitintervallen bereit.
+ */
 class TimeDelta
 {
 private:

@@ -37,6 +37,12 @@
 namespace pplib
 {
 
+/** @class Date
+ * @brief Datentyp für Datum
+ * @ingroup PPLGroupDataTypes
+ *
+ * Diese Klasse stellt Methoden zum Verwalten und Formatieren von Datumswerten bereit.
+ */
 class Date
 {
 private:
