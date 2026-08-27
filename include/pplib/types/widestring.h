@@ -53,6 +53,19 @@ class ByteArrayPtr;
 class ByteArray;
 class Array;
 
+/** @class WideString
+ * @ingroup PPLGroupDataTypes
+ * @ingroup PPLGroupStrings
+ * @brief WideString-Klasse
+ *
+ * \desc
+ * Diese Klasse kann verwendet werden, um beliebige Strings zu speichern und zu verarbeiten. Dabei
+ * braucht sich der Anwender keine Gedanken um den verwendeten Speicher zu machen.
+ * Die einzelnen Zeichen des Strings werden intern im Unicode-Format gespeichert. Bei Übernahme eines
+ * C-Strings wird erwartet, dass dieser im UTF-8 Format vorliegt, mit der statischen Funktion
+ * WideString::setGlobalEncoding kann jedoch auch eine andere Kodierung vorgegeben werden.
+ *
+ */
 class WideString
 {
 private:
@@ -66,13 +79,58 @@ public:
     //! @name Konstruktoren und Destruktor
     //@{
 
+    /** @brief Konstruktor für leeren String
+     *
+     * Es wird ein leerer String erstellt.
+     */
     WideString() noexcept;
+
+    /** @brief Konstruktor aus Wide-Character-String
+     *
+     * Ein String wird aus einem Wide-Character-String erstellt.
+     * @param str Wide-Character-String, der mit einem 0-Wert Endet
+     * @exception OutOfMemoryException
+     */
     WideString(const wchar_t* str);
+
+    /** @brief Konstruktor aus Wide-Character-String mit bestimmer Länge
+     *
+     * Ein String wird aus dem Wide-Character-String \p str erstellt, von dem maximal
+     * @p size Zeichen übernommen werden.
+     *
+     * @param str Wide-Character-String, der mit einem 0-Wert Endet
+     * @param size Maximale Anzahl Zeichen, die übernommen werden sollen
+     * @exception OutOfMemoryException
+     */
     WideString(const wchar_t* str, size_t size);
     explicit WideString(const char* str, size_t size = (size_t)-1);
     WideString(const WideString& str);
+
+    /** @brief Konstruktor aus anderem String (Copy-Konstruktor)
+     *
+     * Ein String wird aus einem anderen String erstellt.
+     * @param str Referenz auf einen anderen String
+     * @exception OutOfMemoryException
+     */
     explicit WideString(const String& str);
+
+    /** @brief Konstruktor aus Standard-Template String
+     *
+     * Ein String wird aus einem String der Standard-Template-Library (STL) erstellt.
+     * @param str Referenz auf String der STL
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     explicit WideString(const std::string& str);
+
+    /** @brief Konstruktor aus Standard-Template Wide-String
+     *
+     * Ein String wird aus einem Wide-String der Standard-Template-Library (STL) erstellt.
+     * @param str Referenz auf Wide-String der STL
+     * @exception OutOfMemoryException
+     */
     WideString(const std::wstring& str);
 
     /** @brief Konstruktor mit ByteArrayPtr
@@ -83,7 +141,18 @@ public:
      */
     explicit WideString(const ByteArrayPtr& str);
 
+    /** @brief Konstruktor aus anderem String (Copy-Konstruktor)
+     *
+     * Ein String wird aus einem anderen String erstellt.
+     * @param str Referenz auf einen anderen String
+     * @exception OutOfMemoryException
+     */
     WideString(WideString&& other) noexcept;
+
+    /** @brief Destruktor
+     *
+     * Der Destructor gibt den durch den String belegten Speicher wieder frei.
+     */
     ~WideString() noexcept;
 #ifdef WITH_QT
     WideString(const QString& q)
@@ -118,66 +187,629 @@ public:
     static WideString format(const char* fmt, ...);
     //@}
 
+    /** @brief String leeren
+     *
+     * Mit dieser Funktion wird der String geleert und der bisher allokierte Speicher wieder
+     * freigegeben.
+     */
     void clear() noexcept;
+
+    /** @brief Anzahl Zeichen, die in den bereits allokierten Speicher passen
+     *
+     * Diese Funktion liefert die Anzahl Zeichen zurück, die in den derzeitig allokierten
+     * Puffer passen, ohne dass neuer Speicher allokiert werden muss.
+     * @return Anzahl Zeichen
+     */
     size_t capacity() const;
+
+    /** @brief Reserviert Speicher für den String
+     *
+     * Mit dieser Funktion kann vor Verwendung des Strings vorgegeben werden, wieviel
+     * Speicher initial reserviert werden soll. Dies ist insbesondere dann sinnvoll,
+     * wenn der String während seiner Lebenszeit häufig verlängert wird.
+     *
+     * @param[in] size Anzahl Zeichen, für die Speicher reserviert werden soll.
+     *
+     * @note
+     * Enthält der String bereits Zeichen, gehen diese nicht verloren, der existierende
+     * Speicherbereich kann aber zwecks Vergrößerung umkopiert werden. Der Aufruf
+     * der Funktion WideString::clear führt dazu, dass der Speicher wieder freigegeben wird.
+     */
     void reserve(size_t size);
+
+    /** @brief Länge des Strings
+     *
+     * Diese Funktion gibt die Anzahl Zeichen zurück, aus denen der String besteht.
+     * @note
+     * Die Funktionen WideString::len, WideString::length und WideString::size sind identisch.
+     * @see
+     * WideString::capacity
+     *
+     * @return Anzahl Zeichen
+     */
     size_t len() const;
+
+    /** @brief Länge des Strings
+     *
+     * Diese Funktion gibt die Anzahl Zeichen zurück, aus denen der String besteht.
+     * @note
+     * Die Funktionen WideString::len, WideString::length und WideString::size sind identisch.
+     * @see
+     * WideString::capacity
+     *
+     * @return Anzahl Zeichen
+     */
     size_t length() const;
+
+    /** @brief Länge des Strings
+     *
+     * Diese Funktion gibt die Anzahl Zeichen zurück, aus denen der String besteht.
+     * @note
+     * Die Funktionen WideString::len, WideString::length und WideString::size sind identisch.
+     * @see
+     * WideString::capacity
+     *
+     * @return Anzahl Zeichen
+     */
     size_t size() const;
+
+    /** @brief Länge des Strings in Byte
+     *
+     * Diese Funktion gibt die Anzahl Byte zurück, die durch den String belegt werden.
+     * @return Anzahl Bytes
+     */
     size_t byteLength() const;
+
+    /** @brief Prüft, ob der String leer ist.
+     *
+     * Diese Funktion prüft, ob der String leer ist.
+     * @returns Ist der String leer, liefert die Funktion @c true zurück, sonst @c false.
+     * @see WideString::notEmpty
+     */
     bool isEmpty() const;
+
+    /** @brief Prüft, ob der String Zeichen enthält
+     *
+     * Diese Funktion prüft, ob der String Zeichen enthält.
+     * @returns Enthält der String Zeichen, liefert die Funktion @c true zurück, sonst @c false.
+     * @see WideString::isEmpty
+     */
     bool notEmpty() const;
+
+    /** @brief Prüft, ob der String nummerisch ist
+     *
+     * Diese Funktion prüft, ob im String nur nummerische Zeichen vorhanden sind, also die Ziffern
+     * 0-9, Punkt, Komma und Minus.
+     * @return Ist der String nummerisch, wird 1 zurückgegeben. Ist er es nicht oder ist der String
+     * leer, wird 0 zurückgegeben.
+     */
     bool isNumeric() const;
+
+    /** @brief Prüft, ob der String einen Integer Wert enthält
+     *
+     * Diese Funktion prüft, ob im String einen integer Wert enthält, also nur die Ziffern
+     * 0-9 und optional ein Minus am Anfang enthalten sind
+     * @return Ist der String ein Integer, wird 1 zurückgegeben. Ist er es nicht oder ist der String
+     * leer, wird 0 zurückgegeben.
+     */
     bool isInteger() const;
+
+    /** @brief Prüft, ob der String "wahr" ist
+     *
+     * Diese Funktion überprüft den aktuellen String, ob er "wahr" ist. Dies ist der Fall,
+     * wenn eine der folgenden Bedingungen erfüllt ist:
+     * - Der String enthält eine Ziffer ungleich 0
+     * - Der String enthält das Wort "true" (Gross- oder Kleingeschrieben)
+     * - Der String enthält das Wort "wahr" (Gross- oder Kleingeschrieben)
+     * - Der String enthält das Wort "yes" (Gross- oder Kleingeschrieben)
+     * - Der String enthält das Wort "ja" (Gross- oder Kleingeschrieben)
+     *
+     * @returns Liefert true (1) zurück, wenn der String "wahr" ist, sonst false (0). Ein Fehlercode wird nicht gesetzt
+     * @see CWWideString::IsFalse()
+     */
     bool isTrue() const;
+
+    /** @brief Prüft, ob der String "unwahr" ist
+     *
+     * Diese Funktion überprüft den aktuellen String, ob er "unwahr" ist. Dies ist der Fall,
+     * wenn eine der folgenden Bedingungen erfüllt ist:
+     * - Der String zeigt auf NULL
+     * - Die Länge des Strings ist 0
+     * - Der String enthält die Ziffer 0
+     * - Der String enthält nicht das Wort "true", "wahr", "yes" oder "ja" (Gross-/Kleinschreibung egal)
+     *
+     * @returns Liefert true (1) zurück, wenn der String "unwahr" ist, sonst false (0). Ein Fehlercode wird nicht gesetzt
+     * @see CWWideString::IsTrue()
+     */
     bool isFalse() const;
 
+    /** @brief Führt einen Vergleich mit einem anderen String durch
+     *
+     * Führt einen Vergleich mit einem anderen String durch.
+     * @param str String, mit dem verglichen werden soll
+     * @param size Optionaler Parameter, der die Anzahl zu berücksichtigender Zeichen innerhalb des
+     * Strings @p str angibt. Wird er nicht angegeben, wird ein vergleich mit dem kompletten String
+     * @p str durchgeführt.
+     *
+     * @return Ist der String innerhalb dieses Objekts kleiner als der mit @a str angegebene, wird ein
+     * negativer Wert zurückgegeben, ist er größer, erfolgt ein positiver Return-Wert,
+     * sind beide identisch, wird 0 zurückgegeben.
+     *
+     * @see strCaseCmp Vergleich zweier Strings unter Ignorierung der Gross-/Kleinschreibung
+     */
     int strcmp(const WideString& str, size_t size = (size_t)-1) const;
+
+    /** @brief Stringvergleich mit Ignorierung von Gross-/Kleinschreibung
+     *
+     * Führt einen Vergleich mit einem anderen String durch, unter Ignorierung der
+     * Gross-/Kleinschreibung.
+     * @param str String, mit dem verglichen werden soll
+     * @param size Optionaler Parameter, der die Anzahl zu berücksichtigender Zeichen innerhalb des
+     * Strings @p str angibt. Wird er nicht angegeben, wird ein vergleich mit dem kompletten String
+     * @p str durchgeführt.
+     *
+     *
+     * @return Ist der String innerhalb dieses Objekts kleiner als der mit @a str angegebene, wird ein
+     * negativer Wert zurückgegeben, ist er größer, erfolgt ein positiver Return-Wert,
+     * sind beide identisch, wird 0 zurückgegeben.
+     *
+     * @see strcmp Vergleich zweier Strings unter Berücksichtigung der Gross-/Kleinschreibung
+     */
     int strCaseCmp(const WideString& str, size_t size = (size_t)-1) const;
+
+    /** @brief Linken Teilstring zurückgeben
+     *
+     * Gibt die ersten \p len Zeichen des Strings als neuen zurück.
+     * @param len Länge des Teilstrings
+     * @return Neuer String
+     */
     WideString left(size_t len) const;
+
+    /** @brief Rechten Teilstring zurückgeben
+     *
+     * Gibt die letzten \p len Zeichen des Strings als neuen zurück.
+     * @param len Länge des Teilstrings
+     * @return Neuer String
+     */
     WideString right(size_t len) const;
+
+    /** @brief Teilstring zurückgeben
+     *
+     * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
+     * neuen String zurück.
+     * @param start Startposition
+     * @param len Optionale Länge des Teilstrings. Ist der Parameter nicht angegeben, wird
+     * der komplette String ab Position @p start zurückgegeben.
+     * @return Neuer String
+     */
     WideString mid(size_t start, size_t len = (size_t)-1) const;
+
+    /** @brief Teilstring zurückgeben
+     *
+     * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
+     * neuen String zurück.
+     * @param start Startposition
+     * @param len Optionale Länge des Teilstrings. Ist der Parameter nicht angegeben, wird
+     * der komplette String ab Position @p start zurückgegeben.
+     * @return Neuer String
+     */
     WideString substr(size_t start, size_t len = (size_t)-1) const;
 
     //! @name String setzen und verändern
     //@{
 
+    /** @brief String anhand eines C-Strings setzen
+     *
+     * Mit dieser Funktion wird der String anhand eines char * gesetzt. Dabei wird er
+     * intern nach Unicode konvertiert.
+     * @param str Pointer auf einen String
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     *
+     * @note
+     * Multibyte-Characters zählen als ein Zeichen.
+     */
     WideString& set(const char* str, size_t size = (size_t)-1);
+
+    /** @brief String anhand eines wchar_t* setzen
+     *
+     * Mit dieser Funktion wird der String anhand eines wchar_t * gesetzt.
+     * @param str Pointer auf einen String
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException
+     */
     WideString& set(const wchar_t* str, size_t size = (size_t)-1);
+
+    /** @brief Wert eines anderen Strings übernehmen
+     *
+     * Mit dieser Funktion wird der Inhalt des Strings \p str übernommen.
+     * @param str Referenz auf einen anderen String
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException
+     */
     WideString& set(const WideString& str, size_t size = (size_t)-1);
     WideString& set(const String& str, size_t size = (size_t)-1);
+
+    /** @brief Wert eines Strings der STL übernehmen
+     *
+     * Mit dieser Funktion wird der Inhalt des STL-Strings \p str übernommen.
+     * @param str Referenz auf einen String der Standard Template Library (STL)
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException
+     */
     WideString& set(const std::string& str, size_t size = (size_t)-1);
+
+    /** @brief Wert eines Wide-Strings der STL übernehmen
+     *
+     * Mit dieser Funktion wird der Inhalt des STL-Wide-Strings \p str übernommen.
+     * @param str Referenz auf einen Wide-String der Standard Template Library (STL)
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException
+     */
     WideString& set(const std::wstring& str, size_t size = (size_t)-1);
+
+    /** @brief Einzelnes Unicode-Zeichen übernehmen
+     *
+     * Ein einzelnes Unicode-Zeichen \p c wird in den String übernommen.
+     * @param c Unicode-Wert des gewünschten Zeichens
+     *
+     * @return Referenz auf den String
+     */
     WideString& set(wchar_t c);
+
+    /** @brief Einzelnes Zeichen ersetzen
+     *
+     * Mit dieser Funktion wird ein einzelnes Zeichen eines Strings an der Position
+     * @p position durch das Zeichen @p c ersetzt.
+     *
+     * @param position Position innerhalb des Strings (Zählung beginnt bei 0)
+     * @param c Unicode-Wert, der gesetzt werden soll
+     * @return Referenz auf den String
+     * @throw OutOfBoundsException: Wird geworfen, wenn @p position größer ist, als die
+     * Länge des Strings
+     */
     WideString& set(size_t position, wchar_t c);
+
+    /** @brief Erzeugt einen formatierten String
+     *
+     * Erzeugt einen String anhand des übergebenen Formatstrings \p fmt
+     * und den optionalen Parametern \p ...
+     * @param fmt Der Formatstring
+     * @param ... Optionale Parameter
+     *
+     * @return Referenz auf den String
+     *
+     *
+     * @code
+     * int main(int argc, char **argv)
+     * {
+     * String s;
+     * s.setf ("Anzahl Parameter: %i@n",argc);
+     * s.printnl();
+     * return 0;
+     * }
+     * @endcode
+     *
+     * @copydoc sprintf.dox
+     */
     WideString& setf(const char* fmt, ...);
 
+    /** @brief Fügt einen C-String an das Ende des bestehenden an
+     *
+     * Fügt einen C-String an das Ende des bestehenden an. Der String muss entweder
+     * UTF-8 kodiert sein, oder es muss mit der statischen Funktion WideString::setGlobalEncoding
+     * zuvor eine andere Kodierung gesetzt worden sein.
+     * @param[in] str Pointer auf einen Wide-Character String
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     WideString& append(const char* str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen Wide-Character String an das Ende des bestehenden an
+     *
+     * Fügt einen Wide-Character String an das Ende des bestehenden an
+     * @param[in] str Pointer auf einen Wide-Character String
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
     WideString& append(const wchar_t* str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen String an das Ende des bestehenden an
+     *
+     * Fügt einen String an das Ende des bestehenden an.
+     * @param[in] str Referenz auf ein String-Objekt
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
     WideString& append(const WideString& str, size_t size = (size_t)-1);
     WideString& append(const String& str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen std::string an das Ende des bestehenden an
+     *
+     * Fügt einen std::string an das Ende des bestehenden an.
+     * @param[in] str Referenz auf ein String-Objekt der STL
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
     WideString& append(const std::string& str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen std::wstring an das Ende des bestehenden an
+     *
+     * Fügt einen std::wstring an das Ende des bestehenden an.
+     * @param[in] str Referenz auf ein Wide-String-Objekt der STL
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
     WideString& append(const std::wstring& str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen Formatierten String an das Ende des bestehenden an
+     *
+     * Anhand des übergebenen Formatstrings @p fmt und den optionalen Parametern @p ...
+     * wird ein neuer String gebildet, der an das Ende des bestehenden angehangen wird
+     *
+     * @param fmt Der Formatstring
+     * @param ... Optionale Parameter
+     * @return Referenz auf den String
+     *
+     *
+     * @code
+     * int main(int argc, char **argv)
+     * {
+     * String s;
+     * s="Hallo Welt!";
+     * s.appendf (" Es wurden %i Parameter übergeben@n",argc);
+     * s.printnl();
+     * return 0;
+     * }
+     * @endcode
+     *
+     * @copydoc sprintf.dox
+     */
     WideString& appendf(const char* fmt, ...);
+
+    /** @brief Einzelnes Unicode-Zeichen anhängen
+     *
+     * Ein einzelnes Unicode-Zeichen \p c wird in an den String angehangen.
+     * @param c Unicode-Wert des gewünschten Zeichens
+     *
+     * @return Referenz auf den String
+     */
     WideString& append(wchar_t c);
 
+    /** @brief Fügt einen C-String am Anfang des bestehenden Strings ein
+     *
+     * Fügt einen C-String am Anfang des bestehenden Strings ein
+     * @param[in] str Pointer auf einen C-String
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
     WideString& prepend(const char* str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen Wide-Character String am Anfang des bestehenden Strings ein
+     *
+     * Fügt einen Wide-Character String am Anfang des bestehenden Strings ein
+     * @param[in] str Pointer auf einen Wide-Character String
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
     WideString& prepend(const wchar_t* str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen String am Anfang des bestehenden Strings ein
+     *
+     * Fügt einen String am Anfang des bestehenden Strings ein
+     * @param[in] str Referenz auf einen String
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
     WideString& prepend(const WideString& str, size_t size = (size_t)-1);
     WideString& prepend(const String& str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen std::string der STL am Anfang des bestehenden Strings ein
+     *
+     * Fügt einen std::string der Standard Template Library am Anfang des bestehenden Strings ein
+     * @param[in] str Referenz auf einen std::string
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
     WideString& prepend(const std::string& str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen std::wstring der STL am Anfang des bestehenden Strings ein
+     *
+     * Fügt einen std::wstring der Standard Template Library am Anfang des bestehenden Strings ein
+     * @param[in] str Referenz auf einen std::wstring
+     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     *
+     * @return Referenz auf den String
+     *
+     * @exception OutOfMemoryException
+     */
     WideString& prepend(const std::wstring& str, size_t size = (size_t)-1);
+
+    /** @brief Fügt einen Formatierten String am Anfang bestehenden ein
+     *
+     * Anhand des übergebenen Formatstrings @p fmt und den optionalen Parametern @p ...
+     * wird ein neuer String gebildet, der am Anfang des bestehenden eingehangen wird.
+     *
+     * @param fmt Der Formatstring
+     * @param ... Optionale Parameter
+     *
+     * @code
+     * int main(int argc, char **argv)
+     * {
+     * String s;
+     * s="Vielen Dank!@n";
+     * s.prependf ("Es wurden %i Parameter übergeben. ",argc);
+     * s.printnl();
+     * return 0;
+     * }
+     * @endcode
+     *
+     * @copydoc sprintf.dox
+     */
     WideString& prependf(const char* fmt, ...);
+
+    /** @brief Einzelnes Unicode-Zeichen am Anfang einfügen
+     *
+     * Ein einzelnes Unicode-Zeichen \p c wird in am Anfang des Strings eingefügt.
+     * Die nachfolgenden Zeichen des Strings verschieben sich nach rechts.
+     * @param c Unicode-Wert des gewünschten Zeichens
+     *
+     * @return Referenz auf den String
+     */
     WideString& prepend(wchar_t c);
 
+    /** @brief Erzeugt einen formatierten String
+     *
+     * Erzeugt einen String anhand des übergebenen Formatstrings @p fmt
+     * und den optionalen Parametern in @p args.
+     *
+     * @param fmt Der Formatstring
+     * @param args Pointer auf Liste der Parameter. Muss zuvor mit va_start initialisiert worden sein.
+     * @return Referenz auf den String
+     *
+     * @code
+     * void MyFunction(const char *fmt, ...)
+     * {
+     * String s;
+     * va_list args;
+     * va_start(args, fmt);
+     * s.vasprintf(fmt,args);
+     * va_end(args);
+     * printf ("Ergebnis: %ls",(const wchar_t*)s);
+     * }
+     * @endcode
+     *
+     * @copydoc sprintf.dox
+     */
     WideString& vasprintf(const char* fmt, va_list args);
+
+    /** @brief String wiederholen
+     *
+     * Mit dieser Funktion wird der Inhalt des Strings mehrfach wiederholt.
+     * @param num Anzahl Wiederholungen. Falls @p num 0 ist, ist der String anschließend leer.
+     *
+     * @return Referenz auf den verlängerten String.
+     */
     WideString& repeat(size_t num);
+
+    /** @brief Füllt den String mit einem Zeichen
+     *
+     * Der String wird mit einem gewünschten Zeichen gefüllt
+     * @param unicode Der Unicode des Zeichens, mit dem der String gefüllt werden soll
+     * @param num Die Länge des gewünschten Strings
+     * @return Referenz auf den neuen String
+     */
     WideString& repeat(wchar_t unicode, size_t num);
+
+    /** @brief String wiederholen
+     *
+     * Mit dieser Funktion wird der übergebene String \p str \p num mal wiederholt und
+     * das Ergebnis in diesem String gespeichert.
+     * @param str Der zu wiederholende String
+     * @param num Anzahl wiederholungen
+     * @return Referenz auf den String
+     */
     WideString& repeat(const WideString& str, size_t num);
+
+    /** @brief String multiplizieren
+     *
+     * Der aktuelle String wird \p count mal hintereinander wiederholt und
+     * als neuer String zurückgegeben.
+     * @param[in] count Anzahl wiederholungen
+     * @return Neuer String
+     * @exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
+     */
     WideString repeated(size_t num) const;
 
+    /** @brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
+     *
+     * Diese Funktion wandelt alle Zeichen des Strings in Kleinbuchstaben um. Die genaue Funktionsweise hängt davon ab,
+     * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
+     * @attention Unter UNIX (und möglicherweise anderen Betriebssystemen) werden die Lokalisationseinstellungen der
+     * Umgebung nicht automatisch übernommen, sondern stehen standardmäßig auf "C". Dadurch werden nur US-ASCII
+     * (ASCII 32 bis 127) umgewandelt. Man sollte daher nach Programmstart mit "setlocale" die gewünschte
+     * Spracheinstellung vornehmen.
+     *
+     * @example
+     * @code
+     * #include <locale.h>
+     * ...
+     * setlocale(LC_CTYPE,"de_DE.UTF-8");
+     * @endcode
+     */
     WideString& lowerCase();
+
+    /** @brief Wandelt alle Zeichen des Strings in Grossbuchstaben um
+     *
+     * Diese Funktion wandelt alle Zeichen des Strings in Großbuchstaben um. Die genaue Funktionsweise hängt davon ab,
+     * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
+     * @attention Unter UNIX (und möglicherweise anderen Betriebssystemen) werden die Lokalisationseinstellungen der
+     * Umgebung nicht automatisch übernommen, sondern stehen standardmäßig auf "C". Dadurch werden nur US-ASCII
+     * (ASCII 32 bis 127) umgewandelt. Man sollte daher nach Programmstart mit "setlocale" die gewünschte
+     * Spracheinstellung vornehmen.
+     *
+     * @example
+     * @code
+     * #include <locale.h>
+     * ...
+     * setlocale(LC_CTYPE,"de_DE.UTF-8");
+     * @endcode
+     */
     WideString& upperCase();
+
+    /** @brief Anfangsbuchstaben der Wörter groß
+     *
+     * Diese Funktion wandelt die Anfangsbuchstaben aller im String enthaltenen Wörter in
+     * Großbuchstaben um.
+     */
     WideString& upperCaseWords();
     WideString& trim();
     WideString& trimLeft();
@@ -185,11 +817,54 @@ public:
     WideString& trim(const WideString& chars);
     WideString& trimLeft(const WideString& chars);
     WideString& trimRight(const WideString& chars);
+
+    /** @brief Schneidet Zeichen am Ende des Strings ab
+     *
+     * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
+     * größer als der String ist, bleibt ein leerer String zurück.
+     * @param num Anzahl Zeichen, die abgeschnitten werden sollen
+     */
     WideString& chopRight(size_t num = 1);
+
+    /** @brief Schneidet Zeichen am Ende des Strings ab
+     *
+     * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
+     * größer als der String ist, bleibt ein leerer String zurück.
+     * @param num Anzahl Zeichen, die abgeschnitten werden sollen
+     *
+     * @see
+     * Die Funktion ist identisch zu WideString::chopRight
+     */
     WideString& chop(size_t num = 1);
+
+    /** @brief Schneidet Zeichen am Anfang des Strings ab
+     *
+     * Diese Funktion schneidet \p num Zeichen vom Anfang des Strings ab. Falls \p num
+     * größer als der String ist, bleibt ein leerer String zurück.
+     * @param num Anzahl Zeichen, die abgeschnitten werden sollen
+     */
     WideString& chopLeft(size_t num = 1);
+
+    /** @brief Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
+     *
+     * Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
+     */
     WideString& chomp();
+
+    /** @brief Schneidet den String an einer bestimmten Stelle ab
+     *
+     * Der String wird an einer bestimmten Stelle einfach abgeschnitten
+     * @param pos Die Position, an der der String abgeschnitten wird. Bei Angabe von 0 ist der String anschließend
+     * komplett leer. Ist @c pos größer als die Länge des Strings, passiert nichts.
+     */
     WideString& cut(size_t pos);
+
+    /** @brief Schneidet den String beim ersten Auftauchen eines Zeichens/Strings ab
+     *
+     * Der String wird beim ersten Auftauchen eines Zeichens oder eines Strings abgeschnitten.
+     * @param[in] letter Buchstabe oder Buchstabenkombination, an der der String abgeschnitten werden
+     * soll. Zeigt der Pointer auf NULL oder ist der String leer, passiert nichts.
+     */
     WideString& cut(const WideString& letter);
 
     WideString trimmed() const;
@@ -199,8 +874,52 @@ public:
 
     WideString strchr(wchar_t c) const;
     WideString strrchr(wchar_t c) const;
+
+    /** @brief Teilstring finden
+     *
+     * Diese Funktion findet die erste Position der Zeichenfolge \p needle
+     * innerhalb des Strings. Abschließende `\0'-Zeichen werden nicht
+     * miteinander verglichen.
+     * @param needle
+     * @return
+     * Die Funktion gibt einen String zurück, der mit der gefundenen
+     * Zeichenkette beginnt und den Rest des Strings bis zum Ende enthält.
+     * Wurde die Zeichenkette nicht gefunden, wird ein leerer String
+     * zurückgegeben.
+     * @note
+     * Ein Sonderfall besteht, wenn @p needle leer ist. In diesem Fall wird
+     * der komplette String zurückgegeben.
+     */
     WideString strstr(const WideString& needle) const;
+
+    /** @brief Sucht nach einem String
+     *
+     * Find sucht nach dem Suchstring @a needle ab der gewünschten Position @a start.
+     *
+     * @param[in] needle Gesuchter Teilstring
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
+     * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
+     * Ende des Strings gesucht.
+     *
+     * @return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
+     * oder WideString::npos wenn er nicht gefunden wurde. Ist @p needle ein leerer String, liefert die
+     * Funktion immer 0 zurück.
+     */
     ssize_t find(const WideString& needle, ssize_t start = 0) const;
+
+    /** @brief Sucht nach einem String, Gross-/Kleinschreibung wird ignoriert
+     *
+     * Diese Funktion sucht innerhalb des aktuellen String nach \p needle ab der
+     * gewünschten Position \a start. Gross-/Kleinschreibung wird dabei ignoriert.
+     * @param[in] needle Gesuchter Teilstring
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
+     * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
+     * Ende des Strings gesucht.
+     *
+     * @return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
+     * oder WideString::npos wenn er nicht gefunden wurde. Ist @p needle ein leerer String, liefert die
+     * Funktion immer 0 zurück.
+     */
     ssize_t findCase(const WideString& needle, ssize_t start = 0) const;
 
     /*! @brief Sucht nach einem String
@@ -256,7 +975,27 @@ public:
     //@{
     void print(bool withNewline = false) const noexcept;
     void printnl() const noexcept;
+
+    /** @brief Hexdump des Strings ausgeben
+     *
+     * Mit dieser zu Debug-Zwecken gedachten Funktion wird der Inhalt des
+     * Strings als HexDump auf der Konsole ausgegeben.
+     */
     void hexDump() const;
+
+    /** @brief Einzelnes Zeichen auslesen
+     *
+     * Mit dieser Funktion kann der Unicode-Wert eines einzelnen Zeichens an der Position
+     * @p pos ausgelesen werden. Enthält @p pos einen positiven Wert, wird die Position des
+     * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
+     * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
+     * dem letzten Zeichen des Strings entspricht.
+     *
+     * @param pos Position des Zeichens innerhalb des Strings
+     * @return Unicode-Wert des Zeichens
+     * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position @p pos
+     * ausserhalb des Strings liegt oder der String leer ist.
+     */
     wchar_t get(ssize_t pos) const;
 
     inline const wchar_t* getPtr() const
@@ -304,6 +1043,11 @@ public:
     unsigned long long toUnsignedLongLong() const;
     float toFloat() const;
     double toDouble() const;
+
+    /** @brief %Pointer auf den internen Unicode-String
+     *
+     * @copydetails WideString::getPtr
+     */
     const wchar_t* toWchart() const;
 
     //@}
@@ -321,37 +1065,246 @@ public:
     operator std::string() const;
     operator std::wstring() const;
 
+    /** @brief Einzelnes Zeichen auslesen
+     *
+     * Mit diesem Operator kann der Unicode-Wert eines einzelnen Zeichens an der Position
+     * @p pos ausgelesen werden. Enthält @p pos einen positiven Wert, wird die Position des
+     * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
+     * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
+     * dem letzten Zeichen des Strings entspricht.
+     *
+     * @param pos Position des Zeichens innerhalb des Strings
+     * @return Unicode-Wert des Zeichens
+     * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position @p pos
+     * ausserhalb des Strings liegt oder der String leer ist.
+     */
     wchar_t operator[](ssize_t pos) const;
     wchar_t& operator[](ssize_t pos);
 
+    /** @brief String übernehmen
+     *
+     * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
+     * ist identisch mit der Funktion WideString::set
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator=(const char* str);
+
+    /** @brief String übernehmen
+     *
+     * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
+     * ist identisch mit der Funktion WideString::set
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator=(const wchar_t* str);
     WideString& operator=(const WideString& str);
+
+    /** @brief String übernehmen
+     *
+     * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
+     * ist identisch mit der Funktion WideString::set
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator=(const String& str);
+
+    /** @brief String übernehmen
+     *
+     * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
+     * ist identisch mit der Funktion WideString::set
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator=(const std::string& str);
+
+    /** @brief String übernehmen
+     *
+     * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
+     * ist identisch mit der Funktion WideString::set
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator=(const std::wstring& str);
+
+    /** @brief Zeichen übernehmen
+     *
+     * Mit diesem Operator wird ein einzelnes Zeichen in den String kopiert.
+     * @param[in] c Unicode Wert des zu übernehmenden Zeichens
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator=(wchar_t c);
+
+    /** @brief String übernehmen
+     *
+     * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
+     * ist identisch mit der Funktion WideString::set
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator=(WideString&& other) noexcept;
+
+    /** @brief String addieren
+     *
+     * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
+     * String angehangen. Der Operator ist identisch mit der Funktion WideString::append.
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator+=(const char* str);
+
+    /** @brief String addieren
+     *
+     * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
+     * String angehangen. Der Operator ist identisch mit der Funktion WideString::append.
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator+=(const wchar_t* str);
     WideString& operator+=(const String& str);
+
+    /** @brief String addieren
+     *
+     * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
+     * String angehangen. Der Operator ist identisch mit der Funktion WideString::append.
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator+=(const WideString& str);
+
+    /** @brief String addieren
+     *
+     * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
+     * String angehangen. Der Operator ist identisch mit der Funktion WideString::append.
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator+=(const std::string& str);
+
+    /** @brief String addieren
+     *
+     * Mit diesem Operator wird der Angegebene String \p str an den bisher vorhandenen
+     * String angehangen. Der Operator ist identisch mit der Funktion WideString::append.
+     * @param[in] str Zu kopierender String
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator+=(const std::wstring& str);
+
+    /** @brief Zeichen anhängen
+     *
+     * Mit diesem Operator wird das angegebene Zeichen \p c an den bisher vorhandenen
+     * String angehangen. Der Operator ist identisch mit der Funktion WideString::append.
+     * @param[in] c Unicode-Wert des anzuhängenden Zeichens
+     * @return Referenz auf diese Instanz der Klasse
+     */
     WideString& operator+=(wchar_t c);
 
+    /** @brief Kleiner als
+     *
+     * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters kleiner dem des
+     * rechten ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator<(const WideString& str) const;
+
+    /** @brief Kleiner oder gleich
+     *
+     * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters kleiner oder gleich
+     * dem des rechten ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator<=(const WideString& str) const;
+
+    /** @brief Gleich
+     *
+     * Dieser Operator liefert \c true zurück, wenn der Wert des linken Parameters mit dem des
+     * rechten identisch ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator==(const WideString& str) const;
+
+    /** @brief Ungleich
+     *
+     * Dieser Operator liefert \c true zurück, wenn der Wert des linken Parameters nicht dem des
+     * rechten entspricht.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator!=(const WideString& str) const;
+
+    /** @brief Größer oder gleich
+     *
+     * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters größer oder
+     * gleich dem des rechten ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator>=(const WideString& str) const;
+
+    /** @brief Größer als
+     *
+     * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters größer
+     * dem des rechten ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator>(const WideString& str) const;
 
+    /** @brief Kleiner als
+     *
+     * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters kleiner dem des
+     * rechten ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator<(const wchar_t* str) const;
+
+    /** @brief Kleiner oder gleich
+     *
+     * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters kleiner oder gleich
+     * dem des rechten ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator<=(const wchar_t* str) const;
+
+    /** @brief Gleich
+     *
+     * Dieser Operator liefert \c true zurück, wenn der Wert des linken Parameters mit dem des
+     * rechten identisch ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator==(const wchar_t* str) const;
+
+    /** @brief Ungleich
+     *
+     * Dieser Operator liefert \c true zurück, wenn der Wert des linken Parameters nicht dem des
+     * rechten entspricht.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator!=(const wchar_t* str) const;
+
+    /** @brief Größer oder gleich
+     *
+     * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters größer oder
+     * gleich dem des rechten ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator>=(const wchar_t* str) const;
+
+    /** @brief Größer als
+     *
+     * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters größer
+     * dem des rechten ist.
+     * @param str Zu vergleichender String
+     * @return Liefert @c true oder @c false zurück
+     */
     bool operator>(const wchar_t* str) const;
 
     //@}
