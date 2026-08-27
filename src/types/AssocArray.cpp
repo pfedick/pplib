@@ -31,10 +31,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-
-// #include <set>
-// #include <ostream>
-
 #include <pplib/types/array.h>
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
@@ -56,27 +52,11 @@
 namespace pplib
 {
 
-/*!\brief Konstruktor des Assoziativen Arrays
- *
- * \desc
- * Initialisiert die Instanz mit 0 und initialisiert den AVL-Baum.
- */
 AssocArray::AssocArray()
 {
     maxint = 0;
 }
 
-/*!\brief Copy-Konstruktor des Assoziativen Arrays
- *
- * \desc
- * Macht eine Kopie des Assoziativen Arrays \p other.
- *
- * \param[in] other Referenz auf zu kopierendes Assoziatives Array
- *
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
 AssocArray::AssocArray(const AssocArray& other)
 {
     maxint = 0;
@@ -91,25 +71,11 @@ AssocArray::AssocArray(AssocArray&& other)
     other.Tree.clear();
 }
 
-/*!\brief Destruktor der Klasse
- *
- * \desc
- * Der Destruktor ruft die Funktion AssocArray::clear auf, um alle vorhandenen Elemente zu
- * löschen.
- */
 AssocArray::~AssocArray()
 {
     clear();
 }
 
-/*!\brief Inhalt des Arrays löschen
- *
- * \desc
- * Mit dieser Funktion wird der komplette Inhalt des Arrays gelöscht. Dabei der Destruktor für jedes
- * vorhandene Element aufgerufen, der wiederum sicherstellt, dass die darin enthaltenen Daten
- * ordnungsgemäß gelöscht werden.
- *
- */
 void AssocArray::clear()
 {
     iterator it;
@@ -120,23 +86,6 @@ void AssocArray::clear()
     maxint = 0;
 }
 
-/*!\brief Interne Funktion zum Suchen eines Elements
- *
- * \desc
- * Diese Funktion zerlegt den angegebenen Schlüssel (\p key) in seine einzelnen Elemente.
- * Als Trennzeichen wird wie bei einer Unix-Pfadangabe der Slash (/) verwendet. Die Funktion
- * sucht zunächst nach dem erste Element des Schlüssels im eigenen Baum. Ist dies vorhanden
- * und handelt es sich bei dessen Datentyp wieder um ein AssocArray, wird deren
- * findInternal-Funktion mit dem restlichen Schlüssel rekursiv aufgerufen. Dies geschieht
- * solange, bis das letzte Element des Keys gefunden wurde.
- *
- * \param[in] key String mit dem gesuchten Schlüssel
- * \return Konnte der Schlüssel gefunden werden, wir der Pointer auf das Element (Variant)
- * zurückgegeben. Wurde der Schlüssel nicht gefunden, wird NULL zurückgegeben
- * \exception InvalidKeyException: Wird geworfen, wenn der Schlüssel ungültig oder leer ist
- * \note
- * Die Funktion wird von allen Get...- und Concat-Funktionen verwendet.
- */
 Variant* AssocArray::findInternal(const String& key) const
 {
     // printf ("AssocArray::findInternal (key=%ls)\n",(const wchar_t*)key);
@@ -161,29 +110,6 @@ Variant* AssocArray::findInternal(const String& key) const
     return it->second;
 }
 
-/*!\brief Interne Funktion, die ein Element im Baum sucht oder anlegt
- *
- * \desc
- * Diese Funktion durchsucht den Baum nach dem gewünschten Element. Ist es vorhanden, wird dessen Pointer
- * zurückgeliefert, wenn nicht, wird es angelegt, jedoch ohne Daten. Bei verschachtelten Schlüsseln wird
- * die Funktion rekursiv aufgerufen, bis das letzte Element erreicht ist. Die Funktion wird intern von allen
- * Funktionen verwendet, die Daten in das Array speichern.
- *
- * \param[in] key Pointer auf den Namen des Schlüssels
- * \param[in] var Pointer auf die Daten, die unter diesem Schlüssel abgelegt werden sollen
- * \return Bei Erfolg liefert die Funktion einen Pointer auf das gewünschte Element zurück.
- * Im Fehlerfall wird eine Exception geworfen.
- *
- * \exception InvalidKeyException: Wird geworfen, wenn der Schlüssel ungültig oder leer ist
- * \exception std::bad_alloc: Kein Speicher mehr frei
- *
- * \remarks Bei der Angabe eines verschachtelten Schlüssels kann es vorkommen, dass bereits vorhandene
- * Elemente überschrieben werden. Beispiel:
- *
- * Das Element <tt>ebene1/schlüssel1</tt> ist im Baum bereits vorhanden und beinhaltet einen String. Nun wird
- * das neue Element <tt>ebene1/schlüssel1/unterschlüssel1</tt> angelegt. Da Schlüssel eindeutig sein müssen,
- * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
- */
 Variant* AssocArray::createTree(const String& key)
 {
     // TODO: das sollte keine Exception werfen, sondern mit Returncode arbeiten!
@@ -233,16 +159,6 @@ Variant* AssocArray::createTree(const String& key)
     }
 }
 
-/*!\brief Anzahl Schlüssel zählen
- *
- * \desc
- * Diese Funktion liefert die Anzahl Schlüssel auf dieser Ebene des Array zurück.
- *
- * \param[in] recursive Falls recursive auf true gesetzt wird die Funktion rekusriv für jeden
- * Schlüssel aufgerufen, dessen Wert ebenfalls ein Array ist.
- *
- * \returns Anzahl Schlüssel
- */
 size_t AssocArray::count(bool recursive) const
 {
     if (!recursive) return Tree.size();
@@ -254,29 +170,11 @@ size_t AssocArray::count(bool recursive) const
     return num;
 }
 
-/*!\brief Anzahl Elemente
- *
- * \desc
- * Diese Funktion liefert die Anzahl Elemente auf dieser Ebene des Arrays zurück.
- *
- * \returns Anzahl Elemente
- */
 size_t AssocArray::size() const
 {
     return Tree.size();
 }
 
-/*!\brief Anzahl Schlüssel für ein bestimmtes Element zählen
- *
- * \desc
- * Diese Funktion liefert die Anzahl Schlüssel zurück, die in dem angegebenen Key enthalten sind.
- *
- * \param[in] key Schlüssel-Name eines Assoziativen Arrays innerhalb dieses Arrays
- * \param[in] recursive Falls recursive auf true gesetzt wird die Funktion rekusriv für jeden
- * Schlüssel aufgerufen, dessen Wert ebenfalls ein Array ist.
- *
- * \returns Anzahl Schlüssel
- */
 size_t AssocArray::count(const String& key, bool recursive) const
 {
     const Variant* p = findInternal(key);
@@ -285,18 +183,6 @@ size_t AssocArray::count(const String& key, bool recursive) const
     return 1;
 }
 
-/*!\brief Formatierten String hinzufügen
- *
- * \desc
- * Diese Funktion fügt den Inhalt eines formatierten Strings dem Array hinzu.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] fmt Pointer auf den Format-String des Wertes
- * \param[in] ... Beliebig viele Parameter, die vom Formatstring verwendet werden
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
 void AssocArray::setf(const String& key, const char* fmt, ...)
 {
     String value;
@@ -307,22 +193,6 @@ void AssocArray::setf(const String& key, const char* fmt, ...)
     createTree(key)->set(value);
 }
 
-/*!\brief %String verlängern
- *
- * \desc
- * Diese Funktion fügt den Inhalt des Strings \p value an den bereits vorhandenen
- * Wert des Schlüssels \p key an. Falls der optionale Parameter \p concat einen Wert
- * enthält, wird dieser als Trennung zwischen bestehendem und neuem String verwendet.
- * War der Schlüssel bisher nicht vorhanden, wird ein neuer angelegt.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Wert
- * \param[in] concat Trennzeichen (Optional, Default=keins)
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- * \exception TypeConversionException: Schlüssel ist bereits vorhanden, enthält aber keinen String
- */
 void AssocArray::append(const String& key, const String& value, const String& concat)
 {
     Variant* node = findInternal(key);
@@ -335,24 +205,6 @@ void AssocArray::append(const String& key, const String& value, const String& co
     str.append(value);
 }
 
-/*!\brief %String mit Formatiertem String verlängern
- *
- * \desc
- * Diese Funktion erstellt zuerst einen neuen String anhand des Formatstrings
- * \p fmt und der zusätzlichen optionalen Parameter. Dieser wird an den bereits vorhandenen
- * Wert des Schlüssels \p key angehangen. Falls der optionale Parameter \p concat einen Wert
- * enthält, wird dieser als Trennung zwischen bestehendem und neuem String verwendet.
- * War der Schlüssel bisher nicht vorhanden, wird ein neuer angelegt.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] concat Trennzeichen (Optional, Default=keins)
- * \param[in] fmt Formatstring
- * \param[in] ... Optionale Parameter
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- * \exception TypeConversionException: Schlüssel ist bereits vorhanden, enthält aber keinen String
- */
 void AssocArray::appendf(const String& key, const String& concat, const char* fmt, ...)
 {
     String var;
@@ -363,20 +215,6 @@ void AssocArray::appendf(const String& key, const String& concat, const char* fm
     append(key, var, concat);
 }
 
-/*!\brief %AssocArray kopieren
- *
- * \desc
- * Mit dieser Funktion wird der komplette Inhalt des Assoziativen Arrays \p other
- * in dieses hineinkopiert. Das Array wird vorher nicht gelöscht, so dass vorhandene
- * Schlüssel erhalten bleiben. Gibt es in \p other jedoch gleichnamige Schlüssel,
- * werden die bisherigen Werte überschrieben.
- *
- * \param[in] a Das zu kopierende AssocArray
- *
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
 void AssocArray::add(const AssocArray& other)
 {
     if (this == &other) return; // Self-Reference, nichts zu tun
@@ -392,22 +230,6 @@ void AssocArray::add(const AssocArray& other)
     // if (other.maxint > maxint) maxint = other.maxint; // Tritt nicht ein, da set den maxint bereits aktualisiert
 }
 
-/*!\brief Schlüssel auslesen
- *
- * \desc
- * Diese Funktion liefert den Wert des Schlüssels \p key als Variant zurück. Dieser kann
- * von der aufrufenden Anwendung in den jeweiligen Datentyp umgewandelt werden.
- *
- * @param key Name des Schlüssels
- * @return Referenz auf einen Variant mit dem Wert des Schlüssels
- * \exception InvalidKeyException: Ungültiger Schlüssel
- * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
- * \example
- * Der Variant kann z.B. folgendermaßen in einen String umgewandelt werden:
- * \code
-pplib::String &str=a.get(L"key1").toString();
-\endcode
- */
 const Variant& AssocArray::get(const String& key, Variant::DataType type) const
 {
     Variant* node = findInternal(key);
@@ -426,31 +248,11 @@ Variant& AssocArray::get(const String& key, Variant::DataType type)
     return (*node);
 }
 
-/*!\brief Schlüssel vorhanden
- *
- * \desc
- * Diese Funktion prüft, ob der Schlüssels \p key im Assoziativen Array enthalten ist.
- *
- * @param key Name des Schlüssels
- * @return Liefert \c true zurück, wenn der Schlüssel vorhanden ist, sonst \c false
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
 bool AssocArray::exists(const String& key) const
 {
     return findInternal(key) != nullptr;
 }
 
-/*!\brief String auslesen
- *
- * \desc
- * Diese Funktion liefert den Wert des Schlüssels \p key als String zurück, sofern
- * der Schlüssel auch tatsächlich einen String enthält.
- *
- * @param key Name des Schlüssels
- * @return Referenz auf einen String mit dem Wert des Schlüssels
- * \exception InvalidKeyException: Ungültiger Schlüssel
- * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
- */
 String& AssocArray::getString(const String& key)
 {
     return get(key, Variant::DataType::TYPE_STRING).toString();
@@ -461,21 +263,6 @@ const String& AssocArray::getString(const String& key) const
     return get(key, Variant::DataType::TYPE_STRING).toString();
 }
 
-/*!\brief String auslesen mit Standardwert
- *
- * \desc
- * Diese Funktion liefert den Wert des Schlüssels \p key als String zurück, sofern
- * er existiert und einen String enthält. Andernfalls wird der Standardwert \p default_value
- * zurückgegeben. Falls der Schlüssel existiert, aber kein String ist, wird ebenfalls der
- * Standardwert \p default_value zurückgegeben. Falls der Wert ein WideString ist, wird er
- * in einen String konvertiert und zurückgegeben.
- *
- * @param key Name des Schlüssels
- * @param default_value Standardwert, der zurückgegeben wird, wenn der Schlüssel nicht existiert oder keinen String enthält
- * @return Referenz auf einen String mit dem Wert des Schlüssels oder dem Standardwert
- * @exception InvalidKeyException: Ungültiger Schlüssel (wenn \p key leer ist)
- * @exception std::bad_alloc: Speicher konnte nicht zugewiesen werden
- */
 String AssocArray::getString(const String& key, const String& default_value) const
 {
     Variant* node = findInternal(key);
@@ -485,18 +272,6 @@ String AssocArray::getString(const String& key, const String& default_value) con
     return default_value;
 }
 
-/*!\brief Boolean auslesen mit Standardwert
- *
- * \desc
- * Diese Funktion liefert den Wert des Schlüssels \p key als Boolean zurück, sofern
- * er existiert und einen String oder WideString enthält. Ist dies nicht der Fall, wird
- * der Standardwert \p default_value zurückgegeben.
- *
- * @param key Name des Schlüssels
- * @param default_value Standardwert, der zurückgegeben wird, wenn der Schlüssel nicht existiert oder keinen Boolean enthält
- * @return Boolean Wert des Schlüssels oder der Standardwert
- * @exception InvalidKeyException: Ungültiger Schlüssel (wenn \p key leer ist)
- */
 bool AssocArray::getBoolean(const String& key, bool default_value) const
 {
     Variant* node = findInternal(key);
@@ -506,18 +281,6 @@ bool AssocArray::getBoolean(const String& key, bool default_value) const
     return default_value;
 }
 
-/*!\brief Integer auslesen mit Standardwert
- *
- * \desc
- * Diese Funktion liefert den Wert des Schlüssels \p key als Integer zurück, sofern
- * er existiert und einen String oder WideString enthält, der in einen Integer konvertiert werden kann.
- * Andernfalls wird der Standardwert \p default_value zurückgegeben.
- *
- * @param key Name des Schlüssels
- * @param default_value Standardwert, der zurückgegeben wird, wenn der Schlüssel nicht existiert oder keinen Integer enthält
- * @return Integer Wert des Schlüssels oder der Standardwert
- * @exception InvalidKeyException: Ungültiger Schlüssel (wenn \p key leer ist)
- */
 int AssocArray::getInt(const String& key, int default_value) const
 {
     Variant* node = findInternal(key);
@@ -527,18 +290,6 @@ int AssocArray::getInt(const String& key, int default_value) const
     return default_value;
 }
 
-/*!\brief 64-Bit Integer auslesen mit Standardwert
- *
- * \desc
- * Diese Funktion liefert den Wert des Schlüssels \p key als 64-Bit Integer zurück, sofern
- * er existiert und einen String oder WideString enthält, der in einen 64-Bit Integer konvertiert werden kann.
- * Andernfalls wird der Standardwert \p default_value zurückgegeben.
- *
- * @param key Name des Schlüssels
- * @param default_value Standardwert, der zurückgegeben wird, wenn der Schlüssel nicht existiert oder keinen 64-Bit Integer enthält
- * @return 64-Bit Integer Wert des Schlüssels oder der Standardwert
- * @exception InvalidKeyException: Ungültiger Schlüssel (wenn \p key leer ist)
- */
 int64_t AssocArray::getInt64t(const String& key, int64_t default_value) const
 {
     Variant* node = findInternal(key);
@@ -548,15 +299,6 @@ int64_t AssocArray::getInt64t(const String& key, int64_t default_value) const
     return default_value;
 }
 
-/*!\brief Key vorhanden und True
- *
- * \desc
- * Liefert True zurück, wenn der Schlüssel \b key vorhanden ist, und dessen Value einen String oder
- * WideString enthält, dessen Boolean Wert True entspricht. Andernfalls wird False zurückgegeben.
- *
- * @param key Name des Schlüssels
- * @return True oder False
- */
 bool AssocArray::isTrue(const String& key) const
 {
     Variant* node = findInternal(key);
@@ -566,15 +308,6 @@ bool AssocArray::isTrue(const String& key) const
     return false;
 }
 
-/*!\brief AssocArray auslesen
- *
- * \desc
- *
- * @param key Name des Schlüssels
- * @return Referenz auf einen String mit dem Wert des Schlüssels
- * \exception InvalidKeyException: Ungültiger Schlüssel
- * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
- */
 AssocArray& AssocArray::getAssocArray(const String& key)
 {
     return get(key, Variant::DataType::TYPE_ASSOCARRAY).toAssocArray();
@@ -595,20 +328,6 @@ const Array& AssocArray::getArray(const String& key) const
     return get(key, Variant::DataType::TYPE_ARRAY).toArray();
 }
 
-/** @brief Einzelnen Schlüssel löschen
- *
- * Mit dieser Funktion wird ein einzelner Schlüssel aus dem Array gelöscht.
- * Handelt es sich dabei um den einzigen Schlüssel eines verschachtelten Arrays,
- * wird nur dieser Schlüssel gelöscht, nicht aber das danach leere Array.
- * Ist der Schlüssel ein verschachteltes Array, dann wird dieses und alle darin enthaltenen
- * Schlüssel rekursiv gelöscht.
- *
- * \param[in] key String mit dem Namen des zu löschenden Schlüssels
- *
- * @note
-
- *
- */
 void AssocArray::erase(const String& key)
 {
     Array tok(key, "/", 0, true);
@@ -630,14 +349,6 @@ void AssocArray::erase(const String& key)
     Tree.erase(it);
 }
 
-/*!\brief Einzelnen Schlüssel löschen
- *
- * \desc
- * Mit dieser Funktion wird ein einzelner Schlüssel aus dem Array gelöscht.
- *
- * \param[in] key String mit dem Namen des zu löschenden Schlüssels
- *
- */
 void AssocArray::remove(const String& key)
 {
     erase(key);
@@ -703,55 +414,11 @@ AssocArray::const_reverse_iterator AssocArray::crend() const
     return Tree.crend();
 }
 
-/*!\brief Liefert Anzahl Bytes, die für exportBinary erforderlich sind
- *
- * \desc
- * Diese Funktion liefert die Anzahl Bytes zurück, die für den Buffer der Funktion AssocArray::exportBinary
- * erforderlich sind. Es kann dadurch ein ausreichend großer Puffer vor Aufruf der Funktion exportBinary
- * angelegt werden.
- *
- * \return Anzahl Bytes oder 0 im Fehlerfall
- *
- * \see
- * - AssocArray::exportBinary
- * - AssocArray::importBinary
- */
 size_t AssocArray::binarySize() const
 {
     return exportBinary(NULL, 0);
 }
 
-/*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
- *
- * \desc
- * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
- * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
- *
- * \param[in] buffer Pointer auf einen ausreichend großen Puffer. Die Größe des benötigten Puffers
- *            kann zuvor mit der Funktion AssocArray::binarySize ermittelt werden. Wird als Buffer NULL
- *            übergeben, wird in der Variable \p realsize ebenfalls die Anzahl Bytes zurückgegeben
- * \param[in] buffersize Die Größe des Puffers in Bytes
- * \param[out] realsize In dieser Variable wird gespeichert, wieviele Bytes tatsächlich für den Export
- *            verwendet wurden
- * \exception ExportBufferToSmallException: Wird geworfen, wenn \p buffersize nicht groß genug ist, um
- * das Assoziative Array vollständig exportieren zu können.
- *
- * \attention
- * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
- * werden folgende Typen unterstützt:
- * - String (Wird als UTF-8 exportiert)
- * - Array
- * - AssocArray
- * - ByteArray
- * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
- * - DateTime
- * \see
- * - AssocArray::binarySize
- * - AssocArray::importBinary
- *
- * \note
- * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
- */
 size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
 {
     char* ptr = (char*)buffer;
@@ -882,30 +549,6 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
     throw ExportBufferToSmallException("%zd < %zd", buffersize, p);
 }
 
-/*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
- *
- * \desc
- * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
- * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
- *
- * \param[in,out] buffer %ByteArray, in dem die exportierten Daten gespeichert werden sollen
- *
- * \attention
- * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
- * werden folgende Typen unterstützt:
- * - String (Wird als UTF-8 exportiert)
- * - Array
- * - AssocArray
- * - ByteArray
- * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
- * - DateTime
- * \see
- * - AssocArray::binarySize
- * - AssocArray::importBinary
- *
- * \note
- * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
- */
 void AssocArray::exportBinary(ByteArray& buffer) const
 {
     buffer.free();
@@ -921,39 +564,11 @@ ByteArray AssocArray::exportBinary() const
     return buffer;
 }
 
-/*!\brief Daten aus einem vorherigen Export wieder importieren
- *
- * \desc
- * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
- * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
- * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
- *
- * \param[in] bin Referenz auf ByteArray oder ByteArrayPtr mit den zu importierenden Daten
- *
- * \see
- * - CAssocArray::exportBinary
- * - CAssocArray::binarySize
- */
 void AssocArray::importBinary(const ByteArrayPtr& bin)
 {
     importBinary(bin.adr(), bin.size());
 }
 
-/*!\brief Daten aus einem vorherigen Export wieder importieren
- *
- * \desc
- * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
- * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
- * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
- *
- * \param[in] buffer Pointer auf den Puffer, der die zu importierenden Daten enthält
- * \param[in] buffersize Größe des Puffers
- * \exception ImportFailedException
- *
- * \see
- * - AssocArray::exportBinary
- * - AssocArray::binarySize
- */
 size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
 {
     if (!buffer) throw IllegalArgumentException();
@@ -1094,17 +709,6 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
     return p;
 }
 
-/*!\brief Schlüssel auslesen
- *
- * \desc
- * Dieser Operator liefert den Wert des Schlüssels \p key als Variant zurück. Dieser kann
- * von der aufrufenden Anwendung in den jeweiligen Datentyp umgewandelt werden.
- *
- * @param key Name des Schlüssels
- * @return Referenz auf den einen Variant mit dem Wert des Schlüssels
- * \exception InvalidKeyException: Ungültiger Schlüssel
- * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
- */
 const Variant& AssocArray::operator[](const String& key) const
 {
     return get(key);
@@ -1115,19 +719,6 @@ Variant& AssocArray::operator[](const String& key)
     return get(key);
 }
 
-/*!\brief Assoziatives Array kopieren
- *
- * \desc
- * Mit diesem Operator wird der Inhalt das Assoziativen Arrays \p other übernommen.
- * Der bisherige Inhalt dieses Arrays geht verloren.
- *
- * @param other Zu kopierendes assoziatives Array
- * @return Referenz auf dieses Array
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- *
- */
 AssocArray& AssocArray::operator=(const AssocArray& other)
 {
     if (this == &other) return *this;
@@ -1146,21 +737,6 @@ AssocArray& AssocArray::operator=(AssocArray&& other) noexcept
     return *this;
 }
 
-/*!\brief Assoziatives Array hinzufügen
- *
- * \desc
- * Mit diesem Operator wird der Inhalt das Assoziativen Arrays \p other dem eigenen
- * Array hinzugefügt. Das Array wird vorher nicht gelöscht, so dass vorhandene
- * Schlüssel erhalten bleiben. Gibt es in \p other jedoch gleichnamige Schlüssel,
- * werden die bisherigen Werte überschrieben.
- *
- * @param other Zu kopierendes assoziatives Array
- * @return Referenz auf dieses Array
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- *
- */
 AssocArray& AssocArray::operator+=(const AssocArray& other)
 {
     add(other);
@@ -1189,47 +765,6 @@ AssocArray operator+(const AssocArray& a1, const AssocArray& a2)
     return a;
 }
 
-/*!\brief Inhalt des Arrays ausgeben
- *
- * \desc
- * Diese Funktion dient Debugging-Zwecken. Der Aufruf bewirkt, dass der Inhalt des kompletten Arrays auf
- * STDOUT ausgegeben wird.
- *
- * \param[in] prefix Optionaler Text, der bei der Ausgabe jedem Element vorangestellt wird
- *
- * \par Beispiel:
- * \code
-pplib::AssocArray a;
-pplib::Binary bin;
-bin.load("main.cpp");
-
-a.set("key1","value1");
-a.set("array1/unterkey1","value2");
-a.set("array1/unterkey2","value3");
-a.set("array1/noch ein array/unterkey1","value4");
-a.set("array1/unterkey2","value5");
-a.set("key2","value6");
-a.set("dateien/main.cpp",bin);
-a.set("array2/unterkey1","value7");
-a.set("array2/unterkey2","value8");
-a.set("array2/unterkey1","value9");
-a.list("prefix");
-\endcode
-    Ausgabe:
-\code
-prefix/array1/noch ein array/unterkey1=value4
-prefix/array1/unterkey1=value2
-prefix/array1/unterkey2=value5
-prefix/array2/unterkey1=value9
-prefix/array2/unterkey2=value8
-prefix/dateien/main.cpp=Binary, 806 Bytes
-prefix/key1=value1
-prefix/key2=value6
-\endcode
- *
- * \remarks Die Funktion gibt nur "lesbare" Element aus. Enthält das Array Pointer oder Binaries, wird das Element zwar
- * ausgegeben, jedoch werden als Wert nur Meta-Informationen ausgegeben (Datentyp, Pointer, Größe).
- */
 void AssocArray::list(const String& prefix) const
 {
     String key;
@@ -1273,38 +808,6 @@ void AssocArray::list(const String& prefix) const
 }
 
 #ifdef OLDCODE
-/*! \brief Wandelt ein Key-Value Template in ein Assoziatives Array um
- *
- * \desc
- * Diese Funktion wandelt einen Text mit Key-Value-Paaren in ein
- * Assoziatives Array um. Leere Zeilen oder Zeilen mit Raute (#)
- * am Anfang (Kommentarzeilen) werden ignoriert.
- *
- * \param[in] templ String mit den Key-Value-Paaren
- * \param[in] linedelimiter Das Zeichen, was als Zeilenende interpretiert werden soll. Default ist \c Newline
- * \param[in] splitchar Das Zeichen, was als Trennzeichen zwischen Schlüssel (Key) und Wert (Value)
- * interpretiert werden soll. Der Default ist das Gleichheitszeichen (=)
- * \param[in] concat Ist concat gesetzt und kommen im Text mehrere identische Schlüssel vor, werden die Werte
- * zu einem String zusammengeführt, wobei als Trennzeichen \c concat verwendet wird. Ist concat leer,
- * wird ein vorhandener Schlüssel überschrieben. Der Default ist, dass Werte mit gleichem Schlüssel mit
- * Newline aneinander gehangen werden.
- * \param[in] dotrim Ist \c dotrim=true, werden einzelnen Werte vor dem Einfügen ins Array mit der Funktion
- * Trim getrimmt, also Leerzeilen, Tabs und Zeilenumbrüche am Anfang und Ende gelöscht. Der Default
- * ist \c false.
- *
- * \return Die Funktion gibt die Anzahl gelesener Key-Value-Paare zurück, oder 0, wenn der Text
- * keine verwertbaren Zeilen enthielt.
- *
- * \note Falls das %Array vor dem Aufruf dieser Funktion bereits Datensätze enthielt, werden diese
- * nicht gelöscht. Die Funktion kann also benutzt werden, um Werte aus verschiedenen Templates in ein
- * einziges %Array einzulesen. Soll das %Array geleert werden, muß vorher die Funktion AssocArray::clear
- * aufgerufen werden.
- *
- * \see Um Konfigurationsdateien mit verschiedenen Abschnitten (z.B. .ini-Dateien) in ein
- * Assoziatives %Array einzulesen, gibt es die Member-Funktion
- * AssocArray::fromConfig
- *
- */
 size_t AssocArray::fromTemplate(
     const String& templ, const String& linedelimiter, const String& splitchar, const String& concat, bool dotrim)
 {
@@ -1341,44 +844,6 @@ size_t AssocArray::fromTemplate(
     return rows;
 }
 
-/*! \brief Wandelt eine Konfigurationsdatei in ein Assoziatives Array um
- *
- * \desc
- * Diese Funktion wandelt einen Konfigurations-Text mit mehreren Abschnitten
- * im Key-Value-Format in ein Assoziatives %Array um. Ein Abschnitt beginnt immer mit einem Keywort
- * in Eckigen klammern und enthält Key-Value-Paare. Zeilen mit Raute (#) am Anfang werden als
- * Kommentarzeilen interpretiert und ignoriert.
- * \par Beispiel einer Konfigurationsdatei
- * \code
-[Abschnitt_1]
-# Kommentarzeile, die überlesen wird
-key1: value1
-key2: value2
-[Abschnitt_2]
-key1: value1
-key2: value2
-\endcode
- *
- * \param[in] content Ein String, dre die zu parsende Konfiguration enthält.
- * \param[in] linedelimiter Das Zeichen, was als Zeilenende interpretiert werden soll. Default ist \c Newline
- * \param[in] splitchar Das Zeichen, was als Trennzeichen zwischen Schlüssel (Key) und Wert (Value)
- * interpretiert werden soll. Der Default ist das Gleichheitszeichen (=)
- * \param[in] concat Ist concat gesetzt und kommen im Text mehrere identische Schlüssel vor, werden die Werte
- * zu einem String zusammengeführt, wobei als Trennzeichen \c concat verwendet wird. Ist concat NULL,
- * wird ein vorhandener Schlüssel überschrieben. Der Default ist, dass gleiche Schlüssel mit Newline
- * aneinander gehangen werden.
- * \param[in] dotrim Ist \c dotrim=true, werden einzelnen Werte vor dem Einfügen ins Array mit der Funktion
- * Trim getrimmt, also Leerzeilen, Tabs und Zeilenumbrüche am Anfang und Ende gelöscht. Der Default
- * ist \c false.
- *
- * \return Die Funktion gibt die Anzahl gelesener Key-Value-Paare zurück, oder 0, wenn der Text
- * keine verwertbaren Zeilen enthielt.
- *
- * \note Falls das %Array vor dem Aufruf dieser Funktion bereits Datensätze enthielt, werden diese
- * nicht gelöscht. Die Funktion kann also benutzt werden, um Werte aus verschiedenen Templates in ein
- * einziges %Array einzulesen. Soll das %Array geleert werden, muß vorher die Funktion AssocArray::clear
- * aufgerufen werden.
- */
 size_t AssocArray::fromConfig(
     const String& content, const String& linedelimiter, const String& splitchar, const String& concat, bool dotrim)
 {
@@ -1421,62 +886,6 @@ size_t AssocArray::fromConfig(
     return rows;
 }
 
-/*!\brief Inhalt des Assoziativen Arrays in ein Template exportieren
- *
- * \desc
- * Mit dieser Funktion wird der textuelle Inhalt des Arrays als Template im Key-Value-Format in einem String
- * abgelegt.
- * Pointer oder Binäre Daten werden ignoriert.
- *
- * \param[out] s %String, in dem das Template gespeichert werden soll. Der %String wird von der Funktion nicht gelöscht,
- * der Inhalt des Arrays wird angehangen!
- * \param[in] prefix Optionaler Prefix, der jedem Key vorangestellt werden soll
- * \param[in] linedelimiter Optionaler Pointer auf einen String, der am Zeilenende ausgegeben werden soll. Der
- *            Default ist ein einzelnes Newline.
- * \param[in] splitchar Optionaler Pointer auf einen String, der als Trennzeichen zwischen Schlüssel und Wert
- *            verwendet werden soll. Der Default ist ein Gleichheitszeichen.
- * \par Beispiel
-\code
-#include <stdio.h>
-#include <string.h>
-#include <pplib.h>
-
-int main(int argc, char **argv)
-{
-    pplib::AssocArray a;
-    pplib::ByteArray bin;
-    pplib::String out;
-    bin.load("main.cpp");
-    a.set("key1","Dieser Wert geht über\nmehrere Zeilen");
-    a.set("array1/unterkey1","value2");
-    a.set("array1/unterkey2","value3");
-    a.set("array1/noch ein array/unterkey1","value4");
-    a.set("array1/unterkey2","value5");
-    a.set("key2","value6");
-    a.set("dateien/main.cpp",&bin);
-    a.set("array2/unterkey1","value7");
-    a.set("array2/unterkey2","value8");
-    a.set("array2/unterkey1","value9");
-    a.toTemplate(&out,"foo");
-    out.printnl();
-}
-\endcode
-Ergebnis:
-\code
-foo/array1/noch ein array/unterkey1=value4
-foo/array1/unterkey1=value2
-foo/array1/unterkey2=value5
-foo/array2/unterkey1=value9
-foo/array2/unterkey2=value8
-foo/key1=Dieser Wert geht über
-foo/key1=mehrere Zeilen
-foo/key2=value6
-\endcode
-    An diesem Beispiel sieht man, dass Pointer- und ByteArray-Werte nicht exportiert werden und Werte, die Zeilenumbrüche
-    enthalten, werden auf mehrere Key-Value-Paare aufgesplittet. Die Importfunktion (AssocArray::fromTemplate,
-    AssocArray::fromConfig) fügen diese wieder zu einer einzelnen Variable mit Zeilenumbruch
-    zusammen.
- */
 void AssocArray::toTemplate(String& s, const String& prefix, const String& linedelimiter, const String& splitchar) const
 {
     String key, pre, value, index;
