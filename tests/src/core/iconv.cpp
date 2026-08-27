@@ -1,21 +1,18 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (pplib).
- * Web: http://www.pfp.de/ppl/
- *
+ * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its
- *       contributors may be used to endorse or promote products derived
- *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -25,20 +22,24 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <locale.h>
-#include <pplib.h>
 #include <gtest/gtest.h>
+
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/iconv.h>
+
 #include "pplib-tests.h"
 
-namespace pplib
+namespace
 {
 
 class IconvTest : public ::testing::Test
@@ -174,4 +175,4 @@ TEST_F(IconvTest, ISO88591toUtf8)
     EXPECT_EQ(188, (unsigned char)utf8_bytes.get(5));
 }
 
-} // namespace pplib
+} // namespace

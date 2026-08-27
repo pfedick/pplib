@@ -27,12 +27,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <locale.h>
-#include <pplib.h>
 #include <gtest/gtest.h>
+
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/regex.h>
+
 #include "pplib-tests.h"
 
 namespace
