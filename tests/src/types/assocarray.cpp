@@ -44,6 +44,7 @@
 #include <pplib/core/file.h>
 
 #include "pplib-tests.h"
+#include "pplib/types/date.h"
 
 extern pplib::Array Wordlist;
 
@@ -163,6 +164,95 @@ TEST(AssocArrayTest, appendNonExisting)
     // a.list();
 }
 
+TEST(AssocArrayTest, addAssocArrayFlat)
+{
+    pplib::AssocArray a;
+    pplib::AssocArray b;
+    a.set("key1", "value1");
+    a.set("key2", "value2");
+    b.set("key3", "value3");
+    b.set("key2", "other value");
+    a.add(b);
+    ASSERT_EQ((size_t)3, a.count()) << "Unexpected size of AssocArray";
+    ASSERT_EQ(pplib::String("value1"), a.getString("key1")) << "unexpected value";
+    ASSERT_EQ(pplib::String("other value"), a.getString("key2")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value3"), a.getString("key3")) << "unexpected value";
+}
+
+TEST(AssocArrayTest, addSameAssocArray)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    a.set("key2", "value2");
+    a.add(a);
+    ASSERT_EQ((size_t)2, a.count(true)) << "Unexpected size of AssocArray";
+    ASSERT_EQ(pplib::String("value1"), a.getString("key1")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value2"), a.getString("key2")) << "unexpected value";
+}
+
+TEST(AssocArrayTest, addSubAssocArray)
+{
+    pplib::AssocArray a;
+    pplib::AssocArray b;
+    a.set("key1", "value1");
+    a.set("key2", "value2");
+    a.set("array1/key1", "value1");
+    a.set("array1/key2", "value2");
+    b.set("array1/key3", "value3");
+    b.set("array1/key2", "other value");
+    b.set("key3", "value3");
+    a.add(b);
+    ASSERT_EQ((size_t)7, a.count(true)) << "Unexpected size of AssocArray";
+    ASSERT_EQ(pplib::String("value1"), a.getString("array1/key1")) << "unexpected value";
+    ASSERT_EQ(pplib::String("other value"), a.getString("array1/key2")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value3"), a.getString("array1/key3")) << "unexpected value";
+}
+
+TEST(AssocArrayTest, addAssocArrayWithDifferentTypes)
+{
+    pplib::AssocArray a;
+    pplib::AssocArray b;
+    a.set("key1", "value1");
+    a.set("key2", "value2");
+    a.set("key3", "value3");
+    a.set("key4/subkey1", "value1");
+    a.set("key4/subkey2", "value2");
+    a.set("array1/key1", "value1");
+    a.set("array1/key2", "value2");
+    b.set("array1/key3", "value3");
+    b.set("array1/key2", "other value");
+    b.set("key3/subkey1", "value3");
+    b.set("key4", "value4");
+
+    a.add(b);
+    ASSERT_EQ((size_t)9, a.count(true)) << "Unexpected size of AssocArray";
+    ASSERT_EQ(pplib::String("value1"), a.getString("array1/key1")) << "unexpected value";
+    ASSERT_EQ(pplib::String("other value"), a.getString("array1/key2")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value3"), a.getString("array1/key3")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value3"), a.getString("key3/subkey1")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value4"), a.getString("key4")) << "unexpected value";
+}
+
+TEST(AssocArrayTest, addAssocArrayWithLists)
+{
+    pplib::AssocArray a;
+    pplib::AssocArray b;
+    a.set("[]", "value1");
+    a.set("[]", "value2");
+    a.set("[]", "value3");
+    b.set("[]", "value1");
+    b.set("[]", "value2");
+    b.set("[]", "value3");
+    b.set("[]", "value4");
+    b.set("[]", "value5");
+    b.set("[]", "value6");
+    a.add(b);
+    a.set("[]", "value7");
+    // a.list();
+    ASSERT_EQ((size_t)7, a.count(true)) << "Unexpected size of AssocArray";
+    ASSERT_EQ(pplib::String("value7"), a.getString("6")) << "unexpected value";
+}
+
 TEST(AssocArrayTest, appendf)
 {
     pplib::AssocArray a;
@@ -173,7 +263,7 @@ TEST(AssocArrayTest, appendf)
     // a.list();
 }
 
-TEST(AssocArrayTest, getAssocArray)
+TEST(AssocArrayTest, getWithAssocArray)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({
@@ -220,6 +310,110 @@ TEST(AssocArrayTest, addAndDeleteWordlist)
     }
     pplib::PrintDebugTime("done\n");
     ASSERT_EQ((size_t)0, a.count()) << "Tree has unexpected size";
+}
+
+TEST(AssocArrayTest, getString)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    a.set("key2", "value2");
+    a.set("key3", pplib::DateTime("2018-12-03 13:49:10.123456"));
+
+    ASSERT_EQ(pplib::String("value1"), a.getString("key1")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value2"), a.getString("key2")) << "unexpected value";
+    ASSERT_THROW(a.getString("key3"), pplib::TypeConversionException);
+    ASSERT_THROW(a.getString("key4"), pplib::KeyNotFoundException);
+}
+
+TEST(AssocArrayTest, getStringConst)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    a.set("key2", "value2");
+    a.set("key3", pplib::DateTime("2018-12-03 13:49:10.123456"));
+
+    const pplib::AssocArray& ac = a;
+
+    ASSERT_EQ(pplib::String("value1"), ac.getString("key1")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value2"), ac.getString("key2")) << "unexpected value";
+    ASSERT_THROW(ac.getString("key3"), pplib::TypeConversionException);
+    ASSERT_THROW(ac.getString("key4"), pplib::KeyNotFoundException);
+}
+
+TEST(AssocArrayTest, getStringWithDefault)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    a.set("key2", "value2");
+    a.set("key3", pplib::DateTime("2018-12-03 13:49:10.123456"));
+    a.set("key5", pplib::WideString(L"value5"));
+
+    ASSERT_EQ(pplib::String("value1"), a.getString("key1", "default")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value2"), a.getString("key2", "default")) << "unexpected value";
+    ASSERT_EQ(pplib::String("default"), a.getString("key3", "default")) << "unexpected value";
+    ASSERT_EQ(pplib::String("default"), a.getString("key4", "default")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value5"), a.getString("key5", "default")) << "unexpected value";
+    ASSERT_THROW(a.getString(""), pplib::AssocArray::InvalidKeyException);
+}
+
+TEST(AssocArrayTest, getBooleanWithDefault)
+{
+    pplib::AssocArray a;
+    a.set("key1", "true");
+    a.set("key2", "false");
+    a.set("key3", pplib::DateTime("2018-12-03 13:49:10.123456"));
+    a.set("key5", pplib::WideString(L"true"));
+
+    ASSERT_EQ(true, a.getBoolean("key1", false)) << "unexpected value";
+    ASSERT_EQ(false, a.getBoolean("key2", true)) << "unexpected value";
+    ASSERT_EQ(false, a.getBoolean("key3", false)) << "unexpected value";
+    ASSERT_EQ(true, a.getBoolean("key4", true)) << "unexpected value";
+    ASSERT_EQ(true, a.getBoolean("key5", false)) << "unexpected value";
+}
+
+TEST(AssocArrayTest, getIntWithDefault)
+{
+    pplib::AssocArray a;
+    a.set("key1", "42");
+    a.set("key2", "100");
+    a.set("key3", pplib::DateTime("2018-12-03 13:49:10.123456"));
+    a.set("key5", pplib::WideString(L"42"));
+
+    ASSERT_EQ(42, a.getInt("key1", 0)) << "unexpected value";
+    ASSERT_EQ(100, a.getInt("key2", 0)) << "unexpected value";
+    ASSERT_EQ(0, a.getInt("key3", 0)) << "unexpected value";
+    ASSERT_EQ(7, a.getInt("key4", 7)) << "unexpected value";
+    ASSERT_EQ(42, a.getInt("key5", 0)) << "unexpected value";
+}
+
+TEST(AssocArrayTest, getInt64tWithDefault)
+{
+    pplib::AssocArray a;
+    a.set("key1", "42");
+    a.set("key2", "100");
+    a.set("key3", pplib::DateTime("2018-12-03 13:49:10.123456"));
+    a.set("key5", pplib::WideString(L"-42"));
+
+    ASSERT_EQ(42, a.getInt64t("key1", 0)) << "unexpected value";
+    ASSERT_EQ(100, a.getInt64t("key2", 0)) << "unexpected value";
+    ASSERT_EQ(0, a.getInt64t("key3", 0)) << "unexpected value";
+    ASSERT_EQ(7, a.getInt64t("key4", 7)) << "unexpected value";
+    ASSERT_EQ(-42, a.getInt64t("key5", 0)) << "unexpected value";
+}
+
+TEST(AssocArrayTest, isTrue)
+{
+    pplib::AssocArray a;
+    a.set("key1", "true");
+    a.set("key2", "false");
+    a.set("key3", pplib::DateTime("2018-12-03 13:49:10.123456"));
+    a.set("key5", pplib::WideString(L"true"));
+
+    ASSERT_EQ(true, a.isTrue("key1")) << "unexpected value";
+    ASSERT_EQ(false, a.isTrue("key2")) << "unexpected value";
+    ASSERT_EQ(false, a.isTrue("key3")) << "unexpected value";
+    ASSERT_EQ(false, a.isTrue("key4")) << "unexpected value";
+    ASSERT_EQ(true, a.isTrue("key5")) << "unexpected value";
 }
 
 static void createDefaultAssocArray(pplib::AssocArray& a)
@@ -401,6 +595,23 @@ TEST(AssocArrayTest, getVariant)
     ASSERT_THROW(a1.get("gibtsnicht"), pplib::KeyNotFoundException);
 }
 
+TEST(AssocArrayTest, getVariantConst)
+{
+    pplib::AssocArray a1;
+    a1.set("key1", "value1");
+    a1.set("array1/key1", "value2");
+    pplib::Array a2("red green blue yellow black white", " ");
+    a1.set("array1/array2", a2);
+
+    const pplib::AssocArray& ca1 = a1;
+
+    ASSERT_THROW(ca1.get(""), pplib::AssocArray::InvalidKeyException);
+    ASSERT_EQ(pplib::String("value1"), ca1.get("key1").toString());
+    ASSERT_EQ(pplib::String("value2"), ca1.get("array1/key1").toString());
+    ASSERT_THROW(ca1.get("array1/array2/blah"), pplib::KeyNotFoundException);
+    ASSERT_THROW(ca1.get("gibtsnicht"), pplib::KeyNotFoundException);
+}
+
 TEST(AssocArrayTest, exists)
 {
     pplib::AssocArray a1;
@@ -415,6 +626,64 @@ TEST(AssocArrayTest, exists)
     ASSERT_FALSE(a1.exists("array1/array2/blah"));
     ASSERT_FALSE(a1.exists("gibtsnicht"));
     ASSERT_THROW(a1.exists(""), pplib::AssocArray::InvalidKeyException);
+}
+
+TEST(AssocArrayTest, getAssocArray)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+    pplib::AssocArray& sub = a.getAssocArray("array1");
+    ASSERT_EQ(pplib::String("value2"), sub.getString("unterkey1"));
+    ASSERT_EQ(pplib::String("value5"), sub.getString("unterkey2"));
+    ASSERT_TRUE(sub.get("noch ein array").isAssocArray());
+}
+
+TEST(AssocArrayTest, getAssocArrayConst)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+    const pplib::AssocArray& ca = a;
+    const pplib::AssocArray& sub = ca.getAssocArray("array1");
+    ASSERT_EQ(pplib::String("value2"), sub.getString("unterkey1"));
+    ASSERT_EQ(pplib::String("value5"), sub.getString("unterkey2"));
+    ASSERT_TRUE(sub.get("noch ein array").isAssocArray());
+}
+
+TEST(AssocArrayTest, getArray)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+    pplib::Array& sub = a.getArray("stringarray");
+    ASSERT_EQ((size_t)4, sub.size());
+    ASSERT_EQ(pplib::String("red"), sub[0]);
+    ASSERT_EQ(pplib::String("green"), sub[1]);
+    ASSERT_EQ(pplib::String("blue"), sub[2]);
+    ASSERT_EQ(pplib::String("white"), sub[3]);
+}
+
+TEST(AssocArrayTest, getArrayConst)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+    const pplib::AssocArray& ca = a;
+    const pplib::Array& sub = ca.getArray("stringarray");
+    ASSERT_EQ((size_t)4, sub.size());
+    ASSERT_EQ(pplib::String("red"), sub[0]);
+    ASSERT_EQ(pplib::String("green"), sub[1]);
+    ASSERT_EQ(pplib::String("blue"), sub[2]);
+    ASSERT_EQ(pplib::String("white"), sub[3]);
+}
+
+TEST(AssocArrayTest, erase)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+
+    ASSERT_THROW(a.erase(""), pplib::AssocArray::InvalidKeyException);
+
+    size_t original_size = a.count(true);
+    ASSERT_NO_THROW(a.erase("nonexisting_key"));
+    ASSERT_EQ(original_size, a.count(true));
 }
 
 TEST(AssocArrayTest, OperatorPlus)

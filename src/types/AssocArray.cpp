@@ -46,6 +46,7 @@
 #include "pplib/types/time.h"
 #include "pplib/types/timedelta.h"
 #include "pplib/types/timezone.h"
+#include "pplib/types/variant.h"
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
 #include <pplib/core/iconv.h>
@@ -284,88 +285,6 @@ size_t AssocArray::count(const String& key, bool recursive) const
     return 1;
 }
 
-/*!\brief Inhalt des Arrays ausgeben
- *
- * \desc
- * Diese Funktion dient Debugging-Zwecken. Der Aufruf bewirkt, dass der Inhalt des kompletten Arrays auf
- * STDOUT ausgegeben wird.
- *
- * \param[in] prefix Optionaler Text, der bei der Ausgabe jedem Element vorangestellt wird
- *
- * \par Beispiel:
- * \code
-pplib::AssocArray a;
-pplib::Binary bin;
-bin.load("main.cpp");
-
-a.set("key1","value1");
-a.set("array1/unterkey1","value2");
-a.set("array1/unterkey2","value3");
-a.set("array1/noch ein array/unterkey1","value4");
-a.set("array1/unterkey2","value5");
-a.set("key2","value6");
-a.set("dateien/main.cpp",bin);
-a.set("array2/unterkey1","value7");
-a.set("array2/unterkey2","value8");
-a.set("array2/unterkey1","value9");
-a.list("prefix");
-\endcode
-    Ausgabe:
-\code
-prefix/array1/noch ein array/unterkey1=value4
-prefix/array1/unterkey1=value2
-prefix/array1/unterkey2=value5
-prefix/array2/unterkey1=value9
-prefix/array2/unterkey2=value8
-prefix/dateien/main.cpp=Binary, 806 Bytes
-prefix/key1=value1
-prefix/key2=value6
-\endcode
- *
- * \remarks Die Funktion gibt nur "lesbare" Element aus. Enthält das Array Pointer oder Binaries, wird das Element zwar
- * ausgegeben, jedoch werden als Wert nur Meta-Informationen ausgegeben (Datentyp, Pointer, Größe).
- */
-void AssocArray::list(const String& prefix) const
-{
-    String key;
-    String pre;
-    if (prefix.notEmpty()) key = prefix + "/";
-
-    const_iterator it;
-    for (it = Tree.begin(); it != Tree.end(); ++it) {
-        Variant* p = it->second;
-        if (p->isString()) {
-            PrintDebug("%s%s=%s\n", (const char*)key, (const char*)it->first, (const char*)p->toString().getPtr());
-        } else if (p->isWideString()) {
-            PrintDebug("%s%s=%ls\n", (const char*)key, (const char*)it->first, (const wchar_t*)p->toWideString().getPtr());
-        } else if (p->isByteArray()) {
-            PrintDebug("%s%s=ByteArray, %zu Bytes\n", (const char*)key, (const char*)it->first, p->toByteArray().size());
-        } else if (p->isByteArrayPtr()) {
-            PrintDebug("%s%s=ByteArrayPtr, %zu Bytes\n", (const char*)key, (const char*)it->first, p->toByteArrayPtr().size());
-        } else if (p->isAssocArray()) {
-            pre.setf("%s%s", (const char*)key, (const char*)it->first);
-            p->toAssocArray().list(pre);
-        } else if (p->isArray()) {
-            const Array& a = (const Array&)*p;
-            for (size_t i = 0; i < a.size(); i++) {
-                PrintDebug("%s%s/Array(%zu)=%s\n", (const char*)key, (const char*)it->first, i, (const char*)a[i]);
-            }
-        } else if (p->isDateTime()) {
-            PrintDebug("%s%s=DateTime %s\n", (const char*)key, (const char*)it->first, (const char*)p->toDateTime().getISO8601withMsec());
-        } else if (p->isDate()) {
-            PrintDebug("%s%s=Date %s\n", (const char*)key, (const char*)it->first, (const char*)p->toDate().toString());
-        } else if (p->isTime()) {
-            PrintDebug("%s%s=Time %s\n", (const char*)key, (const char*)it->first, (const char*)p->toTime().toString());
-        } else if (p->isTimeDelta()) {
-            PrintDebug("%s%s=TimeDelta TODO\n", (const char*)key, (const char*)it->first);
-        } else if (p->isTimeZone()) {
-            PrintDebug("%s%s=TimeZone %s\n", (const char*)key, (const char*)it->first, (const char*)p->toTimeZone().toString(true));
-
-        } else {
-            PrintDebug("%s%s=UnknownDataType Id=%i\n", (const char*)key, (const char*)it->first, p->type());
-        }
-    }
-}
 /*!\brief Formatierten String hinzufügen
  *
  * \desc
@@ -470,7 +389,7 @@ void AssocArray::add(const AssocArray& other)
         } else
             set(it->first, *it->second);
     }
-    if (other.maxint > maxint) maxint = other.maxint;
+    // if (other.maxint > maxint) maxint = other.maxint; // Tritt nicht ein, da set den maxint bereits aktualisiert
 }
 
 /*!\brief Schlüssel auslesen
@@ -489,17 +408,21 @@ void AssocArray::add(const AssocArray& other)
 pplib::String &str=a.get(L"key1").toString();
 \endcode
  */
-const Variant& AssocArray::get(const String& key) const
+const Variant& AssocArray::get(const String& key, Variant::DataType type) const
 {
     Variant* node = findInternal(key);
     if (!node) throw KeyNotFoundException(key);
+    if (type != Variant::DataType::TYPE_UNKNOWN && !node->isType(type))
+        throw TypeConversionException("%s is not of the requested type", (const char*)key);
     return (*node);
 }
 
-Variant& AssocArray::get(const String& key)
+Variant& AssocArray::get(const String& key, Variant::DataType type)
 {
     Variant* node = findInternal(key);
     if (!node) throw KeyNotFoundException(key);
+    if (type != Variant::DataType::TYPE_UNKNOWN && !node->isType(type))
+        throw TypeConversionException("%s is not of the requested type", (const char*)key);
     return (*node);
 }
 
@@ -530,28 +453,50 @@ bool AssocArray::exists(const String& key) const
  */
 String& AssocArray::getString(const String& key)
 {
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    if (!node->isString()) throw TypeConversionException("%s is not a String", (const char*)key);
-    return node->toString();
+    return get(key, Variant::DataType::TYPE_STRING).toString();
 }
 
 const String& AssocArray::getString(const String& key) const
 {
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    if (!node->isString()) throw TypeConversionException("%s is not a String", (const char*)key);
-    return node->toString();
+    return get(key, Variant::DataType::TYPE_STRING).toString();
 }
 
+/*!\brief String auslesen mit Standardwert
+ *
+ * \desc
+ * Diese Funktion liefert den Wert des Schlüssels \p key als String zurück, sofern
+ * er existiert und einen String enthält. Andernfalls wird der Standardwert \p default_value
+ * zurückgegeben. Falls der Schlüssel existiert, aber kein String ist, wird ebenfalls der
+ * Standardwert \p default_value zurückgegeben. Falls der Wert ein WideString ist, wird er
+ * in einen String konvertiert und zurückgegeben.
+ *
+ * @param key Name des Schlüssels
+ * @param default_value Standardwert, der zurückgegeben wird, wenn der Schlüssel nicht existiert oder keinen String enthält
+ * @return Referenz auf einen String mit dem Wert des Schlüssels oder dem Standardwert
+ * @exception InvalidKeyException: Ungültiger Schlüssel (wenn \p key leer ist)
+ * @exception std::bad_alloc: Speicher konnte nicht zugewiesen werden
+ */
 String AssocArray::getString(const String& key, const String& default_value) const
 {
     Variant* node = findInternal(key);
     if (!node) return default_value;
     if (node->isString()) return node->toString();
+    if (node->isWideString()) return String(node->toWideString());
     return default_value;
 }
 
+/*!\brief Boolean auslesen mit Standardwert
+ *
+ * \desc
+ * Diese Funktion liefert den Wert des Schlüssels \p key als Boolean zurück, sofern
+ * er existiert und einen String oder WideString enthält. Ist dies nicht der Fall, wird
+ * der Standardwert \p default_value zurückgegeben.
+ *
+ * @param key Name des Schlüssels
+ * @param default_value Standardwert, der zurückgegeben wird, wenn der Schlüssel nicht existiert oder keinen Boolean enthält
+ * @return Boolean Wert des Schlüssels oder der Standardwert
+ * @exception InvalidKeyException: Ungültiger Schlüssel (wenn \p key leer ist)
+ */
 bool AssocArray::getBoolean(const String& key, bool default_value) const
 {
     Variant* node = findInternal(key);
@@ -561,6 +506,18 @@ bool AssocArray::getBoolean(const String& key, bool default_value) const
     return default_value;
 }
 
+/*!\brief Integer auslesen mit Standardwert
+ *
+ * \desc
+ * Diese Funktion liefert den Wert des Schlüssels \p key als Integer zurück, sofern
+ * er existiert und einen String oder WideString enthält, der in einen Integer konvertiert werden kann.
+ * Andernfalls wird der Standardwert \p default_value zurückgegeben.
+ *
+ * @param key Name des Schlüssels
+ * @param default_value Standardwert, der zurückgegeben wird, wenn der Schlüssel nicht existiert oder keinen Integer enthält
+ * @return Integer Wert des Schlüssels oder der Standardwert
+ * @exception InvalidKeyException: Ungültiger Schlüssel (wenn \p key leer ist)
+ */
 int AssocArray::getInt(const String& key, int default_value) const
 {
     Variant* node = findInternal(key);
@@ -570,6 +527,18 @@ int AssocArray::getInt(const String& key, int default_value) const
     return default_value;
 }
 
+/*!\brief 64-Bit Integer auslesen mit Standardwert
+ *
+ * \desc
+ * Diese Funktion liefert den Wert des Schlüssels \p key als 64-Bit Integer zurück, sofern
+ * er existiert und einen String oder WideString enthält, der in einen 64-Bit Integer konvertiert werden kann.
+ * Andernfalls wird der Standardwert \p default_value zurückgegeben.
+ *
+ * @param key Name des Schlüssels
+ * @param default_value Standardwert, der zurückgegeben wird, wenn der Schlüssel nicht existiert oder keinen 64-Bit Integer enthält
+ * @return 64-Bit Integer Wert des Schlüssels oder der Standardwert
+ * @exception InvalidKeyException: Ungültiger Schlüssel (wenn \p key leer ist)
+ */
 int64_t AssocArray::getInt64t(const String& key, int64_t default_value) const
 {
     Variant* node = findInternal(key);
@@ -582,9 +551,8 @@ int64_t AssocArray::getInt64t(const String& key, int64_t default_value) const
 /*!\brief Key vorhanden und True
  *
  * \desc
- * Liefert True zurück, wenn der Schlüssel \b key vorhanden ist,
- * und dessen Value einen String oder WideString enthält, dessen
- * Boolean Wert True entspricht.
+ * Liefert True zurück, wenn der Schlüssel \b key vorhanden ist, und dessen Value einen String oder
+ * WideString enthält, dessen Boolean Wert True entspricht. Andernfalls wird False zurückgegeben.
  *
  * @param key Name des Schlüssels
  * @return True oder False
@@ -609,34 +577,22 @@ bool AssocArray::isTrue(const String& key) const
  */
 AssocArray& AssocArray::getAssocArray(const String& key)
 {
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    if (!node->isAssocArray()) throw TypeConversionException("%s is not an AssocArray", (const char*)key);
-    return node->toAssocArray();
+    return get(key, Variant::DataType::TYPE_ASSOCARRAY).toAssocArray();
 }
 
 const AssocArray& AssocArray::getAssocArray(const String& key) const
 {
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    if (!node->isAssocArray()) throw TypeConversionException("%s is not an AssocArray", (const char*)key);
-    return node->toAssocArray();
+    return get(key, Variant::DataType::TYPE_ASSOCARRAY).toAssocArray();
 }
 
 Array& AssocArray::getArray(const String& key)
 {
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    if (!node->isArray()) throw TypeConversionException("%s is not an Array", (const char*)key);
-    return node->toArray();
+    return get(key, Variant::DataType::TYPE_ARRAY).toArray();
 }
 
 const Array& AssocArray::getArray(const String& key) const
 {
-    Variant* node = findInternal(key);
-    if (!node) throw KeyNotFoundException(key);
-    if (!node->isArray()) throw TypeConversionException("%s is not an Array", (const char*)key);
-    return node->toArray();
+    return get(key, Variant::DataType::TYPE_ARRAY).toArray();
 }
 
 /** @brief Einzelnen Schlüssel löschen
@@ -1216,6 +1172,89 @@ AssocArray operator+(const AssocArray& a1, const AssocArray& a2)
     AssocArray a(a1);
     a.add(a2);
     return a;
+}
+
+/*!\brief Inhalt des Arrays ausgeben
+ *
+ * \desc
+ * Diese Funktion dient Debugging-Zwecken. Der Aufruf bewirkt, dass der Inhalt des kompletten Arrays auf
+ * STDOUT ausgegeben wird.
+ *
+ * \param[in] prefix Optionaler Text, der bei der Ausgabe jedem Element vorangestellt wird
+ *
+ * \par Beispiel:
+ * \code
+pplib::AssocArray a;
+pplib::Binary bin;
+bin.load("main.cpp");
+
+a.set("key1","value1");
+a.set("array1/unterkey1","value2");
+a.set("array1/unterkey2","value3");
+a.set("array1/noch ein array/unterkey1","value4");
+a.set("array1/unterkey2","value5");
+a.set("key2","value6");
+a.set("dateien/main.cpp",bin);
+a.set("array2/unterkey1","value7");
+a.set("array2/unterkey2","value8");
+a.set("array2/unterkey1","value9");
+a.list("prefix");
+\endcode
+    Ausgabe:
+\code
+prefix/array1/noch ein array/unterkey1=value4
+prefix/array1/unterkey1=value2
+prefix/array1/unterkey2=value5
+prefix/array2/unterkey1=value9
+prefix/array2/unterkey2=value8
+prefix/dateien/main.cpp=Binary, 806 Bytes
+prefix/key1=value1
+prefix/key2=value6
+\endcode
+ *
+ * \remarks Die Funktion gibt nur "lesbare" Element aus. Enthält das Array Pointer oder Binaries, wird das Element zwar
+ * ausgegeben, jedoch werden als Wert nur Meta-Informationen ausgegeben (Datentyp, Pointer, Größe).
+ */
+void AssocArray::list(const String& prefix) const
+{
+    String key;
+    String pre;
+    if (prefix.notEmpty()) key = prefix + "/";
+
+    const_iterator it;
+    for (it = Tree.begin(); it != Tree.end(); ++it) {
+        Variant* p = it->second;
+        if (p->isString()) {
+            PrintDebug("%s%s=%s\n", (const char*)key, (const char*)it->first, (const char*)p->toString().getPtr());
+        } else if (p->isWideString()) {
+            PrintDebug("%s%s=%ls\n", (const char*)key, (const char*)it->first, (const wchar_t*)p->toWideString().getPtr());
+        } else if (p->isByteArray()) {
+            PrintDebug("%s%s=ByteArray, %zu Bytes\n", (const char*)key, (const char*)it->first, p->toByteArray().size());
+        } else if (p->isByteArrayPtr()) {
+            PrintDebug("%s%s=ByteArrayPtr, %zu Bytes\n", (const char*)key, (const char*)it->first, p->toByteArrayPtr().size());
+        } else if (p->isAssocArray()) {
+            pre.setf("%s%s", (const char*)key, (const char*)it->first);
+            p->toAssocArray().list(pre);
+        } else if (p->isArray()) {
+            const Array& a = (const Array&)*p;
+            for (size_t i = 0; i < a.size(); i++) {
+                PrintDebug("%s%s/Array(%zu)=%s\n", (const char*)key, (const char*)it->first, i, (const char*)a[i]);
+            }
+        } else if (p->isDateTime()) {
+            PrintDebug("%s%s=DateTime %s\n", (const char*)key, (const char*)it->first, (const char*)p->toDateTime().getISO8601withMsec());
+        } else if (p->isDate()) {
+            PrintDebug("%s%s=Date %s\n", (const char*)key, (const char*)it->first, (const char*)p->toDate().toString());
+        } else if (p->isTime()) {
+            PrintDebug("%s%s=Time %s\n", (const char*)key, (const char*)it->first, (const char*)p->toTime().toString());
+        } else if (p->isTimeDelta()) {
+            PrintDebug("%s%s=TimeDelta TODO\n", (const char*)key, (const char*)it->first);
+        } else if (p->isTimeZone()) {
+            PrintDebug("%s%s=TimeZone %s\n", (const char*)key, (const char*)it->first, (const char*)p->toTimeZone().toString(true));
+
+        } else {
+            PrintDebug("%s%s=UnknownDataType Id=%i\n", (const char*)key, (const char*)it->first, p->type());
+        }
+    }
 }
 
 #ifdef OLDCODE

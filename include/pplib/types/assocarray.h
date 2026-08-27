@@ -267,8 +267,8 @@ public:
 
     //!\name Werte direkt auslesen
     //@{
-    const Variant& get(const String& key) const;
-    Variant& get(const String& key);
+    const Variant& get(const String& key, Variant::DataType type = Variant::DataType::TYPE_UNKNOWN) const;
+    Variant& get(const String& key, Variant::DataType type = Variant::DataType::TYPE_UNKNOWN);
 
     String& getString(const String& key);
     const String& getString(const String& key) const;
