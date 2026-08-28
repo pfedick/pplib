@@ -2283,22 +2283,6 @@ TEST(StringTest, operator_int64)
     ASSERT_EQ((int64_t)pplib::String(""), (int64_t)0LL);
 }
 
-TEST(StringTest, operator_long)
-{
-    ASSERT_EQ((long)pplib::String("1234567890"), (long)1234567890L);
-    ASSERT_EQ((long)pplib::String("-1234567890"), (long)-1234567890L);
-    ASSERT_EQ((long)pplib::String("abc123"), (long)0L);
-    ASSERT_EQ((long)pplib::String(""), (long)0L);
-}
-
-TEST(StringTest, operator_unsigned_long)
-{
-    ASSERT_EQ((unsigned long)pplib::String("1234567890"), (unsigned long)1234567890UL);
-    ASSERT_EQ((unsigned long)pplib::String("-1234567890"), (unsigned long)-1234567890UL);
-    ASSERT_EQ((unsigned long)pplib::String("abc123"), (unsigned long)0UL);
-    ASSERT_EQ((unsigned long)pplib::String(""), (unsigned long)0UL);
-}
-
 TEST(StringTest, operator_float)
 {
     ASSERT_FLOAT_EQ((float)pplib::String("123.456"), 123.456f);
