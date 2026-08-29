@@ -85,28 +85,15 @@ File::File()
 }
 
 File::File(const String& filename, FileMode mode)
+    : File()
 {
-    MapBase = NULL;
-    ff = NULL;
-    mysize = pos = 0;
-    LastMapStart = LastMapSize = 0;
-    LastMapProtection = 0;
-    ReadAhead = 0;
-    isPopen = false;
     open(filename, mode);
 }
 
 File::File(FILE* handle)
+    : File()
 {
-    MapBase = NULL;
-    ff = NULL;
-    mysize = pos = 0;
-    LastMapStart = LastMapSize = 0;
-    LastMapProtection = 0;
-    ReadAhead = 0;
-    isPopen = false;
     if (handle != NULL) {
-        if (ff != NULL) close();
         ff = handle;
         mysize = size();
         this->seek((uint64_t)0);

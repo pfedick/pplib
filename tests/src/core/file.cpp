@@ -67,6 +67,131 @@ TEST_F(FileTest, ConstructorSimple)
     });
 }
 
+// ####################################################################
+// File::File(const String& filename, FileMode mode)
+// ####################################################################
+TEST_F(FileTest, ConstructorFilename_ReadExisting)
+{
+    pplib::File f("testdata/dirwalk/LICENSE.TXT", pplib::File::FileMode::READ);
+    ASSERT_TRUE(f.isOpen());
+    ASSERT_EQ((uint64_t)1330, f.size());
+    ASSERT_EQ((uint64_t)0, f.tell());
+    ASSERT_EQ(pplib::String("testdata/dirwalk/LICENSE.TXT"), f.filename());
+    // Daten müssen direkt nach dem Konstruktor lesbar sein
+    char buffer[8];
+    ASSERT_EQ((size_t)8, f.fread(buffer, 1, 8));
+}
+
+TEST_F(FileTest, ConstructorFilename_DefaultMode)
+{
+    // Ohne Angabe des Modus muss FileMode::READ die Default-Einstellung sein
+    pplib::File f("testdata/dirwalk/LICENSE.TXT");
+    ASSERT_TRUE(f.isOpen());
+    ASSERT_EQ((uint64_t)1330, f.size());
+    ASSERT_EQ((uint64_t)0, f.tell());
+}
+
+TEST_F(FileTest, ConstructorFilename_ReadExistingUtf8)
+{
+    pplib::File f("testdata/filenameUTF8äöü.txt", pplib::File::FileMode::READ);
+    ASSERT_TRUE(f.isOpen());
+    ASSERT_EQ(pplib::String("testdata/filenameUTF8äöü.txt"), f.filename());
+}
+
+TEST_F(FileTest, ConstructorFilename_WriteNew)
+{
+    const char* filename = "tmp/file_ctor_write.txt";
+    pplib::File::erase(filename);
+    {
+        pplib::File f(filename, pplib::File::FileMode::WRITE);
+        ASSERT_TRUE(f.isOpen());
+        ASSERT_EQ((uint64_t)0, f.size());
+        ASSERT_EQ((uint64_t)0, f.tell());
+        const char* content = "Hallo Welt\n";
+        f.fwrite(content, 1, strlen(content));
+    }
+    // Datei muss jetzt existieren und den Inhalt enthalten
+    ASSERT_TRUE(pplib::File::exists(filename));
+    {
+        pplib::File r(filename, pplib::File::FileMode::READ);
+        ASSERT_EQ((uint64_t)strlen("Hallo Welt\n"), r.size());
+    }
+    pplib::File::erase(filename);
+}
+
+TEST_F(FileTest, ConstructorFilename_AppendNew)
+{
+    const char* filename = "tmp/file_ctor_append.txt";
+    pplib::File::erase(filename);
+    {
+        pplib::File f(filename, pplib::File::FileMode::APPEND);
+        ASSERT_TRUE(f.isOpen());
+        ASSERT_EQ((uint64_t)0, f.size());
+    }
+    // Datei erst schließen, dann löschen (Windows kann offene Dateien nicht löschen)
+    pplib::File::erase(filename);
+}
+
+TEST_F(FileTest, ConstructorFilename_AppendExisting)
+{
+    const char* filename = "tmp/file_ctor_append.txt";
+    {
+        pplib::File w(filename, pplib::File::FileMode::WRITE);
+        w.fputs("12345");
+    }
+    {
+        pplib::File f(filename, pplib::File::FileMode::APPEND);
+        ASSERT_TRUE(f.isOpen());
+        ASSERT_EQ((uint64_t)5, f.size());
+        // Schreiben muss trotz seek(0) im open() ans Dateiende erfolgen
+        f.fputs("67");
+    }
+    {
+        pplib::File r(filename, pplib::File::FileMode::READ);
+        ASSERT_EQ((uint64_t)7, r.size());
+    }
+    pplib::File::erase(filename);
+}
+
+TEST_F(FileTest, ConstructorFilename_ReadwriteExisting)
+{
+    const char* filename = "tmp/file_ctor_readwrite.txt";
+    {
+        pplib::File w(filename, pplib::File::FileMode::WRITE);
+        w.fputs("Hallo");
+    }
+    {
+        pplib::File f(filename, pplib::File::FileMode::READWRITE);
+        ASSERT_TRUE(f.isOpen());
+        ASSERT_EQ((uint64_t)5, f.size());
+        ASSERT_EQ((uint64_t)0, f.tell());
+    }
+    // Datei erst schließen, dann löschen (Windows kann offene Dateien nicht löschen)
+    pplib::File::erase(filename);
+}
+
+TEST_F(FileTest, ConstructorFilename_Nonexisting_Read)
+{
+    ASSERT_THROW(pplib::File f("tmp/nonexisting_file_ctor.txt", pplib::File::FileMode::READ), pplib::FileNotFoundException);
+}
+
+TEST_F(FileTest, ConstructorFilename_Nonexisting_Readwrite)
+{
+    // r+b legt keine neue Datei an
+    ASSERT_THROW(pplib::File f("tmp/nonexisting_file_ctor.txt", pplib::File::FileMode::READWRITE), pplib::FileNotFoundException);
+}
+
+TEST_F(FileTest, ConstructorFilename_Empty)
+{
+    ASSERT_THROW(pplib::File f("", pplib::File::FileMode::READ), pplib::IllegalArgumentException);
+}
+
+TEST_F(FileTest, ConstructorFilename_InvalidMode)
+{
+    // Ungültiger Modus-Wert => IllegalArgumentException aus fmode()
+    ASSERT_THROW(pplib::File f("testdata/dirwalk/LICENSE.TXT", (pplib::File::FileMode)99), pplib::IllegalArgumentException);
+}
+
 TEST_F(FileTest, openNonexisting)
 {
     pplib::File f1;
