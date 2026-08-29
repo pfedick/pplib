@@ -1009,7 +1009,7 @@ void* File::mmap(uint64_t position, size_t size, int prot, int flags)
     offset.QuadPart = position;
 
     void* pView = MapViewOfFile(hMap, map_access, offset.HighPart, offset.LowPart,
-                                NULL // NULL = gesamte Mapping-Größe
+                                0 // 0 = gesamte Mapping-Größe
     );
     CloseHandle(hMap); // View hält die Referenz, Handle kann zu
 
