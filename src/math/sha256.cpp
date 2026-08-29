@@ -202,16 +202,24 @@ String Sha256(const ByteArrayPtr& buffer)
 String FileObject::sha256()
 {
     if (!isOpen()) throw FileNotOpenException();
-
     ByteArray buffer(1024 * 1024);
     unsigned char digest[32];
     Sha256Context ctx;
     SHA256Init(ctx);
-    while (!eof()) {
-        size_t bytesRead = read(buffer, buffer.size());
-        if (bytesRead > 0) {
-            SHA256Update(ctx, (const unsigned char*)buffer.ptr(), bytesRead);
+
+    uint64_t oldpos = tell();
+    seek(0);
+    try {
+        while (!eof()) {
+            size_t bytesRead = read(buffer, buffer.size());
+            if (bytesRead > 0) {
+                SHA256Update(ctx, (const unsigned char*)buffer.ptr(), bytesRead);
+            }
         }
+    }
+    catch (...) {
+        seek(oldpos);
+        throw;
     }
     SHA256Final(ctx, digest);
     static const char hex[] = "0123456789abcdef";
@@ -221,6 +229,7 @@ String FileObject::sha256()
         hexbuf[i * 2 + 1] = hex[digest[i] & 0x0f];
     }
     hexbuf[64] = '\0';
+    seek(oldpos);
     return String(hexbuf);
 }
 

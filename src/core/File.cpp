@@ -775,10 +775,19 @@ wchar_t File::fgetwc()
     return 0;
 }
 
+/*!\brief Prüfen, ob Dateiende erreicht ist
+ *
+ * \desc
+ * Die Funktion prüft, ob das Dateiende erreicht wurde
+ *
+ * @return Liefert \c true zurück, wenn das Dateiende erreicht wurde, sonst \c false
+ * Falls die Datei nicht geöffnet war, wird ebenfalls \c true zurückgegeben.
+ */
 bool File::eof() const
 {
-    if (ff == NULL) throw FileNotOpenException();
-    if (feof((FILE*)ff) != 0) return true;
+    if (ff == NULL) return true;
+    if (!isPopen && pos >= mysize) return true; // reguläre Datei: positionsbasiert
+    if (::feof((FILE*)ff)) return true;         // Pipes & Fallback
     return false;
 }
 

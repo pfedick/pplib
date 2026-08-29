@@ -27,17 +27,20 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <pthread.h>
-#include <locale.h>
-#include <pplib.h>
-#include <pplib-crypto.h>
 #include <gtest/gtest.h>
-#include "pplib-tests.h"
 
-#include <openssl/opensslv.h>
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/file.h>
+#include <pplib/core/dir.h>
+#include <pplib-crypto.h>
+#include <pplib/core/functions.h>
+// #include <pplib/core/regex.h>
+#include <pplib/exceptions.h>
+
+#include "pplib-tests.h"
 
 namespace
 {

@@ -278,8 +278,7 @@ size_t FileObject::read(void* target, size_t bytes)
 size_t FileObject::read(ByteArray& target, size_t bytes)
 {
     if (!bytes) throw IllegalArgumentException();
-    target.free();
-    target.malloc(bytes);
+    if (target.size() < bytes) target.realloc(bytes);
     return fread((void*)target.ptr(), 1, bytes);
 }
 

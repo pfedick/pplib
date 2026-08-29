@@ -31,6 +31,7 @@
 #define PPLIBCRYPTO_H_
 
 #include <pplib.h>
+#include <pplib/crypto/digest.h>
 
 namespace pplib
 {
@@ -116,59 +117,6 @@ public:
     void final(ByteArray& out);
     void decrypt(const ByteArrayPtr& in, ByteArray& out);
     ByteArray decrypt(const ByteArrayPtr& in);
-};
-
-class Digest
-{
-private:
-    const void* m;
-    void* ctx;
-    unsigned char* ret;
-    uint64_t bytecount;
-
-public:
-    enum Algorithm
-    {
-        Algo_MD5,
-        Algo_SHA1,
-        Algo_SHA224,
-        Algo_SHA256,
-        Algo_SHA384,
-        Algo_SHA512,
-        Algo_RIPEMD160
-    };
-
-    Digest();
-    Digest(const String& name);
-    Digest(Algorithm algorithm);
-    ~Digest();
-
-    void setAlgorithm(Algorithm algorithm);
-    void setAlgorithm(const String& name);
-    void addData(const void* data, size_t size);
-    void addData(const ByteArrayPtr& data);
-    void addData(const String& data);
-    void addData(const WideString& data);
-    void addData(FileObject& file);
-    void addFile(const String& filename);
-    ByteArray getDigest();
-    void saveDigest(ByteArray& result);
-    void saveDigest(String& result);
-    void saveDigest(WideString& result);
-
-    void reset();
-    uint64_t bytesHashed() const;
-
-    static ByteArray hash(const ByteArrayPtr& data, Algorithm algorithm);
-    static ByteArray hash(const ByteArrayPtr& data, const String& algorithmName);
-    static ByteArray md5(const ByteArrayPtr& data);
-    static ByteArray sha1(const ByteArrayPtr& data);
-    static ByteArray sha224(const ByteArrayPtr& data);
-    static ByteArray sha256(const ByteArrayPtr& data);
-    static ByteArray sha384(const ByteArrayPtr& data);
-    static ByteArray sha512(const ByteArrayPtr& data);
-    static uint32_t crc32(const ByteArrayPtr& data);
-    static uint32_t adler32(const ByteArrayPtr& data);
 };
 
 // TODO: Signaturen Generierung und Prüfung

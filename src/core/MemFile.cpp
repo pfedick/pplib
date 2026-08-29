@@ -338,7 +338,6 @@ size_t MemFile::fread(void* ptr, size_t size, size_t nmemb)
     if (pos + (by * size) > mysize) by = (size_t)(mysize - pos) / size;
     memmove(ptr, MemBase + pos, by * size);
     pos += (by * size);
-    if (by < nmemb) throw ReadException();
     return by;
 }
 
