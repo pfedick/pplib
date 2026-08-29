@@ -485,10 +485,6 @@ void File::close()
     setFilename("");
     if (ff != NULL) {
         int ret = 1;
-        if (buffer != NULL) {
-            free(buffer);
-            buffer = NULL;
-        }
         if (isPopen) {
             if (::pclose((FILE*)ff) != 0) ret = 0;
         } else {
@@ -943,22 +939,18 @@ void File::unmap()
     this->munmap(MapBase, (size_t)LastMapSize);
 }
 
-int File::munmap(void* addr, size_t len)
+void File::munmap(void* addr, size_t len)
 {
-    if (!addr) return 1;
+    if (!addr) return;
 #ifndef _WIN32
     ::munmap(addr, len);
 #else
-    if ((LastMapProtection & 2)) { // Speicher war schreibbar und muss
-        seek(LastMapStart);        // Zurückgeschrieben werden
-        fwrite(MapBase, 1, len);
-    }
-    free(MapBase);
+    UnmapViewOfFile(addr);
 #endif
     LastMapStart = LastMapSize = 0;
     MapBase = NULL;
     LastMapProtection = 0;
-    return 1;
+    return;
 }
 
 #ifndef _WIN32
@@ -995,23 +987,39 @@ void* File::mmap(uint64_t position, size_t size, int prot, int flags)
     return (MapBase + rest);
 
 #else
-    size_t bytes;
-    char* adr = (char*)malloc((size_t)size + 1);
-    if (!adr) throw OutOfMemoryException();
-    if (pos != position) seek(position);
-    try {
-        bytes = fread(adr, 1, size);
-    }
-    catch (...) {
-        free(adr);
-        throw;
-    }
-    adr[bytes] = 0;
-    MapBase = adr;
-    LastMapSize = bytes;
+    HANDLE hFile = (HANDLE)_get_osfhandle(fileno((FILE*)ff));
+    if (hFile == INVALID_HANDLE_VALUE) throwErrno(errno);
+    DWORD prot_flag = (prot & 2) ? PAGE_READWRITE : PAGE_READONLY;
+    DWORD map_access = (prot & 2) ? FILE_MAP_WRITE : FILE_MAP_READ;
+
+    // Datei muss mit GENERIC_READ | (optional) GENERIC_WRITE geöffnet sein.
+    // _get_osfhandle liefert den HANDLE, aber CreateFileMapping braucht
+    // einen HANDLE mit FileAccess-Rechten. Da wir über FILE* kommen,
+    // ist der Handle bereits korrekt geöffnet (rb / r+b).
+
+    ULARGE_INTEGER mapSize;
+    mapSize.QuadPart = size;
+
+    HANDLE hMap = CreateFileMapping(hFile, NULL, prot_flag, mapSize.HighPart, mapSize.LowPart, NULL);
+    if (hMap == NULL) throwErrno(GetLastError());
+
+    // Offset in High/Low DWORDs splitten (max. 4 GB pro View auf 32-bit,
+    // auf 64-bit ist das kein Problem)
+    ULARGE_INTEGER offset;
+    offset.QuadPart = position;
+
+    void* pView = MapViewOfFile(hMap, map_access, offset.HighPart, offset.LowPart,
+                                NULL // NULL = gesamte Mapping-Größe
+    );
+    CloseHandle(hMap); // View hält die Referenz, Handle kann zu
+
+    if (pView == NULL) throwErrno(GetLastError());
+
+    MapBase = (char*)pView;
+    LastMapSize = size;
     LastMapProtection = prot;
     LastMapStart = position;
-    return (MapBase);
+    return pView;
 #endif
 }
 

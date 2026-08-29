@@ -80,7 +80,7 @@ private:
     uint64_t pos;
     bool isPopen;
 
-    int munmap(void* addr, size_t len);
+    void munmap(void* addr, size_t len);
     void* mmap(uint64_t position, size_t size, int prot, int flags);
 
 public:

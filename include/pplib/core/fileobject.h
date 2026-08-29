@@ -60,8 +60,6 @@ private:
     String MyFilename;
 
 protected:
-    char* buffer;
-
 public:
     /** @enum SeekOrigin
      * @brief Ausgangsbasis für Bewegung des Dateizeigers
@@ -267,7 +265,7 @@ public:
      * Im Fehlerfall wird eine Exception geworfen.
      * Der Inhalt von @p buffer ist im Fehlerfall undefiniert.
      */
-    int getws(String& buffer, size_t num = 1024);
+    int getws(WideString& buffer, size_t num = 1024);
 
     /** @brief String lesen
      *
@@ -295,7 +293,7 @@ public:
      * @return Die Funktion gibt ein String-Objekt mit den gelesenen Daten zurück.
      * Im Fehlerfall (auch bei Dateiende) wird eine Exception geworfen.
      */
-    String getws(size_t num = 1024);
+    WideString getws(size_t num = 1024);
 
     /** @brief Formatierten String schreiben
      *
@@ -351,7 +349,7 @@ public:
      * vom Aufrufer nach Gebrauch mit @c free selbst wieder freigegeben werden.
      * Im Fehlerfall wird eine Exception geworfen.
      */
-    char* load();
+    ByteArray load();
 
     /** @brief Den kompletten Inhalt der Datei in ein Objekt laden
      *
@@ -360,7 +358,7 @@ public:
      * @param[out] object Das gewünschte Zielobjekt
      * @return Liefert 1 zurück, wenn der Inhalt geladen werden konnte, sonst 0.
      */
-    int load(ByteArray& target);
+    size_t load(ByteArray& target);
     String md5();
     String sha256();
 

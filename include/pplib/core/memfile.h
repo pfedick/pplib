@@ -42,6 +42,7 @@ private:
     size_t maxsize;
     size_t buffersize;
     char* MemBase;
+    char* buffer;
     bool readonly;
 
     void resizeBuffer(size_t size);

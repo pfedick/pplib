@@ -237,11 +237,6 @@ void GzFile::open(int fd, File::FileMode mode)
 void GzFile::close()
 {
     setFilename("");
-    if (buffer != NULL) {
-        free(buffer);
-        buffer = NULL;
-    }
-
     if (ff != NULL) {
         int ret = gzclose((gzFile)ff);
         ff = NULL;

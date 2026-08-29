@@ -42,15 +42,10 @@ namespace pplib
 
 FileObject::FileObject()
 {
-    buffer = NULL;
 }
 
 FileObject::~FileObject()
 {
-    if (buffer) {
-        free(buffer);
-        buffer = NULL;
-    }
 }
 
 void FileObject::setFilename(const char* filename)
@@ -116,45 +111,35 @@ uint64_t FileObject::copyFrom(FileObject& quellfile, uint64_t quelloffset, uint6
 
 uint64_t FileObject::copyFrom(FileObject& quellfile, uint64_t bytes)
 {
-    if (buffer == NULL) {
-        buffer = (char*)malloc(COPYBYTES_BUFFERSIZE);
-        if (buffer == NULL) throw OutOfMemoryException();
+    ByteArray CopyBuffer(COPYBYTES_BUFFERSIZE);
+    uint64_t available = quellfile.size() - quellfile.tell();
+    if (bytes > available) bytes = available;
+
+    uint64_t copied = 0;
+
+    while (copied < bytes) {
+        uint64_t by = bytes - copied;
+        if (by > CopyBuffer.size()) by = CopyBuffer.size();
+        size_t n = quellfile.read((void*)CopyBuffer.ptr(), (size_t)by);
+        if (n == 0) break; // EOF oder Fehler
+        write(CopyBuffer.ptr(), n);
+        copied += n;
     }
-    if (quellfile.size() > quellfile.tell()) {
-        if ((quellfile.tell() + (uint64_t)bytes) > quellfile.size()) {
-            bytes = quellfile.size() - quellfile.tell();
-        }
-        uint64_t rest = bytes;
-        while (rest > 0) {
-            uint64_t by = rest;
-            if (by > COPYBYTES_BUFFERSIZE) by = COPYBYTES_BUFFERSIZE;
-            by = quellfile.read(buffer, (size_t)by);
-            write(buffer, (size_t)by);
-            rest -= by;
-        }
-    }
-    return bytes;
+
+    return copied;
 }
 
 int FileObject::gets(String& buffer, size_t num)
 {
     if (!num) throw IllegalArgumentException();
-    char* b = (char*)malloc(num + 1);
-    if (!b) throw OutOfMemoryException();
+    ByteArray ba;
+    char* b = (char*)ba.malloc(num + 1);
     char* ret;
-    try {
-        ret = fgets(b, num);
-    }
-    catch (...) {
-        free(b);
-        throw;
-    }
+    ret = fgets(b, num);
     if (ret == NULL) {
-        free(b);
         return 0;
     }
     buffer.set(b);
-    free(b);
     return 1;
 }
 
@@ -165,21 +150,14 @@ String FileObject::gets(size_t num)
     return s;
 }
 
-int FileObject::getws(String& buffer, size_t num)
+int FileObject::getws(WideString& buffer, size_t num)
 {
     if (!num) throw IllegalArgumentException();
-    wchar_t* b = (wchar_t*)malloc((num + 1) * sizeof(wchar_t));
-    if (!b) throw OutOfMemoryException();
+    ByteArray ba;
+    wchar_t* b = (wchar_t*)ba.malloc((num + 1) * sizeof(wchar_t));
     wchar_t* ret;
-    try {
-        ret = fgetws(b, num);
-    }
-    catch (...) {
-        free(b);
-        throw;
-    }
+    ret = fgetws(b, num);
     if (ret == NULL) {
-        free(b);
         return 0;
     }
     buffer.set(b);
@@ -187,9 +165,9 @@ int FileObject::getws(String& buffer, size_t num)
     return 1;
 }
 
-String FileObject::getws(size_t num)
+WideString FileObject::getws(size_t num)
 {
-    String s;
+    WideString s;
     if (!getws(s, num)) throw EndOfFileException();
     return s;
 }
@@ -220,50 +198,39 @@ const char* FileObject::map()
     return map(0, (size_t)size());
 }
 
-char* FileObject::load()
+ByteArray FileObject::load()
 {
     uint64_t s = size();
-    char* b = (char*)malloc((size_t)s + 1);
-    if (!b) throw OutOfMemoryException();
+    ByteArray ba;
+    if (s == 0) return ba;
+    char* b = (char*)ba.malloc((size_t)s);
     uint64_t r = 0;
-    try {
-        r = read(b, (size_t)s, 0);
+    seek(0);
+    r = read(b, (size_t)s, 0);
+    if (r < s) {
+        ba[r] = 0;
+        ba.truncate(r + 1);
     }
-    catch (...) {
-        free(b);
-        throw;
-    }
-    if (r != s) {
-        free(b);
-        return NULL;
-    }
-    b[s] = 0;
-    return b;
+    return ba;
 }
 
-int FileObject::load(ByteArray& object)
+size_t FileObject::load(ByteArray& object)
 {
     if (!isOpen()) throw FileNotOpenException();
     uint64_t mysize = size();
-    seek(0);
-    char* buffer = (char*)malloc((size_t)mysize + 1);
-    if (!buffer) throw OutOfMemoryException();
-    size_t by = 0;
-    try {
-        by = fread(buffer, 1, (size_t)mysize);
-    }
-    catch (...) {
-        free(buffer);
-        throw;
-    }
-    if (by != mysize) {
-        free(buffer);
+    if (mysize == 0) {
+        object.clear();
         return 0;
     }
-    buffer[by] = 0;
-    object.clear();
-    object.use(buffer, mysize);
-    return 1;
+    seek(0);
+    char* buffer = (char*)object.malloc((size_t)mysize);
+    size_t by = 0;
+    by = fread(buffer, 1, (size_t)mysize);
+    if (by < mysize) {
+        object[by] = 0;
+        object.truncate(by);
+    }
+    return by;
 }
 
 // Virtuelle Funktionen
