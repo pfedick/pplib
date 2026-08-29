@@ -165,6 +165,7 @@ public:
     static String getFilename(const String& path);
     static String getSuffix(const String& path);
     static String md5Hash(const String& filename);
+    static String sha256Hash(const String& filename);
     static bool isDir(const String& filename);
     static bool isFile(const String& filename);
     static bool isLink(const String& filename);

@@ -874,6 +874,7 @@ void File::unlock()
 #endif
 }
 
+// TODO: macht der ReadAhead überhaupt Sinn?
 void File::setMapReadAhead(size_t bytes)
 {
     ReadAhead = bytes;
@@ -1451,6 +1452,13 @@ String File::md5Hash(const String& filename)
     File ff;
     ff.open(filename);
     return ff.md5();
+}
+
+String File::sha256Hash(const String& filename)
+{
+    File ff;
+    ff.open(filename);
+    return ff.sha256();
 }
 
 #ifdef _WIN32

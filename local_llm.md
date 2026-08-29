@@ -13,5 +13,7 @@
 - Gehe daher schrittweise vor
 - Analysiere nur die angegebenen Header- und Quellcodedateien
 - lese weitere Dateien, sofern erforderlich
-- speichere Zwischenschritte und Ergebnisse, zum Biespiel in einer Markdown-Datei, die den Namen der zu Überprüfenden Datei oder Klasse trägt
+- speichere Zwischenschritte und Ergebnisse, zum Beispiel in einer Markdown-Datei, die den Namen der zu Überprüfenden Datei oder Klasse trägt
 - Wenn Du bei der Analyse andere Datein und Klassen einließt un darin Fehler findest, melde diese bitte am Ende, getrennt vom Hauptteil.
+- Im Report gerne auch Code-Snippets zur Korrektur des Fehlers
+

@@ -27,34 +27,39 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <locale.h>
-#include <pplib.h>
 #include <gtest/gtest.h>
+
+#include <pplib/types/string.h>
+#include <pplib/types/widestring.h>
+#include <pplib/types/array.h>
+#include <pplib/exceptions.h>
+#include <pplib/core/file.h>
+#include <pplib/core/functions.h>
+// #include <pplib/core/regex.h>
+#include <pplib/exceptions.h>
+
 #include "pplib-tests.h"
 
 namespace
 {
 
 // The fixture for testing class Foo.
-class FileReadTest : public ::testing::Test
+class FileTest : public ::testing::Test
 {
 protected:
-    FileReadTest()
+    FileTest()
     {
         if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
             printf("setlocale fehlgeschlagen\n");
             throw std::exception();
         }
     }
-    virtual ~FileReadTest()
+    virtual ~FileTest()
     {
     }
 };
 
-TEST_F(FileReadTest, ConstructorSimple)
+TEST_F(FileTest, ConstructorSimple)
 {
     ASSERT_NO_THROW({
         pplib::File f1;
@@ -62,31 +67,31 @@ TEST_F(FileReadTest, ConstructorSimple)
     });
 }
 
-TEST_F(FileReadTest, openNonexisting)
+TEST_F(FileTest, openNonexisting)
 {
     pplib::File f1;
     ASSERT_THROW(f1.open("nonexisting.txt"), pplib::FileNotFoundException);
 }
 
-TEST_F(FileReadTest, openNonexistingUtf8)
+TEST_F(FileTest, openNonexistingUtf8)
 {
     pplib::File f1;
     ASSERT_THROW(f1.open("noneäxisting.txt"), pplib::FileNotFoundException);
 }
 
-TEST_F(FileReadTest, openExisting)
+TEST_F(FileTest, openExisting)
 {
     pplib::File f1;
     ASSERT_NO_THROW(f1.open("testdata/filenameUSASCII.txt"));
 }
 
-TEST_F(FileReadTest, openExistingLocal)
+TEST_F(FileTest, openExistingUTF8)
 {
     pplib::File f1;
-    ASSERT_NO_THROW(f1.open(pplib::Iconv::Utf8ToLocal("testdata/filenameUTF8äöü.txt")));
+    ASSERT_NO_THROW(f1.open("testdata/filenameUTF8äöü.txt"));
 }
 
-TEST_F(FileReadTest, size)
+TEST_F(FileTest, size)
 {
     pplib::File f1;
     f1.open("testdata/dirwalk/LICENSE.TXT");
@@ -96,7 +101,7 @@ TEST_F(FileReadTest, size)
     ASSERT_EQ((uint64_t)1592096, f2.size());
 }
 
-TEST_F(FileReadTest, openAndClose)
+TEST_F(FileTest, openAndClose)
 {
     pplib::File f1;
     f1.open("testdata/dirwalk/LICENSE.TXT");
@@ -106,7 +111,7 @@ TEST_F(FileReadTest, openAndClose)
     ASSERT_EQ((uint64_t)1592096, f1.size());
 }
 
-TEST_F(FileReadTest, openAndCloseNonUSASCIIFilenames)
+TEST_F(FileTest, openAndCloseNonUSASCIIFilenames)
 {
     pplib::File f1;
     f1.open("testdata/dirwalk/èxôtíŒ.txt");
@@ -116,7 +121,7 @@ TEST_F(FileReadTest, openAndCloseNonUSASCIIFilenames)
     ASSERT_EQ((uint64_t)5281, f1.size());
 }
 
-TEST_F(FileReadTest, md5)
+TEST_F(FileTest, md5)
 {
     pplib::File f1;
     f1.open("testdata/dirwalk/testfile.txt");
@@ -124,7 +129,7 @@ TEST_F(FileReadTest, md5)
     ASSERT_EQ(pplib::String("f386e5ea10bc186b633eaf6ba9a20d8c"), digest);
 }
 
-TEST_F(FileReadTest, seekAndTell)
+TEST_F(FileTest, seekAndTell)
 {
     pplib::File f1;
     f1.open("testdata/dirwalk/testfile.txt");
@@ -136,7 +141,7 @@ TEST_F(FileReadTest, seekAndTell)
     ASSERT_EQ((uint64_t)1024 * 1024, f1.tell());
 }
 
-TEST_F(FileReadTest, seek)
+TEST_F(FileTest, seek)
 {
     pplib::File f1;
     f1.open("testdata/dirwalk/testfile.txt");
@@ -150,7 +155,7 @@ TEST_F(FileReadTest, seek)
     ASSERT_EQ((uint64_t)1591096, f1.tell());
 }
 
-TEST_F(FileReadTest, fread1024)
+TEST_F(FileTest, fread1024)
 {
     pplib::File f1;
     pplib::ByteArray ba;
@@ -165,7 +170,7 @@ TEST_F(FileReadTest, fread1024)
     ASSERT_EQ(pplib::String("468f6fd12d69be054643ef2ca1a19cba"), pplib::Md5(ba));
 }
 
-TEST_F(FileReadTest, freadUntilEof)
+TEST_F(FileTest, freadUntilEof)
 {
     pplib::File f1;
     pplib::ByteArray ba;
@@ -182,7 +187,7 @@ TEST_F(FileReadTest, freadUntilEof)
     ASSERT_EQ((uint64_t)1592096, bytes);
 }
 
-TEST_F(FileReadTest, fgets)
+TEST_F(FileTest, fgets)
 {
     pplib::File f1;
     pplib::ByteArray ba;
@@ -197,7 +202,7 @@ TEST_F(FileReadTest, fgets)
     ASSERT_EQ((size_t)47, len);
 }
 
-TEST_F(FileReadTest, getsAsString)
+TEST_F(FileTest, getsAsString)
 {
     pplib::File f1;
     pplib::String s;
