@@ -34,7 +34,7 @@ macro(add_pplib_test_suite name source_glob link_lib)
 endmacro()
 
 if(PPLIB_ENABLE_CORE)
-    file(GLOB CORE_TEST_SOURCES CONFIGURE_DEPENDS "src/core/*.cpp" "src/types/*.cpp")
+    file(GLOB CORE_TEST_SOURCES CONFIGURE_DEPENDS "src/core/*.cpp" "src/types/*.cpp" "src/math/*.cpp")
     if(CORE_TEST_SOURCES)
         add_executable(test_core ${CORE_TEST_SOURCES})
         target_link_libraries(test_core PRIVATE pplib_test_common pplib::core)
