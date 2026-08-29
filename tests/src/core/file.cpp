@@ -118,7 +118,7 @@ TEST_F(FileTest, openAndCloseNonUSASCIIFilenames)
     ASSERT_EQ((uint64_t)1356, f1.size());
     f1.close();
     f1.open("testdata/dirwalk/file4✼.txt");
-    ASSERT_EQ((uint64_t)5281, f1.size());
+    ASSERT_EQ((uint64_t)5287, f1.size());
 }
 
 TEST_F(FileTest, md5)

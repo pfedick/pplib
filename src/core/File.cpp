@@ -822,8 +822,13 @@ void File::truncate(uint64_t length)
     }
     throwErrno(errno);
 #else
-    // TODO : Implement file truncation for Windows
-    throw UnsupportedFeatureException("pplib::File::truncate: No file truncation available");
+    int fd = fileno((FILE*)ff);
+    if (_chsize_s(fd, (long)length) == 0) {
+        mysize = length;
+        if (pos > mysize) seek(mysize);
+        return;
+    }
+    throwErrno(errno);
 #endif
 }
 
@@ -1125,14 +1130,15 @@ ByteArray File::load(const String& filename)
  */
 void File::truncate(const String& filename, uint64_t bytes)
 {
-#ifndef _WIN32
     if (filename.isEmpty()) throw IllegalArgumentException();
+#ifndef _WIN32
     // truncate-Funktion vorhanden
     if (::truncate((const char*)filename, (off_t)bytes) == 0) return;
     throwErrno(errno, filename);
 #else
-    // TODO : Implement file truncation for Windows
-    throw UnsupportedFeatureException("pplib::File::truncate: No file truncation available");
+    File ff;
+    ff.open(filename, FileMode::READWRITE);
+    ff.truncate(bytes);
 #endif
 }
 
@@ -1245,6 +1251,12 @@ void File::rename(const String& oldfile, const String& newfile)
     String desc;
     desc.setf("rename %s => %s", (const char*)oldfile, (const char*)newfile);
 #ifdef _WIN32
+    WideString wOld(oldfile);
+    WideString wNew(newfile);
+    if (::MoveFileExW((const wchar_t*)wOld, (const wchar_t*)wNew, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) != 0) {
+        return;
+    }
+    /* OLDCODE
     if (::_wrename((const wchar_t*)WideString(oldfile), (const wchar_t*)WideString(newfile)) == 0) {
         FILE* fd = NULL;
         // printf ("buffer=%s\n",buff);
@@ -1263,9 +1275,10 @@ void File::rename(const String& oldfile, const String& newfile)
         }
         return;
     }
+        */
     if (errno == EXDEV) { // oldfile und newfile befinden sich nicht im gleichen Filesystem.
         copy(oldfile, newfile);
-        if (::_wunlink((const wchar_t*)WideString(oldfile)) == 0) return;
+        if (::_wunlink((const wchar_t*)wOld) == 0) return;
     }
     throwErrno(errno, desc);
 #else

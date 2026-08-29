@@ -128,6 +128,8 @@ int main(int argc, char** argv)
     pplib::PrintDebugTime("done\n");
 
     setupTestAssocArray();
+    pplib::Dir::rmDir("tmp", true);
+    pplib::Dir::mkDir("tmp");
 
     try {
         return RUN_ALL_TESTS();

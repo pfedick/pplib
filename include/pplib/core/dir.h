@@ -621,6 +621,17 @@ public:
      */
     static void mkDir(const String& path, mode_t mode, bool recursive);
 
+    /**
+     * @brief Löscht ein Verzeichnis
+     *
+     * Mit dieser Funktion kann ein Verzeichnis gelöscht werden. Dabei wird geprüft, ob der Pfad existiert
+     * und ob das Programm die notwendigen Rechte hat, um das Verzeichnis zu löschen.
+     *
+     * @param path Pfad des zu löschenden Verzeichnisses
+     * @param recursive Wenn \c true ist, werden auch alle untergeordneten Verzeichnisse gelöscht.
+     */
+    static void rmDir(const String& path, bool recursive = false);
+
     // @}
 };
 

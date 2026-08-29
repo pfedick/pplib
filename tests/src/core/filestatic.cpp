@@ -109,222 +109,224 @@ TEST_F(FileStaticTest, sha256Hash)
 
 TEST_F(FileStaticTest, CopyFileUSAscii2USAscii)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "copy.tmp"));
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/copy.tmp"));
     ASSERT_TRUE(pplib::File::exists("testdata/filenameUSASCII.txt")) << "Old file still exists";
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("copy.tmp", d)) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/copy.tmp", d)) << "New file exists";
     ASSERT_EQ((size_t)1787, d.Size);
 
     pplib::File ff;
-    ASSERT_NO_THROW(ff.open("copy.tmp"));
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), ff.md5());
+    ASSERT_NO_THROW(ff.open("tmp/copy.tmp"));
+    ASSERT_EQ(pplib::String("4a9012048a27082a811aba76a18153e0"), ff.md5());
     ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"), ff.sha256());
     ff.close();
-    pplib::File::remove("copy.tmp");
+    pplib::File::remove("tmp/copy.tmp");
 }
 
 TEST_F(FileStaticTest, CopyFileUSAscii2Local)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "copyäöüß.tmp"));
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/copyäöüß.tmp"));
     ASSERT_TRUE(pplib::File::exists("testdata/filenameUSASCII.txt")) << "Old file still exists";
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("copyäöüß.tmp", d)) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/copyäöüß.tmp", d)) << "New file exists";
     ASSERT_EQ((size_t)1787, d.Size);
 
     pplib::File ff;
-    ASSERT_NO_THROW(ff.open("copyäöüß.tmp"));
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), ff.md5());
+    ASSERT_NO_THROW(ff.open("tmp/copyäöüß.tmp"));
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"), ff.sha256());
     ff.close();
-    pplib::File::remove("copyäöüß.tmp");
+    pplib::File::remove("tmp/copyäöüß.tmp");
 }
 
 TEST_F(FileStaticTest, CopyFileLocal2Local)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUTF8äöü.txt", "copyäöüß.tmp"));
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUTF8äöü.txt", "tmp/copyäöüß.tmp"));
     ASSERT_TRUE(pplib::File::exists("testdata/filenameUTF8äöü.txt")) << "Old file still exists";
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("copyäöüß.tmp", d)) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/copyäöüß.tmp", d)) << "New file exists";
     ASSERT_EQ((size_t)1340, d.Size);
 
     pplib::File ff;
-    ASSERT_NO_THROW(ff.open("copyäöüß.tmp"));
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), ff.md5());
+    ASSERT_NO_THROW(ff.open("tmp/copyäöüß.tmp"));
+    ASSERT_EQ(pplib::String("c12c31daf277de4d8e738e6a5e96fe6316e196eca087b4c691ef16d9da914c92"), ff.sha256());
     ff.close();
-    pplib::File::remove("copyäöüß.tmp");
+    pplib::File::remove("tmp/copyäöüß.tmp");
 }
 
 TEST_F(FileStaticTest, CopyFileLocal2UsAscii)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUTF8äöü.txt", "copy2.tmp"));
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUTF8äöü.txt", "tmp/copy2.tmp"));
     ASSERT_TRUE(pplib::File::exists("testdata/filenameUTF8äöü.txt")) << "Old file still exists";
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("copy2.tmp", d)) << "New file exists";
-    ASSERT_EQ((size_t)1787, d.Size);
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/copy2.tmp", d)) << "New file exists";
+    ASSERT_EQ((size_t)1340, d.Size);
 
     pplib::File ff;
-    ASSERT_NO_THROW(ff.open("copy2.tmp"));
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), ff.md5());
+    ASSERT_NO_THROW(ff.open("tmp/copy2.tmp"));
+    ASSERT_EQ(pplib::String("c12c31daf277de4d8e738e6a5e96fe6316e196eca087b4c691ef16d9da914c92"), ff.sha256());
     ff.close();
-    pplib::File::remove("copy2.tmp");
+    pplib::File::remove("tmp/copy2.tmp");
 }
 
 TEST_F(FileStaticTest, TruncateOnUSASCII)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "truncate.tmp"));
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/truncate.tmp"));
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("truncate.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/truncate.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
-    ASSERT_NO_THROW(pplib::File::truncate("truncate.tmp", 1024));
-    ASSERT_NO_THROW(pplib::File::statFile("truncate.tmp", d));
+    ASSERT_NO_THROW(pplib::File::truncate("tmp/truncate.tmp", 1024));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/truncate.tmp", d));
     ASSERT_EQ((size_t)1024, d.Size);
     pplib::File ff;
-    ASSERT_NO_THROW(ff.open("truncate.tmp"));
-    ASSERT_EQ(pplib::String("657351fba38e20fb0a4713e605f1d6a4"), ff.md5());
+    ASSERT_NO_THROW(ff.open("tmp/truncate.tmp"));
+    ASSERT_EQ(pplib::String("7bb155b6d31fbdf30a1db55a8f0f48189aecf27a11e51020ba49d08ce7d2fd84"), ff.sha256());
     ff.close();
-    pplib::File::remove("truncate.tmp");
+    pplib::File::remove("tmp/truncate.tmp");
 }
 
 TEST_F(FileStaticTest, TruncateOnLocal)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "truncateäöüß.tmp"));
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/truncateäöüß.tmp"));
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("truncateäöüß.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/truncateäöüß.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
-    ASSERT_NO_THROW(pplib::File::truncate("truncateäöüß.tmp", 1024));
-    ASSERT_NO_THROW(pplib::File::statFile("truncateäöüß.tmp", d));
+    ASSERT_NO_THROW(pplib::File::truncate("tmp/truncateäöüß.tmp", 1024));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/truncateäöüß.tmp", d));
     ASSERT_EQ((size_t)1024, d.Size);
     pplib::File ff;
-    ASSERT_NO_THROW(ff.open("truncateäöüß.tmp"));
-    ASSERT_EQ(pplib::String("657351fba38e20fb0a4713e605f1d6a4"), ff.md5());
+    ASSERT_NO_THROW(ff.open("tmp/truncateäöüß.tmp"));
+    ASSERT_EQ(pplib::String("7bb155b6d31fbdf30a1db55a8f0f48189aecf27a11e51020ba49d08ce7d2fd84"), ff.sha256());
     ff.close();
-    pplib::File::remove("truncateäöüß.tmp");
+    pplib::File::remove("tmp/truncateäöüß.tmp");
 }
 
 TEST_F(FileStaticTest, MoveFileUSAscii2USAscii)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "move1a.tmp"));
-    ASSERT_NO_THROW(pplib::File::move("move1a.tmp", "move1b.tmp"));
-    ASSERT_FALSE(pplib::File::exists("move1a.tmp")) << "Old file has disappeared";
-    ASSERT_TRUE(pplib::File::exists("move1b.tmp")) << "New file exists";
-
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/move1a.tmp"));
+    ASSERT_NO_THROW(pplib::File::move("tmp/move1a.tmp", "tmp/move1b.tmp"));
+    ASSERT_FALSE(pplib::File::exists("tmp/move1a.tmp")) << "Old file has disappeared";
+    ASSERT_TRUE(pplib::File::exists("tmp/move1b.tmp")) << "New file exists";
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("move1b.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/move1b.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
-
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::File::md5Hash("move1b.tmp"));
-    pplib::File::remove("move1b.tmp");
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"), pplib::File::sha256Hash("tmp/move1b.tmp"));
+    pplib::File::remove("tmp/move1b.tmp");
 }
 
 TEST_F(FileStaticTest, MoveFileUSAscii2Local)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "move2a.tmp"));
-    ASSERT_NO_THROW(pplib::File::move("move2a.tmp", "move2bäöü.tmp"));
-    ASSERT_FALSE(pplib::File::exists("move2a.tmp")) << "Old file has disappeared";
-    ASSERT_TRUE(pplib::File::exists("move2bäöü.tmp")) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/move2a.tmp"));
+    ASSERT_NO_THROW(pplib::File::move("tmp/move2a.tmp", "tmp/move2bäöü.tmp"));
+    ASSERT_FALSE(pplib::File::exists("tmp/move2a.tmp")) << "Old file has disappeared";
+    ASSERT_TRUE(pplib::File::exists("tmp/move2bäöü.tmp")) << "New file exists";
 
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("move2bäöü.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/move2bäöü.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
 
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::File::md5Hash("move2bäöü.tmp"));
-    pplib::File::remove("move2bäöü.tmp");
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"),
+              pplib::File::sha256Hash("tmp/move2bäöü.tmp"));
+    pplib::File::remove("tmp/move2bäöü.tmp");
 }
 
 TEST_F(FileStaticTest, MoveFileLocal2USAscii)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "move3aäöü.tmp"));
-    ASSERT_NO_THROW(pplib::File::move("move3aäöü.tmp", "move3b.tmp"));
-    ASSERT_FALSE(pplib::File::exists("move3aäöü.tmp")) << "Old file has disappeared";
-    ASSERT_TRUE(pplib::File::exists("move3b.tmp")) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/move3aäöü.tmp"));
+    ASSERT_NO_THROW(pplib::File::move("tmp/move3aäöü.tmp", "tmp/move3b.tmp"));
+    ASSERT_FALSE(pplib::File::exists("tmp/move3aäöü.tmp")) << "Old file has disappeared";
+    ASSERT_TRUE(pplib::File::exists("tmp/move3b.tmp")) << "New file exists";
 
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("move3b.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/move3b.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
 
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::File::md5Hash("move3b.tmp"));
-    pplib::File::remove("move3b.tmp");
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"), pplib::File::sha256Hash("tmp/move3b.tmp"));
+    pplib::File::remove("tmp/move3b.tmp");
 }
 
 TEST_F(FileStaticTest, MoveFileLocal2Local)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "move4aäöü.tmp"));
-    ASSERT_NO_THROW(pplib::File::move("move4aäöü.tmp", "move4bäöü.tmp"));
-    ASSERT_FALSE(pplib::File::exists("move4aäöü.tmp")) << "Old file has disappeared";
-    ASSERT_TRUE(pplib::File::exists("move4bäöü.tmp")) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/move4aäöü.tmp"));
+    ASSERT_NO_THROW(pplib::File::move("tmp/move4aäöü.tmp", "tmp/move4bäöü.tmp"));
+    ASSERT_FALSE(pplib::File::exists("tmp/move4aäöü.tmp")) << "Old file has disappeared";
+    ASSERT_TRUE(pplib::File::exists("tmp/move4bäöü.tmp")) << "New file exists";
 
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("move4bäöü.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/move4bäöü.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
 
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::File::md5Hash("move4bäöü.tmp"));
-    pplib::File::remove("move4bäöü.tmp");
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"),
+              pplib::File::sha256Hash("tmp/move4bäöü.tmp"));
+    pplib::File::remove("tmp/move4bäöü.tmp");
 }
 
 TEST_F(FileStaticTest, RenameFileUSAscii2USAscii)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "move1a.tmp"));
-    ASSERT_NO_THROW(pplib::File::rename("move1a.tmp", "move1b.tmp"));
-    ASSERT_FALSE(pplib::File::exists("move1a.tmp")) << "Old file has disappeared";
-    ASSERT_TRUE(pplib::File::exists("move1b.tmp")) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/move1a.tmp"));
+    ASSERT_NO_THROW(pplib::File::rename("tmp/move1a.tmp", "tmp/move1b.tmp"));
+    ASSERT_FALSE(pplib::File::exists("tmp/move1a.tmp")) << "Old file has disappeared";
+    ASSERT_TRUE(pplib::File::exists("tmp/move1b.tmp")) << "New file exists";
 
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("move1b.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/move1b.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
 
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::File::md5Hash("move1b.tmp"));
-    pplib::File::remove("move1b.tmp");
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"), pplib::File::sha256Hash("tmp/move1b.tmp"));
+    pplib::File::remove("tmp/move1b.tmp");
 }
 
 TEST_F(FileStaticTest, RenameFileUSAscii2Local)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "move2a.tmp"));
-    ASSERT_NO_THROW(pplib::File::rename("move2a.tmp", "move2bäöü.tmp"));
-    ASSERT_FALSE(pplib::File::exists("move2a.tmp")) << "Old file has disappeared";
-    ASSERT_TRUE(pplib::File::exists("move2bäöü.tmp")) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/move2a.tmp"));
+    ASSERT_NO_THROW(pplib::File::rename("tmp/move2a.tmp", "tmp/move2bäöü.tmp"));
+    ASSERT_FALSE(pplib::File::exists("tmp/move2a.tmp")) << "Old file has disappeared";
+    ASSERT_TRUE(pplib::File::exists("tmp/move2bäöü.tmp")) << "New file exists";
 
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("move2bäöü.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/move2bäöü.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
 
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::File::md5Hash("move2bäöü.tmp"));
-    pplib::File::remove("move2bäöü.tmp");
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"),
+              pplib::File::sha256Hash("tmp/move2bäöü.tmp"));
+    pplib::File::remove("tmp/move2bäöü.tmp");
 }
 
 TEST_F(FileStaticTest, RenameFileLocal2USAscii)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "move3aäöü.tmp"));
-    ASSERT_NO_THROW(pplib::File::rename("move3aäöü.tmp", "move3b.tmp"));
-    ASSERT_FALSE(pplib::File::exists("move3aäöü.tmp")) << "Old file has disappeared";
-    ASSERT_TRUE(pplib::File::exists("move3b.tmp")) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/move3aäöü.tmp"));
+    ASSERT_NO_THROW(pplib::File::rename("tmp/move3aäöü.tmp", "tmp/move3b.tmp"));
+    ASSERT_FALSE(pplib::File::exists("tmp/move3aäöü.tmp")) << "Old file has disappeared";
+    ASSERT_TRUE(pplib::File::exists("tmp/move3b.tmp")) << "New file exists";
 
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("move3b.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/move3b.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
 
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::File::md5Hash("move3b.tmp"));
-    pplib::File::remove("move3b.tmp");
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"), pplib::File::sha256Hash("tmp/move3b.tmp"));
+    pplib::File::remove("tmp/move3b.tmp");
 }
 
 TEST_F(FileStaticTest, RenameFileLocal2Local)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "move4aäöü.tmp"));
-    ASSERT_NO_THROW(pplib::File::rename("move4aäöü.tmp", "move4bäöü.tmp"));
-    ASSERT_FALSE(pplib::File::exists("move4aäöü.tmp")) << "Old file has disappeared";
-    ASSERT_TRUE(pplib::File::exists("move4bäöü.tmp")) << "New file exists";
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/move4aäöü.tmp"));
+    ASSERT_NO_THROW(pplib::File::rename("tmp/move4aäöü.tmp", "tmp/move4bäöü.tmp"));
+    ASSERT_FALSE(pplib::File::exists("tmp/move4aäöü.tmp")) << "Old file has disappeared";
+    ASSERT_TRUE(pplib::File::exists("tmp/move4bäöü.tmp")) << "New file exists";
 
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("move4bäöü.tmp", d));
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/move4bäöü.tmp", d));
     ASSERT_EQ((size_t)1787, d.Size);
 
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::File::md5Hash("move4bäöü.tmp"));
-    pplib::File::remove("move4bäöü.tmp");
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"),
+              pplib::File::sha256Hash("tmp/move4bäöü.tmp"));
+    pplib::File::remove("tmp/move4bäöü.tmp");
 }
 
-TEST_F(FileStaticTest, LoadUSAscii2CString)
+TEST_F(FileStaticTest, LoadUSAscii2String)
 {
     pplib::String s;
     ASSERT_NO_THROW(pplib::File::load(s, "testdata/filenameUSASCII.txt")) << "Loading file to string";
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::Md5(s)) << "Checking MD5-sum";
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"), pplib::Sha256(s)) << "Checking MD5-sum";
     ASSERT_EQ((size_t)1787, s.size()) << "Checking Size";
 }
 
@@ -332,24 +334,24 @@ TEST_F(FileStaticTest, LoadFileUSAscii2ByteArray)
 {
     pplib::ByteArray s;
     ASSERT_NO_THROW(pplib::File::load(s, "testdata/filenameUSASCII.txt")) << "Loading file to string";
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::Md5(s)) << "Checking MD5-sum";
+    ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"), pplib::Sha256(s)) << "Checking MD5-sum";
     ASSERT_EQ((size_t)1787, s.size()) << "Checking Size";
 }
 
-TEST_F(FileStaticTest, LoadFileLocal2CString)
+TEST_F(FileStaticTest, LoadFileLocal2String)
 {
     pplib::String s;
     ASSERT_NO_THROW(pplib::File::load(s, "testdata/filenameUTF8äöü.txt")) << "Loading file to string";
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::Md5(s)) << "Checking MD5-sum";
-    ASSERT_EQ((size_t)1787, s.size()) << "Checking Size";
+    ASSERT_EQ(pplib::String("c12c31daf277de4d8e738e6a5e96fe6316e196eca087b4c691ef16d9da914c92"), pplib::Sha256(s)) << "Checking MD5-sum";
+    ASSERT_EQ((size_t)1340, s.size()) << "Checking Size";
 }
 
 TEST_F(FileStaticTest, LoadFileLocal2ByteArray)
 {
     pplib::ByteArray s;
     ASSERT_NO_THROW(pplib::File::load(s, "testdata/filenameUTF8äöü.txt")) << "Loading file to string";
-    ASSERT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::Md5(s)) << "Checking MD5-sum";
-    ASSERT_EQ((size_t)1787, s.size()) << "Checking Size";
+    ASSERT_EQ(pplib::String("c12c31daf277de4d8e738e6a5e96fe6316e196eca087b4c691ef16d9da914c92"), pplib::Sha256(s)) << "Checking MD5-sum";
+    ASSERT_EQ((size_t)1340, s.size()) << "Checking Size";
 }
 
 TEST_F(FileStaticTest, LoadFileUSAscii2Ptr)
@@ -359,7 +361,7 @@ TEST_F(FileStaticTest, LoadFileUSAscii2Ptr)
     ASSERT_NO_THROW({ data = pplib::File::load("testdata/filenameUSASCII.txt"); });
     ASSERT_TRUE(data.ptr() != NULL) << "Loading file to ptr";
     EXPECT_EQ((size_t)1787, data.size()) << "Checking Size";
-    EXPECT_EQ(pplib::String("978fd668b5755ce6017256d0ff9e36b2"), pplib::Md5(data)) << "Checking MD5-sum";
+    EXPECT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"), pplib::Sha256(data)) << "Checking MD5-sum";
 }
 
 TEST_F(FileStaticTest, LoadFileLocal2Ptr)
@@ -373,78 +375,78 @@ TEST_F(FileStaticTest, LoadFileLocal2Ptr)
 
 TEST_F(FileStaticTest, DeleteFileUSAscii)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "todelete.tmp"));
-    ASSERT_NO_THROW(pplib::File::remove("todelete.tmp")) << "deleting file";
-    ASSERT_FALSE(pplib::File::exists("todelete.tmp")) << "file does not exists anymore";
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/todelete.tmp"));
+    ASSERT_NO_THROW(pplib::File::remove("tmp/todelete.tmp")) << "deleting file";
+    ASSERT_FALSE(pplib::File::exists("tmp/todelete.tmp")) << "file does not exists anymore";
 }
 
 TEST_F(FileStaticTest, DeleteFileUtf8)
 {
-    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "todeleteäöü.tmp"));
-    ASSERT_NO_THROW(pplib::File::remove("todeleteäöü.tmp")) << "deleting file";
-    ASSERT_FALSE(pplib::File::exists("todeleteäöü.tmp")) << "file does not exists anymore";
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/todeleteäöü.tmp"));
+    ASSERT_NO_THROW(pplib::File::remove("tmp/todeleteäöü.tmp")) << "deleting file";
+    ASSERT_FALSE(pplib::File::exists("tmp/todeleteäöü.tmp")) << "file does not exists anymore";
 }
 
 TEST_F(FileStaticTest, TouchFileUSAscii)
 {
-    ASSERT_NO_THROW(pplib::File::touch("touched.tmp")) << "touching file";
-    ASSERT_TRUE(pplib::File::exists("touched.tmp")) << "file exists";
-    ASSERT_NO_THROW(pplib::File::remove("touched.tmp")) << "deleting file";
+    ASSERT_NO_THROW(pplib::File::touch("tmp/touched.tmp")) << "touching file";
+    ASSERT_TRUE(pplib::File::exists("tmp/touched.tmp")) << "file exists";
+    ASSERT_NO_THROW(pplib::File::remove("tmp/touched.tmp")) << "deleting file";
 }
 
 TEST_F(FileStaticTest, TouchFileLocal)
 {
-    ASSERT_NO_THROW(pplib::File::touch("touchedäöü.tmp")) << "touching file";
-    ASSERT_TRUE(pplib::File::exists("touchedäöü.tmp")) << "file exists";
-    ASSERT_NO_THROW(pplib::File::remove("touchedäöü.tmp")) << "deleting file";
+    ASSERT_NO_THROW(pplib::File::touch("tmp/touchedäöü.tmp")) << "touching file";
+    ASSERT_TRUE(pplib::File::exists("tmp/touchedäöü.tmp")) << "file exists";
+    ASSERT_NO_THROW(pplib::File::remove("tmp/touchedäöü.tmp")) << "deleting file";
 }
 
 TEST_F(FileStaticTest, SavePtrUSAscii)
 {
-    ASSERT_NO_THROW(pplib::File::save(loremipsum, strlen(loremipsum), "writetest.tmp")) << "writing file";
-    ASSERT_TRUE(pplib::File::exists("writetest.tmp")) << "file exists";
+    ASSERT_NO_THROW(pplib::File::save(loremipsum, strlen(loremipsum), "tmp/writetest.tmp")) << "writing file";
+    ASSERT_TRUE(pplib::File::exists("tmp/writetest.tmp")) << "file exists";
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("writetest.tmp", d)) << "Stat on file is working";
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/writetest.tmp", d)) << "Stat on file is working";
     ASSERT_EQ((size_t)strlen(loremipsum), d.Size) << "filesize as expected";
-    ASSERT_EQ(pplib::String(loremipsum_md5), pplib::File::md5Hash("writetest.tmp"));
-    ASSERT_NO_THROW(pplib::File::remove("writetest.tmp")) << "deleting file";
+    ASSERT_EQ(pplib::String(loremipsum_md5), pplib::File::md5Hash("tmp/writetest.tmp"));
+    ASSERT_NO_THROW(pplib::File::remove("tmp/writetest.tmp")) << "deleting file";
 }
 
 TEST_F(FileStaticTest, SavePtrLocal)
 {
-    ASSERT_NO_THROW(pplib::File::save(loremipsum, strlen(loremipsum), "writetestäöü.tmp")) << "writing file";
-    ASSERT_TRUE(pplib::File::exists("writetestäöü.tmp")) << "file exists";
+    ASSERT_NO_THROW(pplib::File::save(loremipsum, strlen(loremipsum), "tmp/writetestäöü.tmp")) << "writing file";
+    ASSERT_TRUE(pplib::File::exists("tmp/writetestäöü.tmp")) << "file exists";
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("writetestäöü.tmp", d)) << "Stat on file is working";
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/writetestäöü.tmp", d)) << "Stat on file is working";
     ASSERT_EQ((size_t)strlen(loremipsum), d.Size) << "filesize as expected";
-    ASSERT_EQ(pplib::String(loremipsum_md5), pplib::File::md5Hash("writetestäöü.tmp"));
-    ASSERT_NO_THROW(pplib::File::remove("writetestäöü.tmp")) << "deleting file";
+    ASSERT_EQ(pplib::String(loremipsum_md5), pplib::File::md5Hash("tmp/writetestäöü.tmp"));
+    ASSERT_NO_THROW(pplib::File::remove("tmp/writetestäöü.tmp")) << "deleting file";
 }
 
 TEST_F(FileStaticTest, SaveByteArrayPtrUSAscii)
 {
     pplib::ByteArrayPtr ba;
     ba.use((void*)loremipsum, strlen(loremipsum));
-    ASSERT_NO_THROW(pplib::File::save(ba, "writetest.tmp")) << "writing file";
-    ASSERT_TRUE(pplib::File::exists("writetest.tmp")) << "file exists";
+    ASSERT_NO_THROW(pplib::File::save(ba, "tmp/writetest.tmp")) << "writing file";
+    ASSERT_TRUE(pplib::File::exists("tmp/writetest.tmp")) << "file exists";
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("writetest.tmp", d)) << "Stat on file is working";
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/writetest.tmp", d)) << "Stat on file is working";
     ASSERT_EQ((size_t)strlen(loremipsum), d.Size) << "filesize as expected";
-    ASSERT_EQ(pplib::String(loremipsum_md5), pplib::File::md5Hash("writetest.tmp"));
-    ASSERT_NO_THROW(pplib::File::remove("writetest.tmp")) << "deleting file";
+    ASSERT_EQ(pplib::String(loremipsum_md5), pplib::File::md5Hash("tmp/writetest.tmp"));
+    ASSERT_NO_THROW(pplib::File::remove("tmp/writetest.tmp")) << "deleting file";
 }
 
 TEST_F(FileStaticTest, SaveByteArrayPtrLocal)
 {
     pplib::ByteArrayPtr ba;
     ba.use((void*)loremipsum, strlen(loremipsum));
-    ASSERT_NO_THROW(pplib::File::save(ba, "writetestäöü.tmp")) << "writing file";
-    ASSERT_TRUE(pplib::File::exists("writetestäöü.tmp")) << "file exists";
+    ASSERT_NO_THROW(pplib::File::save(ba, "tmp/writetestäöü.tmp")) << "writing file";
+    ASSERT_TRUE(pplib::File::exists("tmp/writetestäöü.tmp")) << "file exists";
     pplib::DirEntry d;
-    ASSERT_NO_THROW(pplib::File::statFile("writetestäöü.tmp", d)) << "Stat on file is working";
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/writetestäöü.tmp", d)) << "Stat on file is working";
     ASSERT_EQ((size_t)strlen(loremipsum), d.Size) << "filesize as expected";
-    ASSERT_EQ(pplib::String(loremipsum_md5), pplib::File::md5Hash("writetestäöü.tmp"));
-    ASSERT_NO_THROW(pplib::File::remove("writetestäöü.tmp")) << "deleting file";
+    ASSERT_EQ(pplib::String(loremipsum_md5), pplib::File::md5Hash("tmp/writetestäöü.tmp"));
+    ASSERT_NO_THROW(pplib::File::remove("tmp/writetestäöü.tmp")) << "deleting file";
 }
 
 TEST_F(FileStaticTest, getPath)

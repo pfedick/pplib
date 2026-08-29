@@ -249,6 +249,34 @@ void Dir::mkDir(const String& path, mode_t mode, bool recursive)
     }
 }
 
+void Dir::rmDir(const String& path, bool recursive)
+{
+    if (path.isEmpty()) throw IllegalArgumentException("Dir::rmDir: empty path");
+
+#ifdef _WIN32
+    std::filesystem::path fsPath(WideString(path).getPtr());
+#else
+    std::filesystem::path fsPath(path.c_str());
+#endif
+    std::error_code ec;
+    if (recursive) {
+        std::filesystem::remove_all(fsPath, ec);
+    } else {
+        std::filesystem::remove(fsPath, ec);
+    }
+    if (ec) {
+        if (ec == std::errc::no_such_file_or_directory) {
+            throw FileNotFoundException("%s", (const char*)path);
+        } else if (ec == std::errc::permission_denied) {
+            throw PermissionDeniedException("%s", (const char*)path);
+        } else if (ec == std::errc::directory_not_empty) {
+            throw DirectoryNotEmptyException("%s", (const char*)path);
+        }
+        // Fallback für alle weiteren OS-/CRT-Fehlercodes:
+        throwExceptionFromErrno(ec.value(), path);
+    }
+}
+
 /***********************************************************************************
  * nicht statische Methoden
  ***********************************************************************************/
