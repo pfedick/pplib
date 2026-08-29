@@ -37,8 +37,6 @@
 namespace pplib
 {
 
-#define COPYBYTES_BUFFERSIZE 1024 * 1024
-
 /*!\class MemFile
  * \ingroup PPLGroupFileIO
  * \brief Simulation von Dateizugriffen im Hauptspeicher

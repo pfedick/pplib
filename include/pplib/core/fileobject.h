@@ -301,7 +301,6 @@ public:
      * Einsetzen der optionalen Parameter ohne sein nachfolgendes 0-Byte in den Ausgabestrom.
      * @param fmt Pointer auf den Formatierungsstring
      * @param ... Optionale Parameter, die im Formatierungsstring verwendet werden.
-     * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
      */
     void putsf(const char* fmt, ...);
 
@@ -310,7 +309,6 @@ public:
      * Diese Funktion schreibt den Inhalt des String-Objekts \p str
      * ohne sein nachfolgendes 0-Byte in den Ausgabestrom.
      * @param str String-Objekt mit den zu schreibenden Daten
-     * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
      */
     void puts(const String& str);
 
@@ -319,7 +317,6 @@ public:
      * Diese Funktion schreibt den Inhalt des Wide-Character-String-Objekts \p str
      * ohne sein nachfolgendes 0-Byte in den Ausgabestrom.
      * @param str String-Objekt mit den zu schreibenden Daten
-     * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
      */
     void putws(const WideString& str);
 
@@ -342,12 +339,8 @@ public:
     /** @brief Den kompletten Inhalt der Datei laden
      *
      * Mit dieser Funktion wird der komplette Inhalt der geöffneten Datei in den
-     * Hauptspeicher geladen. Der benötigte Speicher wird von der Funktion
-     * automatisch allokiert und muss vom Aufrufer nach Gebrauch mit \c free wieder
-     * freigegeben werden.
-     * @return Pointer auf den Speicherbereich mit dem Inhalt der Datei. Dieser muss
-     * vom Aufrufer nach Gebrauch mit @c free selbst wieder freigegeben werden.
-     * Im Fehlerfall wird eine Exception geworfen.
+     * Hauptspeicher geladen und als ByteArray zurückgegeben.
+     * @return ByteArray mit dem Inhalt der Datei
      */
     ByteArray load();
 
@@ -356,10 +349,22 @@ public:
      * Mit dieser Funktion wird der komplette Inhalt der geöffneten Datei in das
      * angegebene ByteArray \p object geladen.
      * @param[out] object Das gewünschte Zielobjekt
-     * @return Liefert 1 zurück, wenn der Inhalt geladen werden konnte, sonst 0.
+     * @return Anzahl der tatsächlich in das Zielobjekt geladenen Bytes
      */
     size_t load(ByteArray& target);
+
+    /** @brief MD5-Hash der Datei berechnen
+     *
+     * Diese Funktion berechnet den MD5-Hash der geöffneten Datei und liefert ihn als String zurück.
+     * @return String mit dem MD5-Hash
+     */
     String md5();
+
+    /** @brief SHA-256-Hash der Datei berechnen
+     *
+     * Diese Funktion berechnet den SHA-256-Hash der geöffneten Datei und liefert ihn als String zurück.
+     * @return String mit dem SHA-256-Hash
+     */
     String sha256();
 
     // Virtuelle Funktionen
@@ -488,7 +493,6 @@ public:
      * %fputs schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
      * den Ausgabestrom.
      * @param str Pointer auf den zu schreibenden String
-     * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      */
     virtual void fputs(const char* str);
 
@@ -497,10 +501,7 @@ public:
      * %fputs schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
      * den Ausgabestrom.
      * @param str Pointer auf den zu schreibenden String
-     * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      *
-     * @note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
-     * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
      */
     virtual void fputws(const wchar_t* str);
 
@@ -509,7 +510,6 @@ public:
      * %fputc schreibt das Zeichen \p c, umgesetzt in ein unsigned char,
      * in den Ausgabestrom.
      * @param c Zu schreibendes Zeichen
-     * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      */
     virtual void fputc(int c);
 
@@ -526,10 +526,6 @@ public:
      *
      * %fputwc schreibt das Wide-Character Zeichen \p c in den Ausgabestrom.
      * @param c Zu schreibendes Zeichen
-     * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
-     *
-     * @note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
-     * verfügbar.
      */
     virtual void fputwc(wchar_t c);
 
@@ -539,9 +535,6 @@ public:
      * zurück.
      * @return Bei Erfolg wird das gelesene Zeichen als Integer Wert zurückgegeben,
      * im Fehlerfall wird eine Exception geworfen.
-     *
-     * @note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
-     * verfügbar.
      */
     virtual wchar_t fgetwc();
 
@@ -635,7 +628,6 @@ public:
      * physikalisch auf die Platte geschrieben, sie können noch immer aus Performancegründen
      * vom Kernel oder Treiber gecached werden. Um 100 Prozent sicher zu gehen, kann man
      * die Funktion FileObject::sync verwenden.
-     * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      */
     virtual void flush();
 
@@ -648,7 +640,8 @@ public:
      * Ein Aufruf dieser Funktion bewirkt, dass alle Dateiänderungen sofort auf die Festplatte
      * geschrieben werden. Sie sollte daher vor dem Schließen einer kritischen Datei mit CFile::Close aufgerufen
      * werden, unter Umständen sogar nach jedem Schreibzugriff.
-     * @return Die Funktion kehrt erst zurück, wenn alle Daten vollständig geschrieben wurden und liefert dann true (1)
+     *
+     * Die Funktion kehrt erst zurück, wenn alle Daten vollständig geschrieben wurden und liefert dann true (1)
      * zurück. Können die Daten nicht geschrieben werden, wird eine Exception
      * geworfen.
      */
@@ -665,7 +658,6 @@ public:
      * Der Dateizeiger wird nicht verändert. Die Datei muss zum Schreiben geöffnet sein.
      *
      * @param length Position, an der die Datei abgeschnitten werden soll.
-     * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      */
     virtual void truncate(uint64_t length);
 
@@ -685,7 +677,6 @@ public:
      * @param block Gibt an, ob die Funktion warten soll (blocken), bis die Datei
      * gesperrt werden kann (block=true) oder sofort mit einer Fehlermeldung
      * zurückkehren soll (block=false).
-     * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      *
      * @see Siehe auch File::LockExclusive und File::Unlock
      */
@@ -698,7 +689,6 @@ public:
      * @param block Gibt an, ob die Funktion warten soll (blocken), bis die Datei
      * gesperrt werden kann (block=true) oder sofort mit einer Fehlermeldung
      * zurückkehren soll (block=false).
-     * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      *
      * @see Siehe auch File::LockShared und File::Unlock
      */
@@ -709,7 +699,6 @@ public:
      * Mit Unlock wird eine mit lockShared oder lockExclusive eingerichtete
      * Sperre wieder aufgehoben, so dass auch andere Prozesse wieder uneingeschränkt
      * auf die Datei zugreifen können.
-     * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      *
      * @see Siehe auch FileObject::lockShared und FileObject::lockExclusive
      */

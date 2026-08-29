@@ -73,155 +73,6 @@
 namespace pplib
 {
 
-#define COPYBYTES_BUFFERSIZE 1024 * 1024
-
-/*!\class File
- * \ingroup PPLGroupFileIO
- * \brief Dateizugriff
- *
- * \header \#include <pplib.h>
- * \desc
- * Mit dieser Klasse können Dateien geladen, verändert und gespeichert werden.
- * Sie dient als Wrapper-Klasse für die Low-Level Funktionen des Betriebssystems.
- *
- */
-
-/*!\enum File::FileMode
- * \brief Zugriffsmodus beim Öffnen einer Datei
- *
- * \desc
- * Zugriffsmodus beim Öffnen einer Datei mit File::open
- *
- */
-
-/*!\var File::FileMode File::READ
- * \brief Datei zum Lesen öffnen, Zeiger wird an den Anfang der Datei gesetzt
- */
-
-/*!\var File::FileMode File::WRITE
- * \brief Datei zum Schreiben öffnen. Falls die Datei schon vorhanden ist, wird sie gelöscht.
- */
-
-/*!\var File::FileMode File::READWRITE
- * \brief Datei zum Lesen und Schreiben öffnen. Zeiger wird an den Anfang der Datei positioniert.
- */
-
-/*!\var File::FileMode File::APPEND
- * \brief Datei zum Schreiben öffnen, Zeiger wird ans Ende der Datei positioniert.
- */
-
-/*!\class FileAttr
- * \ingroup PPLGroupFileIO
- * \brief Definitionen der Datei-Attribute
- *
- * \desc
- * Die Klasse FileAttr enthält die Definitionen der Datei-Attribute, die mit
- * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
- *
- */
-
-/*!\enum FileAttr::Attributes
- * \brief Definitionen der Datei-Attribute
- *
- * \desc
- * Diese Enumeration enthält die Definitionen der Datei-Attribute, die mit
- * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
- *
- */
-
-/*!\var FileAttr::Attributes FileAttr::IFFILE
- * \brief reguläre Datei
- */
-
-/*!\var FileAttr::Attributes FileAttr::IFSOCK
- * \brief Socket
- */
-
-/*!\var FileAttr::Attributes FileAttr::IFDIR
- * \brief Verzeichnis
- */
-
-/*!\var FileAttr::Attributes FileAttr::IFLINK
- * \brief Symlink
- */
-
-/*!\var FileAttr::Attributes FileAttr::ISUID
- * \brief SUID-Bit
- */
-
-/*!\var FileAttr::Attributes FileAttr::ISGID
- * \brief SGID-Bit
- *
- * Das SGID-Bit     (ISGID)     hat      verschiedene      besondere
- *      Nutzungsmöglichkeiten:  Für  ein  Verzeichnis bedeutet es, das die BSD-
- *      Semantik Anwendung findet: Dateien, die in ihm  erzeugt  werden,  erben
- *      die  Gruppen-ID  des  Verzeichnisses und nicht die effektive Gruppen-ID
- *      des erzeugenden Prozesses, und dort erzeugte  Verzeichnisse  haben  das
- *      SGID-Bit ebenfalls gesetzt. Für eine Datei, bei der das Bit für Gruppe‐
- *      nausführungsrechte (GRP_EXECUTE) nicht gesetzt ist, bedeutet es erzwungenes
- *      Locken von Datei/Datensatz.
- *
- */
-
-/*!\var FileAttr::Attributes FileAttr::ISVTX
- * \brief Sticky-Bit
- *
- * Auf manchen Dateisystemen darf lediglich der Administrator das Sticky-Bit
- *   setzen. Das Sticky-Bit kann verschiedene Bedeutungen haben,
- *   beispielsweise kann in Verzeichnissen mit gesetztem Sticky-Bit eine
- *   Datei nur vom Dateieigentümer oder dem Administrator (root) gelöscht werden.
- */
-
-/*!\var FileAttr::Attributes FileAttr::STICKY
- * \brief Sticky-Bit
- *
- * Auf manchen Dateisystemen darf lediglich der Administrator das Sticky-Bit
- *   setzen. Das Sticky-Bit kann verschiedene Bedeutungen haben,
- *   beispielsweise kann in Verzeichnissen mit gesetztem Sticky-Bit eine
- *   Datei nur vom Dateieigentümer oder dem Administrator (root) gelöscht werden.
- */
-
-/*!\var FileAttr::Attributes FileAttr::USR_READ
- * \brief Leserechte für Eigentümer
- */
-
-/*!\var FileAttr::Attributes FileAttr::USR_WRITE
- * \brief Schreibrechte für Eigentümer
- */
-
-/*!\var FileAttr::Attributes FileAttr::USR_EXECUTE
- * \brief Ausführrechte  für Eigentümer. Handelt es sich um ein Verzeichnis, darf der Eigentümer das Verzeichnis durchsuchen
- */
-
-/*!\var FileAttr::Attributes FileAttr::GRP_READ
- * \brief Leserechte für Gruppe
- */
-
-/*!\var FileAttr::Attributes FileAttr::GRP_WRITE
- * \brief Schreibrechte für Gruppe
- */
-
-/*!\var FileAttr::Attributes FileAttr::GRP_EXECUTE
- * \brief Ausführrechte  für Gruppe. Handelt es sich um ein Verzeichnis, darf die Gruppe das Verzeichnis durchsuchen
- */
-
-/*!\var FileAttr::Attributes FileAttr::OTH_READ
- * \brief Leserechte für andere
- */
-
-/*!\var FileAttr::Attributes FileAttr::OTH_WRITE
- * \brief Schreibrechte für andere
- */
-
-/*!\var FileAttr::Attributes FileAttr::OTH_EXECUTE
- * \brief Ausführrechte  für andere. Handelt es sich um ein Verzeichnis, dürfen andere das Verzeichnis durchsuchen
- */
-
-/*!\brief Konstruktor der Klasse
- *
- * \desc
- * Konstruktor der Klasse
- */
 File::File()
 {
     MapBase = NULL;
@@ -233,13 +84,6 @@ File::File()
     isPopen = false;
 }
 
-/*!\brief Konstruktor der Klasse mit gleichzeitigem Öffnen einer Datei
- *
- * Konstruktor der Klasse, mit dem gleichzeitig eine Datei geöffnet wird.
- * @param[in] filename Name der zu öffnenden Datei
- * @param[in] mode Zugriffsmodus. Defaultmäßig wird die Datei zum binären Lesen
- * geöffnet (siehe \ref pplib_File_Filemodi)
- */
 File::File(const String& filename, FileMode mode)
 {
     MapBase = NULL;
@@ -252,13 +96,6 @@ File::File(const String& filename, FileMode mode)
     open(filename, mode);
 }
 
-/*!\brief Konstruktor mit Übernahme eines C-Filehandles
- *
- * \desc
- * Konstruktor der Klasse mit Übernahme eines C-Filehandles einer bereits mit ::fopen geöffneten Datei.
- *
- * @param[in] handle File-Handle
- */
 File::File(FILE* handle)
 {
     MapBase = NULL;
@@ -275,13 +112,6 @@ File::File(FILE* handle)
         this->seek((uint64_t)0);
     }
 }
-
-/*!\brief Destruktor der Klasse
- *
- * \desc
- * Der Destruktor der Klasse sorgt dafür, dass eine noch geöffnete Datei geschlossen wird und
- * alle Systemresourcen wieder freigegeben werden.
- */
 
 File::~File()
 {
@@ -372,42 +202,16 @@ const char* fmodepopen(File::FileMode mode)
 }
 #endif
 
-/*!\brief %Exception anhand errno-Variable werfen
- *
- * \desc
- * Diese Funktion wird intern verwendet, um nach Auftreten eines Fehlers, anhand der globalen
- * "errno"-Variablen die passende Exception zu werfen.
- *
- * @param e Errorcode aus der errno-Variablen
- * @param filename Dateiname, bei der der Fehler aufgetreten ist
- */
 void File::throwErrno(int e, const String& filename)
 {
     throwExceptionFromErrno(e, filename);
 }
 
-/*!\brief Exception anhand errno-Variable werfen
- *
- * \desc
- * Diese Funktion wird intern verwendet, um nach Auftreten eines Fehlers, anhand der globalen
- * "errno"-Variablen die passende Exception zu werfen.
- *
- * @param e Errorcode aus der errno-Variablen
- */
 void File::throwErrno(int e)
 {
     throwExceptionFromErrno(e, filename());
 }
 
-/*!\brief Datei öffnen
- *
- * \desc
- * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
- * @param[in] filename Dateiname
- * @param mode Zugriffsmodus
- *
- * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
 void File::open(const String& filename, FileMode mode)
 {
     close();
@@ -427,19 +231,6 @@ void File::open(const String& filename, FileMode mode)
     setFilename(filename);
 }
 
-/*!\brief Eine temporäre Datei zum Lesen und Schreiben öffnen
- *
- * \desc
- * Diese Funktion erzeugt eine temporäre Datei mit einem eindeutigen Namen.
- * Dieser Name wird aus \p filetemplate erzeugt. Dazu  müssen  die letzten
- * sechs  Buchstaben  des  Parameters template XXXXXX sein, diese werden dann
- * durch eine Zeichenkette ersetzt, die diesen Dateinamen eindeutig  macht.
- * Die  Datei  wird dann mit dem Modus read/write und den Rechten 0666 erzeugt.
- *
- * @param[in] filetemplate Pfad und Vorlage für den zu erstellenden Dateinamen
- *
- * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
 void File::openTemp(const String& filetemplate)
 {
     close();
@@ -463,19 +254,6 @@ void File::openTemp(const String& filetemplate)
     setFilename((const char*)tmpname);
 }
 
-/*!\brief Datei schließen
- *
- * \desc
- * Diese Funktion schließt die aktuell geöffnete Datei. Sie wird automatisch vom Destruktor der
- * Klasse aufgerufen, so dass ihr expliziter Aufruf nicht erforderlich ist.
- * \par
- * Wenn  der  Stream  zur  Ausgabe  eingerichtet  war,  werden  gepufferte  Daten  zuerst  durch
- * FileObject::flush
- * geschrieben. Der zugeordnete Datei-Deskriptor wird geschlossen, alle Systemressourcen werden
- * freigegeben.
- *
- * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
 void File::close()
 {
     if (MapBase != NULL) {
@@ -522,22 +300,6 @@ uint64_t File::size() const
     throw FileNotOpenException();
 }
 
-/*!\brief Prozess öffnen
- *
- * \desc
- * Die  Funktion \c Popen öffnet einen Prozess dadurch, dass sie sich nach
- * Erzeugen einer Pipe aufteilt und eine Shell öffnet.  Da eine Pipe  nach
- * Definition  unidirektional  ist,  darf das Argument \p mode nur Lesen oder
- * Schreiben angeben,  nicht  beides;  der  resultierende  Datenkanal  ist
- * demzufolge nur-lesend oder nur-schreibend.
- *
- * \param[in] command Das  Argument \p command  enthält einen String,
- * der ein Shell-Kommandozeile enthält.  Dieses Kommando  wird  an \c /bin/sh
- * unter Verwendung des Flags \c -c übergeben. Interpretation, falls nötig, wird von
- * der Shell durchgeführt.
- * \param[in] mode Dateimodus
- * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
 void File::popen(const String& command, FileMode mode)
 {
     close();
@@ -557,14 +319,6 @@ void File::popen(const String& command, FileMode mode)
     setFilename(command);
 }
 
-/*!\brief Bereits geöffnete Datei übernehmen
- *
- * Mit dieser Funktion kann eine mit der C-Funktion \c fopen bereits geöffnete Datei
- * übernommen werden.
- *
- * @param[in] handle Das Filehandle
- * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
 void File::open(FILE* handle)
 {
     if (handle == NULL) throw IllegalArgumentException();
@@ -771,14 +525,6 @@ wchar_t File::fgetwc()
     return 0;
 }
 
-/*!\brief Prüfen, ob Dateiende erreicht ist
- *
- * \desc
- * Die Funktion prüft, ob das Dateiende erreicht wurde
- *
- * @return Liefert \c true zurück, wenn das Dateiende erreicht wurde, sonst \c false
- * Falls die Datei nicht geöffnet war, wird ebenfalls \c true zurückgegeben.
- */
 bool File::eof() const
 {
     if (ff == NULL) return true;
@@ -1023,14 +769,6 @@ void* File::mmap(uint64_t position, size_t size, int prot, int flags)
 #endif
 }
 
-/*!\brief Geöffnete Datei löschen
- *
- * \desc
- * Mit dieser Funktion wird die aktuelle Datei zunächst geschlossen und dann
- * gelöscht.
- *
- * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
- */
 void File::erase()
 {
     if (ff == NULL) throw FileNotOpenException();
@@ -1045,17 +783,6 @@ void File::erase()
 // Statische Funktionen
 // ####################################################################
 
-/*!\ingroup PPLGroupFileIO
- * \brief Datei in ein ByteArray laden
- *
- * \desc
- * Mit dieser Funktion wird die Datei mit dem Namen \p filename geöffnet und der
- * kompletten Inhalt in das ByteArray \p object geladen.
- *
- * @param[out] object Das gewünschte Zielobjekt
- * @param[in] filename Der Dateiname
- * @return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- */
 void File::load(ByteArray& object, const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -1072,17 +799,6 @@ void File::load(ByteArray& object, const String& filename)
     object.use(buffer, by);
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Datei in einen String laden
- *
- * \desc
- * Mit dieser Funktion wird die Datei mit dem Namen \p filename geöffnet und der
- * kompletten Inhalt in den String \p object geladen.
- *
- * @param[out] object Der String, in den der Dateiinhalt geladen werden soll.
- * @param[in] filename Der Dateiname
- * @return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- */
 void File::load(String& object, const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -1106,17 +822,6 @@ void File::load(String& object, const String& filename)
     free(buffer);
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Datei in ein ByteArray laden
- *
- * \desc
- * Mit dieser Funktion wird die Datei mit dem Namen \p filename geöffnet und der
- * kompletten Inhalt in ein ByteArray geladen.
- *
- * @param[in] filename Der Dateiname
- * @return Bei Erfolg liefert die Funktion das ByteArray mit dem Dateiinhalt zurück.
- * Im Fehlerfall wird eine Exception geworfen.
- */
 ByteArray File::load(const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -1131,20 +836,6 @@ ByteArray File::load(const String& filename)
     return ba;
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Datei abschneiden
- *
- * \desc
- * Die Funktionen %truncate bewirkt, dass die mit \p filename angegebene Datei
- * an der Position \p bytes abgeschnitten wird.
- * \par
- * Wenn die Datei vorher größer war, gehen überschüssige Daten verloren. Wenn die Datei
- * vorher kleiner war, wird sie vergrößert und die zusätzlichen Bytes werden als Nullen geschrieben.
- *
- * @param filename Der Name der gewünschten Datei
- * @param bytes Position, an der die Datei abgeschnitten werden soll.
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- */
 void File::truncate(const String& filename, uint64_t bytes)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -1159,15 +850,6 @@ void File::truncate(const String& filename, uint64_t bytes)
 #endif
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Prüfen, ob eine Datei existiert
- *
- * \desc
- * Mit %exists kann geprüft werden, ob eine Datei im Filesystem vorhanden ist.
- *
- * \param filename Name der gewünschten Datei
- * \return Ist die Datei forhanden, gibt die Funktion \c true zurück, andernfalls \c false.
- */
 bool File::exists(const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException("filename is empty");
@@ -1182,17 +864,6 @@ bool File::exists(const String& filename)
 #endif
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Datei kopieren
- *
- * Mit CopyFile wird die Datei \p oldfile nach \p newfile kopiert. Dazu wird die Quelldatei Stück
- * für Stück zunächst in den Hauptspeicher geladen und dann in die Zieldatei geschrieben. War die Zieldatei
- * \p newfile schon vorhanden, wird sie überschrieben. Anders als bei File::MoveFile oder File::RenameFile
- * müssen die beiden Dateien nicht im gleichen Filesystem liegen.
- *
- * \param oldfile Name der zu kopierenden Datei
- * \param newfile Name der Zieldatei.
- */
 void File::copy(const String& oldfile, const String& newfile)
 {
     if (oldfile == newfile) return;
@@ -1226,39 +897,11 @@ void File::copy(const String& oldfile, const String& newfile)
     free(buffer);
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Datei verschieben oder umbenennen
- *
- * \desc
- * Mit dieser Funktion wird die Datei \p oldfile zu \p newfile umbenannt. Sie ist identisch mit
- * File::rename. Beide Funktionen arbeiten am effizientesten, wenn die Zieldatei im gleichen
- * Filesystem liegt, da in diesem Fall nur die Verzeichniseinträge geändert werden müssen.
- * Ist dies nicht der Fall, wird automatisch die wesentlich langsamere Funktion File::copy
- * gefolgt von File::remove aufgerufen.
- *
- * \param oldfile Name der zu verschiebenden bzw. umzubenennenden Datei
- * \param newfile Neuer Name
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- */
 void File::move(const String& oldfile, const String& newfile)
 {
     File::rename(oldfile, newfile);
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Datei verschieben oder umbenennen
- *
- * \desc
- * Mit dieser Funktion wird die Datei \p oldfile zu \p newfile umbenannt. Sie ist identisch mit
- * File::move. Beide Funktionen arbeiten am effizientesten, wenn die Zieldatei im gleichen
- * Filesystem liegt, da in diesem Fall nur die Verzeichniseinträge geändert werden müssen.
- * Ist dies nicht der Fall, wird automatisch die wesentlich langsamere Funktion File::CopyFile
- * gefolgt von File::DeleteFile aufgerufen.
- *
- * \param oldfile Name der zu verschiebenden bzw. umzubenennenden Datei
- * \param newfile Neuer Name
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- */
 void File::rename(const String& oldfile, const String& newfile)
 {
     if (oldfile == newfile) return;
@@ -1322,19 +965,6 @@ void File::rename(const String& oldfile, const String& newfile)
 #endif
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Datei löschen
- *
- * \desc
- * Mit dieser Funktion wird die Datei \p filename vom Datenträger gelöscht.
- *
- * \param filename Name der gewünschten Datei
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- * Ein Fehler kann auftreten, wenn die nötigen Zugriffsrechte fehlen. Ist die Datei
- * nicht vorhanden, wird jedoch kein Fehler geworfen.
- *
- * \note Die Funktionen File::erase, File::unlink und File::remove sind identisch
- */
 void File::erase(const String& filename)
 {
     if (filename.isEmpty()) return;
@@ -1349,33 +979,16 @@ void File::erase(const String& filename)
 #endif
 }
 
-/*!\ingroup PPLGroupFileIO
- * \copydoc File::erase
- */
 void File::unlink(const String& filename)
 {
     File::erase(filename);
 }
 
-/*!\ingroup PPLGroupFileIO
- * \copydoc File::erase
- */
 void File::remove(const String& filename)
 {
     File::erase(filename);
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Leere Datei anlegen oder die Zeitstempel des letzten Zugriffs aktualisieren
- *
- * \desc
- * TouchFile arbeitet ähnlich wie das Unix-Lommando \c touch. Ist die angegebene Datei
- * \p filename noch nicht vorhanden, wird sie als leere Datei angelegt. Ist sie bereits vorhanden,
- * wird der Zeitstempel des letzen Zugriffs aktualisiert.
- *
- * \param filename Name der gewünschten Datei
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- */
 void File::touch(const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -1384,19 +997,6 @@ void File::touch(const String& filename)
     ff.close();
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Daten in Datei schreiben
- *
- * \desc
- * Mit dieser Funktion werden \p size Bytes aus dem Speicherbereich beginnend bei
- * \p content in die Datei \p filename geschrieben. War die Datei bereits vorhanden,
- * wird sie überschrieben.
- *
- * \param content Pointer auf den Speicherbereich, der in die Datei geschrieben werdem soll
- * \param size Anzahl zu schreibender Bytes
- * \param filename Name der gewünschten Datei
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- */
 void File::save(const void* content, size_t size, const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -1405,17 +1005,6 @@ void File::save(const void* content, size_t size, const String& filename)
     ff.fwrite(content, 1, size);
 }
 
-/*!\ingroup PPLGroupFileIO
- * \brief Daten eines von ByteArrayPtr Objekts in Datei schreiben
- *
- * \desc
- * Mit dieser Funktion wird der Speicher auf den der ByteArrayPtr \p object
- * zeigt in die Datei \p filename geschrieben. War die Datei bereits vorhanden, wird sie überschrieben.
- *
- * \param object Ein ByteArrayPtrm der auf den zu speichernden Speicherbereich zeigt.
- * \param filename Name der gewünschten Datei
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- */
 void File::save(const ByteArrayPtr& object, const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -1452,19 +1041,6 @@ static mode_t translate_FileAttr(FileAttr::Attributes attr)
     return m;
 }
 
-/*! \brief Setz die Attribute einer exisitierenden Datei
- * \ingroup PPLGroupFileIO
- *
- * \desc
- * Mit dieser Funktion können die Zugriffsattribute einer existierenden Datei
- * gesetzt werden.
- *
- * \param filename Der Dateinamen
- * \param attr Die Attribute
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- *
- * \see FileAttr::Attributes
- */
 void File::chmod(const String& filename, FileAttr::Attributes attr)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -1564,19 +1140,6 @@ static void getResultFromStat(struct stat& st, DirEntry& result, const pplib::St
     if (result.Attrib & FileAttr::OTH_EXECUTE) result.AttrStr.set(9, 'x');
 }
 
-/*!\brief Informationen zu einer Datei oder Verzeichnis
- *
- * \desc
- * Mit dieser statischen Funktion können Informationen zur Datei oder
- * Verzeichnis \p filename ausgelesen werden. Das Ergebnis wird in
- * \p result gespeichert.
- *
- * @param filename Dateiname
- * @param result Objekt, in dem die Daten gespeichert werden
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- * \throw NullPointerException: Wird geworfen, wenn \p filename auf NULL zeigt
- * \throw FileNotFoundException: Datei oder Verzeichnis nicht vorhanden
- */
 void File::statFile(const String& filename, DirEntry& result)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -1599,21 +1162,6 @@ DirEntry File::statFile(const String& filename)
     return e;
 }
 
-/*\brief Informationen zu einer Datei oder Verzeichnis
- *
- * \desc
- * Diese Funktion liefert true zurück, wenn die gesuchte Datei existiert und deren
- * Eigenschaften ermittelt werden konnten. In \p result sind dann die Eigenschaften zu
- * finden.
- *
- * @param[in] filename Dateiname
- * @param[out] result Objekt mit dem Ergebnis
- *
- * \return true oder false
- * \throw UnsupportedFeatureException wird geworfen, wenn die stat-Methode vom System
- * nicht unterstützt wird
- *
- */
 bool File::tryStatFile(const String& filename, DirEntry& result)
 {
     if (filename.isEmpty()) return false;
@@ -1630,16 +1178,6 @@ bool File::tryStatFile(const String& filename, DirEntry& result)
     return true;
 }
 
-/*!\brief Pfad ohne Dateinamen
- *
- * \desc
- * Diese Funktion liefert den Verzeichnisnamen eines Strings zurück, der Pfad und Dateinamen
- * enthält. Lautet der String beispielsweise "/home/patrick/svn/pplib/README.TXT" liefert die Funktion
- * "/home/patrick/svn/pplib/" zurück.
- *
- * @param path Pfad mit Dateinamen
- * @return String mit dem Pfad
- */
 String File::getPath(const String& path)
 {
     size_t i, l, pos;
@@ -1652,16 +1190,6 @@ String File::getPath(const String& path)
     return path.left(pos);
 }
 
-/*!\brief Dateinamen ohne Pfad
- *
- * \desc
- * Diese Funktion liefert den Dateinamen eines Strings zurück, der Pfad und Dateinamen
- * enthält. Lautet der String beispielsweise "/home/patrick/svn/pplib/README.TXT" liefert die Funktion
- * "README.TXT" zurück.
- *
- * @param path Pfad mit Dateinamen
- * @return String mit dem Dateinamen
- */
 String File::getFilename(const String& path)
 {
     size_t i, l, pos;
