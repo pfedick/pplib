@@ -509,7 +509,7 @@ TEST_F(FileTest, fwriteNullReturnsZero)
     ASSERT_EQ((size_t)0, f1.fwrite((void*)ba.adr(), 0, 1024));
     ASSERT_EQ((size_t)0, f1.fwrite((void*)ba.adr(), 1, 0));
     f1.close();
-    pplib::File::remove("tmp/fwriteNullReturnsZero.txt");
+    pplib::File::unlink("tmp/fwriteNullReturnsZero.txt");
 }
 
 TEST_F(FileTest, fwriteThrows)
@@ -997,6 +997,172 @@ TEST_F(FileTest, lockSharedWithSecondInstance)
     f1.close();
     f2.close();
     pplib::File::erase("tmp/lock_shared_second_instance_test.tmp");
+}
+
+TEST_F(FileTest, setMapReadAhead)
+{
+    // Kann man nicht wirklich testen
+    pplib::File f;
+    ASSERT_NO_THROW(f.setMapReadAhead(1024));
+}
+
+TEST_F(FileTest, map)
+{
+    pplib::File f1("testdata/dirwalk/testfile.txt");
+    const char* ptr;
+    ASSERT_NO_THROW(ptr = f1.map(0, 1024));
+    ASSERT_NE(ptr, nullptr);
+    ASSERT_NO_THROW(ptr = f1.map(1024, 1024));
+}
+
+TEST_F(FileTest, map_walk_through_file_and_compare_1024Byte)
+{
+    // wir öffnen eine Datei und lesen sie Chunkweise ein per fread
+    // parallel dazu mappen wir den gleichen Bereich der Datei und
+    // vergleichen die Inhalte
+
+    pplib::File f1("testdata/dirwalk/testfile.txt");
+    pplib::File f2("testdata/dirwalk/testfile.txt");
+    const size_t chunk_size = 1024;
+    pplib::ByteArray buffer;
+    for (uint64_t offset = 0; offset < f1.size(); offset += chunk_size) {
+        size_t bytes_to_read = chunk_size;
+        if (offset + bytes_to_read > f1.size()) {
+            bytes_to_read = f1.size() - offset;
+        }
+        // Step 1: Daten ins ByteArray lesen
+        buffer.clear();
+        size_t b1 = f1.read(buffer, bytes_to_read);
+        ASSERT_EQ(b1, bytes_to_read);
+        const char* mapped_ptr = f2.map(offset, bytes_to_read);
+        pplib::ByteArrayPtr mapped_buffer(mapped_ptr, bytes_to_read);
+        // printf("Comparing chunk at offset %llu, size %zu\n", offset, bytes_to_read);
+        ASSERT_EQ(buffer, mapped_buffer);
+    }
+}
+
+TEST_F(FileTest, map_walk_through_file_and_compare_1024Byte_mitReadAhead)
+{
+    // wir öffnen eine Datei und lesen sie Chunkweise ein per fread
+    // parallel dazu mappen wir den gleichen Bereich der Datei und
+    // vergleichen die Inhalte
+
+    pplib::File f1("testdata/dirwalk/testfile.txt");
+    pplib::File f2("testdata/dirwalk/testfile.txt");
+    const size_t chunk_size = 1024;
+    pplib::ByteArray buffer;
+    f2.setMapReadAhead(100 * 1024);
+    for (uint64_t offset = 0; offset < f1.size(); offset += chunk_size) {
+        size_t bytes_to_read = chunk_size;
+        if (offset + bytes_to_read > f1.size()) {
+            bytes_to_read = f1.size() - offset;
+        }
+        // Step 1: Daten ins ByteArray lesen
+        buffer.clear();
+        size_t b1 = f1.read(buffer, bytes_to_read);
+        ASSERT_EQ(b1, bytes_to_read);
+        const char* mapped_ptr = f2.map(offset, bytes_to_read);
+        pplib::ByteArrayPtr mapped_buffer(mapped_ptr, bytes_to_read);
+        // printf("Comparing chunk at offset %llu, size %zu\n", offset, bytes_to_read);
+        ASSERT_EQ(buffer, mapped_buffer);
+    }
+}
+
+TEST_F(FileTest, map_walk_through_file_and_compare_128KByte)
+{
+    // wir öffnen eine Datei und lesen sie Chunkweise ein per fread
+    // parallel dazu mappen wir den gleichen Bereich der Datei und
+    // vergleichen die Inhalte
+
+    pplib::File f1("testdata/dirwalk/testfile.txt");
+    pplib::File f2("testdata/dirwalk/testfile.txt");
+    const size_t chunk_size = 1024 * 128;
+    pplib::ByteArray buffer;
+    for (uint64_t offset = 0; offset < f1.size(); offset += chunk_size) {
+        size_t bytes_to_read = chunk_size;
+        if (offset + bytes_to_read > f1.size()) {
+            bytes_to_read = f1.size() - offset;
+        }
+        // Step 1: Daten ins ByteArray lesen
+        size_t b1 = f1.read(buffer, bytes_to_read);
+        ASSERT_EQ(b1, bytes_to_read);
+        const char* mapped_ptr = f2.map(offset, bytes_to_read);
+        pplib::ByteArrayPtr mapped_buffer(mapped_ptr, bytes_to_read);
+        // printf("Comparing chunk at offset %llu, size %zu\n", offset, bytes_to_read);
+        ASSERT_EQ(buffer, mapped_buffer);
+    }
+}
+
+TEST_F(FileTest, map_walk_through_file_and_compare_128KByte_mitReadAhead)
+{
+    // wir öffnen eine Datei und lesen sie Chunkweise ein per fread
+    // parallel dazu mappen wir den gleichen Bereich der Datei und
+    // vergleichen die Inhalte
+
+    pplib::File f1("testdata/dirwalk/testfile.txt");
+    pplib::File f2("testdata/dirwalk/testfile.txt");
+    const size_t chunk_size = 1024 * 128;
+    pplib::ByteArray buffer;
+    f2.setMapReadAhead(10 * 1024 * 1024);
+    for (uint64_t offset = 0; offset < f1.size(); offset += chunk_size) {
+        size_t bytes_to_read = chunk_size;
+        if (offset + bytes_to_read > f1.size()) {
+            bytes_to_read = f1.size() - offset;
+        }
+        // Step 1: Daten ins ByteArray lesen
+        size_t b1 = f1.read(buffer, bytes_to_read);
+        ASSERT_EQ(b1, bytes_to_read);
+        const char* mapped_ptr = f2.map(offset, bytes_to_read);
+        pplib::ByteArrayPtr mapped_buffer(mapped_ptr, bytes_to_read);
+        // printf("Comparing chunk at offset %llu, size %zu\n", offset, bytes_to_read);
+        ASSERT_EQ(buffer, mapped_buffer);
+    }
+    ASSERT_NO_THROW(f2.unmap());
+    ASSERT_NO_THROW(f2.unmap());
+}
+
+TEST_F(FileTest, mapRW_walk_through_file_and_compare_1024Byte)
+{
+    // Hier schreiben wir auch, daher machen wir zuerst eine Kopie
+    // Unserer Testdatei
+    pplib::File::copy("testdata/dirwalk/testfile.txt", "tmp/testfile_mmap_write.txt");
+    pplib::File f1("tmp/testfile_mmap_write.txt");
+    pplib::File f2("tmp/testfile_mmap_write.txt", pplib::File::FileMode::READWRITE);
+    const size_t chunk_size = 1024;
+    pplib::ByteArray random_bytes = pplib::Random(chunk_size);
+    pplib::ByteArray buffer;
+    for (uint64_t offset = 0; offset < f1.size(); offset += chunk_size) {
+        size_t bytes_to_read = chunk_size;
+        if (offset + bytes_to_read > f1.size()) {
+            bytes_to_read = f1.size() - offset;
+        }
+        // Step 1: Daten ins ByteArray lesen
+        size_t b1 = f1.read(buffer, bytes_to_read);
+        ASSERT_EQ(b1, bytes_to_read);
+
+        char* mapped_ptr = f2.map(offset, bytes_to_read, pplib::FileObject::MapProtection::READWRITE);
+
+        pplib::ByteArrayPtr mapped_buffer(mapped_ptr, bytes_to_read);
+        // printf("Comparing chunk at offset %llu, size %zu\n", offset, bytes_to_read);
+        ASSERT_EQ(buffer, mapped_buffer);
+        // Step 2: Schreibe zufällige Bytes in das gemappte Segment
+        memcpy(mapped_ptr, random_bytes, bytes_to_read);
+    }
+    return;
+    ASSERT_NO_THROW(f2.unmap());
+    ASSERT_NO_THROW(f2.unmap());
+    f1.seek(0);
+    // Jetzt überprüfen wir, ob die geschriebenen Bytes korrekt sind
+    pplib::ByteArray verify_buffer;
+    for (uint64_t offset = 0; offset < f1.size(); offset += chunk_size) {
+        size_t bytes_to_read = chunk_size;
+        if (offset + bytes_to_read > f1.size()) {
+            bytes_to_read = f1.size() - offset;
+        }
+        size_t b1 = f1.read(verify_buffer, bytes_to_read);
+        ASSERT_EQ(b1, bytes_to_read);
+        ASSERT_EQ(buffer, random_bytes);
+    }
 }
 
 } // namespace

@@ -633,35 +633,13 @@ void File::setMapReadAhead(size_t bytes)
     ReadAhead = bytes;
 }
 
-const char* File::map(uint64_t position, size_t bytes)
+char* File::map(uint64_t position, size_t bytes, MapProtection prot)
 {
     if (ff == NULL) throw FileNotOpenException();
     if (position + bytes <= mysize) {
         if (MapBase != NULL) {
-            if (LastMapStart == position) { // Dateiausschnitt schon gemapped?
-                if (bytes <= LastMapSize) return MapBase;
-            }
-            if (position > LastMapStart && (bytes + position - LastMapStart) <= LastMapSize) return MapBase + position - LastMapStart;
-            this->munmap(MapBase, (size_t)LastMapSize);
-        }
-        LastMapStart = position;
-        if (ReadAhead > 0 && bytes < ReadAhead) {
-            bytes = ReadAhead;
-            if (position + (uint64_t)bytes > mysize) bytes = (size_t)(mysize - position);
-        }
-        LastMapSize = bytes;
-        return (const char*)this->mmap(position, bytes, MapProtection::READ);
-    }
-    throw OverflowException();
-}
-
-char* File::mapRW(uint64_t position, size_t bytes)
-{
-    if (ff == NULL) throw FileNotOpenException();
-    if (position + bytes <= mysize) {
-        if (MapBase != NULL) {
-            if (LastMapProtection == MapProtection::READWRITE) { // Schon als read/write gemapped?
-                if (LastMapStart == position) {                  // Dateiausschnitt schon gemapped?
+            if (LastMapProtection == prot) {    // Schon als read/write gemapped?
+                if (LastMapStart == position) { // Dateiausschnitt schon gemapped?
                     if (bytes <= LastMapSize) return MapBase;
                 }
                 if (position > LastMapStart && (bytes + position - LastMapStart) <= LastMapSize) return MapBase + position - LastMapStart;
@@ -672,7 +650,7 @@ char* File::mapRW(uint64_t position, size_t bytes)
             bytes = ReadAhead;
             if (position + bytes > mysize) bytes = (size_t)(mysize - position);
         }
-        return (char*)this->mmap(position, bytes, MapProtection::READWRITE);
+        return (char*)this->mmap(position, bytes, prot);
     }
     throw OverflowException();
 }
@@ -698,6 +676,8 @@ void File::munmap(void* addr, size_t len)
 
 #ifndef _WIN32
 static int __pagesize = 0;
+#else
+static size_t __granularity = 0;
 #endif
 void* File::mmap(uint64_t position, size_t size, MapProtection prot)
 {
@@ -707,10 +687,12 @@ void* File::mmap(uint64_t position, size_t size, MapProtection prot)
         mflags = PROT_READ;
     else if (prot == MapProtection::READWRITE)
         mflags = PROT_READ | PROT_WRITE;
+    /*
     else if (prot == MapProtection::READEXECUTE)
         mflags = PROT_READ | PROT_EXEC;
     else if (prot == MapProtection::READWRITEEXECUTE)
         mflags = PROT_READ | PROT_WRITE | PROT_EXEC;
+        */
     else
         throw IllegalArgumentException();
     size_t rest = 0;
@@ -747,21 +729,36 @@ void* File::mmap(uint64_t position, size_t size, MapProtection prot)
     } else if (prot == MapProtection::READWRITE) {
         prot_flag = PAGE_READWRITE;
         map_access = FILE_MAP_READ | FILE_MAP_WRITE;
+        /*
     } else if (prot == MapProtection::READEXECUTE) {
         prot_flag = PAGE_EXECUTE_READ;
         map_access = FILE_MAP_READ | FILE_MAP_EXECUTE;
     } else if (prot == MapProtection::READWRITEEXECUTE) {
         prot_flag = PAGE_EXECUTE_READWRITE;
         map_access = FILE_MAP_READ | FILE_MAP_WRITE | FILE_MAP_EXECUTE;
+        */
     } else {
         throw IllegalArgumentException();
     }
+
+    if (!__granularity) {
+        SYSTEM_INFO si;
+        GetSystemInfo(&si);
+        __granularity = si.dwAllocationGranularity; // typ. 64 KB
+    }
+
+    size_t rest = position % __granularity;
+    if (rest) {
+        position -= rest;
+        size += rest;
+    }
+
     // Datei muss mit GENERIC_READ | (optional) GENERIC_WRITE geöffnet sein.
     // _get_osfhandle liefert den HANDLE, aber CreateFileMapping braucht
     // einen HANDLE mit FileAccess-Rechten. Da wir über FILE* kommen,
     // ist der Handle bereits korrekt geöffnet (rb / r+b).
     ULARGE_INTEGER mapSize;
-    mapSize.QuadPart = size;
+    mapSize.QuadPart = position + size;
 
     HANDLE hMap = CreateFileMapping(hFile, NULL, prot_flag, mapSize.HighPart, mapSize.LowPart, NULL);
     if (hMap == NULL) throwErrno(GetLastError());
@@ -771,9 +768,7 @@ void* File::mmap(uint64_t position, size_t size, MapProtection prot)
     ULARGE_INTEGER offset;
     offset.QuadPart = position;
 
-    void* pView = MapViewOfFile(hMap, map_access, offset.HighPart, offset.LowPart,
-                                0 // 0 = gesamte Mapping-Größe
-    );
+    void* pView = MapViewOfFile(hMap, map_access, offset.HighPart, offset.LowPart, (SIZE_T)size);
     CloseHandle(hMap); // View hält die Referenz, Handle kann zu
 
     if (pView == NULL) throwErrno(GetLastError());
@@ -782,7 +777,7 @@ void* File::mmap(uint64_t position, size_t size, MapProtection prot)
     LastMapSize = size;
     LastMapProtection = prot;
     LastMapStart = position;
-    return pView;
+    return (MapBase + rest);
 #endif
 }
 
@@ -795,38 +790,18 @@ void File::load(ByteArray& object, const String& filename)
     if (filename.isEmpty()) throw IllegalArgumentException();
     File ff;
     ff.open(filename);
-    char* buffer = (char*)malloc((size_t)ff.mysize + 1);
-    if (!buffer) throw OutOfMemoryException();
+    char* buffer = (char*)object.malloc((size_t)ff.mysize);
     size_t by = ff.fread(buffer, 1, ff.mysize);
     if (by != ff.mysize) {
-        free(buffer);
         throw ReadException();
     }
-    buffer[by] = 0;
-    object.use(buffer, by);
 }
 
 void File::load(String& object, const String& filename)
 {
-    if (filename.isEmpty()) throw IllegalArgumentException();
-    File ff;
-    ff.open(filename);
-    char* buffer = (char*)malloc((size_t)ff.mysize + 1);
-    if (!buffer) throw OutOfMemoryException();
-    size_t by = ff.fread(buffer, 1, ff.mysize);
-    if (by != ff.mysize) {
-        free(buffer);
-        throw ReadException();
-    }
-    buffer[by] = 0;
-    try {
-        object.set(buffer, by);
-    }
-    catch (...) {
-        free(buffer);
-        throw;
-    }
-    free(buffer);
+    ByteArray ba;
+    load(ba, filename);
+    object.set(ba, ba.size());
 }
 
 ByteArray File::load(const String& filename)

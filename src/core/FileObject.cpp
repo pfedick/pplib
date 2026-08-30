@@ -98,7 +98,7 @@ size_t FileObject::read(void* target, size_t bytes)
 size_t FileObject::read(ByteArray& target, size_t bytes)
 {
     if (!bytes) throw IllegalArgumentException();
-    if (target.size() < bytes) target.realloc(bytes);
+    if (target.size() != bytes) target.realloc(bytes);
     return fread((void*)target.ptr(), 1, bytes);
 }
 
@@ -192,10 +192,9 @@ void FileObject::putws(const WideString& str)
 {
     return fputws((const wchar_t*)str);
 }
-
-const char* FileObject::map()
+ByteArrayPtr FileObject::map()
 {
-    return map(0, (size_t)size());
+    return ByteArrayPtr(map(0, (size_t)size()), (size_t)size());
 }
 
 ByteArray FileObject::load()
@@ -365,12 +364,7 @@ void FileObject::setMapReadAhead(size_t bytes)
     throw UnimplementedVirtualFunctionException();
 }
 
-const char* FileObject::map(uint64_t position, size_t size)
-{
-    throw UnimplementedVirtualFunctionException();
-}
-
-char* FileObject::mapRW(uint64_t position, size_t size)
+char* FileObject::map(uint64_t position, size_t size, MapProtection prot)
 {
     throw UnimplementedVirtualFunctionException();
 }

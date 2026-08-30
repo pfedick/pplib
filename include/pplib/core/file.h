@@ -92,14 +92,6 @@ public:
 class File : public FileObject
 {
 private:
-    enum class MapProtection : uint8_t
-    {
-        NONE = 0,
-        READ = 1,
-        READWRITE = 3,        // READ | WRITE
-        READEXECUTE = 5,      // READ | EXECUTE
-        READWRITEEXECUTE = 7, // READ | WRITE | EXECUTE
-    };
     void* ff;
     char* MapBase;
     uint64_t LastMapStart;
@@ -534,46 +526,21 @@ public:
      */
     virtual void setMapReadAhead(size_t bytes);
 
-    /** @brief Datei Read-Only in den Speicher mappen
+    /** @brief Datei in den Speicher mappen
      *
-     * Mit dieser Funktion wird ein Teil der Datei in den Speicher gemapped.
-     * Falls das Betriebssystem <a href="http://en.wikipedia.org/wiki/Mmap">mmap</a> versteht,
-     * wird dieser verwendet. Dabei wird der gewünschte Datenblock nicht sofort komplett
-     * in den Speicher geladen, sondern nur der Teil, auf den gerade zugegriffen wird.
-     * Steht \c mmap nicht zur Verfügung, wird die Datei in den Hauptspeicher geladen.
-     * Die File-Klasse kümmert sich selbst daraum, dass der Speicher auch wieder freigegeben
-     * wird.
+     * Mit dieser Funktion wird ein Teil der Datei in den Speicher gemapped. Dies macht das Lesen und
+     * Schreiben von Dateien effizienter, da nur die tatsächlich benötigten Teile in den Speicher geladen
+     * werden.
      *
-     * Ein mit Map gemappter Speicher darf nur gelesen, aber nicht beschrieben werden! Falls
-     * auch geschrieben werden soll, ist die Funktion FileObject::MapRW zu verwenden.
+     * Je nach Protection-Modus @p prot kann der gemappte Speicher nur gelesen oder auch beschrieben werden.
      *
      * @param[in] position Die gewünschte Startposition innerhalb der Datei
      * @param[in] size Die Anzahl Bytes, die gemapped werden sollen.
+     * @param[in] prot Zugriffsmodus für das Mapping. Standardmäßig wird nur Lesezugriff gewährt.
      * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
      * in dem sich die Datei befindet, im Fehlerfall wird eine Exception geworfen.
      */
-    virtual const char* map(uint64_t position, size_t size);
-
-    /** @brief Datei Les- und Schreibbar in den Speicher mappen
-     *
-     * Mit dieser Funktion wird ein Teil der Datei in den Speicher gemapped.
-     * Falls das Betriebssystem <a href="http://en.wikipedia.org/wiki/Mmap">mmap</a> versteht,
-     * wird dieser verwendet. Dabei wird der gewünschte Datenblock nicht sofort komplett
-     * in den Speicher geladen, sondern nur der Teil, auf den gerade zugegriffen wird.
-     * Steht \c mmap nicht zur Verfügung, wird die Datei in den Hauptspeicher geladen.
-     * Die File-Klasse kümmert sich selbst daraum, dass der Speicher nach Gebrauch wieder
-     * zurück in die Datei geschrieben und freigegeben wird.
-     *
-     * Ein mit %mapRW gemappter Speicher darf sowohl gelesen als auch beschrieben werden!
-     * Bevor mit anderen Funktionen auf den gleichen Speicher zugegriffen werden soll
-     * (insbesondere schreibend), muss die Funktion FileObject::Unmap aufgerufen werden.
-     *
-     * @param[in] position Die gewünschte Startposition innerhalb der Datei
-     * @param[in] size Die Anzahl Bytes, die gemapped werden sollen.
-     * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
-     * in dem sich die Datei befindet, im Fehlerfall wird eine Exception geworfen.
-     */
-    virtual char* mapRW(uint64_t position, size_t size);
+    virtual char* map(uint64_t position, size_t size, MapProtection prot = MapProtection::READ);
 
     /** @brief Mapping aufheben
      *

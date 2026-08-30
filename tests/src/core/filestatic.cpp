@@ -84,6 +84,7 @@ TEST_F(FileStaticTest, StatOnNonexistingFile)
 TEST_F(FileStaticTest, ExistsOnUSAscii)
 {
     ASSERT_EQ(true, pplib::File::exists("testdata/filenameUSASCII.txt"));
+    ASSERT_THROW(pplib::File::exists(""), pplib::IllegalArgumentException);
 }
 
 TEST_F(FileStaticTest, ExistsOnUtf8)
@@ -105,6 +106,14 @@ TEST_F(FileStaticTest, sha256Hash)
 {
     ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"),
               pplib::File::sha256Hash("testdata/filenameUSASCII.txt"));
+}
+
+TEST_F(FileStaticTest, copyEdgeCases)
+{
+    ASSERT_THROW(pplib::File::copy("", "tmp/copy.tmp"), pplib::IllegalArgumentException);
+    ASSERT_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", ""), pplib::IllegalArgumentException);
+    ASSERT_NO_THROW(pplib::File::copy("tmp/copy.tmp", "tmp/copy.tmp"));
+    pplib::File::remove("tmp/copy.tmp");
 }
 
 TEST_F(FileStaticTest, CopyFileUSAscii2USAscii)
@@ -170,6 +179,7 @@ TEST_F(FileStaticTest, CopyFileLocal2UsAscii)
 
 TEST_F(FileStaticTest, TruncateOnUSASCII)
 {
+    ASSERT_THROW(pplib::File::truncate("", 0), pplib::IllegalArgumentException);
     ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/truncate.tmp"));
     pplib::DirEntry d;
     ASSERT_NO_THROW(pplib::File::statFile("tmp/truncate.tmp", d));
@@ -320,6 +330,20 @@ TEST_F(FileStaticTest, RenameFileLocal2Local)
     ASSERT_EQ(pplib::String("c0736be5fcbe7bf5a19a21045ea437c397643202dd4660fc0487ea63917e2bbc"),
               pplib::File::sha256Hash("tmp/move4bäöü.tmp"));
     pplib::File::remove("tmp/move4bäöü.tmp");
+}
+
+TEST_F(FileStaticTest, erase_unlink_remove)
+{
+    ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/erase.tmp"));
+    // tmp kann nicht gelöscht werden, da nicht leer
+    ASSERT_THROW(pplib::File::remove("tmp"), pplib::PermissionDeniedException);
+
+    ASSERT_TRUE(pplib::File::exists("tmp/erase.tmp")) << "File should exist before removal";
+    ASSERT_NO_THROW(pplib::File::remove("tmp/erase.tmp"));
+    ASSERT_FALSE(pplib::File::exists("tmp/erase.tmp")) << "File should not exist after removal";
+
+    ASSERT_NO_THROW(pplib::File::erase(""));
+    ASSERT_NO_THROW(pplib::File::unlink("tmp/nonexisting.tmp"));
 }
 
 TEST_F(FileStaticTest, LoadUSAscii2String)
@@ -522,6 +546,40 @@ TEST_F(FileStaticTest, isExecutable)
 {
     EXPECT_FALSE(pplib::File::isExecutable("testdata/dirwalk/LICENSE.TXT"));
     EXPECT_FALSE(pplib::File::isExecutable("nonexisting"));
+}
+
+TEST_F(FileStaticTest, rename)
+{
+    pplib::File::copy("testdata/dirwalk/LICENSE.TXT", "tmp/rename_test.TXT");
+    EXPECT_NO_THROW(pplib::File::rename("tmp/rename_test.TXT", "tmp/rename_test_renamed.TXT"));
+    EXPECT_TRUE(pplib::File::isFile("tmp/rename_test_renamed.TXT"));
+    EXPECT_FALSE(pplib::File::isFile("tmp/rename_test.TXT"));
+    // pplib::File::remove("tmp/rename_test_renamed.TXT");
+}
+
+TEST_F(FileStaticTest, rename_throws)
+{
+    pplib::File::copy("testdata/dirwalk/LICENSE.TXT", "tmp/rename_test2.TXT");
+    EXPECT_NO_THROW(pplib::File::rename("tmp/rename_test2.TXT", "tmp/rename_test2.TXT"));
+    EXPECT_TRUE(pplib::File::isFile("tmp/rename_test2.TXT"));
+
+    EXPECT_THROW(pplib::File::rename("tmp/rename_test2.TXT", "tmp/non_existing_dir/rename_test2.TXT"), pplib::IOException);
+    EXPECT_TRUE(pplib::File::isFile("tmp/rename_test2.TXT"));
+
+    EXPECT_THROW(pplib::File::rename("", "tmp/rename_test2.TXT"), pplib::IllegalArgumentException);
+    EXPECT_THROW(pplib::File::rename("tmp/rename_test2.TXT", ""), pplib::IllegalArgumentException);
+}
+
+TEST_F(FileStaticTest, chmod)
+{
+    pplib::File::copy("testdata/dirwalk/LICENSE.TXT", "tmp/chmod_test.TXT");
+    int attr = pplib::FileAttr::Attributes::USR_READ | pplib::FileAttr::Attributes::USR_WRITE;
+    pplib::File::chmod("tmp/chmod_test.TXT", static_cast<pplib::FileAttr::Attributes>(attr));
+
+    pplib::DirEntry d = pplib::File::statFile("tmp/chmod_test.TXT");
+    EXPECT_EQ(static_cast<pplib::FileAttr::Attributes>(attr), d.Attrib);
+
+    // pplib::File::remove("tmp/chmod_test.TXT");
 }
 
 } // namespace
