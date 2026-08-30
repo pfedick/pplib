@@ -79,7 +79,7 @@ File::File()
     ff = NULL;
     mysize = pos = 0;
     LastMapStart = LastMapSize = 0;
-    LastMapProtection = 0;
+    LastMapProtection = MapProtection::NONE;
     ReadAhead = 0;
     isPopen = false;
 }
@@ -93,17 +93,18 @@ File::File(const String& filename, FileMode mode)
 File::File(FILE* handle)
     : File()
 {
-    if (handle != NULL) {
-        ff = handle;
-        mysize = size();
-        this->seek((uint64_t)0);
-    }
+    if (!handle) throw IllegalArgumentException();
+    ff = handle;
+    mysize = size();
+    this->seek((uint64_t)0);
 }
 
 File::~File()
 {
-    if (ff != NULL) {
+    try {
         close();
+    }
+    catch (...) {
     }
 }
 
@@ -128,6 +129,8 @@ static const wchar_t* fmode(File::FileMode mode)
         return L"r+b";
     case File::FileMode::APPEND:
         return L"ab";
+    case File::FileMode::READWRITE_CREATE:
+        return L"w+b";
     default:
         throw IllegalArgumentException();
     }
@@ -144,6 +147,9 @@ static const char* fmode(File::FileMode mode)
         return "r+b";
     case File::FileMode::APPEND:
         return "ab";
+    case File::FileMode::READWRITE_CREATE:
+        return "w+b";
+
     default:
         throw IllegalArgumentException();
     }
@@ -224,21 +230,14 @@ void File::openTemp(const String& filetemplate)
     String tmpname = filetemplate;
     int f = ::mkstemp((char*)((const char*)tmpname));
     if (f < 0) throwErrno(errno, filetemplate);
-    FILE* ff = ::fdopen(f, "r+b");
-    if (!ff) throwErrno(errno, filetemplate);
-    try {
-        open(ff);
+    ff = ::fdopen(f, "r+b");
+    if (!ff) {
+        ::close(f);
+        throwErrno(errno, filetemplate);
     }
-    catch (...) {
-        try {
-            ::fclose(ff);
-            ::close(f);
-        }
-        catch (...) {
-        }
-        throw;
-    }
-    setFilename((const char*)tmpname);
+    mysize = size();
+    seek(0);
+    setFilename(tmpname);
 }
 
 void File::close()
@@ -246,7 +245,6 @@ void File::close()
     if (MapBase != NULL) {
         this->munmap(MapBase, (size_t)LastMapSize);
     }
-
     setFilename("");
     if (ff != NULL) {
         int ret = 1;
@@ -262,7 +260,6 @@ void File::close()
         if (ret == 0) throwErrno(errno, filename());
         return;
     }
-    // throw FileNotOpenException();
 }
 
 bool File::isOpen() const
@@ -290,6 +287,7 @@ uint64_t File::size() const
 void File::popen(const String& command, FileMode mode)
 {
     close();
+    // printf("Opening command: %s\n", (const char*)command);
     if (command.isEmpty()) throw IllegalArgumentException();
 #ifdef _WIN32
     if ((ff = (FILE*)::_wpopen((const wchar_t*)WideString(command), fmodepopen(mode))) == NULL) {
@@ -318,11 +316,7 @@ void File::open(FILE* handle)
 
 void File::rewind()
 {
-    if (ff != NULL) {
-        pos = 0;
-        return;
-    }
-    throw FileNotOpenException();
+    seek(0);
 }
 
 void File::seek(uint64_t position)
@@ -356,55 +350,54 @@ uint64_t File::seek(int64_t offset, SeekOrigin origin)
         throw IllegalArgumentException();
     }
     int suberr = ::fseek((FILE*)ff, (long)offset, o);
-    if (suberr == 0) {
-        pos = tell();
-        return pos;
-    }
-    throwErrno(errno, filename());
-    return 0;
+    if (suberr != 0) throwErrno(errno, filename());
+    return tell();
 }
 
 uint64_t File::tell()
 {
-    if (ff != NULL) {
-        off_t p = ::ftello((FILE*)ff);
-        if (p != (off_t)-1) return p;
-        throwErrno(errno, filename());
-    }
-    throw FileNotOpenException();
+    if (ff == NULL) throw FileNotOpenException();
+    off_t p = ::ftello((FILE*)ff);
+    if (p == (off_t)-1) throwErrno(errno, filename());
+    return p;
 }
 
 size_t File::fread(void* ptr, size_t size, size_t nmemb)
 {
-    if (ff == NULL) throw FileNotOpenException();
     if (ptr == NULL) throw IllegalArgumentException();
+    if (ff == NULL) throw FileNotOpenException();
+    if (size == 0 || nmemb == 0) return 0;
+
     size_t by = ::fread(ptr, size, nmemb, (FILE*)ff);
     pos += (by * size);
-    if (by != nmemb) {
-        if (::ferror((FILE*)ff)) throwErrno(errno, filename());
-    }
-    if (by == 0) {
-        if (::feof((FILE*)ff)) throw EndOfFileException();
-        throwErrno(errno, filename());
+    if (by < nmemb) {
+        if (::ferror((FILE*)ff)) {
+            throwErrno(errno != 0 ? errno : EIO, filename());
+        }
+        if (by == 0 && ::feof((FILE*)ff)) {
+            throw EndOfFileException();
+        }
     }
     return by;
 }
 
 size_t File::fwrite(const void* ptr, size_t size, size_t nmemb)
 {
-    if (ff == NULL) throw FileNotOpenException();
     if (ptr == NULL) throw IllegalArgumentException();
+    if (ff == NULL) throw FileNotOpenException();
+    if (size == 0 || nmemb == 0) return 0;
+
     size_t by = ::fwrite(ptr, size, nmemb, (FILE*)ff);
     pos += (by * size);
     if (pos > this->mysize) this->mysize = pos;
-    if (by < nmemb) throwErrno(errno, filename());
+    if (by < nmemb) throwErrno(errno != 0 ? errno : EIO, filename());
     return by;
 }
 
 char* File::fgets(char* buffer, size_t num)
 {
+    if (buffer == NULL || num == 0) throw IllegalArgumentException();
     if (ff == NULL) throw FileNotOpenException();
-    if (buffer == NULL) throw IllegalArgumentException();
     // int suberr;
     char* res;
     res = ::fgets(buffer, num, (FILE*)ff);
@@ -422,8 +415,8 @@ char* File::fgets(char* buffer, size_t num)
 
 wchar_t* File::fgetws(wchar_t* buffer, size_t num)
 {
+    if (buffer == NULL || num == 0) throw IllegalArgumentException();
     if (ff == NULL) throw FileNotOpenException();
-    if (buffer == NULL) throw IllegalArgumentException();
     // int suberr;
     wchar_t* res;
     res = ::fgetws(buffer, num, (FILE*)ff);
@@ -441,8 +434,8 @@ wchar_t* File::fgetws(wchar_t* buffer, size_t num)
 
 void File::fputs(const char* str)
 {
-    if (ff == NULL) throw FileNotOpenException();
     if (str == NULL) throw IllegalArgumentException();
+    if (ff == NULL) throw FileNotOpenException();
     if (::fputs(str, (FILE*)ff) != EOF) {
         pos += strlen(str);
         if (pos > mysize) mysize = pos;
@@ -453,8 +446,8 @@ void File::fputs(const char* str)
 
 void File::fputws(const wchar_t* str)
 {
-    if (ff == NULL) throw FileNotOpenException();
     if (str == NULL) throw IllegalArgumentException();
+    if (ff == NULL) throw FileNotOpenException();
     if (::fputws(str, (FILE*)ff) != -1) {
         pos += wcslen(str) * sizeof(wchar_t);
         if (pos > mysize) mysize = pos;
@@ -640,7 +633,7 @@ const char* File::map(uint64_t position, size_t bytes)
             if (position + (uint64_t)bytes > mysize) bytes = (size_t)(mysize - position);
         }
         LastMapSize = bytes;
-        return (const char*)this->mmap(position, bytes, 1, 0);
+        return (const char*)this->mmap(position, bytes, MapProtection::READ);
     }
     throw OverflowException();
 }
@@ -650,8 +643,8 @@ char* File::mapRW(uint64_t position, size_t bytes)
     if (ff == NULL) throw FileNotOpenException();
     if (position + bytes <= mysize) {
         if (MapBase != NULL) {
-            if ((LastMapProtection & 2)) {      // Schon als read/write gemapped?
-                if (LastMapStart == position) { // Dateiausschnitt schon gemapped?
+            if (LastMapProtection == MapProtection::READWRITE) { // Schon als read/write gemapped?
+                if (LastMapStart == position) {                  // Dateiausschnitt schon gemapped?
                     if (bytes <= LastMapSize) return MapBase;
                 }
                 if (position > LastMapStart && (bytes + position - LastMapStart) <= LastMapSize) return MapBase + position - LastMapStart;
@@ -662,7 +655,7 @@ char* File::mapRW(uint64_t position, size_t bytes)
             bytes = ReadAhead;
             if (position + bytes > mysize) bytes = (size_t)(mysize - position);
         }
-        return (char*)this->mmap(position, bytes, 3, 0);
+        return (char*)this->mmap(position, bytes, MapProtection::READWRITE);
     }
     throw OverflowException();
 }
@@ -682,20 +675,27 @@ void File::munmap(void* addr, size_t len)
 #endif
     LastMapStart = LastMapSize = 0;
     MapBase = NULL;
-    LastMapProtection = 0;
+    LastMapProtection = MapProtection::NONE;
     return;
 }
 
 #ifndef _WIN32
 static int __pagesize = 0;
 #endif
-void* File::mmap(uint64_t position, size_t size, int prot, int flags)
+void* File::mmap(uint64_t position, size_t size, MapProtection prot)
 {
 #ifndef _WIN32
     int mflags = 0;
-    if (prot & 1) mflags |= PROT_READ;
-    if (prot & 2) mflags |= PROT_WRITE;
-    if (prot & 4) mflags |= PROT_EXEC;
+    if (prot == MapProtection::READ)
+        mflags = PROT_READ;
+    else if (prot == MapProtection::READWRITE)
+        mflags = PROT_READ | PROT_WRITE;
+    else if (prot == MapProtection::READEXECUTE)
+        mflags = PROT_READ | PROT_EXEC;
+    else if (prot == MapProtection::READWRITEEXECUTE)
+        mflags = PROT_READ | PROT_WRITE | PROT_EXEC;
+    else
+        throw IllegalArgumentException();
     size_t rest = 0;
     if (!__pagesize) __pagesize = sysconf(_SC_PAGE_SIZE);
     // position muss an einer pagesize aligned sein
@@ -722,14 +722,27 @@ void* File::mmap(uint64_t position, size_t size, int prot, int flags)
 #else
     HANDLE hFile = (HANDLE)_get_osfhandle(fileno((FILE*)ff));
     if (hFile == INVALID_HANDLE_VALUE) throwErrno(errno);
-    DWORD prot_flag = (prot & 2) ? PAGE_READWRITE : PAGE_READONLY;
-    DWORD map_access = (prot & 2) ? FILE_MAP_WRITE : FILE_MAP_READ;
-
+    DWORD prot_flag = 0;
+    DWORD map_access = 0;
+    if (prot == MapProtection::READ) {
+        prot_flag = PAGE_READONLY;
+        map_access = FILE_MAP_READ;
+    } else if (prot == MapProtection::READWRITE) {
+        prot_flag = PAGE_READWRITE;
+        map_access = FILE_MAP_READ | FILE_MAP_WRITE;
+    } else if (prot == MapProtection::READEXECUTE) {
+        prot_flag = PAGE_EXECUTE_READ;
+        map_access = FILE_MAP_READ | FILE_MAP_EXECUTE;
+    } else if (prot == MapProtection::READWRITEEXECUTE) {
+        prot_flag = PAGE_EXECUTE_READWRITE;
+        map_access = FILE_MAP_READ | FILE_MAP_WRITE | FILE_MAP_EXECUTE;
+    } else {
+        throw IllegalArgumentException();
+    }
     // Datei muss mit GENERIC_READ | (optional) GENERIC_WRITE geöffnet sein.
     // _get_osfhandle liefert den HANDLE, aber CreateFileMapping braucht
     // einen HANDLE mit FileAccess-Rechten. Da wir über FILE* kommen,
     // ist der Handle bereits korrekt geöffnet (rb / r+b).
-
     ULARGE_INTEGER mapSize;
     mapSize.QuadPart = size;
 
@@ -1068,7 +1081,6 @@ static void getResultFromStat(struct stat& st, DirEntry& result, const pplib::St
     result.File.set(filename);
     result.Path = File::getPath(result.File);
     result.Filename = File::getFilename(result.File);
-    result.AttrStr.set(L"----------");
     result.Uid = st.st_uid;
     result.Gid = st.st_gid;
 #ifndef _WIN32
@@ -1108,23 +1120,6 @@ static void getResultFromStat(struct stat& st, DirEntry& result, const pplib::St
     if (st.st_mode & S_IWOTH) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::OTH_WRITE);
     if (st.st_mode & S_IXOTH) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::OTH_EXECUTE);
 #endif
-
-    if (result.Attrib & FileAttr::IFLINK) result.AttrStr.set(0, 'l');
-    if (result.Attrib & FileAttr::IFDIR) result.AttrStr.set(0, 'd');
-
-    if (result.Attrib & FileAttr::USR_READ) result.AttrStr.set(1, 'r');
-    if (result.Attrib & FileAttr::USR_WRITE) result.AttrStr.set(2, 'w');
-    if (result.Attrib & FileAttr::USR_EXECUTE) result.AttrStr.set(3, 'x');
-    if (result.Attrib & FileAttr::ISUID) result.AttrStr.set(3, 's');
-
-    if (result.Attrib & FileAttr::GRP_READ) result.AttrStr.set(4, 'r');
-    if (result.Attrib & FileAttr::GRP_WRITE) result.AttrStr.set(5, 'w');
-    if (result.Attrib & FileAttr::GRP_EXECUTE) result.AttrStr.set(6, 'x');
-    if (result.Attrib & FileAttr::ISGID) result.AttrStr.set(6, 's');
-
-    if (result.Attrib & FileAttr::OTH_READ) result.AttrStr.set(7, 'r');
-    if (result.Attrib & FileAttr::OTH_WRITE) result.AttrStr.set(8, 'w');
-    if (result.Attrib & FileAttr::OTH_EXECUTE) result.AttrStr.set(9, 'x');
 }
 
 void File::statFile(const String& filename, DirEntry& result)

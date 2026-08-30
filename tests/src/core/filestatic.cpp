@@ -449,6 +449,21 @@ TEST_F(FileStaticTest, SaveByteArrayPtrLocal)
     ASSERT_NO_THROW(pplib::File::remove("tmp/writetestäöü.tmp")) << "deleting file";
 }
 
+TEST_F(FileStaticTest, statFile)
+{
+    pplib::DirEntry d;
+    ASSERT_NO_THROW(d = pplib::File::statFile("testdata/dirwalk/LICENSE.TXT")) << "Stat on file is working";
+    ASSERT_EQ((size_t)1330, d.Size) << "filesize as expected"; // Replace 0 with the actual expected size if known
+}
+
+TEST_F(FileStaticTest, tryStatFile)
+{
+    pplib::DirEntry d;
+    ASSERT_TRUE(pplib::File::tryStatFile("testdata/dirwalk/LICENSE.TXT", d));
+    ASSERT_FALSE(pplib::File::tryStatFile("testdata/nonexisting.txt", d));
+    ASSERT_FALSE(pplib::File::tryStatFile("", d));
+}
+
 TEST_F(FileStaticTest, getPath)
 {
     EXPECT_EQ(pplib::String("c:\\windows\\system32"), pplib::File::getPath("c:\\windows\\system32\\test.dll"));
@@ -463,22 +478,50 @@ TEST_F(FileStaticTest, getFilename)
     EXPECT_EQ(pplib::String("bash"), pplib::File::getFilename("/usr/bin/bash"));
 }
 
-/*
- * TODO: Chmod und Stat interpretieren die Attribute unterschiedlich
- */
-/*
-TEST_F(FileStaticTest, ChmodUSAscii) {
-    pplib::File::Chmod("chmod1.tmp",ppl6::FILEATTR::USR_READ|ppl6::FILEATTR::USR_WRITE);
-    ASSERT_EQ(1,pplib::File::CopyFile("testdata/filenameUSASCII.txt","chmod1.tmp"));
-    ASSERT_EQ(1,pplib::File::Chmod("chmod1.tmp",ppl6::FILEATTR::USR_READ));
-    pplib::DirEntry d;
-    ASSERT_EQ(1,pplib::File::Stat("chmod1.tmp",d)) << "Stat on file";
-    d.Print();
-    ASSERT_EQ(ppl6::FILEATTR::USR_READ,d.Attrib&ppl6::FILEATTR::USR_READ);
-    ASSERT_NE(ppl6::FILEATTR::USR_WRITE,d.Attrib&ppl6::FILEATTR::USR_WRITE);
-    pplib::File::DeleteFile("chmod1.tmp");
-
+TEST_F(FileStaticTest, getSuffix)
+{
+    EXPECT_EQ(pplib::String("dll"), pplib::File::getSuffix("c:\\windows\\system32\\test.dll"));
+    EXPECT_EQ(pplib::String("dll"), pplib::File::getSuffix("c:/windows/system32/test.dll"));
+    EXPECT_EQ(pplib::String("sh"), pplib::File::getSuffix("/usr/bin/bash.sh"));
 }
-*/
+
+TEST_F(FileStaticTest, isDir)
+{
+    EXPECT_TRUE(pplib::File::isDir("testdata"));
+    EXPECT_FALSE(pplib::File::isDir("nonexisting"));
+    EXPECT_FALSE(pplib::File::isDir("testdata/dirwalk/LICENSE.TXT"));
+}
+
+TEST_F(FileStaticTest, isFile)
+{
+    EXPECT_TRUE(pplib::File::isFile("testdata/dirwalk/LICENSE.TXT"));
+    EXPECT_FALSE(pplib::File::isFile("testdata/dirwalk"));
+    EXPECT_FALSE(pplib::File::isFile("nonexisting"));
+}
+
+TEST_F(FileStaticTest, isLink)
+{
+    EXPECT_FALSE(pplib::File::isLink("testdata/dirwalk/LICENSE.TXT"));
+    EXPECT_FALSE(pplib::File::isLink("testdata/dirwalk"));
+    EXPECT_FALSE(pplib::File::isLink("nonexisting"));
+}
+
+TEST_F(FileStaticTest, isReadable)
+{
+    EXPECT_TRUE(pplib::File::isReadable("testdata/dirwalk/LICENSE.TXT"));
+    EXPECT_FALSE(pplib::File::isReadable("nonexisting"));
+}
+
+TEST_F(FileStaticTest, isWritable)
+{
+    EXPECT_TRUE(pplib::File::isWritable("testdata/dirwalk/LICENSE.TXT"));
+    EXPECT_FALSE(pplib::File::isWritable("nonexisting"));
+}
+
+TEST_F(FileStaticTest, isExecutable)
+{
+    EXPECT_FALSE(pplib::File::isExecutable("testdata/dirwalk/LICENSE.TXT"));
+    EXPECT_FALSE(pplib::File::isExecutable("nonexisting"));
+}
 
 } // namespace

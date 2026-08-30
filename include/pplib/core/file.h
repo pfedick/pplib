@@ -92,18 +92,26 @@ public:
 class File : public FileObject
 {
 private:
+    enum class MapProtection : uint8_t
+    {
+        NONE = 0,
+        READ = 1,
+        READWRITE = 3,        // READ | WRITE
+        READEXECUTE = 5,      // READ | EXECUTE
+        READWRITEEXECUTE = 7, // READ | WRITE | EXECUTE
+    };
     void* ff;
     char* MapBase;
     uint64_t LastMapStart;
     uint64_t LastMapSize;
-    int LastMapProtection;
+    MapProtection LastMapProtection;
     uint64_t ReadAhead;
     uint64_t mysize;
     uint64_t pos;
     bool isPopen;
 
     void munmap(void* addr, size_t len);
-    void* mmap(uint64_t position, size_t size, int prot, int flags);
+    void* mmap(uint64_t position, size_t size, MapProtection prot);
 
 public:
     /** @enum FileMode
@@ -114,10 +122,26 @@ public:
      */
     enum class FileMode
     {
-        READ = 1,  ///< Datei zum Lesen öffnen, Zeiger wird an den Anfang der Datei gesetzt
-        WRITE,     ///< Datei zum Schreiben öffnen. Falls die Datei schon vorhanden ist, wird sie gelöscht.
-        READWRITE, ///< Datei zum Lesen und Schreiben öffnen. Zeiger wird an den Anfang der Datei positioniert.
-        APPEND,    ///< Datei zum Schreiben öffnen, Zeiger wird ans Ende der Datei positioniert.
+        /** @brief Datei zum Lesen öffnen. Zeiger wird an den Anfang der Datei positioniert.
+         * @attention Die Datei muss existieren!
+         */
+        READ = 1,
+        /** @brief Datei zum Schreiben öffnen.
+         * @attention Falls die Datei schon vorhanden ist, wird sie gelöscht.
+         */
+        WRITE,
+        /** @brief Datei zum Lesen und Schreiben öffnen. Zeiger wird an den Anfang der Datei positioniert.
+         * @attention Die Datei muss existieren!
+         * @exception FileNotOpenException Wird geworfen, wenn die Datei nicht existiert.
+         */
+        READWRITE,
+        /** @brief Datei zum Anhängen öffnen. Zeiger wird ans Ende der Datei positioniert.
+         * @note Wenn die Datei noch nicht existiert, wird sie erstellt.
+         */
+        APPEND,
+        /** @brief Datei zum Lesen und Schreiben öffnen. Falls die Datei noch nicht existiert, wird sie erstellt.
+         */
+        READWRITE_CREATE,
     };
 
 private:

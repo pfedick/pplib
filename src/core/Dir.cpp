@@ -293,7 +293,7 @@ void Dir::print() const
     printf("Total Files: %zu\n", size());
 
     for (const DirEntry& de : Files) {
-        printf("%s %3u ", (const char*)de.AttrStr, de.NumLinks);
+        printf("%s %3u ", (const char*)de.getAttrStr(), de.NumLinks);
         printf("%5u %5u ", de.Uid, de.Gid);
         printf("%10llu ", (unsigned long long)de.Size);
         printf("%s %s\n", (const char*)de.MTime.get(), (const char*)de.Filename);

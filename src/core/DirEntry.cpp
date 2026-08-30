@@ -68,6 +68,26 @@ bool DirEntry::isExecutable() const
     return 0;
 }
 
+String DirEntry::getAttrStr() const
+{
+    String attrStr("----------");
+    if (Attrib & FileAttr::IFLINK) attrStr.set(0, 'l');
+    if (Attrib & FileAttr::IFDIR) attrStr.set(0, 'd');
+
+    if (Attrib & FileAttr::USR_READ) attrStr.set(1, 'r');
+    if (Attrib & FileAttr::USR_WRITE) attrStr.set(2, 'w');
+    if (Attrib & FileAttr::USR_EXECUTE) attrStr.set(3, 'x');
+    if (Attrib & FileAttr::ISUID) attrStr.set(3, 's');
+    if (Attrib & FileAttr::GRP_READ) attrStr.set(4, 'r');
+    if (Attrib & FileAttr::GRP_WRITE) attrStr.set(5, 'w');
+    if (Attrib & FileAttr::GRP_EXECUTE) attrStr.set(6, 'x');
+    if (Attrib & FileAttr::ISGID) attrStr.set(6, 's');
+    if (Attrib & FileAttr::OTH_READ) attrStr.set(7, 'r');
+    if (Attrib & FileAttr::OTH_WRITE) attrStr.set(8, 'w');
+    if (Attrib & FileAttr::OTH_EXECUTE) attrStr.set(9, 'x');
+    return attrStr;
+}
+
 void DirEntry::toArray(AssocArray& a) const
 {
     a.set("filename", Filename);
@@ -75,7 +95,7 @@ void DirEntry::toArray(AssocArray& a) const
     a.set("file", File);
     a.setf("size", "%llu", Size);
     a.setf("attrib", "%u", Attrib);
-    a.set("attribstr", AttrStr);
+    a.set("attribstr", getAttrStr());
     a.setf("uid", "%u", Uid);
     a.setf("gid", "%u", Gid);
     a.setf("blocks", "%u", Blocks);

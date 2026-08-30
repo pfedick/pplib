@@ -65,14 +65,6 @@ public:
     String File; /// Vollständiger Pfad mit Dateinamen
 
     /**
-     * @brief Lesbare Darstellung der Datei-Attribute und Rechte
-     *
-     * Dieser String enthält eine lesbare Darstellung der Datei-Attribute und
-     * Zugriffsrechte, wie man es vom UNIX-Befehl "ls -l" kennt.
-     */
-    String AttrStr;
-
-    /**
      * @authors Zeit des letzten Dateizugriffs
      *
      * Enthält das Datum des letzten Dateizugriffs in UNIX-Time.
@@ -108,6 +100,11 @@ public:
      *
      */
     FileAttr::Attributes Attrib = FileAttr::NONE;
+
+    /** @brief Liefert eine lesbare Darstellung der Datei-Attribute und Rechte zurück.
+     * @return String
+     */
+    String getAttrStr() const;
 
     /**
      * @brief Ist aktueller Eintrag ein Verzeichnis?
