@@ -476,9 +476,10 @@ int File::fgetc()
         pos++;
         return ret;
     }
-    if (ret == EOF) return EOF;
-    if (errno != 0) throwErrno(errno);
-    return 0;
+    if (::ferror((FILE*)ff)) {
+        throwErrno(errno != 0 ? errno : EIO, filename());
+    }
+    return EOF;
 }
 
 void File::fputwc(wchar_t c)
@@ -501,8 +502,10 @@ wchar_t File::fgetwc()
         pos += sizeof(wchar_t);
         return (wchar_t)ret;
     }
-    if (errno != 0) throwErrno(errno);
-    return 0;
+    if (::ferror((FILE*)ff)) {
+        throwErrno(errno != 0 ? errno : EIO, filename());
+    }
+    return EOF;
 }
 
 bool File::eof() const
@@ -570,12 +573,18 @@ void File::lockExclusive(bool block)
     int fd = fileno((FILE*)ff);
     int flags = LOCK_EX;
     if (!block) flags |= LOCK_NB;
-    int ret = flock(fd, flags);
-    if (ret == 0) return;
+    if (flock(fd, flags) == 0) return;
     throwErrno(errno);
 #else
-    // TODO : Implement file locking for Windows
-    throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
+    HANDLE hFile = (HANDLE)_get_osfhandle(fileno((FILE*)ff));
+    if (hFile == INVALID_HANDLE_VALUE) throwErrno(errno);
+
+    DWORD flags = LOCKFILE_EXCLUSIVE_LOCK;
+    if (!block) flags |= LOCKFILE_FAIL_IMMEDIATELY;
+
+    OVERLAPPED ov = {};
+    if (::LockFileEx(hFile, flags, 0, 0xFFFFFFFF, 0xFFFFFFFF, &ov)) return;
+    throwErrno(GetLastError());
 #endif
 }
 
@@ -586,13 +595,18 @@ void File::lockShared(bool block)
     int fd = fileno((FILE*)ff);
     int flags = LOCK_SH;
     if (!block) flags |= LOCK_NB;
-    int ret = flock(fd, flags);
-    if (ret == 0) return;
+    if (flock(fd, flags) == 0) return;
     throwErrno(errno);
 #else
-    // TODO : Implement file locking for Windows
-    throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
+    HANDLE hFile = (HANDLE)_get_osfhandle(fileno((FILE*)ff));
+    if (hFile == INVALID_HANDLE_VALUE) throwErrno(errno);
 
+    DWORD flags = 0; // Shared lock
+    if (!block) flags |= LOCKFILE_FAIL_IMMEDIATELY;
+
+    OVERLAPPED ov = {};
+    if (::LockFileEx(hFile, flags, 0, 0xFFFFFFFF, 0xFFFFFFFF, &ov)) return;
+    throwErrno(GetLastError());
 #endif
 }
 
@@ -601,12 +615,15 @@ void File::unlock()
     if (ff == NULL) throw FileNotOpenException();
 #ifndef _WIN32
     int fd = fileno((FILE*)ff);
-    int ret = flock(fd, LOCK_UN);
-    if (ret == 0) return;
+    if (flock(fd, LOCK_UN) == 0) return;
     throwErrno(errno);
 #else
-    // TODO : Implement file locking for Windows
-    throw UnsupportedFeatureException("pplib::File::unlock: No file locking available");
+    HANDLE hFile = (HANDLE)_get_osfhandle(fileno((FILE*)ff));
+    if (hFile == INVALID_HANDLE_VALUE) throwErrno(errno);
+
+    OVERLAPPED ov = {};
+    if (::UnlockFileEx(hFile, 0, 0xFFFFFFFF, 0xFFFFFFFF, &ov)) return;
+    throwErrno(GetLastError());
 #endif
 }
 
@@ -767,16 +784,6 @@ void* File::mmap(uint64_t position, size_t size, MapProtection prot)
     LastMapStart = position;
     return pView;
 #endif
-}
-
-void File::erase()
-{
-    if (ff == NULL) throw FileNotOpenException();
-    String Filename = filename();
-    close();
-    if (Filename.size() > 0) {
-        remove(Filename);
-    }
 }
 
 // ####################################################################

@@ -582,6 +582,22 @@ TEST_F(FileTest, fgetws_loop)
     ASSERT_EQ(content.size() * sizeof(wchar_t), f1.size());
 }
 
+TEST_F(FileTest, fgetws_throws)
+{
+    pplib::File f1;
+    pplib::ByteArray ba;
+    ba.malloc(1024 * sizeof(wchar_t));
+    wchar_t* buffer = (wchar_t*)ba.adr();
+    ASSERT_THROW(f1.fgetws(buffer, 1024), pplib::FileNotOpenException);
+    ASSERT_THROW(f1.fgetws(NULL, 1024), pplib::IllegalArgumentException);
+    ASSERT_THROW(f1.fgetws(buffer, 0), pplib::IllegalArgumentException);
+
+    f1.open("testdata/dirwalk/testfile.txt", pplib::File::FileMode::READ);
+    // Wir schließen "heimlich" die Datei und prüfen, ob fgetws danach eine Ausnahme wirft
+    ::close(f1.getFileNo());
+    ASSERT_THROW(f1.fgetws(buffer, 1024), pplib::BadFiledescriptorException);
+}
+
 TEST_F(FileTest, fputwsAndFgetwsRoundtrip)
 {
     const char* tmpfile = "tmp/test_wide.txt";
@@ -612,6 +628,224 @@ TEST_F(FileTest, fputwsAndFgetwsRoundtrip)
     pplib::File::erase(tmpfile);
 }
 
+TEST_F(FileTest, fputs)
+{
+    const char* tmpfile = "tmp/test_fputs.txt";
+    pplib::File::erase(tmpfile);
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::WRITE);
+        ASSERT_NO_THROW(f.fputs("Erste Zeile\n"));
+        ASSERT_NO_THROW(f.fputs("Zweite Zeile: äöü - Char\n"));
+    }
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::READ);
+        pplib::String content;
+        ASSERT_NO_THROW({ content = f.gets(1024); });
+        content.trimRight();
+        ASSERT_EQ(pplib::String("Erste Zeile"), content);
+        ASSERT_NO_THROW({ content = f.gets(1024); });
+        content.trimRight();
+        ASSERT_EQ(pplib::String("Zweite Zeile: äöü - Char"), content);
+    }
+
+    pplib::File::erase(tmpfile);
+}
+
+TEST_F(FileTest, fputs_throws)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.fputs("Test"), pplib::FileNotOpenException);
+    ASSERT_THROW(f1.fputs(NULL), pplib::IllegalArgumentException);
+
+    f1.open("testdata/dirwalk/testfile.txt", pplib::File::FileMode::READ);
+    ASSERT_THROW(f1.fputs("Test"), pplib::BadFiledescriptorException);
+}
+
+TEST_F(FileTest, fputws)
+{
+    const char* tmpfile = "tmp/test_fputws.txt";
+    pplib::File::erase(tmpfile);
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::WRITE);
+        ASSERT_NO_THROW(f.fputws(L"Erste Zeile\n"));
+        ASSERT_NO_THROW(f.fputws(L"Zweite Zeile: äöü - WideChar\n"));
+    }
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::READ);
+        const size_t bufElements = 256;
+        wchar_t buffer[bufElements];
+
+        pplib::WideString content;
+        while (f.fgetws(buffer, bufElements) != NULL) {
+            content += buffer;
+        }
+
+        pplib::WideString expected = L"Erste Zeile\nZweite Zeile: äöü - WideChar\n";
+        ASSERT_EQ(expected, content);
+    }
+
+    pplib::File::erase(tmpfile);
+}
+
+TEST_F(FileTest, fputws_throws)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.fputws(L"Test"), pplib::FileNotOpenException);
+    ASSERT_THROW(f1.fputws(NULL), pplib::IllegalArgumentException);
+
+    f1.open("testdata/dirwalk/testfile.txt", pplib::File::FileMode::READ);
+    ASSERT_THROW(f1.fputws(L"Test"), pplib::BadFiledescriptorException);
+}
+
+TEST_F(FileTest, fputc_fgetc)
+{
+    const char* tmpfile = "tmp/test_fputc.txt";
+    pplib::File::erase(tmpfile);
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::WRITE);
+        ASSERT_NO_THROW(f.fputc('A'));
+        ASSERT_NO_THROW(f.fputc('B'));
+    }
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::READ);
+        char c;
+        ASSERT_NO_THROW({ c = f.fgetc(); });
+        ASSERT_EQ('A', c);
+        ASSERT_NO_THROW({ c = f.fgetc(); });
+        ASSERT_EQ('B', c);
+    }
+    pplib::File::erase(tmpfile);
+}
+
+TEST_F(FileTest, fputc_throws)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.fputc('A'), pplib::FileNotOpenException);
+
+    f1.open("testdata/dirwalk/testfile.txt", pplib::File::FileMode::READ);
+    ASSERT_THROW(f1.fputc('A'), pplib::BadFiledescriptorException);
+}
+
+TEST_F(FileTest, fgetc_throws)
+{
+    pplib::File f1;
+    char c;
+    ASSERT_THROW({ c = f1.fgetc(); }, pplib::FileNotOpenException);
+
+    f1.open("testdata/dirwalk/testfile.txt", pplib::File::FileMode::READ);
+    ::close(f1.getFileNo());
+    ASSERT_THROW({ c = f1.fgetc(); }, pplib::BadFiledescriptorException);
+}
+
+TEST_F(FileTest, fgetc_returns_EOF_on_end_of_file)
+{
+    const char* tmpfile = "tmp/test_fgetc_eof.txt";
+    pplib::File::erase(tmpfile);
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::WRITE);
+        ASSERT_NO_THROW(f.fputc('A'));
+    }
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::READ);
+        char c;
+        ASSERT_NO_THROW({ c = f.fgetc(); });
+        ASSERT_EQ('A', c);
+        ASSERT_NO_THROW({ c = f.fgetc(); });
+        ASSERT_EQ(EOF, c);
+    }
+    pplib::File::erase(tmpfile);
+}
+
+TEST_F(FileTest, fputwc_fgetwc)
+{
+    const char* tmpfile = "tmp/test_fputwc.txt";
+    pplib::File::erase(tmpfile);
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::WRITE);
+        ASSERT_NO_THROW(f.fputwc(L'A'));
+        ASSERT_NO_THROW(f.fputwc(L'B'));
+    }
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::READ);
+        wchar_t c;
+        ASSERT_NO_THROW({ c = f.fgetwc(); });
+        ASSERT_EQ(L'A', c);
+        ASSERT_NO_THROW({ c = f.fgetwc(); });
+        ASSERT_EQ(L'B', c);
+    }
+    pplib::File::erase(tmpfile);
+}
+
+TEST_F(FileTest, fputwc_throws)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.fputwc(L'A'), pplib::FileNotOpenException);
+
+    f1.open("testdata/dirwalk/testfile.txt", pplib::File::FileMode::READ);
+    ASSERT_THROW(f1.fputwc(L'A'), pplib::BadFiledescriptorException);
+}
+
+TEST_F(FileTest, fgetwc_throws)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.fgetwc(), pplib::FileNotOpenException);
+
+    f1.open("testdata/dirwalk/testfile.txt", pplib::File::FileMode::READ);
+    ::close(f1.getFileNo());
+    ASSERT_THROW(f1.fgetwc(), pplib::BadFiledescriptorException);
+}
+
+TEST_F(FileTest, fgetwc_returns_WEOF_on_end_of_file)
+{
+    const char* tmpfile = "tmp/test_fgetwc_weof.txt";
+    pplib::File::erase(tmpfile);
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::WRITE);
+        ASSERT_NO_THROW(f.fputwc(L'A'));
+    }
+
+    {
+        pplib::File f(tmpfile, pplib::File::FileMode::READ);
+        wchar_t c;
+        ASSERT_NO_THROW({ c = f.fgetwc(); });
+        ASSERT_EQ(L'A', c);
+        ASSERT_NO_THROW({ c = f.fgetwc(); });
+        ASSERT_EQ(WEOF, c);
+    }
+    pplib::File::erase(tmpfile);
+}
+
+TEST_F(FileTest, eof)
+{
+    pplib::File f1;
+    ASSERT_TRUE(f1.eof());
+
+    f1.open("testdata/dirwalk/testfile.txt", pplib::File::FileMode::READ);
+    ASSERT_FALSE(f1.eof());
+    f1.seek(f1.size());
+    ASSERT_TRUE(f1.eof());
+    char c;
+    ASSERT_NO_THROW({ c = f1.fgetc(); });
+    ASSERT_TRUE(f1.eof());
+}
+
+TEST_F(FileTest, getFileNo_throws)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.getFileNo(), pplib::FileNotOpenException);
+}
+
 TEST_F(FileTest, getsAsString)
 {
     pplib::File f1;
@@ -629,6 +863,140 @@ TEST_F(FileTest, getsAsString)
     ASSERT_NO_THROW({ s = f1.gets(); });
     s.trimRight();
     ASSERT_EQ(pplib::String(" Copyright (C) 1989, 1991 Free Software Foundation, Inc.,"), s);
+}
+
+TEST_F(FileTest, flush)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.flush(), pplib::FileNotOpenException);
+
+    f1.open("tmp/flush_test.tmp", pplib::File::FileMode::WRITE);
+    f1.fputs("Schreibpuffer fuellen"); // Daten im Puffer, aber noch nicht auf der Platte
+    ASSERT_NO_THROW(f1.flush());
+    f1.fputs("Schreibpuffer fuellen"); // Daten im Puffer, aber noch nicht auf der Platte
+
+    ::close(f1.getFileNo());
+    ASSERT_THROW(f1.flush(), pplib::BadFiledescriptorException);
+
+    pplib::File::erase("tmp/flush_test.tmp");
+}
+
+TEST_F(FileTest, sync)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.sync(), pplib::FileNotOpenException);
+
+    f1.open("tmp/sync_test.tmp", pplib::File::FileMode::WRITE);
+    f1.fputs("Schreibpuffer fuellen"); // Daten im Puffer, aber noch nicht auf der Platte
+    ASSERT_NO_THROW(f1.sync());
+
+    ::close(f1.getFileNo());
+    ASSERT_THROW(f1.sync(), pplib::BadFiledescriptorException);
+
+    pplib::File::erase("tmp/sync_test.tmp");
+}
+
+TEST_F(FileTest, truncate)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.truncate(0), pplib::FileNotOpenException);
+
+    f1.open("tmp/truncate_test.tmp", pplib::File::FileMode::WRITE);
+    f1.fputs("Schreibpuffer fuellen");
+    ASSERT_NO_THROW(f1.truncate(5));
+
+    ::close(f1.getFileNo());
+    ASSERT_THROW(f1.truncate(5), pplib::BadFiledescriptorException);
+
+    pplib::File::erase("tmp/truncate_test.tmp");
+}
+
+TEST_F(FileTest, lockExclusive_throws)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.lockExclusive(true), pplib::FileNotOpenException);
+}
+
+TEST_F(FileTest, lockShared_throws)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.lockShared(true), pplib::FileNotOpenException);
+}
+
+TEST_F(FileTest, unlock_throws)
+{
+    pplib::File f1;
+    ASSERT_THROW(f1.unlock(), pplib::FileNotOpenException);
+}
+
+TEST_F(FileTest, lockExclusive)
+{
+    // wir legen uns erst eine Testdatei in tmp an
+    pplib::File::copy("testdata/dirwalk/testfile.txt", "tmp/lock_exclusive_test.tmp");
+    pplib::File f1;
+    f1.open("tmp/lock_exclusive_test.tmp", pplib::File::FileMode::READWRITE);
+    ASSERT_NO_THROW(f1.lockExclusive(true));
+    ASSERT_NO_THROW(f1.unlock());
+    ::close(f1.getFileNo());
+    ASSERT_THROW(f1.lockExclusive(true), pplib::BadFiledescriptorException);
+
+    pplib::File::erase("tmp/lock_exclusive_test.tmp");
+}
+
+TEST_F(FileTest, lockExclusiveWithSecondInstance)
+{
+    // wir legen uns erst eine Testdatei in tmp an
+    pplib::File::copy("testdata/dirwalk/testfile.txt", "tmp/lock_exclusive_second_instance_test.tmp");
+    pplib::File f1;
+    pplib::File f2;
+    f1.open("tmp/lock_exclusive_second_instance_test.tmp", pplib::File::FileMode::READWRITE);
+    f2.open("tmp/lock_exclusive_second_instance_test.tmp", pplib::File::FileMode::READWRITE);
+
+    ASSERT_NO_THROW(f1.lockExclusive(true));
+    ASSERT_THROW(f2.lockExclusive(false), pplib::LockViolationException);
+
+    ASSERT_NO_THROW(f1.unlock());
+    ASSERT_NO_THROW(f2.lockExclusive(false));
+    ASSERT_NO_THROW(f2.unlock());
+
+    f1.close();
+    f2.close();
+
+    pplib::File::erase("tmp/lock_exclusive_second_instance_test.tmp");
+}
+
+TEST_F(FileTest, lockShared)
+{
+    // wir legen uns erst eine Testdatei in tmp an
+    pplib::File::copy("testdata/dirwalk/testfile.txt", "tmp/lock_shared_test.tmp");
+    pplib::File f1;
+    f1.open("tmp/lock_shared_test.tmp", pplib::File::FileMode::READWRITE);
+    ASSERT_NO_THROW(f1.lockShared(true));
+    ASSERT_NO_THROW(f1.unlock());
+    ::close(f1.getFileNo());
+    ASSERT_THROW(f1.lockShared(true), pplib::BadFiledescriptorException);
+
+    pplib::File::erase("tmp/lock_shared_test.tmp");
+}
+
+TEST_F(FileTest, lockSharedWithSecondInstance)
+{
+    // wir legen uns erst eine Testdatei in tmp an
+    pplib::File::copy("testdata/dirwalk/testfile.txt", "tmp/lock_shared_second_instance_test.tmp");
+    pplib::File f1;
+    pplib::File f2;
+    f1.open("tmp/lock_shared_second_instance_test.tmp", pplib::File::FileMode::READWRITE);
+    f2.open("tmp/lock_shared_second_instance_test.tmp", pplib::File::FileMode::READWRITE);
+
+    ASSERT_NO_THROW(f1.lockShared(true));
+    ASSERT_NO_THROW(f2.lockShared(false));
+
+    ASSERT_NO_THROW(f1.unlock());
+    ASSERT_NO_THROW(f2.unlock());
+
+    f1.close();
+    f2.close();
+    pplib::File::erase("tmp/lock_shared_second_instance_test.tmp");
 }
 
 } // namespace

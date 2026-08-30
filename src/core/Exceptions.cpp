@@ -269,6 +269,8 @@ void throwExceptionFromErrno(int e, const String& info)
         throw MessageTooLongException(info);
     case EPROTOTYPE:
         throw ProtocolWrongTypeForSocketException(info);
+    case ERROR_LOCK_VIOLATION:
+        throw LockViolationException(info);
     default: {
         String ret;
 #ifdef HAVE_STRERROR_S
@@ -280,6 +282,7 @@ void throwExceptionFromErrno(int e, const String& info)
         ret = strerror(e);
 #endif
         ret += ": " + info;
+        printf("Hier fliegt errno: %d, info: %s, %s\n", e, info.c_str(), ret.c_str());
         throw UnknownException(ret);
     }
     }
