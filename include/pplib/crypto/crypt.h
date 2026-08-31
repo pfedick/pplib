@@ -40,9 +40,6 @@ namespace pplib
 PPLIBEXCEPTION(UnsupportedAlgorithmException, Exception);
 PPLIBEXCEPTION(InvalidAlgorithmException, Exception);
 PPLIBEXCEPTION(NoAlgorithmSpecifiedException, Exception);
-PPLIBEXCEPTION(InvalidBlocksizeException, Exception);
-PPLIBEXCEPTION(NoKeySpecifiedException, Exception);
-PPLIBEXCEPTION(NoIVSpecifiedException, Exception);
 PPLIBEXCEPTION(InvalidKeyLengthException, Exception);
 
 class Crypt
