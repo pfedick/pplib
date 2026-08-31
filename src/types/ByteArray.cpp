@@ -234,10 +234,10 @@ void ByteArray::truncate(size_t size)
 
 void* ByteArray::malloc(size_t size)
 {
-    ::free(ptradr);
     if (size > MAX_BYTEARRAY_SIZE) {
         throw OutOfMemoryException();
     }
+    ::free(ptradr);
     ptradr = ::malloc(size + 4);
     if (ptradr) {
         ptrsize = size;
@@ -395,6 +395,7 @@ ByteArray ByteArray::fromBase64(const String& base64)
     ByteArray result;
     if (base64.isEmpty()) return result;
     size_t chars = base64.size();
+    if (chars % 4 != 0) throw IllegalArgumentException("invalid length");
     size_t padding = 0;
     if (chars >= 2 && base64[chars - 1] == '=' && base64[chars - 2] == '=') {
         padding = 2;
@@ -428,12 +429,13 @@ ByteArray ByteArray::fromBase64(const String& base64)
             break;
         case 1:
             t[target++] |= value >> 4;
-            t[target] = (value & 0x0F) << 4;
+            if (target < bytes) t[target] = (value & 0x0F) << 4;
             break;
         case 2:
             t[target++] |= value >> 2;
-            t[target] = (value & 0x03) << 6;
+            if (target < bytes) t[target] = (value & 0x03) << 6;
             break;
+
         case 3:
             t[target++] |= value;
             break;
