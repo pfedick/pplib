@@ -369,12 +369,13 @@ TEST_F(FileTest, seekAndTell)
 TEST_F(FileTest, tellOnPipeThrows)
 {
     pplib::File f;
-    f.open("testdata/dirwalk/testfile.txt");
+#ifdef _WIN32
+    ASSERT_NO_THROW(f.popen("cmd.exe /c echo Hallo Welt", pplib::File::FileMode::READ));
+#else
+    ASSERT_NO_THROW(f.popen("echo Hallo Welt", pplib::File::FileMode::READ));
+#endif
     ASSERT_TRUE(f.isOpen());
-    int fh = f.getFileNo();
-    ASSERT_NE(-1, fh);
-    ::close(fh);
-    ASSERT_THROW(f.tell(), pplib::BadFiledescriptorException);
+    ASSERT_THROW(f.tell(), pplib::IllegalOperationOnPipeException);
 }
 
 TEST_F(FileTest, seekThrows)
@@ -579,7 +580,7 @@ TEST_F(FileTest, fgetws_loop)
     while ((ret = f1.fgetws(buffer, 1024)) != NULL) {
         content += ret;
     }
-    ASSERT_EQ(content.size() * sizeof(wchar_t), f1.size());
+    ASSERT_EQ(content.size(), f1.size());
 }
 
 TEST_F(FileTest, fgetws_throws)
@@ -953,7 +954,7 @@ TEST_F(FileTest, lockExclusiveWithSecondInstance)
     f2.open("tmp/lock_exclusive_second_instance_test.tmp", pplib::File::FileMode::READWRITE);
 
     ASSERT_NO_THROW(f1.lockExclusive(true));
-    ASSERT_THROW(f2.lockExclusive(false), pplib::LockViolationException);
+    ASSERT_THROW(f2.lockExclusive(false), pplib::OperationBlockedException);
 
     ASSERT_NO_THROW(f1.unlock());
     ASSERT_NO_THROW(f2.lockExclusive(false));

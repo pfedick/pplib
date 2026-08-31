@@ -36,7 +36,7 @@ Fragen dazu:
 ### Aktueller Stand
 - Ich habe Makefile und Configure entfernt und durch CMake ersetzt. Ich möchte das mal ausprobieren.
 
- Das CMakeLists.txt ist inzwischen allerdings auch recht umfangreich geworden, weshalb ich mir nicht sicher bin, ob das eine gute Idee war. Eventuell hole ich Automake wieder zurück oder biete beides an.
+Das CMakeLists.txt ist inzwischen allerdings auch recht umfangreich geworden, weshalb ich mir nicht sicher bin, ob das eine gute Idee war. Eventuell hole ich Automake wieder zurück oder biete beides an.
 
 
  
@@ -98,7 +98,13 @@ Ein grundsätzliches Problem der Tests waren in der Vergangenheit die unterschie
 ## Font6
 Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-Option generell deaktivieren. Oder Fonts ohne Hints generieren?
 
+## Crypto-Funktionen
+- Unterstützung für moderne Algorithmen hinzufügen (AEAD-Modi)
+  - GCM
+  - ChaCha20-Poly1305
 
+KI:
+Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB/CBC/CFB/OFB an — alles unauthentifizierte Modi. Das ist der eigentliche "veraltet vs. aktuell"-Punkt: Heute empfiehlt man praktisch immer AES-GCM oder ChaCha20-Poly1305 (Integrität + Vertraulichkeit in einem), nicht CBC/CFB/OFB ohne HMAC. Das würde aber eine API-Erweiterung brauchen (Tag setzen/holen via EVP_CTRL_AEAD_GET_TAG/SET_TAG, zusätzliche AAD-Methode), keine reine Bugfix-Änderung.
 
 ## NEU
 - HttpRequest, HttpResponse, HttpClient
@@ -124,6 +130,7 @@ Einige Funktionen bekommen das native Farbformat, müssen dass dann aber wieder 
 - String Klasse refakturiert und geprüft
 - WideString Klasse refakturiert und geprüft
 - DateTime Klasse refakturiert und geprüft
+- Neu: Date, Time, TimeZone, TimeDelta
 
 ### Imagefilter
 Die save-Methode mit dem AssocArray für Parameter war schlecht.

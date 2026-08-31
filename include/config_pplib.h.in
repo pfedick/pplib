@@ -53,11 +53,29 @@
 #cmakedefine HAVE_PCRE2_BITS_16 1
 #cmakedefine HAVE_PCRE2_BITS_32 1
 
+// OpenSSL
+#cmakedefine HAVE_OPENSSL 1
+#cmakedefine HAVE_EVP_AES_128_ECB 1
+#cmakedefine HAVE_EVP_AES_192_ECB 1
+#cmakedefine HAVE_EVP_AES_256_ECB 1
+#cmakedefine HAVE_EVP_ARIA_128_ECB 1
+#cmakedefine HAVE_EVP_ARIA_192_ECB 1
+#cmakedefine HAVE_EVP_ARIA_256_ECB 1
+#cmakedefine HAVE_EVP_BF_ECB 1
+#cmakedefine HAVE_EVP_CAMELLIA_128_ECB 1
+#cmakedefine HAVE_EVP_CAMELLIA_192_ECB 1
+#cmakedefine HAVE_EVP_CAMELLIA_256_ECB 1
+#cmakedefine HAVE_EVP_CAST5_ECB 1
+#cmakedefine HAVE_EVP_DES_ECB 1
+#cmakedefine HAVE_EVP_DES_EDE3_ECB 1
+#cmakedefine HAVE_EVP_IDEA_ECB 1
+#cmakedefine HAVE_EVP_RC2_ECB 1
+#cmakedefine HAVE_EVP_RC5_32_12_16_ECB 1
+
 // other
 #cmakedefine HAVE_LIBMICROHTTPD 1
 #cmakedefine HAVE_LIBIDN2 1
 
-#cmakedefine HAVE_OPENSSL 1
 #cmakedefine HAVE_NASM 1
 #cmakedefine HAVE_X86_ASSEMBLER 1
 #cmakedefine HAVE_ICONV 1

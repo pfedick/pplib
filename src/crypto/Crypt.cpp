@@ -39,7 +39,9 @@
 #include <openssl/evp.h>
 #endif
 
-#include <pplib-crypto.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/crypto/crypt.h>
 
 namespace pplib
 {
@@ -420,7 +422,7 @@ void Encrypt::update(const ByteArrayPtr& in, ByteArray& out)
     int inlen = static_cast<int>(in.size());
     int outlen = 0;
     if (!EVP_EncryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen, static_cast<const unsigned char*>(in.ptr()), inlen)) {
-        throw EncryptionFailedException();
+        throw OperationFailedException("EVP_EncryptUpdate");
     }
     out.copy(outbuf, static_cast<size_t>(outlen));
 #endif
@@ -438,7 +440,7 @@ void Encrypt::final(ByteArray& out)
 
     int outlen = 0;
     if (!EVP_EncryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen)) {
-        throw EncryptionFailedException();
+        throw OperationFailedException("EVP_EncryptFinal_ex");
     }
     out.copy(outbuf, static_cast<size_t>(outlen));
 #endif
@@ -457,11 +459,11 @@ void Encrypt::encrypt(const ByteArrayPtr& in, ByteArray& out)
     int inlen = static_cast<int>(in.size());
     int outlen = 0;
     if (!EVP_EncryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen, static_cast<const unsigned char*>(in.ptr()), inlen)) {
-        throw EncryptionFailedException();
+        throw OperationFailedException("EVP_EncryptUpdate");
     }
     int outlen_final = 0;
     if (!EVP_EncryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf + outlen, &outlen_final)) {
-        throw EncryptionFailedException();
+        throw OperationFailedException("EVP_EncryptFinal_ex");
     }
     out.copy(outbuf, static_cast<size_t>(outlen + outlen_final));
 #endif
@@ -543,7 +545,7 @@ void Decrypt::update(const ByteArrayPtr& in, ByteArray& out)
     int inlen = static_cast<int>(in.size());
     int outlen = 0;
     if (!EVP_DecryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen, static_cast<const unsigned char*>(in.ptr()), inlen)) {
-        throw DecryptionFailedException();
+        throw OperationFailedException("EVP_DecryptUpdate");
     }
     out.copy(outbuf, static_cast<size_t>(outlen));
 #endif
@@ -561,7 +563,7 @@ void Decrypt::final(ByteArray& out)
 
     int outlen = 0;
     if (!EVP_DecryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen)) {
-        throw DecryptionFailedException();
+        throw OperationFailedException("EVP_DecryptFinal_ex");
     }
     out.copy(outbuf, static_cast<size_t>(outlen));
 #endif
@@ -580,11 +582,11 @@ void Decrypt::decrypt(const ByteArrayPtr& in, ByteArray& out)
     int inlen = static_cast<int>(in.size());
     int outlen = 0;
     if (!EVP_DecryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen, static_cast<const unsigned char*>(in.ptr()), inlen)) {
-        throw DecryptionFailedException();
+        throw OperationFailedException("EVP_DecryptUpdate");
     }
     int outlen_final = 0;
     if (!EVP_DecryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf + outlen, &outlen_final)) {
-        throw DecryptionFailedException();
+        throw OperationFailedException("EVP_DecryptFinal_ex");
     }
     out.copy(outbuf, static_cast<size_t>(outlen + outlen_final));
 #endif

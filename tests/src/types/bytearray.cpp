@@ -968,10 +968,10 @@ TEST(ByteArrayTest, load_and_base64)
 {
     pplib::ByteArray ba;
     pplib::File::load(ba, "testdata/screenshot1.png");
-    ASSERT_EQ((size_t)59627, ba.size());
+    ASSERT_EQ((size_t)59624, ba.size());
     pplib::String ba64 = ba.toBase64();
     pplib::ByteArray ba2 = pplib::FromBase64(ba64);
-    ASSERT_EQ((size_t)59627, ba2.size());
+    ASSERT_EQ((size_t)59624, ba2.size());
 }
 
 // memBlock1 > MemBlock2

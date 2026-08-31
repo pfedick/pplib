@@ -335,8 +335,12 @@ TEST_F(FileStaticTest, RenameFileLocal2Local)
 TEST_F(FileStaticTest, erase_unlink_remove)
 {
     ASSERT_NO_THROW(pplib::File::copy("testdata/filenameUSASCII.txt", "tmp/erase.tmp"));
-    // tmp kann nicht gelöscht werden, da nicht leer
+// tmp kann nicht gelöscht werden, da nicht leer
+#ifdef _WIN32
     ASSERT_THROW(pplib::File::remove("tmp"), pplib::PermissionDeniedException);
+#else
+    ASSERT_THROW(pplib::File::remove("tmp"), pplib::NoRegularFileException);
+#endif
 
     ASSERT_TRUE(pplib::File::exists("tmp/erase.tmp")) << "File should exist before removal";
     ASSERT_NO_THROW(pplib::File::remove("tmp/erase.tmp"));
@@ -573,10 +577,14 @@ TEST_F(FileStaticTest, rename_throws)
 TEST_F(FileStaticTest, chmod)
 {
     pplib::File::copy("testdata/dirwalk/LICENSE.TXT", "tmp/chmod_test.TXT");
+    pplib::DirEntry d = pplib::File::statFile("tmp/chmod_test.TXT");
+    int orig_attr = d.Attrib;
+
     int attr = pplib::FileAttr::Attributes::USR_READ | pplib::FileAttr::Attributes::USR_WRITE;
+    attr |= pplib::FileAttr::Attributes::IFFILE;
     pplib::File::chmod("tmp/chmod_test.TXT", static_cast<pplib::FileAttr::Attributes>(attr));
 
-    pplib::DirEntry d = pplib::File::statFile("tmp/chmod_test.TXT");
+    d = pplib::File::statFile("tmp/chmod_test.TXT");
     EXPECT_EQ(static_cast<pplib::FileAttr::Attributes>(attr), d.Attrib);
 
     // pplib::File::remove("tmp/chmod_test.TXT");

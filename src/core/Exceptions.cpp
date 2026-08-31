@@ -260,6 +260,9 @@ void throwExceptionFromErrno(int e, const String& info)
     case EPIPE:
         throw BrokenPipeException(info);
     case EINPROGRESS:
+#ifdef ERROR_LOCK_VIOLATION
+    case ERROR_LOCK_VIOLATION: // Nur Windows, kommt beim File-Locking
+#endif
         throw OperationBlockedException(info);
     case EALREADY:
         throw OperationAlreadyInProgressException(info);
@@ -269,8 +272,6 @@ void throwExceptionFromErrno(int e, const String& info)
         throw MessageTooLongException(info);
     case EPROTOTYPE:
         throw ProtocolWrongTypeForSocketException(info);
-    case ERROR_LOCK_VIOLATION:
-        throw LockViolationException(info);
     default: {
         String ret;
 #ifdef HAVE_STRERROR_S
