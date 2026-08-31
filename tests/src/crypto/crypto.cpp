@@ -232,4 +232,200 @@ TEST_F(CryptoTest, EncryptDecryptWithBase64_AES_256_CFB)
     ASSERT_EQ(clearData, pplib::String(decrypteddata));
 }
 
+// ------------------------------------------------------------------------------------------------------
+// Zusaetzliche Tests zur Verbesserung der Codeabdeckung von Crypt, Encrypt und Decrypt
+// ------------------------------------------------------------------------------------------------------
+
+static const pplib::Crypt::Algorithm ALL_ALGORITHMS[] = {
+    pplib::Crypt::Algo_AES_128,
+    pplib::Crypt::Algo_AES_192,
+    pplib::Crypt::Algo_AES_256,
+    pplib::Crypt::Algo_ARIA_128,
+    pplib::Crypt::Algo_ARIA_192,
+    pplib::Crypt::Algo_ARIA_256,
+    pplib::Crypt::Algo_BLOWFISH,
+    pplib::Crypt::Algo_CAMELLIA_128,
+    pplib::Crypt::Algo_CAMELLIA_192,
+    pplib::Crypt::Algo_CAMELLIA_256,
+    pplib::Crypt::Algo_CAST5,
+    pplib::Crypt::Algo_DES,
+    pplib::Crypt::Algo_TRIPLE_DES,
+    pplib::Crypt::Algo_IDEA,
+    pplib::Crypt::Algo_RC2,
+    pplib::Crypt::Algo_RC5,
+};
+
+static const pplib::Crypt::Mode ALL_MODES[] = {
+    pplib::Crypt::Mode_ECB,
+    pplib::Crypt::Mode_CBC,
+    pplib::Crypt::Mode_CFB,
+    pplib::Crypt::Mode_OFB,
+};
+
+// Manche Algorithmen sind je nach OpenSSL-Build zur Compile-Zeit deaktiviert (dann wirft
+// schon der Konstruktor UnsupportedAlgorithmException), andere stecken unter OpenSSL 3.x
+// im "legacy"-Provider, der nicht automatisch geladen wird (dann schlaegt EVP_EncryptInit_ex
+// zur Laufzeit fehl, InitializationFailedException). Welche Algorithmen betroffen sind,
+// unterscheidet sich zwischen den Zielsystemen (Fedora/Debian/FreeBSD/mingw64 unter Windows),
+// deshalb wird die Verfuegbarkeit hier zur Laufzeit geprueft statt fest anzunehmen.
+static bool algorithmIsUsable(pplib::Crypt::Algorithm algo, pplib::Crypt::Mode mode)
+{
+    try {
+        pplib::Encrypt e(algo, mode);
+        return true;
+    } catch (const pplib::UnsupportedAlgorithmException&) {
+        return false;
+    } catch (const pplib::InitializationFailedException&) {
+        return false;
+    }
+}
+
+TEST_F(CryptoTest, EncryptDecryptAllAlgorithmsAndModes)
+{
+    pplib::String clearData("this is an unencrypted string, long enough for multiple blocks!");
+    int usableCount = 0;
+
+    for (auto algo : ALL_ALGORITHMS) {
+        for (auto mode : ALL_MODES) {
+            if (!algorithmIsUsable(algo, mode)) continue;
+            usableCount++;
+            SCOPED_TRACE(::testing::Message() << "algo=" << algo << " mode=" << mode);
+
+            pplib::Encrypt encrypt(algo, mode);
+            pplib::Decrypt decrypt(algo, mode);
+
+            // Schluessel-/IV-Laenge direkt vom Objekt erfragen, damit der Test unabhaengig
+            // vom konkreten Algorithmus und der OpenSSL-Version bleibt.
+            int keylen = encrypt.keyLength();
+            int ivlen = encrypt.ivLength();
+            ASSERT_LE(keylen, (int)sizeof(key));
+            ASSERT_LE(ivlen, (int)sizeof(iv));
+
+            encrypt.setKey(pplib::ByteArrayPtr(key, keylen));
+            encrypt.setIV(pplib::ByteArrayPtr(iv, ivlen));
+            decrypt.setKey(pplib::ByteArrayPtr(key, keylen));
+            decrypt.setIV(pplib::ByteArrayPtr(iv, ivlen));
+
+            pplib::ByteArray crypted = encrypt.encrypt(pplib::ByteArrayPtr(clearData));
+            pplib::ByteArray decrypted = decrypt.decrypt(crypted);
+            EXPECT_EQ(clearData, pplib::String(decrypted));
+        }
+    }
+    EXPECT_GT(usableCount, 0) << "Kein einziger Algorithmus/Modus war auf diesem System nutzbar";
+}
+
+TEST_F(CryptoTest, ConstructWithInvalidAlgorithmThrows)
+{
+    ASSERT_THROW(pplib::Encrypt((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC),
+                 pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(pplib::Decrypt((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC),
+                 pplib::UnsupportedAlgorithmException);
+}
+
+TEST_F(CryptoTest, ConstructWithInvalidModeThrows)
+{
+    ASSERT_THROW(pplib::Encrypt(pplib::Crypt::Algo_AES_128, (pplib::Crypt::Mode)99),
+                 pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(pplib::Decrypt(pplib::Crypt::Algo_AES_128, (pplib::Crypt::Mode)99),
+                 pplib::UnsupportedAlgorithmException);
+}
+
+TEST_F(CryptoTest, MethodsThrowWhenNotInitialized)
+{
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_128, pplib::Crypt::Mode_CBC);
+    ASSERT_THROW(encrypt.setAlgorithm((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC),
+                 pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(encrypt.keyLength(), pplib::NotInitializedException);
+    ASSERT_THROW(encrypt.ivLength(), pplib::NotInitializedException);
+    ASSERT_THROW(encrypt.blockSize(), pplib::NotInitializedException);
+    ASSERT_THROW(encrypt.setPadding(true), pplib::NotInitializedException);
+    ASSERT_THROW(encrypt.setKeyLength(16), pplib::NotInitializedException);
+
+    pplib::Decrypt decrypt(pplib::Crypt::Algo_AES_128, pplib::Crypt::Mode_CBC);
+    ASSERT_THROW(decrypt.setAlgorithm((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC),
+                 pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(decrypt.keyLength(), pplib::NotInitializedException);
+    ASSERT_THROW(decrypt.ivLength(), pplib::NotInitializedException);
+    ASSERT_THROW(decrypt.blockSize(), pplib::NotInitializedException);
+    ASSERT_THROW(decrypt.setPadding(true), pplib::NotInitializedException);
+    ASSERT_THROW(decrypt.setKeyLength(16), pplib::NotInitializedException);
+}
+
+TEST_F(CryptoTest, MaxKeyLength)
+{
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CBC);
+    ASSERT_EQ(64, encrypt.maxKeyLength());
+}
+
+TEST_F(CryptoTest, SetPadding)
+{
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CBC);
+    ASSERT_NO_THROW(encrypt.setPadding(false));
+    ASSERT_NO_THROW(encrypt.setPadding(true));
+}
+
+TEST_F(CryptoTest, SetKeyLength)
+{
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CBC);
+    ASSERT_NO_THROW(encrypt.setKeyLength(32));
+    ASSERT_THROW(encrypt.setKeyLength(999), pplib::InvalidKeyLengthException);
+}
+
+TEST_F(CryptoTest, EncryptDecryptStreaming)
+{
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CBC);
+    pplib::Decrypt decrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CBC);
+    encrypt.setKey(pplib::ByteArrayPtr(key, 32));
+    encrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
+    decrypt.setKey(pplib::ByteArrayPtr(key, 32));
+    decrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
+
+    pplib::String part1("this is the first part, ");
+    pplib::String part2("and this is the second part.");
+
+    pplib::ByteArray crypted, tmp;
+    encrypt.update(pplib::ByteArrayPtr(part1), tmp);
+    crypted.append(tmp);
+    encrypt.update(pplib::ByteArrayPtr(part2), tmp);
+    crypted.append(tmp);
+    encrypt.final(tmp);
+    crypted.append(tmp);
+
+    // Ciphertext in zwei Haelften aufteilen, um auch bei Decrypt::update() mehrere
+    // Aufrufe (mit unvollstaendigen Bloecken) abzudecken.
+    size_t half = crypted.size() / 2;
+    pplib::ByteArrayPtr firstHalf(crypted.ptr(), half);
+    pplib::ByteArrayPtr secondHalf((const char*)crypted.ptr() + half, crypted.size() - half);
+
+    pplib::ByteArray decrypted, dtmp;
+    decrypt.update(firstHalf, dtmp);
+    decrypted.append(dtmp);
+    decrypt.update(secondHalf, dtmp);
+    decrypted.append(dtmp);
+    decrypt.final(dtmp);
+    decrypted.append(dtmp);
+
+    ASSERT_EQ(part1 + part2, pplib::String(decrypted));
+}
+
+TEST_F(CryptoTest, DecryptWithCorruptedCiphertextThrows)
+{
+    pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CBC);
+    pplib::Decrypt decrypt(pplib::Crypt::Algo_AES_256, pplib::Crypt::Mode_CBC);
+    encrypt.setKey(pplib::ByteArrayPtr(key, 32));
+    encrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
+    decrypt.setKey(pplib::ByteArrayPtr(key, 32));
+    decrypt.setIV(pplib::ByteArrayPtr(iv, sizeof(iv)));
+
+    pplib::String clearData("this is an unencrypted string");
+    pplib::ByteArray crypted = encrypt.encrypt(pplib::ByteArrayPtr(clearData));
+
+    // Letztes Byte kaputt machen -> ungueltiges PKCS#7-Padding beim Entschluesseln
+    pplib::ByteArray corrupted;
+    unsigned char* raw = static_cast<unsigned char*>(corrupted.copy(crypted));
+    raw[corrupted.size() - 1] ^= 0xFF;
+
+    ASSERT_THROW(decrypt.decrypt(corrupted), pplib::OperationFailedException);
+}
+
 } // namespace
