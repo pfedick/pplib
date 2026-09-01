@@ -172,18 +172,6 @@ TEST(ByteArrayPtrTest, map)
     ASSERT_THROW(b3.map(0, 1), pplib::OutOfBoundsException);
 }
 
-TEST(ByteArrayPtrTest, truncate)
-{
-    pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));
-    ASSERT_EQ(sizeof(binarydata), b2.size());
-    b2.truncate(5);
-    ASSERT_EQ((size_t)5, b2.size());
-    b2.truncate(10);
-    ASSERT_EQ((size_t)5, b2.size());
-    b2.truncate(0);
-    ASSERT_EQ((size_t)0, b2.size());
-}
-
 TEST(ByteArrayPtrTest, toCharPtr)
 {
     pplib::ByteArrayPtr b2(binarydata, sizeof(binarydata));

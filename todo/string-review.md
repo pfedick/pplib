@@ -37,6 +37,7 @@ Verifiziert: Exception-Namen gegen `include/pplib/exceptions.h` / `include/pplib
   ```cpp
   return prepend((const char*)a.ptr, a.size());
   ```
+  ==> FIXED, Test ergänzt
 
 - [ ] **`String::set(const char*, size_t)` ruft `strlen(str)` immer auf, auch wenn `size` explizit gesetzt ist → OOB-Read bzw. stille Trunkierung bei nicht garantiert Null-terminierten Puffern** (`String.cpp:218-245`)
   ```cpp
@@ -66,6 +67,8 @@ Verifiziert: Exception-Namen gegen `include/pplib/exceptions.h` / `include/pplib
   if (size == (size_t)-1 && inbytes > ::strlen(str)) inbytes = ::strlen(str); // eigentlich dann redundant
   ```
   bzw. einfacher: die zweite Zeile ganz entfernen, da die erste Zeile bereits das Gewünschte leistet.
+
+  ==> TODO: Tests schreiben, die das aufdecken, dann fixen
 
 - [ ] **`append`/`prepend` mit `String&`/`std::string&`-Quelle klemmen `size` nicht auf die tatsächliche Quelllänge → OOB-Read** (`String.cpp:432-435, 444-448, 482-485, 494-498`)
   ```cpp

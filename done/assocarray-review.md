@@ -3,6 +3,8 @@
 Review vom 2026-08-26, Scope: `include/pplib/types/assocarray.h` + `src/types/AssocArray.cpp` (1394 Zeilen).
 Abhängigkeiten in `variant.h`, `Variant.cpp`, `datetime.h` verifiziert.
 
+* Review done by: Qwen3.8 27b
+
 ## Bugs
 
 - [ ] **Self-Assignment zerstört Daten** – `operator=` (Zeile ~1111)

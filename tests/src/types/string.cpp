@@ -777,6 +777,10 @@ TEST(StringTest, prependConstWchartWithSize)
     s1.prepend(L"äöü Second Part", 8);
     ASSERT_EQ(expected, s1) << "String has unexpected value";
     ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
+
+    pplib::String s("Text");
+    s.prepend(L"ä", 1); // 1 Wide-Char "ä" should result in "äText"
+    ASSERT_EQ(pplib::String("äText"), s) << "String has unexpected value";
 }
 
 TEST(StringTest, prependConstCharPtrWithoutSize)

@@ -144,7 +144,7 @@ public:
      *
      * Der Destruktor sort dafür, dass der allokierte Speicher mittes "free" wieder freigegeben wird.
      */
-    ~ByteArray();
+    ~ByteArray() override;
 
     /**@brief Speicherverwaltung übernehmen
      *

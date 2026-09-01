@@ -215,6 +215,14 @@ bool String::isFalse() const
     return true;
 }
 
+inline static size_t get_validated_size(const char* str, size_t size)
+{
+    if (!str) return 0;
+    if (size == (size_t)-1) return ::strlen(str);
+    const void* nul = ::memchr(str, 0, size);
+    return nul ? (size_t)((const char*)nul - str) : size;
+}
+
 String& String::set(const char* str, size_t size)
 {
     if (!str) {
@@ -476,7 +484,7 @@ String& String::prepend(const wchar_t* str, size_t size)
 {
     String a;
     a.set(str, size);
-    return prepend((const char*)a.ptr, size);
+    return prepend((const char*)a.ptr, a.stringlen);
 }
 
 String& String::prepend(const String& str, size_t size)

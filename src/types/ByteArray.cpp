@@ -49,6 +49,7 @@ ByteArray::ByteArray()
 ByteArray::~ByteArray()
 {
     ::free(ptradr);
+    ptrsize = 0;
     ptradr = NULL;
 }
 
@@ -142,6 +143,7 @@ void* ByteArray::copy(const ByteArrayPtr& other)
 
 void ByteArray::useadr(void* adr, size_t size)
 {
+    if (adr == ptradr) return;
     ::free(ptradr);
     ptradr = adr;
     ptrsize = size;

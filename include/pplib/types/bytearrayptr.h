@@ -107,6 +107,12 @@ public:
      */
     ByteArrayPtr(const void* adr, size_t size);
 
+    /** @brief Destruktor
+     *
+     * Mit diesem Destruktor wird die Instanz der Klasse zerstört.
+     */
+    virtual ~ByteArrayPtr() = default;
+
     /**@brief Prüfen, ob Speicher referenziert ist und größer als 0 Byte ist
      *
      * Mit dieser Funktion kann geprüft werden, ob die Klasse zur Zeit eine Referenz auf einen
@@ -306,20 +312,12 @@ public:
      */
     const char* map(size_t position, size_t size) const;
 
-    /**@brief Speicherbereich kürzen
-     *
-     * Mit dieser Funktion kann der referenzierte Speicherbereich auf die Größe \p position gekürzt werden.
-     * Der Speicherbereich selbst wird von der Klasse nicht verwaltet, sondern nur referenziert.
-     *
-     * @param[in] position Neue Größe des Speicherbereichs in Bytes
-     */
-    void truncate(size_t position);
-
-    /**@brief CRC32-Prüfsumme berechnen
+    /** @brief CRC32-Prüfsumme berechnen
      *
      * Mit dieser Funktion wird die CRC32-Prüfsumme des referenzierten Speicherbereichs berechnet.
      *
      * @return CRC32-Prüfsumme
+     * @exception EmptyDataException Wird geworfen, wenn der referenzierte Speicherbereich leer ist.
      */
     uint32_t crc32() const;
 

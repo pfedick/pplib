@@ -98,17 +98,10 @@ const void* ByteArrayPtr::adr() const
 
 const char* ByteArrayPtr::map(size_t position, size_t size) const
 {
-    // if (!ptradr) throw OutOfBoundsException("ByteArrayPtr::map has no memory assigned");
     if (position > ptrsize || size > ptrsize - position)
         throw OutOfBoundsException("ByteArrayPtr::map position (%zu) + size (%zu) exceeds size of ByteArray (%zu > %zu)", position, size,
                                    position + size, ptrsize);
     return (const char*)ptradr + position;
-}
-
-void ByteArrayPtr::truncate(size_t size)
-{
-    if (size >= ptrsize) return;
-    ptrsize = size;
 }
 
 const void* ByteArrayPtr::ptr() const

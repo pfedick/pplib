@@ -5,6 +5,8 @@ Review vom 2026-08-31, Scope: `include/pplib/types/bytearrayptr.h` + `src/types/
 Verifiziert: `String::getPtr()`/`WideString::getPtr()` liefern `const char*`/`const wchar_t*` (string.h:1321, widestring.h:1001).
 `ByteArrayPtr` wird an vielen Stellen per `const ByteArrayPtr&` durchgereicht (iconv.h, image.h, memfile.h, resource.h, pfpfile.h, functions.h) – nirgends per Value, Slicing über Funktionsparameter also aktuell kein Problem.
 
+* Review done by: Claude Sonnet 5
+
 ## Bugs (kritisch)
 
 - [ ] **`ByteArray` erbt öffentlich von `ByteArrayPtr`, aber nichts davon ist virtuell → LSP-Verletzung** (`bytearray.h:73`, `bytearrayptr.h`)
@@ -134,12 +136,19 @@ Verifiziert: `String::getPtr()`/`WideString::getPtr()` liefern `const char*`/`co
 
 - [ ] `ByteArrayPtr::map()` (ByteArrayPtr.cpp:101) hat einen auskommentierten Bounds-Check (`// if (!ptradr) throw ...`) – entweder
       bewusst entfernt (dann Kommentar löschen) oder vergessene Baustelle.
+
+    ==> FIXED
 - [ ] Inkonsistentes Verhalten bei leerem Objekt: `crc32()` wirft `EmptyDataException` (ByteArrayPtr.cpp:230), aber `toHex()`,
       `toBase64()`, `toString()` liefern für den leeren Fall still ein leeres Ergebnis zurück. Falls beabsichtigt, wenigstens in der
       Doku von `crc32()` explizit erwähnen (aktuell nicht dokumentiert).
+
+    ==> So gewollt, in Doku vermerkt
+
 - [ ] `useadr(adr, size)` (ByteArray.cpp:143-148) hat keinen Schutz gegen `adr == ptradr` (eigene Adresse erneut "übernehmen") –
       würde den Speicher freigeben und danach als "neu" wieder zuweisen (dangling). Sehr unwahrscheinlicher Aufrufer-Fehler, aber
       billig abzusichern mit `if (adr == ptradr) return;`.
+    
+    ==> FIXED
 
 ## Verifiziert OK (kein Handlungsbedarf)
 
