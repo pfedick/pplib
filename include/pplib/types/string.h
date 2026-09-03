@@ -1245,11 +1245,11 @@ public:
      *
      * @param prefix Präfix, das überprüft werden soll
      * @param start Startposition innerhalb des Strings, ab der die Prüfung erfolgen soll
-     * @param end Endposition innerhalb des Strings, bis zu der die Prüfung erfolgen soll
-     *
+     * @param len Länge des zu prüfenden Bereichs ab \p start. Ist der Parameter nicht
+     *               angegeben, wird bis zum Ende des Strings geprüft.
      * @return Liefert true zurück, wenn der String mit dem Präfix beginnt, andernfalls false.
      */
-    bool startsWith(const String& prefix, size_t start = 0, size_t end = (size_t)-1) const;
+    bool startsWith(const String& prefix, size_t start = 0, size_t len = (size_t)-1) const;
 
     /** @brief Prüft, ob der String mit einem bestimmten Suffix endet
      *
@@ -1257,11 +1257,12 @@ public:
      *
      * @param suffix Suffix, das überprüft werden soll
      * @param start Startposition innerhalb des Strings, ab der die Prüfung erfolgen soll
-     * @param end Endposition innerhalb des Strings, bis zu der die Prüfung erfolgen soll
+     * @param len Länge des zu prüfenden Bereichs ab \p start. Ist der Parameter nicht
+     *               angegeben, wird bis zum Ende des Strings geprüft.
      *
      * @return Liefert true zurück, wenn der String mit dem Suffix endet, andernfalls false.
      */
-    bool endsWith(const String& suffix, size_t start = 0, size_t end = (size_t)-1) const;
+    bool endsWith(const String& suffix, size_t start = 0, size_t len = (size_t)-1) const;
 
     /** @brief Inhalt eines Arrays zu einem String zusammenfügen
      *
@@ -1310,16 +1311,16 @@ public:
      */
     void hexDump() const;
 
-    /** @brief Einzelnes Zeichen auslesen
+    /** @brief Einzelnes Byte auslesen
      *
-     * Mit dieser Funktion kann Bytewert eines einzelnen Zeichens an der Position
-     * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position des
-     * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
-     * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
-     * dem letzten Zeichen des Strings entspricht.
+     * Mit dieser Funktion kann der Wert eines einzelnen Bytes an der Position
+     * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position
+     * vom Anfang des Strings ermittelt, wobei 0 dem ersten Byte entspricht.
+     * Ist der Wert negativ, wird die Position vom Ende des Strings ermittelt, wobei -1
+     * dem letzten Byte des Strings entspricht.
      *
-     * @param pos Position des Zeichens innerhalb des Strings in Bytes
-     * @return Bytewert des Zeichens
+     * @param pos Position des Bytes innerhalb des Strings
+     * @return Wert des Bytes
      * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
      * ausserhalb des Strings liegt oder der String leer ist.
      */
@@ -1473,32 +1474,32 @@ public:
     operator std::string() const;
     operator std::wstring() const;
 
-    /** @brief Einzelnes Zeichen auslesen
+    /** @brief Einzelnes Byte auslesen
      *
-     * Mit diesem Operator kann der Bytewert eines einzelnen Zeichens an der Position
-     * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position des
-     * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
-     * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
-     * dem letzten Zeichen des Strings entspricht.
+     * Mit diesem Operator kann der Wert eines einzelnen Bytes an der Position
+     * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position
+     * vom Anfang des Strings ermittelt, wobei 0 dem ersten Byte entspricht.
+     * Ist der Wert negativ, wird die Position vom Ende des Strings ermittelt, wobei -1
+     * dem letzten Byte des Strings entspricht.
      *
-     * @param pos Position des Zeichens innerhalb des Strings in Bytes
-     * @return Bytewert des Zeichens
+     * @param pos Position des Bytes innerhalb des Strings
+     * @return Wert des Bytes
      * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
      * ausserhalb des Strings liegt oder der String leer ist.
      */
     char operator[](ssize_t pos) const;
 
-    /** @brief Einzelnes Zeichen referenzieren
+    /** @brief Einzelnes Byte referenzieren
      *
-     * Mit diesem Operator kann eine Referenz auf ein einzelnes Zeichen an der Position
+     * Mit diesem Operator kann eine Referenz auf ein einzelnes Byte an der Position
      * \p pos erhalten werden. Dies ermöglicht Lese- und Schreibzugriff.
-     * Enthält \p pos einen positiven Wert, wird die Position des
-     * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
-     * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
-     * dem letzten Zeichen des Strings entspricht.
+     * Enthält \p pos einen positiven Wert, wird die Position
+     * vom Anfang des Strings ermittelt, wobei 0 dem ersten Byte entspricht.
+     * Ist der Wert negativ, wird die Position vom Ende des Strings ermittelt, wobei -1
+     * dem letzten Byte des Strings entspricht.
      *
-     * @param pos Position des Zeichens innerhalb des Strings in Bytes
-     * @return Referenz auf das Zeichen
+     * @param pos Position des Bytes innerhalb des Strings
+     * @return Referenz auf das Byte
      * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
      * ausserhalb des Strings liegt oder der String leer ist.
      */

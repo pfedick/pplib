@@ -1263,22 +1263,22 @@ double String::toDouble() const
     return atof(ptr);
 }
 
-bool String::startsWith(const String& prefix, size_t start, size_t end) const
+bool String::startsWith(const String& prefix, size_t start, size_t len) const
 {
     String part;
-    if (start > 0 || end != (size_t)-1) {
-        part = mid(start, end).left(prefix.size());
+    if (start > 0 || len != (size_t)-1) {
+        part = mid(start, len).left(prefix.size());
     } else {
         part = left(prefix.size());
     }
     return part == prefix;
 }
 
-bool String::endsWith(const String& suffix, size_t start, size_t end) const
+bool String::endsWith(const String& suffix, size_t start, size_t len) const
 {
     String part;
-    if (start > 0 || end != (size_t)-1) {
-        part = mid(start, end).right(suffix.size());
+    if (start > 0 || len != (size_t)-1) {
+        part = mid(start, len).right(suffix.size());
     } else {
         part = right(suffix.size());
     }

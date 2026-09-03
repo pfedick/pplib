@@ -150,6 +150,9 @@ Verifiziert: Exception-Namen gegen `include/pplib/exceptions.h` / `include/pplib
   anpassen (`mid(start, end - start)`, falls tatsächlich eine Position gemeint war) – Rücksprache mit den Callern nötig,
   da beide Lesarten in Gebrauch sein könnten.
 
+  ===> FIXED, Parameter umbenannt in "len" für Länge. Damit
+  konsistent zum Rest der Klasse.
+
 ## Design
 
 - [ ] **`wcstombs`/`mbstowcs` sind Locale-abhängig – widerspricht dem Refactoring-Ziel „UTF-8 überall, auch unter Windows"** (`String.cpp:267`, `set(const wchar_t*, size_t)`)
