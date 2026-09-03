@@ -61,11 +61,13 @@ class Array;
  * Diese Klasse repräsentiert einen String, der beliebige Zeichen enthalten kann.
  * Der String wird intern als C-String mit 0-Byte am Ende gespeichert. Dabei kann es sich
  * um einen UTF-8 String, einen ASCII-String oder einen String in einer anderen Kodierung handeln.
+ * Alle Längenangaben beziehen sich auf die Anzahl Bytes, nicht auf die Anzahl Zeichen.
  *
  * @note Sowohl die Setter als auch die Append- und Prepend methoden erlauben es Strings zu übergeben,
- * die 0-Bytes enthalten können. Hierbei ist zu beachten, dass Strings beider Ausgabe zum Beispiel mit
+ * die 0-Bytes enthalten können. Hierbei ist zu beachten, dass Strings bei der Ausgabe zum Beispiel mit
  * printf am Null-Byte abgeschnitten werden. Gleiches passiert auch bei der Konvertierung in einen
- * WideString oder std::wstring.
+ * WideString oder std::wstring. Auch bei einigen anderen Methoden kann es zu Problemen kommen,
+ * wenn der String 0-Bytes enthält.
  *
  * @note Bei der Konvertierung zwischen String und WideString wird die eingestellte Kodierung
  * verwendet, die mit der Funktion setlocale() aus der C-Standardbibliothek festgelegt wurde.
@@ -106,10 +108,10 @@ public:
 
     /** @brief Konstruktor mit C-String und Länge
      *
-     * Ein String wird aus einem C-String erstellt. Es werden maximal \p size Zeichen übernommen.
+     * Ein String wird aus einem C-String erstellt. Es werden maximal \p size Bytes übernommen.
      *
      * @param str C-String mit 0-Byte am Ende
-     * @param size Maximale Anzahl Zeichen, die übernommen werden sollen
+     * @param size Maximale Anzahl Bytes, die übernommen werden sollen
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
      * @exception UnsupportedCharacterEncodingException
@@ -119,10 +121,12 @@ public:
 
     /** @brief Konstruktor mit Wide-Character-String
      *
-     * Ein String wird aus einem Wide-Character-String erstellt. Dabei wird der String
-     * in die globale Kodierung konvertiert.
+     * Ein String wird aus einem Wide-Character-String erstellt. Dabei findet eine Konvertierung
+     * in die aktuelle Kodierung des Programms statt.
      *
      * @param str Wide-Character-String mit 0-Wert am Ende
+     * @param size Maximale Anzahl Zeichen, die übernommen werden sollen. Achtung: hier handelt es sich
+     * tatsächlich um die Anzahl Zeichen im Wide-Character-String, nicht Bytes!
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
      * @exception UnsupportedCharacterEncodingException
@@ -144,9 +148,8 @@ public:
 
     /** @brief Konstruktor mit WideString
      *
-     * Ein String wird aus einem WideString erstellt. Dabei wird der String
-     * in die globale Kodierung konvertiert, die mit String::setGlobalEncoding festgelegt wurde.
-     * Der Defaultwert ist UTF-8.
+     * Ein String wird aus einem WideString erstellt. Dabei findet eine Konvertierung
+     * in die aktuelle Kodierung des Programms statt.
      *
      * @param str Referenz auf einen WideString
      * @exception OutOfMemoryException
@@ -183,6 +186,7 @@ public:
     /** @brief Konstruktor aus Standard-Template Wide-String
      *
      * Ein String wird aus einem Wide-String der Standard-Template-Library (STL) erstellt.
+     * Dabei findet eine Konvertierung in die aktuelle Kodierung des Programms statt.
      *
      * @param str Referenz auf Wide-String der STL
      * @exception OutOfMemoryException
@@ -236,10 +240,10 @@ public:
     /** @brief Kapazität des Strings abfragen
      *
      * Mit dieser Funktion kann die Kapazität des Strings abgefragt werden. Die Kapazität ist die
-     * Anzahl Zeichen, die der String aufnehmen kann, ohne dass der Speicherbereich vergrößert werden muss.
+     * Anzahl Bytes, die der String aufnehmen kann, ohne dass der Speicherbereich vergrößert werden muss.
      *
      * \return
-     * Liefert die Anzahl Zeichen, die der String aufnehmen kann.
+     * Liefert die Anzahl Bytes, die der String aufnehmen kann.
      */
     size_t capacity() const;
 
@@ -249,7 +253,7 @@ public:
      * wenn der String während seiner Lebenszeit häufig verlängert wird.
      *
      * @param size
-     * Anzahl Zeichen, für die Speicher reserviert werden soll.
+     * Anzahl Bytes, für die Speicher reserviert werden soll.
      *
      * @note
      * Enthält der String bereits Zeichen, gehen diese nicht verloren, der existierende Speicherbereich kann aber zwecks Vergrößerung
@@ -259,10 +263,12 @@ public:
 
     /** @brief Länge des Strings abfragen
      *
-     * Mit dieser Funktion kann die Länge des Strings abgefragt werden. Die Länge ist die Anzahl Zeichen, die der String aktuell enthält.
+     * Mit dieser Funktion kann die Länge des Strings in Bytes abgefragt werden.
+     * Bitte beachte, dass bei Multibyte-Zeichen (UTF-8) die Anzahl Bytes größer sein
+     * kann als die Anzahl Zeichen.
      *
      * @return
-     * Liefert die Anzahl Zeichen, die der String aktuell enthält.
+     * Liefert die Anzahl Bytes, die der String aktuell enthält.
      */
     inline constexpr size_t len() const
     {
@@ -271,10 +277,12 @@ public:
 
     /** @brief Länge des Strings abfragen
      *
-     * Mit dieser Funktion kann die Länge des Strings abgefragt werden. Die Länge ist die Anzahl Zeichen, die der String aktuell enthält.
+     * Mit dieser Funktion kann die Länge des Strings in Bytes abgefragt werden.
+     * Bitte beachte, dass bei Multibyte-Zeichen (UTF-8) die Anzahl Bytes größer sein
+     * kann als die Anzahl Zeichen.
      *
      * @return
-     * Liefert die Anzahl Zeichen, die der String aktuell enthält.
+     * Liefert die Anzahl Bytes, die der String aktuell enthält.
      */
     inline constexpr size_t length() const
     {
@@ -283,10 +291,12 @@ public:
 
     /** @brief Länge des Strings abfragen
      *
-     * Mit dieser Funktion kann die Länge des Strings abgefragt werden. Die Länge ist die Anzahl Zeichen, die der String aktuell enthält.
+     * Mit dieser Funktion kann die Länge des Strings in Bytes abgefragt werden.
+     * Bitte beachte, dass bei Multibyte-Zeichen (UTF-8) die Anzahl Bytes größer sein
+     * kann als die Anzahl Zeichen.
      *
      * @return
-     * Liefert die Anzahl Zeichen, die der String aktuell enthält.
+     * Liefert die Anzahl Bytes, die der String aktuell enthält.
      */
     inline constexpr size_t size() const
     {
@@ -346,6 +356,7 @@ public:
      * - Der String enthält das Wort "wahr" (Gross- oder Kleingeschrieben)
      * - Der String enthält das Wort "yes" (Gross- oder Kleingeschrieben)
      * - Der String enthält das Wort "ja" (Gross- oder Kleingeschrieben)
+     * - Der String enthält den Buchstaben "t" (Gross- oder Kleingeschrieben)
      *
      * @returns Liefert true zurück, wenn der String "wahr" ist, sonst false. Ein Fehlercode wird nicht gesetzt
      * @see String::isFalse()
@@ -359,7 +370,7 @@ public:
      * - Der String zeigt auf NULL
      * - Die Länge des Strings ist 0
      * - Der String enthält die Ziffer 0
-     * - Der String enthält nicht das Wort "true", "wahr", "yes" oder "ja" (Gross-/Kleinschreibung egal)
+     * - Der String enthält nicht das Wort "true", "wahr", "yes", "ja" oder "t" (Gross-/Kleinschreibung egal)
      * @returns Liefert true (1) zurück, wenn der String "unwahr" ist, sonst false (0). Ein Fehlercode wird nicht gesetzt
      * @see String::isTrue()
      */
@@ -370,7 +381,7 @@ public:
      * Mit dieser Funktion kann der aktuelle String mit einem anderen String verglichen werden.
      *
      * @param str Referenz auf einen anderen String
-     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Zeichen angibt. Ist der Wert nicht angegeben, wird der komplette
+     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Bytes angibt. Ist der Wert nicht angegeben, wird der komplette
      * String verglichen. Ist der Wert größer als der angegebene String, wird er ignoriert und der komplette String verglichen.
      * @return Liefert 0 zurück, wenn die Strings gleich sind. Ist der aktuelle String kleiner als \p str, wird ein Wert kleiner 0
      * zurückgegeben. Ist er größer, wird ein Wert größer 0 zurückgegeben.
@@ -383,7 +394,7 @@ public:
      * berücksichtigen.
      *
      * @param str Referenz auf einen anderen String
-     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Zeichen angibt. Ist der Wert nicht angegeben, wird der komplette
+     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Bytes angibt. Ist der Wert nicht angegeben, wird der komplette
      * String verglichen. Ist der Wert größer als der angegebene String, wird er ignoriert und der komplette String verglichen.
      * @return Liefert 0 zurück, wenn die Strings gleich sind. Ist der aktuelle String kleiner als \p str, wird ein Wert kleiner 0
      * zurückgegeben. Ist er größer, wird ein Wert größer 0 zurückgegeben.
@@ -395,7 +406,7 @@ public:
      * Mit dieser Funktion kann der aktuelle String mit einem C-String verglichen werden.
      *
      * @param str Pointer auf einen C-String
-     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Zeichen angibt. Ist der Wert nicht angegeben, wird der komplette
+     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Bytes angibt. Ist der Wert nicht angegeben, wird der komplette
      * String verglichen. Ist der Wert größer als der angegebene String, wird er ignoriert und der komplette String verglichen.
      * @return Liefert 0 zurück, wenn die Strings gleich sind. Ist der aktuelle String kleiner als \p str, wird ein Wert kleiner 0
      * zurückgegeben. Ist er größer, wird ein Wert größer 0 zurückgegeben.
@@ -408,7 +419,7 @@ public:
      * berücksichtigen.
      *
      * @param str Pointer auf einen C-String
-     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Zeichen angibt. Ist der Wert nicht angegeben, wird der komplette
+     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Bytes angibt. Ist der Wert nicht angegeben, wird der komplette
      * String verglichen. Ist der Wert größer als der angegebene String, wird er ignoriert und der komplette String verglichen.
      * @return Liefert 0 zurück, wenn die Strings gleich sind. Ist der aktuelle String kleiner als \p str, wird ein Wert kleiner 0
      * zurückgegeben. Ist er größer, wird ein Wert größer 0 zurückgegeben.
@@ -417,7 +428,7 @@ public:
 
     /** @brief Linken Teilstring zurückgeben
      *
-     * Gibt die ersten \p len Zeichen des Strings als neuen zurück.
+     * Gibt die ersten \p len Bytes des Strings als neuen zurück.
      *
      * @param len Länge des Teilstrings
      * @return Neuer String
@@ -426,7 +437,7 @@ public:
 
     /** @brief Rechten Teilstring zurückgeben
      *
-     * Gibt die letzten \p len Zeichen des Strings als neuen zurück.
+     * Gibt die letzten \p len Bytes des Strings als neuen zurück.
      *
      * @param len Länge des Teilstrings
      * @return Neuer String
@@ -435,7 +446,7 @@ public:
 
     /** @brief Teilstring zurückgeben
      *
-     * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
+     * Gibt \p len Bytes des Strings, beginnend ab Position \p start als
      * neuen String zurück.
      *
      * @param start Startposition
@@ -447,7 +458,7 @@ public:
 
     /** @brief Teilstring zurückgeben
      *
-     * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
+     * Gibt \p len Bytes des Strings, beginnend ab Position \p start als
      * neuen String zurück.
      *
      * @param start Startposition
@@ -466,7 +477,7 @@ public:
      * intern nach Unicode konvertiert.
      *
      * @param str Pointer auf einen String
-     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
@@ -482,7 +493,7 @@ public:
      * Mit dieser Funktion wird der String anhand eines anderen Strings gesetzt.
      *
      * @param str Referenz auf einen anderen String
-     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
@@ -496,7 +507,7 @@ public:
      * intern nach Unicode konvertiert.
      *
      * @param str Referenz auf einen ByteArrayPtr
-     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
@@ -517,6 +528,7 @@ public:
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes!
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
      * @exception UnsupportedCharacterEncodingException
@@ -529,7 +541,7 @@ public:
      * Mit dieser Funktion wird der String anhand eines Strings der Standard-Template-Library (STL) gesetzt.
      *
      * @param str Referenz auf einen String der STL
-     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
@@ -549,6 +561,7 @@ public:
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes!
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
      * @exception UnsupportedCharacterEncodingException
@@ -566,6 +579,7 @@ public:
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes!
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
      * @exception UnsupportedCharacterEncodingException
@@ -589,7 +603,7 @@ public:
      * \p position durch das Zeichen \p c ersetzt.
      *
      * @param position Position innerhalb des Strings (Zählung beginnt bei 0)
-     * @param c Unicode-Wert, der gesetzt werden soll
+     * @param c ASCII-Wert, der gesetzt werden soll
      * @return Referenz auf den String
      * @throw OutOfBoundsException: Wird geworfen, wenn \p position größer ist, als die
      * Länge des Strings
@@ -626,12 +640,10 @@ public:
 
     /** @brief Fügt einen C-String an das Ende des bestehenden an
      *
-     * Fügt einen C-String an das Ende des bestehenden an. Der String muss entweder
-     * UTF-8 kodiert sein, oder es muss mit der statischen Funktion String::setGlobalEncoding
-     * zuvor eine andere Kodierung gesetzt worden sein.
+     * Fügt einen C-String an das Ende des bestehenden an.
      *
      * @param[in] str Pointer auf einen Wide-Character String
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optional die Anzahl Bytes im String, die kopiert werden sollen.
      *
      * @return Referenz auf den String
      *
@@ -647,7 +659,7 @@ public:
      * Mit dieser Funktion wird der String \p str an das Ende des bestehenden Strings angehangen.
      *
      * @param[in] str Referenz auf einen anderen String
-     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
@@ -663,6 +675,7 @@ public:
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes.
      */
     String& append(const WideString& str, size_t size = (size_t)-1);
 
@@ -671,7 +684,7 @@ public:
      * Mit dieser Funktion wird der String \p str an das Ende des bestehenden Strings angehangen.
      *
      * @param[in] str Referenz auf einen anderen String
-     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
@@ -687,6 +700,7 @@ public:
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
      * der angegebene String, wird er ignoriert und der komplette String importiert.
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes.
      */
     String& append(const std::wstring& str, size_t size = (size_t)-1);
 
@@ -698,6 +712,7 @@ public:
      * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
      *
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes.
      *
      * @exception OutOfMemoryException
      */
@@ -731,7 +746,7 @@ public:
      * Fügt einen C-String am Anfang des bestehenden Strings ein
      *
      * @param[in] str Pointer auf einen C-String
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optional die Anzahl Bytes im String, die kopiert werden sollen.
      *
      * @return Referenz auf den String
      *
@@ -744,7 +759,7 @@ public:
      * Fügt einen String am Anfang des bestehenden Strings ein
      *
      * @param[in] str Referenz auf einen anderen String
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optional die Anzahl Bytes im String, die kopiert werden sollen.
      *
      * @return Referenz auf den String
      *
@@ -760,6 +775,7 @@ public:
      * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
      *
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes.
      *
      * @exception OutOfMemoryException
      */
@@ -770,7 +786,7 @@ public:
      * Fügt einen STL-String am Anfang des bestehenden Strings ein
      *
      * @param[in] str Referenz auf einen STL-String
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optional die Anzahl Bytes im String, die kopiert werden sollen.
      *
      * @return Referenz auf den String
      *
@@ -786,6 +802,7 @@ public:
      * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
      *
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes.
      *
      * @exception OutOfMemoryException
      */
@@ -799,6 +816,7 @@ public:
      * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
      *
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes.
      *
      * @exception OutOfMemoryException
      */
@@ -855,7 +873,7 @@ public:
      * @brief Füllt den String mit einem Zeichen
      *
      * Der String wird mit einem gewünschten Zeichen gefüllt
-     * @param unicode Der Unicode des Zeichens, mit dem der String gefüllt werden soll
+     * @param code Der ASCII-Code des Zeichens, mit dem der String gefüllt werden soll
      * @param num Die Länge des gewünschten Strings
      * @return Referenz auf den String
      * @exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
@@ -863,11 +881,11 @@ public:
     String& repeat(char code, size_t num);
 
     /**
-     * @brief Füllt den String mit einem Zeichen
+     * @brief Wiederholt eine Zeichenkette im String
      *
-     * Der String wird mit einem gewünschten Zeichen gefüllt
-     * @param unicode Der Unicode des Zeichens, mit dem der String gefüllt werden soll
-     * @param num Die Länge des gewünschten Strings
+     * Die Zeichenkette \p str wird \p num mal wiederholt und im String hinterlegt.
+     * @param str Die Zeichenkette, die wiederholt werden soll
+     * @param num Anzahl der Wiederholungen
      * @return Referenz auf den neuen String
      * @exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
      */
@@ -884,8 +902,7 @@ public:
      */
     String repeated(size_t num) const;
 
-    /**
-     * @brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
+    /** @brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
      *
      * Diese Funktion wandelt alle Zeichen des Strings in Kleinbuchstaben um. Die genaue Funktionsweise hängt davon ab,
      * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
@@ -1010,20 +1027,20 @@ public:
 
     /** @brief Schneidet Zeichen am Ende des Strings ab
      *
-     * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
+     * Diese Funktion schneidet \p num Bytes vom Ende des Strings ab. Falls \p num
      * größer als der String ist, bleibt ein leerer String zurück.
      *
-     * @param num Anzahl Zeichen, die abgeschnitten werden sollen
+     * @param num Anzahl Bytes, die abgeschnitten werden sollen
      * @return Referenz auf den String
      */
     String& chopRight(size_t num = 1);
 
     /** @brief Schneidet Zeichen am Ende des Strings ab
      *
-     * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
+     * Diese Funktion schneidet \p num Bytes vom Ende des Strings ab. Falls \p num
      * größer als der String ist, bleibt ein leerer String zurück.
      *
-     * @param num Anzahl Zeichen, die abgeschnitten werden sollen
+     * @param num Anzahl Bytes, die abgeschnitten werden sollen
      * @return Referenz auf den String
      *
      * @see
@@ -1036,10 +1053,10 @@ public:
 
     /** @brief Schneidet Zeichen am Anfang des Strings ab
      *
-     * Diese Funktion schneidet \p num Zeichen vom Anfang des Strings ab. Falls \p num
+     * Diese Funktion schneidet \p num Bytes vom Anfang des Strings ab. Falls \p num
      * größer als der String ist, bleibt ein leerer String zurück.
      *
-     * @param num Anzahl Zeichen, die abgeschnitten werden sollen
+     * @param num Anzahl Bytes, die abgeschnitten werden sollen
      *
      * @return Referenz auf den String
      */
@@ -1073,11 +1090,11 @@ public:
 
     /** @brief Schiebt den String nach links
      *
-     * Der String wird um die mit \c size angegebenen Zeichen nach links verschoben und rechts mit dem durch \c c angegebenen
+     * Der String wird um die mit \c size angegebenen Anzahl Bytes nach links verschoben und rechts mit dem durch \c c angegebenen
      * Zeichen aufgefüllt.
      * @param c Das Zeichen, mit dem der String auf der rechten Seite aufgefüllt werden soll. Wird der Wert 0 verwendet, findet keine
      * Auffüllung statt, d.h. der String verkürzt sich einfach.
-     * @param size Die Anzahl Zeichen, um die der String nach links verschoben werden soll. Ist \c size größer als die Länge
+     * @param size Die Anzahl Bytes, um die der String nach links verschoben werden soll. Ist \c size größer als die Länge
      * des Strings, wird der String komplett geleert und ist anschließend so groß wie size, sofern c>0 war.
      *
      * @return Referenz auf den String
@@ -1086,11 +1103,11 @@ public:
 
     /** @brief Schiebt den String nach rechts
      *
-     * Der String wird um die mit \c size angegebenen Zeichen nach rechts verschoben und links mit dem durch \c c angegebenen
+     * Der String wird um die mit \c size angegebenen Anzahl Bytes nach rechts verschoben und links mit dem durch \c c angegebenen
      * Zeichen aufgefüllt.
      * @param c Das Zeichen, mit dem der String auf der linken Seite aufgefüllt werden soll. Wird der Wert 0 verwendet, findet keine
      * Auffüllung statt, d.h. der String verkürzt sich einfach.
-     * @param size Die Anzahl Zeichen, um die der String nach rechts verschoben werden soll. Ist \c size größer als die Länge
+     * @param size Die Anzahl Bytes, um die der String nach rechts verschoben werden soll. Ist \c size größer als die Länge
      * des Strings, wird der String komplett geleert und ist anschließend so groß wie size, sofern c>0 war.
      *
      * @return Referenz auf den String
@@ -1135,7 +1152,7 @@ public:
      * Find sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
      *
      * @param[in] needle Gesuchter Teilstring
-     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings in Bytes. Ist der Parameter 0 oder wird er weggelassen,
      * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
      * Ende des Strings gesucht.
      *
@@ -1151,7 +1168,7 @@ public:
      * gewünschten Position \a start. Gross-/Kleinschreibung wird dabei ignoriert.
      *
      * @param[in] needle Gesuchter Teilstring
-     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0 oder wird er weggelassen,
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings in Bytes. Ist der Parameter 0 oder wird er weggelassen,
      * wird der String vom Anfang an durchsucht. Ist der Wert jedoch negativ, wird rückwärts vom
      * Ende des Strings gesucht.
      *
@@ -1166,7 +1183,7 @@ public:
      * Diese Funktion sucht nach dem Suchstring \a needle ab der gewünschten Position \a start.
      *
      * @param[in] needle Gesuchter Teilstring
-     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings in Bytes. Ist der Parameter 0
      * oder nicht angegeben, wird der String vom Anfang an gesucht. Ist der Wert jedoch negativ, wird rückwärts vom Ende des Strings
      * gesucht.
      *
@@ -1185,7 +1202,7 @@ public:
      * Gross-/Kleinschreibung wird dabei ignoriert.
      *
      * @param[in] needle Gesuchter Teilstring
-     * @param[in] start Optionale Startposition innerhalb des Suchstrings. Ist der Parameter 0
+     * @param[in] start Optionale Startposition innerhalb des Suchstrings in Bytes. Ist der Parameter 0
      * oder nicht angegeben, wird der String vom Anfang an gesucht. Ist der Wert jedoch negativ, wird rückwärts vom Ende des Strings
      *
      * \return Liefert die Position innerhalb des Strings, an der der Suchstring gefunden wurde
@@ -1301,7 +1318,7 @@ public:
      * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
      * dem letzten Zeichen des Strings entspricht.
      *
-     * @param pos Position des Zeichens innerhalb des Strings
+     * @param pos Position des Zeichens innerhalb des Strings in Bytes
      * @return Bytewert des Zeichens
      * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
      * ausserhalb des Strings liegt oder der String leer ist.
@@ -1313,7 +1330,7 @@ public:
      * Diese Funktion liefert einen Pointer im Format "const char*" auf den internen
      * C-String der Klasse zurück. Bei einem leeren String ist sichergestellt, dass ein
      * Pointer auf einen leeren mit 0-Byte terminierten String zurückgegeben wird. Die
-     * Funktion gibt also niemals NULL zurück.
+     * Funktion gibt niemals NULL zurück.
      *
      * @return Pointer auf den internen C-String der Klasse
      * @see
@@ -1333,7 +1350,7 @@ public:
      * Diese Funktion liefert einen Pointer im Format "const char*" auf den internen
      * C-String der Klasse zurück. Bei einem leeren String ist sichergestellt, dass ein
      * Pointer auf einen leeren mit 0-Byte terminierten String zurückgegeben wird. Die
-     * Funktion gibt also niemals NULL zurück.
+     * Funktion gibt niemals NULL zurück.
      *
      * @return Pointer auf den internen C-String der Klasse
      * @see
@@ -1464,7 +1481,7 @@ public:
      * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
      * dem letzten Zeichen des Strings entspricht.
      *
-     * @param pos Position des Zeichens innerhalb des Strings
+     * @param pos Position des Zeichens innerhalb des Strings in Bytes
      * @return Bytewert des Zeichens
      * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
      * ausserhalb des Strings liegt oder der String leer ist.
@@ -1480,7 +1497,7 @@ public:
      * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
      * dem letzten Zeichen des Strings entspricht.
      *
-     * @param pos Position des Zeichens innerhalb des Strings
+     * @param pos Position des Zeichens innerhalb des Strings in Bytes
      * @return Referenz auf das Zeichen
      * @exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
      * ausserhalb des Strings liegt oder der String leer ist.
