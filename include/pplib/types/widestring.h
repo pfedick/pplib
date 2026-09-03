@@ -403,9 +403,10 @@ public:
      * Mit dieser Funktion wird der String anhand eines char * gesetzt. Dabei wird er
      * intern nach Unicode konvertiert.
      * @param str Pointer auf einen String
-     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Bytes an, die übernommen werden soll – der Aufrufer muss sicherstellen,
+     * dass ab \p str mindestens so viele gültige Bytes gelesen werden können.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
@@ -414,6 +415,14 @@ public:
      *
      * @note
      * Multibyte-Characters zählen als ein Zeichen.
+     *
+     * @attention
+     * Die Konvertierung erfolgt über die C-Funktion ::mbstowcs, die laut Definition an einem
+     * eingebetteten 0-Byte im Quell-Puffer abbricht. Enthält \p str ein 0-Byte innerhalb der ersten
+     * \p size Bytes, wird der String an dieser Stelle abgeschnitten, auch wenn \p size mehr Bytes
+     * vorgibt. Anders als beim reinen wchar_t*-Pendant (WideString::set(const wchar_t*, size_t))
+     * können über diesen Weg (und transitiv set(const std::string&, size_t), set(const String&,
+     * size_t)) daher keine eingebetteten 0-Bytes übernommen werden.
      */
     WideString& set(const char* str, size_t size = (size_t)-1);
 
@@ -422,8 +431,10 @@ public:
      * Mit dieser Funktion wird der String anhand eines wchar_t * gesetzt.
      * @param str Pointer auf einen String
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
+     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
+     * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
      */
@@ -434,8 +445,10 @@ public:
      * Mit dieser Funktion wird der Inhalt des Strings \p str übernommen.
      * @param str Referenz auf einen anderen String
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
+     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
+     * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
      */
@@ -447,8 +460,10 @@ public:
      * Mit dieser Funktion wird der Inhalt des STL-Strings \p str übernommen.
      * @param str Referenz auf einen String der Standard Template Library (STL)
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
+     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
+     * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
      */
@@ -459,8 +474,10 @@ public:
      * Mit dieser Funktion wird der Inhalt des STL-Wide-Strings \p str übernommen.
      * @param str Referenz auf einen Wide-String der Standard Template Library (STL)
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
+     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
+     * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
      */
@@ -963,8 +980,29 @@ public:
         return has(needle, ignoreCase);
     }
 
-    bool startsWith(const WideString& prefix, size_t start = 0, size_t end = (size_t)-1) const;
-    bool endsWith(const WideString& suffix, size_t start = 0, size_t end = (size_t)-1) const;
+    /** @brief Prüft, ob der String mit einem bestimmten Präfix beginnt
+     *
+     * Diese Funktion prüft, ob der String mit dem angegebenen Präfix beginnt.
+     *
+     * @param prefix Präfix, das überprüft werden soll
+     * @param start Startposition innerhalb des Strings, ab der die Prüfung erfolgen soll
+     * @param len Länge des zu prüfenden Bereichs ab \p start. Ist der Parameter nicht
+     *               angegeben, wird bis zum Ende des Strings geprüft.
+     * @return Liefert true zurück, wenn der String mit dem Präfix beginnt, andernfalls false.
+     */
+    bool startsWith(const WideString& prefix, size_t start = 0, size_t len = (size_t)-1) const;
+
+    /** @brief Prüft, ob der String mit einem bestimmten Suffix endet
+     *
+     * Diese Funktion prüft, ob der String mit dem angegebenen Suffix endet.
+     *
+     * @param suffix Suffix, das überprüft werden soll
+     * @param start Startposition innerhalb des Strings, ab der die Prüfung erfolgen soll
+     * @param len Länge des zu prüfenden Bereichs ab \p start. Ist der Parameter nicht
+     *               angegeben, wird bis zum Ende des Strings geprüft.
+     * @return Liefert true zurück, wenn der String mit dem Suffix endet, andernfalls false.
+     */
+    bool endsWith(const WideString& suffix, size_t start = 0, size_t len = (size_t)-1) const;
     WideString join(const pplib::Array& iterable) const;
 
     WideString& replace(const WideString& search, const WideString& replacement);

@@ -478,8 +478,10 @@ public:
      *
      * @param str Pointer auf einen String
      * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
@@ -494,8 +496,10 @@ public:
      *
      * @param str Referenz auf einen anderen String
      * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
      */
@@ -508,8 +512,10 @@ public:
      *
      * @param str Referenz auf einen ByteArrayPtr
      * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
@@ -525,8 +531,10 @@ public:
      *
      * @param str Referenz auf einen WideString
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes!
      * @exception OutOfMemoryException
@@ -542,8 +550,10 @@ public:
      *
      * @param str Referenz auf einen String der STL
      * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
@@ -558,8 +568,10 @@ public:
      *
      * @param str Referenz auf einen WideString der STL
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes!
      * @exception OutOfMemoryException
@@ -576,8 +588,10 @@ public:
      *
      * @param str Pointer auf einen String
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes!
      * @exception OutOfMemoryException
@@ -660,8 +674,10 @@ public:
      *
      * @param[in] str Referenz auf einen anderen String
      * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      */
     String& append(const String& str, size_t size = (size_t)-1);
@@ -672,8 +688,10 @@ public:
      *
      * @param[in] str Referenz auf einen anderen Wide-String
      * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes.
      */
@@ -685,8 +703,10 @@ public:
      *
      * @param[in] str Referenz auf einen anderen String
      * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      */
     String& append(const std::string& str, size_t size = (size_t)-1);
@@ -697,8 +717,10 @@ public:
      *
      * @param[in] str Referenz auf einen anderen Wide-String
      * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
-     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
-     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll – der Aufrufer muss sicherstellen, dass ab
+     * \p str mindestens so viele gültige Bytes gelesen werden können. Enthaltene 0-Bytes werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Zeichen im WideString, nicht Bytes.
      */

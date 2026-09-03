@@ -250,6 +250,10 @@ TEST(WideStringTest, isNumeric)
     ASSERT_EQ(s1.isNumeric(), false) << "String should not be numeric";
     s1.set(L"12345");
     ASSERT_EQ(s1.isNumeric(), true) << "String should be numeric";
+    s1.set(L"-123451,12");
+    ASSERT_EQ(s1.isNumeric(), true) << "String should be numeric";
+    s1.set(L"-123451.12");
+    ASSERT_EQ(s1.isNumeric(), true) << "String should be numeric";
     s1.set(L"123.451,12");
     ASSERT_EQ(s1.isNumeric(), false) << "String should not be numeric";
     s1.set(L"-123.451,12");
@@ -267,6 +271,19 @@ TEST(WideStringTest, isNumeric)
     ASSERT_FALSE(pplib::WideString("123.45-67").isNumeric()) << "String should not be numeric";
     ASSERT_FALSE(pplib::WideString("123,45-67").isNumeric()) << "String should not be numeric";
     ASSERT_FALSE(pplib::WideString("123.").isNumeric()) << "String should not be numeric";
+
+    EXPECT_EQ(pplib::WideString(L"+123").isNumeric(), true) << "String should be numeric";
+
+    ASSERT_FALSE(pplib::WideString(L"+").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::WideString(L"-").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::WideString(L".").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::WideString(L",").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::WideString(L"+-").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::WideString(L"-+").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::WideString(L"+-123").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::WideString(L"-+123").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::WideString(L"123+").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::WideString(L"123-").isInteger()) << "String should not be an integer";
 }
 
 TEST(WideStringTest, isInteger)
@@ -289,6 +306,18 @@ TEST(WideStringTest, isInteger)
     ASSERT_EQ(s1.isInteger(), false) << "String should be an integer";
     s1.set(L"-123.451,12-9");
     ASSERT_EQ(s1.isInteger(), false) << "String should not be an integer";
+
+    EXPECT_EQ(pplib::WideString(L"+123").isInteger(), true) << "String should be an integer";
+    EXPECT_EQ(pplib::WideString().isInteger(), false) << "Empty string should not be an integer";
+    EXPECT_EQ(pplib::WideString(L"-").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::WideString(L".").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::WideString(L"+").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::WideString(L"+-").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::WideString(L"-+").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::WideString(L"+-123").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::WideString(L"-+123").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::WideString(L"123+").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::WideString(L"123-").isInteger(), false) << "String should not be an integer";
 }
 
 TEST(WideStringTest, isTrue)
@@ -409,10 +438,17 @@ TEST(WideStringTest, setConstWChartWithSize)
     ASSERT_EQ(s2, s1) << "String has unexpected value";
     ASSERT_EQ((size_t)10, s1.size()) << "String has unexpected length";
 
-    // Size is bigger than the string length
-    s1.set(L"äöü, a test string with unicode characters", 100);
-    ASSERT_EQ((size_t)42, s1.size()) << "String has unexpected length";
-    ASSERT_EQ(pplib::WideString(L"äöü, a test string with unicode characters"), s1) << "String has unexpected value";
+    // size is honored exactly, even if larger than the source's own length would allow to guess -
+    // the caller is responsible for passing an accurate size
+    s1.set(L"äöü, a test string with unicode characters", 43);
+    ASSERT_EQ((size_t)43, s1.size()) << "String has unexpected length";
+
+    // an embedded 0-character is preserved, not treated as end of string
+    pplib::WideString s3(L"Hello World");
+    s3.set(5, (wchar_t)0);
+    pplib::WideString s4;
+    s4.set(s3.getPtr(), s3.size());
+    ASSERT_EQ((size_t)11, s4.size()) << "String has unexpected length";
 }
 
 TEST(WideStringTest, setConstWChartWithNull)

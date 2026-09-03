@@ -62,6 +62,11 @@ Zwei zentrale Befunde wurden nicht nur durch Code-Lesen, sondern zusätzlich **e
   ```
   (analog mit `memchr`/`strlen`-Ersatz für die `char*`-Variante, und die identische Stelle in `String::set()` reparieren).
 
+  ==> FIXED: unbedingtes `strlen`/`wcslen`-Nachklemmen entfernt, `size` wird jetzt wie in `String::set()` exakt vertraut
+  (kein Scan mehr über die vom Aufrufer angegebene Größe hinaus). `set(const char*, size)` kann eingebettete 0-Bytes wegen
+  `::mbstowcs()` weiterhin nicht verlustfrei übernehmen – das ist jetzt explizit im Header dokumentiert (@attention),
+  siehe nächster Punkt.
+
 - [ ] **`set(const char*, size)` (und damit praktisch jeder char\*-Konstruktor/-Operator) ist Locale-abhängig statt UTF-8, entgegen eigener Doku** (`WideString.cpp:246-274`)
   Klassen-Doku (widestring.h:62-66) verspricht: *"Bei Übernahme eines C-Strings wird erwartet, dass dieser im UTF-8 Format
   vorliegt"*. Implementiert ist das aber über `::mbstowcs()`, das die aktuell über `setlocale()` gesetzte Prozess-Locale
@@ -119,6 +124,9 @@ Zwei zentrale Befunde wurden nicht nur durch Code-Lesen, sondern zusätzlich **e
   stehen, nicht danach). Praktische Relevanz ist gering (setzt ein extrem großes `num` voraus), aber bei extern kontrolliertem
   Wiederholungsfaktor ein reales Risiko.
   Fix: Vor der Multiplikation prüfen, z.B. `if (num != 0 && stringlen > SIZE_MAX / num) throw IllegalArgumentException(...);`.
+
+  ==> FIXED: Overflow-Check vor beiden Multiplikationen ergänzt (`IllegalArgumentException`, analog zu `reserve()`s
+  eigenem Overflow-Check in dieser Klasse).
 
 - [ ] **`toUtf8()`/`toUCS4()`: unpaarige Surrogates unter Windows erzeugen still ungültige Ausgabe statt Fehlerbehandlung** (`WideString.cpp:606-616, 653-663`)
   Wird ein High-Surrogate ohne nachfolgendes Low-Surrogate (oder ein alleinstehendes Low-Surrogate) angetroffen – z.B. genau

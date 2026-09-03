@@ -197,11 +197,14 @@ bool WideString::isNumeric() const
 {
     if (!stringlen) return false;
     size_t dotcount = 0;
+    bool sawDigit = false;
     for (size_t i = 0; i < stringlen; i++) {
         wchar_t c = ((wchar_t*)ptr)[i];
-        if (c < '0' || c > '9') {
-            if (c != '.' && c != ',' && c != '-') return false;
-            if (c == '-' && i > 0) return false;
+        if (c >= '0' && c <= '9') {
+            sawDigit = true;
+        } else {
+            if (c != '.' && c != ',' && c != '-' && c != '+') return false;
+            if ((c == '-' || c == '+') && i > 0) return false;
             if (c == '.' || c == ',') {
                 dotcount++;
                 if (dotcount > 1) return false;
@@ -209,20 +212,23 @@ bool WideString::isNumeric() const
         }
     }
     if (ptr[stringlen - 1] == '.') return false;
-    return true;
+    return sawDigit;
 }
 
 bool WideString::isInteger() const
 {
     if (!stringlen) return false;
+    bool sawDigit = false;
     for (size_t i = 0; i < stringlen; i++) {
         wchar_t c = ((wchar_t*)ptr)[i];
-        if (c < '0' || c > '9') {
-            if (c == '-' && i == 0) continue; // Minus am Anfang ist erlaubt
+        if (c >= '0' && c <= '9') {
+            sawDigit = true;
+        } else {
+            if ((c == '-' || c == '+') && i == 0) continue; // Vorzeichen am Anfang ist erlaubt
             return false;
         }
     }
-    return true;
+    return sawDigit;
 }
 
 bool WideString::isTrue() const
@@ -245,13 +251,11 @@ bool WideString::isFalse() const
 
 WideString& WideString::set(const char* str, size_t size)
 {
-    if (!str) {
-        clear();
-        return *this;
+    size_t inbytes = 0;
+    if (str) {
+        inbytes = (size != (size_t)-1) ? size : ::strlen(str);
     }
-    size_t inbytes = (size != (size_t)-1) ? size : ::strlen(str);
-    if (inbytes > ::strlen(str)) inbytes = ::strlen(str);
-    if (inbytes == 0) {
+    if (!inbytes) {
         clear();
         return *this;
     }
@@ -275,13 +279,11 @@ WideString& WideString::set(const char* str, size_t size)
 
 WideString& WideString::set(const wchar_t* str, size_t size)
 {
-    if (!str) {
-        clear();
-        return *this;
+    size_t inchars = 0;
+    if (str) {
+        inchars = (size != (size_t)-1) ? size : ::wcslen(str);
     }
-    size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
-    if (inchars > ::wcslen(str)) inchars = ::wcslen(str);
-    if (inchars == 0) {
+    if (!inchars) {
         clear();
         return *this;
     }
@@ -1231,6 +1233,7 @@ WideString& WideString::repeat(size_t num)
         clear();
         return *this;
     }
+    if (stringlen > (std::numeric_limits<size_t>::max)() / num) throw IllegalArgumentException("resulting string is too large");
     reserve(stringlen * num);
     wchar_t* tmp = ptr + stringlen;
     for (size_t i = 1; i < num; i++) {
@@ -1270,6 +1273,7 @@ WideString& WideString::repeat(const WideString& str, size_t num)
         temp_holder = str;
         src_ptr = temp_holder.getPtr();
     }
+    if (str.stringlen > (std::numeric_limits<size_t>::max)() / num) throw IllegalArgumentException("resulting string is too large");
     reserve(str.stringlen * num);
     wchar_t* dst = ptr;
     for (size_t i = 0; i < num; i++) {
@@ -1547,22 +1551,22 @@ bool WideString::has(const WideString& needle, bool ignoreCase) const
     }
 }
 
-bool WideString::startsWith(const WideString& prefix, size_t start, size_t end) const
+bool WideString::startsWith(const WideString& prefix, size_t start, size_t len) const
 {
     WideString part;
-    if (start > 0 || end != (size_t)-1) {
-        part = mid(start, end).left(prefix.size());
+    if (start > 0 || len != (size_t)-1) {
+        part = mid(start, len).left(prefix.size());
     } else {
         part = left(prefix.size());
     }
     return part == prefix;
 }
 
-bool WideString::endsWith(const WideString& suffix, size_t start, size_t end) const
+bool WideString::endsWith(const WideString& suffix, size_t start, size_t len) const
 {
     WideString part;
-    if (start > 0 || end != (size_t)-1) {
-        part = mid(start, end).right(suffix.size());
+    if (start > 0 || len != (size_t)-1) {
+        part = mid(start, len).right(suffix.size());
     } else {
         part = right(suffix.size());
     }
