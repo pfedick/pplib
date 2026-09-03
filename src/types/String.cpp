@@ -34,7 +34,6 @@
 #include <strings.h>
 #include <stdarg.h>
 #include <wchar.h>
-#include <wctype.h>
 #include <locale.h>
 #include <vector>
 
@@ -45,7 +44,6 @@
 #include <pplib/types/array.h>
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
-#include <pplib/core/iconv.h>
 
 #include <config_pplib.h>
 
@@ -215,23 +213,13 @@ bool String::isFalse() const
     return true;
 }
 
-inline static size_t get_validated_size(const char* str, size_t size)
-{
-    if (!str) return 0;
-    if (size == (size_t)-1) return ::strlen(str);
-    const void* nul = ::memchr(str, 0, size);
-    return nul ? (size_t)((const char*)nul - str) : size;
-}
-
 String& String::set(const char* str, size_t size)
 {
-    if (!str) {
-        clear();
-        return *this;
+    size_t inbytes = 0;
+    if (str) {
+        inbytes = (size != (size_t)-1) ? size : ::strlen(str);
     }
-    size_t inbytes = (size != (size_t)-1) ? size : ::strlen(str);
-    if (size > strlen(str)) inbytes = strlen(str);
-    if (inbytes == 0) {
+    if (!inbytes) {
         clear();
         return *this;
     }
@@ -254,12 +242,14 @@ String& String::set(const char* str, size_t size)
 
 String& String::set(const wchar_t* str, size_t size)
 {
-    if (str == NULL || size == 0) {
+    size_t inchars = 0;
+    if (str) {
+        inchars = (size != (size_t)-1) ? size : ::wcslen(str);
+    }
+    if (inchars == 0) {
         clear();
         return *this;
     }
-    size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
-    if (size > ::wcslen(str)) inchars = ::wcslen(str);
 
     // Schutz vor Buffer Overread bei Teil-Wide-Strings
     std::vector<wchar_t> temp_wstr;
@@ -285,57 +275,32 @@ String& String::set(const wchar_t* str, size_t size)
 
 String& String::set(const String& str, size_t size)
 {
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = str.stringlen;
-    if (inbytes > str.stringlen) inbytes = str.stringlen;
-    return set(str.ptr, inbytes);
+    if (size == (size_t)-1 || size > str.stringlen) size = str.stringlen;
+    return set(str.ptr, size);
 }
 
 String& String::set(const ByteArrayPtr& str, size_t size)
 {
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = str.size();
-    if (inbytes > str.size()) inbytes = str.size();
-    return set((const char*)str.adr(), inbytes);
+    if (size == (size_t)-1 || size > str.size()) size = str.size();
+    return set((const char*)str.adr(), size);
 }
 
 String& String::set(const WideString& str, size_t size)
 {
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = str.size();
-    if (inbytes > str.size()) inbytes = str.size();
-    return set(str.getPtr(), inbytes);
+    if (size == (size_t)-1 || size > str.size()) size = str.size();
+    return set(str.getPtr(), size);
 }
 
 String& String::set(const std::string& str, size_t size)
 {
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = str.length();
-    if (inbytes > str.length()) inbytes = str.length();
-    return set((const char*)str.c_str(), inbytes);
+    if (size == (size_t)-1 || size > str.length()) size = str.length();
+    return set((const char*)str.c_str(), size);
 }
 
 String& String::set(const std::wstring& str, size_t size)
 {
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = str.length();
-    if (inbytes > str.length()) inbytes = str.length();
-    return set(str.c_str(), inbytes);
+    if (size == (size_t)-1 || size > str.length()) size = str.length();
+    return set(str.c_str(), size);
 }
 
 String& String::set(size_t position, char c)
@@ -426,10 +391,7 @@ String& String::append(const char* str, size_t size)
         if (newbuffersize < required_bytes) {
             newbuffersize = required_bytes + 16; // Fallback, falls Verdopplung nicht reicht
         }
-        char* t = (char*)realloc(ptr, newbuffersize);
-        if (!t) throw OutOfMemoryException();
-        ptr = t;
-        s = newbuffersize;
+        reserve(newbuffersize);
     }
     memcpy(ptr + stringlen, str, inchars);
     stringlen += inchars;
@@ -439,6 +401,7 @@ String& String::append(const char* str, size_t size)
 
 String& String::append(const String& str, size_t size)
 {
+    if (size == (size_t)-1 || size > str.length()) size = str.length();
     return append(str.ptr, size);
 }
 
@@ -451,7 +414,7 @@ String& String::append(const WideString& str, size_t size)
 
 String& String::append(const std::string& str, size_t size)
 {
-    if (size == (size_t)-1) return append(str.data(), str.size());
+    if (size == (size_t)-1 || size > str.size()) size = str.size();
     return append(str.data(), size);
 }
 
@@ -480,41 +443,6 @@ String& String::append(char c)
     return append(buffer, 1);
 }
 
-String& String::prepend(const wchar_t* str, size_t size)
-{
-    String a;
-    a.set(str, size);
-    return prepend((const char*)a.ptr, a.stringlen);
-}
-
-String& String::prepend(const String& str, size_t size)
-{
-    return prepend(str.ptr, size);
-}
-
-String& String::prepend(const WideString& str, size_t size)
-{
-    String a;
-    a.set(str, size);
-    return prepend(a.ptr, a.stringlen);
-}
-
-String& String::prepend(const std::string& str, size_t size)
-{
-    if (size == (size_t)-1) return prepend(str.data(), str.size());
-    return prepend(str.data(), size);
-}
-
-String& String::prepend(const std::wstring& str, size_t size)
-{
-    if (stringlen == 0) {
-        return set(str, size);
-    }
-    String a;
-    a.set(str, size);
-    return prepend(a.ptr, a.stringlen);
-}
-
 String& String::prepend(const char* str, size_t size)
 {
     if (str == NULL || size == 0) return *this;
@@ -537,10 +465,7 @@ String& String::prepend(const char* str, size_t size)
         if (newbuffersize < required_bytes) {
             newbuffersize = required_bytes + 16; // Fallback, falls Verdopplung nicht reicht
         }
-        char* t = (char*)realloc(ptr, newbuffersize);
-        if (!t) throw OutOfMemoryException();
-        ptr = t;
-        s = newbuffersize;
+        reserve(newbuffersize);
     }
     // Bestehenden Speicherblock nach hinten moven
     memmove(((char*)ptr) + inchars, ptr, stringlen);
@@ -549,6 +474,39 @@ String& String::prepend(const char* str, size_t size)
     stringlen += inchars;
     ptr[stringlen] = 0;
     return *this;
+}
+
+String& String::prepend(const wchar_t* str, size_t size)
+{
+    String a;
+    a.set(str, size);
+    return prepend((const char*)a.ptr, a.stringlen);
+}
+
+String& String::prepend(const String& str, size_t size)
+{
+    if (size == (size_t)-1 || size > str.length()) size = str.length();
+    return prepend(str.ptr, size);
+}
+
+String& String::prepend(const WideString& str, size_t size)
+{
+    String a;
+    a.set(str, size);
+    return prepend(a.ptr, a.stringlen);
+}
+
+String& String::prepend(const std::string& str, size_t size)
+{
+    if (size == (size_t)-1 || size > str.size()) size = str.size();
+    return prepend(str.data(), size);
+}
+
+String& String::prepend(const std::wstring& str, size_t size)
+{
+    String a;
+    a.set(str, size);
+    return prepend(a.ptr, a.stringlen);
 }
 
 String& String::prependf(const char* fmt, ...)

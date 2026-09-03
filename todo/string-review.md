@@ -68,7 +68,7 @@ Verifiziert: Exception-Namen gegen `include/pplib/exceptions.h` / `include/pplib
   ```
   bzw. einfacher: die zweite Zeile ganz entfernen, da die erste Zeile bereits das Gewünschte leistet.
 
-  ==> TODO: Tests schreiben, die das aufdecken, dann fixen
+  ==> FIXED
 
 - [ ] **`append`/`prepend` mit `String&`/`std::string&`-Quelle klemmen `size` nicht auf die tatsächliche Quelllänge → OOB-Read** (`String.cpp:432-435, 444-448, 482-485, 494-498`)
   ```cpp
@@ -99,6 +99,8 @@ Verifiziert: Exception-Namen gegen `include/pplib/exceptions.h` / `include/pplib
       return append(str.ptr, size);
   }
   ```
+
+  ==> FIXED
 
 ## Bugs (mittel)
 

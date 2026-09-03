@@ -518,6 +518,170 @@ TEST(StringTest, setCharWithPosition)
     ASSERT_THROW(s1.set(11, '-'), pplib::OutOfBoundsException) << "set() did not throw OutOfBoundsException";
 }
 
+TEST(StringTest, setSizeParameterWithCharptr)
+{
+    size_t loremipsum_len = strlen(loremipsum);
+    pplib::ByteArray testdata(loremipsum, loremipsum_len);
+    pplib::String s1;
+    // Test 1: whole string without size parameter
+    s1.set((const char*)testdata.ptr());
+    EXPECT_EQ(s1.size(), loremipsum_len) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s1.set((const char*)testdata.ptr(), loremipsum_len);
+    EXPECT_EQ(s1.size(), loremipsum_len) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set((const char*)testdata.ptr(), 10);
+    EXPECT_EQ(s1.size(), (size_t)10) << "String has unexpected value";
+
+    // Test 4: size ist größer strlen
+    testdata[15] = 0;
+    s1.set((const char*)testdata.ptr(), 20);
+    EXPECT_EQ(s1.size(), (size_t)20) << "String has unexpected value";
+}
+
+TEST(StringTest, setSizeParameterWithWcharptr)
+{
+    size_t loremipsum_len = wcslen(loremipsum_wchar);
+    pplib::ByteArray testdata((const unsigned char*)loremipsum_wchar, loremipsum_len * sizeof(wchar_t));
+    pplib::String s1;
+    // Test 1: whole string without size parameter
+    s1.set((const wchar_t*)testdata.ptr());
+    EXPECT_EQ(s1.size(), loremipsum_len) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s1.set((const wchar_t*)testdata.ptr(), loremipsum_len);
+    EXPECT_EQ(s1.size(), loremipsum_len) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set((const wchar_t*)testdata.ptr(), 10);
+    EXPECT_EQ(s1.size(), (size_t)10) << "String has unexpected value";
+
+    // Test 4: size ist größer strlen
+    // Besonderheit: Bei der Konvertierung von WideString zu String wird am ersten 0-Byte abgeschnitten,
+    // daher ist die finale String-Länge kleiner als die angegebene Größe.
+    ((wchar_t*)testdata.ptr())[15] = 0;
+    s1.set((const wchar_t*)testdata.ptr(), 20);
+    EXPECT_EQ(s1.size(), (size_t)15) << "String has unexpected value";
+}
+
+TEST(StringTest, setSizeParameterWithString)
+{
+    pplib::String s1(loremipsum, strlen(loremipsum));
+    pplib::String s2;
+
+    // Test 1: whole string without size parameter
+    s2.set(s1);
+    EXPECT_EQ(s2.size(), s1.size()) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s2.set(s1, s1.size());
+    EXPECT_EQ(s2.size(), s1.size()) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s2.set(s1, 5);
+    EXPECT_EQ(s2.size(), (size_t)5) << "String has unexpected value";
+
+    // Test 4: size is greater than string length
+    s2.set(s1, 20);
+    EXPECT_EQ(s2.size(), (size_t)20) << "String has unexpected value";
+}
+
+TEST(StringTest, setSizeParameterWithWideString)
+{
+    pplib::WideString ws(loremipsum_wchar, wcslen(loremipsum_wchar));
+    pplib::String s1;
+
+    // Test 1: whole string without size parameter
+    s1.set(ws);
+    EXPECT_EQ(s1.size(), wcslen(loremipsum_wchar)) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s1.set(ws, wcslen(loremipsum_wchar));
+    EXPECT_EQ(s1.size(), wcslen(loremipsum_wchar)) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set(ws, 10);
+    EXPECT_EQ(s1.size(), (size_t)10) << "String has unexpected value";
+
+    // Test 4: size is greater than string length
+    ws[15] = 0;
+    s1.set(ws, 20);
+    EXPECT_EQ(s1.size(), (size_t)15) << "String has unexpected value";
+}
+
+TEST(StringTest, setSizeParameterWithByteArray)
+{
+    pplib::ByteArray ba((const unsigned char*)loremipsum, strlen(loremipsum));
+    pplib::String s1;
+
+    // Test 1: whole array without size parameter
+    s1.set(ba);
+    EXPECT_EQ(s1.size(), strlen(loremipsum)) << "String has unexpected value";
+
+    // Test 2: whole array with size parameter
+    s1.set(ba, strlen(loremipsum));
+    EXPECT_EQ(s1.size(), strlen(loremipsum)) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set(ba, 10);
+    EXPECT_EQ(s1.size(), (size_t)10) << "String has unexpected value";
+
+    // Test 4: size is greater than array length
+    ba[15] = 0;
+    s1.set(ba, 20);
+    EXPECT_EQ(s1.size(), (size_t)20) << "String has unexpected value";
+}
+
+TEST(StringTest, setSizeParameterWithStdString)
+{
+    std::string stdstr(loremipsum, strlen(loremipsum));
+    pplib::String s1;
+
+    // Test 1: whole string without size parameter
+    s1.set(stdstr);
+    EXPECT_EQ(s1.size(), strlen(loremipsum)) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s1.set(stdstr, strlen(loremipsum));
+    EXPECT_EQ(s1.size(), strlen(loremipsum)) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set(stdstr, 10);
+    EXPECT_EQ(s1.size(), (size_t)10) << "String has unexpected value";
+
+    // Test 4: size is greater than string length
+    stdstr[15] = 0;
+    s1.set(stdstr, 20);
+    EXPECT_EQ(s1.size(), (size_t)20) << "String has unexpected value";
+}
+
+TEST(StringTest, setSizeParameterWithStdWstring)
+{
+    std::wstring stdwstr(loremipsum_wchar, wcslen(loremipsum_wchar));
+    pplib::String s1;
+
+    // Test 1: whole string without size parameter
+    s1.set(stdwstr);
+    EXPECT_EQ(s1.size(), wcslen(loremipsum_wchar)) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s1.set(stdwstr, wcslen(loremipsum_wchar));
+    EXPECT_EQ(s1.size(), wcslen(loremipsum_wchar)) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set(stdwstr, 10);
+    EXPECT_EQ(s1.size(), (size_t)10) << "String has unexpected value";
+
+    // Test 4: size is greater than string length
+    // Hier haben wir wieder den Sonderfall: bei der Konvertierung von wchar_t*
+    // in die lokale Multibyte-Kodierung wird am ersten 0-Byte abgeschnitten
+    stdwstr[15] = 0;
+    s1.set(stdwstr, 20);
+    EXPECT_EQ(s1.size(), (size_t)15) << "String has unexpected value";
+}
+
 TEST(StringTest, setf)
 {
     pplib::String s2("Ein Test, 42, Wide, 10000");
@@ -694,6 +858,70 @@ TEST(StringTest, appendStdWStringWithSize)
     ASSERT_EQ(expected.size(), s1.size()) << "String has unexpected length";
 }
 
+TEST(StringTest, appendSizeParameterWithString)
+{
+    pplib::String s1("First Part");
+    pplib::String s2(loremipsum, strlen(loremipsum));
+
+    // Test 1: whole string without size parameter
+    s1.append(s2);
+    EXPECT_EQ(s1.size(), s2.size() + 10) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s1.set("First Part");
+    s1.append(s2, s2.size());
+    EXPECT_EQ(s1.size(), s2.size() + 10) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set("First Part");
+    s1.append(s2, 5);
+    EXPECT_EQ(s1.size(), (size_t)15) << "String has unexpected value";
+
+    // Test 4: size is greater than string length
+    s1.set("First Part");
+    s2[5] = 0;
+    s1.append(s2, 10);
+    EXPECT_EQ(s1.size(), (size_t)20) << "String has unexpected value";
+
+    // Size parameter is bigger than the actual string length
+    s1.set("First Part");
+    s2.set("Second Part");
+    s1.append(s2, 200);
+    EXPECT_EQ(s1.size(), (size_t)21) << "String has unexpected value";
+}
+
+TEST(StringTest, appendSizeParameterWithStdString)
+{
+    pplib::String s1("First Part");
+    std::string s2(loremipsum, strlen(loremipsum));
+
+    // Test 1: whole string without size parameter
+    s1.append(s2);
+    EXPECT_EQ(s1.size(), s2.size() + 10) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s1.set("First Part");
+    s1.append(s2, s2.size());
+    EXPECT_EQ(s1.size(), s2.size() + 10) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set("First Part");
+    s1.append(s2, 5);
+    EXPECT_EQ(s1.size(), (size_t)15) << "String has unexpected value";
+
+    // Test 4: size is greater than string length
+    s1.set("First Part");
+    s2[5] = 0;
+    s1.append(s2, 10);
+    EXPECT_EQ(s1.size(), (size_t)20) << "String has unexpected value";
+
+    // Size parameter is bigger than the actual string length
+    s1.set("First Part");
+    s2 = "Second Part";
+    s1.append(s2, 200);
+    EXPECT_EQ(s1.size(), (size_t)21) << "String has unexpected value";
+}
+
 TEST(StringTest, appendf)
 {
     pplib::String expected("First Part äöü, Ein Test, 42, Wide, 10000");
@@ -772,11 +1000,11 @@ TEST(StringTest, prependConstWchartWithoutSize)
 
 TEST(StringTest, prependConstWchartWithSize)
 {
-    pplib::String expected("äöü SFirst Part äöü, ");
+    pplib::String expected("äöü SecoFirst Part äöü, ");
     pplib::String s1("First Part äöü, ");
     s1.prepend(L"äöü Second Part", 8);
     ASSERT_EQ(expected, s1) << "String has unexpected value";
-    ASSERT_EQ((size_t)27, s1.size()) << "String has unexpected length";
+    ASSERT_EQ((size_t)30, s1.size()) << "String has unexpected length";
 
     pplib::String s("Text");
     s.prepend(L"ä", 1); // 1 Wide-Char "ä" should result in "äText"
@@ -859,6 +1087,70 @@ TEST(StringTest, prependStdWStringWithSize)
     s1.prepend(s2, 5);
     ASSERT_EQ(expected, s1) << "String has unexpected value";
     ASSERT_EQ(expected.size(), s1.size()) << "String has unexpected length";
+}
+
+TEST(StringTest, prependSizeParameterWithString)
+{
+    pplib::String s1("First Part");
+    pplib::String s2(loremipsum, strlen(loremipsum));
+
+    // Test 1: whole string without size parameter
+    s1.prepend(s2);
+    EXPECT_EQ(s1.size(), s2.size() + 10) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s1.set("First Part");
+    s1.prepend(s2, s2.size());
+    EXPECT_EQ(s1.size(), s2.size() + 10) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set("First Part");
+    s1.prepend(s2, 5);
+    EXPECT_EQ(s1.size(), (size_t)15) << "String has unexpected value";
+
+    // Test 4: size is greater than string length
+    s1.set("First Part");
+    s2[5] = 0;
+    s1.prepend(s2, 10);
+    EXPECT_EQ(s1.size(), (size_t)20) << "String has unexpected value";
+
+    // Size parameter is bigger than the actual string length
+    s1.set("First Part");
+    s2.set("Second Part");
+    s1.prepend(s2, 200);
+    EXPECT_EQ(s1.size(), (size_t)21) << "String has unexpected value";
+}
+
+TEST(StringTest, prependSizeParameterWithStdString)
+{
+    pplib::String s1("First Part");
+    std::string s2(loremipsum, strlen(loremipsum));
+
+    // Test 1: whole string without size parameter
+    s1.prepend(s2);
+    EXPECT_EQ(s1.size(), s2.size() + 10) << "String has unexpected value";
+
+    // Test 2: whole string with size parameter
+    s1.set("First Part");
+    s1.prepend(s2, s2.size());
+    EXPECT_EQ(s1.size(), s2.size() + 10) << "String has unexpected value";
+
+    // Test 3: substring with size parameter
+    s1.set("First Part");
+    s1.prepend(s2, 5);
+    EXPECT_EQ(s1.size(), (size_t)15) << "String has unexpected value";
+
+    // Test 4: size is greater than string length
+    s1.set("First Part");
+    s2[5] = 0;
+    s1.prepend(s2, 10);
+    EXPECT_EQ(s1.size(), (size_t)20) << "String has unexpected value";
+
+    // Size parameter is bigger than the actual string length
+    s1.set("First Part");
+    s2 = "Second Part";
+    s1.prepend(s2, 200);
+    EXPECT_EQ(s1.size(), (size_t)21) << "String has unexpected value";
 }
 
 TEST(StringTest, prependf)

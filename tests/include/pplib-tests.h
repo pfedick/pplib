@@ -45,5 +45,6 @@ extern pplib::ConfigParser PPLIBTestConfig;
 
 extern const char* loremipsum;
 extern const char* loremipsum_md5;
+extern const wchar_t* loremipsum_wchar;
 
 #endif /* PPLIB_TESTS_H_ */

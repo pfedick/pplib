@@ -47,3 +47,10 @@ const char* loremipsum =
     "labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd "
     "gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
 const char* loremipsum_md5 = "901736df3fbc807121c46f9eaed8ff28";
+
+const wchar_t* loremipsum_wchar =
+    L"Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam "
+    "erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus "
+    "est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut "
+    "labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd "
+    "gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.";
