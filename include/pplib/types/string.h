@@ -62,6 +62,11 @@ class Array;
  * Der String wird intern als C-String mit 0-Byte am Ende gespeichert. Dabei kann es sich
  * um einen UTF-8 String, einen ASCII-String oder einen String in einer anderen Kodierung handeln.
  *
+ * @note Sowohl die Setter als auch die Append- und Prepend methoden erlauben es Strings zu übergeben,
+ * die 0-Bytes enthalten können. Hierbei ist zu beachten, dass Strings beider Ausgabe zum Beispiel mit
+ * printf am Null-Byte abgeschnitten werden. Gleiches passiert auch bei der Konvertierung in einen
+ * WideString oder std::wstring.
+ *
  * @note Bei der Konvertierung zwischen String und WideString wird die eingestellte Kodierung
  * verwendet, die mit der Funktion setlocale() aus der C-Standardbibliothek festgelegt wurde.
  * In der Regel ist der Defaultwert "C", daher sollte beim Start des Programms setlocale()
