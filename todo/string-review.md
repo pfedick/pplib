@@ -125,6 +125,8 @@ Verifiziert: Exception-Namen gegen `include/pplib/exceptions.h` / `include/pplib
   return sawDigit;
   ```
 
+  ===> FIXED
+
 - [ ] **`startsWith`/`endsWith`: Parameter `end` ist als "Endposition" dokumentiert, wird aber als Länge an `mid()` übergeben** (`string.h:1220-1242`, `String.cpp:1294-1314`)
   ```cpp
   bool String::startsWith(const String& prefix, size_t start, size_t end) const

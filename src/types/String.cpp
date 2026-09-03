@@ -167,11 +167,14 @@ bool String::isNumeric() const
 {
     if (!stringlen) return false;
     size_t dotcount = 0;
+    bool sawDigit = false;
     for (size_t i = 0; i < stringlen; i++) {
         int c = ((char*)ptr)[i];
-        if (c < '0' || c > '9') {
-            if (c != '.' && c != ',' && c != '-') return false;
-            if (c == '-' && i > 0) return false;
+        if (c >= '0' && c <= '9') {
+            sawDigit = true;
+        } else {
+            if (c != '.' && c != ',' && c != '-' && c != '+') return false;
+            if ((c == '-' || c == '+') && i > 0) return false;
             if (c == '.' || c == ',') {
                 dotcount++;
                 if (dotcount > 1) return false;
@@ -179,20 +182,23 @@ bool String::isNumeric() const
         }
     }
     if (ptr[stringlen - 1] == '.') return false;
-    return (true);
+    return sawDigit;
 }
 
 bool String::isInteger() const
 {
     if (!stringlen) return false;
+    bool sawDigit = false;
     for (size_t i = 0; i < stringlen; i++) {
         int c = ((char*)ptr)[i];
-        if (c < '0' || c > '9') {
-            if (c == '-' && i == 0) continue; // Minus am Anfang ist erlaubt
+        if (c >= '0' && c <= '9') {
+            sawDigit = true;
+        } else {
+            if ((c == '-' || c == '+') && i == 0) continue; // Minus am Anfang ist erlaubt
             return false;
         }
     }
-    return true;
+    return sawDigit;
 }
 
 bool String::isTrue() const

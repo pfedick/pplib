@@ -251,6 +251,19 @@ TEST(StringTest, isNumeric)
     ASSERT_FALSE(pplib::String("123.45-67").isNumeric()) << "String should not be numeric";
     ASSERT_FALSE(pplib::String("123,45-67").isNumeric()) << "String should not be numeric";
     ASSERT_FALSE(pplib::String("123.").isNumeric()) << "String should not be numeric";
+
+    EXPECT_EQ(pplib::String("+123").isNumeric(), true) << "Empty string should not be an integer";
+
+    ASSERT_FALSE(pplib::String("+").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::String("-").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::String(".").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::String(",").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::String("+-").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::String("-+").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::String("+-123").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::String("-+123").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::String("123+").isInteger()) << "String should not be an integer";
+    ASSERT_FALSE(pplib::String("123-").isInteger()) << "String should not be an integer";
 }
 
 TEST(StringTest, isInteger)
@@ -273,6 +286,18 @@ TEST(StringTest, isInteger)
     ASSERT_EQ(s1.isInteger(), false) << "String should be an integer";
     s1.set("-123.451,12-9");
     ASSERT_EQ(s1.isInteger(), false) << "String should not be an integer";
+
+    EXPECT_EQ(pplib::String("+123").isInteger(), true) << "Empty string should not be an integer";
+    EXPECT_EQ(pplib::String().isInteger(), false) << "Empty string should not be an integer";
+    EXPECT_EQ(pplib::String("-").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::String(".").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::String("+").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::String("+-").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::String("-+").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::String("+-123").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::String("-+123").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::String("123+").isInteger(), false) << "String should not be an integer";
+    EXPECT_EQ(pplib::String("123-").isInteger(), false) << "String should not be an integer";
 }
 
 TEST(StringTest, isTrue)
