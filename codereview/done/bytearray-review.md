@@ -28,6 +28,8 @@ Verifiziert: `String::getPtr()`/`WideString::getPtr()` liefern `const char*`/`co
   da die Klassen laut Doku keine echte Ist-eine-Beziehung haben, sondern nur Storage/Interface wiederverwenden – auf `private`/`protected`
   Vererbung oder Komposition umstellen, damit eine `ByteArray` gar nicht erst als `ByteArrayPtr` "gesliced" werden kann.
 
+  ==> FIXED: Destruktor ist nun virtuell, Methode "truncate" aus ByteArrayPtr entfernt
+
 - [ ] **`ByteArray::malloc()` / `ByteArray::calloc()`: Use-after-free bei Größenüberschreitung** (`ByteArray.cpp:235-267`)
   ```cpp
   void* ByteArray::malloc(size_t size)
@@ -121,9 +123,13 @@ Verifiziert: `String::getPtr()`/`WideString::getPtr()` liefern `const char*`/`co
   non-const Variante bekommt), oder – einfacher – `ByteArrayPtr`, das per String/WideString konstruiert wurde, intern als "read-only"
   markieren und bei `set()`/`operator[]`(non-const)/`memset()` eine Exception werfen.
 
+  ==> bleibt so
+
 - [ ] **Duplizierter Self-Overlap-Schutz in `copy()`, `append()`, `prepend()`** (`ByteArray.cpp:118-122, 160-164, 197-201`)
   Identischer 5-Zeiler (Adressbereich-Check + `std::vector`-Staging) dreimal kopiert. Kandidat für eine private Hilfsfunktion, z.B.
   `static const void* stageIfOverlapping(const void* adr, size_t size, size_t ptrsize_self, void* ptradr_self, std::vector<char>& holder)`.
+
+  ==> bleibt erstmal so
 
 - [ ] **Sehr breite, teils implizite Pointer-Schnittstelle** (`bytearrayptr.h:157-165, 203-219, 223-226`)
   `adr()`, `ptr()` und `toCharPtr()` liefern alle denselben Pointer nur mit anderem Namen/Typ, zusätzlich drei *implizite*
@@ -131,6 +137,8 @@ Verifiziert: `String::getPtr()`/`WideString::getPtr()` liefern `const char*`/`co
   impliziten Konvertierungen ein (z.B. eine `ByteArrayPtr` landet ungewollt dort, wo ein `const char*` erwartet wird). Für neuen Code
   wäre `explicit` auf den Konvertierungsoperatoren sicherer; für Bestandscode vermutlich zu riskant, daher eher ein Punkt für die
   große Namespace/API-Aufräumrunde als ein akuter Fix.
+
+  ==> bleibt
 
 ## Doku / Kosmetik
 

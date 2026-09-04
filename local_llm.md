@@ -9,13 +9,13 @@
 
 ## Codeanalyse
 - Ziel ist es, den Quellcode auf Fehler zu analysieren und Verbesserungsvorschläge zu machen
-- Aufgrund der Tokenbegrenzung ist es nicht möglich, den gesamten Quellcode auf einmal zu analysieren
-- Gehe daher schrittweise vor
+- Gehe schrittweise vor
 - Analysiere nur die angegebenen Header- und Quellcodedateien
 - lese weitere Dateien, sofern erforderlich
 - speichere Zwischenschritte und Ergebnisse, zum Beispiel in einer Markdown-Datei, die den Namen der zu Überprüfenden Datei oder Klasse trägt
 - Wenn Du bei der Analyse andere Datein und Klassen einließt un darin Fehler findest, melde diese bitte am Ende, getrennt vom Hauptteil.
 - Im Report gerne auch Code-Snippets zur Korrektur des Fehlers
+- Ergebnisse der Reviews bitte im Pfad "codereview/todo" ablegen
 
 # Unittests schreiben
 Du bist ein lokal laufendes LLM mit begrenzter Kontext-Größe (ca. 80000 Token). Einige meiner Quelldateien sind möglicherweise zu groß, um sie vollständig auf einmal zu verarbeiten.
