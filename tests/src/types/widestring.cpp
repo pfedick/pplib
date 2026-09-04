@@ -567,6 +567,24 @@ TEST(WideStringTest, setSTDWStringRefWithSize)
     ASSERT_EQ(pplib::WideString(L"äöü, a test string with unicode characters"), s1) << "String has unexpected value";
 }
 
+TEST(WideStringTest, setByteArrayPtr)
+{
+    pplib::ByteArray ba(L"äöü, a test string with unicode characters", 42 * sizeof(wchar_t));
+    pplib::WideString s2;
+    s2.set(ba);
+    ASSERT_EQ(pplib::WideString(L"äöü, a test string with unicode characters"), s2) << "String has unexpected value";
+    ASSERT_EQ((size_t)42, s2.size()) << "String has unexpected length";
+}
+
+TEST(WideStringTest, setByteArrayPtrWithSize)
+{
+    pplib::ByteArray ba(L"äöü, a test string with unicode characters", 42 * sizeof(wchar_t));
+    pplib::WideString s2;
+    s2.set(ba, 10);
+    ASSERT_EQ(pplib::WideString(L"äöü, a tes"), s2) << "String has unexpected value";
+    ASSERT_EQ((size_t)10, s2.size()) << "String has unexpected length";
+}
+
 TEST(WideStringTest, setToPosition)
 {
     pplib::WideString s2(L"äöü, a test string with unicode characters");
@@ -1122,6 +1140,114 @@ TEST(WideStringTest, toUtf8)
     ASSERT_EQ(0x9A, buf5[2]);
     ASSERT_EQ(0x80, buf5[3]);
 #endif
+}
+
+TEST(WideStringTest, fromUtf8)
+{
+    // Leerer String
+    pplib::WideString s1;
+    s1.fromUtf8("");
+    ASSERT_EQ((size_t)0, s1.len()) << "Empty UTF-8 string should result in empty WideString";
+
+    // Einfacher ASCII
+    pplib::WideString s2;
+    s2.fromUtf8("ABC");
+    ASSERT_EQ(pplib::WideString(L"ABC"), s2) << "ASCII UTF-8 string conversion mismatch";
+
+    // Unicode BMP Zeichen (äöü)
+    pplib::WideString s3;
+    s3.fromUtf8("äöüTest");
+    ASSERT_EQ(pplib::WideString(L"äöüTest"), s3) << "BMP UTF-8 string conversion mismatch";
+
+    // Supplementary Plane Zeichen (🚀)
+    pplib::WideString s4;
+    s4.fromUtf8("🚀");
+    ASSERT_EQ(pplib::WideString(L"🚀"), s4) << "Supplementary Plane UTF-8 string conversion mismatch";
+
+    // 0xF0 bis 0xE0
+    pplib::WideString s5;
+    s5.fromUtf8("\xF0\x9F\x9A\x80"); // 🚀
+    ASSERT_EQ(pplib::WideString(L"🚀"), s5) << "4-byte UTF-8 string conversion mismatch";
+
+    // 0xE0 bis 0xC0 (3-byte UTF-8 sequence)
+    pplib::WideString s6;
+    s6.fromUtf8("\xE2\x9C\x93"); // ✓
+    ASSERT_EQ(pplib::WideString(L"✓"), s6) << "3-byte UTF-8 string conversion mismatch";
+
+    // 0xC0 bis 0x80 (2-byte UTF-8 sequence)
+    pplib::WideString s7;
+    s7.fromUtf8("\xC3\xA4"); // ä
+    ASSERT_EQ(pplib::WideString(L"ä"), s7) << "2-byte UTF-8 string conversion mismatch";
+}
+
+TEST(WideStringTest, fromUtf8Invalid)
+{
+    const wchar_t REPLACEMENT_CHARACTER = (wchar_t)0xFFFD;
+
+    // ungueltiges Continuation-Byte mitten in einer 3-Byte-Sequenz: nur das Lead-Byte wird
+    // ersetzt, das restliche kaputte Byte danach ebenfalls, das dazwischenliegende 'A' bleibt erhalten
+    {
+        pplib::WideString expected;
+        expected.append(REPLACEMENT_CHARACTER);
+        expected.append(L'A');
+        expected.append(REPLACEMENT_CHARACTER);
+        pplib::WideString s;
+        s.fromUtf8(pplib::ByteArrayPtr("\xE2\x41\x93", 3));
+        ASSERT_EQ(expected, s) << "Invalid continuation byte was not replaced correctly";
+    }
+
+    // Overlong Encoding von NUL (\xC0\x80) muss abgelehnt werden, nicht zu einem eingebetteten
+    // 0-Zeichen fuehren
+    {
+        pplib::WideString expected;
+        expected.append(REPLACEMENT_CHARACTER);
+        expected.append(REPLACEMENT_CHARACTER);
+        pplib::WideString s;
+        s.fromUtf8(pplib::ByteArrayPtr("\xC0\x80", 2));
+        ASSERT_EQ(expected, s) << "Overlong encoding should be rejected, not decoded as NUL";
+    }
+
+    // Direkt in UTF-8 kodiertes UTF-16-Surrogate (U+D800) ist laut RFC 3629 ungueltig
+    {
+        pplib::WideString expected;
+        expected.append(REPLACEMENT_CHARACTER);
+        expected.append(REPLACEMENT_CHARACTER);
+        expected.append(REPLACEMENT_CHARACTER);
+        pplib::WideString s;
+        s.fromUtf8(pplib::ByteArrayPtr("\xED\xA0\x80", 3));
+        ASSERT_EQ(expected, s) << "Encoded surrogate should be rejected";
+    }
+
+    // Codepoint jenseits von U+10FFFF (rechnerisch durch das 4-Byte-Bitmuster darstellbar, aber
+    // kein gueltiger Unicode-Codepoint)
+    {
+        pplib::WideString expected;
+        for (int i = 0; i < 4; i++)
+            expected.append(REPLACEMENT_CHARACTER);
+        pplib::WideString s;
+        s.fromUtf8(pplib::ByteArrayPtr("\xF7\xBF\xBF\xBF", 4));
+        ASSERT_EQ(expected, s) << "Codepoint beyond U+10FFFF should be rejected";
+    }
+
+    // Am Ende der Eingabe abgeschnittene Mehrbyte-Sequenz
+    {
+        pplib::WideString expected;
+        expected.append(L'A');
+        expected.append(REPLACEMENT_CHARACTER);
+        expected.append(REPLACEMENT_CHARACTER);
+        pplib::WideString s;
+        s.fromUtf8(pplib::ByteArrayPtr("A\xE2\x9C", 3));
+        ASSERT_EQ(expected, s) << "Truncated multi-byte sequence at end of input should be replaced";
+    }
+
+    // einzelnes, verirrtes Continuation-Byte ohne vorangehendes Lead-Byte
+    {
+        pplib::WideString expected;
+        expected.append(REPLACEMENT_CHARACTER);
+        pplib::WideString s;
+        s.fromUtf8(pplib::ByteArrayPtr("\x80", 1));
+        ASSERT_EQ(expected, s) << "Lone continuation byte should be replaced";
+    }
 }
 
 TEST(WideStringTest, toUCS4)
@@ -2292,6 +2418,44 @@ TEST(WideStringTest, replace)
     s1.set(L"The quick brown fox jumps over the lazy dog");
     s1.replace(L"", L"Hello World");
     ASSERT_EQ(pplib::WideString(L"The quick brown fox jumps over the lazy dog"), s1) << "String has unexpected value";
+}
+
+TEST(WideStringTest, shl)
+{
+    pplib::WideString s1(L"Hello World!");
+    s1.shl(0, 5);
+    ASSERT_EQ(pplib::WideString(L" World!"), s1) << "String has unexpected value";
+    s1.shl(L' ', 2);
+    ASSERT_EQ(pplib::WideString(L"orld!  "), s1) << "String has unexpected value";
+
+    s1.shl(L' ', 0);
+    ASSERT_EQ(pplib::WideString(L"orld!  "), s1) << "String has unexpected value";
+    s1.shl(L' ', 100);
+    ASSERT_EQ(pplib::WideString(L"       "), s1) << "String has unexpected value";
+
+    s1.set(L"");
+    s1.shl(L' ', 5);
+    ASSERT_EQ(pplib::WideString(L""), s1) << "String has unexpected value";
+}
+
+TEST(WideStringTest, shr)
+{
+    pplib::WideString s1(L"Hello World!");
+    s1.shr(0, 5);
+    ASSERT_EQ(pplib::WideString(L"Hello W"), s1) << "String has unexpected value";
+    s1.set(L"Hello World!");
+    s1.shr(L' ', 2);
+    ASSERT_EQ(pplib::WideString(L"  Hello Worl"), s1) << "String has unexpected value";
+    s1.shr(L' ', 0);
+    ASSERT_EQ(pplib::WideString(L"  Hello Worl"), s1) << "String has unexpected value";
+
+    s1.set(L"");
+    s1.shr(L' ', 5);
+    ASSERT_EQ(pplib::WideString(L""), s1) << "String has unexpected value";
+
+    s1.set(L"Hello World!");
+    s1.shr(L' ', 100);
+    ASSERT_EQ(pplib::WideString(L"            "), s1) << "String has unexpected value";
 }
 
 TEST(WideStringTest, compareOperatorsWithStringObject)

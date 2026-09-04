@@ -325,6 +325,14 @@ WideString& WideString::set(const String& str, size_t size)
     return set((const char*)str.c_str(), inbytes);
 }
 
+WideString& WideString::set(const ByteArrayPtr& str, size_t size)
+{
+    size_t maxchars = str.size() / sizeof(wchar_t);
+    size_t inchars = (size != (size_t)-1) ? size : maxchars;
+    if (inchars > maxchars) inchars = maxchars;
+    return set((const wchar_t*)str.adr(), inchars);
+}
+
 WideString& WideString::set(const std::string& str, size_t size)
 {
     size_t inbytes;
@@ -637,6 +645,82 @@ ByteArray WideString::toUtf8() const
     buffer[dest_len] = 0;
     tmp_buffer.truncate(dest_len);
     return tmp_buffer;
+}
+
+WideString& WideString::fromUtf8(const String& str)
+{
+    return fromUtf8(ByteArrayPtr((const uint8_t*)str.c_str(), str.size()));
+}
+
+WideString& WideString::fromUtf8(const ByteArrayPtr& bin)
+{
+    clear();
+    if (bin.isEmpty()) return *this;
+    const wchar_t REPLACEMENT_CHARACTER = (wchar_t)0xFFFD;
+    size_t i = 0;
+    while (i < bin.size()) {
+        unsigned char c = bin[i];
+        uint32_t codepoint;
+        size_t len;
+        uint32_t min_codepoint;
+        if (c < 0x80) {
+            codepoint = c;
+            len = 1;
+            min_codepoint = 0;
+        } else if ((c & 0xE0) == 0xC0) {
+            codepoint = c & 0x1F;
+            len = 2;
+            min_codepoint = 0x80;
+        } else if ((c & 0xF0) == 0xE0) {
+            codepoint = c & 0x0F;
+            len = 3;
+            min_codepoint = 0x800;
+        } else if ((c & 0xF8) == 0xF0) {
+            codepoint = c & 0x07;
+            len = 4;
+            min_codepoint = 0x10000;
+        } else {
+            // ungueltiges Lead-Byte (verirrtes Continuation-Byte oder 0xF8-0xFF)
+            append(REPLACEMENT_CHARACTER);
+            i++;
+            continue;
+        }
+
+        // Continuation-Bytes einsammeln und dabei auf das Muster 10xxxxxx pruefen
+        bool valid = (i + len <= bin.size());
+        for (size_t k = 1; valid && k < len; k++) {
+            unsigned char cc = bin[i + k];
+            if ((cc & 0xC0) != 0x80) {
+                valid = false;
+                break;
+            }
+            codepoint = (codepoint << 6) | (cc & 0x3F);
+        }
+        // Overlong Encodings, UTF-16-Surrogates und Codepoints jenseits des gueltigen
+        // Unicode-Bereichs sind in UTF-8 nicht erlaubt (RFC 3629)
+        if (!valid || codepoint < min_codepoint || (codepoint >= 0xD800 && codepoint <= 0xDFFF) || codepoint > 0x10FFFF) {
+            append(REPLACEMENT_CHARACTER);
+            i++; // nur das erste Byte ueberspringen, um uns wieder zu synchronisieren
+            continue;
+        }
+        i += len;
+
+#if defined(_WIN32) || (defined(__SIZEOF_WCHAR_T__) && __SIZEOF_WCHAR_T__ == 2)
+        if (codepoint > 0xFFFF) {
+            codepoint -= 0x10000;
+            wchar_t high = (wchar_t)(0xD800 + (codepoint >> 10));
+            wchar_t low = (wchar_t)(0xDC00 + (codepoint & 0x3FF));
+            append(high);
+            append(low);
+        } else {
+            append((wchar_t)codepoint);
+        }
+#else
+        append((wchar_t)codepoint);
+#endif
+    }
+
+    return *this;
 }
 
 ByteArray WideString::toUCS4() const
@@ -1028,27 +1112,28 @@ WideString& WideString::trimRight()
 //! \brief Schneidet die definierten Zeichen am Anfang des Strings ab
 WideString& WideString::trimLeft(const WideString& chars)
 {
-    if (stringlen > 0 && chars.stringlen > 0) {
-        size_t i, start, s, z;
-        start = 0;
-        s = 0;
-        for (i = 0; i < stringlen; i++) {
-            int match = 0;
-            for (z = 0; z < chars.stringlen; z++) {
-                if (ptr[i] == chars.ptr[z]) {
-                    if (s == 0) start = i + 1;
-                    match = 1;
-                    break;
-                }
-            }
-            if (!match) {
-                s = 1;
+    if (stringlen == 0 || chars.isEmpty()) return *this;
+    size_t start = 0;
+    while (start < stringlen) {
+        bool match = false;
+        for (size_t z = 0; z < chars.stringlen; z++) {
+            if (ptr[start] == chars.ptr[z]) {
+                match = true;
+                break;
             }
         }
-        if (start > 0) {
-            memmove(ptr, ptr + start, (stringlen - start + 1) * sizeof(wchar_t));
-            stringlen = wcslen(ptr);
-        }
+        if (!match) break;
+        start++;
+    }
+
+    if (start == stringlen) {
+        clear();
+        return *this;
+    }
+    if (start > 0) {
+        size_t new_len = stringlen - start;
+        wmemmove(ptr, ptr + start, new_len + 1); // Kopiert den Null-Terminator mit
+        stringlen = new_len;
     }
     return *this;
 }
@@ -1056,26 +1141,26 @@ WideString& WideString::trimLeft(const WideString& chars)
 //! \brief Schneidet die definierten Zeichen am Ende des Strings ab
 WideString& WideString::trimRight(const WideString& chars)
 {
-    if (stringlen > 0 && chars.stringlen > 0) {
-        size_t i, ende, z;
-        ende = 0;
-        for (i = stringlen; i > 0; i--) {
-            wchar_t w = ptr[i - 1];
-            int match = 0;
-            for (z = 0; z < chars.stringlen; z++) {
-                if (w == chars.ptr[z]) {
-                    // if (s==0) start=i+1;
-                    match = 1;
-                    break;
-                }
-            }
-            if (!match) {
-                ende = i;
+    if (stringlen == 0 || chars.isEmpty()) return *this;
+
+    size_t end = stringlen;
+    while (end > 0) {
+        bool match = false;
+        for (size_t z = 0; z < chars.stringlen; z++) {
+            if (ptr[end - 1] == chars.ptr[z]) {
+                match = true;
                 break;
             }
         }
-        ptr[ende] = 0;
-        stringlen = wcslen(ptr);
+        if (!match) break;
+        end--;
+    }
+
+    if (end == 0) {
+        clear();
+    } else {
+        stringlen = end;
+        ptr[stringlen] = 0;
     }
     return *this;
 }
@@ -1089,16 +1174,6 @@ WideString& WideString::trim(const WideString& chars)
 }
 
 WideString& WideString::chopRight(size_t num)
-{
-    if (stringlen > 0) {
-        if (stringlen < num) num = stringlen;
-        stringlen -= num;
-        ptr[stringlen] = 0;
-    }
-    return *this;
-}
-
-WideString& WideString::chop(size_t num)
 {
     if (stringlen > 0) {
         if (stringlen < num) num = stringlen;
@@ -1144,6 +1219,32 @@ WideString& WideString::cut(const WideString& letter)
         stringlen = p;
     }
     return *this;
+}
+
+WideString& WideString::shl(wchar_t c, size_t size)
+{
+    if (!stringlen || !size) return *this;
+    if (size > stringlen) size = stringlen;
+    WideString t = mid(size);
+    if (c) {
+        WideString a;
+        a.repeat(c, size);
+        t += a;
+    }
+    set(t);
+    return *this;
+}
+
+WideString& WideString::shr(wchar_t c, size_t size)
+{
+    if (!stringlen || !size) return *this;
+    if (size > stringlen) size = stringlen;
+    WideString t;
+    if (c) {
+        t.repeat(c, size);
+    }
+    t += left(stringlen - size);
+    return set(t);
 }
 
 WideString WideString::strchr(wchar_t c) const

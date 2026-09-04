@@ -58,13 +58,25 @@ class Array;
  * @ingroup PPLGroupStrings
  * @brief WideString-Klasse
  *
- * \desc
- * Diese Klasse kann verwendet werden, um beliebige Strings zu speichern und zu verarbeiten. Dabei
- * braucht sich der Anwender keine Gedanken um den verwendeten Speicher zu machen.
- * Die einzelnen Zeichen des Strings werden intern im Unicode-Format gespeichert. Bei Übernahme eines
- * C-Strings wird erwartet, dass dieser im UTF-8 Format vorliegt, mit der statischen Funktion
- * WideString::setGlobalEncoding kann jedoch auch eine andere Kodierung vorgegeben werden.
+ * Diese Klasse repräsentiert einen Wide-String. Dieser wird unter Unix intern als Unicode in einem
+ * 32-Bit-Wide-Character-Format gespeichert, unter Windows als UTF-16 in einem 16-Bit-Wide-Character-Format
+ * (wchar_t).
  *
+ * Aufgrund der unterschiedlichen internen Darstellung von Wide-Strings auf verschiedenen Plattformen
+ * (32-Bit unter Unix, 16-Bit unter Windows) kann es zu plattformspezifischen Unterschieden bei der
+ * Verarbeitung und Konvertierung kommen. Insbesondere beziehen sich alle Längenangaben und Indizes
+ * unter Unix tatsächlich auf die Zeichen im String (Unicode), gemessen in 32-Bit-Wide-Characters,
+ * unter Windows jedoch auf die 16-Bit-Wide-Characters (UTF-16).
+ *
+ * Der String kann beliebige Zeichen enthalten, auch 0-Bytes. Allerdings ist nicht garantiert,
+ * dass alle Funktionen diese auch korrekt verarbeiten. Insbesondere bei der Ausgabe nach stdout
+ * oder bei der Konvertierung in einen String wird beim ersten 0-Byte abgeschnitten.
+ *
+ * @note Bei der Konvertierung zwischen String und WideString wird die von der Anwendung konfigurierte
+ * Zeichenkodierung verwendet (setlocale).
+ * @note Diese Klasse ist nicht threadsicher.
+ *
+ * @see String
  */
 class WideString
 {
@@ -136,6 +148,9 @@ public:
     /** @brief Konstruktor mit ByteArrayPtr
      *
      * Ein String wird aus einem ByteArrayPtr erstellt.
+     *
+     * Es wird davon ausgegangen,das ByteArray als Array von wchar_t interpretiert wird. Falls dies nicht der Fall ist, muss
+     * der Aufrufer gegebenenfalls zunächst Konvertieren, zum Beispiel mit Iconv.
      *
      * @param str Referenz auf einen ByteArrayPtr
      */
@@ -453,7 +468,36 @@ public:
      * @exception OutOfMemoryException
      */
     WideString& set(const WideString& str, size_t size = (size_t)-1);
+
+    /** @brief Wert eines Strings übernehmen
+     *
+     * Mit dieser Funktion wird der Inhalt des Strings \p str übernommen.
+     * @param str Referenz auf einen String
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
+     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
+     * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException
+     */
     WideString& set(const String& str, size_t size = (size_t)-1);
+
+    /** @brief WideString aus einem ByteArray übernehmen
+     *
+     * Mit dieser Funktion wird der Inhalt des ByteArrays \p str übernommen. Es wird davon ausgegangen,
+     * das ByteArray als Array von wchar_t interpretiert wird. Falls dies nicht der Fall ist, muss
+     * der Aufrufer gegebenenfalls zunächst Konvertieren, zum Beispiel mit Iconv.
+     * @param str Referenz auf ein Byte-Array
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird das komplette ByteArray übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
+     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
+     * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException
+     */
+    WideString& set(const ByteArrayPtr& str, size_t size = (size_t)-1);
 
     /** @brief Wert eines Strings der STL übernehmen
      *
@@ -852,7 +896,10 @@ public:
      * @see
      * Die Funktion ist identisch zu WideString::chopRight
      */
-    WideString& chop(size_t num = 1);
+    inline WideString& chop(size_t num = 1)
+    {
+        return chopRight(num);
+    }
 
     /** @brief Schneidet Zeichen am Anfang des Strings ab
      *
@@ -883,6 +930,32 @@ public:
      * soll. Zeigt der Pointer auf NULL oder ist der String leer, passiert nichts.
      */
     WideString& cut(const WideString& letter);
+
+    /** @brief Schiebt den String nach links
+     *
+     * Der String wird um die mit \c size angegebenen Anzahl Zeichen nach links verschoben und rechts mit dem durch \c c angegebenen
+     * Zeichen aufgefüllt.
+     * @param c Das Zeichen, mit dem der String auf der rechten Seite aufgefüllt werden soll. Wird der Wert 0 verwendet, findet keine
+     * Auffüllung statt, d.h. der String verkürzt sich einfach.
+     * @param size Die Anzahl Zeichen, um die der String nach links verschoben werden soll. Ist \c size größer als die Länge
+     * des Strings, wird der String komplett geleert und ist anschließend so groß wie size, sofern c>0 war.
+     *
+     * @return Referenz auf den String
+     */
+    WideString& shl(wchar_t c, size_t size);
+
+    /** @brief Schiebt den String nach rechts
+     *
+     * Der String wird um die mit \c size angegebenen Anzahl Zeichen nach rechts verschoben und links mit dem durch \c c angegebenen
+     * Zeichen aufgefüllt.
+     * @param c Das Zeichen, mit dem der String auf der linken Seite aufgefüllt werden soll. Wird der Wert 0 verwendet, findet keine
+     * Auffüllung statt, d.h. der String verkürzt sich einfach.
+     * @param size Die Anzahl Zeichen, um die der String nach rechts verschoben werden soll. Ist \c size größer als die Länge
+     * des Strings, wird der String komplett geleert und ist anschließend so groß wie size, sofern c>0 war.
+     *
+     * @return Referenz auf den String
+     */
+    WideString& shr(wchar_t c, size_t size);
 
     WideString trimmed() const;
 
@@ -1055,6 +1128,33 @@ public:
      * @return ByteArray mit der UTF8-Repräsentation des Strings.
      */
     ByteArray toUtf8() const;
+
+    /**@brief String aus UTF-8 kodierten Bytes setzen
+     *
+     * Mit dieser Funktion wird der Inhalt des Strings anhand des als \p bin übergebenen,
+     * UTF-8 kodierten Speicherbereichs gesetzt. Die Dekodierung erfolgt fest verdrahtet und
+     * unabhängig von der eingestellten locale (Gegenstück zu WideString::toUtf8), sodass ein
+     * Roundtrip über toUtf8()/fromUtf8() unabhängig von setlocale() immer verlustfrei
+     * funktioniert.
+     *
+     * Die Dekodierung ist streng nach RFC 3629: overlong encodings, direkt in UTF-8 kodierte
+     * UTF-16-Surrogates (0xD800-0xDFFF) sowie Codepoints jenseits von U+10FFFF gelten als
+     * ungültig. Jede ungültige Byte-Sequenz wird durch das Replacement-Zeichen U+FFFD ersetzt,
+     * wobei nur das jeweils erste ungültige Byte übersprungen wird, um die Synchronisation mit
+     * dem restlichen Datenstrom nicht zu verlieren.
+     *
+     * @param bin Referenz auf einen Speicherbereich mit UTF-8 kodierten Daten
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException
+     */
+    WideString& fromUtf8(const ByteArrayPtr& bin);
+
+    /**@brief String aus UTF-8 kodiertem String setzen
+     *
+     * @copydetails WideString::fromUtf8(const ByteArrayPtr&)
+     * @param str Referenz auf einen String mit UTF-8 kodiertem Inhalt
+     */
+    WideString& fromUtf8(const String& str);
 
     /**@brief String in die lokale Kodierung umwandeln
      *

@@ -95,6 +95,8 @@ Zwei zentrale Befunde wurden nicht nur durch Code-Lesen, sondern zusätzlich **e
   (Gegenstück zum bereits vorhandenen handgeschriebenen UTF-8-Encoder), statt `mbstowcs()`. Damit wird gleichzeitig
   das REFACTORING.md-Ziel "UTF-8 überall, auch unter Windows" für diese Klasse erfüllt.
 
+  ===> Doku präzisiert. Methode "fromUtf8" hinzugefügt
+
 ## Bugs (mittel)
 
 - [ ] **`len()`/`size()`/`operator[]`/`get()`/`left()`/`right()`/`mid()`/`chopLeft()`/`chopRight()`/`cut()` zählen unter Windows UTF-16-Code-Units statt Zeichen – Surrogate-Pairs können zerschnitten werden** (durchgängig, z.B. `WideString.cpp:711-730, 861-886`)
@@ -110,6 +112,8 @@ Zwei zentrale Befunde wurden nicht nur durch Code-Lesen, sondern zusätzlich **e
   Codepoint fasst – auf dieser Plattform daher nicht reproduzierbar, aber ein reales Problem für den Windows-Build.
   Fix: Mindestens dokumentieren, dass Positionsangaben Code-Units und keine Zeichen sind (analog zu UTF-16-APIs wie
   `std::u16string`); für "sauberes" Verhalten müssten die positionsbasierten Methoden Surrogate-Grenzen respektieren.
+
+  ===> Doku präzisiert
 
 - [ ] **Integer-Overflow in `repeat(size_t num)` / `repeat(const WideString&, size_t num)` vor `reserve()`** (`WideString.cpp:1227-1243, 1259-1282`)
   ```cpp
@@ -159,14 +163,20 @@ Zwei zentrale Befunde wurden nicht nur durch Code-Lesen, sondern zusätzlich **e
   Fix: Doku klar trennen ("roher Binär-Rundtrip, kein Encoding" vs. "dekodierter Text"), ggf. Methode umbenennen
   (z.B. `fromRawWideChars`/`toRawWideChars`) um Verwechslung mit dem textuellen `String`-Pendant auszuschließen.
 
+  ==> Doku präzisiert
+
 - [ ] **Kein `WideString::set(const ByteArrayPtr&, size_t)` als Gegenstück zu `String::set(const ByteArrayPtr&, size_t)`** (widestring.h, vgl. string.h:503)
   `String` kann sowohl per Konstruktor als auch per `set()` aus einem `ByteArrayPtr` befüllt werden, `WideString` nur per
   Konstruktor (`explicit WideString(const ByteArrayPtr& str)`, widestring.h:142) – eine bestehende Instanz kann nicht per
   `set()` neu aus einem `ByteArrayPtr` belegt werden. Kleine, aber unnötige API-Asymmetrie.
 
+  ==> FIXED, Methode ergänzt
+
 - [ ] **`String::shl()`/`String::shr()` haben kein Gegenstück in `WideString`** (string.h:1080/1093)
   Falls die Funktionen für `String` als gebraucht gelten, fehlt die konsistente `WideString`-Variante; falls nicht,
   sollten sie ggf. aus `String` entfernt werden (Symmetrie in beide Richtungen möglich).
+
+  ==> FIXED, Methoden analog zu String hinzugefügt
 
 ## Doku / Kosmetik
 
@@ -177,9 +187,13 @@ Zwei zentrale Befunde wurden nicht nur durch Code-Lesen, sondern zusätzlich **e
   Doku entfernt werden, insbesondere da der o.g. Locale-Bug (`set(const char*, size)`) nahelegt, dass gerade eine
   konfigurierbare/verlässliche Kodierung fehlt.
 
+  ==> FIXED, aus Doku entfernt
+
 - [ ] **`chop()`/`chopRight()`: identischer Code dupliziert statt delegiert** (`WideString.cpp:1089-1107`)
   Beide Methoden haben einen Byte-für-Byte identischen Funktionskörper. `String` macht es sauberer – `chop()` ist dort
   inline als Weiterleitung auf `chopRight()` implementiert (string.h:1027-1030). Kandidat für Angleichung.
+
+  ==> FIXED, chop ist jetzt auch Inline im Header und delegiert an chopRight
 
 - [ ] **`trimLeft(const WideString& chars)`: lokale Variable `s` überschattet das private Member `s` (Kapazität)** (`WideString.cpp:1027-1052`)
   ```cpp
@@ -192,6 +206,8 @@ Zwei zentrale Befunde wurden nicht nur durch Code-Lesen, sondern zusätzlich **e
   ein Stolperstein für künftige Refactorings. Zusätzlich unterscheidet sich der Algorithmus unnötig vom saubereren,
   früh abbrechenden Pendant in `String::trimLeft(chars)`/`String::trimRight(chars)` (String.cpp:852-905).
   Fix: Variable umbenennen (z.B. `foundMismatch`), Implementierung ggf. an den `String`-Stil angleichen.
+
+  ==> FIXED, Implementierung aus String übernommen
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

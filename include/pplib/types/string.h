@@ -74,6 +74,7 @@ class Array;
  * In der Regel ist der Defaultwert "C", daher sollte beim Start des Programms setlocale()
  * mit der gewünschten Kodierung aufgerufen werden.
  *
+ * @note Diese Klasse ist nicht threadsicher.
  * @see WideString
  */
 class String
