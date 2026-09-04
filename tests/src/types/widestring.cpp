@@ -583,6 +583,11 @@ TEST(WideStringTest, setByteArrayPtrWithSize)
     s2.set(ba, 10);
     ASSERT_EQ(pplib::WideString(L"äöü, a tes"), s2) << "String has unexpected value";
     ASSERT_EQ((size_t)10, s2.size()) << "String has unexpected length";
+
+    // Size is bigger than ByteArray
+    s2.set(ba, 200);
+    ASSERT_EQ((size_t)42, s2.size()) << "String has unexpected length";
+    ASSERT_EQ(pplib::WideString(L"äöü, a test string with unicode characters"), s2) << "String has unexpected value";
 }
 
 TEST(WideStringTest, setToPosition)
@@ -2603,6 +2608,14 @@ TEST(WideStringTest, operator_int64)
     ASSERT_EQ((int64_t)pplib::WideString(L""), (int64_t)0LL);
 }
 
+TEST(WideStringTest, operator_uint64)
+{
+    ASSERT_EQ((uint64_t)pplib::WideString(L"1234567890123456789"), (uint64_t)1234567890123456789LL);
+    ASSERT_EQ((uint64_t)pplib::WideString(L"-1234567890123456789"), (uint64_t)-1234567890123456789LL);
+    ASSERT_EQ((uint64_t)pplib::WideString(L"abc123"), (uint64_t)0LL);
+    ASSERT_EQ((uint64_t)pplib::WideString(L""), (uint64_t)0LL);
+}
+
 TEST(WideStringTest, operator_float)
 {
     ASSERT_FLOAT_EQ((float)pplib::WideString(L"123.456"), 123.456f);
@@ -2741,16 +2754,39 @@ TEST(WideStringTest, toBool)
     ASSERT_EQ(s1.toBool(), false) << "String should not be true";
 }
 
-TEST(WideStringTest, ToLong_1124234674)
+TEST(WideStringTest, ToLong)
 {
     pplib::WideString s1(L"124234674");
     EXPECT_EQ((long)124234674, s1.toLong()) << "Unexpected Result";
+    EXPECT_EQ((long)0, pplib::WideString().toLong()) << "Unexpected Result";
 }
 
-TEST(WideStringTest, toLongLong_1242346214893456)
+TEST(WideStringTest, toLongLong)
 {
     pplib::WideString s1(L"1242346214893456");
     EXPECT_EQ((long long)1242346214893456, s1.toLongLong()) << "Unexpected Result";
+    EXPECT_EQ((long long)0, pplib::WideString().toLongLong()) << "Unexpected Result";
+}
+
+TEST(StringTest, toLongLong)
+{
+    pplib::WideString s1("1242346214893456");
+    EXPECT_EQ((long long)1242346214893456, s1.toLongLong()) << "Unexpected Result";
+    EXPECT_EQ((long long)0, pplib::WideString().toLongLong()) << "Unexpected Result";
+}
+
+TEST(StringTest, toUnsignedLong)
+{
+    pplib::WideString s1("1242346214893456");
+    EXPECT_EQ((unsigned long)1242346214893456, s1.toUnsignedLong()) << "Unexpected Result";
+    EXPECT_EQ((unsigned long)0, pplib::WideString().toUnsignedLong()) << "Unexpected Result";
+}
+
+TEST(StringTest, toUnsignedLongLong)
+{
+    pplib::WideString s1("1242346214893456");
+    EXPECT_EQ((unsigned long long)1242346214893456, s1.toUnsignedLongLong()) << "Unexpected Result";
+    EXPECT_EQ((unsigned long long)0, pplib::WideString().toUnsignedLongLong()) << "Unexpected Result";
 }
 
 TEST(WideStringTest, ToFloat_182566142_346214893456)
