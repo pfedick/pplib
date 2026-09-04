@@ -141,6 +141,12 @@ Zwei zentrale Befunde wurden nicht nur durch Code-Lesen, sondern zusätzlich **e
   Fix: Bei unpaarigem Surrogate entweder `CharacterEncodingException` werfen oder durch U+FFFD ersetzen, statt den
   rohen Surrogate-Wert weiterzukodieren.
 
+  ==> FIXED: In `toUtf8()` und `toUCS4()` wird nach der (plattformabhängigen) Surrogate-Pair-Behandlung geprüft, ob
+  `codepoint` noch im Bereich 0xD800-0xDFFF liegt (unpaariges High-Surrogate, alleinstehendes Low-Surrogate, oder ein
+  direkt gesetzter Surrogate-Wert auf 32-Bit-wchar_t-Plattformen) und wirft in dem Fall `CharacterEncodingException`.
+  Der Check ist bewusst plattformunabhängig (nicht nur im `#ifdef _WIN32`-Zweig), damit ein versehentlich eingefügter
+  Surrogate-Wert auch unter Linux/FreeBSD erkannt wird. Tests ergänzt: `toUtf8InvalidSurrogate`, `toUCS4InvalidSurrogate`.
+
 ## Design
 
 - [ ] **`WideString(const ByteArrayPtr&)` / `ByteArrayPtr::toWideString()` interpretieren die Bytes roh als natives `wchar_t`-Array, `String(const ByteArrayPtr&)` dagegen als kodierten Text – identische Doku, komplett andere Semantik** (`WideString.cpp:125-131` vs. `String.cpp:289-298`)

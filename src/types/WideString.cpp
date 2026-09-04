@@ -624,6 +624,11 @@ ByteArray WideString::toUtf8() const
             }
         }
 #endif
+        // Ein nach der Surrogate-Pair-Behandlung verbleibender Codepoint im Surrogate-Bereich
+        // (unpaariges High-Surrogate am Stringende, alleinstehendes Low-Surrogate, oder - auf
+        // Plattformen mit 32-Bit wchar_t - ein direkt gesetzter Surrogate-Wert) waere laut
+        // RFC 3629 ungueltiges UTF-8.
+        if (codepoint >= 0xD800 && codepoint <= 0xDFFF) throw CharacterEncodingException();
 
         // UTF-8 Kodierung schreiben (Direktzugriff)
         if (codepoint < 0x80) {
@@ -747,6 +752,8 @@ ByteArray WideString::toUCS4() const
             }
         }
 #endif
+        // siehe WideString::toUtf8: ein verbleibender Surrogate-Wert ist kein gueltiger Codepoint
+        if (codepoint >= 0xD800 && codepoint <= 0xDFFF) throw CharacterEncodingException();
         ucs4[dest_len++] = codepoint;
     }
 

@@ -1142,6 +1142,30 @@ TEST(WideStringTest, toUtf8)
 #endif
 }
 
+TEST(WideStringTest, toUtf8InvalidSurrogate)
+{
+    // Ein isolierter Surrogate-Wert ist unabhaengig von der wchar_t-Breite kein gueltiger
+    // Unicode-Codepoint (RFC 3629 schliesst Surrogates in UTF-8 explizit aus) und darf nicht
+    // klaglos kodiert werden.
+
+    // alleinstehendes High-Surrogate mitten im String, gefolgt von einem normalen Zeichen
+    pplib::WideString s1(L"AAA");
+    s1.set(1, (wchar_t)0xD800);
+    ASSERT_THROW(s1.toUtf8(), pplib::CharacterEncodingException);
+
+    // alleinstehendes Low-Surrogate ohne vorangehendes High-Surrogate
+    pplib::WideString s2(L"AAA");
+    s2.set(1, (wchar_t)0xDC00);
+    ASSERT_THROW(s2.toUtf8(), pplib::CharacterEncodingException);
+
+#if defined(_WIN32) || (defined(__SIZEOF_WCHAR_T__) && __SIZEOF_WCHAR_T__ == 2)
+    // High-Surrogate ganz am Ende des Strings, kein nachfolgendes Low-Surrogate mehr vorhanden
+    pplib::WideString s3(L"A");
+    s3.append((wchar_t)0xD800);
+    ASSERT_THROW(s3.toUtf8(), pplib::CharacterEncodingException);
+#endif
+}
+
 TEST(WideStringTest, fromUtf8)
 {
     // Leerer String
@@ -1279,6 +1303,25 @@ TEST(WideStringTest, toUCS4)
     pplib::WideString s5(L"\U0001F680");
     pplib::ByteArray res5 = s5.toUCS4();
     ASSERT_EQ((size_t)4, res5.size()) << "4-byte Codepoint (Direct 32-bit) toUCS4 size mismatch";
+#endif
+}
+
+TEST(WideStringTest, toUCS4InvalidSurrogate)
+{
+    // siehe WideStringTest.toUtf8InvalidSurrogate - dieselben ungueltigen Zustaende muessen
+    // auch bei der Konvertierung nach UCS4 abgelehnt werden.
+    pplib::WideString s1(L"AAA");
+    s1.set(1, (wchar_t)0xD800);
+    ASSERT_THROW(s1.toUCS4(), pplib::CharacterEncodingException);
+
+    pplib::WideString s2(L"AAA");
+    s2.set(1, (wchar_t)0xDC00);
+    ASSERT_THROW(s2.toUCS4(), pplib::CharacterEncodingException);
+
+#if defined(_WIN32) || (defined(__SIZEOF_WCHAR_T__) && __SIZEOF_WCHAR_T__ == 2)
+    pplib::WideString s3(L"A");
+    s3.append((wchar_t)0xD800);
+    ASSERT_THROW(s3.toUCS4(), pplib::CharacterEncodingException);
 #endif
 }
 
