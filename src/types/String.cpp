@@ -28,6 +28,7 @@
  *******************************************************************************/
 
 #include <limits>
+#include <climits>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1183,14 +1184,18 @@ String::operator std::wstring() const
 
 int String::toInt() const
 {
-    if (!stringlen) return 0;
-    return strtol(ptr, NULL, 10);
+    int64_t v = toInt64();
+    if (v > INT_MAX) return INT_MAX;
+    if (v < INT_MIN) return INT_MIN;
+    return (int)v;
 }
 
 unsigned int String::toUnsignedInt() const
 {
-    if (!stringlen) return 0;
-    return strtoul(ptr, NULL, 10);
+    int64_t v = toInt64();
+    if (v > UINT_MAX) return UINT_MAX;
+    if (v < INT_MIN) v = INT_MIN;
+    return (unsigned int)v;
 }
 
 int64_t String::toInt64() const

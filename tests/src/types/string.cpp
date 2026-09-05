@@ -33,6 +33,7 @@
 #include <pthread.h>
 #include <locale.h>
 #include <gtest/gtest.h>
+#include <climits>
 
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
@@ -1902,6 +1903,10 @@ TEST(StringTest, toInt)
     EXPECT_EQ((int)0, pplib::String("abc123").toInt()) << "Unexpected Result";
     EXPECT_EQ((int)0, pplib::String("0x1234").toInt()) << "Unexpected Result";
     EXPECT_EQ((int)0, pplib::String("").toInt()) << "Unexpected Result";
+
+    // Sättigung prüfen
+    EXPECT_EQ(INT_MAX, pplib::String("999999999999999").toInt()) << "Unexpected Result";
+    EXPECT_EQ(INT_MIN, pplib::String("-999999999999999").toInt()) << "Unexpected Result";
 }
 
 TEST(StringTest, toUnsignedInt)
@@ -1913,6 +1918,10 @@ TEST(StringTest, toUnsignedInt)
     EXPECT_EQ((unsigned int)0, pplib::String("abc123").toUnsignedInt()) << "Unexpected Result";
     EXPECT_EQ((unsigned int)0, pplib::String("0x1234").toUnsignedInt()) << "Unexpected Result";
     EXPECT_EQ((unsigned int)0, pplib::String("").toUnsignedInt()) << "Unexpected Result";
+
+    // Sättigung prüfen
+    EXPECT_EQ(UINT_MAX, pplib::String("999999999999999").toUnsignedInt()) << "Unexpected Result";
+    EXPECT_EQ(INT_MIN, (int)pplib::String("-999999999999999").toUnsignedInt()) << "Unexpected Result";
 }
 
 TEST(StringTest, toInt64)

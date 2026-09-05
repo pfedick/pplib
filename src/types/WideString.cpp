@@ -31,6 +31,7 @@
 #include <string.h>
 #include <wchar.h>
 #include <wctype.h>
+#include <climits>
 
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
@@ -1562,14 +1563,18 @@ WideString::operator std::wstring() const
 
 int WideString::toInt() const
 {
-    if (!stringlen) return 0;
-    return wcstol(ptr, NULL, 10);
+    int64_t v = toInt64();
+    if (v > INT_MAX) return INT_MAX;
+    if (v < INT_MIN) return INT_MIN;
+    return (int)v;
 }
 
 unsigned int WideString::toUnsignedInt() const
 {
-    if (!stringlen) return 0;
-    return wcstoul(ptr, NULL, 10);
+    int64_t v = toInt64();
+    if (v > UINT_MAX) return UINT_MAX;
+    if (v < INT_MIN) v = INT_MIN;
+    return (unsigned int)v;
 }
 
 int64_t WideString::toInt64() const
