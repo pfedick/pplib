@@ -32,6 +32,8 @@ tatsächlichem Konsumenten.
   }
   ```
 
+  ==> FIXED, Methode ist jetzt in src und wirft IllegalArgumentException
+
 ## Design
 
 - [ ] **Konstruktor und `set()` haben unterschiedliche Default-Parameter für `hours`** (`timedelta.h:58-62` vs. `93-103`)
@@ -42,6 +44,9 @@ tatsächlichem Konsumenten.
   `TimeDelta(5)` kompiliert nicht (fehlendes `hours`-Argument), `td.set(5)` dagegen schon und setzt `hours` auf 0.
   Zwei API-Oberflächen für dieselbe Semantik mit unterschiedlicher Ergonomie – leicht zu übersehende Inkonsistenz.
   Fix: `hours = 0` auch im Konstruktor als Default ergänzen.
+
+  ===> Nicht Umsetzbar wegen Kollision mit privatem Konstruktor mit Microsekunden. Stattdessen wird hour in der set-Methode auch Pflicht, um die Konsistenz zu wahren
+
 
 - [ ] **`fromString()` kann grundsätzlich kein negatives `TimeDelta` erzeugen, obwohl die Klasse negative Werte
   sonst vollständig unterstützt** (`TimeDelta.cpp:41-44`)
@@ -67,12 +72,16 @@ tatsächlichem Konsumenten.
   oder, falls kein Vorzeichen gewünscht ist, den Doku-Kommentar präzisieren ("negative Deltas können nicht aus
   einem String erzeugt werden").
 
+  ==> "-" am beginn des Strimgs wird jetzt unterstützt. Ferner habe ich die Methode toString() ergänzt, die im Header noch als TODO vermerkt war
+
 ## Doku / Kosmetik
 
 - [ ] `operator*`/`fromDays()`/`fromWeeks()` etc. prüfen nicht auf `int64_t`-Overflow bei sehr großen Faktoren/Werten
   (z.B. `TimeDelta::fromDays(INT64_MAX)`). Bei realistischen Eingaben (Tage/Stunden im Anwendungsbereich der
   Klasse) irrelevant, aber falls `TimeDelta` später auch für arithmetisch abgeleitete Werte (Multiplikation
   großer Reihen) verwendet wird, wäre ein Kommentar zum bewusst fehlenden Overflow-Schutz hilfreich.
+
+  ==> Wird nicht geändert
 
 ## Verifiziert OK (kein Handlungsbedarf)
 
