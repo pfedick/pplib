@@ -70,6 +70,8 @@ TEST_F(TimeZoneTest, fromStringUTC)
     ASSERT_EQ((int16_t)0, pplib::TimeZone::fromString("").offsetMinutes());
     ASSERT_EQ((int16_t)0, pplib::TimeZone::fromString("Z").offsetMinutes());
     ASSERT_EQ((int16_t)0, pplib::TimeZone::fromString("UTC").offsetMinutes());
+    ASSERT_EQ((int16_t)0, pplib::TimeZone::fromString("utc").offsetMinutes());
+    ASSERT_EQ((int16_t)0, pplib::TimeZone::fromString("z").offsetMinutes());
 }
 
 TEST_F(TimeZoneTest, fromStringWithDoppelColumn)
@@ -160,6 +162,9 @@ TEST_F(TimeZoneTest, toString)
 
     pplib::TimeZone tz3(0, "UTC");
     ASSERT_EQ(pplib::String("Z"), tz3.toString(true));
+
+    ASSERT_EQ(pplib::String("-00:30"), pplib::TimeZone(0, -30).toString(true));
+    ASSERT_EQ(pplib::String("-0030"), pplib::TimeZone(0, -30).toString(false));
 }
 
 TEST_F(TimeZoneTest, offsetSeconds)
@@ -202,6 +207,15 @@ TEST_F(TimeZoneTest, isUTC)
 
     pplib::TimeZone tz2(120, "CET");
     ASSERT_FALSE(tz2.isUTC());
+}
+
+TEST_F(TimeZoneTest, ostream)
+{
+    pplib::TimeZone tz(120, "CET");
+    testing::internal::CaptureStdout();
+    std::cout << tz;
+    std::string output = testing::internal::GetCapturedStdout();
+    ASSERT_EQ(pplib::String("+02:00"), output);
 }
 
 } // namespace

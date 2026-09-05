@@ -36,6 +36,8 @@ Verifiziert gegen `include/pplib/exceptions.h`, `include/pplib/core/functions.h`
   return setOffsetMinutes((abs(hours) * 60 + abs(minutes)) * s);
   ```
 
+  ===> FIXED
+
 - [ ] **`toString()` zeigt negative Sub-Stunden-Offsets mit falschem Vorzeichen** (`TimeZone.cpp:151-166`)
   ```cpp
   int hours = offset_minutes / 60;
@@ -58,6 +60,8 @@ Verifiziert gegen `include/pplib/exceptions.h`, `include/pplib/core/functions.h`
   snprintf(buffer, sizeof(buffer), "%c%02d:%02d", sign, hours, minutes);
   ```
 
+  ===> FIXED
+
 ## Bugs (mittel)
 
 - [ ] **`fromString()` erkennt `"UTC"`/`"Z"` nur groß geschrieben** (`TimeZone.cpp:108-116`)
@@ -73,11 +77,15 @@ Verifiziert gegen `include/pplib/exceptions.h`, `include/pplib/core/functions.h`
   ist das Verhalten inkonsistent zum Rest der Bibliothek.
   Fix: `String s = UpperCase(Trim(str));`
 
+  ===> FIXED
+
 ## Design
 
 - [ ] **`setOffset()` und `set()` sind identischer Code** (`TimeZone.cpp:84-89` und `91-96`, Deklaration `timezone.h:73-74`)
   Beide Methoden haben exakt denselben Body (inkl. des oben beschriebenen Vorzeichen-Bugs). Eine der beiden
   Methoden sollte die andere aufrufen oder ganz entfernt werden, um Doppelpflege/Doppel-Bugs zu vermeiden.
+
+  ===> FIXED, set ist jetzt inline und ruft setOffset auf
 
 - [ ] **`tz_name`-Doku suggeriert Named-Zone-Unterstützung, die es nicht gibt** (`timezone.h:50`)
   ```cpp
@@ -88,6 +96,8 @@ Verifiziert gegen `include/pplib/exceptions.h`, `include/pplib/core/functions.h`
   wirft eine `IllegalArgumentException`. `tz_name` ist aktuell ein reines Freitext-Label ohne Rückwirkung auf
   `offset_minutes`. Falls Named-Zones (mit DST-Regeln) nicht geplant sind, Doku entsprechend präzisieren; falls
   doch, fehlt hier die eigentliche Implementierung.
+
+  ===> In der Doku klargestellt
 
 - [ ] **Vorzeichen-Typmix zwischen `TimeZone::offsetSeconds()` (signed) und `Time`/`Date`-Arithmetik (unsigned)
   begünstigt stillen `uint64_t`-Wraparound bei Konsumenten** (Beleg: `src/types/DateTime.cpp:189`)
@@ -111,12 +121,16 @@ Verifiziert gegen `include/pplib/exceptions.h`, `include/pplib/core/functions.h`
   indem konsequent mit `int64_t` gerechnet wird. Empfehlung: bei zukünftiger Verwendung von `offsetSeconds()`
   in Kombination mit `Date`/`Time`-Werten immer zuerst auf `int64_t` heben, wie es `toMicroseconds()` bereits tut.
 
+  ===> Problem in DateTime
+
 ## Doku / Kosmetik
 
 - [ ] `setOffsetSeconds()` (`timezone.h:68-71`) rundet mit Ganzzahldivision Richtung Null (`offset_seconds / 60`),
   d.h. Sekundenanteile <60 gehen kommentarlos verloren (z.B. `setOffsetSeconds(-90)` ergibt `-1` statt der
   "korrekten" `-1.5` Minuten). Für praktisch alle real existierenden Zeitzonen (Minutenraster) irrelevant, aber
   nicht dokumentiert.
+
+  ==> In Doku erwähnt
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

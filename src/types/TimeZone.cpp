@@ -74,25 +74,18 @@ TimeZone::TimeZone() noexcept
     tz_name = String("UTC");
 }
 
-TimeZone& TimeZone::setOffsetMinutes(int16_t offset_min)
+TimeZone& TimeZone::setOffsetMinutes(int offset_min)
 {
     if (offset_min < -720 || offset_min > 840) throw IllegalArgumentException("Invalid time offset");
-    offset_minutes = offset_min;
+    offset_minutes = (int16_t)offset_min;
     return *this;
 }
 
-TimeZone& TimeZone::setOffset(int8_t hours, int8_t minutes)
+TimeZone& TimeZone::setOffset(int hours, int minutes)
 {
-    int s = 1;
-    if (hours < 0) s = -1;
-    return setOffsetMinutes((abs(hours) * 60 + abs(minutes)) * s);
-}
-
-TimeZone& TimeZone::set(int8_t hours, int8_t minutes)
-{
-    int s = 1;
-    if (hours < 0) s = -1;
-    return setOffsetMinutes((abs(hours) * 60 + abs(minutes)) * s);
+    int sign = (hours < 0 || minutes < 0) ? -1 : 1;
+    if (hours < -12 || hours > 14 || minutes < -59 || minutes > 59) throw IllegalArgumentException("Invalid time offset");
+    return setOffsetMinutes(sign * (abs(hours) * 60 + abs(minutes)));
 }
 
 TimeZone TimeZone::fromLocalTime() noexcept
@@ -108,7 +101,7 @@ TimeZone TimeZone::fromEpoch(time_t t) noexcept
 TimeZone TimeZone::fromString(const String& str)
 {
     if (str.isEmpty()) return TimeZone::utc();
-    String s = Trim(str);
+    String s = UpperCase(Trim(str));
     // printf("TimeZone::fromString: >>%s<<\n", (const char*)str);
     s.trimLeft("[");
     s.trimRight("]");
@@ -150,19 +143,17 @@ TimeZone TimeZone::fromString(const String& str)
 
 String TimeZone::toString(bool colon) const
 {
-    int hours = offset_minutes / 60;
-    int minutes = abs(offset_minutes % 60);
+    if (offset_minutes == 0) return pplib::String("Z");
+    char sign = (offset_minutes < 0) ? '-' : '+';
+    int hours = abs(offset_minutes / 60);
+    int minutes = abs(offset_minutes) % 60;
     char buffer[16];
-    if (offset_minutes == 0) {
-        return "Z";
+    if (colon) {
+        snprintf(buffer, sizeof(buffer), "%c%02d:%02d", sign, hours, minutes);
     } else {
-        if (colon) {
-            snprintf(buffer, sizeof(buffer), "%+03d:%02d", hours, minutes);
-        } else {
-            snprintf(buffer, sizeof(buffer), "%+03d%02d", hours, minutes);
-        }
-        return String(buffer);
+        snprintf(buffer, sizeof(buffer), "%c%02d%02d", sign, hours, minutes);
     }
+    return String(buffer);
 }
 
 } // namespace pplib

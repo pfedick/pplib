@@ -42,6 +42,9 @@ namespace pplib
  * @ingroup PPLGroupDataTypes
  *
  * Diese Klasse stellt Methoden zum Verwalten und Formatieren von Zeitzonen bereit.
+ * Der Offset zu UTC wird ausschließlich durch die Minutenangabe bestimmt, der Name der Zeitzone spielt keine Rolle.
+ *
+ * @note Der Name der Zeitzone ist optional und kann z. B. "UTC", "CET", "CEST" oder "Europe/Berlin" sein.
  */
 class TimeZone
 {
@@ -50,100 +53,250 @@ private:
     String tz_name;             //!< Optional: "UTC", "CET", "CEST", "Europe/Berlin"
 
 public:
+    /** @brief Standardkonstruktor, erstellt eine UTC-Zeitzone */
     TimeZone() noexcept;
-    explicit TimeZone(int16_t offset_min, const String& name = String())
+
+    /** @brief Konstruktor mit Offset in Minuten und optionalem Zeitzonennamen
+     *
+     * @param offset_min Offset zu UTC in Minuten (-720 bis +840)
+     * @param name Optionaler Name der Zeitzone (z. B. "UTC", "CET", "CEST", "Europe/Berlin")
+     * @exception IllegalArgumentException Wenn der Offset ungültig ist (-720 bis +840)
+     */
+    explicit TimeZone(int offset_min, const String& name = String())
         : tz_name(name)
     {
         setOffsetMinutes(offset_min);
     }
 
-    TimeZone(int8_t hours, int8_t minutes, const String& name = String())
+    /** @brief Konstruktor mit Stunden- und Minutenangabe und optionalem Zeitzonennamen
+     *
+     * @param hours Stundenanteil des Offsets (-12 bis +14)
+     * @param minutes Minutenanteil des Offsets (-59 bis 59)
+     * @param name Optionaler Name der Zeitzone (z. B. "UTC", "CET", "CEST", "Europe/Berlin")
+     * @exception IllegalArgumentException Wenn der Offset ungültig ist (-12 bis +14 Stunden, -59 bis +59 Minuten)
+     */
+    TimeZone(int hours, int minutes, const String& name = String())
         : tz_name(name)
     {
         setOffset(hours, minutes);
     }
 
-    // Setter
-    TimeZone& setOffsetMinutes(int16_t offset_min);
-    TimeZone& setOffsetSeconds(int16_t offset_seconds)
+    /** @brief Setzt den Offset in Minuten
+     *
+     * @param offset_min Offset zu UTC in Minuten (-720 bis +840)
+     * @return Referenz auf das aktuelle TimeZone-Objekt
+     * @exception IllegalArgumentException Wenn der Offset ungültig ist (-720 bis +840)
+     */
+    TimeZone& setOffsetMinutes(int offset_min);
+
+    /** @brief Setzt den Offset in Sekunden
+     *
+     * @param offset_seconds Offset zu UTC in Sekunden (-43200 bis +50400)
+     * @return Referenz auf das aktuelle TimeZone-Objekt
+     * @note Der Offset wird intern in Minuten umgerechnet. Sekunden werden verworfen.
+     */
+    TimeZone& setOffsetSeconds(int offset_seconds)
     {
         return setOffsetMinutes(offset_seconds / 60);
     }
 
-    TimeZone& setOffset(int8_t hours, int8_t minutes);
-    TimeZone& set(int8_t hours, int8_t minutes);
+    /** @brief Setzt den Offset in Stunden und Minuten
+     *
+     * @param hours Stundenanteil des Offsets (-12 bis +14)
+     * @param minutes Minutenanteil des Offsets (-59 bis 59)
+     * @return Referenz auf das aktuelle TimeZone-Objekt
+     * @exception IllegalArgumentException Wenn der Offset ungültig ist (-12 bis +14 Stunden, -59 bis +59 Minuten)
+     */
+    TimeZone& setOffset(int hours, int minutes);
 
+    /** @brief Setzt den Offset in Stunden und Minuten (Inline-Version)
+     *
+     * @param hours Stundenanteil des Offsets (-12 bis +14)
+     * @param minutes Minutenanteil des Offsets (-59 bis 59)
+     * @return Referenz auf das aktuelle TimeZone-Objekt
+     * @exception IllegalArgumentException Wenn der Offset ungültig ist (-12 bis +14 Stunden, -59 bis +59 Minuten)
+     */
+    inline TimeZone& set(int hours, int minutes)
+    {
+        return setOffset(hours, minutes);
+    }
+
+    /** @brief Setzt den Namen der Zeitzone
+     *
+     * @param name Name der Zeitzone (z. B. "UTC", "CET", "CEST", "Europe/Berlin")
+     * @note Der Name der Zeitzone ist ein Freitext-Feld, welches nicht in die Berechnung der
+     * Zeitzone einfließt.
+     */
     void setName(const String& name)
     {
         tz_name = name;
     }
 
     // Fabriken
+
+    /** @brief Fabrikmethoden für TimeZone-Objekte
+     *
+     * @return Ein neues TimeZone-Objekt
+     */
     static TimeZone utc() noexcept
     {
         return TimeZone(0, "UTC");
     }
+
+    /** @brief Erstellt ein TimeZone-Objekt aus einer Stundenangabe
+     *
+     * @param hours Stundenanteil des Offsets (-12 bis +14)
+     * @return Ein neues TimeZone-Objekt
+     * @exception IllegalArgumentException Wenn der Offset ungültig ist (-12 bis +14 Stunden)
+     */
     static TimeZone fromHours(int hours) noexcept
     {
         return TimeZone(hours * 60);
     }
+
+    /** @brief Erstellt ein TimeZone-Objekt aus Stunden- und Minutenangabe
+     *
+     * @param hours Stundenanteil des Offsets (-12 bis +14)
+     * @param minutes Minutenanteil des Offsets (-59 bis 59)
+     * @return Ein neues TimeZone-Objekt
+     * @exception IllegalArgumentException Wenn der Offset ungültig ist (-12 bis +14 Stunden, -59 bis +59 Minuten)
+     */
     static TimeZone fromHoursAndMinutes(int hours, int minutes) noexcept
     {
         int sign = (hours < 0 || minutes < 0) ? -1 : 1;
         return TimeZone(sign * (abs(hours) * 60 + abs(minutes)));
     }
-    static TimeZone fromString(const String& str); // parst "+02:00", "+0200", "Z", "UTC"
 
+    /** @brief Erstellt ein TimeZone-Objekt aus einem String
+     *
+     * @param str String-Darstellung des Offsets (z. B. "+02:00", "+0200", "Z", "UTC", "[]")
+     * @return Ein neues TimeZone-Objekt
+     * @exception IllegalArgumentException Wenn der String nicht geparst werden kann
+     */
+    static TimeZone fromString(const String& str);
+
+    /** @brief Erstellt ein TimeZone-Objekt aus der lokalen Zeit
+     *
+     * @return Ein neues TimeZone-Objekt
+     */
     static TimeZone fromLocalTime() noexcept;
+
+    /** @brief Erstellt ein TimeZone-Objekt aus der Epoch-Zeit
+     *
+     * @param t Epoch-Zeit (Sekunden seit 1970-01-01 00:00:00 UTC)
+     * @return Ein neues TimeZone-Objekt
+     */
     static TimeZone fromEpoch(time_t t) noexcept;
 
-    // Getter
+    /** @brief Gibt den Offset in Minuten zurück
+     *
+     * @return Offset in Minuten
+     */
     int16_t offsetMinutes() const noexcept
     {
         return offset_minutes;
     }
+
+    /** @brief Gibt den Offset in Sekunden zurück
+     *
+     * @return Offset in Sekunden
+     */
     int32_t offsetSeconds() const noexcept
     {
         return offset_minutes * 60;
     }
+
+    /** @brief Gibt den Namen der Zeitzone zurück
+     *
+     * @return Name der Zeitzone
+     */
     const String& name() const noexcept
     {
         return tz_name;
     }
 
+    /** @brief Prüft, ob die Zeitzone UTC ist
+     *
+     * @return true, wenn die Zeitzone UTC ist, sonst false
+     */
     inline bool isUTC() const noexcept
     {
         return offset_minutes == 0;
     }
 
+    /** @brief Vergleichsoperator: Gleichheit
+     *
+     * @param other Andere Zeitzone
+     * @return true, wenn die Zeitzonen gleich sind, sonst false
+     */
     inline bool operator==(const TimeZone& other) const noexcept
     {
         return offset_minutes == other.offset_minutes;
     }
+
+    /** @brief Vergleichsoperator: Ungleichheit
+     *
+     * @param other Andere Zeitzone
+     * @return true, wenn die Zeitzonen ungleich sind, sonst false
+     */
     inline bool operator!=(const TimeZone& other) const noexcept
     {
         return offset_minutes != other.offset_minutes;
     }
+
+    /** @brief Vergleichsoperator: Kleiner als
+     *
+     * @param other Andere Zeitzone
+     * @return true, wenn diese Zeitzone kleiner ist als die andere, sonst false
+     */
     inline bool operator<(const TimeZone& other) const noexcept
     {
         return offset_minutes < other.offset_minutes;
     }
+
+    /** @brief Vergleichsoperator: Kleiner oder gleich
+     *
+     * @param other Andere Zeitzone
+     * @return true, wenn diese Zeitzone kleiner oder gleich der anderen ist, sonst false
+     */
     inline bool operator<=(const TimeZone& other) const noexcept
     {
         return offset_minutes <= other.offset_minutes;
     }
+
+    /** @brief Vergleichsoperator: Größer als
+     *
+     * @param other Andere Zeitzone
+     * @return true, wenn diese Zeitzone größer ist als die andere, sonst false
+     */
     inline bool operator>(const TimeZone& other) const noexcept
     {
         return offset_minutes > other.offset_minutes;
     }
+
+    /** @brief Vergleichsoperator: Größer oder gleich
+     *
+     * @param other Andere Zeitzone
+     * @return true, wenn diese Zeitzone größer oder gleich der anderen ist, sonst false
+     */
     inline bool operator>=(const TimeZone& other) const noexcept
     {
         return offset_minutes >= other.offset_minutes;
     }
 
-    // Formatierung z. B. "+02:00" oder "+0200"
+    /** @brief Gibt die Zeitzone als String zurück
+     *
+     * @param colon Gibt an, ob ein Doppelpunkt im Format enthalten sein soll (z. B. "+02:00" vs "+0200")
+     * @return Zeitzone als String
+     */
     String toString(bool colon = true) const;
 };
+
+inline std::ostream& operator<<(std::ostream& s, const TimeZone& t)
+{
+    pplib::String tmp = t.toString();
+    return s.write(tmp.c_str(), tmp.length());
+}
 
 } // namespace pplib
 
