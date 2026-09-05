@@ -57,12 +57,19 @@ Date& Date::set(const String& date)
     String d = Trim(date);
     d.replace("-", ".");
     Array a(d, ".");
+    if (a.size() == 1 && a[0].length() == 8) {
+        // YYYYMMDD
+        if (a[0][0] < '0' || a[0][0] > '9' || !a[0].isInteger()) {
+            throw IllegalArgumentException("Date::set: invalid date format (%s)", d.c_str());
+        }
+        return set(a[0].mid(0, 4).toInt(), a[0].mid(4, 2).toInt(), a[0].mid(6, 2).toInt());
+    }
     if (a.size() != 3) {
         throw IllegalArgumentException("Date::set: invalid date format (%s)", d.c_str());
     }
-    // Prüfen, ob alle Werte Numerisch sind
+    // Prüfen, ob alle Werte Integer sind
     for (size_t i = 0; i < a.size(); ++i) {
-        if (!a[i].isNumeric()) {
+        if (!a[i].isInteger()) {
             throw IllegalArgumentException("Date::set: invalid date format (%s)", d.c_str());
         }
     }

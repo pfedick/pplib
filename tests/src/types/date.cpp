@@ -64,6 +64,30 @@ TEST_F(DateTest, ConstructorSimple)
     });
 }
 
+TEST_F(DateTest, CopyConstructor)
+{
+    ASSERT_NO_THROW({
+        pplib::Date d1(2020, 2, 1);
+        pplib::Date d2(d1);
+        ASSERT_TRUE(d2.isValid()) << "Class has unexpected value";
+        ASSERT_EQ((uint16_t)2020, d2.year()) << "Class has unexpected value";
+        ASSERT_EQ((uint8_t)2, d2.month()) << "Class has unexpected value";
+        ASSERT_EQ((uint8_t)1, d2.day()) << "Class has unexpected value";
+    });
+}
+
+TEST_F(DateTest, MoveConstructor)
+{
+    ASSERT_NO_THROW({
+        pplib::Date d1(2020, 2, 1);
+        pplib::Date d2(std::move(d1));
+        ASSERT_TRUE(d2.isValid()) << "Class has unexpected value";
+        ASSERT_EQ((uint16_t)2020, d2.year()) << "Class has unexpected value";
+        ASSERT_EQ((uint8_t)2, d2.month()) << "Class has unexpected value";
+        ASSERT_EQ((uint8_t)1, d2.day()) << "Class has unexpected value";
+    });
+}
+
 TEST_F(DateTest, ConstructorWithValues)
 {
     ASSERT_NO_THROW({
@@ -144,6 +168,15 @@ TEST_F(DateTest, setWithDateString)
         ASSERT_EQ((uint8_t)1, d2.day()) << "Class has unexpected value";
     });
 
+    ASSERT_NO_THROW({
+        pplib::Date d1;
+        d1.set("20200201");
+        ASSERT_TRUE(d1.isValid()) << "Class has unexpected value";
+        ASSERT_EQ((uint16_t)2020, d1.year()) << "Class has unexpected value";
+        ASSERT_EQ((uint8_t)2, d1.month()) << "Class has unexpected value";
+        ASSERT_EQ((uint8_t)1, d1.day()) << "Class has unexpected value";
+    });
+
     ASSERT_THROW(
         {
             pplib::Date d3;
@@ -162,6 +195,18 @@ TEST_F(DateTest, setWithDateString)
             d5.set("01-2020-01");
         },
         pplib::IllegalArgumentException);
+
+    ASSERT_THROW(pplib::Date().set(""), pplib::IllegalArgumentException);
+    ASSERT_THROW(pplib::Date().set("2020"), pplib::IllegalArgumentException);
+    ASSERT_THROW(pplib::Date().set("aa.bb.cccc"), pplib::IllegalArgumentException);
+    ASSERT_THROW(pplib::Date().set("20260a01"), pplib::IllegalArgumentException);
+    ASSERT_THROW(pplib::Date().set("+0260101"), pplib::IllegalArgumentException);
+    ASSERT_THROW(pplib::Date().set("-0260101"), pplib::IllegalArgumentException);
+    ASSERT_THROW(pplib::Date().set("2026 101"), pplib::IllegalArgumentException);
+    ASSERT_THROW(pplib::Date().set(" 0260101"), pplib::IllegalArgumentException);
+    ASSERT_THROW(pplib::Date().set("x0260101"), pplib::IllegalArgumentException);
+
+    ASSERT_EQ(pplib::String("0000-01-01"), pplib::Date().set("00000101").toString());
 }
 
 TEST_F(DateTest, toString)
@@ -226,6 +271,18 @@ TEST_F(DateTest, CopyAndMoveAssignment)
     });
 }
 
+TEST_F(DateTest, EqualMoveMitGleichemDate)
+{
+    ASSERT_NO_THROW({
+        pplib::Date d1(2020, 1, 1);
+        d1 = std::move(d1);
+        ASSERT_TRUE(d1.isValid()) << "Class has unexpected value";
+        ASSERT_EQ((uint16_t)2020, d1.year()) << "Class has unexpected value";
+        ASSERT_EQ((uint8_t)1, d1.month()) << "Class has unexpected value";
+        ASSERT_EQ((uint8_t)1, d1.day()) << "Class has unexpected value";
+    });
+}
+
 TEST_F(DateTest, Clear)
 {
     ASSERT_NO_THROW({
@@ -235,6 +292,36 @@ TEST_F(DateTest, Clear)
         ASSERT_EQ((uint16_t)0, d1.year()) << "Class has unexpected value";
         ASSERT_EQ((uint8_t)0, d1.month()) << "Class has unexpected value";
         ASSERT_EQ((uint8_t)0, d1.day()) << "Class has unexpected value";
+    });
+}
+
+TEST_F(DateTest, isEmpty)
+{
+    ASSERT_NO_THROW({
+        pplib::Date d1;
+        ASSERT_TRUE(d1.isEmpty()) << "Class has unexpected value";
+        pplib::Date d2(2020, 1, 1);
+        ASSERT_FALSE(d2.isEmpty()) << "Class has unexpected value";
+    });
+}
+
+TEST_F(DateTest, notEmpty)
+{
+    ASSERT_NO_THROW({
+        pplib::Date d1;
+        ASSERT_FALSE(d1.notEmpty()) << "Class has unexpected value";
+        pplib::Date d2(2020, 1, 1);
+        ASSERT_TRUE(d2.notEmpty()) << "Class has unexpected value";
+    });
+}
+
+TEST_F(DateTest, isValid)
+{
+    ASSERT_NO_THROW({
+        pplib::Date d1;
+        ASSERT_FALSE(d1.isValid()) << "Class has unexpected value";
+        pplib::Date d2(2020, 1, 1);
+        ASSERT_TRUE(d2.isValid()) << "Class has unexpected value";
     });
 }
 
@@ -362,6 +449,15 @@ TEST_F(DateTest, weekISO8601)
     ASSERT_EQ(1, pplib::Date(2024, 12, 31).weekISO8601()) << "Class has unexpected value";
 
     ASSERT_THROW({ pplib::Date().weekISO8601(); }, pplib::IllegalStateException);
+}
+
+TEST_F(DateTest, ostream)
+{
+    pplib::Date d(2023, 1, 1);
+    testing::internal::CaptureStdout();
+    std::cout << d;
+    std::string output = testing::internal::GetCapturedStdout();
+    ASSERT_EQ("2023-01-01", output) << "Class has unexpected value";
 }
 
 } // namespace

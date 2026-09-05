@@ -173,6 +173,7 @@ src/types/DateTime.cpp), der `Date` bereits mit `Time`/`TimeZone` kombiniert.
       leeres `Date` einen leeren String oder `"0000-00-00"` liefern soll. Aktuell wird immer `"0000-00-00"` erzeugt,
       auch für ein per Default-Konstruktor erzeugtes, leeres Datum. Entweder Kommentar entfernen (Entscheidung: immer
       formatieren) oder Sonderfall aktivieren.
+  ==> Auskommentierten Code entfernt, Dokumentiert, dass "0000-00-00" zurückgegeben wird, wenn Date leer ist
 - [ ] Doku von `week()`/`weekISO8601()` (`date.h:195-207`) hat einen Copy-Paste-Fehler: `@return Integer-Wert mit dem Jahr`
       – gemeint ist die Wochennummer, nicht das Jahr.
 

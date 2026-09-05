@@ -42,6 +42,10 @@ namespace pplib
  * @ingroup PPLGroupDataTypes
  *
  * Diese Klasse stellt Methoden zum Verwalten und Formatieren von Datumswerten bereit.
+ * Unterstützt werden dabei Zeitstempel zwischen dem 1. Januar 0000 und dem 31. Dezember 9999.
+ *
+ * @note Falls die Klasse über den standard-Konstruktor erstellt wird oder die clear()-Methode
+ * aufgerufen wird, repräsentiert sie ein ungültiges Datum (0000-00-00).
  */
 class Date
 {
@@ -51,13 +55,17 @@ private:
     uint16_t yy = 0; //!< Jahr
 
 public:
+    /** @brief Standardkonstruktor für ein leeres Datum */
     Date() noexcept = default;
+
+    /** @brief Kopierkonstruktor */
     Date(const Date& other) noexcept
         : dd(other.dd),
           mm(other.mm),
           yy(other.yy)
     {
     }
+    /** @brief Move-Konstruktor für ein Datum */
     Date(Date&& other) noexcept
         : dd(other.dd),
           mm(other.mm),
@@ -84,6 +92,11 @@ public:
         set(year, month, day);
     }
 
+    /** @brief Konstruktor für Datum aus einem String im Format "YYYY-MM-DD"
+     *
+     * @param date String im Format "YYYY-MM-DD", "DD-MM-YYYY" oder "YYYYMMDD". Statt Minus ist auch Punkt als Trennzeichen erlaubt.
+     * @exception IllegalArgumentException Der übergebene String ist kein gültiges Datum.
+     */
     inline Date(const String& date)
     {
         set(date);
@@ -101,6 +114,12 @@ public:
      * @exception IllegalArgumentException Die übergebenen Werte für Jahr, Monat oder Tag sind ungültig.
      */
     Date& set(int year, int month, int day);
+
+    /** @brief Setzt das Datum aus einem String im Format "YYYY-MM-DD"
+     *
+     * @param date String im Format "YYYY-MM-DD", "DD-MM-YYYY" oder "YYYYMMDD". Statt Minus ist auch Punkt als Trennzeichen erlaubt.
+     * @exception IllegalArgumentException Der übergebene String ist kein gültiges Datum.
+     */
     Date& set(const String& date);
 
     /** @brief Konvertiert das Datum in einen String im Standardformat "YYYY-MM-DD"
@@ -109,14 +128,20 @@ public:
      * @note Falls das Datum leer ist, wird "0000-00-00" zurückgegeben.
      */
     String toString() const;
+
     /** @brief Formatiert das Datum gemäß dem angegebenen Formatstring
      *
-     * @param format Formatstring (z.B. "YYYY-MM-DD")
+     * @param format Formatstring (z.B. "%Y-%m-%d"). Verwende "%y" für eine zweistellige Jahresangabe.
      * @return Formatierter Datumsstring
      * @note Falls das Datum leer ist, wird "0000-00-00" zurückgegeben.
      */
     String format(const String& format) const;
 
+    /** @brief Zuweisungsoperator für Kopie
+     *
+     * @param other Das andere Datum, das zugewiesen werden soll.
+     * @return Referenz auf das aktuelle Objekt.
+     */
     Date& operator=(const Date& other) noexcept
     {
         dd = other.dd;
@@ -125,6 +150,11 @@ public:
         return *this;
     }
 
+    /** @brief Zuweisungsoperator für Verschiebung
+     *
+     * @param other Das andere Datum, das verschoben werden soll.
+     * @return Referenz auf das aktuelle Objekt.
+     */
     Date& operator=(Date&& other) noexcept
     {
         if (this == &other) {
@@ -139,11 +169,19 @@ public:
         return *this;
     }
 
+    /** @brief Operator für die Konvertierung in einen String
+     *
+     * @return String im Format "YYYY-MM-DD"
+     */
     operator String() const
     {
         return toString();
     }
 
+    /** @brief Löscht das Datum und setzt es auf einen leeren Zustand
+     *
+     * Nach dem Aufruf dieser Funktion ist das Datum ungültig.
+     */
     inline void clear()
     {
         dd = 0;
@@ -151,79 +189,158 @@ public:
         yy = 0;
     }
 
+    /** @brief Konvertiert das Datum in eine Ganzzahl im Format "YYYYMMDD"
+     *
+     * @return Ganzzahl im Format "YYYYMMDD"
+     */
     uint32_t toInt() const
     {
         return (yy * 10000) + (mm * 100) + dd;
     }
 
+    /** @brief Erstellt ein Datum aus einer Ganzzahl im Format "YYYYMMDD"
+     *
+     * @param date Ganzzahl im Format "YYYYMMDD"
+     * @return Entsprechendes Datum
+     * @note Falls die Ganzzahl 0 ist, wird ein leeres Datum zurückgegeben.
+     * @exception IllegalArgumentException Falls die Ganzzahl kein gültiges Datum darstellt.
+     */
     static Date fromInt(uint32_t date)
     {
         if (date == 0) return Date();
         return Date(date / 10000, (date / 100) % 100, date % 100);
     }
 
+    /** @brief Prüft, ob das Datum leer ist
+     *
+     * @return true, falls das Datum leer ist, sonst false.
+     */
     inline bool isEmpty() const
     {
         return dd == 0;
     }
 
+    /** @brief Prüft, ob das Datum gültig ist
+     *
+     * @return true, falls das Datum gültig ist, sonst false.
+     */
     inline bool isValid() const
     {
         return !isEmpty();
     }
 
+    /** @brief Prüft, ob das Datum nicht leer ist
+     *
+     * @return true, falls das Datum nicht leer ist, sonst false.
+     */
     inline bool notEmpty() const
     {
         return !isEmpty();
     }
 
+    /** @brief Vergleichsoperator für Gleichheit
+     *
+     * @param other Das zu vergleichende Datum
+     * @return true, falls die beiden Daten gleich sind, sonst false.
+     */
     inline bool operator==(const Date& other) const
     {
         return toInt() == other.toInt();
     }
 
+    /** @brief Vergleichsoperator für Ungleichheit
+     *
+     * @param other Das zu vergleichende Datum
+     * @return true, falls die beiden Daten ungleich sind, sonst false.
+     */
     inline bool operator!=(const Date& other) const
     {
         return toInt() != other.toInt();
     }
 
+    /** @brief Vergleichsoperator für kleiner als
+     *
+     * @param other Das zu vergleichende Datum
+     * @return true, falls dieses Datum kleiner ist als das andere, sonst false.
+     */
     inline bool operator<(const Date& other) const
     {
         return toInt() < other.toInt();
     }
 
+    /** @brief Vergleichsoperator für kleiner oder gleich
+     *
+     * @param other Das zu vergleichende Datum
+     * @return true, falls dieses Datum kleiner oder gleich dem anderen ist, sonst false.
+     */
     inline bool operator<=(const Date& other) const
     {
         return toInt() <= other.toInt();
     }
 
+    /** @brief Vergleichsoperator für größer als
+     *
+     * @param other Das zu vergleichende Datum
+     * @return true, falls dieses Datum größer ist als das andere, sonst false.
+     */
     inline bool operator>(const Date& other) const
     {
         return toInt() > other.toInt();
     }
 
+    /** @brief Vergleichsoperator für größer oder gleich
+     *
+     * @param other Das zu vergleichende Datum
+     * @return true, falls dieses Datum größer oder gleich dem anderen ist, sonst false.
+     */
     inline bool operator>=(const Date& other) const
     {
         return toInt() >= other.toInt();
     }
 
+    /** @brief Liefert den Tag des Monats zurück
+     *
+     * @return Tag des Monats (1-31)
+     */
     uint8_t day() const noexcept
     {
         return dd;
     }
 
+    /** @brief Liefert den Monat des Datums zurück
+     *
+     * @return Monat des Datums (1-12)
+     */
     uint8_t month() const noexcept
     {
         return mm;
     }
 
+    /** @brief Liefert das Jahr des Datums zurück
+     *
+     * @return Jahr des Datums (z.B. 2020)
+     */
     uint16_t year() const noexcept
     {
         return yy;
     }
 
+    /** @brief Liefert den Tag des Jahres zurück
+     *
+     * @return Tag des Jahres (1-366)
+     */
     int dayOfYear() const;
+
+    /** @brief Liefert den Wochentag des Datums zurück
+     *
+     * @return Wochentag als Integer (0 = Sonntag, 1 = Montag, ..., 6 = Samstag)
+     */
     int dayOfWeek() const;
+
+    /** @brief Liefert den Wochentag des Datums nach ISO 8601 zurück
+     *
+     * @return Wochentag als Integer (1 = Montag, 2 = Dienstag, ..., 7 = Sonntag)
+     */
     int dayOfWeekISO8601() const;
 
     /** @brief Liefert die Kalenderwoche des Datums zurück
@@ -242,12 +359,38 @@ public:
      * @see Date::weekISO8601 für die in Europa übliche Zählweise nach ISO 8601
      */
     int week() const;
+
+    /** @brief Liefert die Kalenderwoche des Datums nach ISO 8601 zurück
+     *
+     * @return Wochennummer im Bereich 1 bis 53
+     */
     int weekISO8601() const;
+
+    /** @brief Prüft, ob das Jahr des Datums ein Schaltjahr ist
+     *
+     * @return true, falls das Jahr ein Schaltjahr ist, sonst false.
+     */
     bool isLeapYear() const;
+
+    /** @brief Statische Methode, die prüft, ob ein gegebenes Jahr ein Schaltjahr ist
+     *
+     * @param year Das zu prüfende Jahr
+     * @return true, falls das Jahr ein Schaltjahr ist, sonst false.
+     */
     static bool isLeapYear(int year);
 
+    /** @brief Liefert die Anzahl der Tage in einem bestimmten Monat eines bestimmten Jahres zurück
+     *
+     * @param month Der Monat (1-12)
+     * @param year Das Jahr
+     * @return Anzahl der Tage im angegebenen Monat
+     */
     static int daysInMonth(int month, int year);
 
+    /** @brief Liefert das aktuelle Datum zurück
+     *
+     * @return Das aktuelle Datum
+     */
     static Date today();
 };
 
