@@ -38,17 +38,17 @@
 namespace pplib
 {
 
-Date& Date::set(uint16_t year, uint8_t month, uint8_t day)
+Date& Date::set(int year, int month, int day)
 {
-    if (year > 9999 || month < 1 || month > 12 || day < 1 || day > 31) {
-        throw IllegalArgumentException("Date::set: invalid date (%04u-%02u-%02u)", year, month, day);
+    if (year < 0 || year > 9999 || month < 1 || month > 12 || day < 1 || day > 31) {
+        throw IllegalArgumentException("Date::set: invalid date (%04d-%02d-%02d)", year, month, day);
     }
     if (day > daysInMonth(month, year)) {
-        throw IllegalArgumentException("Date::set: invalid date (%04u-%02u-%02u)", year, month, day);
+        throw IllegalArgumentException("Date::set: invalid date (%04d-%02d-%02d)", year, month, day);
     }
-    yy = year;
-    mm = month;
-    dd = day;
+    yy = (uint16_t)year;
+    mm = (uint8_t)month;
+    dd = (uint8_t)day;
     return *this;
 }
 
@@ -68,10 +68,10 @@ Date& Date::set(const String& date)
     }
     if (a[0].length() == 4) {
         // YYYY.MM.DD
-        return set((uint16_t)a[0].toInt(), (uint8_t)a[1].toInt(), (uint8_t)a[2].toInt());
+        return set(a[0].toInt(), a[1].toInt(), a[2].toInt());
     } else if (a[2].length() == 4) {
         // DD.MM.YYYY
-        return set((uint16_t)a[2].toInt(), (uint8_t)a[1].toInt(), (uint8_t)a[0].toInt());
+        return set(a[2].toInt(), a[1].toInt(), a[0].toInt());
     } else {
         throw IllegalArgumentException("Date::set: invalid date format (%s)", d.c_str());
     }
@@ -79,21 +79,11 @@ Date& Date::set(const String& date)
 
 String Date::toString() const
 {
-    /*
-    if (isEmpty()) {
-        return String();
-    }
-    */
     return String::format("%04u-%02u-%02u", yy, mm, dd);
 }
 
 String Date::format(const String& format) const
 {
-    /*
-    if (isEmpty()) {
-        return String();
-    }
-        */
     String f = format;
     f.replace("%Y", String::format("%04u", yy));
     f.replace("%y", String::format("%02u", yy % 100));
@@ -162,7 +152,11 @@ int Date::dayOfWeek() const
     }
     // Sakamoto's algorithm
     static const int t[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
-    int y = yy;
+    // Der Gregorianische Kalender wiederholt sich exakt alle 400 Jahre (146097 Tage = genau
+    // 20871 Wochen). Der Shift um einen vollen Zyklus laesst den Wochentag also unveraendert,
+    // verhindert aber, dass y fuer Jahr 0 negativ wird - dort wuerde die zur Null hin
+    // trunkierende Division von C++ (statt der benoetigten Floor-Division) falsch rechnen.
+    int y = yy + 400;
     if (mm < 3) {
         y -= 1;
     }
@@ -180,12 +174,11 @@ int Date::week() const
     if (isEmpty()) {
         throw IllegalStateException("Date::week() called on empty Date object");
     }
-    // Wochentag des 1. Januars im selben Jahr
-    Date jan1(yy, 1, 1);
-    int jan1_wday = jan1.dayOfWeek(); // 0 = Sonntag
-
+    // Wochennummer nach der Zaehlweise von strftime "%U": jeder Sonntag beginnt eine neue
+    // Woche, alle Tage vor dem ersten Sonntag des Jahres liegen in Woche 0.
+    int wday = dayOfWeek();    // 0 = Sonntag
     int doy = dayOfYear() - 1; // 0-basiert
-    return (doy + jan1_wday) / 7;
+    return (doy - wday + 7) / 7;
 }
 
 int Date::weekISO8601() const
@@ -203,9 +196,17 @@ int Date::weekISO8601() const
 
     // Fällt der Donnerstag ins Vorjahr?
     if (thu_doy < 1) {
-        // Gehört zur letzten Woche des Vorjahres (Woche 52 oder 53)
-        Date prev_year_dec31(yy - 1, 12, 31);
-        return prev_year_dec31.weekISO8601();
+        // Gehört zur letzten Woche des Vorjahres (Woche 52 oder 53). Das Vorjahr wird bewusst
+        // nicht als Date-Objekt konstruiert, da es für yy==0 das nicht darstellbare Jahr -1 wäre.
+        // Ein Jahr hat genau dann 53 ISO-Wochen, wenn sein 31.12. ein Donnerstag ist, oder ein
+        // Freitag und das Jahr ein Schaltjahr war.
+        int prev_year = (int)yy - 1;
+        // ISO-Wochentag (0 = Montag) des 1. Januars dieses Jahres ...
+        int jan1_iso = ((iso_dow - 1 - (approx_doy - 1)) % 7 + 7) % 7;
+        // ... und daraus der Tag davor, also der 31.12. des Vorjahres (1 = Montag ... 7 = Sonntag)
+        int dec31_iso = ((jan1_iso - 1) % 7 + 7) % 7 + 1;
+        if (dec31_iso == 4 || (dec31_iso == 5 && isLeapYear(prev_year))) return 53;
+        return 52;
     }
 
     // Fällt der Donnerstag ins nächste Jahr?

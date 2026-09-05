@@ -117,6 +117,9 @@ TEST_F(DateTest, setWithWrongValues)
     ASSERT_THROW({ d1.set(2020, 0, 1); }, pplib::IllegalArgumentException);
     ASSERT_THROW({ d1.set(2020, 13, 1); }, pplib::IllegalArgumentException);
     ASSERT_THROW({ d1.set(10000, 1, 1); }, pplib::IllegalArgumentException);
+    // Jahr 0 ist gueltig (1 v. Chr.), negative Jahre nicht
+    ASSERT_NO_THROW({ d1.set(0, 1, 1); });
+    ASSERT_THROW({ d1.set(-1, 12, 31); }, pplib::IllegalArgumentException);
     ASSERT_THROW({ d1.set(2020, 2, 31); }, pplib::IllegalArgumentException);
     ASSERT_THROW({ d1.set(2020, 3, 32); }, pplib::IllegalArgumentException);
 }
@@ -301,6 +304,13 @@ TEST_F(DateTest, dayOfWeekISO8601)
 
 TEST_F(DateTest, week)
 {
+    ASSERT_EQ(0, pplib::Date(2024, 1, 1).week()) << "Class has unexpected value";
+    // Untere Grenze des gueltigen Bereichs: der 1.1.0000 war ein Samstag, der 1.1.0001 ein
+    // Montag - beide liegen noch vor dem ersten Sonntag ihres Jahres, also Woche 0
+    ASSERT_EQ(6, pplib::Date(0, 1, 1).dayOfWeek()) << "1.1.0000 should be a saturday";
+    ASSERT_EQ(0, pplib::Date(0, 1, 1).week()) << "Class has unexpected value";
+    ASSERT_EQ(1, pplib::Date(1, 1, 1).dayOfWeek()) << "1.1.0001 should be a monday";
+    ASSERT_EQ(0, pplib::Date(1, 1, 1).week()) << "Class has unexpected value";
     ASSERT_EQ(0, pplib::Date(2020, 1, 1).week()) << "Class has unexpected value";
     ASSERT_EQ(1, pplib::Date(2020, 1, 6).week()) << "Class has unexpected value";
     ASSERT_EQ(52, pplib::Date(2020, 12, 31).week()) << "Class has unexpected value";
@@ -310,8 +320,37 @@ TEST_F(DateTest, week)
     ASSERT_EQ(1, pplib::Date(1892, 1, 3).week()) << "Class has unexpected value";
 }
 
+TEST_F(DateTest, weekYearStartingOnSunday)
+{
+    // 2023 beginnt an einem Sonntag: es gibt keine Tage vor dem ersten Sonntag, daher
+    // existiert keine Woche 0 und der 1. Januar liegt direkt in Woche 1 (strftime "%U")
+    ASSERT_EQ(0, pplib::Date(2023, 1, 1).dayOfWeek()) << "1.1.2023 should be a sunday";
+    ASSERT_EQ(1, pplib::Date(2023, 1, 1).week()) << "Class has unexpected value";
+    ASSERT_EQ(1, pplib::Date(2023, 1, 7).week()) << "Class has unexpected value";
+    ASSERT_EQ(2, pplib::Date(2023, 1, 8).week()) << "Class has unexpected value";
+    ASSERT_EQ(53, pplib::Date(2023, 12, 31).week()) << "Class has unexpected value";
+}
+
+TEST_F(DateTest, weekYearNotStartingOnSunday)
+{
+    // 2021 beginnt an einem Freitag: alle Tage bis zum ersten Sonntag liegen in Woche 0
+    ASSERT_EQ(5, pplib::Date(2021, 1, 1).dayOfWeek()) << "1.1.2021 should be a friday";
+    ASSERT_EQ(0, pplib::Date(2021, 1, 1).week()) << "Class has unexpected value";
+    ASSERT_EQ(0, pplib::Date(2021, 1, 2).week()) << "Class has unexpected value";
+    ASSERT_EQ(1, pplib::Date(2021, 1, 3).week()) << "Class has unexpected value";
+    ASSERT_EQ(1, pplib::Date(2021, 1, 9).week()) << "Class has unexpected value";
+    ASSERT_EQ(2, pplib::Date(2021, 1, 10).week()) << "Class has unexpected value";
+}
+
 TEST_F(DateTest, weekISO8601)
 {
+    // Untere Grenze des gueltigen Bereichs: der 1.1.0000 (Samstag) gehoert noch zur letzten
+    // ISO-Woche des Jahres -1. Dieses Jahr ist als Date-Objekt nicht darstellbar, die
+    // Wochenzahl wird daher rein rechnerisch bestimmt: der 31.12. des Jahres -1 war ein
+    // Freitag und das Jahr kein Schaltjahr -> 52 Wochen.
+    ASSERT_EQ(52, pplib::Date(0, 1, 1).weekISO8601()) << "Class has unexpected value";
+    // Der 1.1.0001 war ein Montag und beginnt damit direkt ISO-Woche 1
+    ASSERT_EQ(1, pplib::Date(1, 1, 1).weekISO8601()) << "Class has unexpected value";
     ASSERT_EQ(1, pplib::Date(2020, 1, 1).weekISO8601()) << "Class has unexpected value";
     ASSERT_EQ(53, pplib::Date(2021, 1, 1).weekISO8601()) << "Class has unexpected value";
     ASSERT_EQ(52, pplib::Date(2022, 1, 1).weekISO8601()) << "Class has unexpected value";

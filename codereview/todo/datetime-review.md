@@ -38,6 +38,23 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   (`noexcept`-fähig) über ein `bool tryToMicroseconds(int64_t&)`-Pattern absichern, oder in den Operatoren
   vorher `isEmpty()` prüfen und eine definierte (nicht-terminierende) Fehlerbehandlung wählen.
 
+- [ ] **`setMicroseconds()` ist `noexcept`, ruft aber das werfende `Date::set()` auf → `std::terminate()`** (`DateTime.cpp:465-486`)
+  Nachgetragen am 2026-09-05, aufgefallen bei der Arbeit am Date-Review (dortiges Finding "weekISO8601 wirft
+  für Jahr 0"). Dieselbe Bug-Klasse wie beim vorherigen Punkt, aber eine andere Stelle:
+  ```cpp
+  DateTime& DateTime::setMicroseconds(int64_t epoch_microseconds, const TimeZone& tz) noexcept
+  {
+      ...
+      civilFromDays(days, y, m, d);
+      my_date.set(y, m, d);      // wirft IllegalArgumentException fuer y ausserhalb 0-9999
+  ```
+  `civilFromDays()` rechnet korrekt auch weit vor Jahr 0 bzw. nach 9999, `Date::set()` lehnt solche Jahre aber
+  ab. Ein ausreichend großer negativer oder positiver `epoch_microseconds`-Wert (vor 0000-01-01 bzw. nach
+  9999-12-31) lässt die Exception also aus einer `noexcept`-Funktion entkommen → sofortiger Prozessabbruch,
+  nicht abfangbar. Praktisch reproduzierbar über jeden Epoch-Wert kleiner als -62167219200000000 µs.
+  Fix: analog zum vorherigen Punkt – entweder `noexcept` entfernen, oder den Wertebereich vor dem
+  `my_date.set()` prüfen und definiert behandeln (clampen oder Objekt leeren).
+
 - [ ] **`setEpoch(0)` verwechselt den gültigen Unix-Zeitstempel 0 mit „leer“** (`DateTime.cpp:192-197`)
   ```cpp
   DateTime& DateTime::setEpoch(uint64_t time)

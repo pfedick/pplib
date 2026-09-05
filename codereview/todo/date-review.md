@@ -35,6 +35,8 @@ src/types/DateTime.cpp), der `Date` bereits mit `Time`/`TimeZone` kombiniert.
   ```
   oder generell erst als `int` validieren (`1<=m<=12`, `1<=day<=31`) und danach erst auf `uint8_t` casten.
 
+  ==> Fixed. Wir verwenden jetzt Integer als Datentyp für Year, Month und Day im Konstruktur und im Setter
+
 - [ ] **`Date::fromInt()` umgeht jede Validierung von `set()`** (`date.h:122-129`)
   ```cpp
   static Date fromInt(uint32_t date)
@@ -64,6 +66,8 @@ src/types/DateTime.cpp), der `Date` bereits mit `Time`/`TimeZone` kombiniert.
   }
   ```
 
+  ==> FIXED, wir rufen jetzt den Konstruktor von Date auf, wodurch die Werte validiert werden
+
 - [ ] **Self-Move-Assignment zerstört das Datum** (`date.h:94-103`)
   ```cpp
   Date operator=(Date&& other) noexcept
@@ -81,6 +85,8 @@ src/types/DateTime.cpp), der `Date` bereits mit `Time`/`TimeZone` kombiniert.
   Self-Move ist selten explizit im Anwendungscode, aber ein bekannter Stolperstein bei generischem/Template-Code
   (z.B. Swap-Implementierungen, Reallocation-Pfade). Analog zu Time (siehe time-review.md).
   Fix: Guard `if (this != &other)` oder Self-Move separat behandeln.
+
+  ==> FIXED, Guard eingebaut
 
 ## Bugs (mittel)
 
@@ -100,6 +106,18 @@ src/types/DateTime.cpp), der `Date` bereits mit `Time`/`TimeZone` kombiniert.
   Fix: entweder `+ 1` ergänzen (`return (doy + jan1_wday) / 7 + 1;`), falls 1-basiert gewollt ist, oder die
   Doku korrigieren, falls 0-basiert (POSIX-`%U`-kompatibel) tatsächlich beabsichtigt ist.
 
+  ==> FIXED, aber der Befund war ungenau: Gewollt ist `%U`-Verhalten. Gegen die echte `%U`-Definition
+  durchgerechnet war die alte Formel für 6 der 7 möglichen Wochentage des 1. Januar bereits korrekt –
+  falsch war sie nur, wenn der 1. Januar selbst ein Sonntag ist (dann kollabiert `(7-jan1_wday)%7` auf 0
+  und das Ergebnis ist um 1 zu klein). Das im Review genannte Beispiel `Date(2024,1,1).week()==0` war
+  sogar korrekt (1.1.2024 war ein Montag, liegt nach `%U` also zu Recht in Woche 0) – falsch war die
+  *Doku* ("Am 1. Januar beginnt stets die 1. Kalenderwoche"), die eine andere Zählweise beschreibt.
+  Das vorgeschlagene pauschale `+1` hätte die 6 korrekten Fälle kaputt gemacht.
+  Umgesetzt: Formel auf `(dayOfYear()-1 - dayOfWeek() + 7) / 7` umgestellt (braucht kein `Date(yy,1,1)`
+  Hilfsobjekt mehr und ist für alle Wochentage korrekt), Doku auf die echte `%U`-Regel korrigiert.
+  Tests: `weekYearStartingOnSunday` (2023) und `weekYearNotStartingOnSunday` (2021) ergänzt, die
+  Erwartung für `Date(0,1,1)` von 0 auf 1 korrigiert (dieser Tag ist laut `dayOfWeek()` ein Sonntag).
+
 - [ ] **`Date::weekISO8601()` wirft für Jahr 0 statt korrekt zu rechnen (uint16_t-Unterlauf)** (`Date.cpp:205-208`)
   ```cpp
   if (thu_doy < 1) {
@@ -116,6 +134,24 @@ src/types/DateTime.cpp), der `Date` bereits mit `Time`/`TimeZone` kombiniert.
   ablehnen (dann wäre der Fall unerreichbar), oder explizit auf `yy==0` prüfen und einen Sentinel-Wert/Exception
   mit klarer Meldung verwenden statt des zufälligen Wraparounds.
 
+  ==> FIXED. Zwischenstand: Durch die Umstellung auf `int`-Parameter (siehe erstes Finding) gab es schon
+  keinen 65535-Wraparound mehr, sondern eine saubere `IllegalArgumentException` – das Symptom blieb aber.
+  Der Weg "Jahr 0 verbieten" wurde geprüft und wieder verworfen: `DateTime` dokumentiert (datetime.h:431)
+  und testet (datetime.cpp:1152) Jahr 0 bewusst, und `DateTime::setMicroseconds()` ist `noexcept` – eine
+  Exception aus `Date::set()` heraus hätte dort `std::terminate()` ausgelöst.
+  Umgesetzt stattdessen:
+  1. `weekISO8601()` konstruiert für das Vorjahr kein `Date`-Objekt mehr (das wäre für `yy==0` das nicht
+     darstellbare Jahr -1), sondern bestimmt dessen letzte ISO-Woche rechnerisch: 53 Wochen genau dann,
+     wenn der 31.12. des Vorjahres ein Donnerstag ist, oder ein Freitag und das Vorjahr ein Schaltjahr war.
+  2. Dabei fiel auf, dass `dayOfWeek()` für Jahr 0 ohnehin falsch rechnete: Sakamoto braucht Floor-Division,
+     C++ trunkiert aber Richtung Null, was für `mm < 3` und `yy == 0` (also `y == -1`) danebengeht. Der
+     1.1.0000 war ein Samstag, die Klasse lieferte Sonntag. Behoben durch `int y = yy + 400;` – ein voller
+     Gregorianischer Zyklus (146097 Tage = exakt 20871 Wochen) ändert den Wochentag nicht, hält `y` aber
+     positiv. Für alle Jahre >= 1 bleiben die Ergebnisse dadurch unverändert.
+  Tests: untere Bereichsgrenze in `week`/`weekISO8601` ergänzt (1.1.0000 = Samstag → Woche 0 bzw. ISO-Woche
+  52 des Jahres -1; 1.1.0001 = Montag → Woche 0 bzw. ISO-Woche 1) und in `setWithWrongValues` abgesichert,
+  dass Jahr 0 gültig, ein negatives Jahr aber ungültig ist.
+
 ## Design
 
 - [ ] **`Date::operator=` gibt `Date` (per Wert) statt `Date&` zurück – inkonsistent mit `Time::operator=`** (`date.h:86-103`)
@@ -128,6 +164,8 @@ src/types/DateTime.cpp), der `Date` bereits mit `Time`/`TimeZone` kombiniert.
   - Verkettungen mit Referenzsemantik brechen: `(a = b).clear();` löscht die *temporäre Kopie*, nicht `a` selbst,
   - inkonsistent zur Schwesterklasse `Time`, deren `operator=` korrekt `Time&` zurückgibt (Time.cpp:147, 156).
   Fix: Rückgabetyp auf `Date&` ändern (Standard-Idiom für Zuweisungsoperatoren).
+
+  ==> FIXED, die Operatoren geben jetzt eine Referenz zurück
 
 ## Doku / Kosmetik
 

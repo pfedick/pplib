@@ -68,7 +68,18 @@ public:
         other.yy = 0;
     }
 
-    inline Date(uint16_t year, uint8_t month, uint8_t day)
+    /** @brief Konstruktor für Datum mit Jahr, Monat und Tag
+     *
+     * Setzt ein Datum mit den angegebenen Werten für Jahr, Monat und Tag.
+     * Die einzelnen Werte werden validiert, so dass kein ungültiges Datum entstehen kann.
+     *
+     * @param year Jahr (0-9999). Die Jahreszählung folgt dem proleptisch gregorianischen
+     * Kalender, das Jahr 0 entspricht also 1 v. Chr.
+     * @param month Monat (1-12)
+     * @param day Tag (1-31)
+     * @exception IllegalArgumentException Die übergebenen Werte für Jahr, Monat oder Tag sind ungültig.
+     */
+    inline Date(int year, int month, int day)
     {
         set(year, month, day);
     }
@@ -78,12 +89,35 @@ public:
         set(date);
     }
 
-    Date& set(uint16_t year, uint8_t month, uint8_t day);
+    /** @brief Konstruktor für Datum mit Jahr, Monat und Tag
+     *
+     * Setzt ein Datum mit den angegebenen Werten für Jahr, Monat und Tag.
+     * Die einzelnen Werte werden validiert, so dass kein ungültiges Datum entstehen kann.
+     *
+     * @param year Jahr (0-9999). Die Jahreszählung folgt dem proleptisch gregorianischen
+     * Kalender, das Jahr 0 entspricht also 1 v. Chr.
+     * @param month Monat (1-12)
+     * @param day Tag (1-31)
+     * @exception IllegalArgumentException Die übergebenen Werte für Jahr, Monat oder Tag sind ungültig.
+     */
+    Date& set(int year, int month, int day);
     Date& set(const String& date);
+
+    /** @brief Konvertiert das Datum in einen String im Standardformat "YYYY-MM-DD"
+     *
+     * @return String im Format "YYYY-MM-DD"
+     * @note Falls das Datum leer ist, wird "0000-00-00" zurückgegeben.
+     */
     String toString() const;
+    /** @brief Formatiert das Datum gemäß dem angegebenen Formatstring
+     *
+     * @param format Formatstring (z.B. "YYYY-MM-DD")
+     * @return Formatierter Datumsstring
+     * @note Falls das Datum leer ist, wird "0000-00-00" zurückgegeben.
+     */
     String format(const String& format) const;
 
-    Date operator=(const Date& other) noexcept
+    Date& operator=(const Date& other) noexcept
     {
         dd = other.dd;
         mm = other.mm;
@@ -91,8 +125,11 @@ public:
         return *this;
     }
 
-    Date operator=(Date&& other) noexcept
+    Date& operator=(Date&& other) noexcept
     {
+        if (this == &other) {
+            return *this;
+        }
         dd = other.dd;
         mm = other.mm;
         yy = other.yy;
@@ -121,11 +158,8 @@ public:
 
     static Date fromInt(uint32_t date)
     {
-        Date d;
-        d.yy = date / 10000;
-        d.mm = (date / 100) % 100;
-        d.dd = date % 100;
-        return d;
+        if (date == 0) return Date();
+        return Date(date / 10000, (date / 100) % 100, date % 100);
     }
 
     inline bool isEmpty() const
@@ -197,11 +231,15 @@ public:
      * Diese Funktion berechnet anhand des Datums die Wochennummer innerhalb
      * des Jahres und gibt diese als Integer zurück. Die Zählweise entspricht der in
      * den USA, Australien und vielen weiteren Ländern, in der sich die Tradition des
-     * Judentums, Christentums und Islams erhalten hat. Dabei gilt folgende Regel:
+     * Judentums, Christentums und Islams erhalten hat, und ist identisch zur
+     * Formatangabe "%U" von \c strftime. Dabei gilt folgende Regel:
      * - Jeden Sonntag beginnt eine neue Kalenderwoche
-     * - Am 1. Januar beginnt stets – unabhängig vom Wochentag – die 1. Kalenderwoche
+     * - Alle Tage vor dem ersten Sonntag des Jahres liegen in Woche 0. Nur wenn der
+     *   1. Januar selbst ein Sonntag ist, beginnt er direkt die Woche 1.
      *
-     * @return Integer-Wert mit dem Jahr
+     * @return Wochennummer im Bereich 0 bis 53
+     * @exception IllegalStateException Das Datum ist leer
+     * @see Date::weekISO8601 für die in Europa übliche Zählweise nach ISO 8601
      */
     int week() const;
     int weekISO8601() const;
