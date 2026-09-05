@@ -38,6 +38,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   (`noexcept`-fähig) über ein `bool tryToMicroseconds(int64_t&)`-Pattern absichern, oder in den Operatoren
   vorher `isEmpty()` prüfen und eine definierte (nicht-terminierende) Fehlerbehandlung wählen.
 
+  ==> Fixed, "noexcept" entfernt. Wenn einer der beteiligten Werte einen ungültigen Zeitstempel hat, dann kann man da nicht mit rechnen und die Exception fliegt zurecht.
+
 - [ ] **`setMicroseconds()` ist `noexcept`, ruft aber das werfende `Date::set()` auf → `std::terminate()`** (`DateTime.cpp:465-486`)
   Nachgetragen am 2026-09-05, aufgefallen bei der Arbeit am Date-Review (dortiges Finding "weekISO8601 wirft
   für Jahr 0"). Dieselbe Bug-Klasse wie beim vorherigen Punkt, aber eine andere Stelle:
@@ -54,6 +56,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   nicht abfangbar. Praktisch reproduzierbar über jeden Epoch-Wert kleiner als -62167219200000000 µs.
   Fix: analog zum vorherigen Punkt – entweder `noexcept` entfernen, oder den Wertebereich vor dem
   `my_date.set()` prüfen und definiert behandeln (clampen oder Objekt leeren).
+
+  ==> "noexcept" entfernt, Exception dokumentiert
 
 - [ ] **`setEpoch(0)` verwechselt den gültigen Unix-Zeitstempel 0 mit „leer“** (`DateTime.cpp:192-197`)
   ```cpp
@@ -85,6 +89,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   Fix: `setEpoch()` darf `time==0` nicht als Sonderfall behandeln, sondern muss das reguläre
   1970-01-01-Datum berechnen. „Leer“ sollte ausschließlich über `clear()`/den Default-Konstruktor erreichbar sein.
 
+  ==> FIXED, Testfall ergänzt
+
 - [ ] **`setLongInt()`: `(uint16_t)`-Cast verstümmelt das Jahr für alle Jahre ≥ 5462** (`DateTime.cpp:238-254`)
   ```cpp
   int mm = (i % 12) + 1;
@@ -105,6 +111,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   Rechnung: nach den Divisionen ist `i == 119988` (= 9999*12). `(uint16_t)119988 == 54452`
   (119988 mod 65536), `54452 / 12 == 4537`. Ohne den Cast (`i / 12`) käme korrekt `9999` heraus.
   Fix: Cast ersatzlos entfernen: `int yy = i / 12;` (i ist zu diesem Zeitpunkt bereits `uint64_t`, kein Cast nötig).
+
+  ==> FIXED, Test ergänzt
 
 - [ ] **Implizite Narrowing-Conversion in `set(int,...)` hebelt die dokumentierte Bereichsprüfung aus** (`datetime.h:440-445`)
   ```cpp
@@ -127,6 +135,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   Stunden über `Time::set` (`hour=256` → `uint8_t(256)==0` → Mitternacht statt Exception).
   Fix: In `DateTime::set(int,...)` selbst vor der Weitergabe grob validieren (z.B. `year<0||year>9999`
   etc. prüfen und `IllegalArgumentException` werfen), statt sich auf den impliziten Cast zu verlassen.
+
+  ===> PRÜFEN! Das müsste sich erledigt haben, da Date und Time jetzt integer verwenden.
 
 - [ ] **`getRFC822Date()`: Zeitzonen-Offset wird als Sekunden statt Minuten interpretiert → falscher Wert** (`DateTime.cpp:149-165, 317-342`)
   `toPPLTIME()` schreibt den Offset in **Minuten** in die Struktur (unverändert von `TimeZone::offsetMinutes()`):

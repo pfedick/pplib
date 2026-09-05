@@ -693,7 +693,16 @@ public:
      */
     uint64_t longInt() const;
 
-    DateTime& setMicroseconds(int64_t epoch_microseconds_utc, const TimeZone& tz = TimeZone::utc()) noexcept;
+    /** @brief Datum und Uhrzeit in Mikrosekunden setzen
+     *
+     * Mit dieser Funktion wird das Datum und die Uhrzeit anhand der übergebenen Mikrosekunden seit der Epoche (UTC) gesetzt.
+     *
+     * @param[in] epoch_microseconds_utc Mikrosekunden seit 1970-01-01 00:00:00 UTC
+     * @param[in] tz Zeitzone, in der die Zeit interpretiert werden soll (Standard: UTC)
+     * @return Referenz auf das aktuelle DateTime-Objekt
+     * @exception IllegalArgumentException Wird geworfen, wenn das Datum ungültig ist.
+     */
+    DateTime& setMicroseconds(int64_t epoch_microseconds_utc, const TimeZone& tz = TimeZone::utc());
     int64_t toMicroseconds() const;
 
     /** @brief Das Jahr als Integer auslesen
@@ -914,57 +923,59 @@ public:
      */
     operator String() const;
 
-    inline bool operator<(const DateTime& other) const
+    int compare(const DateTime& other) const noexcept;
+
+    inline bool operator<(const DateTime& other) const noexcept
     {
-        return toMicroseconds() < other.toMicroseconds();
+        return compare(other) < 0;
     }
 
-    inline bool operator<=(const DateTime& other) const
+    inline bool operator<=(const DateTime& other) const noexcept
     {
-        return toMicroseconds() <= other.toMicroseconds();
+        return compare(other) <= 0;
     }
 
-    inline bool operator==(const DateTime& other) const
+    inline bool operator==(const DateTime& other) const noexcept
     {
-        return toMicroseconds() == other.toMicroseconds();
+        return compare(other) == 0;
     }
 
-    inline bool operator!=(const DateTime& other) const
+    inline bool operator!=(const DateTime& other) const noexcept
     {
-        return toMicroseconds() != other.toMicroseconds();
+        return compare(other) != 0;
     }
 
-    inline bool operator>=(const DateTime& other) const
+    inline bool operator>=(const DateTime& other) const noexcept
     {
-        return toMicroseconds() >= other.toMicroseconds();
+        return compare(other) >= 0;
     }
 
-    inline bool operator>(const DateTime& other) const
+    inline bool operator>(const DateTime& other) const noexcept
     {
-        return toMicroseconds() > other.toMicroseconds();
+        return compare(other) > 0;
     }
 
-    TimeDelta operator-(const DateTime& other) const noexcept
+    TimeDelta operator-(const DateTime& other) const
     {
         return TimeDelta::fromMicroseconds(toMicroseconds() - other.toMicroseconds());
     }
 
-    DateTime operator+(const TimeDelta& td) const noexcept
+    DateTime operator+(const TimeDelta& td) const
     {
         return DateTime::fromMicroseconds(toMicroseconds() + td.toMicroseconds());
     }
 
-    DateTime operator-(const TimeDelta& td) const noexcept
+    DateTime operator-(const TimeDelta& td) const
     {
         return DateTime::fromMicroseconds(toMicroseconds() - td.toMicroseconds());
     }
 
-    DateTime& operator+=(const TimeDelta& td) noexcept
+    DateTime& operator+=(const TimeDelta& td)
     {
         return setMicroseconds(toMicroseconds() + td.toMicroseconds());
     }
 
-    DateTime& operator-=(const TimeDelta& td) noexcept
+    DateTime& operator-=(const TimeDelta& td)
     {
         return setMicroseconds(toMicroseconds() - td.toMicroseconds());
     }

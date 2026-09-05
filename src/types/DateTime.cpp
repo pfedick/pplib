@@ -191,10 +191,6 @@ uint64_t DateTime::epoch() const
 
 DateTime& DateTime::setEpoch(uint64_t time)
 {
-    if (time == 0) {
-        clear();
-        return *this;
-    }
     my_tz = TimeZone::utc();            // Zeitzone setzen wir auf UTC
     uint64_t total_days = time / 86400; // Ein Tag hat 86400 Sekunden
     // Uhrzeit können wir relativ leicht anhand des Modulos setzen
@@ -248,7 +244,7 @@ DateTime& DateTime::setLongInt(uint64_t i)
     int dd = (i % 31) + 1;
     i = i / 31;
     int mm = (i % 12) + 1;
-    int yy = (uint16_t)i / 12;
+    int yy = i / 12;
     set(yy, mm, dd, hh, ii, ss, us);
     return *this;
 }
@@ -462,7 +458,7 @@ int64_t DateTime::toMicroseconds() const
     return (days * 86400000000LL) + time_us - tz_offset_us;
 }
 
-DateTime& DateTime::setMicroseconds(int64_t epoch_microseconds, const TimeZone& tz) noexcept
+DateTime& DateTime::setMicroseconds(int64_t epoch_microseconds, const TimeZone& tz)
 {
     my_tz = tz;
     // Lokale Mikrosekunden berechnen: UTC + TimeZone-Offset
@@ -483,6 +479,18 @@ DateTime& DateTime::setMicroseconds(int64_t epoch_microseconds, const TimeZone& 
     my_time.setFromMicroseconds(static_cast<uint64_t>(rem_us));
 
     return *this;
+}
+
+int DateTime::compare(const DateTime& other) const noexcept
+{
+    if (my_date.isEmpty() && other.my_date.isEmpty()) return 0;
+    if (my_date.isEmpty()) return -1;
+    if (other.my_date.isEmpty()) return 1;
+    const int64_t this_us = toMicroseconds();
+    const int64_t other_us = other.toMicroseconds();
+    if (this_us < other_us) return -1;
+    if (this_us > other_us) return 1;
+    return 0;
 }
 
 } // namespace pplib

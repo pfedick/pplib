@@ -429,6 +429,7 @@ TEST_F(DateTimeTest, getLongInt)
         uint64_t t = d1.longInt();
         ASSERT_EQ((uint64_t)64679514611159473, t) << "Unexpected date";
     });
+    ASSERT_EQ((uint64_t)321375859200000000, pplib::DateTime("9999-01-01 00:00:00.000000").longInt());
 }
 
 TEST_F(DateTimeTest, setLongInt)
@@ -439,6 +440,10 @@ TEST_F(DateTimeTest, setLongInt)
         d1.setLongInt(v);
         ASSERT_EQ(pplib::String("2012-05-18 11:50:11.159473"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
     });
+
+    pplib::DateTime d2;
+    d2.setLongInt(321375859200000000);
+    ASSERT_EQ(pplib::String("9999-01-01 00:00:00.000000"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, setWithOtherDateTime)
@@ -1017,6 +1022,7 @@ TEST_F(DateTimeTest, setEpoch)
     EXPECT_EQ(pplib::String("2024-06-04 14:50:11.000000"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 
     EXPECT_EQ((uint64_t)0, d1.setTime_t((uint64_t)0).time_t()) << "Unexpected date";
+    EXPECT_EQ(pplib::String("1970-01-01 00:00:00.000000"), d1.setTime_t((uint64_t)0).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, getISO8601withUsec)
