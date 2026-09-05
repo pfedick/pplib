@@ -83,9 +83,11 @@ TimeZone& TimeZone::setOffsetMinutes(int offset_min)
 
 TimeZone& TimeZone::setOffset(int hours, int minutes)
 {
-    int sign = (hours < 0 || minutes < 0) ? -1 : 1;
     if (hours < -12 || hours > 14 || minutes < -59 || minutes > 59) throw IllegalArgumentException("Invalid time offset");
-    return setOffsetMinutes(sign * (abs(hours) * 60 + abs(minutes)));
+    if (hours < 0 && minutes > 0) {
+        minutes = -minutes;
+    }
+    return setOffsetMinutes(hours * 60 + minutes);
 }
 
 TimeZone TimeZone::fromLocalTime() noexcept
@@ -118,6 +120,7 @@ TimeZone TimeZone::fromString(const String& str)
     } else if (s[0] == '+') {
         s = s.substr(1);
     }
+    pplib::String h_str, m_str;
     int hours = 0;
     int minutes = 0;
     if (s.find(":") != -1) {
@@ -125,20 +128,25 @@ TimeZone TimeZone::fromString(const String& str)
         if (parts.size() != 2) {
             throw IllegalArgumentException("TimeZone::fromString: invalid timezone format (%s)", str.c_str());
         }
-        hours = parts[0].toInt();
-        minutes = parts[1].toInt();
+        h_str = parts[0];
+        m_str = parts[1];
     } else {
         if (s.size() == 4) {
-            hours = s.substr(0, 2).toInt();
-            minutes = s.substr(2, 2).toInt();
+            h_str = s.substr(0, 2);
+            m_str = s.substr(2, 2);
         } else if (s.size() == 2) {
-            hours = s.toInt();
-            minutes = 0;
+            h_str = s;
+            m_str = "00";
         } else {
             throw IllegalArgumentException("TimeZone::fromString: invalid timezone format (%s)", str.c_str());
         }
     }
-    return TimeZone(sign * (hours * 60 + minutes));
+    if (!IsInteger(h_str) || !IsInteger(m_str)) {
+        throw IllegalArgumentException("TimeZone::fromString: invalid timezone format (%s)", str.c_str());
+    }
+    hours = h_str.toInt() * sign;
+    minutes = m_str.toInt() * sign;
+    return TimeZone(hours, minutes);
 }
 
 String TimeZone::toString(bool colon) const

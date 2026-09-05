@@ -80,6 +80,7 @@ TEST_F(TimeZoneTest, fromStringWithDoppelColumn)
     ASSERT_EQ((int16_t)-120, pplib::TimeZone::fromString("-2:0").offsetMinutes());
     ASSERT_EQ((int16_t)130, pplib::TimeZone::fromString("+02:10").offsetMinutes());
     ASSERT_EQ((int16_t)-130, pplib::TimeZone::fromString("-02:10").offsetMinutes());
+    ASSERT_EQ((int16_t)-10, pplib::TimeZone::fromString("-00:10").offsetMinutes());
 }
 
 TEST_F(TimeZoneTest, fromStringWithoutDoppelColumn)
@@ -100,6 +101,17 @@ TEST_F(TimeZoneTest, fromStringWithBrackets)
     ASSERT_EQ((int16_t)-130, pplib::TimeZone::fromString("[-0210]").offsetMinutes());
     ASSERT_EQ((int16_t)130, pplib::TimeZone::fromString("[+02:10]").offsetMinutes());
     ASSERT_EQ((int16_t)-130, pplib::TimeZone::fromString("[-02:10]").offsetMinutes());
+    ASSERT_EQ((int16_t)90, pplib::TimeZone::fromString("[+02:-30]").offsetMinutes());
+}
+
+TEST_F(TimeZoneTest, fromStringThrows)
+{
+    ASSERT_THROW({ pplib::TimeZone::fromString("invalid"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::TimeZone::fromString("+25:00"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::TimeZone::fromString("-13:00"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::TimeZone::fromString("+1260"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::TimeZone::fromString("-1272"); }, pplib::IllegalArgumentException);
+    // ASSERT_THROW({ pplib::TimeZone::fromString("+02:-30"); }, pplib::IllegalArgumentException);
 }
 
 TEST_F(TimeZoneTest, setOffsetMinutes)
@@ -123,6 +135,11 @@ TEST_F(TimeZoneTest, setOffset)
 {
     ASSERT_EQ((int16_t)130, pplib::TimeZone().setOffset(2, 10).offsetMinutes());
     ASSERT_EQ((int16_t)-130, pplib::TimeZone().setOffset(-2, 10).offsetMinutes());
+    ASSERT_EQ((int16_t)-130, pplib::TimeZone().setOffset(-2, 10).offsetMinutes());
+    ASSERT_EQ((int16_t)-150, pplib::TimeZone().setOffset(-2, -30).offsetMinutes());
+    ASSERT_EQ((int16_t)150, pplib::TimeZone().setOffset(2, 30).offsetMinutes());
+    ASSERT_EQ((int16_t)90, pplib::TimeZone().setOffset(2, -30).offsetMinutes());
+    ASSERT_EQ((int16_t)-30, pplib::TimeZone().setOffset(0, -30).offsetMinutes());
 }
 
 TEST_F(TimeZoneTest, setName)

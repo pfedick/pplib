@@ -141,6 +141,10 @@ String Repeat(const String& str, size_t count);
 String Transcode(const char* str, size_t size, const String& fromEncoding, const String& toEncoding);
 String Transcode(const String& str, const String& fromEncoding, const String& toEncoding);
 bool IsTrue(const String& str);
+bool IsDigit(const String& str);
+bool IsInteger(const String& str);
+bool IsNumeric(const String& str);
+
 Array StrTok(const String& string, const String& div = String("\n"));
 void StrTok(Array& result, const String& string, const String& div = String("\n"));
 

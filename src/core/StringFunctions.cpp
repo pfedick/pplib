@@ -484,6 +484,27 @@ bool IsTrue(const String& str)
     return str.isTrue();
 }
 
+bool IsDigit(const String& str)
+{
+    for (size_t i = 0; i < str.length(); i++) {
+        unsigned char c = str[i];
+        if (c < '0' || c > '9') {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool IsInteger(const String& str)
+{
+    return str.isInteger();
+}
+
+bool IsNumeric(const String& str)
+{
+    return str.isNumeric();
+}
+
 /*!\brief String anhand eines Trennzeichens zerlegen
  *
  * \desc
