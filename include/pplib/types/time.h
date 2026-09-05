@@ -33,6 +33,7 @@
 #include <stdint.h>
 #include <ostream>
 #include "pplib/types/string.h"
+#include "pplib/types/timedelta.h"
 
 namespace pplib
 {
@@ -52,6 +53,25 @@ private:
     uint8_t ii = 0;  //!< Minute
     uint8_t ss = 0;  //!< Sekunde
 
+    /** @brief Rechnet einen vorzeichenbehafteten Mikrosekundenwert auf eine Tageszeit um
+     *
+     * Der Wert wird modulo 24 Stunden auf den Bereich eines Tages reduziert, negative Werte
+     * laufen dabei über Mitternacht zurück (-1 Stunde entspricht also 23:00 Uhr). Die Rechnung
+     * erfolgt bewusst vorzeichenbehaftet: eine Mischrechnung mit \c uint64_t würde bei negativen
+     * Zwischenergebnissen modulo 2^64 wrappen, was sich anschließend nicht mehr auf die korrekte
+     * Uhrzeit zurückführen lässt (2^64 ist kein Vielfaches eines Tages in Mikrosekunden).
+     *
+     * @param microseconds Mikrosekunden, darf negativ sein
+     * @return Time-Objekt mit der umgerechneten Tageszeit
+     */
+    static Time fromSignedMicroseconds(int64_t microseconds) noexcept
+    {
+        constexpr int64_t US_PER_DAY = 86400000000LL;
+        microseconds %= US_PER_DAY;
+        if (microseconds < 0) microseconds += US_PER_DAY;
+        return Time::fromMicroseconds(static_cast<uint64_t>(microseconds));
+    }
+
 public:
     /** @brief Konstruktor mit Initialisierung auf 0
      *
@@ -63,10 +83,9 @@ public:
     /** @brief Konstruktor mit Initialisierung aus einem String
      *
      * Über diesen Konstruktor wird ein Time Objekt anhand des im String \p time enthaltenen
-     * Zeitwertes erstellt. Das unterstützte Format ist in der Funktion
-     * \ref Time::set(const String &time) "set" beschrieben.
+     * Zeitwertes erstellt.
      *
-     * @param[in] time String mit der Uhrzeit
+     * @param[in] time String mit der Uhrzeit. Erwartetes Format: HH:MM:SS[.uuuuuu], wobei führende Nullen optional sind.
      *
      * @exception IllegalArgumentException: Wird geworfen, wenn der String \p time
      * ein ungültiges oder unbekanntes Zeitformat hat.
@@ -113,7 +132,7 @@ public:
      * @param[in] microseconds Mikrosekunden (0-999999)
      * @exception IllegalArgumentException: Wird geworfen, wenn einer der Parameter außerhalb des gültigen Bereichs liegt.
      */
-    inline Time(uint8_t hour, uint8_t minute, uint8_t second, uint32_t microseconds = 0)
+    inline Time(uint32_t hour, uint32_t minute, uint32_t second, uint32_t microseconds = 0)
     {
         set(hour, minute, second, microseconds);
     }
@@ -163,10 +182,31 @@ public:
      */
     Time& setFromMicroseconds(uint64_t microseconds) noexcept;
 
+    /** @brief Erstellt ein Time-Objekt aus Mikrosekunden
+     *
+     * Mit dieser Funktion wird ein Time-Objekt aus dem angegebenen Wert in Mikrosekunden erstellt.
+     *
+     * @param microseconds Uhrzeit in Mikrosekunden
+     * @return Time-Objekt mit der angegebenen Uhrzeit
+     */
     static Time fromMicroseconds(uint64_t microseconds) noexcept
     {
         Time t;
         t.setFromMicroseconds(microseconds);
+        return t;
+    }
+
+    /** @brief Erstellt ein Time-Objekt aus Sekunden
+     *
+     * Mit dieser Funktion wird ein Time-Objekt aus dem angegebenen Wert in Sekunden erstellt.
+     *
+     * @param seconds Uhrzeit in Sekunden
+     * @return Time-Objekt mit der angegebenen Uhrzeit
+     */
+    static Time fromSeconds(uint32_t seconds) noexcept
+    {
+        Time t;
+        t.setFromSeconds(seconds);
         return t;
     }
 
@@ -191,7 +231,7 @@ public:
      * @return Referenz auf das aktuelle Objekt
      * @exception IllegalArgumentException: Wird geworfen, wenn einer der Parameter außerhalb des gültigen Bereichs liegt.
      */
-    Time& set(uint8_t hour, uint8_t minute, uint8_t second, uint32_t microseconds = 0);
+    Time& set(uint32_t hour, uint32_t minute, uint32_t second, uint32_t microseconds = 0);
 
     /** @brief Setzt die Uhrzeit aus einem String
      *
@@ -199,18 +239,50 @@ public:
      * Stunden, Minuten und Sekunden können ein- oder zweistellig sein. Statt Doppelpunkt kann auch Komma, Punkt oder Minus als Trennzeichen
      * verwendet werden.
      *
-     * @param time String mit der Uhrzeit
+     * @param[in] time String mit der Uhrzeit. Erwartetes Format: HH:MM:SS[.uuuuuu], wobei führende Nullen optional sind.
      * @return Referenz auf das aktuelle Objekt
      * @exception IllegalArgumentException: Wird geworfen, wenn der String kein gültiges Zeitformat hat.
      */
     Time& set(const String& time);
 
+    /** @brief Setzt die Stunde
+     *
+     * Mit dieser Funktion wird die Stunde auf den angegebenen Wert gesetzt.
+     *
+     * @param hour Stunde (0-23)
+     * @return Referenz auf das aktuelle Objekt
+     * @exception IllegalArgumentException: Wird geworfen, wenn die Stunde außerhalb des gültigen Bereichs liegt.
+     */
     Time& setHour(uint8_t hour);
 
+    /** @brief Setzt die Minute
+     *
+     * Mit dieser Funktion wird die Minute auf den angegebenen Wert gesetzt.
+     *
+     * @param minute Minute (0-59)
+     * @return Referenz auf das aktuelle Objekt
+     * @exception IllegalArgumentException: Wird geworfen, wenn die Minute außerhalb des gültigen Bereichs liegt.
+     */
     Time& setMinute(uint8_t minute);
 
+    /** @brief Setzt die Sekunde
+     *
+     * Mit dieser Funktion wird die Sekunde auf den angegebenen Wert gesetzt.
+     *
+     * @param second Sekunde (0-59)
+     * @return Referenz auf das aktuelle Objekt
+     * @exception IllegalArgumentException: Wird geworfen, wenn die Sekunde außerhalb des gültigen Bereichs liegt.
+     */
     Time& setSecond(uint8_t second);
 
+    /** @brief Setzt die Mikrosekunden
+     *
+     * Mit dieser Funktion werden die Mikrosekunden auf den angegebenen Wert gesetzt.
+     *
+     * @param microseconds Mikrosekunden (0-999999)
+     * @return Referenz auf das aktuelle Objekt
+     * @exception IllegalArgumentException: Wird geworfen, wenn die Mikrosekunden außerhalb des gültigen Bereichs liegen.
+     */
     Time& setMicrosecond(uint32_t microseconds);
 
     /** @brief Setzt die Uhrzeit aus einem anderen Time-Objekt
@@ -245,7 +317,7 @@ public:
      * Mit dieser Funktion wird die Uhrzeit in einem bestimmten Format zurückgegeben. Das Format kann Platzhalter für Stunden, Minuten,
      * Sekunden und Mikrosekunden enthalten. Die unterstützten Platzhalter sind:
      * - %H: Stunde (00-23)
-     * - %I: Stunde (00-11)
+     * - %I: Stunde (1-12, 0 Uhr wird als 12 dargestellt)
      * - %M: Minute (00-59)
      * - %S: Sekunde (00-59)
      * - %f: Millisekunden (000-999)
@@ -382,6 +454,50 @@ public:
      * @return Aktuelle Uhrzeit in UTC
      */
     static Time utcNow();
+
+    /** @brief Addiert eine Zeitspanne zur Uhrzeit
+     *
+     * @param delta Zu addierende Zeitspanne, darf auch negativ sein
+     * @return Neue Uhrzeit. Über- und Unterlauf laufen bei Mitternacht um, 23:30 + 1h ergibt
+     * also 00:30 und 00:30 - 1h ergibt 23:30.
+     */
+    Time operator+(const TimeDelta& delta) const noexcept
+    {
+        return fromSignedMicroseconds(static_cast<int64_t>(toMicroseconds()) + delta.toMicroseconds());
+    }
+
+    /** @brief Subtrahiert eine Zeitspanne von der Uhrzeit
+     *
+     * @param delta Abzuziehende Zeitspanne, darf auch negativ sein
+     * @return Neue Uhrzeit. Über- und Unterlauf laufen bei Mitternacht um.
+     */
+    Time operator-(const TimeDelta& delta) const noexcept
+    {
+        return fromSignedMicroseconds(static_cast<int64_t>(toMicroseconds()) - delta.toMicroseconds());
+    }
+
+    /** @brief Differenz zweier Uhrzeiten
+     *
+     * @param other Uhrzeit, die von dieser abgezogen werden soll
+     * @return Zeitspanne zwischen beiden Uhrzeiten. Ist \p other später als diese Uhrzeit, ist
+     * das Ergebnis negativ (06:00 - 18:00 ergibt also -12 Stunden).
+     */
+    TimeDelta operator-(const Time& other) const noexcept
+    {
+        return TimeDelta::fromMicroseconds(static_cast<int64_t>(toMicroseconds()) -
+                                           static_cast<int64_t>(other.toMicroseconds()));
+    }
+    Time& operator+=(const TimeDelta& delta) noexcept
+    {
+        *this = *this + delta;
+        return *this;
+    }
+
+    Time& operator-=(const TimeDelta& delta) noexcept
+    {
+        *this = *this - delta;
+        return *this;
+    }
 };
 
 inline std::ostream& operator<<(std::ostream& s, const Time& t)

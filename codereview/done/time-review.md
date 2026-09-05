@@ -34,6 +34,8 @@ src/types/DateTime.cpp) als tatsächlichem Konsumenten von `Time` zusammen mit `
   return set((uint8_t)h, (uint8_t)m, (uint8_t)s, (uint32_t)u);
   ```
 
+  ==> FIXED wie bei date: wir erlauben uint32_t, damit kein narrowing. Negative Werte fallen raus, weil diese vorzeichenlos betrachtet größer als der Maximalwert sind
+
 - [ ] **Self-Move-Assignment zerstört die Uhrzeit** (`Time.cpp:156-167`)
   ```cpp
   Time& Time::operator=(Time&& other) noexcept
@@ -51,6 +53,8 @@ src/types/DateTime.cpp) als tatsächlichem Konsumenten von `Time` zusammen mit `
   Identisches Muster wie bei `Date` (siehe date-review.md). Self-Move ist im Anwendungscode selten explizit,
   aber ein bekannter Stolperstein bei generischem Code.
   Fix: Guard `if (this != &other)` oder Self-Move separat behandeln.
+
+  ===> FIXED mit Guard, Tests ergänzt
 
 ## Design
 
@@ -73,11 +77,14 @@ src/types/DateTime.cpp) als tatsächlichem Konsumenten von `Time` zusammen mit `
   Meldung nennt die falsche Klasse/Methode. Fix: `"Time::set: invalid time format (%s)"`.
 - [ ] Toter Code: `t.replace(".", ".")` (`Time.cpp:98`) ist ein No-Op (ersetzt "." durch "."), vermutlich Copy-Paste-Rest
       der vorherigen Zeile `t.replace(",", ".")`. Entweder entfernen oder war ein anderes Zeichen gemeint.
+  ==> FIXED
+
 - [ ] `%I`-Formatplatzhalter (`Time::format`, `Time.cpp:182-183`) zeigt für Mitternacht/Mittag `"00"` statt der im
       12-Stunden-Format gebräuchlichen `"12"` (`hh % 12` ergibt für `hh=0` und `hh=12` beides `0`). Ist konsistent mit
       der eigenen Doku ("Stunde (00-11)"), weicht aber vom verbreiteten 12h-Format (01-12) ab – falls das beabsichtigt
       keine 12h-Uhr im klassischen Sinn sein soll, wenigstens in der Doku explizit erwähnen, dass `%I` kein "echtes"
       12-Stunden-Format ist.
+  ===> Fixed
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

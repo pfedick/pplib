@@ -33,6 +33,7 @@
 #include <gtest/gtest.h>
 
 #include <pplib/types/time.h>
+#include <pplib/types/timedelta.h>
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
 
@@ -283,6 +284,11 @@ TEST_F(TimeTest, format)
     ASSERT_EQ(pplib::String("19:50:11.159473"), t1.format("%H:%M:%S.%u")) << "Unexpected formatted string";
     ASSERT_EQ(pplib::String("19:50:11.159"), t1.format("%H:%M:%S.%f")) << "Unexpected formatted string";
     ASSERT_EQ(pplib::String("07:50:11"), t1.format("%I:%M:%S")) << "Unexpected formatted string";
+
+    t1.setHour(0); // In der 12-Stunden-Darstellung entspricht 0 Uhr 12 Uhr Mitternacht
+    ASSERT_EQ(pplib::String("12:50:11.159473"), t1.format("%I:%M:%S.%u")) << "Unexpected formatted string";
+    t1.setHour(12);
+    ASSERT_EQ(pplib::String("12:50:11.159473"), t1.format("%I:%M:%S.%u")) << "Unexpected formatted string";
 }
 
 TEST_F(TimeTest, AssignmentOperator)
@@ -295,6 +301,15 @@ TEST_F(TimeTest, AssignmentOperator)
     });
 }
 
+TEST_F(TimeTest, SelfAssignement)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1(11, 50, 11, 159473);
+        t1 = t1;
+        ASSERT_EQ((uint64_t)42611159473, t1.toMicroseconds()) << "Class has unexpected value after self-assignment";
+    });
+}
+
 TEST_F(TimeTest, MoveOperator)
 {
     ASSERT_NO_THROW({
@@ -302,6 +317,15 @@ TEST_F(TimeTest, MoveOperator)
         pplib::Time t2;
         t2 = std::move(t1);
         ASSERT_EQ((uint64_t)42611159473, t2.toMicroseconds()) << "Class has unexpected value";
+    });
+}
+
+TEST_F(TimeTest, MoveSelfAssignement)
+{
+    ASSERT_NO_THROW({
+        pplib::Time t1(11, 50, 11, 159473);
+        t1 = std::move(t1);
+        ASSERT_EQ((uint64_t)42611159473, t1.toMicroseconds()) << "Class has unexpected value after self-move-assignment";
     });
 }
 
@@ -372,6 +396,112 @@ TEST_F(TimeTest, clear)
         t1.clear();
         ASSERT_EQ((uint64_t)0, t1.toMicroseconds()) << "Expected time to be cleared to zero";
     });
+}
+
+TEST_F(TimeTest, fromSecondsToSecends)
+{
+    ASSERT_NO_THROW({
+        uint32_t seconds = 42611;
+        pplib::Time t = pplib::Time::fromSeconds(seconds);
+        ASSERT_EQ(seconds, t.toSeconds()) << "Expected time to match the input seconds";
+    });
+}
+
+TEST_F(TimeTest, operatorPlusTimeDelta)
+{
+    pplib::Time t(10, 30, 15, 500000);
+
+    // einfache Addition ohne Tagesgrenze
+    ASSERT_EQ(pplib::Time(11, 30, 15, 500000), t + pplib::TimeDelta::fromHours(1)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(10, 45, 15, 500000), t + pplib::TimeDelta::fromMinutes(15)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(10, 30, 16, 500000), t + pplib::TimeDelta::fromSeconds(1)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(10, 30, 15, 750000), t + pplib::TimeDelta::fromMicroseconds(250000)) << "Unexpected time";
+
+    // Addition von 0 laesst die Uhrzeit unveraendert
+    ASSERT_EQ(t, t + pplib::TimeDelta::fromSeconds(0)) << "Unexpected time";
+
+    // Ueberlauf laeuft bei Mitternacht um
+    ASSERT_EQ(pplib::Time(0, 30, 0), pplib::Time(23, 30, 0) + pplib::TimeDelta::fromHours(1)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(0, 0, 0), pplib::Time(23, 59, 59, 999999) + pplib::TimeDelta::fromMicroseconds(1))
+        << "Unexpected time";
+
+    // negatives Delta laeuft nach hinten ueber Mitternacht
+    ASSERT_EQ(pplib::Time(23, 30, 0), pplib::Time(0, 30, 0) + pplib::TimeDelta::fromHours(-1)) << "Unexpected time";
+
+    // Deltas ueber mehrere Tage werden modulo 24h reduziert
+    ASSERT_EQ(pplib::Time(2, 0, 0), pplib::Time(0, 0, 0) + pplib::TimeDelta::fromHours(50)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(12, 0, 0), pplib::Time(12, 0, 0) + pplib::TimeDelta::fromDays(3)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(22, 0, 0), pplib::Time(0, 0, 0) + pplib::TimeDelta::fromHours(-50)) << "Unexpected time";
+}
+
+TEST_F(TimeTest, operatorMinusTimeDelta)
+{
+    pplib::Time t(10, 30, 15, 500000);
+
+    // einfache Subtraktion ohne Tagesgrenze
+    ASSERT_EQ(pplib::Time(9, 30, 15, 500000), t - pplib::TimeDelta::fromHours(1)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(10, 15, 15, 500000), t - pplib::TimeDelta::fromMinutes(15)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(10, 30, 15, 250000), t - pplib::TimeDelta::fromMicroseconds(250000)) << "Unexpected time";
+
+    ASSERT_EQ(t, t - pplib::TimeDelta::fromSeconds(0)) << "Unexpected time";
+
+    // Unterlauf laeuft rueckwaerts ueber Mitternacht
+    ASSERT_EQ(pplib::Time(23, 30, 0), pplib::Time(0, 30, 0) - pplib::TimeDelta::fromHours(1)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(23, 59, 59, 999999), pplib::Time(0, 0, 0) - pplib::TimeDelta::fromMicroseconds(1))
+        << "Unexpected time";
+
+    // negatives Delta addiert entsprechend
+    ASSERT_EQ(pplib::Time(0, 30, 0), pplib::Time(23, 30, 0) - pplib::TimeDelta::fromHours(-1)) << "Unexpected time";
+
+    // Deltas ueber mehrere Tage
+    ASSERT_EQ(pplib::Time(22, 0, 0), pplib::Time(0, 0, 0) - pplib::TimeDelta::fromHours(50)) << "Unexpected time";
+    ASSERT_EQ(pplib::Time(12, 0, 0), pplib::Time(12, 0, 0) - pplib::TimeDelta::fromDays(3)) << "Unexpected time";
+}
+
+TEST_F(TimeTest, operatorPlusMinusAssignTimeDelta)
+{
+    pplib::Time t(10, 0, 0);
+    t += pplib::TimeDelta::fromHours(1);
+    ASSERT_EQ(pplib::Time(11, 0, 0), t) << "Unexpected time";
+    t -= pplib::TimeDelta::fromMinutes(90);
+    ASSERT_EQ(pplib::Time(9, 30, 0), t) << "Unexpected time";
+
+    // Umlauf bei Mitternacht auch bei den Zuweisungsoperatoren
+    pplib::Time t2(0, 15, 0);
+    t2 -= pplib::TimeDelta::fromHours(1);
+    ASSERT_EQ(pplib::Time(23, 15, 0), t2) << "Unexpected time";
+    t2 += pplib::TimeDelta::fromHours(1);
+    ASSERT_EQ(pplib::Time(0, 15, 0), t2) << "Unexpected time";
+}
+
+TEST_F(TimeTest, operatorPlusMinusRoundtrip)
+{
+    // Hin- und Zurueckrechnen muss die Ausgangszeit ergeben, auch ueber Mitternacht hinweg
+    pplib::Time t(0, 5, 30, 123456);
+    pplib::TimeDelta d = pplib::TimeDelta::fromHours(7);
+    ASSERT_EQ(t, (t + d) - d) << "Unexpected time";
+    ASSERT_EQ(t, (t - d) + d) << "Unexpected time";
+}
+
+TEST_F(TimeTest, operatorMinusTime)
+{
+    // Die Differenz zweier Uhrzeiten ist eine Zeitspanne, kein Zeitpunkt
+    pplib::Time t1800(18, 0, 0);
+    pplib::Time t0600(6, 0, 0);
+
+    ASSERT_EQ(pplib::TimeDelta::fromHours(12), t1800 - t0600) << "Unexpected delta";
+    // umgekehrte Reihenfolge ergibt eine negative Zeitspanne
+    ASSERT_EQ(pplib::TimeDelta::fromHours(-12), t0600 - t1800) << "Unexpected delta";
+    // Differenz zu sich selbst ist 0
+    ASSERT_EQ(pplib::TimeDelta::fromSeconds(0), t1800 - t1800) << "Unexpected delta";
+
+    // Mikrosekunden-Genauigkeit bleibt erhalten
+    ASSERT_EQ(pplib::TimeDelta::fromMicroseconds(1),
+              pplib::Time(0, 0, 0, 1) - pplib::Time(0, 0, 0, 0))
+        << "Unexpected delta";
+    // 1 us - 86399999999 us
+    ASSERT_EQ(pplib::TimeDelta::fromMicroseconds(-86399999998LL), pplib::Time(0, 0, 0, 1) - pplib::Time(23, 59, 59, 999999))
+        << "Unexpected delta";
 }
 
 } // namespace

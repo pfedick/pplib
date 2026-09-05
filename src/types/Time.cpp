@@ -76,7 +76,7 @@ Time& Time::setFromMicroseconds(uint64_t microseconds) noexcept
     return *this;
 }
 
-Time& Time::set(uint8_t hour, uint8_t minute, uint8_t second, uint32_t microseconds)
+Time& Time::set(uint32_t hour, uint32_t minute, uint32_t second, uint32_t microseconds)
 {
     if (hour > 23 || minute > 59 || second > 59 || microseconds > 999999) {
         throw IllegalArgumentException("Time::set: invalid time components (%u:%u:%u.%u)", hour, minute, second, microseconds);
@@ -95,15 +95,14 @@ Time& Time::set(const String& time)
     // Trennzeichen kann auch ein Punkt, Komma oder Minus sein.
     String t = UpperCase(Trim(time));
     t.replace(",", ".");
-    t.replace(".", ".");
     t.replace(":", ".");
     t.replace("-", ".");
     pplib::Array parts(t, ".");
 
-    // Prüfen, ob alle Werte Numerisch sind
+    // Prüfen, ob alle Werte Integer sind
     for (size_t i = 0; i < parts.size(); ++i) {
-        if (!parts[i].isNumeric()) {
-            throw IllegalArgumentException("Date::set: invalid date format (%s)", time.c_str());
+        if (!parts[i].isInteger()) {
+            throw IllegalArgumentException("Time::set: invalid date format (%s)", time.c_str());
         }
     }
     if (parts.size() < 3 || parts.size() > 4) {
@@ -113,7 +112,7 @@ Time& Time::set(const String& time)
         parts.add("000000"); // Add microseconds part if missing
     }
 
-    return set(parts.at(0).toInt(), parts.at(1).toInt(), parts.at(2).toInt(), parts.at(3).toInt());
+    return set(parts.at(0).toUnsignedInt(), parts.at(1).toUnsignedInt(), parts.at(2).toUnsignedInt(), parts.at(3).toUnsignedInt());
 }
 
 Time& Time::setHour(uint8_t hour)
@@ -146,6 +145,7 @@ Time& Time::setMicrosecond(uint32_t microsecond)
 
 Time& Time::operator=(const Time& other) noexcept
 {
+    if (this == &other) return *this;
     hh = other.hh;
     ii = other.ii;
     ss = other.ss;
@@ -155,6 +155,7 @@ Time& Time::operator=(const Time& other) noexcept
 
 Time& Time::operator=(Time&& other) noexcept
 {
+    if (this == &other) return *this;
     hh = other.hh;
     ii = other.ii;
     ss = other.ss;
@@ -180,6 +181,7 @@ String Time::format(const String& format) const
     Tmp.setf("%02d", hh);
     r.replace("%H", Tmp);
     Tmp.setf("%02d", hh % 12);
+    if (Tmp == "00") Tmp = "12"; // Handle midnight for 12-hour format
     r.replace("%I", Tmp);
     Tmp.setf("%02d", ii);
     r.replace("%M", Tmp);
