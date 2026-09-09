@@ -1090,6 +1090,21 @@ TEST(AssocArrayTest, NumericKeyOverflow)
     ASSERT_THROW(a.set("99999999999999999999", "v4"), pplib::AssocArray::InvalidKeyException);
 }
 
+TEST(AssocArrayTest, NumericKeyAboveInt64MaxNoCollision)
+{
+    // Keys im Bereich (INT64_MAX, UINT64_MAX] sind gültig, würden aber bei
+    // toInt64()-Vergleich per Sättigung auf INT64_MAX kollidieren. Der
+    // Comparator muss toUnsignedInt64() verwenden.
+    pplib::AssocArray a;
+    a.set("9223372036854775808", "v1"); // INT64_MAX+1
+    a.set("9223372036854775809", "v2"); // INT64_MAX+2
+    ASSERT_EQ(a.count(), 2);
+    ASSERT_TRUE(a.exists("9223372036854775808"));
+    ASSERT_TRUE(a.exists("9223372036854775809"));
+    ASSERT_EQ(a.getString("9223372036854775808"), pplib::String("v1"));
+    ASSERT_EQ(a.getString("9223372036854775809"), pplib::String("v2"));
+}
+
 TEST(AssocArrayTest, AutomaticKeyOverflow)
 {
     pplib::AssocArray a;
@@ -1371,5 +1386,3 @@ TEST(AssocArrayTest, fromConfig)
 #endif
 
 } // namespace
-
-#

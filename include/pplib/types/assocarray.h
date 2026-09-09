@@ -100,7 +100,7 @@ private:
             bool aNum = a.isDigits();
             bool bNum = b.isDigits();
             if (aNum && bNum) {
-                return a.toInt64() < b.toInt64();
+                return a.toUnsignedInt64() < b.toUnsignedInt64();
             }
             // 2. Einer numerisch, einer Text -> Zahlen kommen vor Text (konsistente Ordnung)
             if (aNum != bNum) {
