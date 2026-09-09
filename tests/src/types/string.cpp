@@ -301,6 +301,17 @@ TEST(StringTest, isInteger)
     EXPECT_EQ(pplib::String("123-").isInteger(), false) << "String should not be an integer";
 }
 
+TEST(StringTest, isDigits)
+{
+    EXPECT_TRUE(pplib::String("12345").isDigits()) << "String should be digits";
+    EXPECT_FALSE(pplib::String("12345a").isDigits()) << "String should not be digits";
+    EXPECT_FALSE(pplib::String("").isDigits()) << "Empty string should not be digits";
+    EXPECT_TRUE(pplib::String("0").isDigits()) << "String should be digits";
+    EXPECT_FALSE(pplib::String("123 456").isDigits()) << "String should not be digits";
+    EXPECT_FALSE(pplib::String("-123456").isDigits()) << "String should not be digits";
+    EXPECT_FALSE(pplib::String("+123456").isDigits()) << "String should not be digits";
+}
+
 TEST(StringTest, isTrue)
 {
     pplib::String s1("A test string with unicode characters: äöü");

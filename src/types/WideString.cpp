@@ -232,6 +232,16 @@ bool WideString::isInteger() const
     return sawDigit;
 }
 
+bool WideString::isDigits() const
+{
+    if (!stringlen) return false;
+    for (size_t i = 0; i < stringlen; i++) {
+        wchar_t c = ((wchar_t*)ptr)[i];
+        if (c < '0' || c > '9') return false;
+    }
+    return true;
+}
+
 bool WideString::isTrue() const
 {
     if (!stringlen) return false;

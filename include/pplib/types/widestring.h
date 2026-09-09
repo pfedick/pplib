@@ -309,6 +309,15 @@ public:
      */
     bool isInteger() const;
 
+    /** @brief Prüft, ob der String nur aus Ziffern besteht
+     *
+     * Diese Funktion prüft, ob der String nur aus Ziffern besteht. Erlaubt sind
+     * nur die Ziffern 0-9. Keine Vorzeichen.
+     *
+     * @return Liefert true zurück, wenn der String nur Ziffern enthält, sonst false.
+     */
+    bool isDigits() const;
+
     /** @brief Prüft, ob der String "wahr" ist
      *
      * Diese Funktion überprüft den aktuellen String, ob er "wahr" ist. Dies ist der Fall,

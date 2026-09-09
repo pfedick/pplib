@@ -321,6 +321,17 @@ TEST(WideStringTest, isInteger)
     EXPECT_EQ(pplib::WideString(L"123-").isInteger(), false) << "String should not be an integer";
 }
 
+TEST(WideStringTest, isDigits)
+{
+    EXPECT_TRUE(pplib::WideString("12345").isDigits()) << "String should be digits";
+    EXPECT_FALSE(pplib::WideString("12345a").isDigits()) << "String should not be digits";
+    EXPECT_FALSE(pplib::WideString("").isDigits()) << "Empty string should not be digits";
+    EXPECT_TRUE(pplib::WideString("0").isDigits()) << "String should be digits";
+    EXPECT_FALSE(pplib::WideString("123 456").isDigits()) << "String should not be digits";
+    EXPECT_FALSE(pplib::WideString("-123456").isDigits()) << "String should not be digits";
+    EXPECT_FALSE(pplib::WideString("+123456").isDigits()) << "String should not be digits";
+}
+
 TEST(WideStringTest, isTrue)
 {
     pplib::WideString s1(L"A test string with unicode characters: äöü");

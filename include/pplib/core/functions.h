@@ -141,7 +141,7 @@ String Repeat(const String& str, size_t count);
 String Transcode(const char* str, size_t size, const String& fromEncoding, const String& toEncoding);
 String Transcode(const String& str, const String& fromEncoding, const String& toEncoding);
 bool IsTrue(const String& str);
-bool IsDigit(const String& str);
+bool IsDigits(const String& str);
 bool IsInteger(const String& str);
 bool IsNumeric(const String& str);
 

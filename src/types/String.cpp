@@ -202,6 +202,16 @@ bool String::isInteger() const
     return sawDigit;
 }
 
+bool String::isDigits() const
+{
+    if (!stringlen) return false;
+    for (size_t i = 0; i < stringlen; i++) {
+        int c = ((char*)ptr)[i];
+        if (c < '0' || c > '9') return false;
+    }
+    return true;
+}
+
 bool String::isTrue() const
 {
     if (!stringlen) return false;
