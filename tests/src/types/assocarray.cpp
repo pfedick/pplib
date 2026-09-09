@@ -1043,8 +1043,8 @@ TEST(AssocArrayTest, ArrayKeyCompare)
     a.set("10", "10");
     a.set("1", "1");
     ASSERT_EQ(a.count(), 10);
-    a.list();
-    // Drüber itterieren
+    // a.list();
+    //  Drüber itterieren
     pplib::AssocArray::const_iterator it;
     it = a.cbegin();
     ASSERT_EQ(it->first, pplib::String("0"));
@@ -1079,6 +1079,147 @@ TEST(AssocArrayTest, ArrayKeyCompare)
 
     ++it;
     ASSERT_EQ(it, a.cend());
+}
+
+TEST(AssocArrayTest, NumericKeyOverflow)
+{
+    pplib::AssocArray a;
+    a.set("18446744073709551613", "v1");
+    a.set("18446744073709551614", "v2");
+    ASSERT_THROW(a.set("18446744073709551615", "v3"), pplib::AssocArray::InvalidKeyException);
+    ASSERT_THROW(a.set("99999999999999999999", "v4"), pplib::AssocArray::InvalidKeyException);
+}
+
+TEST(AssocArrayTest, AutomaticKeyOverflow)
+{
+    pplib::AssocArray a;
+    a.set("18446744073709551613", "v1");
+    a.set("[]", "v2");
+    ASSERT_THROW(a.set("[]", "v3"), pplib::AssocArray::InvalidKeyException);
+}
+
+TEST(AssocArrayTest, NegativeKeyIsHandledAsString)
+{
+    // Negative Keys (Minus-Zeichen) werden als Text behandelt und nicht auf
+    // einen riesigen uint64_t umgeschrieben oder gegeneinander kollidiert.
+    pplib::AssocArray a;
+    a.set("-1", "v1");
+    a.set("-2", "v2");
+    ASSERT_EQ(a.count(), 2);
+    ASSERT_TRUE(a.exists("-1"));
+    ASSERT_TRUE(a.exists("-2"));
+    ASSERT_EQ(a.getString("-1"), pplib::String("v1"));
+    ASSERT_EQ(a.getString("-2"), pplib::String("v2"));
+}
+
+TEST(AssocArrayTest, NumericKeyNormalization)
+{
+    // Saubere positive Ganzzahlen werden auf die kanonische Form normalisiert.
+    pplib::AssocArray a;
+    a.set("007", "v1");
+    ASSERT_EQ(a.count(), 1);
+    // Der gespeicherte Key ist die kanonische Form "7"
+    auto it = a.cbegin();
+    ASSERT_EQ(it->first, pplib::String("7"));
+    // "7" und "07" sind per Comparator derselbe numerische Key
+    pplib::AssocArray b;
+    b.set("7", "v1");
+    b.set("07", "v2");
+    ASSERT_EQ(b.count(), 1);
+    it = b.cbegin();
+    ASSERT_EQ(it->first, pplib::String("7"));
+    ASSERT_EQ(it->second->toString(), pplib::String("v2"));
+}
+
+TEST(AssocArrayTest, DecimalKeyIsText)
+{
+    // Dezimalzahlen sind keine sauberen Ganzzahlen und bleiben Text-Keys.
+    pplib::AssocArray a;
+    a.set("1.5", "v1");
+    a.set("1.50", "v2");
+    ASSERT_EQ(a.count(), 2);
+    ASSERT_TRUE(a.exists("1.5"));
+    ASSERT_TRUE(a.exists("1.50"));
+}
+
+TEST(AssocArrayTest, SetSameKeyWithOwnStringReference)
+{
+    // Aliasing: Der neue Wert referenziert den String des Zielknotens selbst.
+    // createTree() darf den Knoten nicht vor dem Schreiben leeren (UAF).
+    pplib::AssocArray a;
+    a.set("s", "some longer string value to avoid small string optimization games");
+    pplib::String& ref = a.getString("s");
+    a.set("s", ref); // Self-Assignment über Referenz auf den eigenen Inhalt
+    ASSERT_EQ(a.count(), 1);
+    ASSERT_TRUE(a.exists("s"));
+    ASSERT_EQ(a.getString("s"), pplib::String("some longer string value to avoid small string optimization games"));
+}
+
+TEST(AssocArrayTest, SetSameKeyWithOwnVariant)
+{
+    // Aliasing: Der neue Wert ist der Variant des Zielknotens selbst.
+    pplib::AssocArray a;
+    a.set("v", "another longer string for variant alias test case, long enough");
+    a.set("v", a.get("v"));
+    ASSERT_TRUE(a.exists("v"));
+    ASSERT_EQ(a.getString("v"), pplib::String("another longer string for variant alias test case, long enough"));
+}
+
+TEST(AssocArrayTest, SetSubtreeWithOwnReference)
+{
+    // Aliasing: Der neue Wert referenziert den Subbaum, in dem er liegt.
+    pplib::AssocArray a;
+    a.set("x/inner", "hello world this is a fairly long string to defeat SSO");
+    pplib::AssocArray& ref = a.getAssocArray("x");
+    a.set("x", ref);
+    ASSERT_TRUE(a.exists("x/inner"));
+    ASSERT_EQ(a.getString("x/inner"), pplib::String("hello world this is a fairly long string to defeat SSO"));
+}
+
+TEST(AssocArrayTest, MoveAssignmentResetsMaxint)
+{
+    // Moved-from-Objekt muss denselben konsistenten Zustand haben wie nach dem
+    // Move-Konstruktor: set("[]", ...) beginnt wieder bei 0.
+    pplib::AssocArray src;
+    for (int i = 0; i < 3; i++)
+        src.set("[]", "x");
+    ASSERT_EQ(src.count(), 3);
+
+    pplib::AssocArray dst;
+    dst = std::move(src);
+    ASSERT_EQ(dst.count(), 3);
+    ASSERT_EQ(src.count(), 0);
+
+    // Ohne other.maxint = 0 wäre der nächste Key "3" statt "0".
+    src.set("[]", "y");
+    pplib::AssocArray::const_iterator it = src.cbegin();
+    ASSERT_EQ(it->first, pplib::String("0"));
+}
+
+TEST(AssocArrayTest, ImportBinaryDatetimeTruncatedValueThrows)
+{
+    // Handgebauter Buffer: DATETIME-Eintrag mit vallen=5 (0 < vallen < 10),
+    // aber nur so viele Bytes vorhanden, dass p + vallen > buffersize wird.
+    // Muss eine ImportFailedException werfen statt den Import still abzubrechen.
+    unsigned char raw[32] = {0};
+    memcpy(raw, "PPL8ASOC", 8); // Magic (0-7)
+    raw[8] = 1;                 // Version (8)
+    // maxint (64Bit) = 0 (9-16), bereits durch Initialisierung
+    raw[17] = pplib::Variant::TYPE_DATETIME; // Type-Byte (17)
+    raw[18] = 2;                             // keylen low (18)
+    raw[19] = 0;                             // keylen high (19)
+    memcpy(raw + 20, "k1", 2);               // Key (20-21)
+    raw[22] = 5;                             // vallen = 5 (22-25)
+    // Kopierender Konstruktor (useadr würde das Stack-Array später free()n):
+    // p+4=26 <= 27 lässt das Lesen von vallen durch, aber p+vallen=31 > 27
+    // muss beim Bounds-Check werfen.
+    pplib::ByteArray buffer(raw, 27);
+    ASSERT_THROW(
+        {
+            pplib::AssocArray b;
+            b.importBinary(buffer);
+        },
+        pplib::AssocArray::ImportFailedException);
 }
 
 // Debug

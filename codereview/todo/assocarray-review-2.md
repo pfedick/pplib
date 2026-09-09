@@ -68,6 +68,8 @@ negativer Key wird umgeschrieben. Testprogramme liegen unter
   Fix: am Anfang der Loop-Iteration `if (a->type() == Variant::TYPE_UNKNOWN) continue;` ergänzen (wie im alten Review
   bereits vorgeschlagen).
 
+  ==> Fixed durch "if (a->type() == Variant::TYPE_UNKNOWN) continue;"
+
 - [ ] **Große numerische Keys kollidieren durch Sättigung von `String::toInt64()` im Comparator – stiller Datenverlust** (`assocarray.h:91-105` `ArrayKeyCompare`, `AssocArray.cpp:126-130` `createTree`, `src/types/String.cpp:1224-1232` `toInt64()`)
   `ArrayKeyCompare` sortiert zwei numerische Keys per `a.toInt64() < b.toInt64()`. `String::toInt64()` ruft `strtoll()` auf,
   das bei Eingaben außerhalb `[INT64_MIN, INT64_MAX]` auf `LLONG_MIN`/`LLONG_MAX` **sättigt** (C-Standardverhalten von
@@ -120,6 +122,8 @@ negativer Key wird umgeschrieben. Testprogramme liegen unter
   - `ArrayKeyCompare`: für sehr lange Ziffernfolgen (mehr als ~19-20 Stellen) nicht auf `toInt64()` verlassen, sondern
     vorher auf Länge vergleichen bzw. bei Überlänge als Text behandeln, damit keine zwei unterschiedlichen Strings auf
     denselben Vergleichswert abgebildet werden.
+
+    ==> FIXED, ich prüfe auf isDigits() und habe ein Limit von UINT64_MAX eingeführt
 
 - [ ] **Aliasing über `set(key, get...(key))` – Use-after-free / stiller Datenverlust, weil `createTree()` den Zielknoten vor dem Kopieren löscht** (`AssocArray.cpp:142-144` `createTree`, zusammen mit dem in `todo/variant-review.md` dokumentierten Aliasing-Bug in `Variant::set()`/`clear()`)
   `createTree()` leert einen bereits existierenden Zielknoten **bevor** der Aufrufer (`AssocArray::set(key, value)`) den
@@ -183,6 +187,8 @@ negativer Key wird umgeschrieben. Testprogramme liegen unter
     Alias-Check ergänzen, bevor `createTree()` aufgerufen wird (z.B. `if (findInternal(key) == &value) return;` bzw.
     Wert vorher kopieren). Das ist der robustere Fix, da er unabhängig vom internen `Variant`-Verhalten funktioniert.
 
+  ==> FIXED
+
 ## Bugs (mittel)
 
 - [ ] **`operator=(AssocArray&&)` setzt `other.maxint` nicht zurück – inkonsistenter Moved-from-Zustand** (`AssocArray.cpp:731-738`)
@@ -206,6 +212,8 @@ negativer Key wird umgeschrieben. Testprogramme liegen unter
   src after set([],x): size=1, key of new element = 3
   ```
   Fix: analog zum Move-Konstruktor `other.maxint = 0;` ergänzen.
+
+  ==> FIXED
 
 - [ ] **`importBinary`: fehlender Bounds-Check im `TYPE_DATETIME`-Zweig für `0 < vallen < 10`** (`AssocArray.cpp:649-666`)
   ```cpp
@@ -233,17 +241,25 @@ negativer Key wird umgeschrieben. Testprogramme liegen unter
   Fix: Bounds-Check aus dem `if (vallen >= 10)`-Zweig herausziehen und unconditional vor `p += vallen;` prüfen:
   `if (p + vallen > buffersize) throw ImportFailedException(...);`.
 
+  ==> FXED
+
 ## Design
 
 - [ ] **Numerischer Key-Comparator ist nicht robust gegen Zahlen außerhalb des `int64_t`-Wertebereichs** (siehe Bug oben)
   – grundsätzlicher gehört das in eine Überarbeitung von `ArrayKeyCompare`/`createTree()`: die aktuelle Strategie „String
   parsen, wenn's aussieht wie eine Zahl" hat keinerlei Sicherheitsnetz gegen Parse-Sättigung. Ein robusteres Muster wäre
   z.B. `strtoll`+`errno`-Check und bei `ERANGE` den Key als Text statt als Zahl behandeln.
+
+  ==> FIXED
+  
 - [ ] **`exportBinary`/`importBinary`: Key-Länge auf 16 Bit begrenzt** (`AssocArray.cpp:448`, `594`)
   `PokeN16(ptr + p, (int)keylen)` / `size_t keylen = PeekN16(ptr + p);` – Keys länger als 65535 Zeichen werden beim Export
   stillschweigend auf die unteren 16 Bit der Länge abgeschnitten (keine Exception, kein Hinweis), während Value-Längen an
   anderer Stelle konsequent 32 Bit breit sind. Sehr unwahrscheinlicher Fall in der Praxis, aber inkonsistent zum Rest der
   Funktion und leicht mit einer expliziten Prüfung (`if (keylen > 0xFFFF) throw ...`) abzusichern.
+
+  ==> FIXED
+
 - [ ] **`p + vallen > buffersize`-Prüfungen in `importBinary` sind auf 32-Bit-`size_t`-Plattformen theoretisch durch
   Integer-Overflow umgehbar** (durchgängig in `importBinary`, z.B. `AssocArray.cpp:601-606`)
   `vallen` wird aus einem 32-Bit-Feld gelesen (bis zu ~4 GiB), `p` ist zu diesem Zeitpunkt ein kleiner Wert. Auf 64-Bit-
@@ -259,10 +275,15 @@ negativer Key wird umgeschrieben. Testprogramme liegen unter
   Selbst-Referenzierung sicher handhabt (insbesondere bei einer Reallokation mitten im Kopiervorgang), wurde in diesem
   Review nicht verifiziert (gehört eher in ein `String`-Review). Empfehlung: bei Gelegenheit dort mit-prüfen, da der
   Aufrufpfad hier real existiert.
+
+  ==> String::append und prepend prüfen auf selbst-Referenzierung
+
 - [ ] Die Klassendoku (`assocarray.h:63-65`) verspricht nur "Gross-/Kleinschreibung wird ignoriert", macht aber keine
   Aussage zu numerischen Keys jenseits des normalen Bereichs. Angesichts der oben gefundenen Kollisionen wäre ein Hinweis
   sinnvoll, dass Keys, die rein aus Ziffern bestehen, als 64-Bit-Zahl interpretiert werden und daher nicht beliebig groß
   oder negativ sein sollten.
+
+  ==> Doku ergänzt
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

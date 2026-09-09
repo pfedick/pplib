@@ -119,12 +119,15 @@ Variant* AssocArray::createTree(const String& key)
     String rest = tok.implode("/");
     // printf ("firstkey=%ls, rest=%ls\n",(const wchar_t *)firstkey,(const wchar_t *)rest);
     if (firstkey == "[]") {
+        if (maxint == UINT64_MAX) throw InvalidKeyException(key);
         firstkey.setf("%llu", maxint);
         maxint++;
     }
     // Beginnt Firstkey mit einer Zahl?
-    if (firstkey.isNumeric()) {
-        uint64_t keyint = firstkey.toInt64();
+    if (firstkey.isDigits()) {
+        // Die Zahl darf nicht UINT64_MAX sein
+        uint64_t keyint = firstkey.toUnsignedInt64();
+        if (keyint == UINT64_MAX) throw InvalidKeyException(firstkey);
         if (keyint >= maxint) maxint = keyint + 1;
         firstkey.setf("%llu", keyint);
     }
@@ -139,8 +142,11 @@ Variant* AssocArray::createTree(const String& key)
             }
             return it->second->toAssocArray().createTree(rest);
         }
-        // Nein, wir haben die Zielposition gefunden
-        it->second->clear();
+        // Nein, wir haben die Zielposition gefunden.
+        // Wichtig: Hier wird der Knoten NICHT vorab geleert! Der Aufrufer schreibt den
+        // neuen Wert per Variant::set(), das den alten Inhalt erst nach erfolgreicher
+        // Konstruktion des neuen Werts freigibt. Ein vorzeitiges clear() würde bei
+        // Aliasing (z.B. a.set(key, a.getString(key))) zu Use-after-free führen.
         return it->second;
     }
 
@@ -436,6 +442,7 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
     AssocArray::const_iterator it;
     for (it = Tree.begin(); it != Tree.end(); ++it) {
         const Variant* a = it->second;
+        if (a->type() == Variant::TYPE_UNKNOWN) continue;
         if (p < buffersize) {
             if (a->isByteArrayPtr())
                 PokeN8(ptr + p, Variant::TYPE_BYTEARRAY);
@@ -445,6 +452,11 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
         p++;
         key = it->first;
         size_t keylen = key.size();
+        if (keylen > 0xFFFF) {
+            // Key-Länge wird nur mit 16 Bit gespeichert, größere Keys können
+            // nicht exportiert werden
+            throw ExportBufferToSmallException("Key too long (%zd > 65535)", keylen);
+        }
         if (p + 4 < buffersize) PokeN16(ptr + p, (int)keylen);
         p += 2;
         if (p + keylen < buffersize) strncpy(ptr + p, (const char*)key, (int)keylen);
@@ -651,8 +663,10 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
             vallen = PeekN32(ptr + p);
             p += 4;
             DateTime dt;
+            // Bounds-Check unabhängig von der Länge, damit p nicht über buffersize
+            // hinauswachsen und den Import still abbrechen kann (0 < vallen < 10).
+            if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
             if (vallen >= 10) {
-                if (p + vallen > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
                 int64_t us = (int64_t)PeekN64(ptr + p);
                 int16_t tz_offset = (int16_t)PeekN16(ptr + p + 8);
                 dt.setMicroseconds(us, TimeZone(tz_offset));
@@ -734,6 +748,10 @@ AssocArray& AssocArray::operator=(AssocArray&& other) noexcept
     clear();
     Tree = std::move(other.Tree);
     maxint = other.maxint;
+    // Moved-from-Zustand konsistent zum Move-Konstruktor zurücksetzen,
+    // damit set("[]", ...) auf "other" wieder bei 0 beginnt.
+    other.maxint = 0;
+    other.Tree.clear();
     return *this;
 }
 

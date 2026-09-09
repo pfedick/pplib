@@ -30,6 +30,7 @@
 #define PPLIB_TYPES_ASSOCARRAY_H_
 
 #include <stdint.h>
+#include <cerrno>
 #include <map>
 
 #include <pplib/types/variant.h>
@@ -73,6 +74,13 @@ class Variant;
  * - Es wird ein neues AssocArray generiert und mit dem Schlüssel "ebene1" in das %Array eingefügt
  * - In das %Array "ebene1" wird ein weiteres neues %Array mit dem Schlüssel "ebene2" eingefügt
  * - In das %Array "ebene2" wird der eigentliche Wert unter dem Schlüssel "key" eingefügt
+ *
+ * @note
+ * Schlüssel, die aus einer positiven Ganzzahl im Wertebereich von
+ * uint64_t bestehen (0 - 18446744073709551614), werden numerisch sortiert und auf ihre kanonische Form
+ * normalisiert ("007" wird zu "7"). Negative Zahlen, Dezimalzahlen und Zahlen > 18446744073709551614
+ * werden mit einer InvalidKeyException abgelehnt.
+ *
  */
 class AssocArray
 {
@@ -86,13 +94,11 @@ private:
      */
     struct ArrayKeyCompare
     {
-        // using is_transparent = void; // Ermöglicht find() mit const char*, String etc.
-
         bool operator()(const String& a, const String& b) const
         {
             // 1. Beide numerisch -> numerischer Vergleich
-            bool aNum = a.isNumeric();
-            bool bNum = b.isNumeric();
+            bool aNum = a.isDigits();
+            bool bNum = b.isDigits();
             if (aNum && bNum) {
                 return a.toInt64() < b.toInt64();
             }
