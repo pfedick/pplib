@@ -484,15 +484,9 @@ bool IsTrue(const String& str)
     return str.isTrue();
 }
 
-bool IsDigit(const String& str)
+bool IsDigits(const String& str)
 {
-    for (size_t i = 0; i < str.length(); i++) {
-        unsigned char c = str[i];
-        if (c < '0' || c > '9') {
-            return false;
-        }
-    }
-    return true;
+    return str.isDigits();
 }
 
 bool IsInteger(const String& str)
