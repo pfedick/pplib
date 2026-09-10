@@ -1499,4 +1499,82 @@ TEST_F(VariantTest, MoveTimeZone)
     ASSERT_EQ(expected, var2.toTimeZone()) << "Variant has unexcpected value";
 }
 
+TEST_F(VariantTest, SelfAssignment)
+{
+    pplib::String expected("Hello Self Assignment");
+    pplib::Variant var(expected);
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wself-assign-overloaded"
+    // Copy Assignment v = v
+    var = var;
+    ASSERT_EQ(pplib::Variant::TYPE_STRING, var.type());
+    ASSERT_EQ(expected, var.toString());
+
+    // set(const Variant&) mit sich selbst
+    var.set(var);
+    ASSERT_EQ(pplib::Variant::TYPE_STRING, var.type());
+    ASSERT_EQ(expected, var.toString());
+
+    // Move Assignment v = std::move(v)
+    var = std::move(var);
+    ASSERT_EQ(pplib::Variant::TYPE_STRING, var.type());
+    ASSERT_EQ(expected, var.toString());
+
+    // set(Variant&&) mit sich selbst
+    var.set(std::move(var));
+    ASSERT_EQ(pplib::Variant::TYPE_STRING, var.type());
+    ASSERT_EQ(expected, var.toString());
+#pragma GCC diagnostic pop
+}
+
+TEST_F(VariantTest, AliasingSelfReferenceCopy)
+{
+    // Testet setCopy / Use-after-free, wenn der übergebene Wert im Variant selbst liegt
+    pplib::String expected("Aliasing Test");
+    pplib::Variant var(expected);
+
+    // v = v.toString()
+    var = var.toString();
+    ASSERT_EQ(pplib::Variant::TYPE_STRING, var.type());
+    ASSERT_EQ(expected, var.toString());
+
+    // v.set(v.toString())
+    var.set(var.toString());
+    ASSERT_EQ(pplib::Variant::TYPE_STRING, var.type());
+    ASSERT_EQ(expected, var.toString());
+
+    // Mit AssocArray
+    pplib::AssocArray assoc;
+    assoc.set("key", "val");
+    pplib::Variant varAssoc(assoc);
+
+    varAssoc = varAssoc.toAssocArray();
+    ASSERT_EQ(pplib::Variant::TYPE_ASSOCARRAY, varAssoc.type());
+    ASSERT_EQ(assoc, varAssoc.toAssocArray());
+
+    varAssoc.set(varAssoc.toAssocArray());
+    ASSERT_EQ(pplib::Variant::TYPE_ASSOCARRAY, varAssoc.type());
+    ASSERT_EQ(assoc, varAssoc.toAssocArray());
+}
+
+TEST_F(VariantTest, AliasingSelfReferenceMove)
+{
+    // Testet setMove, wenn der bewegte Wert aus dem Variant selbst stammt
+    pplib::String expected("Move Aliasing Test");
+    pplib::Variant var(expected);
+
+    var = std::move(var.toString());
+    ASSERT_EQ(pplib::Variant::TYPE_STRING, var.type());
+    ASSERT_EQ(expected, var.toString());
+
+    pplib::AssocArray assoc;
+    assoc.set("key", "val");
+    pplib::Variant varAssoc(assoc);
+
+    varAssoc.set(std::move(varAssoc.toAssocArray()));
+    ASSERT_EQ(pplib::Variant::TYPE_ASSOCARRAY, varAssoc.type());
+    ASSERT_EQ(assoc, varAssoc.toAssocArray());
+}
+
 } // namespace

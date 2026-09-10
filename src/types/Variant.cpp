@@ -60,7 +60,7 @@ Variant::Variant(const Variant& other)
     set(other);
 }
 
-Variant::Variant(Variant&& other)
+Variant::Variant(Variant&& other) noexcept
 {
     value = other.value;
     t = other.t;
@@ -182,6 +182,8 @@ void Variant::clear()
     case TYPE_TIMEZONE:
         delete (static_cast<TimeZone*>(value));
         break;
+    default:
+        break;
     }
     value = nullptr;
     t = TYPE_UNKNOWN;
@@ -189,59 +191,47 @@ void Variant::clear()
 
 Variant& Variant::set(const Variant& value)
 {
-    clear();
-    if (!value.value) return *this;
+    // Self-Assignment: clear() würde den eigenen Inhalt löschen, bevor kopiert wird
+    if (this == &value) return *this;
+    if (!value.value) {
+        clear();
+        return *this;
+    }
+    // Neues Objekt zuerst konstruieren (wirft ggf.), alten Wert erst danach freigeben.
+    // Damit bleibt bei Aliasing (value referenziert den eigenen Inhalt) alles gültig.
     switch (value.t) {
     case TYPE_STRING:
-        this->value = new String(*static_cast<String*>(value.value));
-        t = TYPE_STRING;
-        break;
+        return setCopy<String, TYPE_STRING>(*static_cast<String*>(value.value));
     case TYPE_ASSOCARRAY:
-        this->value = new AssocArray(*static_cast<AssocArray*>(value.value));
-        t = TYPE_ASSOCARRAY;
-        break;
+        return setCopy<AssocArray, TYPE_ASSOCARRAY>(*static_cast<AssocArray*>(value.value));
     case TYPE_BYTEARRAY:
-        this->value = new ByteArray(*static_cast<ByteArray*>(value.value));
-        t = TYPE_BYTEARRAY;
-        break;
+        return setCopy<ByteArray, TYPE_BYTEARRAY>(*static_cast<ByteArray*>(value.value));
     case TYPE_WIDESTRING:
-        this->value = new WideString(*static_cast<WideString*>(value.value));
-        t = TYPE_WIDESTRING;
-        break;
+        return setCopy<WideString, TYPE_WIDESTRING>(*static_cast<WideString*>(value.value));
     case TYPE_ARRAY:
-        this->value = new Array(*static_cast<Array*>(value.value));
-        t = TYPE_ARRAY;
-        break;
+        return setCopy<Array, TYPE_ARRAY>(*static_cast<Array*>(value.value));
     case TYPE_DATETIME:
-        this->value = new DateTime(*static_cast<DateTime*>(value.value));
-        t = TYPE_DATETIME;
-        break;
+        return setCopy<DateTime, TYPE_DATETIME>(*static_cast<DateTime*>(value.value));
     case TYPE_BYTEARRAYPTR:
-        this->value = new ByteArrayPtr(*static_cast<ByteArrayPtr*>(value.value));
-        t = TYPE_BYTEARRAYPTR;
-        break;
+        return setCopy<ByteArrayPtr, TYPE_BYTEARRAYPTR>(*static_cast<ByteArrayPtr*>(value.value));
     case TYPE_DATE:
-        this->value = new Date(*static_cast<Date*>(value.value));
-        t = TYPE_DATE;
-        break;
+        return setCopy<Date, TYPE_DATE>(*static_cast<Date*>(value.value));
     case TYPE_TIME:
-        this->value = new Time(*static_cast<Time*>(value.value));
-        t = TYPE_TIME;
-        break;
+        return setCopy<Time, TYPE_TIME>(*static_cast<Time*>(value.value));
     case TYPE_TIMEDELTA:
-        this->value = new TimeDelta(*static_cast<TimeDelta*>(value.value));
-        t = TYPE_TIMEDELTA;
-        break;
+        return setCopy<TimeDelta, TYPE_TIMEDELTA>(*static_cast<TimeDelta*>(value.value));
     case TYPE_TIMEZONE:
-        this->value = new TimeZone(*static_cast<TimeZone*>(value.value));
-        t = TYPE_TIMEZONE;
+        return setCopy<TimeZone, TYPE_TIMEZONE>(*static_cast<TimeZone*>(value.value));
+    default:
         break;
     }
+    clear();
     return *this;
 }
 
 Variant& Variant::set(Variant&& value)
 {
+    if (this == &value) return *this; // Self-Move: nichts zu tun
     clear();
     this->value = value.value;
     t = value.t;
@@ -252,178 +242,112 @@ Variant& Variant::set(Variant&& value)
 
 Variant& Variant::set(const String& value)
 {
-    clear();
-    this->value = new String(value);
-    t = TYPE_STRING;
-    return *this;
+    return setCopy<String, TYPE_STRING>(value);
 }
 
 Variant& Variant::set(String&& value)
 {
-    clear();
-    this->value = new String(std::move(value));
-    t = TYPE_STRING;
-    return *this;
+    return setMove<String, TYPE_STRING>(std::move(value));
 }
 
 Variant& Variant::set(const WideString& value)
 {
-    clear();
-    this->value = new WideString(value);
-    t = TYPE_WIDESTRING;
-    return *this;
+    return setCopy<WideString, TYPE_WIDESTRING>(value);
 }
 
 Variant& Variant::set(WideString&& value)
 {
-    clear();
-    this->value = new WideString(std::move(value));
-    t = TYPE_WIDESTRING;
-    return *this;
+    return setMove<WideString, TYPE_WIDESTRING>(std::move(value));
 }
 
 Variant& Variant::set(const Array& value)
 {
-    clear();
-    this->value = new Array(value);
-    t = TYPE_ARRAY;
-    return *this;
+    return setCopy<Array, TYPE_ARRAY>(value);
 }
 
 Variant& Variant::set(Array&& value)
 {
-    clear();
-    this->value = new Array(std::move(value));
-    t = TYPE_ARRAY;
-    return *this;
+    return setMove<Array, TYPE_ARRAY>(std::move(value));
 }
 
 Variant& Variant::set(const AssocArray& value)
 {
-    clear();
-    this->value = new AssocArray(value);
-    t = TYPE_ASSOCARRAY;
-    return *this;
+    return setCopy<AssocArray, TYPE_ASSOCARRAY>(value);
 }
 
 Variant& Variant::set(AssocArray&& value)
 {
-    clear();
-    this->value = new AssocArray(std::move(value));
-    t = TYPE_ASSOCARRAY;
-    return *this;
+    return setMove<AssocArray, TYPE_ASSOCARRAY>(std::move(value));
 }
 
 Variant& Variant::set(const ByteArray& value)
 {
-    clear();
-    this->value = new ByteArray(value);
-    t = TYPE_BYTEARRAY;
-    return *this;
+    return setCopy<ByteArray, TYPE_BYTEARRAY>(value);
 }
 
 Variant& Variant::set(ByteArray&& value)
 {
-    clear();
-    this->value = new ByteArray(std::move(value));
-    t = TYPE_BYTEARRAY;
-    return *this;
+    return setMove<ByteArray, TYPE_BYTEARRAY>(std::move(value));
 }
 
 Variant& Variant::set(const ByteArrayPtr& value)
 {
-    clear();
-    this->value = new ByteArrayPtr(value);
-    t = TYPE_BYTEARRAYPTR;
-    return *this;
+    return setCopy<ByteArrayPtr, TYPE_BYTEARRAYPTR>(value);
 }
 
 Variant& Variant::set(ByteArrayPtr&& value)
 {
-    clear();
-    this->value = new ByteArrayPtr(std::move(value));
-    t = TYPE_BYTEARRAYPTR;
-    return *this;
+    return setMove<ByteArrayPtr, TYPE_BYTEARRAYPTR>(std::move(value));
 }
 
 Variant& Variant::set(const DateTime& value)
 {
-    clear();
-    this->value = new DateTime(value);
-    t = TYPE_DATETIME;
-    return *this;
+    return setCopy<DateTime, TYPE_DATETIME>(value);
 }
 
 Variant& Variant::set(DateTime&& value)
 {
-    clear();
-    this->value = new DateTime(std::move(value));
-    t = TYPE_DATETIME;
-    return *this;
+    return setMove<DateTime, TYPE_DATETIME>(std::move(value));
 }
 
 Variant& Variant::set(const Date& value)
 {
-    clear();
-    this->value = new Date(value);
-    t = TYPE_DATE;
-    return *this;
+    return setCopy<Date, TYPE_DATE>(value);
 }
 
 Variant& Variant::set(Date&& value)
 {
-    clear();
-    this->value = new Date(std::move(value));
-    t = TYPE_DATE;
-    return *this;
+    return setMove<Date, TYPE_DATE>(std::move(value));
 }
 
 Variant& Variant::set(const Time& value)
 {
-    clear();
-    this->value = new Time(value);
-    t = TYPE_TIME;
-    return *this;
+    return setCopy<Time, TYPE_TIME>(value);
 }
 
 Variant& Variant::set(Time&& value)
 {
-    clear();
-    this->value = new Time(std::move(value));
-    t = TYPE_TIME;
-    return *this;
+    return setMove<Time, TYPE_TIME>(std::move(value));
 }
 
 Variant& Variant::set(const TimeDelta& value)
 {
-    clear();
-    this->value = new TimeDelta(value);
-    t = TYPE_TIMEDELTA;
-    return *this;
+    return setCopy<TimeDelta, TYPE_TIMEDELTA>(value);
 }
 
 Variant& Variant::set(TimeDelta&& value)
 {
-    clear();
-    this->value = new TimeDelta(std::move(value));
-    t = TYPE_TIMEDELTA;
-    return *this;
+    return setMove<TimeDelta, TYPE_TIMEDELTA>(std::move(value));
 }
 
 Variant& Variant::set(const TimeZone& value)
 {
-    clear();
-    this->value = new TimeZone(value);
-    t = TYPE_TIMEZONE;
-    return *this;
+    return setCopy<TimeZone, TYPE_TIMEZONE>(value);
 }
 
 Variant& Variant::set(TimeZone&& value)
 {
-    clear();
-    this->value = new TimeZone(std::move(value));
-    t = TYPE_TIMEZONE;
-    return *this;
+    return setMove<TimeZone, TYPE_TIMEZONE>(std::move(value));
 }
 
 const String& Variant::toString() const
@@ -606,8 +530,10 @@ bool Variant::operator==(const Variant& other) const
         return (*static_cast<TimeDelta*>(value) == *static_cast<TimeDelta*>(other.value));
     case TYPE_TIMEZONE:
         return (*static_cast<TimeZone*>(value) == *static_cast<TimeZone*>(other.value));
+    default:
+        break;
     }
-    // es bleibt nur noch TYPE_UNKNOWN übrig, als ein leerer Variant
+    // es bleibt nur noch TYPE_UNKNOWN übrig, also ein leerer Variant
     return true;
 }
 

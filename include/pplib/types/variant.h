@@ -89,6 +89,30 @@ private:
     void* value = nullptr;     /// @brief Pointer auf den Inhalt des Datentyps
     DataType t = TYPE_UNKNOWN; /// @brief Variable, zum Speichern des Datentyps
 
+    /** @brief Interne Hilfsfunktion: neuen Wert erst konstruieren, alten erst danach freigeben
+     *
+     * Verhindert Use-after-free bei Aliasing (value referenziert den aktuell
+     * gespeicherten Wert) und liefert die starke Exception-Garantie: Wirft
+     * die Konstruktion, bleibt der bisherige Wert erhalten.
+     */
+    template <typename T, DataType TYPE_T> Variant& setCopy(const T& src)
+    {
+        void* newvalue = new T(src); // wirft ggf. bad_alloc - alter Wert bleibt unangetastet
+        clear();
+        value = newvalue;
+        t = TYPE_T;
+        return *this;
+    }
+
+    template <typename T, DataType TYPE_T> Variant& setMove(T&& src)
+    {
+        void* newvalue = new T(std::move(src));
+        clear();
+        value = newvalue;
+        t = TYPE_T;
+        return *this;
+    }
+
 public:
     /** @brief Konstruktor der Klasse
      *
@@ -113,7 +137,7 @@ public:
      *
      * Der Inhalt des anderen Variant-Objekts \p value wird übernommen.
      */
-    Variant(Variant&& other);
+    Variant(Variant&& other) noexcept;
 
     /** @brief Konstruktor mit Datentyp String
      *
@@ -820,6 +844,8 @@ public:
      * wird eine Exception geworfen.
      *
      * @return const Referenz auf ByteArrayPtr
+     * @note Besonderheit: Falls der Wert ein ByteArray enthält, kann dieser ebenfalls als ByteArrayPtr
+     * interpretiert werden, da dies die Basisklasse von ByteArray ist.
      * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArrayPtr handelt.
      * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
      */
@@ -832,6 +858,8 @@ public:
      * wird eine Exception geworfen.
      *
      * @return Referenz auf ByteArrayPtr
+     * @note Besonderheit: Falls der Wert ein ByteArray enthält, kann dieser ebenfalls als ByteArrayPtr
+     * interpretiert werden, da dies die Basisklasse von ByteArray ist.
      * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArrayPtr handelt.
      * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
      */
@@ -1285,7 +1313,7 @@ public:
      * @param other Variant, dessen Wert zugewiesen werden soll.
      * @return Referenz auf das aktuelle Objekt.
      */
-    inline Variant& operator=(Variant&& other)
+    inline Variant& operator=(Variant&& other) noexcept
     {
         if (this != &other) {
             clear();
