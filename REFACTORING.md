@@ -4,8 +4,6 @@ PPLIB steht für "Patrick's Programming Library" und ist eine C++-Bibliothek, di
 
 Einige Klassen sind sehr gut dokumentiert und getestet, andere wiederum eher weniger.
 
-
-
 ## Ziele
 - Nicht zu viel kaputt machen, außer es ist wirklich sinnvoll!
 - Header aufteilen: jede Klasse in eine eigene Header-Datei, die dann in der Haupt-Header-Datei inkludiert wird
@@ -13,92 +11,98 @@ Einige Klassen sind sehr gut dokumentiert und getestet, andere wiederum eher wen
 - Alle "#ifdef"s reduzieren, nur da wo unbedingt nötig
 - Modernisierung der Klassen
 - weniger Exceptions
-- Code ist vollständig mit KI auf Fehler geprüft
+- Code mit KI auf Fehler prüfen (Codereviews)
 - Testabdeckung erhöhen
 - Alle Tests gehen von UTF-8 als locale aus, auch unter Windows
 - pico-pplib integrieren (siehe eigenes Kapitel)?
-- C++17 oder C++20 als Standard?
-- CMake statt autoconf/makefile verwenden?
-- configure / Makefile abspecken: wir brauchen einen Großteil der Checks auf Header und Funktion nicht, das diese laut Standard in allen modernen Compilern vorhanden sind. Wir brauchen nur noch die Checks auf C++17/C++20, sowie die Checks auf die Plattform (Windows, Linux, FreeBSD). Alternative: CMake?
-
+- C++17 als Standard
+- CMake statt autoconf/makefile ausprobieren
 
 ## autoconf / makefile vs. CMake
-### bisheriger Zustand
-- Das Makefile.in wird im Moment per Script generiert, welches die Dateien in den Verzeichnissen sucht und passende Header als Abhängigkeit einträgt.
+### vorheriger Zustand
+- Das Makefile.in wurde per Script generiert, welches die Dateien in den Verzeichnissen sucht und passende Header als Abhängigkeit einträgt.
 - Configure enthält unzählige Checks auf Header-Dateien und Funktionen, die in allen modernen Compilern aber vorhanden sind. Das ist unnötig und macht configure sehr langsam.
-
-Fragen dazu:
-- Gibt es Möglichkeiten das Makefile automatisch zu generieren?
-- Abhängigkeit zu den jeweiligen Header-Dateien automatisch finden?
-- Manuell pflegen? So oft kommen keine neuen Dateien hinzu
-- Würden sich die Probleme von selbst erledigen, wenn make die Dateien selbst findet? (z.B. mit wildcards)
 
 ### Aktueller Stand
 - Ich habe Makefile und Configure entfernt und durch CMake ersetzt. Ich möchte das mal ausprobieren.
 
 Das CMakeLists.txt ist inzwischen allerdings auch recht umfangreich geworden, weshalb ich mir nicht sicher bin, ob das eine gute Idee war. Eventuell hole ich Automake wieder zurück oder biete beides an.
 
-
  
 ## pico-pplib
 Siehe: [https://](https://github.com/pfedick/pico-pplib)
 Quellcode liegt auch im aktuellen Ordner "pico-pplib" im Repository.
 
-"pico-pplib" enthält ein Subset von Klassen und Funktionen aus PPLIB und ist für Microcontroller optimiert, und zwar in dem Sinne, dass weniger RAM benötigt wird. Viele Objekte verwenden daher uint16_t anstelle von int oder es gibt duplikate von Klassen, die 16-Bit Integer verwenden.
+"pico-pplib" ist eine Portierung von pplib auf den Raspberry Pico. Es enthält ein Subset von Klassen und Funktionen aus PPLIB und ist teilweise für Microcontroller optimiert, in dem Beispielsweise kleinere Datentypen verwendet werden, um RAM zu sparen.
+
+Im Grafik-Bereich enthält er teilweise Maßgeschneiderte Routinen zur Ausgabe auf kleinen OLED- oder TFT-Displays, die in der großen PPLIB fehlen.
 
 Der Code ist inzwischen auseinander gelaufen, so dass es schwierig ist, Änderungen in beiden Codebasen zu pflegen. Daher ist es sinnvoll, die pico-pplib-Version in PPLIB zu integrieren und eventuelle Unterschiede über "#ifdef"s zu steuern.
 
-Wahrscheinlich möchte ich auf dem pico auch weiterhin nur ein subset der hier vorhandenen Funktionen und Klassen verwenden, da wir mit Speicher sparen müssen und viele Klassen auf dem pico nicht benötigt werden.
+Es ist nicht sinnvoll den kompletten Umfang der PPLIB auf dem Pico bereitzustellen, daher ist es wahrscheinlich sinnvoll im CMakefile.txt ein spezielles Pico-Target zu definieren, oder den Umfang auf andere Art zu steuern.
 
 In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPLIB nicht benötigt werden. Hierfür wäre ein eigenes Projekt sinnvoll, das die Hardware-spezifischen Klassen enthält und von PPLIB abhängig ist.
 
-## Namespace ppl7, ppl8 oder pplib?
+## Namespace: pplib
 
-Aus "historischen Gründen" hat die Library bisher den Namespace "ppl7" verwendet. Dies hing vor vielen Jahren mit der Umstellung von Version 6 auf 7 zusammen. Damals erfolgte eine sehr umfangreiche Überarbeitung der Library, die viele Änderungen an den Interfaces mit sich brachte. Damit beide Versionen parallel in einem projekt verwendet werden konnten, wurde die alte Version in den Namespace "ppl6" und die neue Version in den Namespace "ppl7" gelegt.
+Aus "historischen Gründen" hat die Library bisher den Namespace "ppl7" verwendet, und davor "ppl6". Dies machte damals Sinn, da die Library von Version 6 auf 7 grundlegend überarbeitet wurde, und beide Versionen teilweise parallel in Projekten verwendet wurden.
 
-Hier erfolgen jetzt ebenfalls größere Änderungen, weshalb eine neue Major-Version gerechtfertigt ist. Allerdings bleiben die meisten Klassen und Funktionen unverändert, weshlab eine Umstellung vorhandener Programme weniger aufwendig ist. Übergangsweise könnte man auch einen Alias "ppl7" definieren, der auf den neuen Namespace verweist.
+Bei der derzeitigen Überarbeitung erfolgen zwar ebenfalls größere Änderungen, die eine neue Major-Version rechtfertigen (Version 8), allerdings überwiegend intern mit wenig Auswirkungen auf die API.
 
-Da das GitHub-Repository "pplib" heißt, und ich auch die Domain "pplib.de" besitze, wäre es sinnvoll auf die Version im Namespace zu verzichten und stattdessen den neutralen Namespace "pplib" zu verwenden. "ppl" kollidiert bereits mit dem Namespace "ppl" von Microsoft, der in Visual Studio verwendet wird.
+Da das GitHub-Repository bereits "pplib" heißt, und ich auch die Domain "pplib.de" besitze, scheint es logisch den Namespace ebenfalls pplib zu nennen, zumal "ppl" bereits mit Projekten von Microsoft kollidiert.
 
 Für die Portierung vorhandener Projekte könnte ein Alias "ppl7" definiert werden, der auf den Namespace "pplib" verweist:
 ```cpp
 namespace ppl7 = pplib;
 ```
 
-Entscheidung: wir verwenden den Namespace "pplib"
+## Module
+Da in Anwenungsprogrammen, die pplib verwenden, oft nur ein Subset an Funktionen benötigt wird, teilen wir die Library in Module ein, die über CMake gesteuert werden können:
+- Core
+- Crypto
+- Grafix
+- Audio
+- Internet
+- Databases
 
-## Fragen
-- Sollen wir die Library aufsplitten in mehrere kleinere Module?
-  - Core
-  - Grafix
-  - Audio
-  - Crypto
-  - Internet
+## Unittests => Google Test
+Es gibt bereits recht viele Unittests, die Google Test verwenden, bisher aber ohne Messung der Testabdeckung.
 
-## Unittests
-Es gibt bereits recht viele Unittests, die Google Test verwenden. Es gibt aber aktuell keine Möglichkeit die Testabdeckung zu messen. Dies soll bei der Refakturierung geändert werden, unter Verwendung von gcov.
+Über CMake "-DPPLIB_ENABLE_COVERAGE=ON" können wir nun den Code passend kompilieren und nach Durchlauf der Tests das Ergebnis mit gcovr visualisieren.
 
-Durch die laufende Refakturierung and der Haupt-Library sind die Unittests aktuell leider nicht kompilierbar. Hier sind auch noch Anpassungen an die geänderten Interfaces notwendig.
+Über das Makefile können die Tests mit Messung der Coverage gestartet werden:
 
-Ein grundsätzliches Problem der Tests waren in der Vergangenheit die unterschiedlichen Locale-Einstellungen unter Windows und Linux. Unter Windows ist die Standard-Locale "ANSI", unter Linux "UTF-8". Viele Tests sind auf die Locale "UTF-8" angewiesen, weshalb wir die Tests so anpassen müssen, dass sie auch unter Windows mit UTF-8 als Locale laufen.
+```bash
+make coverage
+```
+
+Temporär existieren im Makefile auch andere Targets, die gezielt nur die Tests durchlaufen lassen, an denen ich grad arbeite. Oft können diese mit
+
+```bash
+make wip
+```
+
+gestartet werden (wip = work in progress).
 
 # Fortschritt
 ## TODO
-- Array checken und ggf. refaktorisieren
-- AssocArray
-- Funktionen
-- File (viele fehlschlagende Unittests)
-- Grafix überarbeiten
+- Funktionen reviewn, überarbeiten, Dokumentieren, Tests erstellen
+- Codereviews sichten, bewerten und abarbeiten
+- Grafix überarbeiten (teilweise done)
 - Audio überarbeiten
 - Internet überarbeiten
 - Database überarbeiten (oder in separates Projekt auslagern?)
-- Tests wieder lauffähig bekommen
 
 
-## Font6
+### Codereviews
+Ich habe mittels KI eine Reihe von Klassen auf Fehler prüfen lassen. Die Ergebnisse der Reviews sind im Order "codereview/todo" zu finden. Diese müssen Schritt für Schritt geprüft, bewertet und abgearbeitet werden.
+
+Bereits erledigte Codereviews werden nach "codereview/done" verschoben.
+
+### Font6
 Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-Option generell deaktivieren. Oder Fonts ohne Hints generieren?
 
-## Crypto-Funktionen
+### Crypto-Funktionen
 - Unterstützung für moderne Algorithmen hinzufügen (AEAD-Modi)
   - GCM
   - ChaCha20-Poly1305
@@ -106,14 +110,26 @@ Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-O
 KI:
 Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB/CBC/CFB/OFB an — alles unauthentifizierte Modi. Das ist der eigentliche "veraltet vs. aktuell"-Punkt: Heute empfiehlt man praktisch immer AES-GCM oder ChaCha20-Poly1305 (Integrität + Vertraulichkeit in einem), nicht CBC/CFB/OFB ohne HMAC. Das würde aber eine API-Erweiterung brauchen (Tag setzen/holen via EVP_CTRL_AEAD_GET_TAG/SET_TAG, zusätzliche AAD-Methode), keine reine Bugfix-Änderung.
 
-## NEU
-- HttpRequest, HttpResponse, HttpClient
-
 ## Erledigt
 - Umstellung von Autoconf auf CMake
 - Dir-Klasse komplett überarbeitet
 - DirEntry-Klasse überarbeitet
+- File-Klasse überarbeitet
 - Alle Quellcode-Dateien unter "core", "crypto", "math" und "types" kompilieren wieder ohne Fehler
+- Tests sind wieder lauffähig
+- Array refaktoriert
+- AssocArray refaktoriert
+- Alte Curl-Klasse entfernt und durch HttpRequest, HttpResponse und HttpClient ersetzt
+
+### Datenobjekte (Types)
+- Variant Klasse refakturiert und geprüft
+- Pointer Klasse ausgebaut (Obsolete)
+- ByteArray Klasse refakturiert und geprüft
+- ByteArrayPtr Klasse refakturiert und geprüft
+- String Klasse refakturiert und geprüft
+- WideString Klasse refakturiert und geprüft
+- DateTime Klasse refakturiert und geprüft
+- Neu: Date, Time, TimeZone, TimeDelta
 
 ### Drawable
 Die Implementierung der DRAWABLE_FUNCTIONS muss überarbeitet werden. Sie erstreckt sich über mehrere Dateien und unterstützt eigentlich nur ein 32-Bit-Format. Es wäre besser, wenn wir pro Format eine Datei mit der vollständigen Implementierung hätten. Die Verwendung von Assembler verkompliziert das ganze zusätzlich und ist für so simple-Methoden wie PutPixel eigentlich nicht notwendig.
@@ -121,16 +137,6 @@ Die Implementierung der DRAWABLE_FUNCTIONS muss überarbeitet werden. Sie erstre
 Methoden, wie Line oder LineAA verwenden am Ende dann doch PutPixel, weshalb wir sie auch direkt in der Drawable-Klasse einheitlich für alle Formate implementieren können.
 
 Einige Funktionen bekommen das native Farbformat, müssen dass dann aber wieder nach RGBA konvertieren, um zum Beispiel Pixel zu blenden. Vielleicht wäre es an einigen Stellen sinnvoller Color als parameter zu verwenden.
-
-### Datenobjekte (Types)
-- Variant Klasse refakturiert und geprüft
-- Pointer Klasse refakturiert und geprüft => als obsolete markiert
-- ByteArray Klasse refakturiert und geprüft
-- ByteArrayPtr Klasse refakturiert und geprüft
-- String Klasse refakturiert und geprüft
-- WideString Klasse refakturiert und geprüft
-- DateTime Klasse refakturiert und geprüft
-- Neu: Date, Time, TimeZone, TimeDelta
 
 ### Imagefilter
 Die save-Methode mit dem AssocArray für Parameter war schlecht.
