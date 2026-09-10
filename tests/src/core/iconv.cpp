@@ -165,12 +165,12 @@ TEST_F(IconvTest, ISO88591toUtf8)
 
     // Die UTF-8 Byte-Prüfung:
     // ä = \xC3\xA4 (195, 164)
-    // ö = \xC3\xB6 (195, 150)
+    // ö = \xC3\xB6 (195, 182)
     // ü = \xC3\xBC (195, 188)
     EXPECT_EQ(195, (unsigned char)utf8_bytes.get(0));
     EXPECT_EQ(164, (unsigned char)utf8_bytes.get(1));
     EXPECT_EQ(195, (unsigned char)utf8_bytes.get(2));
-    EXPECT_EQ(150, (unsigned char)utf8_bytes.get(3));
+    EXPECT_EQ(182, (unsigned char)utf8_bytes.get(3));
     EXPECT_EQ(195, (unsigned char)utf8_bytes.get(4));
     EXPECT_EQ(188, (unsigned char)utf8_bytes.get(5));
 }
