@@ -51,20 +51,20 @@ Exception::~Exception() noexcept
 
 const char* Exception::what() const noexcept
 {
-    if (whatBuffer.isEmpty()) {
+    std::call_once(whatOnce, [this]() {
         try {
             if (ErrorText && *ErrorText) {
                 whatBuffer = String(className()) + ": " + (const char*)ErrorText;
-            } else {
-                return className(); // Kein Text? Direkt statisches Literal zurückgeben!
             }
         }
         catch (...) {
             // Allokationsfehler? Null Risiko: Statisches Literal der Subklasse liefern!
-            return className();
         }
+    });
+    if (whatBuffer.notEmpty()) {
+        return whatBuffer.c_str();
     }
-    return whatBuffer.c_str();
+    return className();
 }
 
 Exception::Exception(const Exception& other) noexcept
@@ -80,13 +80,16 @@ Exception::Exception(const Exception& other) noexcept
 Exception::Exception(Exception&& other) noexcept
 {
     ErrorText = other.ErrorText;
-    whatBuffer = other.whatBuffer;
-    other.ErrorText = NULL;
-    other.whatBuffer.clear();
+    other.ErrorText = nullptr;
+    // other.whatBuffer bleibt wo er ist
 }
 
 void Exception::initFromFormat(const char* fmt, va_list args) noexcept
 {
+    if (!fmt) {
+        ErrorText = nullptr;
+        return;
+    }
     try {
         String Msg;
         Msg.vasprintf(fmt, args);
@@ -114,13 +117,12 @@ Exception& Exception::operator=(Exception&& other) noexcept
     if (this == &other) return *this;
     free(ErrorText);
     ErrorText = other.ErrorText;
-    whatBuffer = other.whatBuffer;
-    other.ErrorText = NULL;
-    other.whatBuffer.clear();
+    other.ErrorText = nullptr;
+    whatBuffer.clear();
     return *this;
 }
 
-Exception::Exception(const char* msg, ...) throw()
+Exception::Exception(const char* msg, ...) noexcept
 {
     if (msg) {
         String Msg;
@@ -156,14 +158,14 @@ const char* Exception::text() const noexcept
 String Exception::toString() const
 {
     String str;
-    str.setf("%s", what());
+    str.setf("%s", className());
     if (ErrorText) str.appendf(" [%s]", (const char*)ErrorText);
     return str;
 }
 
 void Exception::print() const
 {
-    PrintDebug("Exception: %s", what());
+    PrintDebug("Exception: %s", className());
     if (ErrorText) PrintDebug(" [%s]", (const char*)ErrorText);
     PrintDebug("\n");
 }

@@ -33,6 +33,7 @@
 #include <ostream>
 #include <stdarg.h>
 #include <string>
+#include <mutex>
 
 #include <pplib/types/string.h>
 
@@ -42,14 +43,14 @@ namespace pplib
 class Exception : public std::exception
 {
 private:
-    char* ErrorText = nullptr;
+    char* ErrorText;
     mutable String whatBuffer;
+    mutable std::once_flag whatOnce;
 
 protected:
     void initFromFormat(const char* fmt, va_list args) noexcept;
 
 public:
-    using std::exception::exception;
     Exception() noexcept
     {
         ErrorText = nullptr;
