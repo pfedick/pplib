@@ -1,34 +1,33 @@
-PPLib - Patrick's Programming Library
-===========================================================================
+# PPLib - Patrick's Programming Library
 
-INDEX
+## INDEX
 
-1. What is PPLib?
-2. Installation
-2.1 UNIX
-2.2 Windows
+1. [What is PPLib](##What-is-PPLib)
+2. [Installation](##Installation)
 3. Usage
 4. Documentation
 5. Credits
 6. Copyright
 7. Licence
 
-===========================================================================
-1. What is PPLib?
 
-   PPLib (or PPL) stands for "Patrick's Programming Library" and is a
-   collection of functions and classes for C++ applications, written by
-   Patrick Fedick. It covers file and directory functions, strings and
-   arrays, time, math, threads, graphics, sound, database access and
-   internet communication.
+## What is PPLib
 
-   You can find the newest version and documentation of this library under
-
-       http://www.pfp.de/pplib
+PPLib is designed to simplify common programming tasks in C++ by providing a comprehensive set of utilities and abstractions. It aims to reduce boilerplate code and improve productivity for developers working on various types of applications.
 
 
-===========================================================================
-2. Installation
+PPLib (or PPL) stands for "Patrick's Programming Library" and is a
+collection of functions and classes for C++ applications, written by
+Patrick Fedick. It covers file and directory functions, strings and
+arrays, time, math, threads, graphics, sound, database access and
+internet communication.
+
+You can find the newest version and documentation of this library under
+
+    http://www.pfp.de/pplib
+
+
+## Installation
 
 2.1 UNIX
     The UNIX version comes with a standard configure-script. In most
