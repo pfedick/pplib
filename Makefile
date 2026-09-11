@@ -38,7 +38,7 @@ endif
 
 release:
 	cmake -B build/release -DCMAKE_BUILD_TYPE=Release
-	cmake --build build/release
+	cmake --build build/release -j
 	ln -sf build/release/compile_commands.json compile_commands.json
 
 debug:

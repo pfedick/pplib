@@ -2,111 +2,107 @@
 
 ## INDEX
 
-1. [What is PPLib](##What-is-PPLib)
-2. [Installation](##Installation)
-3. Usage
-4. Documentation
-5. Credits
-6. Copyright
-7. Licence
+- [What is PPLib](##What-is-PPLib)
+- [Installation](##Installation)
+- [Documentation](##Documentation)
+- [License](##License)
 
 
 ## What is PPLib
 
-PPLib is designed to simplify common programming tasks in C++ by providing a comprehensive set of utilities and abstractions. It aims to reduce boilerplate code and improve productivity for developers working on various types of applications.
+PPLib is an acronym for "Patrick's Programming Library". It is a C++ library that provides a wide range of utilities and abstractions to simplify common programming tasks. It covers file and directory functions, strings and arrays, time, math, threads, graphics, sound, database access, and internet communication.
 
+You can find the newest version and documentation of this library in GitHub:
 
-PPLib (or PPL) stands for "Patrick's Programming Library" and is a
-collection of functions and classes for C++ applications, written by
-Patrick Fedick. It covers file and directory functions, strings and
-arrays, time, math, threads, graphics, sound, database access and
-internet communication.
-
-You can find the newest version and documentation of this library under
-
-    http://www.pfp.de/pplib
+- https://github.com/patrickf/pplib
 
 
 ## Installation
 
-2.1 UNIX
-    The UNIX version comes with a standard configure-script. In most
-    cases it is sufficient to simply do
+PPLib uses CMake as its build system.
 
-        ./configure
-        make
-        make install    (do this as root)
+To install PPLib using CMake, follow these steps:
 
-    The configure script tries to find out on what system the library
-    should be compiled and what optional libraries are available of
-    which PPLib can make use of (e.g. graphic libraries or databases).
+1. Clone the repository:
 
-    If it does not find a library of which you know that it is
-    installed somewhere, you can manually set a search path for it
-    during configure, e.g.:
+    ```bash
+    git clone https://github.com/patrickf/pplib.git
+    cd pplib
+    ```
 
-        ./configure --with-mysql=/usr/local/mysql
+2. Run CMake to configure the build:
 
-    If you don't want a specific library compiled in, you can deselect
-    it with "--without-xxx', where xxx stands for the library. Example:
+    ```bash
+    cmake -B build/release -DCMAKE_BUILD_TYPE=Release
+    ```
 
-        ./configure --without-mysql
+4. Build and install the library:
 
-    Please see "./configure --help" for a list of all available
-    options.
+   ```bash
+   cmake --build build/release -j
+   cmake --install build/release
+   ```
 
-2.2 Windows
-    PPLib comes with project files for Microsoft Visual Studio .NET 2003,
-    but you have to do some manual configuration to adapt it to your
-    system.
+### Compile and Install specific components
 
-   For more details and examples about installation, please read the HTML
-   documentation. 
+To compile and install specific components of PPLib, you can use the `-D` option with CMake to enable or disable certain features. For example:
+
+```bash
+# TODO: Describe how this works
+cmake -B build/release -DCMAKE_BUILD_TYPE=Release -DENABLE_COMPONENT_X=ON
+cmake --build build/release -j 
+cmake --install build/release
+```
+
+Available Componets are:
+
+### Compile on Raspberry Pico
+TODO
+
+### Use as a Submodule in another project
+
+TODO!
+
+To use PPLib as a submodule in another project, follow these steps:
+
+1. Add PPLib as a submodule:
+
+    ```bash
+    git submodule add https://github.com/patrickf/pplib.git external/pplib
+    git submodule update --init --recursive
+    ```
+
+2. Include PPLib in your CMake project:
+
+    ```cmake
+    add_subdirectory(external/pplib)
+    target_link_libraries(your_project PRIVATE pplib)
+    ```
+
    
-===========================================================================
-3. Usage
 
-   How to use the functions and classes if PPLib is described in the
-   HTML documentation.
+## Documentation
+All classes and functions are documented in the header files. Debending on your code editor, you should be able to access this documentation directly while coding.
 
-===========================================================================
-4. Documentation
+You can also find a complete HTML documentation of PPLib on the PPLib webpage:
 
-   Documentation is available in HTML and can be found in the subdirectory
-   "documentation/html" of the source distribution and and online on the
-   PPLib webpage:
+- https://www.pplib.de/docs
+
+You can also generate it yourself in many formats by running the Doxygen tool on the source code:
+
+```bash
+mkdir -p documentation/html
+doxygen Doxyfile
+cp docs/header-bg.png documentation/html
+```
    
-        http://www.pfp.de/pplib
 
-===========================================================================
-5. Credits
 
-   Some parts of PPLib includes code from other projects or can make use of
-   third party libraries.
-   - MD5-Hash calculation
-     Copyright RSA Data Security, Inc. MD5 Message-Digest Algorithm)
-   - random number generation
-     Copyright (c) 1983, 1993 The Regents of the University of California
-   - CRC32 checksum calculation
-     unknown source
-   - GIF-Reader
-     Copyright 1990, 1991, 1993 by David Koblas
-   - PCRE2 (http://www.pcre.org/)
-     Copyright (c) 1997-2008 University of Cambridge All rights reserved.
-   - Zlib (http://www.zlib.net/)
-     Copyright (C) 1995-2005 Jean-loup Gailly and Mark Adler
-   - Bzip2 (http://www.bzip.org/)\n
-     Copyright (C) 1996-2007 Julian R Seward
 
-===========================================================================
-6. Copyright
-
-   PPLib is copyright by Patrick Fedick <patrick@pfp.de> in 2005-2019
-   All rights reserved.
-
-===========================================================================
-7. Licence
- 
+## License
+```
+Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
+All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
@@ -127,6 +123,6 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+```
 
 
