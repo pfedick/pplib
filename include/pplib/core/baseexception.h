@@ -42,43 +42,59 @@ namespace pplib
 class Exception : public std::exception
 {
 private:
-    char* ErrorText;
+    char* ErrorText = nullptr;
+    mutable String whatBuffer;
+
+protected:
+    void initFromFormat(const char* fmt, va_list args) noexcept;
 
 public:
-    Exception() noexcept;
+    using std::exception::exception;
+    Exception() noexcept
+    {
+        ErrorText = nullptr;
+    }
     Exception(const Exception& other) noexcept;
+    Exception(Exception&& other) noexcept;
     Exception& operator=(const Exception& other) noexcept;
-    Exception(const char* msg, ...) noexcept;
+    Exception& operator=(Exception&& other) noexcept;
+    Exception(const char* fmt, ...) noexcept;
     Exception(const String& msg) noexcept;
     virtual ~Exception() noexcept;
+    virtual const char* className() const noexcept
+    {
+        return "Exception";
+    }
     virtual const char* what() const noexcept;
     const char* text() const noexcept;
-    String toString() const noexcept;
+    String toString() const;
     void print() const;
-    void copyText(const char* str) noexcept;
-    void copyText(const char* fmt, va_list args) noexcept;
 };
 
 std::ostream& operator<<(std::ostream& s, const Exception& e);
 
-#define STR_VALUE(arg) #arg
 #define PPLIBEXCEPTION(name, inherit)                                                                                                      \
     class name : public pplib::inherit                                                                                                     \
     {                                                                                                                                      \
     public:                                                                                                                                \
         name() noexcept                                                                                                                    \
+            : pplib::inherit()                                                                                                             \
         {                                                                                                                                  \
         }                                                                                                                                  \
-        name(const char* msg, ...) noexcept                                                                                                \
+        name(const pplib::String& msg) noexcept                                                                                            \
+            : pplib::inherit(msg)                                                                                                          \
+        {                                                                                                                                  \
+        }                                                                                                                                  \
+        name(const char* fmt, ...) noexcept                                                                                                \
         {                                                                                                                                  \
             va_list args;                                                                                                                  \
-            va_start(args, msg);                                                                                                           \
-            copyText(msg, args);                                                                                                           \
+            va_start(args, fmt);                                                                                                           \
+            initFromFormat(fmt, args);                                                                                                     \
             va_end(args);                                                                                                                  \
         }                                                                                                                                  \
-        virtual const char* what() const noexcept                                                                                          \
+        const char* className() const noexcept override                                                                                    \
         {                                                                                                                                  \
-            return (STR_VALUE(name));                                                                                                      \
+            return #name;                                                                                                                  \
         }                                                                                                                                  \
     };
 

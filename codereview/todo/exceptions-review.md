@@ -40,6 +40,8 @@ C++-Standard laut `CMakeLists.txt`: C++17.
   }
   ```
 
+  ==> FIXED
+
 - [ ] **Makro-generierte Subklassen haben keinen NULL-Schutz für den Format-String → Absturz statt Exception** (`baseexception.h:72-78`, `Exceptions.cpp:113-124`)
   Die Basisklasse selbst prüft in ihrem eigenen Varargs-Konstruktor `if (msg) { ... }` (Exceptions.cpp:84), bevor
   formatiert wird. Der von `PPLIBEXCEPTION` generierte Konstruktor jeder der 185 konkreten Exception-Klassen tut das
@@ -92,6 +94,8 @@ C++-Standard laut `CMakeLists.txt`: C++17.
   Fix: `toString()` intern absichern (z.B. `try { ... } catch(...) { return String(what()); }`) oder die
   `noexcept`-Zusage aus Header und Implementierung entfernen, wenn ein Wurf toleriert werden soll.
 
+  ==> FIXED
+
 ## Design
 
 - [ ] **`what()` liefert nie die eigentliche Fehlermeldung, nur den Klassennamen** (`baseexception.h:54`, `Exceptions.cpp:57-60`, Makro `baseexception.h:79-82`)
@@ -122,6 +126,8 @@ C++-Standard laut `CMakeLists.txt`: C++17.
   „Modernisierung der Klassen" aus REFACTORING.md. Ein `noexcept`-Move (Pointer übernehmen, `other.ErrorText = NULL`)
   wäre trivial zu ergänzen.
 
+  ==> FIXED
+
 - [ ] **`copyText()` ist public und erlaubt nachträgliches Mutieren der Fehlermeldung nach dem Werfen**
   Beide Overloads (`copyText(const char*)`, `copyText(const char*, va_list)`) sind Teil der öffentlichen Schnittstelle,
   obwohl sie laut Grep aktuell nirgends außerhalb der Makro-generierten Konstruktoren aufgerufen werden. Eine
@@ -138,6 +144,8 @@ C++-Standard laut `CMakeLists.txt`: C++17.
   stilistisch inkonsistent und erzeugt ggf. Deprecation-Warnings. Passt zur „Modernisierung der Klassen" – überall
   auf `noexcept` vereinheitlichen.
 
+  ==> FIXED, überall auf `noexcept` vereinheitlicht.
+
 - [ ] **`copyText(const char* str)` (1-Arg-Variante) hat aktuell keinen einzigen Aufrufer im gesamten Repo**
   (`baseexception.h:58`, `Exceptions.cpp:107-111`) – weder in dieser Basisklasse noch im Makro noch sonstwo im Code
   wird sie benutzt. Entweder dokumentieren, wofür sie als öffentliche API gedacht ist, oder entfernen. Sie teilt
@@ -147,10 +155,14 @@ C++-Standard laut `CMakeLists.txt`: C++17.
 - [ ] **`if (ErrorText) free(ErrorText);`-Muster mehrfach unnötig verklausuliert** (`Exceptions.cpp:73`, `~Exception`, etc.)
   `free(NULL)` ist laut C-Standard ein garantiertes No-op; der `if`-Guard ist überflüssig, kein Bug, nur Rauschen.
 
+  ==> FIXED, unnötige `if (ErrorText)`-Guards entfernt.
+
 - [ ] **Keine Doku-Kommentare an der Klasse `Exception` bzw. am Makro** – andere Kern-Header (z.B. `assocarray.h`)
   sind ausführlich mit Doxygen-Blöcken dokumentiert, `baseexception.h` hat keinen einzigen Klassenkommentar. Speziell
   der Vertrag „`what()` liefert Klassenname, `text()`/`toString()` liefern die eigentliche Meldung" gehört dringend
   dokumentiert (siehe Design-Punkt oben).
+
+  ==> Wird nachgereicht.
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

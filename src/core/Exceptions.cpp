@@ -44,38 +44,79 @@
 namespace pplib
 {
 
-Exception::Exception() throw()
+Exception::~Exception() noexcept
 {
+    if (ErrorText) free(ErrorText);
+}
+
+const char* Exception::what() const noexcept
+{
+    if (whatBuffer.isEmpty()) {
+        try {
+            if (ErrorText && *ErrorText) {
+                whatBuffer = String(className()) + ": " + (const char*)ErrorText;
+            } else {
+                return className(); // Kein Text? Direkt statisches Literal zurückgeben!
+            }
+        }
+        catch (...) {
+            // Allokationsfehler? Null Risiko: Statisches Literal der Subklasse liefern!
+            return className();
+        }
+    }
+    return whatBuffer.c_str();
+}
+
+Exception::Exception(const Exception& other) noexcept
+{
+    if (other.ErrorText) {
+        ErrorText = strdup(other.ErrorText);
+        whatBuffer = other.whatBuffer;
+    } else {
+        ErrorText = NULL;
+    }
+}
+
+Exception::Exception(Exception&& other) noexcept
+{
+    ErrorText = other.ErrorText;
+    whatBuffer = other.whatBuffer;
+    other.ErrorText = NULL;
+    other.whatBuffer.clear();
+}
+
+void Exception::initFromFormat(const char* fmt, va_list args) noexcept
+{
+    try {
+        String Msg;
+        Msg.vasprintf(fmt, args);
+        ErrorText = strdup((const char*)Msg);
+    }
+    catch (...) {
+        ErrorText = NULL;
+    }
+}
+
+Exception& Exception::operator=(const Exception& other) noexcept
+{
+    if (this == &other) return *this;
+    free(ErrorText);
     ErrorText = NULL;
-}
-
-Exception::~Exception() throw()
-{
-    if (ErrorText) free(ErrorText);
-}
-
-const char* Exception::what() const throw()
-{
-    return "PPLException";
-}
-
-Exception::Exception(const Exception& other) throw()
-{
+    whatBuffer = other.whatBuffer;
     if (other.ErrorText) {
         ErrorText = strdup(other.ErrorText);
-    } else {
-        ErrorText = NULL;
     }
+    return *this;
 }
 
-Exception& Exception::operator=(const Exception& other) throw()
+Exception& Exception::operator=(Exception&& other) noexcept
 {
-    if (ErrorText) free(ErrorText);
-    if (other.ErrorText) {
-        ErrorText = strdup(other.ErrorText);
-    } else {
-        ErrorText = NULL;
-    }
+    if (this == &other) return *this;
+    free(ErrorText);
+    ErrorText = other.ErrorText;
+    whatBuffer = other.whatBuffer;
+    other.ErrorText = NULL;
+    other.whatBuffer.clear();
     return *this;
 }
 
@@ -104,26 +145,7 @@ Exception::Exception(const String& msg) noexcept
     ErrorText = strdup(msg.c_str());
 }
 
-void Exception::copyText(const char* str) throw()
-{
-    free(ErrorText);
-    ErrorText = strdup(str);
-}
-
-void Exception::copyText(const char* fmt, va_list args) throw()
-{
-    free(ErrorText);
-    try {
-        String Msg;
-        Msg.vasprintf(fmt, args);
-        ErrorText = strdup((const char*)Msg);
-    }
-    catch (...) {
-        ErrorText = NULL;
-    }
-}
-
-const char* Exception::text() const throw()
+const char* Exception::text() const noexcept
 {
     if (ErrorText)
         return ErrorText;
@@ -131,7 +153,7 @@ const char* Exception::text() const throw()
         return "";
 }
 
-String Exception::toString() const throw()
+String Exception::toString() const
 {
     String str;
     str.setf("%s", what());
