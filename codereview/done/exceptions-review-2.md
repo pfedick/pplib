@@ -97,6 +97,8 @@ C++-Standard laut `CMakeLists.txt`: C++17.
   ```
   `whatBuffer = std::move(other.whatBuffer);` wäre sauberer als Kopie. Wichtiger noch: Wenn `other` vor dem Move bereits `what()` aufgerufen hatte, behält `whatBuffer` der Zielinstanz den Text, aber falls `what()` noch nicht gerufen wurde, ist `whatBuffer` leer – das ist in Ordnung, sollte aber einheitlich per Move bewegt werden.
 
+  ==> FIXED
+
 ### Kosmetik & Konsistenz
 
 - [ ] **5. Veraltetes `throw()` in Zeile 116 von `Exceptions.cpp`**
