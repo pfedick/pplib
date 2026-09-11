@@ -1,1 +1,2 @@
-tests/testdata/** text eol=lf
+# Testdaten niemals anfassen - Byte für Byte unverändert lassen
+tests/testdata/** -text

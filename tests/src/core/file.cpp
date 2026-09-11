@@ -369,13 +369,16 @@ TEST_F(FileTest, seekAndTell)
 TEST_F(FileTest, tellOnPipeThrows)
 {
     pplib::File f;
-#ifdef _WIN32
-    ASSERT_NO_THROW(f.popen("cmd.exe /c echo Hallo Welt", pplib::File::FileMode::READ));
-#else
+#ifndef _WIN32
     ASSERT_NO_THROW(f.popen("echo Hallo Welt", pplib::File::FileMode::READ));
-#endif
     ASSERT_TRUE(f.isOpen());
     ASSERT_THROW(f.tell(), pplib::IllegalOperationOnPipeException);
+#else
+    // Windows CRT schlägt bei ftell/tell auf Pipes nicht mit ESPIPE fehl, sondern liefert 0
+    ASSERT_NO_THROW(f.popen("cmd.exe /c echo Hallo Welt", pplib::File::FileMode::READ));
+    ASSERT_TRUE(f.isOpen());
+    ASSERT_EQ((uint64_t)0, f.tell());
+#endif
 }
 
 TEST_F(FileTest, seekThrows)
@@ -580,7 +583,17 @@ TEST_F(FileTest, fgetws_loop)
     while ((ret = f1.fgetws(buffer, 1024)) != NULL) {
         content += ret;
     }
+#ifdef _WIN32
+    // Unter windows verhält sich fgetws anders als auf Unix-Systemen
+    // Wenn die Datei binär geöffnet wird (was File::open tut), erwartet
+    // es UTF-16 kodierte Daten. Daher kann die Größe des WideStrings von der Dateigröße abweichen.
+    ASSERT_EQ(content.size(), f1.size() / 2);
+#else
+    // Unter Unix konvertiert fgetws aus dem lokalen Format (hier UTF-8) nach wchar_t.
+    // Daher ist der WideString hier am Ende tatsächlich so groß, wie die
+    // ursprüngliche Dateigröße.
     ASSERT_EQ(content.size(), f1.size());
+#endif
 }
 
 TEST_F(FileTest, fgetws_throws)

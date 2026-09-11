@@ -2029,6 +2029,20 @@ TEST(StringTest, ToLong_1124234674)
     EXPECT_EQ((long)124234674, s1.toLong()) << "Unexpected Result";
 }
 
+TEST(StringTest, toUnsignedLong)
+{
+    pplib::String s1("124234674");
+    EXPECT_EQ((unsigned long)124234674, s1.toUnsignedLong()) << "Unexpected Result";
+    EXPECT_EQ((unsigned long)0, pplib::String().toUnsignedLong()) << "Unexpected Result";
+}
+
+TEST(StringTest, toLong)
+{
+    pplib::String s1("-124234674");
+    EXPECT_EQ((long)-124234674, s1.toLong()) << "Unexpected Result";
+    EXPECT_EQ((long)0, pplib::String().toLong()) << "Unexpected Result";
+}
+
 TEST(StringTest, toLongLong)
 {
     pplib::String s1("1242346214893456");

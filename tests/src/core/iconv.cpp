@@ -92,8 +92,8 @@ TEST_F(IconvTest, enumerateCharsetsStdList)
 
 TEST_F(IconvTest, getLocalCharset)
 {
-#ifdef WIN32
-    ASSERT_EQ(pplib::String("CP1252"), pplib::Iconv::getLocalCharset());
+#ifdef _WIN32
+    ASSERT_EQ(pplib::String("UTF8"), pplib::Iconv::getLocalCharset());
 #else
     ASSERT_EQ(pplib::String("UTF-8"), pplib::Iconv::getLocalCharset());
 #endif

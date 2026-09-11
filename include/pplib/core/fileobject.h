@@ -500,6 +500,10 @@ public:
      * @note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
      * verfügbar. In diesem Fall wird eine @exception UnimplementedVirtualFunctionException
      * geworfen.
+     *
+     * @attention Unter Unix konvertiert fgetws aus dem lokalen Format (z.B. UTF-8) nach
+     * wchar_t. Unter Windows wird aber UTF-16 erwartet. Das lesen einer Datei, die nicht
+     * UTF-16 kodiert ist, wird zu unerwartetem Verhalten führen!
      */
     virtual wchar_t* fgetws(wchar_t* buffer, size_t num = 1024);
 
