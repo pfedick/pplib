@@ -282,7 +282,7 @@ TEST_F(DigestTest, TestAddDataFromWideString)
     pplib::String result;
     ASSERT_NO_THROW(hash.saveDigest(result));
 
-#ifdef WIN32
+#ifdef _WIN32
     // wchar_t is 2 byte on windows
     ASSERT_EQ(pplib::String("8c6d8979fd6c6de310f794f0c5d40b4efc15218d335e1b9c777825845c2342ad"), result);
 #else
