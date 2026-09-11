@@ -211,11 +211,11 @@ TEST(ArrayTest, add3Elements)
 TEST(ArrayTest, add100000Elements)
 {
     pplib::Array a1;
-    pplib::PrintDebugTime("add 100000 Elements\n");
+    // pplib::PrintDebugTime("add 100000 Elements\n");
     for (int i = 0; i < 100000; i++) {
         a1.add("Bart Simpson");
     }
-    pplib::PrintDebugTime("done\n");
+    // pplib::PrintDebugTime("done\n");
     ASSERT_EQ((size_t)100000, a1.count()) << "Array does not contain 100000 elements";
 }
 
@@ -238,6 +238,18 @@ TEST(ArrayTest, addArray)
     ASSERT_EQ(pplib::String("salt"), a1.get(6)) << "unexpected value";
     ASSERT_EQ(pplib::String(""), a1.get(7)) << "unexpected value";
     ASSERT_EQ(pplib::String("suggar"), a1.get(8)) << "unexpected value";
+}
+
+TEST(ArrayTest, addSameArray)
+{
+    pplib::Array a1("red green blue yellow black white", " ");
+    ASSERT_EQ((size_t)6, a1.count()) << "Array contains unexpected amount of elements";
+    a1.add(a1); // Adding the same array to itself
+    ASSERT_EQ((size_t)12, a1.count()) << "Array contains unexpected amount of elements after adding itself";
+    ASSERT_EQ(pplib::String("red"), a1.get(0)) << "unexpected value";
+    ASSERT_EQ(pplib::String("white"), a1.get(5)) << "unexpected value";
+    ASSERT_EQ(pplib::String("red"), a1.get(6)) << "unexpected value";
+    ASSERT_EQ(pplib::String("white"), a1.get(11)) << "unexpected value";
 }
 
 TEST(ArrayTest, addPartialString)
@@ -340,6 +352,38 @@ TEST(ArrayTest, set)
         ASSERT_EQ(pplib::String(""), a1.get(3)) << "Element 3 has wrong value";
         ASSERT_EQ(pplib::String("Element Three"), a1.get(2)) << "Element 2 has wrong value";
     });
+}
+
+TEST(ArrayTest, setWithNegativeIndex)
+{
+    pplib::Array a1;
+    ASSERT_THROW(a1.set(-1, "Invalid"), pplib::OutOfBoundsException);
+    ASSERT_THROW(a1.set(-2, "Invalid"), pplib::OutOfBoundsException);
+    a1.set(0, "First Element");
+    a1.set(-1, "Last Element");
+    ASSERT_EQ((size_t)1, a1.count()) << "Array does not contain 1 element";
+    ASSERT_EQ(pplib::String("Last Element"), a1.get(-1)) << "Element -1 has wrong value";
+    ASSERT_EQ(pplib::String("Last Element"), a1.get(0)) << "Element -1 has wrong value";
+
+    pplib::Array a2("red green blue yellow black white", " ");
+    ASSERT_EQ((size_t)6, a2.count()) << "Array does not contain 6 elements";
+    a2.set(-1, "Last Color");
+    ASSERT_EQ(pplib::String("Last Color"), a2.get(-1)) << "Element -1 has wrong value";
+    ASSERT_EQ(pplib::String("Last Color"), a2.get(5)) << "Element 5 has wrong value";
+
+    a2.set(-6, "First Color");
+    ASSERT_EQ(pplib::String("First Color"), a2.get(-6)) << "Element -6 has wrong value";
+    ASSERT_EQ(pplib::String("First Color"), a2.get(0)) << "Element 0 has wrong value";
+
+    ASSERT_THROW(a2.set(-7, "Invalid"), pplib::OutOfBoundsException);
+
+    ASSERT_THROW(a2.set(SSIZE_MAX, "Invalid"), pplib::OutOfBoundsException);
+}
+
+TEST(ArrayTest, setThrowsOutOfBounds)
+{
+    pplib::Array a1;
+    ASSERT_THROW(a1.set(static_cast<size_t>(-1), "Invalid"), pplib::OutOfBoundsException);
 }
 
 TEST(ArrayTest, get)
@@ -605,6 +649,45 @@ TEST(ArrayTest, insertEmptyArray)
     a1.insert(0, a2);
     ASSERT_EQ((size_t)6, a1.size()) << "Unexpected amount of Elements";
     ASSERT_EQ(pplib::String("red"), a1.get(0)) << "Element has wrong value";
+}
+
+TEST(ArrayTest, insertSameArrayBeyondEnd)
+{
+    pplib::Array a1("red green blue yellow black white", " ");
+    a1.insert(7, a1);
+    ASSERT_EQ((size_t)13, a1.count()) << "Unexpected amount of Elements";
+    ASSERT_EQ(pplib::String("red"), a1.get(0)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("green"), a1.get(1)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("blue"), a1.get(2)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("yellow"), a1.get(3)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("black"), a1.get(4)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("white"), a1.get(5)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String(""), a1.get(6)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("red"), a1.get(7)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("green"), a1.get(8)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("blue"), a1.get(9)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("yellow"), a1.get(10)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("black"), a1.get(11)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("white"), a1.get(12)) << "Element has wrong value";
+}
+
+TEST(ArrayTest, insertSameArrayAtMiddle)
+{
+    pplib::Array a1("red green blue yellow black white", " ");
+    a1.insert(3, a1);
+    ASSERT_EQ((size_t)12, a1.count()) << "Unexpected amount of Elements";
+    ASSERT_EQ(pplib::String("red"), a1.get(0)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("green"), a1.get(1)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("blue"), a1.get(2)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("red"), a1.get(3)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("green"), a1.get(4)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("blue"), a1.get(5)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("yellow"), a1.get(6)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("black"), a1.get(7)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("white"), a1.get(8)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("yellow"), a1.get(9)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("black"), a1.get(10)) << "Element has wrong value";
+    ASSERT_EQ(pplib::String("white"), a1.get(11)) << "Element has wrong value";
 }
 
 TEST(ArrayTest, forwardWalkIterator)

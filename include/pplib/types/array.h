@@ -158,7 +158,7 @@ public:
      * @param index Position innerhalb des Arrays, beginnend mit 0
      * @param value String
      */
-    void set(size_t index, const String& value);
+    void set(ssize_t index, const String& value);
 
     /** @brief Formatierten String setzen
      *
@@ -172,7 +172,7 @@ public:
      * @param fmt Formatstring
      * @param ... Optionale Parameter
      */
-    void setf(size_t index, const char* fmt, ...);
+    void setf(ssize_t index, const char* fmt, ...);
 
     /** @brief Element an bestimmter Position einfügen
      *
@@ -185,7 +185,7 @@ public:
      * @param index Position, an der das Element eingefügt werden soll
      * @param value Einzufügendes Element
      */
-    void insert(size_t index, const String& value);
+    void insert(ssize_t index, const String& value);
 
     /** @brief Array an bestimmter Position einfügen
      *
@@ -198,7 +198,7 @@ public:
      * @param index Position, an der das Element eingefügt werden soll
      * @param other Einzufügendes Array
      */
-    void insert(size_t index, const Array& other);
+    void insert(ssize_t index, const Array& other);
 
     /** @brief Formatierten String an bestimmter Position einfügen
      *
@@ -211,7 +211,7 @@ public:
      * @param fmt Formatstring
      * @param ... Zusätzliche optionale Parameter
      */
-    void insertf(size_t index, const char* fmt, ...);
+    void insertf(ssize_t index, const char* fmt, ...);
 
     /** @brief Array aus den Aufrufparametern des Programms erzeugen
      *
@@ -270,7 +270,7 @@ public:
      * @return Wert des gelöschten Elements
      * \exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
      */
-    String erase(size_t index);
+    String erase(ssize_t index);
 
     /** @brief Das letzte Element aus dem Array holen
      *
@@ -526,7 +526,10 @@ public:
      * @return Referenz auf den Inhalt des Elements
      * @exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
      */
-    String& operator[](ssize_t index);
+    inline String& operator[](ssize_t index)
+    {
+        return get(index);
+    }
 
     /** @brief Element aus dem Array als Konstante auslesen
      *
@@ -537,7 +540,10 @@ public:
      * @return Referenz auf den Inhalt des Elements
      * @exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
      */
-    const String& operator[](ssize_t index) const;
+    inline const String& operator[](ssize_t index) const
+    {
+        return get(index);
+    }
 
     /** @brief Inhalt eines anderen Arrays kopieren
      *

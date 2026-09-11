@@ -69,16 +69,31 @@ void Array::copy(const Array& other)
 
 void Array::add(const Array& other)
 {
+    size_t base = elements.size();
+    if (other.elements.size() > static_cast<size_t>(SSIZE_MAX) - base) {
+        throw OutOfBoundsException();
+    }
+    if (this == &other) {
+        Array copy(other);
+        elements.insert(elements.end(), copy.elements.begin(), copy.elements.end());
+        return;
+    }
     elements.insert(elements.end(), other.elements.begin(), other.elements.end());
 }
 
 void Array::add(const String& value)
 {
+    if (elements.size() >= static_cast<size_t>(SSIZE_MAX)) {
+        throw OutOfBoundsException();
+    }
     elements.push_back(value);
 }
 
 void Array::add(const String& value, size_t size)
 {
+    if (elements.size() >= static_cast<size_t>(SSIZE_MAX)) {
+        throw OutOfBoundsException();
+    }
     String str;
     str.set(value, size);
     elements.push_back(str);
@@ -86,6 +101,9 @@ void Array::add(const String& value, size_t size)
 
 void Array::addf(const char* fmt, ...)
 {
+    if (elements.size() >= static_cast<size_t>(SSIZE_MAX)) {
+        throw OutOfBoundsException();
+    }
     String value;
     va_list args;
     va_start(args, fmt);
@@ -94,15 +112,28 @@ void Array::addf(const char* fmt, ...)
     elements.push_back(value);
 }
 
-void Array::set(size_t index, const String& value)
+static inline size_t correctNegativeIndex(ssize_t index, size_t array_size)
 {
-    if (index >= elements.size()) {
-        elements.resize(index + 1);
+    ssize_t size = static_cast<ssize_t>(array_size);
+    if (index < 0) {
+        index = size + index;
+        if (index < 0) throw OutOfBoundsException();
     }
-    elements[index] = value;
+    return static_cast<size_t>(index);
 }
 
-void Array::setf(size_t index, const char* fmt, ...)
+void Array::set(ssize_t index, const String& value)
+{
+    size_t real_index = correctNegativeIndex(index, elements.size());
+    if (real_index >= static_cast<size_t>(SSIZE_MAX)) throw OutOfBoundsException();
+    String tmp(value); // Kopie ziehen, BEVOR resize() reallozieren kann
+    if (real_index >= elements.size()) {
+        elements.resize(real_index + 1);
+    }
+    elements[real_index] = std::move(tmp);
+}
+
+void Array::setf(ssize_t index, const char* fmt, ...)
 {
     String value;
     va_list args;
@@ -112,27 +143,48 @@ void Array::setf(size_t index, const char* fmt, ...)
     set(index, value);
 }
 
-void Array::insert(size_t index, const String& value)
+void Array::insert(ssize_t index, const String& value)
 {
-    if (index >= elements.size()) {
-        set(index, value);
+    size_t real_index = correctNegativeIndex(index, elements.size());
+    if (real_index >= static_cast<size_t>(SSIZE_MAX)) throw OutOfBoundsException();
+    if (real_index >= elements.size()) {
+        set(real_index, value);
         return;
     }
-    elements.insert(elements.begin() + index, value);
+    if (elements.size() >= static_cast<size_t>(SSIZE_MAX)) {
+        throw OutOfBoundsException();
+    }
+    elements.insert(elements.begin() + real_index, value);
 }
 
-void Array::insert(size_t index, const Array& other)
+void Array::insert(ssize_t index, const Array& other)
 {
     if (other.elements.empty()) return; // Anderes Array ist leer
-    if (index >= elements.size()) {
-        elements.resize(index);
+    size_t real_index = correctNegativeIndex(index, elements.size());
+    size_t base = (real_index >= elements.size()) ? real_index : elements.size();
+    if (other.elements.size() > static_cast<size_t>(SSIZE_MAX) - base) {
+        throw OutOfBoundsException();
+    }
+    if (real_index >= elements.size()) {
+        if (this == &other) {
+            Array copy(other);
+            elements.resize(real_index);
+            elements.insert(elements.end(), copy.elements.begin(), copy.elements.end());
+            return;
+        }
+        elements.resize(real_index);
         add(other);
         return;
     }
-    elements.insert(elements.begin() + index, other.elements.begin(), other.elements.end());
+    if (this == &other) {
+        Array copy(other);
+        elements.insert(elements.begin() + real_index, copy.elements.begin(), copy.elements.end());
+        return;
+    }
+    elements.insert(elements.begin() + real_index, other.elements.begin(), other.elements.end());
 }
 
-void Array::insertf(size_t index, const char* fmt, ...)
+void Array::insertf(ssize_t index, const char* fmt, ...)
 {
     String value;
     va_list args;
@@ -163,26 +215,20 @@ void Array::list(const String& prefix) const
 
 const String& Array::get(ssize_t index) const
 {
-    ssize_t size = static_cast<ssize_t>(elements.size());
-    if (index < 0) {
-        index = size + index;
-    }
-    if (index < 0 || index >= size) {
+    size_t real_index = correctNegativeIndex(index, elements.size());
+    if (real_index >= elements.size()) {
         throw OutOfBoundsException();
     }
-    return elements[index];
+    return elements[real_index];
 }
 
 String& Array::get(ssize_t index)
 {
-    ssize_t size = static_cast<ssize_t>(elements.size());
-    if (index < 0) {
-        index = size + index;
-    }
-    if (index < 0 || index >= size) {
+    size_t real_index = correctNegativeIndex(index, elements.size());
+    if (real_index >= elements.size()) {
         throw OutOfBoundsException();
     }
-    return elements[index];
+    return elements[real_index];
 }
 
 const String& Array::getRandom() const
@@ -209,7 +255,7 @@ String Array::getRest(size_t index, const String& delimiter)
     return rest;
 }
 
-String Array::erase(size_t index)
+String Array::erase(ssize_t index)
 {
     if (index >= elements.size()) throw OutOfBoundsException();
     String ret = std::move(elements[index]);
@@ -241,8 +287,8 @@ Array& Array::explode(const String& text, const String& delimiter, size_t limit,
     size_t t = delimiter.len();
     size_t count = 0;
     const char* del = (const char*)delimiter;
-    char* etext = (char*)text.getPtr();
-    char* _t;
+    const char* etext = (char*)text.getPtr();
+    const char* _t;
     String str;
     while (1) {
         _t = strstr(etext, del);
@@ -256,7 +302,6 @@ Array& Array::explode(const String& text, const String& delimiter, size_t limit,
                 return *this;
             }
             str.set(etext, p);
-            // add(etext,p);
             add(str);
             etext = etext + p + t;
             count++;
@@ -281,16 +326,6 @@ String Array::implode(const String& delimiter) const
         ret += elements[i];
     }
     return ret;
-}
-
-String& Array::operator[](ssize_t index)
-{
-    return get(index);
-}
-
-const String& Array::operator[](ssize_t index) const
-{
-    return get(index);
 }
 
 Array& Array::operator+=(const Array& other)

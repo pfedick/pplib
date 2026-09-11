@@ -46,6 +46,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   }
   ```
 
+  ==> FIXED
+
 - [ ] **Self-Insert `a.insert(index, a)` korrumpiert das Array** (`Array.cpp:124-133`)
   ```cpp
   void Array::insert(size_t index, const Array& other)
@@ -67,6 +69,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   Index 1 ist leer statt "xxxx...", der Rest ist zwar der Länge nach passend, aber die Kopie ist durch die
   Reallokation während des Einfügens bereits kaputt. Fix analog zu oben: bei `this == &other` zuerst eine Kopie
   von `other` anlegen und aus der Kopie einfügen.
+
+  ==> FIXED
 
 - [ ] **`Array::set()`: Dangling Reference, wenn `value` auf ein Element von `elements` verweist** (`Array.cpp:97-103`)
   ```cpp
@@ -104,6 +108,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   }
   ```
 
+  ==> FIXED
+
 - [ ] **Negativer/zu großer Index bei `set()`/`insert()`: Integer-Wraparound → Out-of-Bounds-Schreibzugriff** (`Array.cpp:97-103`)
   `set()`/`insert()` nehmen `size_t index` entgegen, während `get()`/`at()`/`operator[]` bewusst `ssize_t` verwenden und
   negative Werte als "von hinten zählen" interpretieren (dokumentiert und getestet, z.B. `a.get(-1)`). Ein Aufrufer, der
@@ -124,6 +130,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   Fix: `index` explizit gegen ein Maximum absichern (z.B. `if (index == static_cast<size_t>(-1)) throw OutOfBoundsException();`),
   oder – konsistenter zum Rest der Klasse – `set()`/`insert()` ebenfalls auf `ssize_t` mit derselben
   "negativ = von hinten"-Konvention wie `get()` umstellen.
+
+  ==> FIXED, umgestellt auf `ssize_t` für `set()`/`insert()`, damit konsistent mit `get()`/`at()`/`operator[]`. Boundary-Checks wurden entsprechend angepasst.
 
 ## Bugs (mittel)
 
@@ -180,6 +188,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   gleicher Konvention), oder zumindest in der Doku explizit klarstellen, dass negative Werte bei `set()`/`insert()`/`erase()`
   nicht unterstützt und nicht abgefangen werden.
 
+  ==> FIXED, aber Doku muss ergänzt werden!
+
 - [ ] **`sort()`/`sortReverse()`/`sortUnique()` und die freien Funktionen `Sort()`/`SortReverse()` implementieren dieselbe Logik fünf Mal, über den Umweg von `std::(multi)set`** (`Array.cpp:309-346`, `Array.cpp:379-423`)
   Alle fünf Funktionen bauen einen `std::set`/`std::multiset<String>` auf (jedes Element wird dabei per
   Baum-Knoten-Allokation ein zweites Mal kopiert), leeren dann `elements` und kopieren die Elemente ein drittes Mal
@@ -204,9 +214,11 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   es gibt keinen Grund, den `const`-Rückgabewert von `getPtr()` wegzucasten. Rein kosmetisch/sicherheitshalber
   sollten `etext`/`_t` als `const char*` deklariert werden.
 
+  ==> FIXED
+
 ## Doku / Kosmetik
 
-- [ ] Auskommentierte Zeile `// add(etext,p);` in `explode()` (`Array.cpp:259`) – toter Code, sollte entfernt werden.
+- [ ] Auskommentierte Zeile `// add(etext,p);` in `explode()` (`Array.cpp:259`) – toter Code, sollte entfernt werden. => FIXED
 - [ ] Doku von `set()`/`insert(size_t, ...)` (`array.h:151-175`, `array.h:177-214`) erwähnt nichts zum Verhalten bei
       sehr großen `index`-Werten (Exception? Absturz?) – nach Fix der obigen Bugs entsprechend nachdokumentieren.
 - [ ] `Array::add(const String& value, size_t size)` (`Array.cpp:80-85`) nutzt implizit `String::operator const char*()`
