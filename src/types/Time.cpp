@@ -92,26 +92,26 @@ Time& Time::set(const String& time)
 {
     // Format: HH:MM:SS[.uuuuuu]
     // HH, MM, SS und uuuuuu können auch weniger als 2 bzw. 6 Stellen haben, führende Nullen sind optional.
-    // Trennzeichen kann auch ein Punkt, Komma oder Minus sein.
-    String t = UpperCase(Trim(time));
-    t.replace(",", ".");
+    String t = Trim(time);
     t.replace(":", ".");
-    t.replace("-", ".");
     pplib::Array parts(t, ".");
 
     // Prüfen, ob alle Werte Integer sind
     for (size_t i = 0; i < parts.size(); ++i) {
-        if (!parts[i].isInteger()) {
+        if (!parts[i].isDigits()) {
             throw IllegalArgumentException("Time::set: invalid date format (%s)", time.c_str());
         }
     }
-    if (parts.size() < 3 || parts.size() > 4) {
+
+    if (parts.size() < 2 || parts.size() > 4) {
         throw IllegalArgumentException("Time::set: invalid time format (%s)", time.c_str());
+    }
+    if (parts.size() < 3) {
+        parts.add("00"); // Add seconds part if missing
     }
     if (parts.size() < 4) {
         parts.add("000000"); // Add microseconds part if missing
     }
-
     return set(parts.at(0).toUnsignedInt(), parts.at(1).toUnsignedInt(), parts.at(2).toUnsignedInt(), parts.at(3).toUnsignedInt());
 }
 

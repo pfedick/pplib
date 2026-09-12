@@ -398,6 +398,9 @@ TEST_F(DateTimeTest, setWithTimeZoneVariations)
     d1.set("2026-08-16T08:35:01.123456-UTC");
     EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+00:00"), d1.getISO8601withUsec());
 
+    d1.set("2026-08-16T08:35:01.123456UTC");
+    EXPECT_EQ(pplib::String("2026-08-16T08:35:01.123456+00:00"), d1.getISO8601withUsec());
+
     d1.set("2026-08-16T08:35:01Z");
     EXPECT_EQ(pplib::String("2026-08-16T08:35:01.000000+00:00"), d1.getISO8601withUsec());
 }
@@ -420,6 +423,7 @@ TEST_F(DateTimeTest, setWithWrongFormatThrowsException)
     ASSERT_THROW({ d1.set("01.01.2a26T08:35:01.012345"); }, pplib::IllegalArgumentException);
     ASSERT_THROW({ d1.set("01T"); }, pplib::IllegalArgumentException);
     ASSERT_THROW({ d1.set("01 01"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ d1.set("2026-08-16T08:35:01.000000[+00:00"); }, pplib::IllegalArgumentException);
 }
 
 TEST_F(DateTimeTest, getLongInt)
@@ -482,6 +486,14 @@ TEST_F(DateTimeTest, toStringWithFormat)
     ASSERT_NO_THROW({
         pplib::DateTime d1("2012-05-18 11:50:11.159473");
         ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159473"), d1.toString("%Y-%m-%dT%H:%M:%S.%u")) << "Unexpected date";
+    });
+}
+
+TEST_F(DateTimeTest, toStringWithTimezone)
+{
+    ASSERT_NO_THROW({
+        pplib::DateTime d1("2012-05-18 11:50:11.159473[+02:00]");
+        ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159473[+02:00]"), d1.toString("%Y-%m-%dT%H:%M:%S.%u[%z]")) << "Unexpected date";
     });
 }
 
@@ -987,7 +999,20 @@ TEST_F(DateTimeTest, setTimeZoneByOffset)
 TEST_F(DateTimeTest, setByPPLTIME)
 {
     pplib::DateTime d1;
-    pplib::PPLTIME t1 = {0, 2024, 6, 5, 11, 50, 11};
+    /*
+    pplib::PPLTIME t1 = {};
+    t1.year = 2024;
+    t1.month = 6;
+    t1.day = 5;
+    t1.hour = 11;
+    t1.min = 50;
+    t1.sec = 11;
+    */
+    /* Ab C++20:
+       pplib::PPLTIME t1 = {.year = 2024, .month = 6, .day = 5, .hour = 11, .min = 50, .sec = 11};
+    */
+    pplib::PPLTIME t1 = {.year = 2024, .month = 6, .day = 5, .hour = 11, .min = 50, .sec = 11};
+
     EXPECT_EQ(pplib::String("2024-06-05 11:50:11.000000"), d1.set(t1).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 }
 
@@ -1044,6 +1069,12 @@ TEST_F(DateTimeTest, strftime)
 
     pplib::DateTime d2("2024-06-05 11:50:11.159473+02:00");
     ASSERT_EQ(pplib::String("2024-06-05 11:50:11"), d2.strftime("%Y-%m-%d %H:%M:%S")) << "Unexpected date";
+
+    // strftime mit Zeitzone
+    ASSERT_EQ(pplib::String("2024-06-05 11:50:11 +0200"), d2.strftime("%Y-%m-%d %H:%M:%S %z")) << "Unexpected date";
+
+    pplib::DateTime d3("2024-06-05 11:50:11.159473-06:00");
+    ASSERT_EQ(pplib::String("2024-06-05 11:50:11 -0600"), d3.strftime("%Y-%m-%d %H:%M:%S %z")) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, epoch)

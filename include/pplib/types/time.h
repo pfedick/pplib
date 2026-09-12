@@ -85,7 +85,8 @@ public:
      * Über diesen Konstruktor wird ein Time Objekt anhand des im String \p time enthaltenen
      * Zeitwertes erstellt.
      *
-     * @param[in] time String mit der Uhrzeit. Erwartetes Format: HH:MM:SS[.uuuuuu], wobei führende Nullen optional sind.
+     * @param[in] time String mit der Uhrzeit. Erwartetes Format: HH:MM[:SS[.uuuuuu][], wobei führende Nullen optional sind.
+     * Sekunden und Mikrosekunden sind optional.
      *
      * @exception IllegalArgumentException: Wird geworfen, wenn der String \p time
      * ein ungültiges oder unbekanntes Zeitformat hat.
@@ -235,11 +236,12 @@ public:
 
     /** @brief Setzt die Uhrzeit aus einem String
      *
-     * Mit dieser Funktion wird die Uhrzeit aus dem angegebenen String gesetzt. Der String muss im Format "hh:mm:ss[.micses]" vorliegen.
-     * Stunden, Minuten und Sekunden können ein- oder zweistellig sein. Statt Doppelpunkt kann auch Komma, Punkt oder Minus als Trennzeichen
-     * verwendet werden.
+     * Mit dieser Funktion wird die Uhrzeit aus dem angegebenen String gesetzt. Der String muss im Format "hh:mm:[ss[.uuuuuu]]" vorliegen.
+     * Stunden, Minuten und Sekunden können ein- oder zweistellig sein. Mikrosekunden können bis zu sechs Stellen haben.
+     * Sekunden und Mikrosekunden sind optional. Stunden, Minuten und Sekunden werden durch Doppelpunkt getrennt, Mikrosekunden durch einen
+     * Punkt.
      *
-     * @param[in] time String mit der Uhrzeit. Erwartetes Format: HH:MM:SS[.uuuuuu], wobei führende Nullen optional sind.
+     * @param[in] time String mit der Uhrzeit. Erwartetes Format: HH:MM[:SS[.uuuuuu]], wobei führende Nullen optional sind.
      * @return Referenz auf das aktuelle Objekt
      * @exception IllegalArgumentException: Wird geworfen, wenn der String kein gültiges Zeitformat hat.
      */
@@ -484,8 +486,7 @@ public:
      */
     TimeDelta operator-(const Time& other) const noexcept
     {
-        return TimeDelta::fromMicroseconds(static_cast<int64_t>(toMicroseconds()) -
-                                           static_cast<int64_t>(other.toMicroseconds()));
+        return TimeDelta::fromMicroseconds(static_cast<int64_t>(toMicroseconds()) - static_cast<int64_t>(other.toMicroseconds()));
     }
     Time& operator+=(const TimeDelta& delta) noexcept
     {

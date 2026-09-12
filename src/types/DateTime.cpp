@@ -66,15 +66,6 @@ static bool safe_localtime(time_t t, struct tm* tmstruct)
 #endif
 }
 
-static bool safe_gmtime(time_t t, struct tm* tmstruct)
-{
-#ifdef _WIN32
-    return (gmtime_s(tmstruct, &t) == 0);
-#else
-    return (gmtime_r(&t, tmstruct) != nullptr);
-#endif
-}
-
 TimeZone parse_time(String& parse)
 {
     TimeZone tz = TimeZone::utc();
@@ -160,8 +151,29 @@ PPLTIME DateTime::toPPLTIME() const
     pt.day_of_year = my_date.dayOfYear();
     pt.epoch = epoch();
     pt.have_gmt_offset = true;
-    pt.gmt_offset = my_tz.offsetMinutes();
+    pt.gmt_offset = my_tz.offsetSeconds();
     return pt;
+}
+
+struct tm DateTime::toTm() const
+{
+    if (isEmpty()) throw IllegalStateException("DateTime is invalid");
+
+    struct tm tt;
+    memset(&tt, 0, sizeof(struct tm));
+    tt.tm_year = my_date.year() - 1900;
+    tt.tm_mon = my_date.month() - 1;
+    tt.tm_mday = my_date.day();
+    tt.tm_hour = my_time.hour();
+    tt.tm_min = my_time.minute();
+    tt.tm_sec = my_time.second();
+    tt.tm_wday = my_date.dayOfWeek();
+    tt.tm_yday = my_date.dayOfYear() - 1; // tm_yday zählt ab 0
+    tt.tm_isdst = -1;                     // Unbekannt / keine Annahme treffen
+#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
+    tt.tm_gmtoff = my_tz.offsetSeconds();
+#endif
+    return tt;
 }
 
 uint64_t DateTime::epoch() const
@@ -222,6 +234,7 @@ DateTime& DateTime::setEpoch(uint64_t time)
 
 uint64_t DateTime::longInt() const
 {
+    if (isEmpty()) throw IllegalStateException("DateTime is invalid");
     uint64_t r = my_date.year() * 12 + (my_date.month() - 1);
     r = r * 31 + (my_date.day() - 1);
     r = r * 24 + my_time.hour();
@@ -329,10 +342,10 @@ String DateTime::getRFC822Date() const
     s += month[t.month - 1];
     s.appendf(" %04i %02i:%02i:%02i", t.year, t.hour, t.min, t.sec);
     if (t.have_gmt_offset) {
-        if (t.gmt_offset >= 0)
-            s.appendf(" +%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
-        else
-            s.appendf(" -%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
+        int total_sec = abs(t.gmt_offset);
+        int hours = total_sec / 3600;
+        int mins = (total_sec % 3600) / 60;
+        s.appendf(t.gmt_offset >= 0 ? " +%02i%02i" : " -%02i%02i", hours, mins);
     }
     return s;
 }
@@ -347,18 +360,30 @@ String DateTime::get(const String& format) const
 
 String DateTime::strftime(const String& format) const
 {
+    String fmt = format;
+    // Portables %z: Windows ignoriert tm_gmtoff und nimmt System-Lokalzeit.
+    // Daher %z selbst mit dem Offset des Objekts ersetzen:
+    if (fmt.find("%z") != String::npos) {
+        int off_min = my_tz.offsetMinutes();
+        int h = abs(off_min) / 60;
+        int m = abs(off_min) % 60;
+        char tz_buf[8];
+        snprintf(tz_buf, sizeof(tz_buf), "%c%02d%02d", (off_min >= 0 ? '+' : '-'), h, m);
+        fmt.replace("%z", tz_buf);
+    }
+
+#ifdef _WIN32
+    // %Z liefert den Namen der lokalen Zeitzone, nicht die aus dem DateTime-Objekt.
+    fmt.replace(" %Z", ""); // Ersetze %Z durch den Zeitzonennamen des DateTime-Objekts
+    fmt.replace("%Z", "");  // Ersetze %Z durch den Zeitzonennamen des DateTime-Objekts
+#endif
+
     size_t s = format.size() * 4 + 64;
     if (s < 1024) s = 1024;
     std::vector<char> buf(s);
 
-    struct tm tt;
-    ::time_t tp = time_t();
-    // Zeitzone fixen
-    tp += my_tz.offsetSeconds();
-
-    if (!safe_gmtime(tp, &tt)) throw InvalidDateException();
-
-    size_t res = ::strftime(buf.data(), s, (const char*)format, &tt);
+    struct tm tt = toTm();
+    size_t res = ::strftime(buf.data(), s, (const char*)fmt, &tt);
     if (res == 0) throw InvalidFormatException();
 
     return String(buf.data());

@@ -158,6 +158,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   auf `int32_t` erweitern) oder in `getRFC822Date()` durch 60 statt 3600 teilen. Feldtyp in jedem Fall auf
   mindestens `int16_t` (besser `int32_t`) vergrößern.
 
+  ==> FIXED, PPLTIME.gmt_offset ist jetzt 32 Bit (`int32_t`) und in Sekunden. Fehler in appendf gleich mit behoben
+
 - [ ] **`strftime()` liefert für Daten vor 1970 ein komplett falsches Ergebnis (1970-01-01, nicht das gespeicherte Datum)** (`DateTime.cpp:352-369, 167-190`)
   ```cpp
   String DateTime::strftime(const String& format) const
@@ -182,6 +184,9 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   `struct tm` befüllen (Jahr/Monat/Tag/Stunde/Minute/Sekunde direkt aus `my_date`/`my_time`), statt über
   den auf Jahr≥1970 beschränkten `epoch()`-Weg zu gehen.
 
+  ==> FIXED, `strftime()` befüllt nun die `struct tm` direkt aus `my_date`/`my_time` statt über `epoch()`. "%z" wird korrekt aus dem Zeitzonen-Offset berechnet.
+
+
 ## Bugs (mittel)
 
 - [ ] **`longInt()` auf einem leeren/Default-DateTime erzeugt durch Unsigned-Underflow einen sinnlosen Riesenwert** (`DateTime.cpp:227-236`)
@@ -199,6 +204,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   `epoch()` gibt (zufällig, weil `year()<1970`) `0` zurück – drei verschiedene Verhaltensweisen für denselben
   Fall „leeres DateTime“. Fix: `longInt()` sollte bei `isEmpty()` entweder `0` zurückgeben oder ebenfalls
   eine `IllegalStateException` werfen, statt mit Unsigned-Wraparound weiterzurechnen.
+
+  ==> FIXED, `longInt()` wirft nun `IllegalStateException`, wenn das DateTime-Objekt leer ist.
 
 - [ ] **`DateTime::set(const String&)`: „-“ als Zeit-Trennzeichen (laut `Time::set` dokumentiert erlaubt) wird als Zeitzonen-Vorzeichen fehlinterpretiert** (`DateTime.cpp:78-142`)
   `Time::set()` erlaubt laut Doku (`time.h:196-206`) `-` als Alternative zu `:` als Trennzeichen. Die
@@ -225,6 +232,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   `parse_time()` das `-` nur als Zeitzone werten, wenn es in den letzten ~6 Zeichen liegt und einem
   Offset-Muster (`\d{2}:?\d{2}`) entspricht.
 
+  ==> Kein Bug, works as documented. Stattdessen Time::set() angepasst, dass hier nur Doppelpunkte als Trennzeichen für Stunden, Minuten und Sekunden akzeptiert werden, sowie Punkt als Trennzeichen für Mikrosekunden.
+
 - [ ] **`TimeZone::toString()` verliert das Vorzeichen bei Offsets zwischen -59 und -1 Minuten** (`TimeZone.cpp:151-166`)
   ```cpp
   int hours = offset_minutes / 60;              // Integer-Division rundet Richtung 0
@@ -245,6 +254,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   snprintf(buffer, sizeof(buffer), "%s%02d:%02d", sign, hours, minutes);
   ```
 
+  ==> Bereits im Kontext von TimeZone gefixt
+
 - [ ] **`setEpoch()`/`epoch()`: lineare Jahr-Schleife statt geschlossener Formel – Performance-Falle bei großen Werten** (`DateTime.cpp:167-190, 192-225`)
   Beide Funktionen ermitteln das Jahr durch eine `while`-Schleife, die pro Iteration ein Jahr weiterzählt.
   `toMicroseconds()`/`setMicroseconds()` (`DateTime.cpp:424-486`) lösen exakt dasselbe Problem dagegen in
@@ -256,6 +267,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   `my_date.set(year, ...)`, das bei sehr großem `year` durch den `uint16_t`-Parameter ebenfalls umlaufen kann.
   Fix: `setEpoch()`/`epoch()` auf denselben `daysFromCivil`/`civilFromDays`-Mechanismus wie `toMicroseconds()`/
   `setMicroseconds()` umstellen; das behebt gleichzeitig die Performance- und die Umlauf-Problematik.
+
+
 
 ## Design
 

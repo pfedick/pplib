@@ -37,6 +37,7 @@
 #include "pplib/types/time.h"
 #include "pplib/types/timezone.h"
 #include "pplib/types/timedelta.h"
+#include <time.h>
 
 namespace pplib
 {
@@ -47,15 +48,15 @@ class String;
 typedef struct tagTime
 {
     int64_t epoch;
-    int16_t year;
+    int32_t year;
+    int32_t gmt_offset; //!< Offset zur GMT in Sekunden
+    int16_t day_of_year;
     int8_t month;
     int8_t day;
     int8_t hour;
     int8_t min;
     int8_t sec;
     int8_t day_of_week;
-    int16_t day_of_year;
-    int8_t gmt_offset;
     bool have_gmt_offset;
     bool summertime;
 } PPLTIME;
@@ -204,8 +205,7 @@ public:
 
     /** @brief Datum anhand eines Strings setzen
      *
-     * Mit dieser Funktion wird das Datum anhand des Strings \p datetime gesetzt. Dabei versucht die Funktion
-     * anhand mehrerer Regular Expressions zu erkennen, in welchem Format die Datumsangabe vorliegt. Es werden
+     * Mit dieser Funktion wird das Datum anhand des Strings \p datetime gesetzt. Es werden
      * folgende Formate erkannt:
      *
      *   - yyyy-mm-dd hh:ii:ss[.mms]
@@ -644,8 +644,8 @@ public:
      * - zone: Offset zu UTC in Stunden und Minuten (+|-HHMM)
      *
      * @return String mit dem Datum im RFC-822-Format
-     * \exception Exception::FunctionFailed Die Funktion wirft eine Exception, wenn die Datumsinformation in der PPLTIME-Struktur ungültig
-     * ist.
+     * \exception Exception::FunctionFailed Die Funktion wirft eine Exception, wenn die Datumsinformation in der PPLTIME-Struktur
+     * ungültig ist.
      */
     String getRFC822Date() const;
 
@@ -656,6 +656,9 @@ public:
      *
      * @param[in] format Siehe Manpage zu strftime: man strftime
      * @return String im gewünschten Format
+     * @note Die Formatierung von Zeitzonen ist teilweise plattformabhängig:
+     *       - "%z" gibt den Offset zu UTC in Stunden und Minuten an
+     *       - "%Z" gibt den Namen der Zeitzone an, kann aber auf einigen Systemen (Windows) leer sein.
      */
     String strftime(const String& format) const;
 
@@ -913,7 +916,21 @@ public:
      */
     String toString(const String& format) const;
 
+    /** @brief Konvertierung in PPLTIME-Struktur
+     *
+     * Diese Funktion liefert eine PPLTIME-Struktur zurück, die die gleichen Datums- und Zeitinformationen wie das aktuelle DateTime-Objekt
+     * enthält.
+     * @return PPLTIME-Struktur mit den Datums- und Zeitinformationen.
+     */
     PPLTIME toPPLTIME() const;
+
+    /** @brief Konvertierung in tm-Struktur
+     *
+     * Diese Funktion liefert eine tm-Struktur zurück, die die gleichen Datums- und Zeitinformationen wie das aktuelle DateTime-Objekt
+     * enthält.
+     * @return tm-Struktur mit den Datums- und Zeitinformationen.
+     */
+    struct tm toTm() const;
 
     /** @brief Operator, der einen String zurückliefert
      *
