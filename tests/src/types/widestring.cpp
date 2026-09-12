@@ -118,6 +118,16 @@ TEST(WideStringTest, ConstructorFromWideString)
     });
 }
 
+TEST(WideStringTest, ConstructorFromWideStringWithSize)
+{
+    ASSERT_NO_THROW({
+        pplib::WideString s1(L"A test string with unicode characters: äöü");
+        pplib::WideString s2(s1, 10);
+        ASSERT_EQ((size_t)10, s2.len()) << "String does not have length of 10";
+        ASSERT_EQ(pplib::WideString(L"A test str"), s2) << "String does not have expected value";
+    });
+}
+
 TEST(WideStringTest, ConstructorFromWideStringWithMoveOperator)
 {
     ASSERT_NO_THROW({

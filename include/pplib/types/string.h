@@ -147,6 +147,19 @@ public:
      */
     String(const String& str);
 
+    /** @brief Konstruktor mit anderem String und Länge
+     *
+     * Ein String wird aus einem anderen String erstellt. Es werden maximal \p size Bytes übernommen.
+     *
+     * @param str Referenz auf einen anderen String
+     * @param size Maximale Anzahl Bytes, die übernommen werden sollen
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
+    String(const String& str, size_t size);
+
     /** @brief Konstruktor mit WideString
      *
      * Ein String wird aus einem WideString erstellt. Dabei findet eine Konvertierung

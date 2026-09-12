@@ -89,6 +89,14 @@ WideString::WideString(const WideString& str)
     set(str);
 }
 
+WideString::WideString(const WideString& str, size_t size)
+{
+    ptr = NULL;
+    stringlen = 0;
+    s = 0;
+    set(str, size);
+}
+
 WideString::WideString(WideString&& str) noexcept
 {
     ptr = str.ptr;

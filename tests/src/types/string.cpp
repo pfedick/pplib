@@ -95,6 +95,16 @@ TEST(StringTest, ConstructorFromString)
     });
 }
 
+TEST(StringTest, ConstructorFromStringWithSize)
+{
+    ASSERT_NO_THROW({
+        pplib::String s1("A test string with unicode characters: äöü");
+        pplib::String s2(s1, 10);
+        ASSERT_EQ((size_t)10, s2.len()) << "String does not have length of 10";
+        ASSERT_EQ(pplib::String("A test str"), s2) << "String does not have expected value";
+    });
+}
+
 TEST(StringTest, ConstructorWithMoveOperator)
 {
     ASSERT_NO_THROW({

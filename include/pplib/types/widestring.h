@@ -115,8 +115,36 @@ public:
      * @exception OutOfMemoryException
      */
     WideString(const wchar_t* str, size_t size);
+
+    /** @brief Konstruktor aus C-String (mit optionaler Länge)
+     *
+     * Ein String wird aus einem C-String erstellt. Es werden maximal \p size Bytes übernommen.
+     *
+     * @param str C-String mit 0-Byte am Ende
+     * @param size Maximale Anzahl Bytes, die übernommen werden sollen
+     * @exception OutOfMemoryException
+     */
     explicit WideString(const char* str, size_t size = (size_t)-1);
+
+    /** @brief Konstruktor aus anderem WideString (Copy-Konstruktor)
+     *
+     * Ein String wird aus einem anderen WideString erstellt.
+     *
+     * @param str Referenz auf einen anderen WideString
+     * @exception OutOfMemoryException
+     */
     WideString(const WideString& str);
+
+    /** @brief Konstruktor aus anderem WideString mit bestimmer Länge
+     *
+     * Ein String wird aus dem WideString \p str erstellt, von dem maximal
+     * @p size Zeichen übernommen werden.
+     *
+     * @param str Referenz auf einen anderen WideString
+     * @param size Maximale Anzahl Zeichen, die übernommen werden sollen
+     * @exception OutOfMemoryException
+     */
+    WideString(const WideString& str, size_t size);
 
     /** @brief Konstruktor aus anderem String (Copy-Konstruktor)
      *

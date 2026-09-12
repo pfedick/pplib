@@ -90,6 +90,14 @@ String::String(const String& str)
     set(str);
 }
 
+String::String(const String& str, size_t size)
+{
+    ptr = nullptr;
+    stringlen = 0;
+    s = 0;
+    set(str, size);
+}
+
 String::String(String&& other) noexcept
 {
     ptr = other.ptr;
