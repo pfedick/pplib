@@ -268,7 +268,7 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   Fix: `setEpoch()`/`epoch()` auf denselben `daysFromCivil`/`civilFromDays`-Mechanismus wie `toMicroseconds()`/
   `setMicroseconds()` umstellen; das behebt gleichzeitig die Performance- und die Umlauf-Problematik.
 
-
+  ==> FIXED
 
 ## Design
 
@@ -280,6 +280,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   `toMicroseconds()` verwendet, für `time_t()`/`longInt()`/`toPPLTIME()`/`strftime()` dagegen `epoch()` – zwei
   Werkzeuge mit unterschiedlichen Garantien für dieselbe Klasse. Empfehlung: einen einzigen, korrekten
   (Howard-Hinnant-artigen) Umrechnungsweg für alle epoch-basierten Funktionen verwenden.
+
+  ==> Fixed
 
 - [ ] **`DateTime::set(const PPLTIME&)`: Dokumentierte Clamping-Semantik existiert nicht** (`datetime.h:326-336`, `DateTime.cpp:144-147`)
   Die Doku warnt explizit: „Gegenwärtig werden Werte ausserhalb des Gültigkeitsbereiches abgeschnitten!
@@ -297,6 +299,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   bekommt eine unerwartete Exception. Fix: Doku korrigieren (Clamping-Hinweis entfernen) oder tatsächliches
   Clamping implementieren – je nachdem, welches Verhalten gewünscht ist.
 
+  ==> Doku korrigiert
+
 - [ ] **`Date::operator=` gibt `Date` statt `Date&` zurück – Bruch mit der Standard-Zuweisungs-Konvention** (`date.h:86-103`)
   ```cpp
   Date operator=(const Date& other) noexcept { ...; return *this; }
@@ -309,6 +313,8 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   bricht mit `a = b = c;`/`(a = b).format(...)`-Idiomen, sobald `Date` isoliert verwendet wird.
   Fix: `Date& operator=(...)` statt `Date operator=(...)`.
 
+  ==> gehört hier nicht rein, wurde offensichtlich schon im Kontext des Date-Reviews behandelt.
+
 ## Doku / Kosmetik
 
 - [ ] **`getRFC822Date()`: dokumentierte Exception existiert nicht** (`datetime.h:647`)
@@ -319,16 +325,24 @@ Alle referenzierten Exceptions (`IllegalArgumentException`, `IllegalStateExcepti
   wirft die Funktion `IllegalStateException` (leeres Datum) bzw. `IllegalArgumentException`
   (`day_of_week`/`month` außerhalb des Bereichs). Doku-Kommentar entsprechend korrigieren.
 
+  ==> Doku gefixt
+
 - [ ] **`toPPLTIME()` hat überhaupt keinen Doku-Kommentar** (`datetime.h:907`)
   Einzige öffentliche Methode der Klasse ohne `@brief`/`@return` – im Kontrast zur sonst sehr ausführlichen
   Dokumentation aller anderen Methoden. Sollte mindestens erwähnen, dass `PPLTIME::epoch` für Daten vor 1970
   immer `0` ist (siehe `epoch()`-Doku) und `gmt_offset` in Minuten (nicht Sekunden) vorliegt.
 
+  ==> Doku ergänzt
+
 - [ ] **`compareSeconds()`-Doku enthält PPL7-Altlast** (`datetime.h:817-827`)
   „Es wird kein Fehlercode gesetzt“ – Restformulierung aus der alten Fehlercode-API, bei `bool`-Rückgabewert
   ohne Bedeutung. Kann ersatzlos gestrichen werden.
 
+  ==> Fixed
+
 - [ ] **`format()` dokumentiert kein `%z`, `get()` schon – bei Verwendung von `%z` in `format()` bleibt der Platzhalter unverändert im Ergebnis stehen**, da weder `Time::format()` noch `Date::format()` ihn kennen. Sollte in der Doku von `format()` kurz erwähnt werden (Verweis auf `get()` für Zeitzonen-Ausgabe).
+
+  ==> "%z" wird jetzt unterstützt
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

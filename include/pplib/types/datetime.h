@@ -44,21 +44,21 @@ namespace pplib
 
 class String;
 
-/// Eine Struktur zum Erfassen von Uhrzeit und Datum
+/// Eine Struktur zum Erfassen von Uhrzeit, Datum und Zeitzone
 typedef struct tagTime
 {
-    int64_t epoch;
-    int32_t year;
-    int32_t gmt_offset; //!< Offset zur GMT in Sekunden
-    int16_t day_of_year;
-    int8_t month;
-    int8_t day;
-    int8_t hour;
-    int8_t min;
-    int8_t sec;
-    int8_t day_of_week;
-    bool have_gmt_offset;
-    bool summertime;
+    int64_t epoch;        //!< Unix-Timestamp in Sekunden. Vor 1970 immer 0.
+    int32_t year;         //!< Jahr (Gregorianischer Kalender)
+    int32_t gmt_offset;   //!< Offset zur GMT in Sekunden
+    int16_t day_of_year;  //!< Der Tag im Jahr (1-366)
+    int8_t month;         //!< Monat (1-12)
+    int8_t day;           //!< Tag im Monat (1-31)
+    int8_t hour;          //!< Stunde (0-23)
+    int8_t min;           //!< Minute (0-59)
+    int8_t sec;           //!< Sekunde (0-59)
+    int8_t day_of_week;   //!< Wochentag (0=Sonntag, 1=Montag, ..., 6=Samstag)
+    bool have_gmt_offset; //!< Gibt an, ob ein GMT-Offset vorhanden ist
+    bool summertime;      //!< Gibt an, ob Sommerzeit aktiv ist
 } PPLTIME;
 
 /// Datentyp für Unix-Timestamps in 64 Bit
@@ -328,10 +328,8 @@ public:
      * Mit dieser Funktion wird Datum und Zeit aus einer PPLTIME-Struktur übernommen.
      *
      * @param[in] t Referenz auf eine PPLTIME-Struktur
-     *
-     * @attention
-     * Gegenwärtig werden Werte ausserhalb des Gültigkeitsbereiches abgeschnitten! Aus dem Monat 0 oder -10 würde 1
-     * werden, aus 13 oder 12345 würde 12 werden.
+     * @return Gibt eine Referenz auf den DateTime-Wert zurück.
+     * @exception IllegalArgumentException: Wird geworfen, wenn die PPLTIME-Struktur ungültige Werte enthält.
      */
     DateTime& set(const PPLTIME& t);
 
@@ -519,10 +517,14 @@ public:
      *   - %S: Sekunde (00-59)
      *   - %f: Millisekunden (000-999)
      *   - %u: Mikrosekunden als sechstellige Zahl (000000 bis 999999)
+     *   - %z: Zeitzonenoffset in Stunden und Minuten (+|-HH:MM|Z)
      */
     inline String format(const String& format = "%Y-%m-%d %H:%M:%S") const
     {
-        return my_date.format(my_time.format(format));
+        String timezone = my_tz.toString();
+        String formattedTime = my_date.format(my_time.format(format));
+        formattedTime.replace("%z", timezone);
+        return formattedTime;
     }
 
     /** @brief Datum als String im angegebenen Format zurückgeben
@@ -644,8 +646,8 @@ public:
      * - zone: Offset zu UTC in Stunden und Minuten (+|-HHMM)
      *
      * @return String mit dem Datum im RFC-822-Format
-     * \exception Exception::FunctionFailed Die Funktion wirft eine Exception, wenn die Datumsinformation in der PPLTIME-Struktur
-     * ungültig ist.
+     * @exception IllegalStateException Wird geworfen, wenn das Datum leer ist.
+     * @exception IllegalArgumentException Wird geworfen, wenn das Datum ungültige Werte enthält.
      */
     String getRFC822Date() const;
 
@@ -834,7 +836,7 @@ public:
      * @param[in] other Zu vergleichender Zeitwert
      * @param[in] tolerance Optionaler Wert, der die akzeptable Toleranz beider Werte in Sekunden angibt
      * @return Sind beide Zeitwerte identisch oder liegen im Bereich der angegebenen Toleranz, gibt die Funktion
-     * 1 zurück, andernfalls 0. Es wird kein Fehlercode gesetzt.
+     * True zurück, andernfalls False.
      */
     bool compareSeconds(const DateTime& other, unsigned int tolerance = 0) const;
 

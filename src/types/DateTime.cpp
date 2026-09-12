@@ -178,6 +178,7 @@ struct tm DateTime::toTm() const
 
 uint64_t DateTime::epoch() const
 {
+    /*
     if (my_date.year() < 1970) return 0;
     // Wir berechnen die Sekunden von 1970 bis zum gepspeicherten Zeitstempel
     uint64_t total_days = 0;
@@ -199,10 +200,16 @@ uint64_t DateTime::epoch() const
     // 3. Tage des aktuellen Monats addieren (minus 1, da wir am 1. starten)
     total_days += (my_date.day() - 1);
     return total_days * 86400 + my_time.toSeconds() - my_tz.offsetSeconds();
+    */
+    if (isEmpty() || my_date.year() < 1970) return 0;
+    int64_t us = toMicroseconds();
+    if (us < 0) return 0;
+    return static_cast<uint64_t>(us / 1000000LL);
 }
 
 DateTime& DateTime::setEpoch(uint64_t time)
 {
+    /*
     my_tz = TimeZone::utc();            // Zeitzone setzen wir auf UTC
     uint64_t total_days = time / 86400; // Ein Tag hat 86400 Sekunden
     // Uhrzeit können wir relativ leicht anhand des Modulos setzen
@@ -230,6 +237,13 @@ DateTime& DateTime::setEpoch(uint64_t time)
     }
     my_date.set(year, month, total_days + 1);
     return *this;
+    */
+
+    // Schutz gegen Overflow bei Multiplikation:
+    if (time > static_cast<uint64_t>(INT64_MAX / 1000000ULL)) {
+        throw OutOfBoundsException(); // oder IllegalArgumentException
+    }
+    return setMicroseconds(static_cast<int64_t>(time) * 1000000LL, TimeZone::utc());
 }
 
 uint64_t DateTime::longInt() const
