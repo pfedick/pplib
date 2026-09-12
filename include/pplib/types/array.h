@@ -48,6 +48,13 @@ class String;
  * Diese Klasse repräsentiert ein Array aus Strings, die über einen Index angesprochen werden
  * können. Die Zählung der Elemente beginnt dabei bei 0, das heisst das erste Element hat den
  * Index 0 (vergleichbar mit Arrays in C/C++).
+ *
+ * Beim Einfügen oder Lesen von Elementen können auch negative Indizes verwendet werden,
+ * um vom Ende des Arrays zu zählen. Bei einem Array mit 10 Elementen entspricht der Index
+ * -1 dem letzten Element, -2 dem vorletzten Element usw.
+ *
+ * Ein Array kann maximal \c SSIZE_MAX Elemente enthalten. Auf 32-Bit-Systemen entspricht
+ * dies typischerweise 2^31-1 Elementen, auf 64-Bit-Systemen 2^63-1 Elementen.
  */
 class Array
 {
@@ -110,7 +117,7 @@ public:
      *
      * @param value Wert des Elements
      */
-    void add(const String& value);
+    void add(String value);
 
     /** @brief String Element hinzufügen mit bestimmter Länge
      *
@@ -158,7 +165,7 @@ public:
      * @param index Position innerhalb des Arrays, beginnend mit 0
      * @param value String
      */
-    void set(ssize_t index, const String& value);
+    void set(ssize_t index, String value);
 
     /** @brief Formatierten String setzen
      *
@@ -185,7 +192,7 @@ public:
      * @param index Position, an der das Element eingefügt werden soll
      * @param value Einzufügendes Element
      */
-    void insert(ssize_t index, const String& value);
+    void insert(ssize_t index, String value);
 
     /** @brief Array an bestimmter Position einfügen
      *
@@ -381,7 +388,7 @@ public:
      *        werden sollen
      * @return String
      */
-    String getRest(size_t index, const String& delimiter = " ");
+    String getRest(size_t index, const String& delimiter = " ") const;
 
     /** @brief Array zu einem String zusammenfügen
      *
@@ -811,7 +818,7 @@ Array operator+(const Array& a1, const Array& a2);
  * @return Sortieres Array
  * @relates Array
  */
-Array Sort(const Array& array, bool unique);
+Array Sort(const Array& array, bool unique = false);
 
 /** @brief Inhalt eines Arrays in umgekehrter Reihenfolge sortieren
  *
@@ -823,7 +830,7 @@ Array Sort(const Array& array, bool unique);
  * @return Sortieres Array
  * @relates Array
  */
-Array SortReverse(const Array& array, bool unique);
+Array SortReverse(const Array& array, bool unique = false);
 
 } // namespace pplib
 

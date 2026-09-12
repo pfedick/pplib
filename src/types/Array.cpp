@@ -44,6 +44,21 @@
 namespace pplib
 {
 
+template <typename Func> static void runAndCatchOperation(Func&& op)
+{
+    try {
+        op(); // Führt den übergebenen Codeblock aus
+    }
+    // LCOV_EXCL_START
+    catch (const std::bad_alloc&) {
+        throw OutOfMemoryException();
+    }
+    catch (const std::length_error&) {
+        throw OutOfMemoryException();
+    }
+    // LCOV_EXCL_STOP
+}
+
 Array::Array(const String& str, const String& delimiter, size_t limit, bool skipemptylines)
 {
     explode(str, delimiter, limit, skipemptylines);
@@ -51,15 +66,7 @@ Array::Array(const String& str, const String& delimiter, size_t limit, bool skip
 
 void Array::reserve(size_t size)
 {
-    try {
-        elements.reserve(size);
-    }
-    catch (const std::bad_alloc&) {
-        throw OutOfMemoryException();
-    }
-    catch (const std::length_error&) {
-        throw OutOfMemoryException();
-    }
+    runAndCatchOperation([&]() { elements.reserve(size); });
 }
 
 void Array::copy(const Array& other)
@@ -71,45 +78,45 @@ void Array::add(const Array& other)
 {
     size_t base = elements.size();
     if (other.elements.size() > static_cast<size_t>(SSIZE_MAX) - base) {
+        // LCOV_EXCL_START
         throw OutOfBoundsException();
+        // LCOV_EXCL_STOP
     }
-    if (this == &other) {
-        Array copy(other);
-        elements.insert(elements.end(), copy.elements.begin(), copy.elements.end());
-        return;
-    }
-    elements.insert(elements.end(), other.elements.begin(), other.elements.end());
+    runAndCatchOperation([&]() {
+        if (this == &other) {
+            Array copy(other);
+            elements.insert(elements.end(), copy.elements.begin(), copy.elements.end());
+            return;
+        }
+        elements.insert(elements.end(), other.elements.begin(), other.elements.end());
+    });
 }
 
-void Array::add(const String& value)
+void Array::add(String value)
 {
     if (elements.size() >= static_cast<size_t>(SSIZE_MAX)) {
+        // LCOV_EXCL_START
         throw OutOfBoundsException();
+        // LCOV_EXCL_STOP
     }
-    elements.push_back(value);
+    runAndCatchOperation([&]() { elements.push_back(std::move(value)); });
 }
 
 void Array::add(const String& value, size_t size)
 {
-    if (elements.size() >= static_cast<size_t>(SSIZE_MAX)) {
-        throw OutOfBoundsException();
-    }
     String str;
     str.set(value, size);
-    elements.push_back(str);
+    add(std::move(str));
 }
 
 void Array::addf(const char* fmt, ...)
 {
-    if (elements.size() >= static_cast<size_t>(SSIZE_MAX)) {
-        throw OutOfBoundsException();
-    }
     String value;
     va_list args;
     va_start(args, fmt);
     value.vasprintf(fmt, args);
     va_end(args);
-    elements.push_back(value);
+    add(std::move(value));
 }
 
 static inline size_t correctNegativeIndex(ssize_t index, size_t array_size)
@@ -122,15 +129,16 @@ static inline size_t correctNegativeIndex(ssize_t index, size_t array_size)
     return static_cast<size_t>(index);
 }
 
-void Array::set(ssize_t index, const String& value)
+void Array::set(ssize_t index, String value)
 {
     size_t real_index = correctNegativeIndex(index, elements.size());
     if (real_index >= static_cast<size_t>(SSIZE_MAX)) throw OutOfBoundsException();
-    String tmp(value); // Kopie ziehen, BEVOR resize() reallozieren kann
-    if (real_index >= elements.size()) {
-        elements.resize(real_index + 1);
-    }
-    elements[real_index] = std::move(tmp);
+    runAndCatchOperation([&]() {
+        if (real_index >= elements.size()) {
+            elements.resize(real_index + 1);
+        }
+        elements[real_index] = std::move(value);
+    });
 }
 
 void Array::setf(ssize_t index, const char* fmt, ...)
@@ -140,21 +148,23 @@ void Array::setf(ssize_t index, const char* fmt, ...)
     va_start(args, fmt);
     value.vasprintf(fmt, args);
     va_end(args);
-    set(index, value);
+    set(index, std::move(value));
 }
 
-void Array::insert(ssize_t index, const String& value)
+void Array::insert(ssize_t index, String value)
 {
     size_t real_index = correctNegativeIndex(index, elements.size());
     if (real_index >= static_cast<size_t>(SSIZE_MAX)) throw OutOfBoundsException();
     if (real_index >= elements.size()) {
-        set(real_index, value);
+        set(real_index, std::move(value));
         return;
     }
     if (elements.size() >= static_cast<size_t>(SSIZE_MAX)) {
+        // LCOV_EXCL_START
         throw OutOfBoundsException();
+        // LCOV_EXCL_STOP
     }
-    elements.insert(elements.begin() + real_index, value);
+    runAndCatchOperation([&]() { elements.insert(elements.begin() + real_index, std::move(value)); });
 }
 
 void Array::insert(ssize_t index, const Array& other)
@@ -163,25 +173,29 @@ void Array::insert(ssize_t index, const Array& other)
     size_t real_index = correctNegativeIndex(index, elements.size());
     size_t base = (real_index >= elements.size()) ? real_index : elements.size();
     if (other.elements.size() > static_cast<size_t>(SSIZE_MAX) - base) {
+        // LCOV_EXCL_START
         throw OutOfBoundsException();
+        // LCOV_EXCL_STOP
     }
-    if (real_index >= elements.size()) {
-        if (this == &other) {
-            Array copy(other);
+    runAndCatchOperation([&]() {
+        if (real_index >= elements.size()) {
+            if (this == &other) {
+                Array copy(other);
+                elements.resize(real_index);
+                elements.insert(elements.end(), copy.elements.begin(), copy.elements.end());
+                return;
+            }
             elements.resize(real_index);
-            elements.insert(elements.end(), copy.elements.begin(), copy.elements.end());
+            add(other);
             return;
         }
-        elements.resize(real_index);
-        add(other);
-        return;
-    }
-    if (this == &other) {
-        Array copy(other);
-        elements.insert(elements.begin() + real_index, copy.elements.begin(), copy.elements.end());
-        return;
-    }
-    elements.insert(elements.begin() + real_index, other.elements.begin(), other.elements.end());
+        if (this == &other) {
+            Array copy(other);
+            elements.insert(elements.begin() + real_index, copy.elements.begin(), copy.elements.end());
+            return;
+        }
+        elements.insert(elements.begin() + real_index, other.elements.begin(), other.elements.end());
+    });
 }
 
 void Array::insertf(ssize_t index, const char* fmt, ...)
@@ -191,7 +205,7 @@ void Array::insertf(ssize_t index, const char* fmt, ...)
     va_start(args, fmt);
     value.vasprintf(fmt, args);
     va_end(args);
-    insert(index, value);
+    insert(index, std::move(value));
 }
 
 void Array::list(const String& prefix) const
@@ -245,7 +259,7 @@ String& Array::getRandom()
     return elements[index];
 }
 
-String Array::getRest(size_t index, const String& delimiter)
+String Array::getRest(size_t index, const String& delimiter) const
 {
     String rest;
     for (size_t i = index; i < elements.size(); i++) {
@@ -257,9 +271,10 @@ String Array::getRest(size_t index, const String& delimiter)
 
 String Array::erase(ssize_t index)
 {
-    if (index >= elements.size()) throw OutOfBoundsException();
-    String ret = std::move(elements[index]);
-    elements.erase(elements.begin() + index);
+    size_t real_index = correctNegativeIndex(index, elements.size());
+    if (real_index >= elements.size()) throw OutOfBoundsException();
+    String ret = std::move(elements[real_index]);
+    elements.erase(elements.begin() + real_index);
     return ret;
 }
 
@@ -287,7 +302,7 @@ Array& Array::explode(const String& text, const String& delimiter, size_t limit,
     size_t t = delimiter.len();
     size_t count = 0;
     const char* del = (const char*)delimiter;
-    const char* etext = (char*)text.getPtr();
+    const char* etext = text.getPtr();
     const char* _t;
     String str;
     while (1) {
@@ -343,41 +358,18 @@ Array operator+(const Array& a1, const Array& a2)
 
 void Array::sort()
 {
-    std::multiset<pplib::String> s;
-    for (auto it = elements.begin(); it != elements.end(); ++it) {
-        s.insert(*it);
-    }
-    elements.clear();
-    elements.reserve(s.size());
-    for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
-        add(*it);
-    }
+    std::sort(elements.begin(), elements.end());
 }
 
 void Array::sortReverse()
 {
-    std::multiset<pplib::String> s;
-    for (auto it = elements.begin(); it != elements.end(); ++it) {
-        s.insert(*it);
-    }
-    elements.clear();
-    elements.reserve(s.size());
-    for (std::multiset<pplib::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
-        add(*it);
-    }
+    std::sort(elements.begin(), elements.end(), std::greater<String>());
 }
 
 void Array::sortUnique()
 {
-    std::set<pplib::String> s;
-    for (auto it = elements.begin(); it != elements.end(); ++it) {
-        s.insert(*it);
-    }
-    elements.clear();
-    elements.reserve(s.size());
-    for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
-        add(*it);
-    }
+    sort();
+    elements.erase(std::unique(elements.begin(), elements.end()), elements.end());
 }
 
 void Array::makeUnique()
@@ -388,7 +380,6 @@ void Array::makeUnique()
         // insert().second ist true, wenn der String NEU war (noch nicht im Set)
         return !seen.insert(str).second;
     });
-
     // Ein einziges erase schneidet am Ende alle Duplikate auf einmal ab
     elements.erase(new_end, elements.end());
 }
@@ -413,48 +404,23 @@ bool Array::has(const String& search) const
 
 Array Sort(const Array& array, bool unique)
 {
-    Array ret;
+    Array ret = array;
     if (unique) {
-        std::set<pplib::String> s;
-        for (size_t i = 0; i < array.size(); i++) {
-            s.insert(array.get(i));
-        }
-        for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
-            ret.add(*it);
-        }
+        ret.sortUnique();
     } else {
-        std::multiset<pplib::String> s;
-        for (size_t i = 0; i < array.size(); i++) {
-            s.insert(array.get(i));
-        }
-        for (std::multiset<pplib::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
-            ret.add(*it);
-        }
+        ret.sort();
     }
-    return (ret);
+    return ret;
 }
 
 Array SortReverse(const Array& array, bool unique)
 {
-    Array ret;
+    Array ret = array;
     if (unique) {
-        std::set<pplib::String> s;
-        for (size_t i = 0; i < array.size(); i++) {
-            s.insert(array.get(i));
-        }
-        for (std::multiset<pplib::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
-            ret.add(*it);
-        }
-    } else {
-        std::multiset<pplib::String> s;
-        for (size_t i = 0; i < array.size(); i++) {
-            s.insert(array.get(i));
-        }
-        for (std::multiset<pplib::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
-            ret.add(*it);
-        }
+        ret.makeUnique();
     }
-    return (ret);
+    ret.sortReverse();
+    return ret;
 }
 
 Array Array::fromArgs(int argc, const char* argv[])

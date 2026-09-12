@@ -151,9 +151,6 @@ void StrTok(Array& result, const String& string, const String& div = String("\n"
 String GetArgv(int argc, char* argv[], const String& argument);
 bool HaveArgv(int argc, char* argv[], const String& argument);
 
-Array Sort(const Array& array, bool unique = false);
-Array SortReverse(const Array& array, bool unique = false);
-
 /**
  * @ingroup PPLGroupMath
  * @brief Zufallszahlengenerator initialisieren

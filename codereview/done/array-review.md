@@ -155,6 +155,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   Fix: Deklaration an einer Stelle konsolidieren (sinnvollerweise in `array.h`, da es Array-Funktionalität ist) und
   den Default-Wert dort setzen; `functions.h` sollte `array.h` inkludieren statt die Signatur zu duplizieren.
 
+  ==> FIXED, aus `functions.h` entfernt
+
 - [ ] **`set()`/`insert()` lassen rohe `std::length_error`/`std::bad_alloc` durch statt `OutOfMemoryException`** (`Array.cpp:97-103` vs. `Array.cpp:52-63`)
   `reserve()` fängt `std::bad_alloc`/`std::length_error` explizit ab und wirft stattdessen `OutOfMemoryException`
   (auch getestet: `reserveThrowsOutOfMemory`). `set()`/`insert()` rufen intern ebenfalls `elements.resize(...)` auf,
@@ -170,6 +172,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   verlassen können sollten.
   Fix: dieselbe try/catch-Absicherung wie in `reserve()` auch um die `resize()`-Aufrufe in `set()`/`insert()` legen.
 
+  ==> FIXED in `Array.cpp`: alle `resize()`-Aufrufe in `set()`/`insert()` sind nun von try/catch-Blöcken umgeben, die `OutOfMemoryException` werfen.
+
 ## Design
 
 - [ ] **`getRest()` fehlt `const`** (`array.h:384`, `Array.cpp:202-210`)
@@ -178,6 +182,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   nicht auf einem `const Array&` aufrufen, obwohl das inhaltlich möglich wäre. Passt zum Refactoring-Ziel
   Const-Korrektheit.
   Fix: `String getRest(size_t index, const String& delimiter = " ") const;`
+
+  ==> FIXED
 
 - [ ] **Inkonsistenter Index-Vertrag zwischen `get()`/`at()`/`operator[]` (negativ = von hinten) und `set()`/`insert()`/`erase()` (nur `size_t`, kein "von hinten")**
   `get(ssize_t index)`, `at(ssize_t index)` und `operator[](ssize_t index)` unterstützen bewusst negative Indizes
@@ -204,6 +210,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
   Die freien Funktionen `Sort()`/`SortReverse()` könnten dann einfach eine Kopie anlegen und die entsprechende
   Member-Funktion aufrufen, statt die Logik erneut zu duplizieren.
 
+  ==> FIXED
+
 - [ ] **`explode()` castet die Konstantheit von `String::getPtr()` unnötig weg** (`Array.cpp:243-245`)
   ```cpp
   const char* del = (const char*)delimiter;
@@ -224,6 +232,8 @@ Alle unten als "kritisch" markierten Bugs wurden nicht nur gelesen, sondern gege
 - [ ] `Array::add(const String& value, size_t size)` (`Array.cpp:80-85`) nutzt implizit `String::operator const char*()`
       über `str.set(value, size)`, da es keine `String::set(const String&, size_t)`-Überladung gibt. Funktioniert,
       ist aber nicht auf den ersten Blick offensichtlich – ein Kommentar oder eine explizite Überladung wären lesbarer.
+  
+  ==> FIXED, passenden Constructor in String und WideString hinzugefügt.
 
 ## Verifiziert OK (kein Handlungsbedarf)
 
