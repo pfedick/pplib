@@ -15,7 +15,7 @@ Einige Klassen sind sehr gut dokumentiert und getestet, andere wiederum eher wen
 - Testabdeckung erhöhen
 - Alle Tests gehen von UTF-8 als locale aus, auch unter Windows
 - pico-pplib integrieren (siehe eigenes Kapitel)?
-- C++17 als Standard
+- C++17 als Standard, oder besser gleich C++20?
 - CMake statt autoconf/makefile ausprobieren
 
 ## autoconf / makefile vs. CMake
