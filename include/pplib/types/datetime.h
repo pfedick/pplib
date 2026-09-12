@@ -190,6 +190,8 @@ public:
      *
      * @param t 64-Bit Integer mit den Sekunden seit 1970.
      * @see https://de.wikipedia.org/wiki/Unixzeit
+     * @exception IllegalArgumentException: Wird geworfen, wenn der Wert von \p epoch_seconds zu groß ist und
+     * einen Overflow verursachen würde.
      */
     DateTime& setEpoch(uint64_t epoch_seconds);
 
@@ -1003,6 +1005,12 @@ public:
 inline DateTime operator+(const TimeDelta& td, const DateTime& dt)
 {
     return dt + td;
+}
+
+inline std::ostream& operator<<(std::ostream& s, const DateTime& dt)
+{
+    String str = dt.format("%Y-%m-%d %H:%M:%S.%u");
+    return s.write((const char*)str, str.size());
 }
 
 } // namespace pplib

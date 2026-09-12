@@ -434,6 +434,13 @@ TEST_F(DateTimeTest, getLongInt)
         ASSERT_EQ((uint64_t)64679514611159473, t) << "Unexpected date";
     });
     ASSERT_EQ((uint64_t)321375859200000000, pplib::DateTime("9999-01-01 00:00:00.000000").longInt());
+
+    ASSERT_THROW(
+        {
+            pplib::DateTime d3;
+            d3.longInt();
+        },
+        pplib::IllegalStateException);
 }
 
 TEST_F(DateTimeTest, setLongInt)
@@ -503,6 +510,10 @@ TEST_F(DateTimeTest, getISO8601)
         pplib::DateTime d1("2012-05-18 11:50:11.159473+02:00");
         ASSERT_EQ(pplib::String("2012-05-18T11:50:11+02:00"), d1.getISO8601()) << "Unexpected date";
     });
+    ASSERT_NO_THROW({
+        pplib::DateTime d1("2012-05-18 11:50:11.159473-02:00");
+        ASSERT_EQ(pplib::String("2012-05-18T11:50:11-02:00"), d1.getISO8601()) << "Unexpected date";
+    });
 }
 
 TEST_F(DateTimeTest, getISO8601withMsec)
@@ -510,6 +521,10 @@ TEST_F(DateTimeTest, getISO8601withMsec)
     ASSERT_NO_THROW({
         pplib::DateTime d1("2012-05-18 11:50:11.159473+02:00");
         ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159+02:00"), d1.getISO8601withMsec()) << "Unexpected date";
+    });
+    ASSERT_NO_THROW({
+        pplib::DateTime d1("2012-05-18 11:50:11.159473-02:00");
+        ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159-02:00"), d1.getISO8601withMsec()) << "Unexpected date";
     });
 }
 
@@ -1048,6 +1063,9 @@ TEST_F(DateTimeTest, setEpoch)
 
     EXPECT_EQ((uint64_t)0, d1.setTime_t((uint64_t)0).time_t()) << "Unexpected date";
     EXPECT_EQ(pplib::String("1970-01-01 00:00:00.000000"), d1.setTime_t((uint64_t)0).get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+
+    ASSERT_THROW(d1.setEpoch(static_cast<uint64_t>(INT64_MAX / 1000000ULL) + 1), pplib::IllegalArgumentException)
+        << "Expected exception for overflow in setEpoch";
 }
 
 TEST_F(DateTimeTest, getISO8601withUsec)
@@ -1060,6 +1078,17 @@ TEST_F(DateTimeTest, getRFC822Date)
 {
     ASSERT_EQ(pplib::String("Wed, 05 Jun 2024 11:50:11 +0000"), pplib::DateTime("2024-06-05 11:50:11.159473").getRFC822Date())
         << "Unexpected date";
+
+    ASSERT_EQ(pplib::String("Wed, 05 Jun 2024 11:50:11 -0200"), pplib::DateTime("2024-06-05 11:50:11.159473[-02:00]").getRFC822Date())
+        << "Unexpected date";
+
+    ASSERT_THROW(
+        {
+            pplib::DateTime d1;
+            d1.getRFC822Date();
+        },
+        pplib::IllegalStateException)
+        << "Expected exception for empty DateTime";
 }
 
 TEST_F(DateTimeTest, strftime)
@@ -1086,6 +1115,10 @@ TEST_F(DateTimeTest, epoch)
 
     ASSERT_EQ((int32_t)7200, d1.timeZone().offsetSeconds()) << "Unexpected timezone offset";
     ASSERT_EQ((uint64_t)1717581011, d1.epoch()) << "Unexpected epoch";
+    d1.clear();
+    ASSERT_EQ((uint64_t)0, d1.epoch()) << "Unexpected epoch";
+    d1.set("1970-01-01T01:00:00[+02:00]");
+    ASSERT_EQ((uint64_t)0, d1.epoch()) << "Unexpected epoch";
 }
 
 TEST_F(DateTimeTest, notEmpty)
@@ -1287,6 +1320,35 @@ TEST_F(DateTimeTest, getComponents)
     ASSERT_EQ(d1.second(), 1) << "Unexpected second";
     ASSERT_EQ(d1.microsecond(), 123456) << "Unexpected microsecond";
     ASSERT_EQ(d1.millisecond(), 123) << "Unexpected microsecond";
+}
+
+TEST_F(DateTimeTest, toTm)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456+02:00");
+    struct tm tt = d1.toTm();
+    ASSERT_EQ(tt.tm_year, 2026 - 1900) << "Unexpected tm_year";
+    ASSERT_EQ(tt.tm_mon, 8 - 1) << "Unexpected tm_mon";
+    ASSERT_EQ(tt.tm_mday, 16) << "Unexpected tm_mday";
+    ASSERT_EQ(tt.tm_hour, 8) << "Unexpected tm_hour";
+    ASSERT_EQ(tt.tm_min, 35) << "Unexpected tm_min";
+    ASSERT_EQ(tt.tm_sec, 1) << "Unexpected tm_sec";
+    ASSERT_EQ(tt.tm_wday, 0) << "Unexpected tm_wday";   // 2026-08-16 is a Sunday
+    ASSERT_EQ(tt.tm_yday, 227) << "Unexpected tm_yday"; // 16th August is the 227th day of the year
+}
+
+TEST_F(DateTimeTest, toTmOnEmptyObject)
+{
+    pplib::DateTime d1;
+    ASSERT_THROW(d1.toTm(), pplib::IllegalStateException) << "Expected exception for empty DateTime";
+}
+
+TEST_F(DateTimeTest, ostream)
+{
+    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    testing::internal::CaptureStdout();
+    std::cout << d1;
+    std::string output = testing::internal::GetCapturedStdout();
+    ASSERT_EQ(output, "2026-08-16 08:35:01.123456");
 }
 
 } // namespace

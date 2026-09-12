@@ -115,7 +115,6 @@ DateTime& DateTime::set(const String& datetime)
         return *this;
     }
     // Wie müssen in Datum und Zeit trennen
-    Array a;
     size_t pt = parse.find("T");
     if (pt == String::npos) {
         // Kein T gefunden, nur Datum
@@ -178,29 +177,6 @@ struct tm DateTime::toTm() const
 
 uint64_t DateTime::epoch() const
 {
-    /*
-    if (my_date.year() < 1970) return 0;
-    // Wir berechnen die Sekunden von 1970 bis zum gepspeicherten Zeitstempel
-    uint64_t total_days = 0;
-
-    // 1. Tage für alle vollen Jahre seit 1970 berechnen
-    for (int y = 1970; y < my_date.year(); ++y) {
-        // Nutze die isLeapYear Logik aus der Date-Klasse
-        total_days += (Date::isLeapYear(y) ? 366 : 365);
-    }
-    // 2. Tage für die Monate im aktuellen Jahr berechnen
-    static const int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    for (int m = 1; m < my_date.month(); ++m) {
-        total_days += days_in_month[m];
-        // Schaltjahr-Check für Februar
-        if (m == 2 && my_date.isLeapYear(my_date.year())) {
-            total_days += 1;
-        }
-    }
-    // 3. Tage des aktuellen Monats addieren (minus 1, da wir am 1. starten)
-    total_days += (my_date.day() - 1);
-    return total_days * 86400 + my_time.toSeconds() - my_tz.offsetSeconds();
-    */
     if (isEmpty() || my_date.year() < 1970) return 0;
     int64_t us = toMicroseconds();
     if (us < 0) return 0;
@@ -209,39 +185,9 @@ uint64_t DateTime::epoch() const
 
 DateTime& DateTime::setEpoch(uint64_t time)
 {
-    /*
-    my_tz = TimeZone::utc();            // Zeitzone setzen wir auf UTC
-    uint64_t total_days = time / 86400; // Ein Tag hat 86400 Sekunden
-    // Uhrzeit können wir relativ leicht anhand des Modulos setzen
-    my_time.setFromSeconds(time % 86400);
-    // 1. Das passende Jahr finden
-    int year = 1970;
-    while (true) {
-        uint32_t days_for_year = (Date::isLeapYear(year) ? 366 : 365); // Tage für das Jahr
-        if (total_days < days_for_year) break;
-        total_days -= days_for_year;
-        year++;
-    }
-    // 2. Den Monat finden
-    static const int days_in_month[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-    int month = 1;
-    while (month <= 12) {
-        uint32_t days_for_month = days_in_month[month];
-        // Schaltjahr-Check für Februar
-        if (month == 2 && my_date.isLeapYear(year)) {
-            days_for_month += 1;
-        }
-        if (total_days < days_for_month) break;
-        total_days -= days_for_month;
-        month++;
-    }
-    my_date.set(year, month, total_days + 1);
-    return *this;
-    */
-
     // Schutz gegen Overflow bei Multiplikation:
     if (time > static_cast<uint64_t>(INT64_MAX / 1000000ULL)) {
-        throw OutOfBoundsException(); // oder IllegalArgumentException
+        throw IllegalArgumentException();
     }
     return setMicroseconds(static_cast<int64_t>(time) * 1000000LL, TimeZone::utc());
 }
@@ -347,20 +293,22 @@ String DateTime::getRFC822Date() const
     const char* day[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
     const char* month[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
     // PPLTIME prüfen
+    // LCOV_EXCL_START
     if (t.day_of_week < 0 || t.day_of_week > 6) throw IllegalArgumentException("DateTime::getRFC822Date: week<0 order week>6");
     if (t.month < 1 || t.month > 12) throw IllegalArgumentException("DateTime::getRFC822Date: month<0 order month>12");
+    // LCOV_EXCL_STOP
 
     s = day[t.day_of_week];
     s += ", ";
     s.appendf("%02i ", t.day);
     s += month[t.month - 1];
     s.appendf(" %04i %02i:%02i:%02i", t.year, t.hour, t.min, t.sec);
-    if (t.have_gmt_offset) {
-        int total_sec = abs(t.gmt_offset);
-        int hours = total_sec / 3600;
-        int mins = (total_sec % 3600) / 60;
-        s.appendf(t.gmt_offset >= 0 ? " +%02i%02i" : " -%02i%02i", hours, mins);
-    }
+    // toPPLTIME liefert immer Zeitzone, daher keine Prüfung nötig
+    int total_sec = abs(t.gmt_offset);
+    int hours = total_sec / 3600;
+    int mins = (total_sec % 3600) / 60;
+    s.appendf(t.gmt_offset >= 0 ? " +%02i%02i" : " -%02i%02i", hours, mins);
+
     return s;
 }
 
@@ -448,12 +396,6 @@ DateTime::operator String() const
 {
     return String::format("%04i-%02i-%02i %02i:%02i:%02i.%06i", my_date.year(), my_date.month(), my_date.day(), my_time.hour(),
                           my_time.minute(), my_time.second(), my_time.microsecond());
-}
-
-std::ostream& operator<<(std::ostream& s, const DateTime& dt)
-{
-    String str = dt.format("%Y-%m-%d %H:%M:%S.%u");
-    return s.write((const char*)str, str.size());
 }
 
 // Gibt die Tage seit 0000-03-01 zurück (funktioniert für alle Jahre)

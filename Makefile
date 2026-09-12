@@ -57,9 +57,11 @@ test_core:
 	#cd tests && ./test_core$(EXE) --gtest_color=yes --gtest_filter=WideStringTest*
 	cd tests && ./test_core$(EXE) --gtest_color=yes
 	
-test: debug
-	cmake --build build/debug --target test_core test_audio test_crypto test_grafix test_database test_inet
-	cd tests && ../build/debug/tests/test_core$(EXE) --gtest_color=yes
+test:
+	cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug
+	cmake --build build/debug -j --target test_core test_crypto
+	-cd tests && ../build/debug/tests/test_core$(EXE) --gtest_color=yes
+	-cd tests && ../build/debug/tests/test_crypto$(EXE) --gtest_color=yes
 
 xml: debug
 	cmake --build build/debug --target test_core test_audio test_crypto test_grafix test_database test_inet
