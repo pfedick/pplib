@@ -36,41 +36,12 @@
 namespace pplib
 {
 
-/*!\class ThreadPool
- * \ingroup PPLGroupThreads
- * \brief Klasse zum Verwalten mehrerer Threads in einem Pool.
- *
- * \desc
- * Mit dieser Klasse können beliebig viele Threads in einem Pool verwaltet werden.
- * Über den Pool können sie gemeinsam gestartet, überwacht, gestoppt und gelöscht werden.
- * Zur Laufzeit können jederzeit Threads hinzugefügt oder entfernt werden. Mittels
- * Iteratoren und den Methoden ThreadPool::begin und ThreadPool::end kann die Anwendung auch
- * selbst über die Threads iterieren.
- * @par
- * Ein %Thread muss von der Klasse pplib::Thread abgeleitet sein.
- *
- *
- */
-
-/*!\brief Destruktor
- *
- * \desc
- * Falls noch Threads im Pool vorhanden sind, werden diese gestoppt und gelöscht.
- */
 ThreadPool::~ThreadPool()
 {
     stopThreads();
     destroyAllThreads();
 }
 
-/*!\brief Thread in den Pool hinzufügen
- *
- * \desc
- * Der angegebene Thread \p thread wird dem Pool hinzugefügt.
- *
- * @param thread Pointer auf dem Thread
- * @exception IllegalArgumentException Wird geworfen, wenn der übergebene Thread-Pointer \p thread nullptr ist.
- */
 void ThreadPool::addThread(Thread* thread)
 {
     if (!thread) throw IllegalArgumentException("ThreadPool::addThread");
@@ -80,16 +51,6 @@ void ThreadPool::addThread(Thread* thread)
     if (ret.second == false) throw ThreadAlreadyInPoolException();
 }
 
-/*!\brief Thread aus dem Pool entfernen
- *
- * \desc
- * Der angegebene Thread \p thread wird aus dem Pool entfernt. Die Anwendung ist
- * anschließend dafür verantwortlich den Thread zu stoppen und zu löschen.
- *
- * @param thread Pointer auf dem Thread
- *
- * @exception IllegalArgumentException Wird geworfen, wenn der übergebene Thread-Pointer \p thread nullptr ist.
- */
 void ThreadPool::removeThread(Thread* thread)
 {
     if (!thread) throw IllegalArgumentException("ThreadPool::destroyThread");
@@ -97,16 +58,6 @@ void ThreadPool::removeThread(Thread* thread)
     threads.erase(thread);
 }
 
-/*!\brief Thread aus aus dem Pool entfernen und löschen
- *
- * \desc
- * Der angegebene Thread \p thread wird aus dem Pool entfernt, sofern er darin vorhanden
- * war, und anschließend gelöscht. Falls notwendig, wird er vorher noch gestoppt.
- *
- * @param thread Pointer auf dem Thread
- *
- * @exception IllegalArgumentException Wird geworfen, wenn der übergebene Thread-Pointer \p thread nullptr ist.
- */
 void ThreadPool::destroyThread(Thread* thread)
 {
     if (!thread) throw IllegalArgumentException("ThreadPool::destroyThread");
@@ -115,27 +66,12 @@ void ThreadPool::destroyThread(Thread* thread)
     delete thread;
 }
 
-/*!\brief Alle Threads aus dem Pool entfernen
- *
- * \desc
- * Alle Threads werden aus dem Pool entfernt. Die Threads selber bleiben unberührt,
- * laufen also ggfs. weiter und belegen Speicher. Falls die Threads auch gestoppt und
- * gelöscht werden sollen, verwenden Sie bitte ThreadPool::destroyAllThreads.
- *
- */
 void ThreadPool::clear()
 {
     MutexLock lock(mutex);
     threads.clear();
 }
 
-/*!\brief Alle Threads stoppen, aus dem Pool entfernen und löschen
- *
- * \desc
- * Alle Threads werden gestoppt, gelöscht (Aufruf des Destruktors des Threads) und aus
- * dem Pool entfernt.
- *
- */
 void ThreadPool::destroyAllThreads()
 {
     stopThreads();
@@ -147,13 +83,6 @@ void ThreadPool::destroyAllThreads()
     threads.clear();
 }
 
-/*!\brief Threads auffordern zu stoppen
- *
- * \desc
- * Signalisiert allen Threads, dass sie sich beenden sollen. Die Methode wartet jedoch
- * nicht, bis sich die Threads tatsächlich beendet haben. Bitte verwenden Sie ThreadPool::stopThreads,
- * wenn Sie sicherstellen wollen, dass sich die Threads tatsächlich beendet haben.
- */
 void ThreadPool::signalStopThreads()
 {
     std::set<Thread*>::iterator it;
@@ -163,15 +92,6 @@ void ThreadPool::signalStopThreads()
     }
 }
 
-/*!\brief Threads stoppen
- *
- * \desc
- * Stoppt alle Threads im Pool, die aktiv sind. Die Methode kehrt erst dann zurück, wenn
- * alle Threads gestoppt sind.
- *
- * \note Es ist sichergestellt, dass ein runterfahrender Thread sich bei Bedarf selbst aus dem Pool
- * löschen kann, ohne einen Deadlock zu verursachen.
- */
 void ThreadPool::stopThreads()
 {
     signalStopThreads();
@@ -185,11 +105,6 @@ void ThreadPool::stopThreads()
     }
 }
 
-/*!\brief Threads starten
- *
- * \desc
- * Startet alle Threads im Pool, die noch nicht aktiv sind.
- */
 void ThreadPool::startThreads()
 {
     std::set<Thread*>::iterator it;
@@ -201,13 +116,6 @@ void ThreadPool::startThreads()
     }
 }
 
-/*!\brief Anzahl Threads im Pool
- *
- * \desc
- * Liefert die Anzahl Threads im Pool zurück, unabhängig davon, ob sie grade aktiv sind.
- *
- * @return Anzahl Threads
- */
 size_t ThreadPool::size() const
 {
     MutexLock lock(mutex);
@@ -215,13 +123,6 @@ size_t ThreadPool::size() const
     return num;
 }
 
-/*!\brief Anzahl aktiver Threads im Pool
- *
- * \desc
- * Liefert die Anzahl Threads im Pool zurück, die grade aktiv sind.
- *
- * @return Anzahl Threads
- */
 size_t ThreadPool::count_running() const
 {
     std::set<Thread*>::const_iterator it;
@@ -233,13 +134,6 @@ size_t ThreadPool::count_running() const
     return count;
 }
 
-/*!\brief Sind im Pool aktive Threads?
- *
- * \desc
- * Diese Methode prüft, ob im Pool Threads enthalten sind, die grade aktiv sind.
- *
- * @return Gibt \b true oder \b false zurück
- */
 bool ThreadPool::running() const
 {
     std::set<pplib::Thread*>::const_iterator it;

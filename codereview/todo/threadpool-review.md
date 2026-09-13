@@ -138,6 +138,8 @@ Mitgelesen: `include/pplib/core/threads.h` + `src/core/Threads.cpp`, da `ThreadP
   fast völlig undokumentiert ist.
   Fix: Doxygen-Blöcke mittels Migrationsskript in den Header `threadpool.h` überführen.
 
+  ==> FIXED, die Doxygen-Kommentare wurden in den Header `threadpool.h` verschoben.
+
 - [ ] **Veraltete Dokumentations-Angaben**
   - In `ThreadPool::lock` und `unlock` (ThreadPool.cpp:322-340) werden noch `DeadlockException`, `MutexLockingException`
     und `MutexNotLockedException` dokumentiert, obwohl `Mutex` diese Exceptions gar nicht mehr wirft.
