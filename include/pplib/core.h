@@ -38,7 +38,7 @@
 #include <pplib/core/timer.h>
 #include <pplib/core/mutex.h>
 #include <pplib/core/signal.h>
-#include <pplib/core/threads.h>
+#include <pplib/core/thread.h>
 #include <pplib/core/fileobject.h>
 #include <pplib/core/memfile.h>
 #include <pplib/core/file.h>

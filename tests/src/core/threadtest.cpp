@@ -28,7 +28,8 @@
  *******************************************************************************/
 
 #include <gtest/gtest.h>
-#include <pplib.h>
+#include <pplib/core/thread.h>
+#include <pplib/core/functions.h>
 #include <atomic>
 #include <chrono>
 

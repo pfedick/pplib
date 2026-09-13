@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <pplib/core/threads.h>
+#include <pplib/core/thread.h>
 #include <pplib/core/functions.h>
 #include <pplib/exceptions.h>
 

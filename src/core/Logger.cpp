@@ -34,7 +34,7 @@
 #include <config_pplib.h>
 
 #include <pplib/core/logging.h>
-#include <pplib/core/threads.h>
+#include <pplib/core/thread.h>
 #include <pplib/types/string.h>
 #include <pplib/types/array.h>
 #include <pplib/types/assocarray.h>

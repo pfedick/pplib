@@ -27,8 +27,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef PPLIB_CORE_THREADS_H_
-#define PPLIB_CORE_THREADS_H_
+#ifndef PPLIB_CORE_THREAD_H_
+#define PPLIB_CORE_THREAD_H_
 
 #include <stdint.h>
 #include <thread>
@@ -222,4 +222,4 @@ Thread::Priority ThreadGetPriority();
 
 } // namespace pplib
 
-#endif /* PPLIB_CORE_THREADS_H_ */
+#endif /* PPLIB_CORE_THREAD_H_ */

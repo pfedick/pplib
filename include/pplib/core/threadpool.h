@@ -33,7 +33,7 @@
 #include <stdint.h>
 #include <set>
 #include <pplib/core/mutex.h>
-#include <pplib/core/threads.h>
+#include <pplib/core/thread.h>
 
 namespace pplib
 {
