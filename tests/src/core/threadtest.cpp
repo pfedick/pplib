@@ -321,4 +321,33 @@ TEST(MutexTest, LockUnlock)
     m.unlock();
 }
 
+TEST(ThreadEventTest, IsSignaledAndAutoReset)
+{
+    pplib::ThreadEvent ev(true, false);
+    EXPECT_FALSE(ev.isSignaled());
+
+    ev.set();
+    EXPECT_TRUE(ev.isSignaled());
+
+    EXPECT_TRUE(ev.wait(50));
+    EXPECT_FALSE(ev.isSignaled());
+}
+
+TEST(ThreadEventTest, ManualResetAndNotifyAll)
+{
+    pplib::ThreadEvent ev(false, false);
+    EXPECT_FALSE(ev.isSignaled());
+
+    ev.set(); // ruft cv.notify_all() auf
+    EXPECT_TRUE(ev.isSignaled());
+
+    EXPECT_TRUE(ev.wait(10));
+    EXPECT_TRUE(ev.isSignaled()); // bleibt gesetzt
+    EXPECT_TRUE(ev.wait(10));
+
+    ev.reset();
+    EXPECT_FALSE(ev.isSignaled());
+    EXPECT_FALSE(ev.wait(10));
+}
+
 } // namespace

@@ -76,8 +76,10 @@ static void applyPriorityToNativeHandle(std::thread::native_handle_type handle, 
     case Thread::Priority::HIGHEST:
         p = THREAD_PRIORITY_HIGHEST;
         break;
+    // LCOV_EXCL_START
     default:
         return;
+        // LCOV_EXCL_STOP
     }
     SetThreadPriority(reinterpret_cast<HANDLE>(handle), p);
 #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
@@ -103,8 +105,10 @@ static void applyPriorityToNativeHandle(std::thread::native_handle_type handle, 
         case Thread::Priority::HIGHEST:
             param.sched_priority = max_prio;
             break;
+        // LCOV_EXCL_START
         default:
             return;
+            // LCOV_EXCL_STOP
         }
         pthread_setschedparam(handle, policy, &param);
     }
@@ -180,9 +184,11 @@ uint64_t StartThread(std::function<void()> func)
         try {
             func();
         }
+        // LCOV_EXCL_START
         catch (...) {
             // Exceptions unterdrücken, um std::terminate zu verhindern
         }
+        // LCOV_EXCL_STOP
     });
     t.detach();
     return assigned_id;
@@ -207,8 +213,10 @@ Thread::~Thread()
     try {
         threadStop();
     }
+    // LCOV_EXCL_START
     catch (...) {
     }
+    // LCOV_EXCL_STOP
 }
 
 void Thread::threadSetName(const String& threadName)
@@ -244,10 +252,12 @@ void Thread::threadStart()
     try {
         worker = std::thread(&Thread::threadStartUp, this);
     }
+    // LCOV_EXCL_START
     catch (const std::system_error&) {
         is_running.store(false, std::memory_order_release);
         throw ThreadStartException();
     }
+    // LCOV_EXCL_STOP
 
     applyPriorityToNativeHandle(worker.native_handle(), my_priority);
     if (!name.isEmpty()) {
