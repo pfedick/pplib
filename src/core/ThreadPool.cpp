@@ -45,6 +45,7 @@ ThreadPool::~ThreadPool()
 void ThreadPool::addThread(Thread* thread)
 {
     if (!thread) throw IllegalArgumentException("ThreadPool::addThread");
+    thread->threadDeleteOnExit(false);
     MutexLock lock(mutex);
     std::pair<std::set<Thread*>::iterator, bool> ret;
     ret = threads.insert(thread);
@@ -53,7 +54,7 @@ void ThreadPool::addThread(Thread* thread)
 
 void ThreadPool::removeThread(Thread* thread)
 {
-    if (!thread) throw IllegalArgumentException("ThreadPool::destroyThread");
+    if (!thread) throw IllegalArgumentException("ThreadPool::removeThread");
     MutexLock lock(mutex);
     threads.erase(thread);
 }

@@ -124,6 +124,7 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - Neue ThreadEvent eingeführt, inklusive Doku und Codereview. Tests stehen noch aus.
 - Mutex-Klasse überarbeitet
 - Thread-Klasse komplett überarbeitet, inklusive Doku, Codereview und Tests
+- ThreadPool-Klasse nach Codereview refaktoriert, dokumentiert
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft

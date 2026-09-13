@@ -46,11 +46,13 @@ namespace pplib
  * Über den Pool können sie gemeinsam gestartet, überwacht, gestoppt und gelöscht werden.
  * Zur Laufzeit können jederzeit Threads hinzugefügt oder entfernt werden. Mittels
  * getThreads kann die Anwendung eine Liste aller Threads im Pool erhalten, um dann
- * beispielsweise selbst darüber zu itterieren.
+ * beispielsweise selbst darüber zu iterieren.
  *
  * Ein Thread, der an den Pool übergeben wird, geht in den Besitz des Pools über und wird
- * von diesem verwaltet. Beim beenden des Pools werden alle Threads automatisch gestoppt
- * und gelöscht (aufruf des Thread-Destruktors).
+ * von diesem verwaltet. Beim Beenden des Pools werden alle Threads automatisch gestoppt
+ * und gelöscht (Aufruf des Thread-Destruktors). Der Thread darf selbst niemals
+ * direkt gelöscht werden, da er vom Pool verwaltet wird. Er darf auch nicht
+ * Thread::threadDeleteOnExit() auf true setzen.
  *
  * Ein Thread muss von der Klasse pplib::Thread abgeleitet sein.
  *
@@ -101,13 +103,19 @@ public:
      */
     void destroyThread(Thread* thread);
 
-    /** @brief Alle Threads aus dem Pool entfernen
+    /** @brief Alle Threads stoppen, aus dem Pool entfernen und löschen
      *
-     * Alle Threads werden aus dem Pool entfernt. Die Threads selber bleiben unberührt,
-     * laufen also ggfs. weiter und belegen Speicher. Falls die Threads auch gestoppt und
-     * gelöscht werden sollen, verwenden Sie bitte ThreadPool::destroyAllThreads.
+     * Identisch zu ThreadPool::destroyAllThreads.
+     *
+     * Alle Threads werden gestoppt, gelöscht (Aufruf des Destruktors des Threads) und aus
+     * dem Pool entfernt.
+     *
+     * @see ThreadPool::destroyAllThreads
      */
-    void clear();
+    inline void clear()
+    {
+        destroyAllThreads();
+    }
 
     /** @brief Alle Threads stoppen, aus dem Pool entfernen und löschen
      *
@@ -128,8 +136,6 @@ public:
      *
      * Stoppt alle Threads im Pool, die aktiv sind. Die Methode kehrt erst dann zurück, wenn
      * alle Threads gestoppt sind.
-     * @note Es ist sichergestellt, dass ein runterfahrender Thread sich bei Bedarf selbst aus dem Pool
-     * löschen kann, ohne einen Deadlock zu verursachen.
      */
     void stopThreads();
 

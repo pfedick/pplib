@@ -115,7 +115,7 @@ Mitgelesen: `include/pplib/core/threads.h` + `src/core/Threads.cpp`, da `ThreadP
   Fix: Entweder klar dokumentieren, dass Threads im Pool niemals `threadDeleteOnExit(true)` nutzen dürfen,
   oder Ownership modernisieren (z.B. `std::unique_ptr<Thread>` / `std::shared_ptr<Thread>`).
 
-  ==> TODO, Da muss ich noch drüber nachdenken
+  ==> FIXED. Besitzverhältnisse sind nun klar dokumentiert und konsistent umgesetzt.
 
 - [ ] **Redundante Methoden: `size()` und `count()`** (ThreadPool.cpp:257-280)
   Beide Methoden machen exakt dasselbe (`return threads.size();`). `count()` ist verwirrend, da bei STL-Containern
