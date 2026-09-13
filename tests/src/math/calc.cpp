@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include <pplib.h>
+#include <pplib/core/functions.h>
 #include <gtest/gtest.h>
 #include "pplib-tests.h"
 
