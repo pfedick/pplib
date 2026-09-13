@@ -64,6 +64,8 @@ private:
     mutable pplib::Mutex mutex;
 
 public:
+    ThreadPool() = default;
+
     /** @brief Destruktor
      *
      * Falls noch Threads im Pool vorhanden sind, werden diese gestoppt und gelöscht.
