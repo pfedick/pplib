@@ -70,7 +70,6 @@ MemFile::MemFile()
     buffersize = 0;
 }
 
-MemFile::MemFile(void* adresse, size_t size, bool writeable)
 /*!\brief Konstruktor der Klasse mit Angabe eines Speicherbereichs
  *
  * \desc
@@ -85,13 +84,9 @@ MemFile::MemFile(void* adresse, size_t size, bool writeable)
  * Speichers an die MemFile-Klasse über. Der Speicher darf nicht mehr von der Applikation verändert
  * oder freigegeben werden!
  */
+MemFile::MemFile(void* adresse, size_t size, bool writeable)
+    : MemFile()
 {
-    mysize = 0;
-    pos = 0;
-    MemBase = NULL;
-    readonly = false;
-    maxsize = 0;
-    buffersize = 0;
     open(adresse, size, writeable);
 }
 
@@ -105,20 +100,19 @@ MemFile::MemFile(void* adresse, size_t size, bool writeable)
  * @param size Größe des Speicherbereichs
  */
 MemFile::MemFile(const ByteArrayPtr& memory)
+    : MemFile()
 {
     if (memory.isEmpty()) {
         throw IllegalArgumentException();
     }
     MemBase = (char*)memory.adr();
     mysize = memory.size();
-    pos = 0;
     readonly = true;
-    maxsize = 0;
-    buffersize = 0;
 }
 
 MemFile::~MemFile()
 {
+    close();
 }
 
 /*!\brief Speicherbereich zum Lesen öffnen
@@ -137,15 +131,10 @@ MemFile::~MemFile()
 void MemFile::open(void* adresse, size_t size, bool writeable)
 {
     // if (adresse==NULL || size==0) throw IllegalArgumentException();
-    if (buffer) {
-        free(buffer);
-        buffer = NULL;
-        buffersize = 0;
-    }
+    close();
     MemBase = (char*)adresse;
     mysize = size;
     pos = 0;
-
     if (writeable == true) {
         buffer = MemBase;
         readonly = false;
@@ -169,14 +158,7 @@ void MemFile::open(void* adresse, size_t size, bool writeable)
 void MemFile::open(const ByteArrayPtr& memory)
 {
     if (memory.isEmpty()) throw IllegalArgumentException();
-    if (buffer) {
-        free(buffer);
-        buffer = NULL;
-    }
-    MemBase = (char*)memory.adr();
-    mysize = memory.size();
-    pos = 0;
-    readonly = true;
+    open((void*)memory.adr(), memory.size(), false);
 }
 
 /*!\brief Speicherbereich zum Schreiben und Lesen öffnen
@@ -195,14 +177,7 @@ void MemFile::open(const ByteArrayPtr& memory)
  */
 void MemFile::openReadWrite(void* adresse, size_t size)
 {
-    if (adresse == NULL || size == 0) throw IllegalArgumentException();
-    if (buffer) free(buffer);
-    MemBase = (char*)adresse;
-    buffer = MemBase;
-    mysize = size;
-    pos = 0;
-    readonly = false;
-    buffersize = size;
+    open(adresse, size, true);
 }
 
 /*!\brief Maximale Dateigröße festlegen
@@ -273,7 +248,7 @@ void MemFile::rewind()
 void MemFile::seek(uint64_t position)
 {
     if (MemBase != NULL || readonly == false) {
-        if (position < mysize) {
+        if (position <= mysize) {
             pos = position;
         } else if (mysize == 0 && position == 0) {
             return;
@@ -300,7 +275,7 @@ uint64_t MemFile::seek(int64_t offset, SeekOrigin origin)
             break;
         case SEEKEND:
             pos = mysize - offset;
-            if (pos > mysize) return pos;
+            if (pos <= mysize) return pos;
             if ((int64_t)pos < 0) {
                 pos = 0;
                 return pos;
@@ -367,7 +342,7 @@ char* MemFile::fgets(char* buffer1, size_t num)
         }
         buffer1[i] = 0;
         pos += i;
-        if (pos >= mysize) throw EndOfFileException();
+        if (pos > mysize) pos = mysize; // EndOfFileException erfolgt beim nächsten Leseversuch
         return buffer1;
     }
     throw FileNotOpenException();
@@ -431,8 +406,8 @@ void MemFile::fputwc(wchar_t c)
 int MemFile::fgetc()
 {
     if (MemBase == NULL) throw FileNotOpenException();
-    if (pos > mysize) throw OverflowException();
-    return MemBase[pos++];
+    if (pos >= mysize) throw OverflowException();
+    return static_cast<unsigned char>(MemBase[pos++]);
 }
 
 wchar_t MemFile::fgetwc()

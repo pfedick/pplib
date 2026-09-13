@@ -53,6 +53,11 @@ public:
     MemFile(const ByteArrayPtr& memory);
     ~MemFile();
 
+    MemFile(const MemFile&) = delete;
+    MemFile& operator=(const MemFile&) = delete;
+    MemFile(MemFile&& other) noexcept;
+    MemFile& operator=(MemFile&& other) noexcept;
+
     void open(void* adresse, size_t size, bool writeable = false);
     void open(const ByteArrayPtr& memory);
     void openReadWrite(void* adresse, size_t size);
