@@ -67,12 +67,6 @@ void ThreadPool::destroyThread(Thread* thread)
     delete thread;
 }
 
-void ThreadPool::clear()
-{
-    MutexLock lock(mutex);
-    threads.clear();
-}
-
 void ThreadPool::destroyAllThreads()
 {
     stopThreads();
