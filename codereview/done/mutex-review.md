@@ -9,6 +9,10 @@ laufen gelassen (siehe Fix-Hinweise für die jeweiligen Minimal-Repros).
 
 * Review done by: Claude Sonnet 5
 
+
+===> Alles FIXED, Mutex komplett umgebaut und aufgeteilt in Mutex und ThreadEvent
+
+
 ## Bugs (kritisch)
 
 - [ ] **`wait()`/`signal()` sperren denselben `std::mutex` erneut, der über `lock()`/`unlock()` schon gehalten sein kann → Selbstdeadlock** (Mutex.cpp:95, Mutex.cpp:124)
