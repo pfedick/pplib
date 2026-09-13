@@ -31,8 +31,12 @@
 #define PPLIB_CORE_THREADS_H_
 
 #include <stdint.h>
-#include <set>
+#include <thread>
+#include <atomic>
+#include <functional>
+#include <pplib/types/string.h>
 #include <pplib/core/mutex.h>
+#include <pplib/core/threadevent.h>
 
 namespace pplib
 {
@@ -42,26 +46,22 @@ namespace pplib
  * @ingroup PPLGroupThreads
  * @brief Klasse zum Verwalten von Threads
  *
- * Klasse zum Starten und Verwalten von Threads.
- * @see \ref PPLGroupThreads
- * @par Beispiel:
- * @include Thread_ThreadMain.cpp
+ * Klasse zum Starten und Verwalten von Threads. Eine von Thread abgeleitete Klasse muss
+ * die run()-Methode implementieren. Falls run() endlos laufen soll, sollte regelmäßig
+ * threadShouldStop() überprüft werden, um zu schauen, ob der Thread gestoppt werden soll.
  *
+ * Die Methode threadSleep() kann verwendet werden, um den Thread für eine bestimmte Zeit
+ * schlafen zu lassen oder auf ein Stop-Signal zu warten.
+ *
+ * @note Verwendet std::thread intern zur Thread-Verwaltung.
  */
 class Thread
 {
-private:
-    Mutex threadmutex;
-    void* threaddata;
-    size_t runcount;
-    int flags;
-    int IsRunning;
-    int IsSuspended;
-    int deleteMe;
-    int myPriority;
-
 public:
-    enum Priority
+    /** @enum Priority
+     * @brief Priorität des Threads.
+     */
+    enum class Priority
     {
         UNKNOWN = 0,
         LOWEST,
@@ -71,39 +71,153 @@ public:
         HIGHEST
     };
 
+private:
+    std::thread worker;     ///< Der interne std::thread, der die Ausführung des Threads übernimmt.
+    mutable Mutex mtx;      ///< Mutex zum Schutz der internen Daten.
+    ThreadEvent stop_event; ///< Ereignis, das signalisiert, dass der Thread stoppen soll.
+
+    std::atomic<bool> is_running{false};     ///< Flag, das angibt, ob der Thread aktuell läuft.
+    std::atomic<bool> should_stop{false};    ///< Flag, das angibt, ob der Thread ein Stop-Signal erhalten hat.
+    std::atomic<bool> delete_on_exit{false}; ///< Flag, das angibt, ob der Thread nach dem Beenden automatisch gelöscht werden soll.
+    std::atomic<size_t> runcount{0};         ///< Zählt, wie oft der Thread gestartet wurde.
+    uint64_t thread_id{0};                   ///< Die ID des Threads.
+
+    String name;                            ///< Name des Threads, sofern einer gesetzt wurde.
+    Priority my_priority{Priority::NORMAL}; ///< Die Priorität des Threads.
+
+    /** @brief Interne Startfunktion des Threads. */
+    void threadStartUp();
+
+public:
+    /** @brief Konstruktor der Thread-Klasse. Initialisiert die internen Variablen.
+     */
     Thread();
     virtual ~Thread();
-    void threadSetName(const char* name);
-    void threadSuspend();
-    void threadResume();
-    void threadStop();
-    void threadSignalStop();
+
+    // Nicht kopierbar
+    Thread(const Thread&) = delete;
+    Thread& operator=(const Thread&) = delete;
+    Thread(Thread&&) = delete;
+    Thread& operator=(Thread&&) = delete;
+
+    /** @brief Setzt den Namen des Threads.
+     * @param threadName Der Name, der dem Thread zugewiesen werden soll.
+     */
+    void threadSetName(const String& threadName);
+
+    /** @brief Gibt den Namen des Threads zurück.
+     * @return Der Name des Threads als String.
+     */
+    const String& threadGetName() const noexcept;
+
+    /** @brief Startet den Thread. */
     void threadStart();
-    void threadStartUp();
-    int threadIsRunning();
-    int threadIsSuspended();
-    int threadGetFlags();
-    size_t threadRunCount();
-    uint64_t threadGetID();
-    int threadShouldStop();
-    void threadWaitSuspended(int msec = 0);
-    void threadSleep(int msec = 0);
-    void threadDeleteOnExit(int flag = 1);
-    int threadShouldDeleteOnExit();
-    int threadSetPriority(int priority);
-    int threadGetPriority();
-    void threadIdle();
-    int threadSetStackSize(size_t size = 0);
-    size_t threadGetStackSize();
-    size_t threadGetMinimumStackSize();
+
+    /** @brief Signalisiert dem Thread, dass er stoppen soll und wartet
+     * auf dessen Beendigung.
+     *
+     * Der Thread muss selbst regelmäßig threadShouldStop() überprüfen, um auf ein
+     * Stop-Signal zu reagieren.
+     *
+     * @note Diese Methode blockiert, bis der Thread tatsächlich beendet ist.
+     * @note Diese Methode sollte nicht von innerhalb des Threads aufgerufen werden, der gestoppt werden soll.
+     * Hierdurch würde ein Deadlock entstehen. Die Methode fängt diesen Fall ab und wirft eine DeadlockException.
+     * @exception DeadlockException Wenn versucht wird, den Thread von innerhalb desselben Threads zu stoppen.
+     */
+    void threadStop();
+
+    /** @brief Signalisiert dem Thread, dass er stoppen soll, ohne auf dessen Beendigung zu warten.
+     * Der Thread muss selbst regelmäßig threadShouldStop() überprüfen, um auf ein
+     * Stop-Signal zu reagieren.
+     */
+    void threadSignalStop() noexcept;
+
+    /** @brief Wartet auf die Beendigung des Threads. */
     void threadJoin();
 
-    virtual void run();
+    /** @brief Prüft, ob der Thread aktuell läuft.
+     * @return true, wenn der Thread läuft, sonst false.
+     */
+    bool threadIsRunning() const noexcept;
+
+    /** @brief Prüft, ob der Thread ein Stop-Signal erhalten hat.
+     * @return true, wenn der Thread stoppen soll, sonst false.
+     */
+    bool threadShouldStop() const noexcept;
+
+    /** @brief Gibt die Anzahl der bisherigen Ausführungen des Threads zurück.
+     * @return Die Anzahl der bisherigen Ausführungen.
+     */
+    size_t threadRunCount() const noexcept;
+
+    /** @brief Gibt die ID des Threads zurück.
+     * @return Die ID des Threads.
+     */
+    uint64_t threadGetID() const noexcept;
+
+    /** @brief Der Thread schläft für die angegebene Zeit oder bis ein Stop-Signal empfangen wird.
+     * @param msec Schlafdauer in Millisekunden.
+     * @return true, wenn ein Stop-Signal empfangen wurde oder ansteht, false nach regulärem Timeout.
+     */
+    bool threadSleep(int msec)
+    {
+        if (should_stop.load(std::memory_order_acquire)) {
+            return true;
+        }
+        if (stop_event.wait(msec)) {
+            return true;
+        }
+        return should_stop.load(std::memory_order_acquire);
+    }
+
+    /** @brief Legt fest, ob der Thread beim Beenden automatisch gelöscht werden soll.
+     *
+     * Ist dieses Flag auf true gesetzt, wird der Thread beim Beenden automatisch gelöscht (delete).
+     * @param flag true, wenn der Thread beim Beenden gelöscht werden soll, sonst false.
+     */
+    void threadDeleteOnExit(bool flag = true) noexcept;
+
+    /** @brief Prüft, ob der Thread beim Beenden automatisch gelöscht werden soll.
+     * @return true, wenn der Thread beim Beenden gelöscht werden soll, sonst false.
+     */
+    bool threadShouldDeleteOnExit() const noexcept;
+
+    /** @brief Setzt die Priorität des Threads.
+     * @param priority Die neue Priorität des Threads.
+     * @return true, wenn die Priorität erfolgreich gesetzt wurde, sonst false.
+     */
+    bool threadSetPriority(Priority priority);
+
+    /** @brief Gibt die aktuelle Priorität des Threads zurück.
+     * @return Die aktuelle Priorität des Threads.
+     */
+    Priority threadGetPriority() const;
+
+    virtual void run() = 0;
 };
 
+/** @brief Gibt die ID des aktuellen Threads zurück. */
 uint64_t ThreadID();
-uint64_t StartThread(void (*start_routine)(void*), void* data = NULL);
+
+/** @brief Startet einen neuen Thread mit der angegebenen Funktion.
+ * @param func Die Funktion, die im neuen Thread ausgeführt werden soll.
+ * @return Die ID des gestarteten Threads.
+ */
+uint64_t StartThread(std::function<void()> func);
+
+/** @brief Startet einen neuen Thread mit der angegebenen Funktion.
+ * @param start_routine Die Funktion, die im neuen Thread ausgeführt werden soll.
+ * @param data Optionaler Parameter, der an die Startfunktion übergeben wird.
+ * @return Die ID des gestarteten Threads.
+ */
+uint64_t StartThread(void (*start_routine)(void*), void* data = nullptr);
+
+/** @brief Setzt die Priorität des aktuellen Threads.
+ * @param priority Die neue Priorität des Threads.
+ */
 void ThreadSetPriority(Thread::Priority priority);
+
+/** @brief Gibt die aktuelle Priorität des aktuellen Threads zurück. */
 Thread::Priority ThreadGetPriority();
 
 } // namespace pplib

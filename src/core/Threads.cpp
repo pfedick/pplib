@@ -31,892 +31,320 @@
 #include <pplib/core/functions.h>
 #include <pplib/exceptions.h>
 
-#include "config_pplib.h"
+#include <atomic>
+#include <system_error>
 
-#ifdef HAVE_PTHREADS
-#include <pthread.h>
-#endif
-#ifdef HAVE_PTHREAD_NP_H
-#include <pthread_np.h>
-#endif
-
-#ifdef HAVE_SCHED_H
-#include <sched.h>
-#endif
-
-#include <limits.h>
-#include <string.h>
-
-#ifdef _WIN32
-#define _WINSOCKAPI_ /* Prevent inclusion of winsock.h in windows.h */
+#if defined(_WIN32)
+#define _WINSOCKAPI_
 #include <windows.h>
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#include <pthread.h>
+#include <sched.h>
 #endif
 
 namespace pplib
 {
 
-static uint64_t global_thread_id = 0;
-static Mutex GlobalThreadMutex;
-
-#ifdef _WIN32
-Mutex Win32ThreadMutex;
-DWORD Win32ThreadTLS = TLS_OUT_OF_INDEXES;
-#endif
-
-typedef struct tagTHREADDATA
-{
-    uint64_t threadId = 0;
-#ifdef _WIN32
-    HANDLE thread = 0;
-    DWORD dwThreadID = 0;
-#elif defined HAVE_PTHREADS
-    pthread_t thread;
-    pthread_attr_t attr;
-#endif
-} THREADDATA;
-
-typedef struct
-{
-    Thread* threadClass;
-    void (*threadFunction)(void*);
-    void* data;
-    THREADDATA* td;
-} THREADSTARTUP;
-
-static thread_local THREADDATA local_thread_data;
+static std::atomic<uint64_t> global_thread_counter{1};
+static thread_local uint64_t local_thread_id = 0;
 
 uint64_t ThreadID()
 {
-    if (local_thread_data.threadId == 0) {
-        GlobalThreadMutex.lock();
-        local_thread_data.threadId = global_thread_id;
-        global_thread_id++;
-        GlobalThreadMutex.unlock();
+    if (local_thread_id == 0) {
+        local_thread_id = global_thread_counter.fetch_add(1, std::memory_order_relaxed);
     }
-    return local_thread_data.threadId;
+    return local_thread_id;
 }
 
-#ifdef _WIN32
-static DWORD WINAPI ThreadProc(void* param)
-#elif defined HAVE_PTHREADS
-static void* ThreadProc(void* param)
-#endif
+static void applyPriorityToNativeHandle(std::thread::native_handle_type handle, Thread::Priority priority)
 {
-    THREADSTARTUP* ts = (THREADSTARTUP*)param;
-// thread local storage
-#ifdef _WIN32
-    local_thread_data.thread = GetCurrentThread();
-#elif defined HAVE_PTHREADS
-    local_thread_data.thread = pthread_self();
-#endif
-    if (local_thread_data.threadId == 0) {
-        GlobalThreadMutex.lock();
-        local_thread_data.threadId = global_thread_id;
-        global_thread_id++;
-        GlobalThreadMutex.unlock();
+#if defined(_WIN32)
+    int p = THREAD_PRIORITY_NORMAL;
+    switch (priority) {
+    case Thread::Priority::LOWEST:
+        p = THREAD_PRIORITY_LOWEST;
+        break;
+    case Thread::Priority::BELOW_NORMAL:
+        p = THREAD_PRIORITY_BELOW_NORMAL;
+        break;
+    case Thread::Priority::NORMAL:
+        p = THREAD_PRIORITY_NORMAL;
+        break;
+    case Thread::Priority::ABOVE_NORMAL:
+        p = THREAD_PRIORITY_ABOVE_NORMAL;
+        break;
+    case Thread::Priority::HIGHEST:
+        p = THREAD_PRIORITY_HIGHEST;
+        break;
+    default:
+        return;
     }
-    if (ts->threadClass) {
-        ts->td->thread = local_thread_data.thread;
-        ts->td->threadId = local_thread_data.threadId;
-        ts->threadClass->threadStartUp();
-        if (ts->threadClass->threadShouldDeleteOnExit()) delete ts->threadClass;
-    } else {
-        ts->threadFunction(ts->data);
+    SetThreadPriority(reinterpret_cast<HANDLE>(handle), p);
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+    int policy = 0;
+    sched_param param{};
+    if (pthread_getschedparam(handle, &policy, &param) == 0) {
+        int min_prio = sched_get_priority_min(policy);
+        int max_prio = sched_get_priority_max(policy);
+        int normal = (min_prio + max_prio) / 2;
+        switch (priority) {
+        case Thread::Priority::LOWEST:
+            param.sched_priority = min_prio;
+            break;
+        case Thread::Priority::BELOW_NORMAL:
+            param.sched_priority = (min_prio + normal) / 2;
+            break;
+        case Thread::Priority::NORMAL:
+            param.sched_priority = normal;
+            break;
+        case Thread::Priority::ABOVE_NORMAL:
+            param.sched_priority = (normal + max_prio) / 2;
+            break;
+        case Thread::Priority::HIGHEST:
+            param.sched_priority = max_prio;
+            break;
+        default:
+            return;
+        }
+        pthread_setschedparam(handle, policy, &param);
     }
-    local_thread_data.thread = 0;
-    local_thread_data.threadId = 0;
-    free(ts);
-#ifdef HAVE_PTHREADS
-    pthread_exit(NULL);
 #endif
-    return 0;
+}
+
+static void applyNameToNativeHandle([[maybe_unused]] std::thread::native_handle_type handle, [[maybe_unused]] const String& threadName)
+{
+#if defined(__linux__)
+    if (!threadName.isEmpty()) {
+        pthread_setname_np(handle, threadName.toCString());
+    }
+#elif defined(__APPLE__)
+    // Auf macOS kann nur der eigene Thread benannt werden (in run/startup)
+#elif defined(_WIN32)
+    // Optional SetThreadDescription auf Windows 10+
+#endif
+}
+
+void ThreadSetPriority(Thread::Priority priority)
+{
+#if defined(_WIN32)
+    applyPriorityToNativeHandle(reinterpret_cast<std::thread::native_handle_type>(GetCurrentThread()), priority);
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+    applyPriorityToNativeHandle(pthread_self(), priority);
+#endif
+}
+
+Thread::Priority ThreadGetPriority()
+{
+#if defined(_WIN32)
+    int p = GetThreadPriority(GetCurrentThread());
+    switch (p) {
+    case THREAD_PRIORITY_LOWEST:
+        return Thread::Priority::LOWEST;
+    case THREAD_PRIORITY_BELOW_NORMAL:
+        return Thread::Priority::BELOW_NORMAL;
+    case THREAD_PRIORITY_NORMAL:
+        return Thread::Priority::NORMAL;
+    case THREAD_PRIORITY_ABOVE_NORMAL:
+        return Thread::Priority::ABOVE_NORMAL;
+    case THREAD_PRIORITY_HIGHEST:
+        return Thread::Priority::HIGHEST;
+    default:
+        return Thread::Priority::UNKNOWN;
+    }
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+    int policy = 0;
+    sched_param param{};
+    if (pthread_getschedparam(pthread_self(), &policy, &param) != 0) {
+        return Thread::Priority::UNKNOWN;
+    }
+    int min_prio = sched_get_priority_min(policy);
+    int max_prio = sched_get_priority_max(policy);
+    int normal = (min_prio + max_prio) / 2;
+
+    if (param.sched_priority == normal) return Thread::Priority::NORMAL;
+    if (param.sched_priority == min_prio) return Thread::Priority::LOWEST;
+    if (param.sched_priority == max_prio) return Thread::Priority::HIGHEST;
+    if (param.sched_priority < normal) return Thread::Priority::BELOW_NORMAL;
+    if (param.sched_priority > normal) return Thread::Priority::ABOVE_NORMAL;
+    return Thread::Priority::UNKNOWN;
+#else
+    return Thread::Priority::UNKNOWN;
+#endif
+}
+
+uint64_t StartThread(std::function<void()> func)
+{
+    uint64_t assigned_id = global_thread_counter.fetch_add(1, std::memory_order_relaxed);
+    std::thread t([func, assigned_id]() {
+        local_thread_id = assigned_id;
+        try {
+            func();
+        }
+        catch (...) {
+            // Exceptions unterdrücken, um std::terminate zu verhindern
+        }
+    });
+    t.detach();
+    return assigned_id;
 }
 
 uint64_t StartThread(void (*start_routine)(void*), void* data)
 {
-    THREADSTARTUP* ts = (THREADSTARTUP*)malloc(sizeof(THREADSTARTUP));
-    if (!ts) throw OutOfMemoryException();
-    ts->threadClass = NULL;
-    ts->threadFunction = start_routine;
-    ts->data = data;
-    ts->td = new THREADDATA;
-    if (ts->td == NULL) {
-        free(ts);
-        throw OutOfMemoryException();
-    }
-    memset(ts->td, 0, sizeof(THREADDATA));
-    THREADDATA* t = ts->td;
-    GlobalThreadMutex.lock();
-    t->threadId = global_thread_id;
-    global_thread_id++;
-    GlobalThreadMutex.unlock();
-
-#ifdef _WIN32
-    t->thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, ts, 0, &t->dwThreadID);
-    if (t->thread != NULL) {
-        return t->threadId;
-    }
-    throw ThreadStartException();
-#elif defined HAVE_PTHREADS
-    pthread_attr_init(&t->attr);
-    int ret = pthread_create(&t->thread, &t->attr, ThreadProc, ts);
-    if (ret == 0) {
-        pthread_detach(t->thread);
-        return t->threadId;
-    }
-    free(ts);
-    throw ThreadStartException();
-#else
-    throw NoThreadSupportException();
-#endif
-    return true;
+    return StartThread([start_routine, data]() {
+        if (start_routine) {
+            start_routine(data);
+        }
+    });
 }
 
-/*! \brief Priorität des aktuellen Threads ändern
- * \ingroup PPLGroupThreads
- *
- * \ingroup PPLGroupThreadsPriority
- *
- */
-void ThreadSetPriority(Thread::Priority priority)
-{
-#ifdef _WIN32
-    HANDLE h = GetCurrentThread();
-    int p = GetThreadPriority(h);
-    switch (priority) {
-    case Thread::LOWEST:
-        p = THREAD_PRIORITY_LOWEST;
-        break;
-    case Thread::BELOW_NORMAL:
-        p = THREAD_PRIORITY_BELOW_NORMAL;
-        break;
-    case Thread::NORMAL:
-        p = THREAD_PRIORITY_NORMAL;
-        break;
-    case Thread::ABOVE_NORMAL:
-        p = THREAD_PRIORITY_ABOVE_NORMAL;
-        break;
-    case Thread::HIGHEST:
-        p = THREAD_PRIORITY_HIGHEST;
-        break;
-    default:
-        throw IllegalArgumentException();
-    }
-    if (!SetThreadPriority(h, p)) throw ThreadOperationFailedException();
-#elif defined HAVE_PTHREADS
-    struct sched_param s;
-    pthread_t p = pthread_self();
-    int policy, c;
-    c = pthread_getschedparam(p, &policy, &s);
-    if (c != 0) throw ThreadOperationFailedException();
-    int min = sched_get_priority_min(policy);
-    int max = sched_get_priority_max(policy);
-    int normal = (min + max) / 2;
-    switch (priority) {
-    case Thread::LOWEST:
-        s.sched_priority = min;
-        break;
-    case Thread::BELOW_NORMAL:
-        s.sched_priority = normal / 2;
-        break;
-    case Thread::NORMAL:
-        s.sched_priority = normal;
-        break;
-    case Thread::ABOVE_NORMAL:
-        s.sched_priority = normal + normal / 2;
-        break;
-    case Thread::HIGHEST:
-        s.sched_priority = max;
-        break;
-    default:
-        throw IllegalArgumentException();
-    }
-    c = pthread_setschedparam(p, policy, &s);
-    if (c != 0) throw ThreadOperationFailedException();
-#else
-    throw NoThreadSupportException();
-#endif
-}
-
-/*! \brief Priorität des aktuellen Threads abfragen
- * \ingroup PPLGroupThreads
- *
- * \ingroup PPLGroupThreadsPriority
- */
-Thread::Priority ThreadGetPriority()
-{
-#ifdef _WIN32
-    HANDLE h = GetCurrentProcess();
-    int p = GetThreadPriority(h);
-    switch (p) {
-    case THREAD_PRIORITY_LOWEST:
-        return Thread::LOWEST;
-    case THREAD_PRIORITY_BELOW_NORMAL:
-        return Thread::BELOW_NORMAL;
-    case THREAD_PRIORITY_NORMAL:
-        return Thread::NORMAL;
-    case THREAD_PRIORITY_ABOVE_NORMAL:
-        return Thread::ABOVE_NORMAL;
-    case THREAD_PRIORITY_HIGHEST:
-        return Thread::HIGHEST;
-    }
-    return Thread::UNKNOWN;
-#elif defined HAVE_PTHREADS
-    struct sched_param s;
-    pthread_t p = pthread_self();
-    int policy, c;
-    c = pthread_getschedparam(p, &policy, &s);
-    if (c != 0) throw ThreadOperationFailedException();
-    int min = sched_get_priority_min(policy);
-    int max = sched_get_priority_max(policy);
-    int normal = (min + max) / 2;
-
-    if (s.sched_priority == normal) return Thread::NORMAL;
-    if (s.sched_priority == min) return Thread::LOWEST;
-    if (s.sched_priority == max) return Thread::HIGHEST;
-    if (s.sched_priority < normal) return Thread::BELOW_NORMAL;
-    if (s.sched_priority > normal) return Thread::ABOVE_NORMAL;
-    return Thread::UNKNOWN;
-#else
-    throw NoThreadSupportException();
-#endif
-}
-
-/*! \brief Konstruktor der Thread-Klasse
- *
- * Konstruktor der Thread-Klasse. Es werden interne Variablen allokiert und mit
- * Default-Werten gefüllt.
- *
- * \see \ref PPLGroupThreads
- */
 Thread::Thread()
+    : stop_event(true, false) // auto-reset = true, initialState = false
 {
-    threaddata = new THREADDATA;
-    if (!threaddata) throw OutOfMemoryException();
-    memset(threaddata, 0, sizeof(THREADDATA));
-    flags = 0;
-    myPriority = Thread::NORMAL;
-    IsRunning = 0;
-    IsSuspended = 0;
-    deleteMe = 0;
-    runcount = 0;
-#ifdef HAVE_PTHREADS
-    pthread_attr_init(&((THREADDATA*)threaddata)->attr);
-#endif
 }
 
-/*! \brief Destruktor der Thread-Klasse
- *
- * Falls der Thread noch läuft, wird er zunächst gestoppt. Anschließend werden die
- * internen Variablen wieder freigegeben.
- *
- * \see \ref PPLGroupThreads
- */
 Thread::~Thread()
 {
-    threadStop();
-#ifdef HAVE_PTHREADS
-    if (threaddata) {
-        pthread_attr_destroy(&((THREADDATA*)threaddata)->attr);
+    try {
+        threadStop();
     }
-#endif
+    catch (...) {
+    }
 }
 
-void Thread::threadSetName(const char* name)
+void Thread::threadSetName(const String& threadName)
 {
-    THREADDATA* t = (THREADDATA*)threaddata;
-    if (!t || t->thread == 0) return;
-#ifdef HAVE_PTHREADS
-#ifdef HAVE_PTHREAD_SET_NAME_NP
-    pthread_set_name_np(t->thread, name);
-#elif defined HAVE_PTHREAD_SETNAME_NP
-    pthread_setname_np(t->thread, name);
-#endif
-#endif
+    std::lock_guard<Mutex> lock(mtx);
+    name = threadName;
+    if (worker.joinable()) {
+        applyNameToNativeHandle(worker.native_handle(), name);
+    }
 }
 
-/*! \brief Der Thread wird gestoppt
- *
- * Dem Thread wird zunächst signalisiert, dass er stoppen soll. Anschließend wartet die
- * Funktion, bis der Thread sich beendet hat.
- *
- * \note Die Thread-Funktion muß in regelmäßigen Abständen mittels der Funktion
- * ThreadShouldStop überprüfen, ob er stoppen soll. Ist dies der Fall, muß sich die
- * Funktion beenden.
- *
- * \see Thread::ThreadSignalStop
- * \see Thread::ThreadShouldStop
- * \see \ref PPLGroupThreads
- */
-void Thread::threadStop()
+const String& Thread::threadGetName() const noexcept
 {
-    threadmutex.lock();
-    flags |= 1;
-    // THREADDATA *t=(THREADDATA *)threaddata;
-    if (IsSuspended) {
-        threadmutex.signal();
-    }
-    while (IsRunning) {
-        threadmutex.unlock();
-        MSleep(1);
-        threadmutex.lock();
-    }
-    flags = flags & 0xfffffffe;
-    threadmutex.unlock();
+    std::lock_guard<Mutex> lock(mtx);
+    return name;
 }
 
-/*! \brief Dem Thread signalisieren, dass er stoppen soll
- *
- * Dem Thread wird nur signalisiert, dass er stoppen soll.
- *
- * \see Thread::ThreadStop
- * \see Thread::ThreadShouldStop
- * \see \ref PPLGroupThreads
- */
-void Thread::threadSignalStop()
-{
-    threadmutex.lock();
-    flags |= 1;
-    // THREADDATA *t=(THREADDATA *)threaddata;
-    if (IsSuspended) {
-        threadmutex.signal();
-    } else {
-        threadmutex.unlock();
-    }
-}
-
-/*! \brief Der Thread wird gestartet
- *
- * ThreadStart startet den Thread und kehrt sofort zur aufrufenden Funktion zurück.
- *
- * \see Thread::ThreadMain
- * \see \ref PPLGroupThreads
- */
 void Thread::threadStart()
 {
-    if (threadIsRunning()) {
+    std::lock_guard<Mutex> lock(mtx);
+    if (is_running.load(std::memory_order_acquire)) {
         throw ThreadAlreadyRunningException();
     }
-    IsSuspended = 0;
-    IsRunning = 0;
-    THREADSTARTUP* ts = (THREADSTARTUP*)malloc(sizeof(THREADSTARTUP));
-    if (!ts) throw OutOfMemoryException();
-    ts->threadClass = this;
-    ts->threadFunction = NULL;
-    ts->data = NULL;
-    ts->td = (THREADDATA*)threaddata;
-    if (ts->td == NULL) {
-        free(ts);
-        throw OutOfMemoryException();
+    if (worker.joinable()) {
+        worker.join();
     }
-    THREADDATA* t = ts->td;
-    if (t->threadId == 0) {
-        GlobalThreadMutex.lock();
-        t->threadId = global_thread_id;
-        global_thread_id++;
-        GlobalThreadMutex.unlock();
-    }
-#ifdef _WIN32
-    t->thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, ts, 0, &t->dwThreadID);
-    if (t->thread != NULL) {
-        return;
-    }
-    threadmutex.lock();
-    IsRunning = 0;
-    threadmutex.unlock();
-    free(ts);
-    throw ThreadStartException();
-#elif defined HAVE_PTHREADS
-    int ret = pthread_create(&t->thread, &t->attr, ThreadProc, ts);
-    if (ret == 0) {
-        pthread_detach(t->thread);
-        // printf ("Thread erfolgreich gestartet\n");
-        return;
-    }
-    threadmutex.lock();
-    IsRunning = 0;
-    threadmutex.unlock();
-    free(ts);
-    throw ThreadStartException();
-#else
-    free(ts);
-    throw NoThreadSupportException();
-#endif
-}
 
-/*!\brief Der Thread gibt seine CPU-Zeit an andere Threads ab
- */
-void Thread::threadIdle()
-{
-#ifdef _WIN32
-#elif defined HAVE_PTHREADS
-#ifdef SOLARIS
-#else
-    // DEPRECATED, use sched_yield instead
-#ifdef HAVE_SCHED_YIELD
-    sched_yield();
-#elif defined HAVE_PTHREAD_YIELD
-    pthread_yield();
-#endif
-#endif
-#endif
-}
+    should_stop.store(false, std::memory_order_release);
+    stop_event.reset();
+    is_running.store(true, std::memory_order_release);
+    thread_id = global_thread_counter.fetch_add(1, std::memory_order_relaxed);
 
-/*! \brief Der Thread soll pausieren
- *
- * ThreadSuspend setzt das Suspended Flag. Hat nur Auswirkungen, wenn dieses Flag in ThreadMain
- * beachtet wird.
- *
- * \todo Es wäre besser, wenn diese Funktion den Thread Betriebssystemseitig schlafen legen
- * würde, bis ein Resume gegeben wird.
- *
- * \see Thread::ThreadResume
- * \see Thread::ThreadWaitSuspended
- * \see \ref PPLGroupThreads
- */
-void Thread::threadSuspend()
-{
-    threadmutex.lock();
-    flags |= 2;
-    threadmutex.unlock();
-}
+    try {
+        worker = std::thread(&Thread::threadStartUp, this);
+    }
+    catch (const std::system_error&) {
+        is_running.store(false, std::memory_order_release);
+        throw ThreadStartException();
+    }
 
-/*! \brief Der Thread soll weitermachen
- *
- * Dem Thread wird signalisiert, daß er weitermachen soll.
- *
- * \todo Es wäre besser, wenn diese Funktion vom Betriebssystemseitig erledigt würde.
- *
- * \see Thread::ThreadSuspend
- * \see Thread::ThreadWaitSuspended
- * \see \ref PPLGroupThreads
- */
-void Thread::threadResume()
-{
-    threadmutex.lock();
-    flags = flags & ~2;
-    if (IsSuspended) {
-        threadmutex.unlock();
-        threadmutex.signal();
-    } else {
-        threadmutex.unlock();
+    applyPriorityToNativeHandle(worker.native_handle(), my_priority);
+    if (!name.isEmpty()) {
+        applyNameToNativeHandle(worker.native_handle(), name);
     }
 }
 
-/*! \brief Interne Funktion
- *
- * ThreadStartUp wird unmittelbar nach Starten des Threads aufgerufen. Hier werden einige
- * Variablen initialisiert und dann ThreadMain aufgerufen.
- *
- * \note Diese Funktion wird intern verwendet und sollte nicht vom Anwender aufgerufen
- * werden
- *
- * \see Thread::ThreadMain
- * \see \ref PPLGroupThreads
- */
 void Thread::threadStartUp()
 {
-    threadmutex.lock();
-    runcount++;
-    IsRunning = 1;
-    IsSuspended = 0;
-    threadmutex.unlock();
-    threadSetPriority(myPriority);
-    run();
-    threadmutex.lock();
-    flags = 0;
-    IsRunning = 0;
-    IsSuspended = 0;
-    threadmutex.unlock();
-}
+    local_thread_id = thread_id;
+    runcount.fetch_add(1, std::memory_order_relaxed);
 
-/*! \brief Flag setzen: Klasse beim Beenden löschen
- *
- * Dem Thread wird mitgeteilt, ob er beim beenden seine eigene Klasse löschen soll. Der
- * Default ist, dass der Anwender selbst die Klasse löschen muß.
- *
- * \param flag kann entweder 1 (Klasse soll automatisch gelöscht werden) oder 0 sein
- * (Klasse nicht löschen).
- * \see Thread::ThreadDeleteOnExit
- * \see \ref PPLGroupThreads
- */
-void Thread::threadDeleteOnExit(int flag)
-{
-    threadmutex.lock();
-    if (flag)
-        deleteMe = 1;
-    else
-        deleteMe = 0;
-    threadmutex.unlock();
-}
-
-/*! \brief Interne Funktion
- *
- * Diese Funktion wird intern beim beenden des Threads aufgerufen. Liefert sie "true" zurück,
- * wird die Thread-Klasse automatisch mit delete gelöscht.
- *
- * \return Liefert 1 zurück, wenn die Klasse gelöscht werden soll, sonst 0.
- * \see Thread::ThreadDeleteOnExit
- * \see \ref PPLGroupThreads
- */
-int Thread::threadShouldDeleteOnExit()
-{
-    int ret = 0;
-    threadmutex.lock();
-    ret = deleteMe;
-    threadmutex.unlock();
-    if (ret) return 1;
-    return 0;
-}
-
-/*! \brief Status abfragen: Läuft der Thread?
- *
- * Mit dieser Funktion kann überprüft werden, ob der Thread aktuell ausgeführt wird.
- *
- * \return Liefert 1 zurück, wenn der Thread läuft, sonst 0.
- * \see \ref PPLGroupThreads
- */
-int Thread::threadIsRunning()
-{
-    int ret;
-    threadmutex.lock();
-    ret = IsRunning;
-    threadmutex.unlock();
-    return ret;
-}
-
-/*! \brief Status abfragen: Schläft der Thread?
- *
- * Mit dieser Funktion kann überprüft werden, ob der Thread aktuell schläft.
- *
- * \return Liefert 1 zurück, wenn der Thread schläft, sonst 0.
- * \see \ref PPLGroupThreads
- */
-int Thread::threadIsSuspended()
-{
-    int ret;
-    threadmutex.lock();
-    ret = IsSuspended;
-    threadmutex.unlock();
-    return ret;
-}
-
-/*! \brief Flags des Thread auslesen
- *
- * Mit dieser Funktion können die internen Flags ausgelesen werden.
- *
- * \return Liefert den Wert der internen Flag-Variable zurück
- * \deprecated
- * Diese Funktion ist veraltet und sollte nicht mehr verwendet werden.
- * \see \ref PPLGroupThreads
- */
-int Thread::threadGetFlags()
-{
-    int ret;
-    threadmutex.lock();
-    ret = flags;
-    threadmutex.unlock();
-    return ret;
-}
-
-/*! \brief Prüfen, ob der Thread beendet werden soll
- *
- * Diese Funktion liefert \c true zurück, wenn der Thread gestoppt werden soll.
- * Dies ist der Fall, wenn vorher die Funktion ThreadStop oder ThreadShouldStop
- * aufgerufen wurde.
- *
- * \return Liefert 1 zurück, wenn der Thread gestoppt werden soll, sonst 0.
- * \see Thread::ThreadStop
- * \see Thread::ThreadShouldStop
- * \see \ref PPLGroupThreads
- */
-int Thread::threadShouldStop()
-{
-    int ret;
-    threadmutex.lock();
-    ret = flags & 1;
-    threadmutex.unlock();
-    return ret;
-}
-
-size_t Thread::threadRunCount()
-{
-    return runcount;
-}
-
-/*! \brief Prüfen, ob der Thread schlafen soll
- *
- * ThreadWaitSuspended prüft, ob der Thread schlafen (suspend) soll, und wenn
- * ja, wartet sie solange, bis ein unsuspend oder stop signalisiert wird.
- * Der optionale Parameter gibt an, nach wievielen Millisekunden jeweils der Status
- * geprüft werden soll.
- *
- * \param msec Millisekunden, nach denen jeweils der Status geprüft werden soll.
- * Wird der Parameter nicht angegeben, wartet die Funktion so lange, bis entweder
- * die Funktion ThreadResume, TheadSignalStop, ThreadStop oder der Destruktor
- * der Klasse aufgerufen wird.
- *
- * \see Thread::ThreadSuspend
- * \see Thread::ThreadResume
- * \see \ref PPLGroupThreads
- */
-void Thread::threadWaitSuspended(int msec)
-{
-    threadmutex.lock();
-    // THREADDATA *t=(THREADDATA *)threaddata;
-    while ((flags & 3) == 2) {
-        IsSuspended = 1;
-        threadmutex.wait(msec);
+    try {
+        run();
     }
-    IsSuspended = 0;
-    threadmutex.unlock();
-}
-
-void Thread::threadSleep(int msec)
-{
-    threadmutex.lock();
-    IsSuspended = 1;
-    threadmutex.wait(msec);
-    IsSuspended = 0;
-    threadmutex.unlock();
-}
-
-/*! \brief ThreadID zurückgeben
- *
- * Diese Funktion liefert die interne ID des Threads zurück.
- *
- * \return Liefert einen 64-Bit-Wert mit der Thread-ID zurück.
- * \see \ref PPLGroupThreads
- */
-uint64_t Thread::threadGetID()
-{
-    THREADDATA* t = (THREADDATA*)threaddata;
-    if (!t) return 0;
-    return t->threadId;
-}
-
-/*!\brief Einsprungfunktion bei Start des Threads
- *
- * ThreadMain ist die Funktion, die nach Starten des Threads aufgerufen wird.
- * Sie muß von der abgeleiteten Klasse überschrieben werden und enthält den vom
- * Thread auszuführenden Code.
- *
- * \return Die Funktion liefert keinen Return-Wert, jedoch wird bei Verlassen
- * der Funktion der Thread automatisch gestoppt. Wurde zuvor die Funktion
- * Thread::ThreadShouldDeleteOnExit() aufgerufen, wird außerdem die Klasse
- * mit delete gelöscht.
- * \see \ref PPLGroupThreads
- * \par Example
- * \include Thread_ThreadMain.cpp
- */
-void Thread::run()
-{
-}
-
-/*! \brief Priorität des Threads auslesen
- * \ingroup PPLGroupThreadsPriority
- *
- * Liefert die Priorität des Threads zurück.
- *
- * \return liefert einen Wert zurück, der die Priorität des Threads angibt.
- * \see \ref PPLGroupThreads
- */
-int Thread::threadGetPriority()
-{
-#ifdef _WIN32
-    THREADDATA* t = (THREADDATA*)threaddata;
-    int p = GetThreadPriority(t->thread);
-    switch (p) {
-    case THREAD_PRIORITY_LOWEST:
-        return LOWEST;
-    case THREAD_PRIORITY_BELOW_NORMAL:
-        return BELOW_NORMAL;
-    case THREAD_PRIORITY_NORMAL:
-        return NORMAL;
-    case THREAD_PRIORITY_ABOVE_NORMAL:
-        return ABOVE_NORMAL;
-    case THREAD_PRIORITY_HIGHEST:
-        return HIGHEST;
+    catch (...) {
+        // Exception in run() abfangen, damit der Gesamtprozess nicht mit std::terminate abbricht
     }
-#elif defined HAVE_PTHREADS
-    THREADDATA* t = (THREADDATA*)threaddata;
-    struct sched_param s;
-    int policy, c;
-    c = pthread_getschedparam(t->thread, &policy, &s);
-    if (c != 0) return 0;
-    int min = sched_get_priority_min(policy);
-    int max = sched_get_priority_max(policy);
-    int normal = (min + max) / 2;
 
-    if (s.sched_priority == normal) return NORMAL;
-    if (s.sched_priority == min) return LOWEST;
-    if (s.sched_priority == max) return HIGHEST;
-    if (s.sched_priority < normal) return BELOW_NORMAL;
-    if (s.sched_priority > normal) return ABOVE_NORMAL;
-    return UNKNOWN;
+    is_running.store(false, std::memory_order_release);
 
-#else
-    return UNKNOWN;
-#endif
-
-    return UNKNOWN;
-}
-
-/*! \brief Priorität des Threads ändern
- * \ingroup PPLGroupThreadsPriority
- *
- * Setz die Priorität des Threads
- * \param priority Gibt die Priorität des Threads an. Die möglichen Werte sind im
- * Kapitel \link PPLGroupThreadsPriority Thread Prioritäten \endlink beschrieben.
- * \return Liefert 1 zurück, wenn die Priorität erfolgreich geändert wurde, sonst 0.
- * \see \ref PPLGroupThreads
- */
-int Thread::threadSetPriority(int priority)
-{
-    THREADDATA* t = (THREADDATA*)threaddata;
-    myPriority = priority;
-    if (!t->thread) return 0;
-#ifdef _WIN32
-    int p = GetThreadPriority(t->thread);
-    switch (priority) {
-    case LOWEST:
-        p = THREAD_PRIORITY_LOWEST;
-        break;
-    case BELOW_NORMAL:
-        p = THREAD_PRIORITY_BELOW_NORMAL;
-        break;
-    case NORMAL:
-        p = THREAD_PRIORITY_NORMAL;
-        break;
-    case ABOVE_NORMAL:
-        p = THREAD_PRIORITY_ABOVE_NORMAL;
-        break;
-    case HIGHEST:
-        p = THREAD_PRIORITY_HIGHEST;
-        break;
+    if (delete_on_exit.load(std::memory_order_acquire)) {
+        // Bei delete_on_exit muss der Thread vorher detached werden,
+        // da delete this den Destruktor ruft, der sonst worker.join() auf sich selbst ausführen würde!
+        worker.detach();
+        delete this;
     }
-    if (SetThreadPriority(t->thread, p)) return 1;
-    return 0;
-#elif defined HAVE_PTHREADS
-    struct sched_param s;
-    int policy, c;
-    c = pthread_getschedparam(t->thread, &policy, &s);
-    if (c != 0) return 0;
-    int min = sched_get_priority_min(policy);
-    int max = sched_get_priority_max(policy);
-    int normal = (min + max) / 2;
-    switch (priority) {
-    case LOWEST:
-        s.sched_priority = min;
-        break;
-    case BELOW_NORMAL:
-        s.sched_priority = normal / 2;
-        break;
-    case NORMAL:
-        s.sched_priority = normal;
-        break;
-    case ABOVE_NORMAL:
-        s.sched_priority = normal + normal / 2;
-        break;
-    case HIGHEST:
-        s.sched_priority = max;
-        break;
-    default:
-        return 0;
-    }
-    c = pthread_setschedparam(t->thread, policy, &s);
-    if (c == 0) return 1;
-    return 0;
-#else
-    return 0;
-#endif
 }
 
-/*! \brief Stack-Größe des Threads setzen
- * \ingroup PPLGroupThreadsStacksize
- *
- * \see \ref PPLGroupThreadsStacksize
- * \see \ref PPLGroupThreads
- */
-int Thread::threadSetStackSize(size_t size)
+void Thread::threadStop()
 {
-#ifdef HAVE_PTHREADS
-#ifndef _POSIX_THREAD_ATTR_STACKSIZE
-    throw UnsupportedFeatureException("Thread::threadSetStackSize");
-#endif
-    THREADDATA* t = (THREADDATA*)threaddata;
-    if (size == 0) size = PTHREAD_STACK_MIN;
-    if (size < (size_t)PTHREAD_STACK_MIN) {
-        throw IllegalArgumentException("Stacksize must not be smaller than %u Bytes", PTHREAD_STACK_MIN);
-        return 0;
-    }
-    if (pthread_attr_setstacksize(&t->attr, size) == 0) return 1;
-#endif
-    return 0;
+    threadSignalStop();
+    threadJoin();
 }
 
-size_t Thread::threadGetMinimumStackSize()
-/*! \brief Minimale Stack-Größe auslesen
- * \ingroup PPLGroupThreadsStacksize
- *
- * \see \ref PPLGroupThreadsStacksize
- * \see \ref PPLGroupThreads
- */
+void Thread::threadSignalStop() noexcept
 {
-#ifdef HAVE_PTHREADS
-#ifndef _POSIX_THREAD_ATTR_STACKSIZE
-    throw UnsupportedFeatureException("Thread::threadGetMinimumStackSize");
-#endif
-    return PTHREAD_STACK_MIN;
-#endif
-    return 0;
-}
-
-/*! \brief Stack-Größe des Threads auslesen
- * \ingroup PPLGroupThreadsStacksize
- *
- * \see \ref PPLGroupThreadsStacksize
- * \see \ref PPLGroupThreads
- */
-size_t Thread::threadGetStackSize()
-{
-#ifdef HAVE_PTHREADS
-#ifndef _POSIX_THREAD_ATTR_STACKSIZE
-    throw UnsupportedFeatureException("Thread::threadGetStackSize");
-#endif
-    THREADDATA* t = (THREADDATA*)threaddata;
-    size_t s;
-    if (pthread_attr_getstacksize(&t->attr, &s) == 0) return s;
-#endif
-    return 0;
+    should_stop.store(true, std::memory_order_release);
+    stop_event.set();
 }
 
 void Thread::threadJoin()
 {
-#ifdef _WIN32
-    THREADDATA* t = (THREADDATA*)threaddata;
-    DWORD ret = WaitForSingleObject(t->thread, INFINITE);
-    if (ret != 0) {
-        ThreadOperationFailedException();
+    if (std::this_thread::get_id() == worker.get_id()) {
+        // Ein Thread darf sich nicht selbst joinen -> Deadlock
+        throw DeadlockException();
     }
-#elif defined HAVE_PTHREADS
-    THREADDATA* t = (THREADDATA*)threaddata;
-    int ret = pthread_join(t->thread, NULL);
-    if (ret != 0) {
-        switch (ret) {
-        case EDEADLK:
-            throw DeadlockException();
-        case EINVAL:
-            ThreadOperationFailedException("Thread is not joinable");
-        case ESRCH:
-            ThreadOperationFailedException("Thread not found");
-        default:
-            pplib::throwExceptionFromErrno(ret, "Thread is not joinable");
-        }
+
+    if (worker.joinable()) {
+        worker.join();
     }
-#else
-    throw UnsupportedFeatureException("Thread::threadJoin");
-#endif
+}
+
+bool Thread::threadIsRunning() const noexcept
+{
+    return is_running.load(std::memory_order_acquire);
+}
+
+bool Thread::threadShouldStop() const noexcept
+{
+    return should_stop.load(std::memory_order_acquire);
+}
+
+size_t Thread::threadRunCount() const noexcept
+{
+    return runcount.load(std::memory_order_relaxed);
+}
+
+uint64_t Thread::threadGetID() const noexcept
+{
+    return thread_id;
+}
+
+void Thread::threadDeleteOnExit(bool flag) noexcept
+{
+    delete_on_exit.store(flag, std::memory_order_release);
+}
+
+bool Thread::threadShouldDeleteOnExit() const noexcept
+{
+    return delete_on_exit.load(std::memory_order_acquire);
+}
+
+bool Thread::threadSetPriority(Priority priority)
+{
+    std::lock_guard<Mutex> lock(mtx);
+    my_priority = priority;
+    if (worker.joinable()) {
+        applyPriorityToNativeHandle(worker.native_handle(), my_priority);
+    }
+    return true;
+}
+
+Thread::Priority Thread::threadGetPriority() const
+{
+    std::lock_guard<Mutex> lock(mtx);
+    return my_priority;
 }
 
 } // namespace pplib

@@ -37,6 +37,7 @@
 #include <pplib/core/regex.h>
 #include <pplib/core/timer.h>
 #include <pplib/core/mutex.h>
+#include <pplib/core/threadevent.h>
 #include <pplib/core/signal.h>
 #include <pplib/core/threads.h>
 #include <pplib/core/fileobject.h>
