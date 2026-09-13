@@ -69,9 +69,11 @@ ThreadPool::~ThreadPool()
  * Der angegebene Thread \p thread wird dem Pool hinzugefügt.
  *
  * @param thread Pointer auf dem Thread
+ * @exception IllegalArgumentException Wird geworfen, wenn der übergebene Thread-Pointer \p thread nullptr ist.
  */
 void ThreadPool::addThread(Thread* thread)
 {
+    if (!thread) throw IllegalArgumentException("ThreadPool::addThread");
     MutexLock lock(mutex);
     std::pair<std::set<Thread*>::iterator, bool> ret;
     ret = threads.insert(thread);
@@ -85,9 +87,12 @@ void ThreadPool::addThread(Thread* thread)
  * anschließend dafür verantwortlich den Thread zu stoppen und zu löschen.
  *
  * @param thread Pointer auf dem Thread
+ *
+ * @exception IllegalArgumentException Wird geworfen, wenn der übergebene Thread-Pointer \p thread nullptr ist.
  */
 void ThreadPool::removeThread(Thread* thread)
 {
+    if (!thread) throw IllegalArgumentException("ThreadPool::destroyThread");
     MutexLock lock(mutex);
     threads.erase(thread);
 }
@@ -99,9 +104,12 @@ void ThreadPool::removeThread(Thread* thread)
  * war, und anschließend gelöscht. Falls notwendig, wird er vorher noch gestoppt.
  *
  * @param thread Pointer auf dem Thread
+ *
+ * @exception IllegalArgumentException Wird geworfen, wenn der übergebene Thread-Pointer \p thread nullptr ist.
  */
 void ThreadPool::destroyThread(Thread* thread)
 {
+    if (!thread) throw IllegalArgumentException("ThreadPool::destroyThread");
     MutexLock lock(mutex);
     threads.erase(thread);
     delete thread;
@@ -139,65 +147,6 @@ void ThreadPool::destroyAllThreads()
     threads.clear();
 }
 
-/*!\brief Iterator auf den ersten Thread im Pool
- *
- * \desc
- * Liefert einen Iterator auf den ersten Thread im Pool zurück.
- *
- * \note Falls Sie mit ThreadPool::begin und ThreadPool::end über alle Threads iterieren
- * wollen und die Gefahr besteht, dass andere Threads den Pool verändern könnten, sollten Sie
- * den Pool vorher mittels ThreadPool::lock sperren und am Ende mit ThreadPool::unlock wieder
- * freigeben.
- *
- * @return Iterator auf den ersten Thread im Pool
- *
- * @example Beispiel zum Iterieren über alle Threads
- * \code
- * ThreadPool pool;
- * ...
- * ThreadPool::iterator it;
- * pool.lock();
- * for (it=pool.begin();it!=pool.end();++it) {
- *    printf ("Thread %llu is %s\n",
- *        (*it)->threadGetID(),
- *        ((*it)->threadIsRunning()?"running":"stopped"));
- * }
- * pool.unlock();
- * \endcode
- */
-ThreadPool::iterator ThreadPool::begin()
-{
-    return threads.begin();
-}
-
-/*!@copydoc ThreadPool::begin()
- */
-ThreadPool::const_iterator ThreadPool::begin() const
-{
-    return threads.begin();
-}
-
-/*!\brief Iterator auf das Ende des ThreadPools
- *
- * \desc
- * Liefert einen Iterator zurück, der hinter den letzten Thread im Pool zeigt.
- *
- * \see ThreadPool::begin
- *
- * @return Iterator auf das Ende des ThreadPools
- */
-ThreadPool::iterator ThreadPool::end()
-{
-    return threads.end();
-}
-
-/*!@copydoc ThreadPool::end()
- */
-ThreadPool::const_iterator ThreadPool::end() const
-{
-    return threads.end();
-}
-
 /*!\brief Threads auffordern zu stoppen
  *
  * \desc
@@ -226,8 +175,13 @@ void ThreadPool::signalStopThreads()
 void ThreadPool::stopThreads()
 {
     signalStopThreads();
-    while (running()) {
-        MSleep(1);
+    std::vector<Thread*> copy;
+    {
+        MutexLock lock(mutex);
+        copy.assign(threads.begin(), threads.end());
+    }
+    for (auto* t : copy) {
+        t->threadJoin();
     }
 }
 
@@ -254,21 +208,7 @@ void ThreadPool::startThreads()
  *
  * @return Anzahl Threads
  */
-size_t ThreadPool::size()
-{
-    MutexLock lock(mutex);
-    size_t num = threads.size();
-    return num;
-}
-
-/*!\brief Anzahl Threads im Pool
- *
- * \desc
- * Liefert die Anzahl Threads im Pool zurück, unabhängig davon, ob sie grade aktiv sind.
- *
- * @return Anzahl Threads
- */
-size_t ThreadPool::count()
+size_t ThreadPool::size() const
 {
     MutexLock lock(mutex);
     size_t num = threads.size();
@@ -282,7 +222,7 @@ size_t ThreadPool::count()
  *
  * @return Anzahl Threads
  */
-size_t ThreadPool::count_running()
+size_t ThreadPool::count_running() const
 {
     std::set<Thread*>::const_iterator it;
     size_t count = 0;
@@ -300,7 +240,7 @@ size_t ThreadPool::count_running()
  *
  * @return Gibt \b true oder \b false zurück
  */
-bool ThreadPool::running()
+bool ThreadPool::running() const
 {
     std::set<pplib::Thread*>::const_iterator it;
     MutexLock lock(mutex);
@@ -310,36 +250,6 @@ bool ThreadPool::running()
         }
     }
     return false;
-}
-
-/*!\brief %ThreadPool sperren
- *
- * \desc
- * Falls mehrere Operationen durchgeführt werden sollen, zwischen denen sich der Pool nicht
- * ändern darf (zum Beispiel beim Durchiterieren) kann der Pool vorher mit dieser Methode
- * gesperrt werden. Nach Abschluss der Operationen muss der Pool mit  ThreadPool::unlock wieder
- * freigegeben werden.
- *
- * \exception DeadlockException Wird geworfen, wenn durch das Sperren des Mutex ein
- * Deadlock entstehen würde
- * \exception MutexLockingException Mutex konnte nicht gesperrt werden
- */
-void ThreadPool::lock()
-{
-    mutex.lock();
-}
-
-/*!\brief %ThreadPool entsperren
- *
- * \desc
- * Entsperrt einen zuvor mit ThreadPool::lock gesperrten Pool.
- *
- * \exception MutexNotLockedException Mutex war nicht gesperrt
- * \exception MutexLockingException Mutex konnte nicht entsperrt werden
- */
-void ThreadPool::unlock()
-{
-    mutex.unlock();
 }
 
 } // namespace pplib

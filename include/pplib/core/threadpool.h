@@ -42,32 +42,33 @@ class ThreadPool
 {
 private:
     std::set<Thread*> threads;
-    pplib::Mutex mutex;
+    mutable pplib::Mutex mutex;
 
 public:
-    typedef std::set<Thread*>::iterator iterator;
-    typedef std::set<Thread*>::const_iterator const_iterator;
-
     ~ThreadPool();
+
+    ThreadPool(const ThreadPool&) = delete;
+    ThreadPool& operator=(const ThreadPool&) = delete;
+    ThreadPool(ThreadPool&&) = delete;
+    ThreadPool& operator=(ThreadPool&&) = delete;
 
     void addThread(Thread* thread);
     void removeThread(Thread* thread);
     void destroyThread(Thread* thread);
     void clear();
     void destroyAllThreads();
-    ThreadPool::iterator begin();
-    ThreadPool::const_iterator begin() const;
-    ThreadPool::iterator end();
-    ThreadPool::const_iterator end() const;
     void signalStopThreads();
     void stopThreads();
     void startThreads();
-    size_t size();
-    size_t count();
-    size_t count_running();
-    bool running();
-    void lock();
-    void unlock();
+    size_t size() const;
+    size_t count_running() const;
+    bool running() const;
+
+    std::vector<Thread*> getThreads() const
+    {
+        MutexLock lock(mutex);
+        return std::vector<Thread*>(threads.begin(), threads.end());
+    }
 };
 
 } // namespace pplib

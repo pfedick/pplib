@@ -25,6 +25,8 @@ Mitgelesen: `include/pplib/core/threads.h` + `src/core/Threads.cpp`, da `ThreadP
   Fix: Externe Iteratoren entfernen oder durch Thread-sichere Callbacks ersetzen (z.B. `forEach(std::function<void(Thread&)>)`),
   oder bei Beibehaltung einer Range-basierten API eine temporäre Snapshot-Kopie der Pointer unter Lock zurückgeben.
 
+  ==> FIXED, Iteration erfolgt nun über `getThreads()` mit Snapshot-Kopie unter Lock. Ursprüngliche `begin()`/`end()`-Methoden wurden entfernt, ebenso `lock()`/`unlock()`.
+
 - [ ] **`ThreadPool` ist unbeschränkt kopierbar → Flache Kopie des Pointers-Sets & Double-Free** (threadpool.h:35-64)
   `ThreadPool` deklariert weder Kopier-/Move-Konstruktor noch Zuweisungsoperatoren (`Rule of Three/Five` verletzt).
   Der Compiler generiert standardmäßig flache Kopien:
@@ -44,6 +46,8 @@ Mitgelesen: `include/pplib/core/threads.h` + `src/core/Threads.cpp`, da `ThreadP
   ThreadPool(ThreadPool&&) = delete;
   ThreadPool& operator=(ThreadPool&&) = delete;
   ```
+
+  ==> FIXED
 
 - [ ] **Deadlock-Gefahr / Ineffizienz in `stopThreads()` durch aktives Polling** (ThreadPool.cpp:226-234)
   ```cpp
@@ -76,6 +80,8 @@ Mitgelesen: `include/pplib/core/threads.h` + `src/core/Threads.cpp`, da `ThreadP
   }
   ```
 
+  ==> FIXED, Beispiel hab ich so übernommen
+
 ## Bugs (mittel)
 
 - [ ] **Inkonsistenter `nullptr`-Umgang bei `addThread()`, `removeThread()`, `destroyThread()`** (ThreadPool.cpp:73-109)
@@ -88,12 +94,16 @@ Mitgelesen: `include/pplib/core/threads.h` + `src/core/Threads.cpp`, da `ThreadP
   ```
   Und in `removeThread()` / `destroyThread()` bei `nullptr` frühzeitig abbrechen (`if (!thread) return;`).
 
+  ==> FIXED
+
 - [ ] **Unnötig exponierter interner Mutex (`lock()`, `unlock()`)** (threadpool.h:61-62, ThreadPool.cpp:315-343)
   Der Aufrufer kann von außen `lock()` und `unlock()` aufrufen. Vergisst er das `unlock()`, ist der gesamte Pool
   permanent blockiert. Alle anderen Methoden (`addThread`, `count`, `clear`, etc.) sperren den Mutex bereits intern
   über `MutexLock`.
   Der einzige historische Grund für `lock()/unlock()` war die ungeschützte Iteration über `begin()`/`end()`.
   Fix: `lock()` und `unlock()` aus der öffentlichen Schnittstelle entfernen, sobald Iteration thread-sicher gekapselt ist.
+
+  ==> FIXED, Iteration erfolgt nun über `getThreads()` mit Snapshot-Kopie unter Lock. Ursprüngliche `begin()`/`end()`-Methoden wurden entfernt, ebenso `lock()`/`unlock()`.
 
 ## Design
 
@@ -105,15 +115,21 @@ Mitgelesen: `include/pplib/core/threads.h` + `src/core/Threads.cpp`, da `ThreadP
   Fix: Entweder klar dokumentieren, dass Threads im Pool niemals `threadDeleteOnExit(true)` nutzen dürfen,
   oder Ownership modernisieren (z.B. `std::unique_ptr<Thread>` / `std::shared_ptr<Thread>`).
 
+  ==> TODO, Da muss ich noch drüber nachdenken
+
 - [ ] **Redundante Methoden: `size()` und `count()`** (ThreadPool.cpp:257-280)
   Beide Methoden machen exakt dasselbe (`return threads.size();`). `count()` ist verwirrend, da bei STL-Containern
   `count(key)` die Anzahl von Elementen zu einem Schlüssel prüft, nicht die Gesamtgröße.
   Fix: `count()` als `deprecated` markieren oder zugunsten des STL-konformen `size()` entfernen.
 
+  ==> FIXED, Da wir eh einen Major-Versionssprung machen, nehme ich count() raus.
+
 - [ ] **Fehlende `const`-Korrektheit & `noexcept`** (threadpool.h:46-60)
   Methoden wie `size()`, `count()`, `count_running()`, `running()` modifizieren den Pool logisch nicht,
   sind aber nicht `const` deklariert (weil der Mutex nicht `mutable` war).
   Fix: `mutable pplib::Mutex mutex;` und Lese-Methoden als `const` deklarieren.
+
+  ==> FIXED, Mutex ist mutable, Lese-Methoden sind nun `const`.
 
 ## Doku / Kosmetik
 
@@ -126,6 +142,8 @@ Mitgelesen: `include/pplib/core/threads.h` + `src/core/Threads.cpp`, da `ThreadP
   - In `ThreadPool::lock` und `unlock` (ThreadPool.cpp:322-340) werden noch `DeadlockException`, `MutexLockingException`
     und `MutexNotLockedException` dokumentiert, obwohl `Mutex` diese Exceptions gar nicht mehr wirft.
   - Das Codebeispiel in `ThreadPool::begin()` nutzt veraltetes `printf` mit `%llu`.
+
+  ===> FIXED, die Methoden wurden entfernt.
 
 ## Verifiziert OK (kein Handlungsbedarf)
 
