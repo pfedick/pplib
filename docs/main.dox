@@ -39,21 +39,19 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
 - \subpage pplib "PPLIB Namespace"
 - <a class="el" href="classes.html">Die Klassen</a>
 - <a class="el" href="modules.html">Übersicht der Module</a>
-	- \subpage PPLIB_Features
-    - \subpage Errors
-    - \subpage PPLGroupThreads
-    - \subpage PPLGroupMemory
-    - \subpage PPLGroupMath
-    - \subpage PPLGroupDateTime
-    - \subpage PPLGroupStrings
-    - \subpage PPLGroupFileIO
-    - \subpage PPLGroupGrafik
-    - \subpage PPLGroupToolkit
-    - \subpage PPLGroupSound
-    - \subpage PPLGroupInternet
-    - \subpage PPLGroupDatabases
-    - \subpage PPLIB_CRYPT
-    - \subpage PPLIB_COMPRESSION
+  - \subpage PPLGroupThreads
+  - \subpage PPLGroupMemory
+  - \subpage PPLGroupMath
+  - \subpage PPLGroupDateTime
+  - \subpage PPLGroupStrings
+  - \subpage PPLGroupFileIO
+  - \subpage PPLGroupGrafik
+  - \subpage PPLGroupToolkit
+  - \subpage PPLGroupSound
+  - \subpage PPLGroupInternet
+  - \subpage PPLGroupDatabases
+  - \subpage PPLIB_CRYPT
+  - \subpage PPLIB_COMPRESSION
     
     
 - Sonstiges

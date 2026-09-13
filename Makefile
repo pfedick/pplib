@@ -114,6 +114,7 @@ html:
 	mkdir -p documentation/html
 	doxygen Doxyfile
 	cp docs/header-bg.png documentation/html
+	cp docs/pplib-icon-48x48.png documentation/html
 
 .PHONY: tests
 tests:

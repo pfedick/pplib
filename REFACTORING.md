@@ -121,6 +121,7 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - AssocArray refaktoriert
 - Alte Curl-Klasse entfernt und durch HttpRequest, HttpResponse und HttpClient ersetzt
 - Exceptions-Klassen überarbeitet und gereviewed
+- Neue ThreadEvent eingeführt, inklusive Doku und Codereview. Tests stehen noch aus.
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft
