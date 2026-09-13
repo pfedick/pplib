@@ -243,12 +243,8 @@ TEST(ThreadTest, PriorityHandling)
     t.threadStop();
 
     // Globale Prioritätsfunktionen für aktuellen Thread
-    for (auto prio : {pplib::Thread::Priority::LOWEST,
-                      pplib::Thread::Priority::BELOW_NORMAL,
-                      pplib::Thread::Priority::NORMAL,
-                      pplib::Thread::Priority::ABOVE_NORMAL,
-                      pplib::Thread::Priority::HIGHEST,
-                      pplib::Thread::Priority::UNKNOWN}) {
+    for (auto prio : {pplib::Thread::Priority::LOWEST, pplib::Thread::Priority::BELOW_NORMAL, pplib::Thread::Priority::NORMAL,
+                      pplib::Thread::Priority::ABOVE_NORMAL, pplib::Thread::Priority::HIGHEST, pplib::Thread::Priority::UNKNOWN}) {
         pplib::ThreadSetPriority(prio);
         (void)pplib::ThreadGetPriority();
     }
