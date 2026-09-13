@@ -28,6 +28,7 @@
  *******************************************************************************/
 
 #include <pplib/core/threads.h>
+#include <pplib/core/mutex.h>
 #include <pplib/core/threadpool.h>
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
@@ -71,10 +72,9 @@ ThreadPool::~ThreadPool()
  */
 void ThreadPool::addThread(Thread* thread)
 {
+    MutexLock lock(mutex);
     std::pair<std::set<Thread*>::iterator, bool> ret;
-    mutex.lock();
     ret = threads.insert(thread);
-    mutex.unlock();
     if (ret.second == false) throw ThreadAlreadyInPoolException();
 }
 
@@ -88,9 +88,8 @@ void ThreadPool::addThread(Thread* thread)
  */
 void ThreadPool::removeThread(Thread* thread)
 {
-    mutex.lock();
+    MutexLock lock(mutex);
     threads.erase(thread);
-    mutex.unlock();
 }
 
 /*!\brief Thread aus aus dem Pool entfernen und löschen
@@ -103,9 +102,8 @@ void ThreadPool::removeThread(Thread* thread)
  */
 void ThreadPool::destroyThread(Thread* thread)
 {
-    mutex.lock();
+    MutexLock lock(mutex);
     threads.erase(thread);
-    mutex.unlock();
     delete thread;
 }
 
@@ -119,9 +117,8 @@ void ThreadPool::destroyThread(Thread* thread)
  */
 void ThreadPool::clear()
 {
-    mutex.lock();
+    MutexLock lock(mutex);
     threads.clear();
-    mutex.unlock();
 }
 
 /*!\brief Alle Threads stoppen, aus dem Pool entfernen und löschen
@@ -134,13 +131,12 @@ void ThreadPool::clear()
 void ThreadPool::destroyAllThreads()
 {
     stopThreads();
-    mutex.lock();
+    MutexLock lock(mutex);
     std::set<Thread*>::iterator it;
     for (it = threads.begin(); it != threads.end(); ++it) {
         delete (*it);
     }
     threads.clear();
-    mutex.unlock();
 }
 
 /*!\brief Iterator auf den ersten Thread im Pool
@@ -212,11 +208,10 @@ ThreadPool::const_iterator ThreadPool::end() const
 void ThreadPool::signalStopThreads()
 {
     std::set<Thread*>::iterator it;
-    mutex.lock();
+    MutexLock lock(mutex);
     for (it = threads.begin(); it != threads.end(); ++it) {
         (*it)->threadSignalStop();
     }
-    mutex.unlock();
 }
 
 /*!\brief Threads stoppen
@@ -231,7 +226,6 @@ void ThreadPool::signalStopThreads()
 void ThreadPool::stopThreads()
 {
     signalStopThreads();
-    std::set<Thread*>::iterator it;
     while (running()) {
         MSleep(1);
     }
@@ -245,13 +239,12 @@ void ThreadPool::stopThreads()
 void ThreadPool::startThreads()
 {
     std::set<Thread*>::iterator it;
-    mutex.lock();
+    MutexLock lock(mutex);
     for (it = threads.begin(); it != threads.end(); ++it) {
         if ((*it)->threadIsRunning() == false) {
             (*it)->threadStart();
         }
     }
-    mutex.unlock();
 }
 
 /*!\brief Anzahl Threads im Pool
@@ -263,9 +256,8 @@ void ThreadPool::startThreads()
  */
 size_t ThreadPool::size()
 {
-    mutex.lock();
+    MutexLock lock(mutex);
     size_t num = threads.size();
-    mutex.unlock();
     return num;
 }
 
@@ -278,9 +270,8 @@ size_t ThreadPool::size()
  */
 size_t ThreadPool::count()
 {
-    mutex.lock();
+    MutexLock lock(mutex);
     size_t num = threads.size();
-    mutex.unlock();
     return num;
 }
 
@@ -295,11 +286,10 @@ size_t ThreadPool::count_running()
 {
     std::set<Thread*>::const_iterator it;
     size_t count = 0;
-    mutex.lock();
+    MutexLock lock(mutex);
     for (it = threads.begin(); it != threads.end(); ++it) {
         if ((*it)->threadIsRunning()) count++;
     }
-    mutex.unlock();
     return count;
 }
 
@@ -313,14 +303,12 @@ size_t ThreadPool::count_running()
 bool ThreadPool::running()
 {
     std::set<pplib::Thread*>::const_iterator it;
-    mutex.lock();
+    MutexLock lock(mutex);
     for (it = threads.begin(); it != threads.end(); ++it) {
         if ((*it)->threadIsRunning()) {
-            mutex.unlock();
             return true;
         }
     }
-    mutex.unlock();
     return false;
 }
 
