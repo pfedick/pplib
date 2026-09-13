@@ -350,25 +350,27 @@ char* MemFile::fgets(char* buffer1, size_t num)
 
 wchar_t* MemFile::fgetws(wchar_t* buffer1, size_t num)
 {
-    if (MemBase != NULL) {
-        if (pos >= mysize) throw EndOfFileException();
-        // uint64_t by;
-        // by=(num-1)*sizeof(wchar_t);
-        // if (pos+by>mysize) by=(uint64_t)(mysize-pos);
-        wchar_t* ptr = (wchar_t*)(MemBase + pos);
-        uint64_t i;
-        for (i = 0; i < (num - 1); i++) {
-            if ((buffer1[i] = ptr[i]) == L'\n') {
-                i++;
-                break;
-            }
+    if (MemBase == NULL) throw FileNotOpenException();
+    if (num == 0) return NULL;
+    if (pos >= mysize) throw EndOfFileException();
+
+    size_t available_wchars = (mysize - pos) / sizeof(wchar_t);
+    size_t max_read = (num - 1 < available_wchars) ? (num - 1) : available_wchars;
+
+    wchar_t* ptr = (wchar_t*)(MemBase + pos);
+    size_t i = 0;
+    for (i = 0; i < max_read; i++) {
+        wchar_t ch; // temporärer Speicher für das gelesene wchar_t, korrekt aligned für wchar_t
+        memcpy(&ch, MemBase + pos + (i * sizeof(wchar_t)), sizeof(wchar_t));
+        buffer1[i] = ptr[i];
+        if (ptr[i] == L'\n') {
+            i++;
+            break;
         }
-        buffer1[i] = 0;
-        pos += (i * sizeof(wchar_t));
-        if (pos >= mysize) throw EndOfFileException();
-        return buffer1;
     }
-    throw FileNotOpenException();
+    buffer1[i] = 0;
+    pos += i * sizeof(wchar_t);
+    return buffer1;
 }
 
 void MemFile::fputs(const char* str)
