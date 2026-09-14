@@ -27,6 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <climits>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
