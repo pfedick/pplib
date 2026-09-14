@@ -119,7 +119,7 @@ static void applyNameToNativeHandle([[maybe_unused]] std::thread::native_handle_
 {
 #if defined(__linux__)
     if (!threadName.isEmpty()) {
-        pthread_setname_np(handle, threadName.toCString());
+        pthread_setname_np(handle, threadName.c_str());
     }
 #elif defined(__APPLE__)
     // Auf macOS kann nur der eigene Thread benannt werden (in run/startup)

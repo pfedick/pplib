@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <gtest/gtest.h>
+#include <climits>
 
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
