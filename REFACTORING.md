@@ -106,6 +106,7 @@ Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-O
 - Unterstützung für moderne Algorithmen hinzufügen (AEAD-Modi)
   - GCM
   - ChaCha20-Poly1305
+- In "Random" kryptographisch sichere Zufallszahlen hinzufügen
 
 KI:
 Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB/CBC/CFB/OFB an — alles unauthentifizierte Modi. Das ist der eigentliche "veraltet vs. aktuell"-Punkt: Heute empfiehlt man praktisch immer AES-GCM oder ChaCha20-Poly1305 (Integrität + Vertraulichkeit in einem), nicht CBC/CFB/OFB ohne HMAC. Das würde aber eine API-Erweiterung brauchen (Tag setzen/holen via EVP_CTRL_AEAD_GET_TAG/SET_TAG, zusätzliche AAD-Methode), keine reine Bugfix-Änderung.
@@ -125,6 +126,7 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - Mutex-Klasse überarbeitet
 - Thread-Klasse komplett überarbeitet, inklusive Doku, Codereview und Tests
 - ThreadPool-Klasse nach Codereview refaktoriert, dokumentiert
+- Neue Random-Klasse mit statischen Methoden für Zufallszahlen und Zufallsdaten eingeführt, die auf Methoden der C++ Standardbibliothek basieren
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft

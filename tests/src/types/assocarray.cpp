@@ -103,9 +103,8 @@ TEST(AssocArrayTest, addMixed)
 {
     pplib::AssocArray a;
     pplib::DateTime now = pplib::DateTime::currentTime();
-    pplib::ByteArray ba(1234);
+    pplib::ByteArray ba = pplib::Random::bytes(1234);
     pplib::ByteArrayPtr bap = ba;
-    pplib::Random(ba, 1234);
 
     ASSERT_NO_THROW({
         a.set("key1", "Dieser Wert geht über\nmehrere Zeilen");

@@ -484,9 +484,9 @@ TEST_F(FileTest, fwrite)
     pplib::File f1;
     pplib::File::remove("tmp/fwrite.txt");
     f1.open("tmp/fwrite.txt", pplib::File::FileMode::READWRITE_CREATE);
-    pplib::ByteArray ba1 = pplib::Random(512);
-    pplib::ByteArray ba2 = pplib::Random(512);
-    pplib::ByteArray ba3 = pplib::Random(512);
+    pplib::ByteArray ba1 = pplib::Random::bytes(512);
+    pplib::ByteArray ba2 = pplib::Random::bytes(512);
+    pplib::ByteArray ba3 = pplib::Random::bytes(512);
     pplib::ByteArray expected = ba1 + ba3;
     ASSERT_EQ((size_t)ba1.size(), f1.fwrite((void*)ba1.adr(), 1, ba1.size()));
     ASSERT_EQ((size_t)ba2.size(), f1.fwrite((void*)ba2.adr(), 1, ba2.size()));
@@ -1143,7 +1143,7 @@ TEST_F(FileTest, mapRW_walk_through_file_and_compare_1024Byte)
     pplib::File f1("tmp/testfile_mmap_write.txt");
     pplib::File f2("tmp/testfile_mmap_write.txt", pplib::File::FileMode::READWRITE);
     const size_t chunk_size = 1024;
-    pplib::ByteArray random_bytes = pplib::Random(chunk_size);
+    pplib::ByteArray random_bytes = pplib::Random::bytes(chunk_size);
     pplib::ByteArray buffer;
     for (uint64_t offset = 0; offset < f1.size(); offset += chunk_size) {
         size_t bytes_to_read = chunk_size;

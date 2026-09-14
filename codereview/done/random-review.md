@@ -47,6 +47,8 @@ da bereits OpenSSL gelinkt ist und `RAND_bytes()` dort trivial verfügbar wäre.
   dass die Funktion **nicht** für kryptographische Zwecke geeignet ist, damit niemand sie versehentlich dafür
   einsetzt (analog `Math.random()` in Java/JS, wo diese Einschränkung ebenfalls explizit dokumentiert ist).
 
+  ==> Kein kritischer Bug, kein Design-Flaw, Works as Intended! Doku angepasst
+
 ## Design
 
 - [ ] **Seed wird aus nur einem einzigen 32-Bit-Wert von `std::random_device` gezogen, nicht aus einer vollen Seed-Sequenz** (Zeile 38)
@@ -65,6 +67,8 @@ da bereits OpenSSL gelinkt ist und `RAND_bytes()` dort trivial verfügbar wäre.
   mehreren `std::random_device`-Aufrufen befüllen und damit seeden, z.B.
   `std::array<uint32_t,16> seeds; std::generate(seeds.begin(),seeds.end(),std::ref(rd)); std::seed_seq seq(seeds.begin(),seeds.end()); rng.seed(seq);`
 
+  ==> Umgestellt auf 64-Bit-Wert, ansonsten bleibt es so
+
 - [ ] **`srand(x)` seedet nur die Instanz des aufrufenden Threads – nicht dokumentiert** (Zeile 37-43)
   ```cpp
   static thread_local std::mt19937_64 rng(std::random_device{}());
@@ -78,6 +82,8 @@ da bereits OpenSSL gelinkt ist und `RAND_bytes()` dort trivial verfügbar wäre.
   nicht reproduzierbare Ergebnisse, ohne dass die Doku das erwarten lässt.
   Fix: in der Doku explizit auf den Thread-lokalen Geltungsbereich hinweisen.
 
+  ==> Doku angepasst, Hinweis auf Thread-lokalen Geltungsbereich hinzugefügt.
+
 - [ ] **Namenskollision mit der C-Standardbibliothek (`::rand`/`::srand`)** (Zeile 40, 45)
   `pplib::srand(uint32_t)` und `pplib::rand(size_t,size_t)` tragen dieselben Namen wie `<cstdlib>`s `::srand(unsigned)`/
   `::rand()`, haben aber andere Signaturen/Semantik (unterschiedlicher Zufallsgenerator, andere Parameter). Bei
@@ -86,6 +92,8 @@ da bereits OpenSSL gelinkt ist und `RAND_bytes()` dort trivial verfügbar wäre.
   Programm zu beeinflussen, während tatsächlich nur `pplib`s Thread-lokaler MT19937 geseedet wird (oder
   umgekehrt). Aktuell im Code nur konsistent qualifiziert verwendet (`pplib::rand(...)` in `Array.cpp`), aber ein
   Footgun für künftigen Code.
+
+  ==> Neue Random-Klasse mit statischen Methoden eingeführt, die langfristig die Namenskollisionen mit der C-Standardbibliothek vermeiden.
 
 ## Doku / Kosmetik
 
@@ -100,6 +108,8 @@ da bereits OpenSSL gelinkt ist und `RAND_bytes()` dort trivial verfügbar wäre.
   Für `min == max` ist das sinnvoll (einziger möglicher Wert), für `min > max` (vertauschte Argumente, ein
   typischer Aufrufer-Fehler) wird der Fehler aber verschluckt statt z.B. `IllegalArgumentException` zu werfen –
   macht das Debuggen eines vertauschten Aufrufs schwerer. Gleiches Muster in `randf`/`randd` (Zeile 53-64).
+
+  ==> Fixed, min und max werden geswapped, wenn min>max ist
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

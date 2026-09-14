@@ -174,7 +174,7 @@ TEST_F(VariantTest, TestWithAssocArray)
 
 TEST_F(VariantTest, TestWithByteArray)
 {
-    pplib::ByteArray testdata = pplib::Random(2048);
+    pplib::ByteArray testdata = pplib::Random::bytes(2048);
     ASSERT_NO_THROW({
         pplib::Variant var1(testdata);
         pplib::Variant var2(var1);
@@ -201,7 +201,7 @@ TEST_F(VariantTest, TestWithByteArray)
 
 TEST_F(VariantTest, TestWithByteArrayPtr)
 {
-    pplib::ByteArray testdata = pplib::Random(2048);
+    pplib::ByteArray testdata = pplib::Random::bytes(2048);
     pplib::ByteArrayPtr p1 = testdata;
     ASSERT_NO_THROW({
         pplib::Variant var1(p1);
@@ -404,7 +404,7 @@ TEST_F(VariantTest, OperatorAssocArray)
 
 TEST_F(VariantTest, OperatorByteArray)
 {
-    pplib::ByteArray p1 = pplib::Random(2048);
+    pplib::ByteArray p1 = pplib::Random::bytes(2048);
     pplib::Variant var1;
     var1 = p1;
     const pplib::ByteArray& p2 = var1;
@@ -414,7 +414,7 @@ TEST_F(VariantTest, OperatorByteArray)
 
 TEST_F(VariantTest, OperatorByteArrayPtr)
 {
-    pplib::ByteArray b1 = pplib::Random(2048);
+    pplib::ByteArray b1 = pplib::Random::bytes(2048);
     pplib::ByteArrayPtr p1 = b1;
     pplib::Variant var1;
     var1 = p1;
@@ -543,7 +543,7 @@ TEST_F(VariantTest, isAssocArray)
 TEST_F(VariantTest, isByteArray)
 {
     pplib::String p1a("Hello World");
-    pplib::ByteArray p1 = pplib::Random(2048);
+    pplib::ByteArray p1 = pplib::Random::bytes(2048);
     pplib::Variant var1(p1);
     pplib::Variant var2(p1a);
     ASSERT_TRUE(var1.isByteArray());
@@ -559,7 +559,7 @@ TEST_F(VariantTest, isByteArray)
 TEST_F(VariantTest, isByteArrayPtr)
 {
     pplib::String p1a("Hello World");
-    pplib::ByteArray b1 = pplib::Random(2048);
+    pplib::ByteArray b1 = pplib::Random::bytes(2048);
     pplib::ByteArrayPtr p1 = b1;
     pplib::Variant var1(p1);
     pplib::Variant var2(p1a);
@@ -775,7 +775,7 @@ TEST_F(VariantTest, toAssocArrayConst)
 TEST_F(VariantTest, toByteArray)
 {
     pplib::String p1a("Hello World");
-    pplib::ByteArray p1 = pplib::Random(2048);
+    pplib::ByteArray p1 = pplib::Random::bytes(2048);
     pplib::Variant var1(p1);
     pplib::Variant var2;
     pplib::Variant var3(p1a);
@@ -792,7 +792,7 @@ TEST_F(VariantTest, toByteArray)
 TEST_F(VariantTest, toByteArrayConst)
 {
     pplib::String p1a("Hello World");
-    pplib::ByteArray p1 = pplib::Random(2048);
+    pplib::ByteArray p1 = pplib::Random::bytes(2048);
     const pplib::Variant var1(p1);
     const pplib::Variant var2;
     const pplib::Variant var3(p1a);
@@ -829,7 +829,7 @@ TEST_F(VariantTest, toByteArrayConst)
 TEST_F(VariantTest, toByteArrayPtr)
 {
     pplib::String p1a("Hello World");
-    pplib::ByteArray b1 = pplib::Random(2048);
+    pplib::ByteArray b1 = pplib::Random::bytes(2048);
     pplib::ByteArrayPtr p1 = b1;
     pplib::Variant var1(p1);
     pplib::Variant var2;
@@ -843,7 +843,7 @@ TEST_F(VariantTest, toByteArrayPtr)
 TEST_F(VariantTest, toByteArrayPtrConst)
 {
     pplib::String p1a("Hello World");
-    pplib::ByteArray b1 = pplib::Random(2048);
+    pplib::ByteArray b1 = pplib::Random::bytes(2048);
     pplib::ByteArrayPtr p1 = b1;
     const pplib::Variant var1(p1);
     const pplib::Variant var2;
@@ -1111,7 +1111,7 @@ TEST_F(VariantTest, SetWithMoveOperatorAndAssocArray)
 TEST_F(VariantTest, SetWithMoveOperatorAndByteArray)
 {
     pplib::Variant var1;
-    pplib::ByteArray b1 = pplib::Random(2048);
+    pplib::ByteArray b1 = pplib::Random::bytes(2048);
     pplib::ByteArray b2 = b1;
     var1.set(std::move(b2));
     ASSERT_EQ(pplib::Variant::TYPE_BYTEARRAY, var1.type()) << "Variant has unexcpected type";
@@ -1121,7 +1121,7 @@ TEST_F(VariantTest, SetWithMoveOperatorAndByteArray)
 TEST_F(VariantTest, SetWithMoveOperatorAndByteArrayPtr)
 {
     pplib::Variant var1;
-    pplib::ByteArray b1 = pplib::Random(2048);
+    pplib::ByteArray b1 = pplib::Random::bytes(2048);
     pplib::ByteArrayPtr p1 = b1;
     pplib::ByteArrayPtr p2 = p1;
     var1.set(std::move(p2));
@@ -1230,7 +1230,7 @@ TEST_F(VariantTest, CompareOperatorWithAssocArray)
 
 TEST_F(VariantTest, CompareOperatorWithByteArray)
 {
-    pplib::ByteArray b1 = pplib::Random(2048);
+    pplib::ByteArray b1 = pplib::Random::bytes(2048);
     pplib::Variant var1(b1);
     pplib::ByteArray b2 = b1;
     pplib::Variant var2(b2);
@@ -1240,7 +1240,7 @@ TEST_F(VariantTest, CompareOperatorWithByteArray)
 
 TEST_F(VariantTest, CompareOperatorWithByteArrayPtr)
 {
-    pplib::ByteArray b1 = pplib::Random(2048);
+    pplib::ByteArray b1 = pplib::Random::bytes(2048);
     pplib::ByteArrayPtr p1 = b1;
     pplib::Variant var1(p1);
     pplib::ByteArrayPtr p2 = p1;
@@ -1382,7 +1382,7 @@ TEST_F(VariantTest, MoveAssocArray)
 TEST_F(VariantTest, MoveByteArray)
 {
     // Testdata
-    pplib::ByteArray expected = pplib::Random(2048);
+    pplib::ByteArray expected = pplib::Random::bytes(2048);
 
     // Move constructor
     pplib::ByteArray b1 = expected;
@@ -1399,7 +1399,7 @@ TEST_F(VariantTest, MoveByteArray)
 TEST_F(VariantTest, MoveByteArrayPtr)
 {
     // Testdata
-    pplib::ByteArray expected = pplib::Random(2048);
+    pplib::ByteArray expected = pplib::Random::bytes(2048);
     pplib::ByteArrayPtr p1 = expected;
 
     // Move constructor

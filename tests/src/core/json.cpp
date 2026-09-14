@@ -276,8 +276,7 @@ TEST_F(JsonTest, DumpsNestedListWithRealArray)
 TEST_F(JsonTest, DumpsWithBinary)
 {
     pplib::AssocArray data;
-    pplib::ByteArray ba;
-    pplib::Random(ba, 1024);
+    pplib::ByteArray ba = pplib::Random::bytes(1024);
     pplib::String b64 = ba.toBase64();
     data.set("key1", "value1");
     data.set("bytearray", ba);

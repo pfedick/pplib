@@ -34,6 +34,7 @@
 #include <pplib/types/bytearray.h>
 #include <pplib/types/bytearrayptr.h>
 #include <pplib/core/functions.h>
+#include <pplib/core/random.h>
 #include <pplib/core/file.h>
 #include <pplib/exceptions.h>
 
@@ -65,7 +66,7 @@ TEST(ByteArrayTest, CopyConstructorWithEmptyObject)
 
 TEST(ByteArrayTest, CopyConstructorWithData)
 {
-    const pplib::ByteArray testdata = pplib::Random(2048);
+    const pplib::ByteArray testdata = pplib::Random::bytes(2048);
     ASSERT_NO_THROW({
         pplib::ByteArray b2(testdata);
         ASSERT_TRUE(b2.isNull() == false) << "Array is not empty";
@@ -88,7 +89,7 @@ TEST(ByteArrayTest, CopyConstructorWithEmptyByteArrayPtrObject)
 
 TEST(ByteArrayTest, CopyConstructorWithByteArrayPtrObjectWithData)
 {
-    const pplib::ByteArray testdata = pplib::Random(2048);
+    const pplib::ByteArray testdata = pplib::Random::bytes(2048);
     const pplib::ByteArrayPtr b1(testdata);
     ASSERT_NO_THROW({
         pplib::ByteArray b2(b1);
@@ -112,7 +113,7 @@ TEST(ByteArrayTest, MoveConstructorWithEmptyObject)
 
 TEST(ByteArrayTest, MoveConstructorWithData)
 {
-    const pplib::ByteArray testdata = pplib::Random(2048);
+    const pplib::ByteArray testdata = pplib::Random::bytes(2048);
     pplib::ByteArray b1 = testdata;
     ASSERT_NO_THROW({
         pplib::ByteArray b2(std::move(b1));
@@ -125,7 +126,7 @@ TEST(ByteArrayTest, MoveConstructorWithData)
 
 TEST(ByteArrayTest, ConstructorFromMemoryPtr)
 {
-    const pplib::ByteArray testdata = pplib::Random(2048);
+    const pplib::ByteArray testdata = pplib::Random::bytes(2048);
     ASSERT_NO_THROW({
         pplib::ByteArray b2(testdata.ptr(), testdata.size());
         ASSERT_TRUE(b2.isNull() == false) << "Array is not empty";
@@ -171,7 +172,7 @@ TEST(ByteArrayTest, ConstructorWithSize)
 
 TEST(ByteArrayTest, copyFromMemory)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -195,7 +196,7 @@ TEST(ByteArrayTest, copyWithNullPtr)
 
 TEST(ByteArrayTest, copyWithNullSize)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), 0);
@@ -207,7 +208,7 @@ TEST(ByteArrayTest, copyWithNullSize)
 
 TEST(ByteArrayTest, copyWithSamePtrAndSize)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2 = testdata;
         b2.copy(b2.ptr(), b2.size());
@@ -219,7 +220,7 @@ TEST(ByteArrayTest, copyWithSamePtrAndSize)
 }
 TEST(ByteArrayTest, copyWithPartOfSamePtrAndSize)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2 = testdata;
         b2.copy((const char*)b2.ptr() + 100, 200);
@@ -232,7 +233,7 @@ TEST(ByteArrayTest, copyWithPartOfSamePtrAndSize)
 
 TEST(ByteArrayTest, copyThrowsOutOfMemoryException)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_THROW(
         {
             pplib::ByteArray b2;
@@ -250,7 +251,7 @@ TEST(ByteArrayTest, copyThrowsOutOfMemoryException)
 
 TEST(ByteArrayTest, copyFromByteArrayPtr)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     pplib::ByteArrayPtr b1(testdata);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
@@ -276,8 +277,8 @@ TEST(ByteArrayTest, useAddr)
 
 TEST(ByteArrayTest, append)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
-    pplib::ByteArray testdata2 = pplib::Random(512);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
+    pplib::ByteArray testdata2 = pplib::Random::bytes(512);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata1.ptr(), testdata1.size());
@@ -292,7 +293,7 @@ TEST(ByteArrayTest, append)
 
 TEST(ByteArrayTest, appendOnEmptyObject)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.append(testdata1);
@@ -305,7 +306,7 @@ TEST(ByteArrayTest, appendOnEmptyObject)
 
 TEST(ByteArrayTest, appendWithNullPtr)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata1.ptr(), testdata1.size());
@@ -319,8 +320,8 @@ TEST(ByteArrayTest, appendWithNullPtr)
 
 TEST(ByteArrayTest, appendWithNullSize)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
-    pplib::ByteArray testdata2 = pplib::Random(512);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
+    pplib::ByteArray testdata2 = pplib::Random::bytes(512);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata1.ptr(), testdata1.size());
@@ -334,7 +335,7 @@ TEST(ByteArrayTest, appendWithNullSize)
 
 TEST(ByteArrayTest, appendWithSamePtrAndSize)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata1.ptr(), testdata1.size());
@@ -349,17 +350,17 @@ TEST(ByteArrayTest, appendWithSamePtrAndSize)
 
 TEST(ByteArrayTest, appendThrowsOutOfMemoryException)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_THROW(
         {
-            pplib::ByteArray b2 = pplib::Random(1024);
+            pplib::ByteArray b2 = pplib::Random::bytes(1024);
             b2.append(testdata.ptr(), SIZE_MAX - 4 - 1024);
         },
         pplib::OutOfMemoryException);
 
     ASSERT_THROW(
         {
-            pplib::ByteArray b2 = pplib::Random(1024);
+            pplib::ByteArray b2 = pplib::Random::bytes(1024);
             b2.append(testdata.ptr(), SIZE_MAX - 4);
         },
         pplib::OutOfMemoryException);
@@ -367,8 +368,8 @@ TEST(ByteArrayTest, appendThrowsOutOfMemoryException)
 
 TEST(ByteArrayTest, prepend)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
-    pplib::ByteArray testdata2 = pplib::Random(512);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
+    pplib::ByteArray testdata2 = pplib::Random::bytes(512);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata1.ptr(), testdata1.size());
@@ -383,7 +384,7 @@ TEST(ByteArrayTest, prepend)
 
 TEST(ByteArrayTest, prependOnEmptyObject)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.prepend(testdata1);
@@ -396,7 +397,7 @@ TEST(ByteArrayTest, prependOnEmptyObject)
 
 TEST(ByteArrayTest, prependWithNullPtr)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata1.ptr(), testdata1.size());
@@ -410,8 +411,8 @@ TEST(ByteArrayTest, prependWithNullPtr)
 
 TEST(ByteArrayTest, prependWithNullSize)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
-    pplib::ByteArray testdata2 = pplib::Random(512);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
+    pplib::ByteArray testdata2 = pplib::Random::bytes(512);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata1.ptr(), testdata1.size());
@@ -425,7 +426,7 @@ TEST(ByteArrayTest, prependWithNullSize)
 
 TEST(ByteArrayTest, prependWithSamePtrAndSize)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata1.ptr(), testdata1.size());
@@ -440,16 +441,16 @@ TEST(ByteArrayTest, prependWithSamePtrAndSize)
 
 TEST(ByteArrayTest, prependThrowsOutOfMemoryException)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_THROW(
         {
-            pplib::ByteArray b2 = pplib::Random(1024);
+            pplib::ByteArray b2 = pplib::Random::bytes(1024);
             b2.prepend(testdata.ptr(), SIZE_MAX - 4 - 1024);
         },
         pplib::OutOfMemoryException);
     ASSERT_THROW(
         {
-            pplib::ByteArray b2 = pplib::Random(1024);
+            pplib::ByteArray b2 = pplib::Random::bytes(1024);
             b2.prepend(testdata.ptr(), SIZE_MAX - 4);
         },
         pplib::OutOfMemoryException);
@@ -457,7 +458,7 @@ TEST(ByteArrayTest, prependThrowsOutOfMemoryException)
 
 TEST(ByteArrayTest, truncate)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -471,7 +472,7 @@ TEST(ByteArrayTest, truncate)
 
 TEST(ByteArrayTest, truncateBiggerThanCurrentSize)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -547,7 +548,7 @@ TEST(ByteArrayTest, callocThrowsOutOfMemoryException)
 
 TEST(ByteArrayTest, free)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -560,7 +561,7 @@ TEST(ByteArrayTest, free)
 
 TEST(ByteArrayTest, clear)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -573,7 +574,7 @@ TEST(ByteArrayTest, clear)
 
 TEST(ByteArrayTest, realloc)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -587,7 +588,7 @@ TEST(ByteArrayTest, realloc)
 
 TEST(ByteArrayTest, reallocThrowsOutOfMemoryException)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_THROW(
         {
             pplib::ByteArray b2;
@@ -607,7 +608,7 @@ TEST(ByteArrayTest, reallocThrowsOutOfMemoryException)
 
 TEST(ByteArrayTest, operatorAssign)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2 = testdata;
@@ -620,7 +621,7 @@ TEST(ByteArrayTest, operatorAssign)
 
 TEST(ByteArrayTest, operatorAssigWithByteArrayPtr)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     pplib::ByteArrayPtr b1(testdata);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
@@ -634,7 +635,7 @@ TEST(ByteArrayTest, operatorAssigWithByteArrayPtr)
 
 TEST(ByteArrayTest, operatorMoveAssign)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     pplib::ByteArray b1 = testdata;
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
@@ -648,7 +649,7 @@ TEST(ByteArrayTest, operatorMoveAssign)
 
 TEST(ByteArrayTest, operatorMoveAssignWithSameObject)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     pplib::ByteArray b1 = testdata;
     ASSERT_NO_THROW({
         b1 = std::move(b1);
@@ -687,8 +688,8 @@ TEST(ByteArrayTest, operatorAssignWithWideString)
 
 TEST(ByteArrayTest, opperatorPlus)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
-    pplib::ByteArray testdata2 = pplib::Random(512);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
+    pplib::ByteArray testdata2 = pplib::Random::bytes(512);
     ASSERT_NO_THROW({
         pplib::ByteArray b2 = testdata1 + testdata2;
         ASSERT_TRUE(b2.isNull() == false) << "Array is not empty";
@@ -701,8 +702,8 @@ TEST(ByteArrayTest, opperatorPlus)
 
 TEST(ByteArrayTest, operatorPlusAssign)
 {
-    pplib::ByteArray testdata1 = pplib::Random(1024);
-    pplib::ByteArray testdata2 = pplib::Random(512);
+    pplib::ByteArray testdata1 = pplib::Random::bytes(1024);
+    pplib::ByteArray testdata2 = pplib::Random::bytes(512);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata1.ptr(), testdata1.size());
@@ -745,7 +746,7 @@ TEST(ByteArrayTest, operatorPlusAssignWithWideString)
 
 TEST(ByteArrayTest, left)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -759,7 +760,7 @@ TEST(ByteArrayTest, left)
 
 TEST(ByteArrayTest, leftIsBiggerThanCurrentSize)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -773,7 +774,7 @@ TEST(ByteArrayTest, leftIsBiggerThanCurrentSize)
 
 TEST(ByteArrayTest, right)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -787,7 +788,7 @@ TEST(ByteArrayTest, right)
 
 TEST(ByteArrayTest, rightIsBiggerThanCurrentSize)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -801,9 +802,9 @@ TEST(ByteArrayTest, rightIsBiggerThanCurrentSize)
 
 TEST(ByteArrayTest, mid)
 {
-    pplib::ByteArray left = pplib::Random(512);
-    pplib::ByteArray mid = pplib::Random(512);
-    pplib::ByteArray right = pplib::Random(512);
+    pplib::ByteArray left = pplib::Random::bytes(512);
+    pplib::ByteArray mid = pplib::Random::bytes(512);
+    pplib::ByteArray right = pplib::Random::bytes(512);
     pplib::ByteArray testdata = left + mid + right;
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
@@ -818,7 +819,7 @@ TEST(ByteArrayTest, mid)
 
 TEST(ByteArrayTest, midOffsetIsBiggerThanCurrentSize)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -831,7 +832,7 @@ TEST(ByteArrayTest, midOffsetIsBiggerThanCurrentSize)
 
 TEST(ByteArrayTest, midBytesIsBiggerThanCurrentSize)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::ByteArray b2;
         b2.copy(testdata.ptr(), testdata.size());
@@ -845,7 +846,7 @@ TEST(ByteArrayTest, midBytesIsBiggerThanCurrentSize)
 
 TEST(ByteArrayTest, toHexFromHex)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::String hex = testdata.toHex();
         pplib::ByteArray b2 = pplib::ByteArray::fromHex(hex);
@@ -869,7 +870,7 @@ TEST(ByteArrayTest, toHexFromHex)
 
 TEST(ByteArrayTest, toHexFromHexWithUpperCase)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     ASSERT_NO_THROW({
         pplib::String hex = testdata.toHex();
         hex.upperCase();
@@ -914,7 +915,7 @@ TEST(ByteArrayTest, fromHexWithEmptyHexString)
 TEST(ByteArrayTest, fromBase64)
 {
     ASSERT_NO_THROW({
-        pplib::ByteArray testdata = pplib::Random(1024);
+        pplib::ByteArray testdata = pplib::Random::bytes(1024);
         pplib::String base64 = testdata.toBase64();
         pplib::ByteArray b2 = pplib::ByteArray::fromBase64(base64);
         ASSERT_TRUE(b2.isNull() == false) << "Array is not empty";
@@ -923,7 +924,7 @@ TEST(ByteArrayTest, fromBase64)
         ASSERT_EQ(testdata, b2) << "Array does not match original data";
     });
     ASSERT_NO_THROW({
-        pplib::ByteArray testdata = pplib::Random(1023);
+        pplib::ByteArray testdata = pplib::Random::bytes(1023);
         pplib::String base64 = testdata.toBase64();
         pplib::ByteArray b2 = pplib::ByteArray::fromBase64(base64);
         ASSERT_TRUE(b2.isNull() == false) << "Array is not empty";
@@ -932,7 +933,7 @@ TEST(ByteArrayTest, fromBase64)
         ASSERT_EQ(testdata, b2) << "Array does not match original data";
     });
     ASSERT_NO_THROW({
-        pplib::ByteArray testdata = pplib::Random(1022);
+        pplib::ByteArray testdata = pplib::Random::bytes(1022);
         pplib::String base64 = testdata.toBase64();
         pplib::ByteArray b2 = pplib::ByteArray::fromBase64(base64);
         ASSERT_TRUE(b2.isNull() == false) << "Array is not empty";
@@ -941,7 +942,7 @@ TEST(ByteArrayTest, fromBase64)
         ASSERT_EQ(testdata, b2) << "Array does not match original data";
     });
     ASSERT_NO_THROW({
-        pplib::ByteArray testdata = pplib::Random(1021);
+        pplib::ByteArray testdata = pplib::Random::bytes(1021);
         pplib::String base64 = testdata.toBase64();
         pplib::ByteArray b2 = pplib::ByteArray::fromBase64(base64);
         ASSERT_TRUE(b2.isNull() == false) << "Array is not empty";
@@ -958,7 +959,7 @@ TEST(ByteArrayTest, fromBase64WithInvalidString)
 
 TEST(ByteArrayTest, ostream)
 {
-    pplib::ByteArray testdata = pplib::Random(1024);
+    pplib::ByteArray testdata = pplib::Random::bytes(1024);
     std::ostringstream oss;
     oss << testdata;
     ASSERT_EQ(testdata.toHex(), oss.str());

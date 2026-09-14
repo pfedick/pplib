@@ -37,33 +37,36 @@ namespace pplib
 // Thread-lokaler Mersenne-Twister-Generator (C++11/17)
 static thread_local std::mt19937_64 rng(std::random_device{}());
 
-void srand(uint32_t x)
+void Random::seed(uint64_t x)
 {
     rng.seed(x);
 }
 
-size_t rand(size_t min, size_t max)
+size_t Random::get(size_t min, size_t max)
 {
-    if (min >= max) return min;
+    if (min > max) std::swap(min, max);
+    if (min == max) return min;
     std::uniform_int_distribution<size_t> dist(min, max);
     return dist(rng);
 }
 
-float randf(float min, float max)
+float Random::getFloat(float min, float max)
 {
-    if (min >= max) return min;
+    if (min > max) std::swap(min, max);
+    if (min == max) return min;
     std::uniform_real_distribution<float> dist(min, max);
     return dist(rng);
 }
 
-double randd(double min, double max)
+double Random::getDouble(double min, double max)
 {
-    if (min >= max) return min;
+    if (min > max) std::swap(min, max);
+    if (min == max) return min;
     std::uniform_real_distribution<double> dist(min, max);
     return dist(rng);
 }
 
-ByteArray Random(size_t bytes)
+ByteArray Random::bytes(size_t bytes)
 {
     ByteArray bin;
     if (bytes == 0) return bin;
@@ -77,7 +80,7 @@ ByteArray Random(size_t bytes)
     return bin;
 }
 
-ByteArray& Random(ByteArray& buffer, size_t bytes)
+ByteArray& Random::fill(ByteArray& buffer, size_t bytes)
 {
     if (bytes == 0) {
         buffer.clear();
