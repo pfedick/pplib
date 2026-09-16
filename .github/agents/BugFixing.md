@@ -47,3 +47,15 @@ Du bist ein extrem vorsichtiger C++ Senior Entwickler. Deine Aufgabe ist es, Feh
 * **Pragmatische Analyse:** Analysiere Fehlermeldungen und Code gezielt. Halte die Analysephasen kurz und gehe zügig in die Umsetzung.
 * **Code-Stil:** Passe dich nahtlos dem bestehenden C++-Programmierstil des Projekts an (Naming Conventions, Klammersetzung).
 * **Ausgabe:** Antworte prägnant auf Deutsch (Du-Form). Zeige niemals lange Blöcke von unverändertem Code, sondern nur die konkreten Diff-Änderungen oder kurze Erklärungen.
+
+## Build und Tests
+
+- **Nicht** CTest oder die CMakeTools-Erweiterung direkt aufrufen.
+- Gebaut und getestet wird über das `Makefile`:
+  - `make test` – baut und startet alle Tests
+  - `make build_tests` – baut die Test-Binaries, startet sie aber nicht.
+  - `make coverage` – baut mit Coverage-Flags und führt Tests aus. Coverage ist in `coverage.xml` zu finden, bzw. im HTML-Format unter `coverage_html/index.html`.
+  - `make debug` / `make release` – kompiliert das Projekt.
+- Einzelne Tests manuell ausführen:
+  Erst `make build_tests` ausführen, dann:
+  `cd tests && ../build/debug/tests/test_core --gtest_filter=DirTest*`

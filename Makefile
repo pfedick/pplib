@@ -51,26 +51,22 @@ configure:
 
 all:	release debug
 
-test_core:
-	cmake --build build/debug --target test_core
-	cp build/debug/tests/test_core$(EXE) tests
-	#cd tests && ./test_core$(EXE) --gtest_color=yes --gtest_filter=WideStringTest*
-	cd tests && ./test_core$(EXE) --gtest_color=yes
-	
-test:
+build_tests:
 	cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug
 	cmake --build build/debug -j --target test_core test_crypto
+
+test: build_tests
 	-cd tests && ../build/debug/tests/test_core$(EXE) --gtest_color=yes
 	-cd tests && ../build/debug/tests/test_crypto$(EXE) --gtest_color=yes
 
-xml: debug
-	cmake --build build/debug --target test_core test_audio test_crypto test_grafix test_database test_inet
-	cd tests && ../build/debug/tests/test_core$(EXE) --gtest_output=xml:testresult_core.xml
-	-cd tests && ../build/debug/tests/test_audio$(EXE) --gtest_output=xml:testresult_audio.xml
-	-cd tests && ../build/debug/tests/test_crypto$(EXE) --gtest_output=xml:testresult_crypto.xml
-	-cd tests && ../build/debug/tests/test_grafix$(EXE) --gtest_output=xml:testresult_grafix.xml
-	-cd tests && ../build/debug/tests/test_database$(EXE) --gtest_output=xml:testresult_database.xml
-	-cd tests && ../build/debug/tests/test_inet$(EXE) --gtest_output=xml:testresult_inet.xml
+#xml: debug
+#	cmake --build build/debug --target test_core test_audio test_crypto test_grafix test_database test_inet
+#	cd tests && ../build/debug/tests/test_core$(EXE) --gtest_output=xml:testresult_core.xml
+#	-cd tests && ../build/debug/tests/test_audio$(EXE) --gtest_output=xml:testresult_audio.xml
+#	-cd tests && ../build/debug/tests/test_crypto$(EXE) --gtest_output=xml:testresult_crypto.xml
+#	-cd tests && ../build/debug/tests/test_grafix$(EXE) --gtest_output=xml:testresult_grafix.xml
+#	-cd tests && ../build/debug/tests/test_database$(EXE) --gtest_output=xml:testresult_database.xml
+#	-cd tests && ../build/debug/tests/test_inet$(EXE) --gtest_output=xml:testresult_inet.xml
 
 coverage:
 	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
@@ -82,14 +78,6 @@ coverage:
 	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --exclude 'tests/.*'
 	@echo "Report: coverage_html/index.html"
 	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --xml-pretty -o coverage.xml --exclude 'tests/.*'
-
-file:
-	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
-	cmake --build build/coverage --target test_core
-	ln -sf build/coverage/compile_commands.json compile_commands.json
-	-cd tests && ../build/coverage/tests/test_core$(EXE) --gtest_filter=DirTest*:FileTest*:FileStaticTest*
-	mkdir -p coverage_html
-	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --exclude 'tests/.*'
 
 wip:
 	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
