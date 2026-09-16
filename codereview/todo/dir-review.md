@@ -180,6 +180,8 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   oder nicht, bekommt der Aufrufer einen Pfad mit oder ohne trailing Backslash zurück.
   Fix: analog zum Rest der Datei über `WideString` roundtrippen; Trim-Zeichensatz einheitlich `"/\\"` verwenden.
 
+  ==> FIXED
+
 - [ ] **`Path.trimRight("\\")` wird auch auf Linux/FreeBSD ausgeführt** (`Dir.cpp:437-438` `open()`, `Dir.cpp:484-485` `canOpen()`)
   ```cpp
   Path = path.trimmed();
@@ -194,6 +196,8 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   trennen".
   Fix: das `trimRight("\\")` in ein `#ifdef _WIN32` verschieben.
 
+  ==> FIXED
+
 ## Design
 
 - [ ] **Blanket `catch (...)` in `Dir::open()` maskiert alle Fehler unterschiedslos** (`Dir.cpp:468-474`)
@@ -204,12 +208,16 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   Fehler-Sammel-Mechanismus (`size_t skippedCount()` o.ä.) wäre hilfreich, oder gezielteres Catching
   (`PermissionDeniedException`/`FileNotFoundException` explizit, alles andere weiterreichen).
 
+  ==> FIXED, übersprungene Einträge werden jetzt gezählt und können mit der Methode Dir::skippedEntries() abgefragt werden. Doku ergänzt
+
 - [ ] **Vierfache Code-Duplikation bei den Filterfunktionen** (`Dir.cpp:362-430`)
   `filterPattern`/`findPattern` enthalten identische 6-zeilige Wildcard→Regex-Konvertierung,
   `filterRegExp`/`findRegExp` identische Match-Schleifen. Alle vier ließen sich über den bereits vorhandenen
   generischen `filter()`-Template (`dir.h:461`) und eine private `static String wildcardToRegex(const String&, bool)`-
   Hilfsfunktion auf ca. ein Drittel des Codes reduzieren – und der Wildcard-Bug oben müsste dann nur an einer
   Stelle gefixt werden.
+
+  ==> Wildcard-Bug ist gefixt durch Hilfsfunktion. Rest bleibt.
 
 - [ ] **`Dir::homePath()` (POSIX-Fallback) nutzt `getpwuid()`, nicht threadsicher** (`Dir.cpp:99`)
   ```cpp
@@ -220,6 +228,8 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   werden, bevor `pw->pw_dir` gelesen wird. Für eine Bibliothek, die explizit Multithreading unterstützen soll,
   wäre `getpwuid_r()` die sauberere Wahl.
 
+  ==> FIXED
+
 ## Doku / Kosmetik
 
 - [ ] `Dir(const String& path, Sort sortOrder)`-Konstruktor dokumentiert eine Exception, die es nicht gibt
@@ -227,15 +237,23 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
       Namens. Der tatsächliche Code (`Dir::open`) wirft `FileNotFoundException`, `PermissionDeniedException`
       oder `CouldNotOpenDirectoryException`. Doku entsprechend korrigieren.
 
+      ==> FIXED
+
 - [ ] Beide `mkDir()`-Überladungen (`dir.h:606`, `dir.h:619`) dokumentieren `@return Liefert true/false zurück`,
       die Funktionen sind aber als `void` deklariert (Leftover einer älteren bool-basierten API).
+
+      ==> FIXED
 
 - [ ] `DirEntry::ATime` verwendet den Doxygen-Tag `@authors` statt `@brief` (`dir.h:68`) – Copy-Paste-Fehler,
       wird in der generierten Doku vermutlich als Autorenliste statt als Beschreibung interpretiert.
 
+      ==> FIXED
+
 - [ ] `Dir::homePath()`: lokale Variable heißt `homePath` und verdeckt damit den Namen der umschließenden
       statischen Memberfunktion (`Dir.cpp:89`) – syntaktisch unproblematisch, aber verwirrend beim Lesen/
       Refactoring. Umbenennen (z.B. `homePathEnv`).
+
+      ==> FIXED
 
 - [ ] `DirEntry::getAttrStr()` rendert kein Sticky-Bit (`FileAttr::STICKY`/`ISVTX` existiert, wird hier aber
       nicht abgefragt), und überschreibt bei `ISUID`/`ISGID` das `x`/`-` an Position 3/6 immer mit `'s'`,
@@ -243,10 +261,16 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
       `t`/`T`). Rein kosmetisch, aber inkonsistent mit der Unix-üblichen Darstellung, die die Funktion laut
       Kommentar nachbilden will.
 
+      ==> FIXED
+
 - [ ] `Dir::applicationDataPath()` deklariert `String path;`, die nie verwendet wird (`Dir.cpp:128`) – toter Code.
+
+  ==> FIXED
 
 - [ ] `Dir::canOpen()`: `if (ec == ...) return false; else if (ec == ...) return false; else return false;`
       (`Dir.cpp:503-509`) – alle drei Zweige tun dasselbe, lässt sich auf `if (ec) return false;` reduzieren.
+
+      ==> FIXED
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

@@ -65,7 +65,7 @@ String Dir::currentPath()
     std::error_code ec;
     auto path = std::filesystem::current_path(ec);
     if (!ec) {
-        return String(path.string());
+        return String(path.c_str());
     }
 
     // Gezielte Fehlerbehandlung über std::error_code
@@ -85,10 +85,10 @@ String Dir::homePath()
         return String(userProfile);
     }
     // 2. Fallback: HOMEDRIVE + HOMEPATH
-    const wchar_t* homeDrive = _wgetenv(L"HOMEDRIVE");
-    const wchar_t* homePath = _wgetenv(L"HOMEPATH");
-    if (homeDrive && homePath) {
-        return String(homeDrive) + String(homePath).trimRight("\\");
+    const wchar_t* homeDriveEnv = _wgetenv(L"HOMEDRIVE");
+    const wchar_t* homePathEnv = _wgetenv(L"HOMEPATH");
+    if (homeDriveEnv && homePathEnv) {
+        return String(homeDriveEnv) + String(homePathEnv).trimRight("\\");
     }
 #else
     // 1. Umgebungsvariable HOME auslesen
@@ -96,8 +96,19 @@ String Dir::homePath()
         return String(home).trimRight("/");
     }
     // 2. Fallback: System-Userdatenbank (/etc/passwd) abfragen
-    if (struct passwd* pw = getpwuid(getuid()); pw && pw->pw_dir) {
-        return String(pw->pw_dir).trimRight("/");
+    long bufSize = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (bufSize < 0) bufSize = 1024;
+
+    std::vector<char> buffer(bufSize);
+    struct passwd pw;
+    struct passwd* result = nullptr;
+
+    while (getpwuid_r(getuid(), &pw, buffer.data(), buffer.size(), &result) == ERANGE) {
+        buffer.resize(buffer.size() * 2);
+    }
+
+    if (result && pw.pw_dir) {
+        return String(pw.pw_dir).trimRight("/");
     }
 #endif
 
@@ -109,13 +120,13 @@ String Dir::tempPath()
     std::error_code ec;
     auto path = std::filesystem::temp_directory_path(ec);
     if (!ec) {
-        return String(path.string()).trimRight("/");
+        return String(path.c_str()).trimRight("/\\");
     }
 
     // Fallback für den unwahrscheinlichen Fall eines Fehlers:
 #ifdef _WIN32
-    if (const wchar_t* tmp = _wgetenv(L"TEMP")) return String(tmp).trimRight("\\");
-    if (const wchar_t* tmp = _wgetenv(L"TMP")) return String(tmp).trimRight("\\");
+    if (const wchar_t* tmp = _wgetenv(L"TEMP")) return String(tmp).trimRight("/\\");
+    if (const wchar_t* tmp = _wgetenv(L"TMP")) return String(tmp).trimRight("/\\");
     return String("C:\\Windows\\Temp");
 #else
     if (const char* tmp = getenv("TMPDIR")) return String(tmp).trimRight("/");
@@ -125,7 +136,6 @@ String Dir::tempPath()
 
 String Dir::applicationDataPath()
 {
-    String path;
 #ifdef _WIN32
     wchar_t* p = _wgetenv(L"LOCALAPPDATA");
     if (!p || wcslen(p) == 0) throw KeyNotFoundException("LOCALAPPDATA");
@@ -468,10 +478,13 @@ std::optional<DirEntry> Dir::findRegExp(const String& regexp) const
 void Dir::open(const String& path, Sort sortOrder)
 {
     Files.clear();
+    skipped_entries_count = 0;
     sort = sortOrder;
     Path = path.trimmed();
     Path.trimRight("/");
+#ifdef _WIN32
     Path.trimRight("\\");
+#endif
     if (Path.isEmpty()) {
 #ifdef _WIN32
         Path = ".";
@@ -513,12 +526,14 @@ void Dir::open(const String& path, Sort sortOrder)
         }
         catch (...) {
             // Einzelne Dateien ohne Rechte/Zugriff ignorieren
+            ++skipped_entries_count;
         }
         // Nächster Schritt ohne Exception:
         it.increment(ec);
         if (ec) {
             // Ein Fehler beim Vorrücken (z.B. gelöschte Datei oder Permission Denied):
             // Iterator wird bei Fehler im OS oft ungültig/beendet oder man bricht kontrolliert ab.
+            ++skipped_entries_count;
             break;
         }
     }
@@ -531,7 +546,9 @@ bool Dir::canOpen(const String& path)
 {
     String p = path.trimmed();
     p.trimRight("/");
+#ifdef _WIN32
     p.trimRight("\\");
+#endif
     if (p.isEmpty()) {
 #ifdef _WIN32
         p = ".";
@@ -549,13 +566,7 @@ bool Dir::canOpen(const String& path)
     std::error_code ec;
     auto it = std::filesystem::directory_iterator(fsPath, ec);
     if (ec) {
-        if (ec == std::errc::no_such_file_or_directory) {
-            return false;
-        } else if (ec == std::errc::permission_denied) {
-            return false;
-        } else {
-            return false;
-        }
+        return false;
     }
     return true;
 }

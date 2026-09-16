@@ -64,22 +64,19 @@ public:
 
     String File; /// Vollständiger Pfad mit Dateinamen
 
-    /**
-     * @authors Zeit des letzten Dateizugriffs
+    /** @brief Zeit des letzten Dateizugriffs
      *
      * Enthält das Datum des letzten Dateizugriffs in UNIX-Time.
      */
     DateTime ATime;
 
-    /**
-     * @brief Zeit der Datei-Erstellung
+    /** @brief Zeit der Datei-Erstellung
      *
      * Enthält das Datum der Erstellung der Datei in UNIX-Time.
      */
     DateTime CTime;
 
-    /**
-     * @brief Zeit der letzten Modifizierung
+    /** @brief Zeit der letzten Modifizierung
      *
      * Enthält das Datum der letzten Modifizierung der Datei in UNIX-Time.
      */
@@ -257,7 +254,7 @@ public:
 
 private:
     std::vector<DirEntry> Files;
-
+    size_t skipped_entries_count = 0;
     Sort sort = Sort::None;
     String Path;
 
@@ -287,8 +284,9 @@ public:
      *
      * \param[in] path Pfad des zu öffnenden Verzeichnisses
      * \param[in] sortOrder Gewünschte Sortierreihenfolge. Siehe dazu Dir::Sort
-     * \exception NonexistingPathException Wrd geworfen, wenn das angegebene Verzeichnis nicht existiert.
-     * \exception PermissionDeniedException Wird geworfen, wenn das angegebene Verzeichnis nicht geöffnet werden kann.
+     * @exception FileNotFoundException Wird geworfen, wenn das angegebene Verzeichnis nicht existiert.
+     * @exception PermissionDeniedException Wird geworfen, wenn das angegebene Verzeichnis nicht geöffnet werden kann.
+     * @exception CouldNotOpenDirectoryException Wird geworfen, wenn das angegebene Verzeichnis nicht geöffnet werden kann.
      */
     explicit Dir(const String& path, Sort sortOrder = Sort::None);
 
@@ -300,15 +298,18 @@ public:
      * @param[in] path Zu öffnender Pfad
      * @param[in] sortOrder gewünschte Sortierreihenfolge. Defaultmäßig wird keine Sortierung
      * verwendet.
-     * @return Die Funktion hat keinen Rückgabewert. Bei Auftreten eines Fehlers wird
-     * eine Exception geworfen.
+     * @exception FileNotFoundException Wird geworfen, wenn das angegebene Verzeichnis nicht existiert.
+     * @exception PermissionDeniedException Wird geworfen, wenn das angegebene Verzeichnis nicht geöffnet werden kann.
+     * @exception CouldNotOpenDirectoryException Wird geworfen, wenn das angegebene Verzeichnis nicht geöffnet werden kann.
+     *
      * @note Die Enumeration erfolgt nach dem Best-Effort-Prinzip: Dateien, auf die während
      * des Einlesens keine Zugriffsrechte bestehen oder die während der Iteration gelöscht
-     * werden, werden stillschweigend übersprungen.
+     * werden, werden stillschweigend übersprungen. Die Anzahl der übersprungenen Einträge kann
+     * mit Dir::skippedEntries() abgefragt werden.
      */
     void open(const String& path, Sort sortOrder = Sort::None);
 
-    /*!\brief Verzeichnis einlesen, ohne Exception
+    /** @brief Verzeichnis einlesen, ohne Exception
      *
      * Mit dieser Funktion wird das mit \p path angegebene Verzeichnis geöffnet,
      * eingelesen und mit der Sortiermethode \p sortOrder sortiert.
@@ -317,6 +318,10 @@ public:
      * @param[in] sortOrder gewünschte Sortierreihenfolge. Defaultmäßig wird keine Sortierung
      * verwendet.
      * @return Die Funktion gibt \c true zurück, wenn das Verzeichnis geöffnet werden konnte, sonst \c false.
+     * @note Die Enumeration erfolgt nach dem Best-Effort-Prinzip: Dateien, auf die während
+     * des Einlesens keine Zugriffsrechte bestehen oder die während der Iteration gelöscht
+     * werden, werden stillschweigend übersprungen. Die Anzahl der übersprungenen Einträge kann
+     * mit Dir::skippedEntries() abgefragt werden.
      */
     bool tryOpen(const String& path, Sort sortOrder = Sort::None);
 
@@ -416,6 +421,19 @@ public:
     const DirEntry& at(size_t index) const
     {
         return Files.at(index);
+    }
+
+    /** @brief Liefert die Anzahl der übersprungenen Einträge zurück
+     *
+     * Werden beim Einlesen mit Dir::open() Verzeichniseinträgen Dateien übersprungen,
+     * weil sie z.B. keine Leserechte haben, wird dies gezählt. Mit dieser Methode
+     * kann die Anzahl der übersprungenen Einträge abgefragt werden.
+     *
+     * @return Anzahl der übersprungenen Einträge
+     */
+    size_t skippedEntries() const noexcept
+    {
+        return skipped_entries_count;
     }
 
     /**@brief Verzeichnis auf STDOUT ausgeben
@@ -603,7 +621,6 @@ public:
      *
      * @param path Pfad des zu erstellenden Verzeichnisses
      * @param recursive Wenn \c true ist, werden auch alle übergeordneten Verzeichnisse erstellt, falls diese nicht existieren.
-     * @return Liefert \c true zurück, wenn das Verzeichnis erstellt wurde, sonst \c false.
      */
     static void mkDir(const String& path, bool recursive = false);
 
@@ -616,7 +633,6 @@ public:
      * @param path Pfad des zu erstellenden Verzeichnisses
      * @param mode Rechte des zu erstellenden Verzeichnisses (z.B. 0755)
      * @param recursive Wenn \c true ist, werden auch alle übergeordneten Verzeichnisse erstellt, falls diese nicht existieren.
-     * @return Liefert \c true zurück, wenn das Verzeichnis erstellt wurde, sonst \c false.
      */
     static void mkDir(const String& path, mode_t mode, bool recursive);
 
