@@ -155,6 +155,8 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   (`. ^ $ | ( ) [ ] { } * + ? \`), bevor `*`/`?` gezielt wieder durch `.*`/`.` ersetzt werden – `RegEx::escape()`
   ist dafür nicht das richtige Werkzeug, da es für einen anderen Zweck (Perl-Style-Escaping) gedacht ist.
 
+  ==> FIXED, Hilfsmethode filePatternToRegEx eingeführt
+
 - [ ] **`Dir::currentPath()`/`Dir::tempPath()`: gleicher Encoding-Bug wie oben, plus inkonsistentes Trailing-Separator-Verhalten** (`Dir.cpp:63-78`, `Dir.cpp:107-124`)
   ```cpp
   String Dir::currentPath()

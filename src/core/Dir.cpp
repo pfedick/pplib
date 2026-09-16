@@ -361,15 +361,52 @@ void Dir::resortSize()
     std::stable_sort(Files.begin(), Files.end(), [](const DirEntry& a, const DirEntry& b) { return a.Size < b.Size; });
 }
 
+static String filePatternToRegEx(const String& pattern)
+{
+    String result;
+    result.reserve(pattern.len() * 2 + 2);
+    result += '^';
+
+    for (size_t i = 0; i < pattern.len(); ++i) {
+        char c = pattern[i];
+        switch (c) {
+        case '*':
+            result += ".*";
+            break;
+        case '?':
+            result += '.';
+            break;
+        // Alle RegEx-Metazeichen escapen:
+        case '.':
+        case '+':
+        case '^':
+        case '$':
+        case '[':
+        case ']':
+        case '(':
+        case ')':
+        case '{':
+        case '}':
+        case '|':
+        case '\\':
+            result += '\\';
+            result += c;
+            break;
+        default:
+            result += c;
+            break;
+        }
+    }
+
+    result += '$';
+    return result;
+}
+
 // Filter
 std::vector<DirEntry> Dir::filterPattern(const String& pattern, bool ignorecase) const
 {
     // Wildcard in RegEx umwandeln
-    String Pattern = RegEx::escape(pattern);
-    Pattern.replace(".", "\\.");
-    Pattern.replace("\\*", ".*");
-    Pattern.replace("?", ".");
-    Pattern = "^" + Pattern + "$";
+    String Pattern = filePatternToRegEx(pattern);
 
     int flags = RegEx::Flags::DOTALL;
     if (ignorecase) flags |= RegEx::Flags::CASELESS;
@@ -401,11 +438,7 @@ std::vector<DirEntry> Dir::filterRegExp(const String& regexp) const
 
 std::optional<DirEntry> Dir::findPattern(const String& pattern, bool ignorecase) const
 {
-    String Pattern = RegEx::escape(pattern);
-    Pattern.replace(".", "\\.");
-    Pattern.replace("\\*", ".*");
-    Pattern.replace("?", ".");
-    Pattern = "^" + Pattern + "$";
+    String Pattern = filePatternToRegEx(pattern);
 
     int flags = RegEx::Flags::DOTALL;
     if (ignorecase) flags |= RegEx::Flags::CASELESS;
