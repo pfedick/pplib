@@ -170,17 +170,16 @@ String Dir::documentsPath(const String& company, const String& application)
 
 bool Dir::exists(const String& dirname)
 {
-    try {
-        DirEntry f;
-        File::statFile(dirname, f);
-        if (f.isDir()) return true;
-        if (f.isLink()) return true;
-        return false;
-    }
-    catch (...) {
-        return false;
-    }
-    return false;
+    if (dirname.isEmpty()) return false;
+
+#ifdef _WIN32
+    std::filesystem::path fsPath(WideString(dirname).getPtr());
+#else
+    std::filesystem::path fsPath((const char*)dirname);
+#endif
+
+    std::error_code ec;
+    return std::filesystem::is_directory(fsPath, ec);
 }
 
 void Dir::mkDir(const String& path, bool recursive)
@@ -204,9 +203,11 @@ void Dir::mkDir(const String& path, mode_t mode, bool recursive)
         String s = path;
         s.replace("/", "\\");
         if (_wmkdir((const wchar_t*)WideString(s)) == 0) return;
+        if (errno == EEXIST && Dir::exists(s)) return;
         throwExceptionFromErrno(errno, s);
 #else
         if (mkdir((const char*)path, mode) == 0) return;
+        if (errno == EEXIST && Dir::exists(path)) return;
         throwExceptionFromErrno(errno, path);
 #endif
     }
@@ -238,10 +239,12 @@ void Dir::mkDir(const String& path, mode_t mode, bool recursive)
 #ifdef _WIN32
             currentPathStr.replace("/", "\\");
             if (_wmkdir((const wchar_t*)WideString(currentPathStr)) != 0) {
+                if (errno == EEXIST && Dir::exists(currentPathStr)) continue;
                 throwExceptionFromErrno(errno, currentPathStr);
             }
 #else
             if (mkdir((const char*)currentPathStr, mode) != 0) {
+                if (errno == EEXIST && Dir::exists(currentPathStr)) continue;
                 throwExceptionFromErrno(errno, currentPathStr);
             }
 #endif
@@ -266,7 +269,7 @@ void Dir::rmDir(const String& path, bool recursive)
     }
     if (ec) {
         if (ec == std::errc::no_such_file_or_directory) {
-            throw FileNotFoundException("%s", (const char*)path);
+            return; // Verzeichnis existiert nicht, Ziel erreicht :-)
         } else if (ec == std::errc::permission_denied) {
             throw PermissionDeniedException("%s", (const char*)path);
         } else if (ec == std::errc::directory_not_empty) {
@@ -462,8 +465,14 @@ void Dir::open(const String& path, Sort sortOrder)
     }
 
     // 2. Einträge einlesen und Meta-Daten via File::statFile ermitteln
-    for (const auto& entry : it) {
+    std::filesystem::directory_iterator end;
+    while (it != end) {
+        const auto& entry = *it;
+#ifdef _WIN32
+        String currentFile = String(WideString(entry.path().c_str()));
+#else
         String currentFile = entry.path().string();
+#endif
         DirEntry de;
         try {
             File::statFile(currentFile, de);
@@ -471,6 +480,13 @@ void Dir::open(const String& path, Sort sortOrder)
         }
         catch (...) {
             // Einzelne Dateien ohne Rechte/Zugriff ignorieren
+        }
+        // Nächster Schritt ohne Exception:
+        it.increment(ec);
+        if (ec) {
+            // Ein Fehler beim Vorrücken (z.B. gelöschte Datei oder Permission Denied):
+            // Iterator wird bei Fehler im OS oft ungültig/beendet oder man bricht kontrolliert ab.
+            break;
         }
     }
 

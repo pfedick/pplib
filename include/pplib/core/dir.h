@@ -292,7 +292,7 @@ public:
      */
     explicit Dir(const String& path, Sort sortOrder = Sort::None);
 
-    /*!\brief Verzeichnis einlesen
+    /** @brief Verzeichnis einlesen
      *
      * Mit dieser Funktion wird das mit \p path angegebene Verzeichnis geöffnet,
      * eingelesen und mit der Sortiermethode \p sortOrder sortiert.
@@ -302,6 +302,9 @@ public:
      * verwendet.
      * @return Die Funktion hat keinen Rückgabewert. Bei Auftreten eines Fehlers wird
      * eine Exception geworfen.
+     * @note Die Enumeration erfolgt nach dem Best-Effort-Prinzip: Dateien, auf die während
+     * des Einlesens keine Zugriffsrechte bestehen oder die während der Iteration gelöscht
+     * werden, werden stillschweigend übersprungen.
      */
     void open(const String& path, Sort sortOrder = Sort::None);
 
@@ -573,9 +576,8 @@ public:
     /**
      * @brief Prüft, ob ein Verzeichnis existiert
      *
-     * Mit dieser Funktion kann geprüft werden, ob ein Verzeichnis existiert. Dabei wird nicht geprüft,
-     * ob es sich um ein Verzeichnis oder eine Datei handelt. Es wird lediglich geprüft, ob der Pfad
-     * existiert.
+     * Mit dieser Funktion kann geprüft werden, ob der Pfad \p dirname existiert und tatsächlich
+     * ein Verzeichnis ist, oder ein Symbolischer Link, der auf ein Verzeichnis zeigt.
      *
      * @param dirname Pfad des zu prüfenden Verzeichnisses
      * @return Liefert \c true zurück, wenn das Verzeichnis existiert, sonst \c false.

@@ -39,6 +39,9 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   Fix: wie an anderer Stelle im selben File `String currentFile = String(WideString(entry.path().c_str()));`
   (oder mit C++20 `entry.path().u8string()`).
 
+  ==> FIXED
+
+
 - [ ] **Symlinks werden nie als solche erkannt, defekte Symlinks verschwinden lautlos aus der Auflistung** (`Dir.cpp:469`, `DirEntry.cpp:47-51`)
   `Dir::open()` befüllt jeden Eintrag über `File::statFile()`, das intern `stat()`/`_wstat()` verwendet
   (`File.cpp:1117`), also dem Symlink **folgt**. `st_mode` von `stat()` kann `S_IFLNK` grundsätzlich nie
@@ -56,6 +59,8 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   Fehlerbehandlung stat'en, statt beim Fehler den ganzen Eintrag zu verwerfen. `std::filesystem::directory_entry`
   liefert dafür bereits günstig `is_symlink()` ohne zusätzlichen Syscall.
 
+  ==> FIXED in File::statFile. Es verwendet unter Windows nun GetFileAttributesExW und unter Linux lstat statt stat. Dadurch werden Symlinks nicht mehr verfolgt, sondern als solche erkann und gemeldet. Ferner kommt es nicht mehr zu einer Exception, wenn der Symlink broken ist
+
 - [ ] **`std::filesystem::filesystem_error` kann unbehandelt aus `Dir::open()` entkommen (TOCTOU bei der Enumeration)** (`Dir.cpp:454-475`)
   ```cpp
   auto it = std::filesystem::directory_iterator(fsPath, ec);   // <- mit error_code
@@ -72,6 +77,8 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   Fix: Iteration ebenfalls mit der `error_code`-Variante durchführen (`it.increment(ec)` in einer klassischen
   Schleife statt Range-for), oder die gesamte Schleife in einen zusätzlichen `try/catch` einwickeln, der
   `std::filesystem::filesystem_error` gezielt in eine pplib-Exception übersetzt.
+
+  ===> FIXED
 
 ## Bugs (mittel)
 
@@ -100,6 +107,8 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   "ist das ein Verzeichnis oder Link"), oder die Datei-Prüfung ergänzen (`isFile()`) bzw. generell nur auf
   Existenz prüfen unabhängig vom Typ.
 
+  ==> Doku und Code korrigiert. Wir verwenden jetzt std::filesystem::is_directory, was einem Link folgen würde
+
 - [ ] **`Dir::mkDir(..., recursive=true)`: TOCTOU-Race erzeugt spontane `FileExistsException`** (`Dir.cpp:236-248`)
   ```cpp
   if (!Dir::exists(currentPathStr)) {
@@ -122,6 +131,8 @@ rohen `opendir`/`readdir`/`closedir`- oder `FindFirstFile`/`FindNextFile`-Aufruf
   vorliegt.
   Fix: `EEXIST` beim rekursiven Anlegen tolerieren, z.B.
   `if (mkdir(...) != 0 && errno != EEXIST) throwExceptionFromErrno(...)`.
+
+  ==> FIXED
 
 - [ ] **Wildcard→RegEx-Konvertierung escaped nicht alle Regex-Metazeichen** (`Dir.cpp:362-397` `filterPattern`, `Dir.cpp:399-418` `findPattern`; `Pcre.cpp:438-452` `RegEx::escape`)
   ```cpp
