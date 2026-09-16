@@ -40,7 +40,7 @@
 #include <pplib/exceptions.h>
 
 #include "pplib-tests.h"
-
+#include <filesystem>
 namespace
 {
 
@@ -588,6 +588,43 @@ TEST_F(FileStaticTest, chmod)
     EXPECT_EQ(static_cast<pplib::FileAttr::Attributes>(attr), d.Attrib);
 
     // pplib::File::remove("tmp/chmod_test.TXT");
+}
+
+TEST_F(FileStaticTest, isLinkWithBrokenSymlink)
+{
+    std::error_code ec;
+    std::filesystem::create_symlink("tmp/does_not_exist.txt", "tmp/broken_symlink.txt", ec);
+    if (ec) {
+        // Falls Developer-Mode nicht aktiv ist, liefert Windows ERROR_PRIVILEGE_NOT_HELD
+        GTEST_SKIP() << "Symlink-Erstellung auf Windows erfordert Developer Mode: " << ec.message();
+    }
+
+    EXPECT_TRUE(pplib::File::isLink("tmp/broken_symlink.txt"));
+
+    pplib::DirEntry de;
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/broken_symlink.txt", de));
+    EXPECT_TRUE(de.isLink());
+
+    std::filesystem::remove("tmp/broken_symlink.txt", ec);
+}
+
+TEST_F(FileStaticTest, isLinkWithJunction)
+{
+#ifdef _WIN32
+    // Junction anlegen (funktioniert ohne Admin / Developer Mode)
+    system("cmd /c mklink /J tmp\\test_junction testdata >nul 2>&1");
+
+    EXPECT_TRUE(pplib::File::isLink("tmp/test_junction"));
+
+    pplib::DirEntry de;
+    ASSERT_NO_THROW(pplib::File::statFile("tmp/test_junction", de));
+    EXPECT_TRUE(de.isLink());
+
+    // Aufräumen: Junction mit rmdir entfernen (löscht nicht den Inhalt von testdata)
+    system("cmd /c rmdir tmp\\test_junction >nul 2>&1");
+#else
+    GTEST_SKIP() << "Windows-only Test";
+#endif
 }
 
 } // namespace

@@ -69,6 +69,7 @@
 
 #include <pplib/core/file.h>
 #include <pplib/core/dir.h>
+#include <filesystem>
 
 namespace pplib
 {
@@ -1104,19 +1105,62 @@ static void getResultFromStat(struct stat& st, DirEntry& result, const pplib::St
 #endif
 }
 
+#ifdef _WIN32
+static time_t fileTimeToTimeT(const FILETIME& ft)
+{
+    ULARGE_INTEGER ull;
+    ull.LowPart = ft.dwLowDateTime;
+    ull.HighPart = ft.dwHighDateTime;
+    // 116444736000000000ULL sind die 100ns-Intervalle zwischen 1601 und 1970
+    if (ull.QuadPart < 116444736000000000ULL) return 0;
+    return (time_t)((ull.QuadPart - 116444736000000000ULL) / 10000000ULL);
+}
+#endif
+
 void File::statFile(const String& filename, DirEntry& result)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
 #ifdef _WIN32
-    struct _stat st;
     String File = filename;
     File.replace("/", "\\");
-    if (_wstat((const wchar_t*)WideString(File), &st) != 0) throwErrno(errno, filename);
+    WideString wFile(File);
+    WIN32_FILE_ATTRIBUTE_DATA data;
+    if (!GetFileAttributesExW((const wchar_t*)wFile, GetFileExInfoStandard, &data)) {
+        throwExceptionFromErrno(ENOENT, filename); // bzw. GetLastError() mappen
+    }
+
+    result.File.set(filename);
+    result.Path = File::getPath(result.File);
+    result.Filename = File::getFilename(result.File);
+    result.Size = ((uint64_t)data.nFileSizeHigh << 32) | data.nFileSizeLow;
+    result.CTime.setTime_t(fileTimeToTimeT(data.ftCreationTime));
+    result.ATime.setTime_t(fileTimeToTimeT(data.ftLastAccessTime));
+    result.MTime.setTime_t(fileTimeToTimeT(data.ftLastWriteTime));
+    result.Attrib = FileAttr::NONE;
+    result.Uid = 0;
+    result.Gid = 0;
+    result.Blocks = 0;
+    result.BlockSize = 0;
+    result.NumLinks = 1;
+
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+        result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFLINK);
+    }
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFDIR);
+    } else {
+        result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFFILE);
+    }
+
+    result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
+    if (!(data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)) {
+        result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);
+    }
 #else
     struct stat st;
-    if (::stat((const char*)filename, &st) != 0) throwErrno(errno, filename);
-#endif
+    if (::lstat((const char*)filename, &st) != 0) throwErrno(errno, filename);
     getResultFromStat(st, result, filename);
+#endif
 }
 
 DirEntry File::statFile(const String& filename)
