@@ -228,6 +228,15 @@ TEST_F(DateTimeTest, ConstructorWithDateObjectOnly)
     ASSERT_EQ(pplib::String("2012-05-18 00:00:00"), d1.get()) << "Unexpected date";
 }
 
+TEST_F(DateTimeTest, ConstructorWithSingleValues)
+{
+    ASSERT_NO_THROW({
+        pplib::DateTime d1(2012, 5, 18, 11, 50, 11, 159473, pplib::TimeZone(+2, 0));
+        ASSERT_TRUE(d1.notEmpty() == true) << "Class is empty";
+        ASSERT_EQ(pplib::String("2012-05-18T11:50:11.159473+02:00"), d1.getISO8601withUsec()) << "Unexpected date";
+    });
+}
+
 TEST_F(DateTimeTest, CopyConstructor)
 {
     ASSERT_NO_THROW({

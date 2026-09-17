@@ -127,17 +127,72 @@ public:
         my_time.setMicrosecond(microseconds);
     }
 
+    /** @brief Kopierkonstruktor
+     *
+     * Mit diesem Konstruktor wird ein DateTime Objekt als Kopie eines anderen DateTime Objekts erstellt.
+     *
+     * @param other Das zu kopierende DateTime Objekt
+     */
     DateTime(const DateTime& other) noexcept = default;
+
+    /** @brief Move-Konstruktor
+     *
+     * Mit diesem Konstruktor wird ein DateTime Objekt durch Verschieben eines anderen DateTime Objekts erstellt.
+     *
+     * @param other Das zu verschiebende DateTime Objekt
+     */
     DateTime(DateTime&& other) noexcept = default;
 
+    /** @brief Konstruktor mit Angabe von Datum, Uhrzeit und Zeitzone
+     *
+     * Mit diesem Konstruktor können Datum, Uhrzeit und Zeitzone direkt angegeben werden.
+     *
+     * @param date Datum
+     * @param time Uhrzeit
+     * @param tz Zeitzone (optional, Standardwert UTC)
+     */
     DateTime(const Date& date, const Time& time, const TimeZone& tz = TimeZone()) noexcept
         : my_date(date),
           my_time(time),
           my_tz(tz)
     {
     }
+
+    /** @brief Konstruktor mit Angabe von Datum ohne Uhrzeit
+     *
+     * Mit diesem Konstruktor wird ein DateTime Objekt nur mit einem Datum initialisiert. Die Uhrzeit wird auf 0 gesetzt.
+     *
+     * @param date Datum
+     */
     DateTime(const Date& date) noexcept
         : my_date(date)
+    {
+    }
+
+    /** @brief Konstruktor mit Angabe von Jahr, Monat, Tag, Stunde, Minute, Sekunde, Mikrosekunde und Zeitzone
+     *
+     * Mit diesem Konstruktor können alle Bestandteile eines Datums und einer Uhrzeit direkt angegeben werden.
+     *
+     * @param year Jahr
+     * @param month Monat
+     * @param day Tag
+     * @param hour Stunde (optional, Standardwert 0)
+     * @param minute Minute (optional, Standardwert 0)
+     * @param second Sekunde (optional, Standardwert 0)
+     * @param microsecond Mikrosekunde (optional, Standardwert 0)
+     * @param tz Zeitzone (optional, Standardwert UTC)
+     */
+    DateTime(int year,
+             int month,
+             int day,
+             int hour = 0,
+             int minute = 0,
+             int second = 0,
+             int microsecond = 0,
+             const TimeZone& tz = TimeZone()) noexcept
+        : my_date(year, month, day),
+          my_time(hour, minute, second, microsecond),
+          my_tz(tz)
     {
     }
 
