@@ -838,12 +838,13 @@ bool File::exists(const String& filename)
     if (filename.isEmpty()) throw IllegalArgumentException("filename is empty");
 
 #ifdef _WIN32
-    struct _stat buffer;
-    WideString wide_filename(filename);
-    return (_wstat((const wchar_t*)wide_filename, &buffer) == 0);
+    String file = filename;
+    file.replace("/", "\\");
+    DWORD attr = ::GetFileAttributesW((const wchar_t*)WideString(file));
+    return (attr != INVALID_FILE_ATTRIBUTES);
 #else
     struct stat buffer;
-    return (stat((const char*)filename, &buffer) == 0);
+    return (::lstat((const char*)filename, &buffer) == 0);
 #endif
 }
 

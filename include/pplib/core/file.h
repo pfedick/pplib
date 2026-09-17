@@ -603,7 +603,9 @@ public:
     /** @ingroup PPLGroupFileIO
      * @brief Prüfen, ob eine Datei existiert
      *
-     * Mit %exists kann geprüft werden, ob eine Datei im Filesystem vorhanden ist.
+     * Mit dieser Funktion kann geprüft werden, ob eine Datei im Filesystem existiert. Falls es
+     * sich dabei um einen Symlink handelt, wird dieser nicht aufgelöst.
+     *
      * @param filename Name der gewünschten Datei
      * @return Ist die Datei forhanden, gibt die Funktion @c true zurück, andernfalls @c false.
      */
