@@ -384,13 +384,22 @@ static void writeValue(pplib::FileObject& file, const pplib::String& key, const 
         writeArray(value->toArray(), file);
     } else if (value->isAssocArray()) {
         writeDict(value->toAssocArray(), file);
-    } else if (value->isByteArrayPtr()) {
+    } else if (value->isByteArrayPtr() || value->isByteArray()) {
         const pplib::ByteArrayPtr& ba = value->toByteArrayPtr();
         pplib::String str = ba.toBase64();
         file.fputc('"');
         file.fputs(str);
         file.fputc('"');
-
+    } else if (value->isDateTime()) {
+        file.putsf("\"%s\"", (const char*)value->toDateTime().getISO8601withUsec());
+    } else if (value->isDate()) {
+        file.putsf("\"%s\"", (const char*)value->toDate().toString());
+    } else if (value->isTime()) {
+        file.putsf("\"%s\"", (const char*)value->toTime().toString());
+    } else if (value->isTimeDelta()) {
+        file.putsf("\"%s\"", (const char*)value->toTimeDelta().toString());
+    } else if (value->isTimeZone()) {
+        file.putsf("\"%s\"", (const char*)value->toTimeZone().toString());
     } else {
         // printf ("Unexpected %s: %d\n",(const char*)key,value->type());
         throw UnsupportedDataTypeException("AssocArray Type >>%d<< at key >>%s<<", value->type(), (const char*)key);

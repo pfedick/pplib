@@ -37,6 +37,21 @@
 
 namespace pplib
 {
+/** @brief Hilfsklasse um JSON-Daten zu laden und zu speichern.
+ *
+ * Die Json-Klasse stellt statische Methoden zum Laden und Speichern von JSON-Daten
+ * in und aus pplib::AssocArray-Objekten sowie zum Pretty-Printen von JSON-Strings bereit.
+ *
+ * Die Json-Klasse unterstützt sowohl einfache als auch verschachtelte Arrays und Assoziativ-Arrays.
+ *
+ * @note ByteArray und ByteArrayPtr werden als Base64-codierte Strings exportiert. Beim Import
+ * werden diese allerdings nicht wieder zu ByteArray oder ByteArrayPtr konvertiert, sondern
+ * als Base64-codierte Strings behandelt. Die Funktion kann nicht wissen, ob ein String
+ * ursprünglich ein ByteArray oder bereits ein Base64-codierter String war.
+ *
+ * Ähnlich verhält es sich bei den Zeit-Objekten DateTime, Date, Time, TimeZone und TimeDelta. Auch diese
+ * werden als String exportiert und als String wieder importiert.
+ */
 class Json
 {
 public:
@@ -48,7 +63,7 @@ public:
     static void dumps(pplib::String& json, const pplib::AssocArray& data);
     static void dump(pplib::FileObject& file, const pplib::AssocArray& data);
     static pplib::String dumps(const pplib::AssocArray& data);
-    static pplib::String pp(const pplib::String& json);
+    static pplib::String pp(const pplib::String& json, uint indent = 4);
 };
 } // namespace pplib
 

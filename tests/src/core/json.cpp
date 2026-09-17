@@ -286,4 +286,66 @@ TEST_F(JsonTest, DumpsWithBinary)
     ASSERT_EQ(pplib::String("{\"bytearray\":\"" + b64 + "\",\"key1\":\"value1\",\"key3\":\"value3\"}"), str);
 }
 
+// DateTime, Date, Time, TimeDelta, TimeZone serialization tests would go here.
+
+TEST_F(JsonTest, DumpsWithDateTime)
+{
+    pplib::AssocArray data;
+    pplib::DateTime dt(2024, 6, 5, 12, 34, 56, 789000, pplib::TimeZone(+2, 0));
+    data.set("key1", "value1");
+    data.set("datetime", dt);
+    data.set("key3", "value3");
+    pplib::String str;
+    ASSERT_NO_THROW({ str = pplib::Json::dumps(data); });
+    ASSERT_EQ(pplib::String("{\"datetime\":\"" + dt.getISO8601withUsec() + "\",\"key1\":\"value1\",\"key3\":\"value3\"}"), str);
+}
+
+TEST_F(JsonTest, DumpsWithDate)
+{
+    pplib::AssocArray data;
+    pplib::Date date(2024, 6, 5);
+    data.set("key1", "value1");
+    data.set("date", date);
+    data.set("key3", "value3");
+    pplib::String str;
+    ASSERT_NO_THROW({ str = pplib::Json::dumps(data); });
+    ASSERT_EQ(pplib::String("{\"date\":\"" + date.toString() + "\",\"key1\":\"value1\",\"key3\":\"value3\"}"), str);
+}
+
+TEST_F(JsonTest, DumpsWithTime)
+{
+    pplib::AssocArray data;
+    pplib::Time time(12, 34, 56, 789000);
+    data.set("key1", "value1");
+    data.set("time", time);
+    data.set("key3", "value3");
+    pplib::String str;
+    ASSERT_NO_THROW({ str = pplib::Json::dumps(data); });
+    ASSERT_EQ(pplib::String("{\"key1\":\"value1\",\"key3\":\"value3\",\"time\":\"" + time.toString() + "\"}"), str);
+}
+
+TEST_F(JsonTest, DumpsWithTimeDelta)
+{
+    pplib::AssocArray data;
+    pplib::TimeDelta td(1, 2, 3, 456000);
+    data.set("key1", "value1");
+    data.set("timedelta", td);
+    data.set("key3", "value3");
+    pplib::String str;
+    ASSERT_NO_THROW({ str = pplib::Json::dumps(data); });
+    ASSERT_EQ(pplib::String("{\"key1\":\"value1\",\"key3\":\"value3\",\"timedelta\":\"" + td.toString() + "\"}"), str);
+}
+
+TEST_F(JsonTest, DumpsWithTimeZone)
+{
+    pplib::AssocArray data;
+    pplib::TimeZone tz(+2, 0);
+    data.set("key1", "value1");
+    data.set("timezone", tz);
+    data.set("key3", "value3");
+    pplib::String str;
+    ASSERT_NO_THROW({ str = pplib::Json::dumps(data); });
+    ASSERT_EQ(pplib::String("{\"key1\":\"value1\",\"key3\":\"value3\",\"timezone\":\"" + tz.toString() + "\"}"), str);
+}
+
 } // namespace
