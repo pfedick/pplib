@@ -137,9 +137,13 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   Wenn `0 < by < nmemb` gelesen wird und das Dateiende erreicht ist, kehrt `fread` still zurück, obwohl die Doku sagt: *"Wenn ein Fehler auftritt oder das Dateiende erreicht ist, wird eine Exception geworfen."*
   Zusätzlich: In `fread` steht `if (ptr == NULL) throw IllegalArgumentException();` vor dem Größen-Check `if (size == 0 || nmemb == 0) return 0;`. Bei `fread(NULL, 1, 0)` fliegt daher eine Exception, während `fwrite(NULL, 1, 0)` sauber 0 zurückgibt.
 
+  ==> Hier ist POSIX-Verhalten gewünscht! Prüfen und ggfs. Doku anpassen
+
 - [ ] **`File::openTemp`: `(char*)(const char*)tmpname` und fehlende MSVC-Portabilität** (`src/core/File.cpp:209-221`)
   `int f = ::mkstemp((char*)((const char*)tmpname));` castet die `const`-Qualifikation des internen Puffers von `pplib::String` weg. Unter nativem MSVC (Windows) existiert `mkstemp` zudem nicht.
   *Fix:* Temporären `char buffer[1024]` verwenden, diesen an `mkstemp` übergeben und das Ergebnis anschließend dem `String` zuweisen; für Windows/MSVC eine Alternative (`_mktemp_s` / `GetTempFileName`) vorsehen.
+
+  ==> Wenn dann ByteArray verwenden. Es spricht aber auch nix dagegen in den Buffer des Strings zu schreiben. Daher prüfen.
 
 - [ ] **`File::truncate` (Windows): 32-Bit-Truncation durch `(long)length`** (`src/core/File.cpp:652`)
   ```cpp
