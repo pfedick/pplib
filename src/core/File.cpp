@@ -384,9 +384,9 @@ size_t File::fread(void* ptr, size_t size, size_t nmemb)
 
 size_t File::fwrite(const void* ptr, size_t size, size_t nmemb)
 {
+    if (size == 0 || nmemb == 0) return 0;
     if (ptr == NULL) throw IllegalArgumentException();
     if (ff == NULL) throw FileNotOpenException();
-    if (size == 0 || nmemb == 0) return 0;
 
     size_t by = ::fwrite(ptr, size, nmemb, (FILE*)ff);
     pos += (by * size);

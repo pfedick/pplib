@@ -81,6 +81,7 @@ size_t FileObject::write(const void* source, size_t bytes)
 size_t FileObject::write(const ByteArrayPtr& object, size_t bytes)
 {
     if (bytes == 0 || bytes > object.size()) bytes = object.size();
+    if (bytes == 0) return 0;
     return fwrite(object.ptr(), 1, bytes);
 }
 
@@ -97,6 +98,7 @@ size_t FileObject::read(void* target, size_t bytes)
 
 size_t FileObject::read(ByteArray& target, size_t bytes)
 {
+    if (!isOpen()) throw FileNotOpenException();
     if (!bytes) throw IllegalArgumentException();
     if (target.size() != bytes) target.realloc(bytes);
     return fread((void*)target.ptr(), 1, bytes);
@@ -104,6 +106,7 @@ size_t FileObject::read(ByteArray& target, size_t bytes)
 
 uint64_t FileObject::copyFrom(FileObject& quellfile, uint64_t quelloffset, uint64_t bytes, uint64_t zieloffset)
 {
+    if (&quellfile == this) throw IllegalArgumentException();
     quellfile.seek(quelloffset);
     seek(zieloffset);
     return FileObject::copyFrom(quellfile, bytes);
@@ -111,8 +114,12 @@ uint64_t FileObject::copyFrom(FileObject& quellfile, uint64_t quelloffset, uint6
 
 uint64_t FileObject::copyFrom(FileObject& quellfile, uint64_t bytes)
 {
+    if (&quellfile == this) throw IllegalArgumentException();
     ByteArray CopyBuffer(COPYBYTES_BUFFERSIZE);
-    uint64_t available = quellfile.size() - quellfile.tell();
+    uint64_t qsize = quellfile.size();
+    uint64_t qpos = quellfile.tell();
+    if (qpos >= qsize) return 0;
+    uint64_t available = qsize - qpos;
     if (bytes > available) bytes = available;
 
     uint64_t copied = 0;
@@ -120,7 +127,13 @@ uint64_t FileObject::copyFrom(FileObject& quellfile, uint64_t bytes)
     while (copied < bytes) {
         uint64_t by = bytes - copied;
         if (by > CopyBuffer.size()) by = CopyBuffer.size();
-        size_t n = quellfile.read((void*)CopyBuffer.ptr(), (size_t)by);
+        size_t n = 0;
+        try {
+            n = quellfile.read((void*)CopyBuffer.ptr(), (size_t)by);
+        }
+        catch (const EndOfFileException&) {
+            break;
+        }
         if (n == 0) break; // EOF oder Fehler
         write(CopyBuffer.ptr(), n);
         copied += n;
@@ -161,7 +174,6 @@ int FileObject::getws(WideString& buffer, size_t num)
         return 0;
     }
     buffer.set(b);
-    free(b);
     return 1;
 }
 

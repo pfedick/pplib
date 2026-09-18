@@ -63,7 +63,7 @@ public:
     static void dumps(pplib::String& json, const pplib::AssocArray& data);
     static void dump(pplib::FileObject& file, const pplib::AssocArray& data);
     static pplib::String dumps(const pplib::AssocArray& data);
-    static pplib::String pp(const pplib::String& json, uint indent = 4);
+    static pplib::String pp(const pplib::String& json, unsigned int indent = 4);
 };
 } // namespace pplib
 

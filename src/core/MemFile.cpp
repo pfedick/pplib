@@ -229,6 +229,7 @@ void MemFile::close()
     MemBase = NULL;
     mysize = 0;
     pos = 0;
+    buffersize = 0;
     if (buffer != 0) {
         free(buffer);
         buffer = 0;
@@ -263,35 +264,26 @@ void MemFile::seek(uint64_t position)
 uint64_t MemFile::seek(int64_t offset, SeekOrigin origin)
 {
     if (MemBase != NULL || readonly == false) {
-        uint64_t oldpos = pos;
+        int64_t newpos = 0;
         switch (origin) {
         case SEEKCUR:
-            pos += offset;
-            if (pos < mysize) return pos;
-            if ((int64_t)pos < 0) {
-                pos = 0;
-                return pos;
-            }
+            newpos = (int64_t)pos + offset;
             break;
         case SEEKEND:
-            pos = mysize - offset;
-            if (pos <= mysize) return pos;
-            if ((int64_t)pos < 0) {
-                pos = 0;
-                return pos;
-            }
+            newpos = (int64_t)mysize + offset;
             break;
         case SEEKSET:
-            pos = offset;
-            if ((int64_t)pos < 0) {
-                pos = 0;
-                return pos;
-            }
-            if (pos > mysize) return pos;
+            newpos = offset;
             break;
+        default:
+            throw IllegalArgumentException();
         }
-        pos = oldpos;
-        throw FileSeekException("pos=%lld, offset=%lld, origin=%d", pos, offset, origin);
+        if (newpos < 0) throw InvalidArgumentsException();
+        if ((uint64_t)newpos > mysize) {
+            throw FileSeekException("pos=%lld, offset=%lld, origin=%d", (uint64_t)pos, offset, origin);
+        }
+        pos = (size_t)newpos;
+        return pos;
     }
     throw FileNotOpenException();
 }
@@ -351,19 +343,18 @@ char* MemFile::fgets(char* buffer1, size_t num)
 wchar_t* MemFile::fgetws(wchar_t* buffer1, size_t num)
 {
     if (MemBase == NULL) throw FileNotOpenException();
-    if (num == 0) return NULL;
+    if (num == 0) throw IllegalArgumentException();
     if (pos >= mysize) throw EndOfFileException();
 
     size_t available_wchars = (mysize - pos) / sizeof(wchar_t);
     size_t max_read = (num - 1 < available_wchars) ? (num - 1) : available_wchars;
 
-    wchar_t* ptr = (wchar_t*)(MemBase + pos);
     size_t i = 0;
     for (i = 0; i < max_read; i++) {
         wchar_t ch; // temporärer Speicher für das gelesene wchar_t, korrekt aligned für wchar_t
         memcpy(&ch, MemBase + pos + (i * sizeof(wchar_t)), sizeof(wchar_t));
-        buffer1[i] = ptr[i];
-        if (ptr[i] == L'\n') {
+        buffer1[i] = ch;
+        if (ch == L'\n') {
             i++;
             break;
         }
@@ -408,14 +399,15 @@ void MemFile::fputwc(wchar_t c)
 int MemFile::fgetc()
 {
     if (MemBase == NULL) throw FileNotOpenException();
-    if (pos >= mysize) throw OverflowException();
+    if (pos >= mysize) throw EndOfFileException();
     return static_cast<unsigned char>(MemBase[pos++]);
 }
 
 wchar_t MemFile::fgetwc()
 {
     wchar_t buf[1];
-    fread(buf, sizeof(wchar_t), 1);
+    size_t n = fread(buf, sizeof(wchar_t), 1);
+    if (n == 0) throw EndOfFileException();
     return buf[0];
 }
 
@@ -443,19 +435,20 @@ void MemFile::setMapReadAhead(size_t bytes)
 const char* MemFile::map(uint64_t position, size_t bytes)
 {
     if (MemBase == NULL) throw FileNotOpenException();
-    if (position + bytes <= mysize) {
-        return (MemBase + position);
+    if (position > mysize || bytes > mysize - position) {
+        throw OverflowException();
     }
-    return NULL;
+    return (MemBase + position);
 }
 
 char* MemFile::mapRW(uint64_t position, size_t bytes)
 {
     if (MemBase == NULL) throw FileNotOpenException();
-    if (position + bytes <= mysize) {
-        return (MemBase + position);
+    if (readonly) throw ReadOnlyException();
+    if (position > mysize || bytes > mysize - position) {
+        throw OverflowException();
     }
-    return NULL;
+    return (MemBase + position);
 }
 
 void MemFile::unmap()

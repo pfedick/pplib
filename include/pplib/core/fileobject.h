@@ -64,8 +64,8 @@ public:
     /** @enum SeekOrigin
      * @brief Ausgangsbasis für Bewegung des Dateizeigers
      *
-     * Diese Enumeration definiert die Ausgahgsbasis für Bewegungen des Dateizeigers
-     * miitels der Funktion FileObject::seek
+     * Diese Enumeration definiert die Ausgangsbasis für Bewegungen des Dateizeigers
+     * mittels der Funktion FileObject::seek
      *
      */
     enum SeekOrigin
@@ -484,7 +484,7 @@ public:
 
     /** @brief Wide-Character String lesen
      *
-     * %fgwets liest höchstens \p num minus ein Zeichen (nicht Bytes)
+     * %fgetws liest höchstens \p num minus ein Zeichen (nicht Bytes)
      * eines Wide-Character-Strings aus der Datei
      * und speichert sie in dem Puffer, auf den \p buffer zeigt. Das Lesen stoppt
      * nach einem EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird,
@@ -517,7 +517,7 @@ public:
 
     /** @brief Wide-Character String schreiben
      *
-     * %fputs schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
+     * %fputws schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
      * den Ausgabestrom.
      * @param str Pointer auf den zu schreibenden String
      *
@@ -701,4 +701,4 @@ public:
 
 } // namespace pplib
 
-#endif /* PPLIB_CORE_THREADS_H_ */
+#endif /* PPLIB_CORE_FILES_H_ */
