@@ -207,4 +207,27 @@ TEST_F(MemFileTest, DynamicWriteAndClose)
     ASSERT_EQ((uint64_t)0, f.size());
 }
 
+TEST_F(MemFileTest, FreadPosixPartialRead)
+{
+    const char data[] = "1234567"; // 7 Bytes
+    pplib::MemFile f((void*)data, 7, false);
+
+    char buf[10];
+    // Asking for 10 elements of size 1: returns 7 (partial read), does not throw
+    size_t by = f.fread(buf, 1, 10);
+    ASSERT_EQ((size_t)7, by);
+    ASSERT_EQ(0, memcmp(buf, "1234567", 7));
+
+    // Next read at EOF throws EndOfFileException
+    ASSERT_THROW(f.fread(buf, 1, 10), pplib::EndOfFileException);
+}
+
+TEST_F(MemFileTest, FwriteNullAndZeroArgs)
+{
+    pplib::MemFile f;
+    ASSERT_EQ((size_t)0, f.fwrite(nullptr, 0, 10));
+    ASSERT_EQ((size_t)0, f.fwrite(nullptr, 1, 0));
+    ASSERT_THROW(f.fwrite(nullptr, 1, 10), pplib::IllegalArgumentException);
+}
+
 } // namespace

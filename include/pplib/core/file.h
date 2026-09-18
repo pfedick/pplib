@@ -101,6 +101,7 @@ private:
     uint64_t mysize;
     uint64_t pos;
     bool isPopen;
+    int exitCode;
 
     void munmap(void* addr, size_t len);
     void* mmap(uint64_t position, size_t size, MapProtection prot);
@@ -226,6 +227,14 @@ public:
      * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
      */
     void popen(const String& command, FileMode mode = FileMode::READ);
+
+    /** @brief Exit-Code des per popen() ausgeführten Kommandos ermitteln
+     *
+     * Nach dem Schließen einer per popen() geöffneten Pipe liefert diese
+     * Funktion den Exit-Code des beendeten Prozesses.
+     * @return Exit-Code des Prozesses
+     */
+    int getExitCode() const;
 
     /** @brief Geöffnete Datei löschen
      *
@@ -548,6 +557,8 @@ public:
      * wird wieder aufgehoben.
      */
     virtual void unmap();
+
+    using FileObject::load;
 
     // Static Functions
 

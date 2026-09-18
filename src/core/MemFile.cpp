@@ -299,8 +299,12 @@ uint64_t MemFile::tell()
 size_t MemFile::fread(void* ptr, size_t size, size_t nmemb)
 {
     if (MemBase == NULL) throw FileNotOpenException();
+    if (ptr == NULL) throw IllegalArgumentException();
+    if (size == 0 || nmemb == 0) return 0;
+    if (pos >= mysize) throw EndOfFileException();
     size_t by = nmemb;
     if (pos + (by * size) > mysize) by = (size_t)(mysize - pos) / size;
+    if (by == 0) throw EndOfFileException();
     memmove(ptr, MemBase + pos, by * size);
     pos += (by * size);
     return by;
@@ -308,8 +312,11 @@ size_t MemFile::fread(void* ptr, size_t size, size_t nmemb)
 
 size_t MemFile::fwrite(const void* ptr, size_t size, size_t nmemb)
 {
+    if (size == 0 || nmemb == 0) return 0;
+    if (ptr == NULL) throw IllegalArgumentException();
     if (MemBase == NULL && readonly == true) throw FileNotOpenException();
     if (readonly) throw ReadOnlyException();
+    if (size > 0 && nmemb > SIZE_MAX / size) throw OverflowException();
     size_t bytes = nmemb * size;
     if (pos + bytes > mysize) resizeBuffer(pos + bytes);
     memmove(MemBase + pos, ptr, bytes);

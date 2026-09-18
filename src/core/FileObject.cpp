@@ -211,37 +211,62 @@ ByteArrayPtr FileObject::map()
 
 ByteArray FileObject::load()
 {
-    uint64_t s = size();
     ByteArray ba;
-    if (s == 0) return ba;
-    char* b = (char*)ba.malloc((size_t)s);
-    uint64_t r = 0;
-    seek(0);
-    r = read(b, (size_t)s, 0);
-    if (r < s) {
-        ba[r] = 0;
-        ba.truncate(r + 1);
-    }
+    load(ba);
     return ba;
 }
 
 size_t FileObject::load(ByteArray& object)
 {
     if (!isOpen()) throw FileNotOpenException();
-    uint64_t mysize = size();
-    if (mysize == 0) {
-        object.clear();
-        return 0;
+
+    bool is_pipe = false;
+    try {
+        seek(0);
     }
-    seek(0);
-    char* buffer = (char*)object.malloc((size_t)mysize);
-    size_t by = 0;
-    by = fread(buffer, 1, (size_t)mysize);
-    if (by < mysize) {
-        object[by] = 0;
-        object.truncate(by);
+    catch (const IllegalOperationOnPipeException&) {
+        is_pipe = true;
     }
-    return by;
+
+    if (!is_pipe) {
+        uint64_t s = size();
+        if (s == 0) {
+            object.clear();
+            return 0;
+        }
+        char* buffer = (char*)object.malloc((size_t)s);
+        size_t total_read = 0;
+        try {
+            while (total_read < s) {
+                size_t by = fread(buffer + total_read, 1, (size_t)s - total_read);
+                if (by == 0) break;
+                total_read += by;
+            }
+        }
+        catch (const EndOfFileException&) {
+        }
+        if (total_read < s) {
+            object[total_read] = 0;
+            object.truncate(total_read);
+        }
+        return total_read;
+    }
+
+    // Pipe / Stream: Häppchenweise auf dem Heap lesen und appenden
+    object.clear();
+    ByteArray chunk(4096);
+    size_t total_read = 0;
+    try {
+        while (true) {
+            size_t by = fread((void*)chunk.ptr(), 1, chunk.size());
+            if (by == 0) break;
+            object.append(chunk.ptr(), by);
+            total_read += by;
+        }
+    }
+    catch (const EndOfFileException&) {
+    }
+    return total_read;
 }
 
 // Virtuelle Funktionen

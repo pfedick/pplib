@@ -300,9 +300,10 @@ TEST_F(FileTest, popenTest)
     pplib::String output = f.gets().trim();
     ASSERT_EQ(pplib::String("Hallo Welt"), output);
     f.close();
+    ASSERT_EQ(0, f.getExitCode());
 }
 
-TEST_F(FileTest, popenThrows)
+TEST_F(FileTest, popenExitCodeNonZero)
 {
     pplib::File f;
     ASSERT_THROW(f.popen("", pplib::File::FileMode::READ), pplib::IllegalArgumentException);
@@ -313,7 +314,23 @@ TEST_F(FileTest, popenThrows)
 #else
     ASSERT_NO_THROW(f.popen("false", pplib::File::FileMode::READ));
 #endif
-    ASSERT_THROW(f.close(), pplib::Exception);
+    ASSERT_NO_THROW(f.close());
+    ASSERT_EQ(1, f.getExitCode());
+}
+
+TEST_F(FileTest, popenLoad)
+{
+    pplib::File f;
+#ifdef _WIN32
+    ASSERT_NO_THROW(f.popen("cmd.exe /c echo hello12345", pplib::File::FileMode::READ));
+#else
+    ASSERT_NO_THROW(f.popen("echo hello12345", pplib::File::FileMode::READ));
+#endif
+    pplib::ByteArray ba = f.load();
+    f.close();
+    ASSERT_EQ(0, f.getExitCode());
+    pplib::String str((const char*)ba.ptr(), ba.size());
+    ASSERT_EQ(pplib::String("hello12345"), str.trim());
 }
 
 TEST_F(FileTest, openWithFileHandle)

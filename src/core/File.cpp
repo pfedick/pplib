@@ -46,6 +46,10 @@
 #include <stdarg.h>
 #include <errno.h>
 
+#ifndef _WIN32
+#include <sys/wait.h>
+#endif
+
 #ifdef _WIN32
 #include <io.h>
 #define WIN32_LEAN_AND_MEAN // Keine MFCs
@@ -83,6 +87,7 @@ File::File()
     LastMapProtection = MapProtection::NONE;
     ReadAhead = 0;
     isPopen = false;
+    exitCode = 0;
 }
 
 File::File(const String& filename, FileMode mode)
@@ -250,7 +255,27 @@ void File::close()
     if (ff != NULL) {
         int ret = 1;
         if (isPopen) {
-            if (::pclose((FILE*)ff) != 0) ret = 0;
+#ifdef _WIN32
+            int status = ::pclose((FILE*)ff);
+            if (status == -1) {
+                ret = 0;
+            } else {
+                exitCode = status;
+            }
+#else
+            int status = ::pclose((FILE*)ff);
+            if (status == -1) {
+                ret = 0;
+            } else {
+                if (WIFEXITED(status)) {
+                    exitCode = WEXITSTATUS(status);
+                } else if (WIFSIGNALED(status)) {
+                    exitCode = 128 + WTERMSIG(status);
+                } else {
+                    exitCode = status;
+                }
+            }
+#endif
         } else {
             if (::fclose((FILE*)ff) != 0) ret = 0;
         }
@@ -301,8 +326,14 @@ void File::popen(const String& command, FileMode mode)
     }
 #endif
     isPopen = true;
+    exitCode = 0;
     mysize = size();
     setFilename(command);
+}
+
+int File::getExitCode() const
+{
+    return exitCode;
 }
 
 void File::open(FILE* handle)
@@ -325,6 +356,9 @@ void File::seek(uint64_t position)
     if (ff == NULL) {
         throw FileNotOpenException();
     }
+    if (isPopen) {
+        throw IllegalOperationOnPipeException();
+    }
     if (::fseeko((FILE*)ff, (off_t)position, SEEK_SET) != 0) {
         throwErrno(errno, filename());
     }
@@ -336,6 +370,9 @@ void File::seek(uint64_t position)
 uint64_t File::seek(int64_t offset, SeekOrigin origin)
 {
     if (ff == NULL) throw FileNotOpenException();
+    if (isPopen) {
+        throw IllegalOperationOnPipeException();
+    }
     int o = 0;
     switch (origin) {
     case File::SEEKCUR:
