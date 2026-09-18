@@ -8,7 +8,7 @@
 - Anzahl Tokens sind begrenzt auf 100000 Tokens
 
 ## Codeanalyse
-- Ziel ist es, den Quellcode auf Fehler zu analysieren und Verbesserungsvorschläge zu machen
+- Ziel ist es, den Quellcode auf Fehler zu analysieren, Schwachstellen zu finden und Verbesserungsvorschläge zu machen
 - Gehe schrittweise vor
 - Analysiere nur die angegebenen Header- und Quellcodedateien
 - lese weitere Dateien, sofern erforderlich
