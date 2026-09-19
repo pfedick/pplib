@@ -288,8 +288,16 @@ void File::open(const String& filename, FileMode mode)
 void File::openTemp(const String& filetemplate)
 {
     close();
+
+#ifdef _WIN32
+    WideString tmpname = WideString(filetemplate);
+    errno_t err = ::_wmktemp_s((wchar_t*)((const wchar_t*)tmpname), tmpname.length() + 1);
+    if (err != 0) throwErrno(err, filetemplate);
+    int f = ::_wopen((const wchar_t*)tmpname, _O_RDWR | _O_BINARY | _O_CREAT, _S_IREAD | _S_IWRITE);
+#else
     String tmpname = filetemplate;
     int f = ::mkstemp((char*)((const char*)tmpname));
+#endif
     if (f < 0) throwErrno(errno, filetemplate);
     ff = ::fdopen(f, "r+b");
     if (!ff) {
@@ -369,7 +377,7 @@ uint64_t File::size() const
 void File::popen(const String& command, FileMode mode)
 {
     close();
-    // printf("Opening command: %s\n", (const char*)command);
+    if (mode != FileMode::READ && mode != FileMode::WRITE) throw IllegalArgumentException();
     if (command.isEmpty()) throw IllegalArgumentException();
 #ifdef _WIN32
     if ((ff = (FILE*)::_wpopen((const wchar_t*)WideString(command), fmodepopen(mode))) == NULL) {
@@ -383,7 +391,7 @@ void File::popen(const String& command, FileMode mode)
 #endif
     isPopen = true;
     exitCode = 0;
-    mysize = size();
+    mysize = 0; // Pipes haben keine feste Größe
     setFilename(command);
 }
 
@@ -460,10 +468,9 @@ uint64_t File::tell()
 
 size_t File::fread(void* ptr, size_t size, size_t nmemb)
 {
+    if (size == 0 || nmemb == 0) return 0;
     if (ptr == NULL) throw IllegalArgumentException();
     if (ff == NULL) throw FileNotOpenException();
-    if (size == 0 || nmemb == 0) return 0;
-
     size_t by = ::fread(ptr, size, nmemb, (FILE*)ff);
     pos += (by * size);
     if (by < nmemb) {
@@ -513,18 +520,16 @@ wchar_t* File::fgetws(wchar_t* buffer, size_t num)
 {
     if (buffer == NULL || num == 0) throw IllegalArgumentException();
     if (ff == NULL) throw FileNotOpenException();
-    // int suberr;
-    wchar_t* res;
-    res = ::fgetws(buffer, num, (FILE*)ff);
+    wchar_t* res = ::fgetws(buffer, num, (FILE*)ff);
     if (res == NULL) {
-        // suberr=::ferror((FILE*)ff);
         if (::feof((FILE*)ff))
             return NULL;
         else
             throwErrno(errno, filename());
     }
-    uint64_t by = (uint64_t)wcslen(buffer) * sizeof(wchar_t);
-    pos += by;
+    if (!isPopen) {
+        pos = tell();
+    }
     return buffer;
 }
 
@@ -545,13 +550,14 @@ void File::fputws(const wchar_t* str)
     if (str == NULL) throw IllegalArgumentException();
     if (ff == NULL) throw FileNotOpenException();
     if (::fputws(str, (FILE*)ff) != -1) {
-        pos += wcslen(str) * sizeof(wchar_t);
-        if (pos > mysize) mysize = pos;
+        if (!isPopen) {
+            pos = tell();
+            if (pos > mysize) mysize = pos;
+        }
         return;
     }
     throwErrno(errno, filename());
 }
-
 void File::fputc(int c)
 {
     if (ff == NULL) throw FileNotOpenException();
@@ -583,8 +589,10 @@ void File::fputwc(wchar_t c)
     if (ff == NULL) throw FileNotOpenException();
     wint_t ret = ::fputwc(c, (FILE*)ff);
     if (ret != WEOF) {
-        pos += sizeof(wchar_t);
-        if (pos > mysize) mysize = pos;
+        if (!isPopen) {
+            pos = tell();
+            if (pos > mysize) mysize = pos;
+        }
         return;
     }
     throwErrno(errno);
@@ -595,13 +603,15 @@ wchar_t File::fgetwc()
     if (ff == NULL) throw FileNotOpenException();
     wint_t ret = ::fgetwc((FILE*)ff);
     if (ret != WEOF) {
-        pos += sizeof(wchar_t);
+        if (!isPopen) {
+            pos = tell();
+        }
         return (wchar_t)ret;
     }
     if (::ferror((FILE*)ff)) {
         throwErrno(errno != 0 ? errno : EIO, filename());
     }
-    return EOF;
+    return (wchar_t)WEOF;
 }
 
 bool File::eof() const
@@ -629,9 +639,8 @@ void File::sync()
 {
     if (ff == NULL) throw FileNotOpenException();
 #ifndef _WIN32
-    int ret = fsync(fileno((FILE*)ff));
-    if (ret == 0) return;
-    throwErrno(errno);
+    if (::fflush((FILE*)ff) != 0) throwErrno(errno);
+    if (fsync(fileno((FILE*)ff)) != 0) throwErrno(errno);
 #else
     ::fflush((FILE*)ff);
     if (::_commit(fileno((FILE*)ff)) == 0) return;
@@ -653,7 +662,7 @@ void File::truncate(uint64_t length)
     throwErrno(errno);
 #else
     int fd = fileno((FILE*)ff);
-    if (_chsize_s(fd, (long)length) == 0) {
+    if (_chsize_s(fd, length) == 0) {
         mysize = length;
         if (pos > mysize) seek(mysize);
         return;
@@ -680,7 +689,7 @@ void File::lockExclusive(bool block)
 
     OVERLAPPED ov = {};
     if (::LockFileEx(hFile, flags, 0, 0xFFFFFFFF, 0xFFFFFFFF, &ov)) return;
-    throwErrno(GetLastError());
+    throwExceptionFromWinError(GetLastError(), filename());
 #endif
 }
 
@@ -702,7 +711,7 @@ void File::lockShared(bool block)
 
     OVERLAPPED ov = {};
     if (::LockFileEx(hFile, flags, 0, 0xFFFFFFFF, 0xFFFFFFFF, &ov)) return;
-    throwErrno(GetLastError());
+    throwExceptionFromWinError(GetLastError(), filename());
 #endif
 }
 
@@ -719,7 +728,7 @@ void File::unlock()
 
     OVERLAPPED ov = {};
     if (::UnlockFileEx(hFile, 0, 0xFFFFFFFF, 0xFFFFFFFF, &ov)) return;
-    throwErrno(GetLastError());
+    throwExceptionFromWinError(GetLastError(), filename());
 #endif
 }
 
@@ -857,7 +866,7 @@ void* File::mmap(uint64_t position, size_t size, MapProtection prot)
     mapSize.QuadPart = position + size;
 
     HANDLE hMap = CreateFileMapping(hFile, NULL, prot_flag, mapSize.HighPart, mapSize.LowPart, NULL);
-    if (hMap == NULL) throwErrno(GetLastError());
+    if (hMap == NULL) throwExceptionFromWinError(GetLastError(), filename());
 
     // Offset in High/Low DWORDs splitten (max. 4 GB pro View auf 32-bit,
     // auf 64-bit ist das kein Problem)
@@ -867,7 +876,7 @@ void* File::mmap(uint64_t position, size_t size, MapProtection prot)
     void* pView = MapViewOfFile(hMap, map_access, offset.HighPart, offset.LowPart, (SIZE_T)size);
     CloseHandle(hMap); // View hält die Referenz, Handle kann zu
 
-    if (pView == NULL) throwErrno(GetLastError());
+    if (pView == NULL) throwExceptionFromWinError(GetLastError(), filename());
 
     MapBase = (char*)pView;
     LastMapSize = size;
@@ -1009,26 +1018,6 @@ void File::rename(const String& oldfile, const String& newfile)
     if (::MoveFileExW((const wchar_t*)wOld, (const wchar_t*)wNew, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) != 0) {
         return;
     }
-    /* OLDCODE
-    if (::_wrename((const wchar_t*)WideString(oldfile), (const wchar_t*)WideString(newfile)) == 0) {
-        FILE* fd = NULL;
-        // printf ("buffer=%s\n",buff);
-        fd = _wfopen((const wchar_t*)WideString(oldfile), L"rb"); // Ist die alte Datei noch da?
-        if (fd) {
-            // Ja, wir löschen sie manuell
-            fclose(fd);
-            pplib::String o1 = oldfile.toLowerCase();
-            pplib::String n1 = newfile.toLowerCase();
-            if (n1 == o1) return;
-            if (::_wunlink((const wchar_t*)WideString(oldfile)) == 0) return;
-            int saveerrno = errno;
-            ::_wunlink((const wchar_t*)WideString(newfile));
-            errno = saveerrno;
-            throwErrno(errno, desc);
-        }
-        return;
-    }
-        */
     if (errno == EXDEV) { // oldfile und newfile befinden sich nicht im gleichen Filesystem.
         copy(oldfile, newfile);
         if (::_wunlink((const wchar_t*)wOld) == 0) return;
@@ -1036,18 +1025,6 @@ void File::rename(const String& oldfile, const String& newfile)
     throwErrno(errno, desc);
 #else
     if (::rename((const char*)oldfile, (const char*)newfile) == 0) {
-        FILE* fd = NULL;
-        // printf ("buffer=%s\n",buff);
-        fd = fopen((const char*)oldfile, "rb"); // Ist die alte Datei noch da?
-        if (fd) {
-            // Ja, wir löschen sie manuell
-            fclose(fd);
-            if (::unlink((const char*)oldfile) == 0) return;
-            int saveerrno = errno;
-            ::unlink((const char*)newfile);
-            errno = saveerrno;
-            throwErrno(errno, desc);
-        }
         return;
     }
     if (errno == EXDEV) { // oldfile und newfile befinden sich nicht im gleichen Filesystem.
@@ -1118,18 +1095,18 @@ static mode_t translate_FileAttr(FileAttr::Attributes attr)
     if (attr & FileAttr::OTH_WRITE) m |= _S_IWRITE;
 
 #else
-    if (attr & FileAttr::ISUID) m += S_ISUID;
-    if (attr & FileAttr::ISGID) m += S_ISGID;
-    if (attr & FileAttr::STICKY) m += S_ISVTX;
-    if (attr & FileAttr::USR_READ) m += S_IRUSR;
-    if (attr & FileAttr::USR_WRITE) m += S_IWUSR;
-    if (attr & FileAttr::USR_EXECUTE) m += S_IXUSR;
-    if (attr & FileAttr::GRP_READ) m += S_IRGRP;
-    if (attr & FileAttr::GRP_WRITE) m += S_IWGRP;
-    if (attr & FileAttr::GRP_EXECUTE) m += S_IXGRP;
-    if (attr & FileAttr::OTH_READ) m += S_IROTH;
-    if (attr & FileAttr::OTH_WRITE) m += S_IWOTH;
-    if (attr & FileAttr::OTH_EXECUTE) m += S_IXOTH;
+    if (attr & FileAttr::ISUID) m |= S_ISUID;
+    if (attr & FileAttr::ISGID) m |= S_ISGID;
+    if (attr & FileAttr::STICKY) m |= S_ISVTX;
+    if (attr & FileAttr::USR_READ) m |= S_IRUSR;
+    if (attr & FileAttr::USR_WRITE) m |= S_IWUSR;
+    if (attr & FileAttr::USR_EXECUTE) m |= S_IXUSR;
+    if (attr & FileAttr::GRP_READ) m |= S_IRGRP;
+    if (attr & FileAttr::GRP_WRITE) m |= S_IWGRP;
+    if (attr & FileAttr::GRP_EXECUTE) m |= S_IXGRP;
+    if (attr & FileAttr::OTH_READ) m |= S_IROTH;
+    if (attr & FileAttr::OTH_WRITE) m |= S_IWOTH;
+    if (attr & FileAttr::OTH_EXECUTE) m |= S_IXOTH;
 #endif
     return m;
 }
@@ -1236,7 +1213,7 @@ void File::statFile(const String& filename, DirEntry& result)
     WideString wFile(File);
     WIN32_FILE_ATTRIBUTE_DATA data;
     if (!GetFileAttributesExW((const wchar_t*)wFile, GetFileExInfoStandard, &data)) {
-        throwExceptionFromErrno(ENOENT, filename); // bzw. GetLastError() mappen
+        throwExceptionFromWinError(GetLastError(), filename);
     }
 
     result.File.set(filename);
@@ -1283,28 +1260,26 @@ DirEntry File::statFile(const String& filename)
 bool File::tryStatFile(const String& filename, DirEntry& result)
 {
     if (filename.isEmpty()) return false;
-#ifdef _WIN32
-    struct _stat st;
-    String File = filename;
-    File.replace("/", "\\");
-    if (_wstat((const wchar_t*)WideString(File), &st) != 0) return false;
-#else
-    struct stat st;
-    if (::stat((const char*)filename, &st) != 0) return false;
-#endif
-    getResultFromStat(st, result, filename);
-    return true;
+    try {
+        File::statFile(filename, result);
+        return true;
+    }
+    catch (...) {
+        return false;
+    }
 }
 
 String File::getPath(const String& path)
 {
     size_t i, l, pos;
     l = path.len();
-    pos = 0;
+    pos = (size_t)-1;
     for (i = 0; i < l; i++) {
         char c = path[i];
         if (c == '/' || c == ':' || c == '\\') pos = i;
     }
+    if (pos == 0) pos = 1;
+    if (pos == (size_t)-1) pos = 0;
     return path.left(pos);
 }
 
@@ -1312,25 +1287,26 @@ String File::getFilename(const String& path)
 {
     size_t i, l, pos;
     l = path.len();
-    pos = 0;
+    pos = (size_t)-1;
     for (i = 0; i < l; i++) {
         char c = path[i];
         if (c == '/' || c == ':' || c == '\\') pos = i + 1;
     }
+    if (pos == (size_t)-1) pos = 0;
     return path.mid(pos);
 }
 
 String File::getSuffix(const String& path)
 {
-    Array Token(path, ".");
+    Array Token(getFilename(path), ".");
+    if (Token.size() == 1) return String("");
     return Token.get(-1);
 }
 
 bool File::isDir(const String& filename)
 {
-    if (File::exists(filename)) {
-        DirEntry stat;
-        statFile(filename, stat);
+    DirEntry stat;
+    if (tryStatFile(filename, stat)) {
         return stat.isDir();
     }
     return false;
@@ -1338,9 +1314,8 @@ bool File::isDir(const String& filename)
 
 bool File::isFile(const String& filename)
 {
-    if (File::exists(filename)) {
-        DirEntry stat;
-        statFile(filename, stat);
+    DirEntry stat;
+    if (tryStatFile(filename, stat)) {
         return stat.isFile();
     }
     return false;
@@ -1348,9 +1323,8 @@ bool File::isFile(const String& filename)
 
 bool File::isLink(const String& filename)
 {
-    if (File::exists(filename)) {
-        DirEntry stat;
-        statFile(filename, stat);
+    DirEntry stat;
+    if (tryStatFile(filename, stat)) {
         return stat.isLink();
     }
     return false;
@@ -1358,9 +1332,8 @@ bool File::isLink(const String& filename)
 
 bool File::isReadable(const String& filename)
 {
-    if (File::exists(filename)) {
-        DirEntry stat;
-        statFile(filename, stat);
+    DirEntry stat;
+    if (tryStatFile(filename, stat)) {
         return stat.isReadable();
     }
     return false;
@@ -1368,9 +1341,8 @@ bool File::isReadable(const String& filename)
 
 bool File::isWritable(const String& filename)
 {
-    if (File::exists(filename)) {
-        DirEntry stat;
-        statFile(filename, stat);
+    DirEntry stat;
+    if (tryStatFile(filename, stat)) {
         return stat.isWritable();
     }
     return false;
@@ -1378,9 +1350,8 @@ bool File::isWritable(const String& filename)
 
 bool File::isExecutable(const String& filename)
 {
-    if (File::exists(filename)) {
-        DirEntry stat;
-        statFile(filename, stat);
+    DirEntry stat;
+    if (tryStatFile(filename, stat)) {
         return stat.isExecutable();
     }
     return false;

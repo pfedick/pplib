@@ -153,13 +153,14 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   Wenn `0 < by < nmemb` gelesen wird und das Dateiende erreicht ist, kehrt `fread` still zurück, obwohl die Doku sagt: *"Wenn ein Fehler auftritt oder das Dateiende erreicht ist, wird eine Exception geworfen."*
   Zusätzlich: In `fread` steht `if (ptr == NULL) throw IllegalArgumentException();` vor dem Größen-Check `if (size == 0 || nmemb == 0) return 0;`. Bei `fread(NULL, 1, 0)` fliegt daher eine Exception, während `fwrite(NULL, 1, 0)` sauber 0 zurückgibt.
 
-  ==> Hier ist POSIX-Verhalten gewünscht! Prüfen und ggfs. Doku anpassen
+  ==> Hier ist POSIX-Verhalten gewünscht! Prüfen und ggfs. Doku anpassen => FIXED
 
 - [ ] **`File::openTemp`: `(char*)(const char*)tmpname` und fehlende MSVC-Portabilität** (`src/core/File.cpp:209-221`)
   `int f = ::mkstemp((char*)((const char*)tmpname));` castet die `const`-Qualifikation des internen Puffers von `pplib::String` weg. Unter nativem MSVC (Windows) existiert `mkstemp` zudem nicht.
   *Fix:* Temporären `char buffer[1024]` verwenden, diesen an `mkstemp` übergeben und das Ergebnis anschließend dem `String` zuweisen; für Windows/MSVC eine Alternative (`_mktemp_s` / `GetTempFileName`) vorsehen.
 
   ==> Wenn dann ByteArray verwenden. Es spricht aber auch nix dagegen in den Buffer des Strings zu schreiben. Daher prüfen.
+  ==> Unter Windows wird jetzt _wmktemp_s verwendet, der String-Buffer bleibt aber so.
 
 - [ ] **`File::truncate` (Windows): 32-Bit-Truncation durch `(long)length`** (`src/core/File.cpp:652`)
   ```cpp
@@ -168,6 +169,8 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   ```
   `_chsize_s` akzeptiert `__int64` (64 Bit). Durch den expliziten Cast `(long)length` wird die Länge auf 32 Bit gekürzt (`long` ist auf Windows immer 32-Bit). Dateien > 2 GB werden dadurch korrumpiert!
   *Fix:* `(__int64)length` bzw. `(int64_t)length` verwenden.
+
+  ==> FIXED
 
 - [ ] **`File::sync`: Auf POSIX fehlt `fflush` vor `fsync`** (`src/core/File.cpp:626-630`)
   Unter Windows ruft `File::sync()` vorbildlich erst `::fflush((FILE*)ff)` und dann `_commit(fileno)` auf.
@@ -181,6 +184,8 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
       throwErrno(errno);
   ```
 
+  ==> FIXED
+
 - [ ] **`fgetws`, `fputws`, `fputwc`, `fgetwc`: Falsche `pos`-Berechnung bei Multibyte/UTF-8** (`src/core/File.cpp:520, 542, 563, 589`)
   Beispiel `fgetws`:
   ```cpp
@@ -191,11 +196,15 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   *Fix:* Nach Wide-Char-Lese-/Schreiboperationen `pos` über `pos = tell();` synchronisieren (außer bei Pipes).
   Zusätzlich: `fgetwc()` gibt am Dateiende `return EOF;` (`-1`) statt `WEOF` zurück.
 
+  ==> FIXED
+
 - [ ] **`File::statFile` vs. `File::tryStatFile`: Inkosistentes Symlink-Verhalten auf POSIX** (`src/core/File.cpp:1198, 1229`)
   `File::statFile` verwendet `::lstat` (Symlinks werden *nicht* dereferenziert, `FileAttr::IFLINK` wird gesetzt).
   `File::tryStatFile` verwendet `::stat` (Symlinks *werden* dereferenziert, `FileAttr::IFLINK` wird *nie* gesetzt).
   Derselbe Pfad liefert über `statFile` und `tryStatFile` unterschiedliche Attribute.
   *Fix:* Beide Funktionen sollten einheitlich `lstat` verwenden (bzw. optional per Parameter steuern, ob Links aufgelöst werden).
+
+  ==> FIXED, Wir rufen stattdessen File::statFile in einem try-catch-block auf
 
 - [ ] **`File::rename` (POSIX): Gefährliches manuelles `unlink` nach angeblichem Erfolg** (`src/core/File.cpp:1008-1025`)
   ```cpp
@@ -211,6 +220,8 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   ```
   Auf Case-Insensitive Dateisystemen (z.B. macOS APFS oder NTFS/FAT-Mounts unter Linux) öffnet `fopen(oldfile)` bei einem Rename von `test.txt` zu `TEST.TXT` die Zieldatei! Das anschließende `unlink(oldfile)` löscht die Zieldatei – Datenverlust! Standard-POSIX-`rename` ist atomar; diese Sonderbehandlung (die unter Windows bereits auskommentiert wurde) sollte auch unter POSIX entfernt werden.
 
+  ==> FIXED, Sonderbehandlung unter POSIX entfernt
+
 - [ ] **`FileAttr`: `translate_FileAttr` nutzt `+=` statt `|=`** (`src/core/File.cpp:1046-1057`)
   Beim Mappen von `FileAttr::Attributes` auf `mode_t` wird auf POSIX `+=` statt `|=` verwendet:
   ```cpp
@@ -219,13 +230,19 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   Wenn Flags kombiniert oder Bits mehrfach ausgewertet werden (oder bei zusammengesetzten Konstanten wie `CHMOD_755`), kann ein arithmetischer Übertrag andere Bits verfälschen.
   *Fix:* Konsequent bitweises `m |= S_IRUSR;` nutzen.
 
+  ==> FIXED
+
 - [ ] **`File::popen`: `fmodepopen` erlaubt `FileMode::READWRITE` (`"r+"`)** (`src/core/File.cpp:148, 172`)
   Weder Windows `_popen` noch POSIX `popen` unterstützen bidirektionale Pipes (`"r+"` führt zu `EINVAL`). Auch die Doku in `file.h` sagt explizit: *"darf das Argument mode nur Lesen oder Schreiben angeben, nicht beides"*.
   `fmodepopen` sollte bei `FileMode::READWRITE` eine `IllegalArgumentException` werfen.
 
+  ==> FIXED
+
 - [ ] **`File::popen` ruft `mysize = size()` auf einer Pipe auf** (`src/core/File.cpp:322`)
   In `popen()` wird `mysize = size();` gerufen. `size()` führt `fstat`/`_fstat` auf dem Pipe-Deskriptor aus. Unter Windows kann `_fstat` auf einer anonymen Pipe fehlschlagen; unter POSIX hat eine Pipe keine sinnvolle Dateigröße.
   *Fix:* Bei `isPopen` `mysize = 0` setzen, ohne `size()` aufzurufen.
+
+  ==> FIXED
 
 - [ ] **`isDir`, `isFile`, `isLink`, `isReadable`, `isWritable`, `isExecutable`: Redundante Syscalls & Race Condition** (`src/core/File.cpp:1282-1329`)
   Alle diese Hilfsfunktionen rufen zuerst `File::exists(filename)` auf und danach `File::statFile(filename, stat)`.
@@ -243,12 +260,21 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   }
   ```
 
+  ==> FIXED
+
 - [ ] **`File::getPath`, `getFilename`, `getSuffix`: Randfälle und Doku-Widerspruch** (`src/core/File.cpp:1255-1279`)
   1. `File::getPath("/file")` liefert `""` statt `"/"`.
+    ==> Hmm, der erste Slash sollte stehen bleiben => FIXED
+
   2. Die Doku in `file.h:815` sagt: `"/home/patrick/svn/pplib/README.TXT"` -> `"/home/patrick/svn/pplib/"` (mit Trailing Slash). Der Code und die Tests liefern den Pfad jedoch ohne Slash (`"/home/patrick/svn/pplib"`).
+    ==> Doku gefixt
+
   3. `getSuffix("my.dir/file")` teilt den gesamten Pfad an Punkten auf; `Token.get(-1)` liefert `"dir/file"` als Extension, obwohl die Datei keine Endung hat!
+    ==> FIXED
+
   4. `getSuffix("Makefile")` liefert `"Makefile"` als Extension.
   *Fix:* Zuerst den Dateinamen isolieren (`getFilename`), dann ab dem letzten Punkt suchen. Wenn kein Punkt oder der Punkt am Index 0 steht (z.B. `.gitignore`), leeren String zurückgeben.
+    ==> FIXED
 
 - [ ] **Win32-Fehlercodes (`GetLastError()`) werden an `throwErrno` übergeben** (`src/core/File.cpp:669, 690, 710, 847, 857, 1190`)
   In den Windows-Zweigen von `lockExclusive`, `lockShared`, `unlock`, `mmap` und `statFile` wird `GetLastError()` an `throwErrno()` übergeben. `throwErrno()` leitet an `throwExceptionFromErrno` weiter, welches CRT-`errno`-Codes erwartet. Da Win32-Error-Codes und CRT-`errno` unterschiedliche Zahlenräume haben (z.B. Win32 `ERROR_ACCESS_DENIED = 5`, aber `errno 5 = EIO`), führt dies zu völlig irreführenden Exceptions (z.B. `IOErrorException` statt `PermissionDeniedException`).

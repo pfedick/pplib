@@ -313,6 +313,36 @@ void throwExceptionFromErrno(int e, const String& info)
     }
 }
 
+#ifdef _WIN32
+void throwExceptionFromWinError(DWORD err, const String& info)
+{
+    switch (err) {
+    case ERROR_FILE_NOT_FOUND:
+    case ERROR_PATH_NOT_FOUND:
+        throw FileNotFoundException(info);
+    case ERROR_ACCESS_DENIED:
+        throw PermissionDeniedException(info);
+    case ERROR_NOT_ENOUGH_MEMORY:
+    case ERROR_OUTOFMEMORY:
+        throw OutOfMemoryException();
+    case ERROR_SHARING_VIOLATION:
+    case ERROR_LOCK_VIOLATION:
+        throw OperationBlockedException(info);
+    case ERROR_HANDLE_DISK_FULL:
+    case ERROR_DISK_FULL:
+        throw FilesystemFullException();
+    case ERROR_ALREADY_EXISTS:
+    case ERROR_FILE_EXISTS:
+        throw FileExistsException(info);
+    case ERROR_INVALID_PARAMETER:
+    case ERROR_INVALID_DATA:
+        throw InvalidArgumentsException(info);
+    default:
+        throw IOErrorException(info);
+    }
+}
+#endif
+
 void throwSocketException(int e, const String& info)
 {
 #ifndef _WIN32

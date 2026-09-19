@@ -497,6 +497,9 @@ TEST_F(FileStaticTest, getPath)
     EXPECT_EQ(pplib::String("c:\\windows\\system32"), pplib::File::getPath("c:\\windows\\system32\\test.dll"));
     EXPECT_EQ(pplib::String("c:/windows/system32"), pplib::File::getPath("c:/windows/system32/test.dll"));
     EXPECT_EQ(pplib::String("/usr/bin"), pplib::File::getPath("/usr/bin/bash"));
+    EXPECT_EQ(pplib::String("/"), pplib::File::getPath("/readme.txt"));
+    EXPECT_EQ(pplib::String("bin"), pplib::File::getPath("bin/bash"));
+    EXPECT_EQ(pplib::String(""), pplib::File::getPath("readme.txt"));
 }
 
 TEST_F(FileStaticTest, getFilename)
@@ -504,6 +507,8 @@ TEST_F(FileStaticTest, getFilename)
     EXPECT_EQ(pplib::String("test.dll"), pplib::File::getFilename("c:\\windows\\system32\\test.dll"));
     EXPECT_EQ(pplib::String("test.dll"), pplib::File::getFilename("c:/windows/system32/test.dll"));
     EXPECT_EQ(pplib::String("bash"), pplib::File::getFilename("/usr/bin/bash"));
+    EXPECT_EQ(pplib::String("bash"), pplib::File::getFilename("bash"));
+    EXPECT_EQ(pplib::String("bash"), pplib::File::getFilename("/bash"));
 }
 
 TEST_F(FileStaticTest, getSuffix)
@@ -511,6 +516,7 @@ TEST_F(FileStaticTest, getSuffix)
     EXPECT_EQ(pplib::String("dll"), pplib::File::getSuffix("c:\\windows\\system32\\test.dll"));
     EXPECT_EQ(pplib::String("dll"), pplib::File::getSuffix("c:/windows/system32/test.dll"));
     EXPECT_EQ(pplib::String("sh"), pplib::File::getSuffix("/usr/bin/bash.sh"));
+    EXPECT_EQ(pplib::String(""), pplib::File::getSuffix("/usr/bin/bash"));
 }
 
 TEST_F(FileStaticTest, isDir)

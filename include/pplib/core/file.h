@@ -225,12 +225,13 @@ public:
      *
      * Diese Funktion erzeugt eine temporäre Datei mit einem eindeutigen Namen.
      * Dieser Name wird aus \p filetemplate erzeugt. Dazu  müssen  die letzten
-     * sechs  Buchstaben  des  Parameters template XXXXXX sein, diese werden dann
+     * sechs Buchstaben des Parameters template XXXXXX sein, diese werden dann
      * durch eine Zeichenkette ersetzt, die diesen Dateinamen eindeutig  macht.
-     * Die  Datei  wird dann mit dem Modus read/write und den Rechten 0666 erzeugt.
+     * Die Datei wird dann mit dem Modus read/write und den Rechten 0666 erzeugt.
      * @param[in] filetemplate Pfad und Vorlage für den zu erstellenden Dateinamen
      *
-     * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
+     * @exception Wenn die temporäre Datei nicht erstellt werden kann, können
+     * diverse Exceptions geworfen werden.
      */
     void openTemp(const String& filetemplate);
 
@@ -336,9 +337,11 @@ public:
      * @param[in] size Größe der zu lesenden Datenelemente
      * @param[in] nmemb Anzahl zu lesender Datenelemente
      * @return %fread  gibt die Anzahl der erfolgreich gelesenen Elemente zurück
-     * (nicht die Anzahl  der  Zeichen).  Wenn  ein Fehler  auftritt  oder  das
-     * Dateiende erreicht ist, wird eine Exception geworfen.
+     * (nicht die Anzahl  der  Zeichen).  Der Wert kann kleiner als @p nmemb sein, wenn
+     * weniger Daten in der Datei vorhanden sind, als angefordert oder das Dateiende
+     * erreichtwurde.
      * @exception EndOfFileException: Wird geworfen, wenn das Dateiende erreicht wurde
+     * @exception IllegalArgumentException Wird geworfen, wenn ungültige Argumente an die Funktion übergeben werden.
      */
     virtual size_t fread(void* ptr, size_t size, size_t nmemb);
 
@@ -824,7 +827,7 @@ public:
      *
      * Diese Funktion liefert den Verzeichnisnamen eines Strings zurück, der Pfad und Dateinamen
      * enthält. Lautet der String beispielsweise "/home/patrick/svn/pplib/README.TXT" liefert die Funktion
-     * "/home/patrick/svn/pplib/" zurück.
+     * "/home/patrick/svn/pplib" zurück.
      * @param path Pfad mit Dateinamen
      * @return String mit dem Pfad
      */
