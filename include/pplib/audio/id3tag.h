@@ -44,6 +44,7 @@ PPLIBEXCEPTION(UnsupportedAudioFormatException, Exception);
 PPLIBEXCEPTION(UnsupportedID3TagVersionException, Exception);
 PPLIBEXCEPTION(FilenameNotSetException, Exception);
 PPLIBEXCEPTION(NoID3TagFoundException, Exception);
+PPLIBEXCEPTION(InvalidGenreException, Exception);
 
 /**@ingroup PPLGroupSound
  * @brief Genre-Bezeichnung

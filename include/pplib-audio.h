@@ -41,8 +41,6 @@
 namespace pplib
 {
 
-PPLIBEXCEPTION(InvalidGenreException, Exception);
-
 PPLIBEXCEPTION(EncoderException, Exception);
 PPLIBEXCEPTION(EncoderAlreadyStartedException, EncoderException);
 PPLIBEXCEPTION(EncoderNotStartedException, EncoderException);
