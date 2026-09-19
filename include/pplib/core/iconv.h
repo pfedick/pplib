@@ -36,18 +36,77 @@
 
 namespace pplib
 {
+
+/** @class Iconv
+ * @brief Klasse zur Konvertierung von Zeichencodierungen
+ *
+ * Diese Klasse bietet Methoden zur Konvertierung von Strings und ByteArrays zwischen verschiedenen Zeichencodierungen.
+ * Sie basiert auf der Iconv-Bibliothek.
+ */
 class Iconv
 {
 private:
-    void* iconv_handle;
+    void* iconv_handle; //< Handle für die Iconv-Konvertierungssitzung
 
 public:
+    /** @brief Standardkonstruktor
+     *
+     * Initialisiert die Iconv-Konvertierungssitzung ohne spezifische Quell- und Ziel-Encodings.
+     */
     Iconv();
+
+    /** @brief Konstruktor mit spezifischen Quell- und Ziel-Encodings
+     *
+     * Initialisiert die Iconv-Konvertierungssitzung mit den angegebenen Quell- und Ziel-Encodings.
+     *
+     * @param[in] fromEncoding Das Quell-Encoding (z. B. "UTF-8", "ISO-8859-1")
+     * @param[in] toEncoding Das Ziel-Encoding (z. B. "UTF-8", "ISO-8859-1")
+     */
     Iconv(const String& fromEncoding, const String& toEncoding);
+
+    Iconv(const Iconv& other) = delete;
+    Iconv& operator=(const Iconv& other) = delete;
+    Iconv(Iconv&& other) = delete;
+    Iconv& operator=(Iconv&& other) = delete;
+    /** @brief Destruktor
+     *
+     * Schließt die Iconv-Konvertierungssitzung und gibt alle Ressourcen frei.
+     */
     ~Iconv();
+
+    /** @brief Initialisiert die Iconv-Konvertierungssitzung mit den angegebenen Quell- und Ziel-Encodings
+     *
+     * @param[in] fromEncoding Das Quell-Encoding (z. B. "UTF-8", "ISO-8859-1")
+     * @param[in] toEncoding Das Ziel-Encoding (z. B. "UTF-8", "ISO-8859-1")
+     */
     void init(const String& fromEncoding, const String& toEncoding);
+
+    /** @brief Konvertiert ein ByteArray von einem Encoding in ein anderes
+     *
+     * @param[in] from Das Quell-ByteArray
+     * @param[out] to Das Ziel-ByteArray
+     */
     void transcode(const ByteArrayPtr& from, ByteArray& to);
+
+    /** @brief Konvertiert ein ByteArray von einem Encoding in ein anderes und gibt das Ergebnis zurück
+     *
+     * @param[in] from Das Quell-ByteArray
+     * @return Das konvertierte ByteArray im Ziel-Encoding
+     */
+    ByteArray transcode(const ByteArrayPtr& from);
+
+    /** @brief Konvertiert einen String von einem Encoding in ein anderes
+     *
+     * @param[in] from Der Quell-String
+     * @param[out] to Der Ziel-String
+     */
     void transcode(const String& from, String& to);
+
+    /** @brief Konvertiert einen String von einem Encoding in ein anderes und gibt das Ergebnis zurück
+     *
+     * @param[in] from Der Quell-String
+     * @return Der konvertierte String im Ziel-Encoding
+     */
     String transcode(const String& from);
 
     /**
@@ -67,12 +126,55 @@ public:
      * @return WideString (UTF-16 unter Windows, UTF-32 unter Linux)
      */
     static WideString toWideString(const String& from, const String& fromEncoding);
+
+    /** @brief Gibt eine Liste aller unterstützten Zeichencodierungen zurück
+     * @param[out] list Die Liste, die mit den unterstützten Zeichencodierungen gefüllt wird
+     */
     static void enumerateCharsets(Array& list);
+
+    /** @brief Gibt eine Liste aller unterstützten Zeichencodierungen zurück
+     * @param[out] list Die Liste, die mit den unterstützten Zeichencodierungen gefüllt wird
+     */
     static void enumerateCharsets(std::list<pplib::String>& list);
+
+    /** @brief Gibt das lokale Charset zurück
+     *
+     * Diese Methode gibt das lokale Charset des Systems im MIME-, bzw. IANA-Standard zurück, wie er
+     * von Iconv verstanden wird. Unter Windows wird dadurch zum Beispiel anstelle von ".28591" "ISO-8859-1" zurückgegeben.
+     * @return String mit dem Namen des lokalen Charsets (z. B. "UTF-8", "ISO-8859-1")
+     */
     static String getLocalCharset();
-    static String Utf8ToLocal(const String& text);
-    static String LocalToUtf8(const String& text);
+
+    /** @brief Konvertiert einen UTF-8 codierten String in das lokale Charset des Systems
+     *
+     * @param[in] text Der UTF-8 codierte String
+     * @return String im lokalen Charset des Systems
+     */
+    static String utf8ToLocal(const String& text);
+
+    /** @brief Konvertiert einen String aus dem lokalen Charset des Systems in UTF-8
+     *
+     * @param[in] text Der String im lokalen Charset des Systems
+     * @return UTF-8 codierter String
+     */
+    static String localToUtf8(const String& text);
+
+    /** @brief Konvertiert einen String von einem Quell-Encoding in ein Ziel-Encoding
+     *
+     * @param[in] text Der zu konvertierende String
+     * @param[in] fromEncoding Das Quell-Encoding des Strings (z. B. "UTF-8", "ISO-8859-1")
+     * @param[in] toEncoding Das gewünschte Ziel-Encoding (z. B. "UTF-8", "ISO-8859-1")
+     * @return ByteArray im Ziel-Encoding
+     */
     static ByteArray transcode(const String& text, const String& fromEncoding, const String& toEncoding);
+
+    /** @brief Konvertiert einen ByteArray von einem Quell-Encoding in ein Ziel-Encoding
+     *
+     * @param[in] text Der zu konvertierende ByteArray
+     * @param[in] fromEncoding Das Quell-Encoding des ByteArray (z. B. "UTF-8", "ISO-8859-1")
+     * @param[in] toEncoding Das gewünschte Ziel-Encoding (z. B. "UTF-8", "ISO-8859-1")
+     * @return ByteArray im Ziel-Encoding
+     */
     static ByteArray transcode(const ByteArrayPtr& text, const String& fromEncoding, const String& toEncoding);
 
     [[deprecated("Use fromWideString instead.")]]

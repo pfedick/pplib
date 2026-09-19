@@ -34,9 +34,15 @@
 #include <pplib/types/bytearrayptr.h>
 #include <pplib/core/iconv.h>
 #include <pplib/exceptions.h>
+#include "config_pplib.h"
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
+#endif
+#ifdef HAVE_LOCALCHARSET_H
+#include <localcharset.h>
+#elif defined(HAVE_NL_LANGINFO)
+#include <langinfo.h>
 #endif
 
 #ifndef ICONV_UNICODE
@@ -96,16 +102,13 @@ void Iconv::transcode(const ByteArrayPtr& from, ByteArray& to)
     if (!iconv_handle) throw CharacterEncodingNotInitializedException();
     size_t inbytes = from.size();
     size_t outbytes = inbytes * 4 + 10;
-    char* buffer = (char*)malloc(outbytes);
+    ByteArray ba;
+    char* buffer = (char*)ba.malloc(outbytes);
     char* outbuf = buffer;
-    if (!outbuf) throw pplib::OutOfMemoryException();
     const char* inbuffer = (const char*)from.ptr();
     char* ret = outbuf;
-    // printf ("Iconv::transcode\n");
-    // from.hexDump();
     size_t res = iconv((iconv_t)iconv_handle, (char**)(void*)&inbuffer, &inbytes, (char**)&outbuf, &outbytes);
     if (res == (size_t)(-1)) {
-        free(buffer);
         String e = inbuffer;
         e.cut(64);
         e.append("...");
@@ -113,9 +116,14 @@ void Iconv::transcode(const ByteArrayPtr& from, ByteArray& to)
     }
     size_t size_target = outbuf - ret;
     to.copy(ret, size_target);
-    // to.hexDump();
-    free(buffer);
 #endif
+}
+
+ByteArray Iconv::transcode(const ByteArrayPtr& from)
+{
+    ByteArray result;
+    transcode(from, result);
+    return result;
 }
 
 void Iconv::transcode(const String& from, String& to)
@@ -331,33 +339,45 @@ void Iconv::enumerateCharsets(std::list<pplib::String>& list)
 
 String Iconv::getLocalCharset()
 {
+#if defined(HAVE_LOCALCHARSET_H)
+    const char* cs = locale_charset();
+    if (cs && cs[0] != '\0') {
+        return String(cs);
+    }
+    return String("US-ASCII");
+#elif defined(HAVE_NL_LANGINFO)
+    const char* cs = nl_langinfo(CODESET);
+    if (cs && cs[0] != '\0') {
+        return String(cs);
+    }
+    return String("US-ASCII");
+#else
     const char* locale = setlocale(LC_CTYPE, NULL);
     if (!locale) {
         throw CharacterEncodingException();
     }
     String loc(locale);
     loc.upperCase();
-    if (loc == "C" || loc == "POSIX") return String("US_ASCII");
-    size_t p = loc.instr(".");
+    if (loc == "C" || loc == "POSIX") return String("US-ASCII");
+
+    ssize_t p = loc.instr(".");
     if (p >= 0) {
-#ifdef WIN32
         String tmp = loc.mid(p + 1);
+        if (tmp == "UTF8" || tmp == "UTF-8") return String("UTF-8");
         if (tmp.isNumeric()) return "CP" + tmp;
-#else
-        return loc.mid(p + 1);
-#endif
+        return tmp;
     }
     return loc;
-    // throw CharacterEncodingException();
+#endif
 }
 
-String Iconv::Utf8ToLocal(const String& text)
+String Iconv::utf8ToLocal(const String& text)
 {
     Iconv iconv("UTF-8", Iconv::getLocalCharset());
     return iconv.transcode(text);
 }
 
-String Iconv::LocalToUtf8(const String& text)
+String Iconv::localToUtf8(const String& text)
 {
     Iconv iconv(Iconv::getLocalCharset(), "UTF-8");
     return iconv.transcode(text);

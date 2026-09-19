@@ -105,6 +105,13 @@
 #cmakedefine HAVE_FREETYPE2 1
 
 /*
+ * Iconv
+ */
+#cmakedefine HAVE_LOCALCHARSET_H 1
+#cmakedefine HAVE_LANGINFO_H 1
+#cmakedefine HAVE_NL_LANGINFO 1
+
+/*
  * Databases
  */
 #cmakedefine HAVE_MYSQL 1
