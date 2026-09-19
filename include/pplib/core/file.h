@@ -177,6 +177,28 @@ public:
      * @param[in] handle File-Handle
      */
     File(FILE* handle);
+
+    File(const File&) = delete;
+    File& operator=(const File&) = delete;
+
+    /** @brief Move-Konstruktor der Klasse
+     *
+     * Konstruktor der Klasse, der die Ressourcen von einem anderen File-Objekt übernimmt.
+     * @param[in] other Das andere File-Objekt
+     */
+    File(File&& other) noexcept;
+
+    /** @brief Move-Zuweisungsoperator der Klasse
+     *
+     * Übernimmt die Ressourcen von einem anderen File-Objekt.
+     * @param[in] other Das andere File-Objekt
+     * @return Referenz auf das aktuelle Objekt
+     */
+    File& operator=(File&& other) noexcept;
+    /** @brief Destruktor der Klasse
+     *
+     * Schließt die Datei und gibt alle Ressourcen frei.
+     */
     virtual ~File();
 
     /** @brief Datei öffnen

@@ -29,6 +29,8 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   }
   ```
 
+  ==> Methode angelegt
+
 - [ ] **`File::seek(int64_t offset, SeekOrigin origin)`: 32-Bit-Truncation auf 64-Bit-Windows & `pos` wird nicht aktualisiert** (`src/core/File.cpp:392-395`)
   1. Auf 64-Bit-Windows (LLP64) ist `long` nur 32 Bit groß (`-2 GB` bis `+2 GB`). Zeile 392 castet:
      ```cpp
@@ -46,6 +48,8 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   return pos;
   ```
 
+  ==> FIXED
+
 - [ ] **`File::close()` löscht Dateinamen vor dem Schließen – Exceptions verlieren Dateinamen** (`src/core/File.cpp:228, 257`)
   `close()` ruft in Zeile 228 `setFilename("");` auf, *bevor* `::fclose((FILE*)ff)` ausgeführt wird:
   ```cpp
@@ -61,6 +65,8 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   Schlägt `fclose` fehl (z.B. gepufferter Schreibfehler auf vollem Datenträger / NFS-Fehler), enthält die geworfene Exception einen leeren Dateinamen `""`.
   *Fix:* `setFilename("")` erst nach erfolgreichem Schließen aufrufen, bzw. Dateinamen vorab in einer lokalen Variablen sichern.
 
+  ==> FIXED
+
 - [ ] **Kopieren von `File` erzeugt Double-Close / Double-Free (Rule of 5 verletzt)** (`include/pplib/core/file.h`, `src/core/File.cpp`)
   `File` besitzt einen benutzerdefinierten virtuellen Destruktor, der `close()` (`fclose`, `munmap`) aufruft. Kopierkonstruktor und Kopierzuweisungsoperator sind weder gelöscht noch implementiert.
   Wird eine `File`-Instanz versehentlich by-value übergeben oder kopiert, teilen sich beide Instanzen denselben `FILE*`-Zeiger und Speicher-Mapping. Die Zerstörung der Kopie schließt das Handle; die Originalinstanz greift danach auf einen geschlossenen Deskriptor zu und ruft im eigenen Destruktor ein zweites `fclose()` (Undefined Behavior / Crash) auf.
@@ -72,6 +78,8 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   File& operator=(File&& other) noexcept;
   ```
 
+  ==> FIXED
+
 - [ ] **`File::copy()`: Heap-Leak bei Exceptions und OOM bei 0-Byte-Dateien** (`src/core/File.cpp:948-968`)
   1. Bei einer 0-Byte-Quelldatei ist `f1.mysize == 0` -> `bsize = 0`. `malloc((size_t)0)` liefert auf manchen Plattformen/Runtimes `NULL`. Dadurch wirft `copy()` bei leeren Dateien fälschlicherweise `OutOfMemoryException`.
   2. `malloc((size_t)bsize)` allokiert einen rohen Zeiger. Wirft `f1.fread()` oder `f2.fwrite()` eine Exception (z.B. Disk Full `FilesystemFullException`, `IOErrorException`), wird `free(buffer)` nie aufgerufen -> Memory-Leak.
@@ -82,6 +90,8 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   if (f1.mysize > 0 && f1.mysize < bsize) bsize = f1.mysize;
   ByteArray buffer(bsize);
   ```
+
+  ==> Beispiel ist quatsch, wenn Quelldatei leer ist, brauche ich keinen riesigen Copy-Buffer zu allokieren, um danach nichts damit zu machen. Wir steigen hier einfach frühzeitig aus und hinterlassen eine neue Datei, die ebenfalls leer ist, ohne eine Exception zu werfen. FIXED
 
 - [ ] **`File::open(..., FileMode::APPEND)` ruft `seek(0)` auf – bricht Append-Semantik** (`src/core/File.cpp:202`, `include/pplib/core/file.h:122`)
   Die Doku in `file.h` verspricht:
@@ -95,12 +105,17 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   Dadurch wird der Zeiger auf den Dateianfang gesetzt (`pos = 0`). Beim ersten Schreibzugriff fügt das OS zwar hinten an, `pos` wird aber ausgehend von 0 inkrementiert (`pos += by * size`). `pos` ist nun vollkommen falsch, und `if (pos > this->mysize) this->mysize = pos;` aktualisiert `mysize` nicht, solange `pos < alter mysize` ist.
   *Fix:* Bei `FileMode::APPEND` nicht `seek(0)` aufrufen, sondern `pos = mysize;` setzen.
 
+  ==> oder "pos=tell()" aufrufen. FIXED
+
 - [ ] **`File::map()`: Integer-Overflow im Bounds-Check und fehlerhafter Pointer bei Re-Use** (`src/core/File.cpp:720-740`)
   1. `if (position + bytes <= mysize)` kann bei großen `position`-Werten überlaufen (`position + bytes < position`).
      Sicherer Check:
      ```cpp
      if (position <= mysize && bytes <= mysize - position)
      ```
+
+     ==> FIXED
+
   2. Zeile 724: `if (LastMapStart == position && bytes <= LastMapSize) return MapBase;`:
      Wenn `position` zuvor nicht seiten-ausgerichtet war, hat `mmap` intern aligned gemappt (`LastMapStart` ist die Page-Basis) und `MapBase + rest` zurückgegeben. Zeile 724 würde bei exaktem Match `MapBase` (fälschlicherweise ohne Offset!) zurückgeben.
      Korrekt und einheitlich für den gesamten Cache-Hit:
@@ -118,6 +133,7 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   *Folge:* Code, der eine Datei per `map(..., MapProtection::READWRITE)` ändert, verhält sich unter Linux und Windows exakt gegensätzlich.
   *Fix:* Für `READWRITE` unter Linux `MAP_SHARED` verwenden (falls Shared-Semantik gewünscht ist) oder den Modus explizit als Shared/Private konfigurierbar machen.
 
+  ==> FIXED
 ---
 
 ## Bugs (mittel)

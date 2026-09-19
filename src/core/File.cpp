@@ -114,6 +114,61 @@ File::~File()
     }
 }
 
+File::File(File&& other) noexcept
+{
+    ff = other.ff;
+    MapBase = other.MapBase;
+    LastMapStart = other.LastMapStart;
+    LastMapSize = other.LastMapSize;
+    LastMapProtection = other.LastMapProtection;
+    ReadAhead = other.ReadAhead;
+    mysize = other.mysize;
+    pos = other.pos;
+    isPopen = other.isPopen;
+    exitCode = other.exitCode;
+
+    other.ff = NULL;
+    other.MapBase = NULL;
+    other.mysize = 0;
+    other.pos = 0;
+    other.LastMapStart = 0;
+    other.LastMapSize = 0;
+    other.LastMapProtection = MapProtection::NONE;
+    other.ReadAhead = 0;
+    other.isPopen = false;
+    other.exitCode = 0;
+}
+
+File& File::operator=(File&& other) noexcept
+{
+    if (this != &other) {
+        close();
+
+        ff = other.ff;
+        MapBase = other.MapBase;
+        LastMapStart = other.LastMapStart;
+        LastMapSize = other.LastMapSize;
+        LastMapProtection = other.LastMapProtection;
+        ReadAhead = other.ReadAhead;
+        mysize = other.mysize;
+        pos = other.pos;
+        isPopen = other.isPopen;
+        exitCode = other.exitCode;
+
+        other.ff = NULL;
+        other.MapBase = NULL;
+        other.mysize = 0;
+        other.pos = 0;
+        other.LastMapStart = 0;
+        other.LastMapSize = 0;
+        other.LastMapProtection = MapProtection::NONE;
+        other.ReadAhead = 0;
+        other.isPopen = false;
+        other.exitCode = 0;
+    }
+    return *this;
+}
+
 /*!\brief C-Filemode-String
  *
  * \desc
@@ -226,7 +281,7 @@ void File::open(const String& filename, FileMode mode)
     }
 #endif
     mysize = size();
-    seek(0);
+    pos = tell();
     setFilename(filename);
 }
 
@@ -251,7 +306,6 @@ void File::close()
     if (MapBase != NULL) {
         this->munmap(MapBase, (size_t)LastMapSize);
     }
-    setFilename("");
     if (ff != NULL) {
         int ret = 1;
         if (isPopen) {
@@ -279,11 +333,13 @@ void File::close()
         } else {
             if (::fclose((FILE*)ff) != 0) ret = 0;
         }
+        int savedErrno = errno;
+        setFilename("");
         isPopen = false;
         ff = NULL;
         mysize = 0;
         pos = 0;
-        if (ret == 0) throwErrno(errno, filename());
+        if (ret == 0) throwErrno(savedErrno, filename());
         return;
     }
 }
@@ -387,9 +443,11 @@ uint64_t File::seek(int64_t offset, SeekOrigin origin)
     default:
         throw IllegalArgumentException();
     }
-    int suberr = ::fseek((FILE*)ff, (long)offset, o);
-    if (suberr != 0) throwErrno(errno, filename());
-    return tell();
+    if (::fseeko((FILE*)ff, (off_t)offset, o) != 0) {
+        throwErrno(errno, filename());
+    }
+    pos = tell();
+    return pos;
 }
 
 uint64_t File::tell()
@@ -674,13 +732,13 @@ void File::setMapReadAhead(size_t bytes)
 char* File::map(uint64_t position, size_t bytes, MapProtection prot)
 {
     if (ff == NULL) throw FileNotOpenException();
-    if (position + bytes <= mysize) {
+    if (bytes == 0 || mysize == 0) return nullptr;
+    if (position <= mysize && bytes <= mysize - position) {
         if (MapBase != NULL) {
-            if (LastMapProtection == prot) {    // Schon als read/write gemapped?
-                if (LastMapStart == position) { // Dateiausschnitt schon gemapped?
-                    if (bytes <= LastMapSize) return MapBase;
+            if (LastMapProtection == prot) { // Schon als read/write gemapped?
+                if (position >= LastMapStart && (bytes + position - LastMapStart) <= LastMapSize) {
+                    return MapBase + (position - LastMapStart);
                 }
-                if (position > LastMapStart && (bytes + position - LastMapStart) <= LastMapSize) return MapBase + position - LastMapStart;
             }
             this->munmap(MapBase, (size_t)LastMapSize);
         }
@@ -743,7 +801,7 @@ void* File::mmap(uint64_t position, size_t size, MapProtection prot)
         position = multiplyer * __pagesize;
         size += rest;
     }
-    void* adr = ::mmap(NULL, size, mflags, MAP_PRIVATE, fileno((FILE*)ff), (off_t)position);
+    void* adr = ::mmap(NULL, size, mflags, MAP_SHARED, fileno((FILE*)ff), (off_t)position);
     if (adr == MAP_FAILED) {
         MapBase = NULL;
         LastMapSize = 0;
@@ -817,6 +875,16 @@ void* File::mmap(uint64_t position, size_t size, MapProtection prot)
     LastMapStart = position;
     return (MapBase + rest);
 #endif
+}
+
+void File::erase()
+{
+    if (!isOpen()) throw FileNotOpenException();
+    String fn = filename();
+    close();
+    if (!fn.isEmpty()) {
+        File::erase(fn);
+    }
 }
 
 // ####################################################################
@@ -894,20 +962,25 @@ void File::copy(const String& oldfile, const String& newfile)
     File f1, f2;
     f1.open(oldfile, FileMode::READ);
     f2.open(newfile, FileMode::WRITE);
-    uint64_t bsize = 1024 * 1024;
+    if (f1.mysize == 0) { // Quell-Datei ist leer
+        f1.close();
+        f2.close();
+        return; // Ziel = Quelle, nichts zu tun, keine Exception werfen
+    }
+    size_t bsize = 1024 * 1024;
     if (f1.mysize < bsize) bsize = f1.mysize;
-    void* buffer = malloc((size_t)bsize);
+    ByteArray ba;
+    void* buffer = ba.malloc((size_t)bsize);
     if (!buffer) throw OutOfMemoryException();
     uint64_t rest = f1.mysize;
     while (rest) {
-        uint64_t bytes = bsize;
+        size_t bytes = bsize;
         if (bytes > rest) bytes = rest;
         uint64_t done = f1.fread(buffer, 1, bytes);
         if (done != bytes) {
             // Sollte eigentlich nicht vorkommen
             f2.close();
             remove(newfile);
-            free(buffer);
             throw ReadException();
         }
         done = f2.fwrite(buffer, 1, bytes);
@@ -915,7 +988,6 @@ void File::copy(const String& oldfile, const String& newfile)
     }
     f1.close();
     f2.close();
-    free(buffer);
 }
 
 void File::move(const String& oldfile, const String& newfile)
