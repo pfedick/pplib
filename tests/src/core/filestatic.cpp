@@ -517,6 +517,7 @@ TEST_F(FileStaticTest, getSuffix)
     EXPECT_EQ(pplib::String("dll"), pplib::File::getSuffix("c:/windows/system32/test.dll"));
     EXPECT_EQ(pplib::String("sh"), pplib::File::getSuffix("/usr/bin/bash.sh"));
     EXPECT_EQ(pplib::String(""), pplib::File::getSuffix("/usr/bin/bash"));
+    EXPECT_EQ(pplib::String(""), pplib::File::getSuffix("/usr/bin/bash/.gitignore"));
 }
 
 TEST_F(FileStaticTest, isDir)

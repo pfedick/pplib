@@ -126,6 +126,7 @@ File::File(File&& other) noexcept
     pos = other.pos;
     isPopen = other.isPopen;
     exitCode = other.exitCode;
+    setFilename(other.filename());
 
     other.ff = NULL;
     other.MapBase = NULL;
@@ -137,6 +138,7 @@ File::File(File&& other) noexcept
     other.ReadAhead = 0;
     other.isPopen = false;
     other.exitCode = 0;
+    other.setFilename("");
 }
 
 File& File::operator=(File&& other) noexcept
@@ -154,6 +156,7 @@ File& File::operator=(File&& other) noexcept
         pos = other.pos;
         isPopen = other.isPopen;
         exitCode = other.exitCode;
+        setFilename(other.filename());
 
         other.ff = NULL;
         other.MapBase = NULL;
@@ -165,6 +168,7 @@ File& File::operator=(File&& other) noexcept
         other.ReadAhead = 0;
         other.isPopen = false;
         other.exitCode = 0;
+        other.setFilename("");
     }
     return *this;
 }
@@ -281,7 +285,12 @@ void File::open(const String& filename, FileMode mode)
     }
 #endif
     mysize = size();
-    pos = tell();
+    if (mode == FileMode::APPEND) {
+        seek(mysize);
+        pos = mysize;
+    } else {
+        pos = tell();
+    }
     setFilename(filename);
 }
 
@@ -342,12 +351,12 @@ void File::close()
             if (::fclose((FILE*)ff) != 0) ret = 0;
         }
         int savedErrno = errno;
-        setFilename("");
         isPopen = false;
         ff = NULL;
         mysize = 0;
         pos = 0;
         if (ret == 0) throwErrno(savedErrno, filename());
+        setFilename("");
         return;
     }
 }
@@ -362,8 +371,8 @@ uint64_t File::size() const
 {
     if (ff != NULL) {
 #ifdef _WIN32
-        struct _stat buf;
-        if ((::_fstat(_fileno((FILE*)ff), &buf)) == 0) return ((uint64_t)buf.st_size);
+        struct _stat64 buf;
+        if ((::_fstat64(_fileno((FILE*)ff), &buf)) == 0) return ((uint64_t)buf.st_size);
         throwErrno(errno, filename());
 #else
         struct stat buf;
@@ -1294,9 +1303,10 @@ String File::getFilename(const String& path)
 
 String File::getSuffix(const String& path)
 {
-    Array Token(getFilename(path), ".");
-    if (Token.size() == 1) return String("");
-    return Token.get(-1);
+    String filename = getFilename(path);
+    ssize_t dot = filename.instr(".", -1);
+    if (dot <= 0) return String("");
+    return filename.mid(dot + 1);
 }
 
 bool File::isDir(const String& filename)
