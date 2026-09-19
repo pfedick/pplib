@@ -317,3 +317,5 @@ Beim Nachvollziehen der Aufrufpfade von `File` wurden folgende Fehler in anderen
    }
    ```
    *Fix:* `catch (const EndOfFileException&) { break; }` vor `catch (...)` einfügen, damit das reguläre Stream-Ende nicht als Fehler gewertet wird.
+
+  ==> FIXED: Erkennung und Sonderbehandlung von Pipes

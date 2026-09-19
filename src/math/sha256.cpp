@@ -207,19 +207,32 @@ String FileObject::sha256()
     Sha256Context ctx;
     SHA256Init(ctx);
 
-    uint64_t oldpos = tell();
-    seek(0);
+    bool is_pipe = false;
+    uint64_t oldpos = 0;
+    try {
+        oldpos = tell();
+        seek(0);
+    }
+    catch (const IllegalOperationOnPipeException&) {
+        is_pipe = true;
+    }
+
     try {
         while (!eof()) {
             size_t bytesRead = read(buffer, buffer.size());
-            if (bytesRead > 0) {
-                SHA256Update(ctx, (const unsigned char*)buffer.ptr(), bytesRead);
-            }
+            if (bytesRead == 0) break;
+            SHA256Update(ctx, (const unsigned char*)buffer.ptr(), bytesRead);
         }
     }
+    catch (const EndOfFileException&) {
+        if (!is_pipe) throw; // Bei regulären Dateien unerwartet, bei Pipes normales EOF
+    }
     catch (...) {
-        seek(oldpos);
+        if (!is_pipe) seek(oldpos);
         throw;
+    }
+    if (!is_pipe) {
+        seek(oldpos);
     }
     SHA256Final(ctx, digest);
     static const char hex[] = "0123456789abcdef";
@@ -229,7 +242,6 @@ String FileObject::sha256()
         hexbuf[i * 2 + 1] = hex[digest[i] & 0x0f];
     }
     hexbuf[64] = '\0';
-    seek(oldpos);
     return String(hexbuf);
 }
 
