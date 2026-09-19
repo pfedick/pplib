@@ -41,7 +41,7 @@ void throwSocketException(int e, const String& info);
 void throwExceptionFromEaiError(int ecode, const String& info);
 
 #ifdef _WIN32
-void throwExceptionFromWinError(DWORD err, const String& info);
+void throwExceptionFromWinError(unsigned long err, const String& info);
 #endif
 
 PPLIBEXCEPTION(UnknownException, Exception);

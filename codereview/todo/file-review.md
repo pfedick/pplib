@@ -280,6 +280,8 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
   In den Windows-Zweigen von `lockExclusive`, `lockShared`, `unlock`, `mmap` und `statFile` wird `GetLastError()` an `throwErrno()` übergeben. `throwErrno()` leitet an `throwExceptionFromErrno` weiter, welches CRT-`errno`-Codes erwartet. Da Win32-Error-Codes und CRT-`errno` unterschiedliche Zahlenräume haben (z.B. Win32 `ERROR_ACCESS_DENIED = 5`, aber `errno 5 = EIO`), führt dies zu völlig irreführenden Exceptions (z.B. `IOErrorException` statt `PermissionDeniedException`).
   *Fix:* Eigene Mapping-Funktion `throwExceptionFromWinError(DWORD err, const String& info)` implementieren.
 
+  ==> FIXED
+
 ---
 
 ## Doku / Design / Kosmetik
@@ -287,9 +289,13 @@ Abhängigkeiten und Querverweise in `include/pplib/core/fileobject.h`, `src/core
 - [ ] **`FileMode::READWRITE_CREATE` nutzt `"w+b"` (Dateien werden geleert!)** (`include/pplib/core/file.h:125`, `src/core/File.cpp:126`)
   Die Doku sagt: *"Datei zum Lesen und Schreiben öffnen. Falls die Datei noch nicht existiert, wird sie erstellt."*
   `"w+b"` trunkiert jedoch existierende Dateien sofort auf 0 Bytes! Wenn beabsichtigt ist, existierende Dateien nicht zu löschen, muss `open(..., O_RDWR | O_CREAT, 0666)` verwendet werden. Falls das Truncate gewollt ist, muss die Doku dringend warnen: *"Achtung: Falls die Datei existiert, wird ihr Inhalt gelöscht."*
+  ==> Ist so gewollt, Doku angepasst
 - [ ] **Doxygen-Typo in `file.h:346`**: `%fgwets` statt `fgetws`.
+  ==> FIXED
 - [ ] **Doxygen-Copy-Paste-Fehler in `file.h:362`**: Beschreibung von `fputws` beginnt mit `* %fputs schreibt ...`.
+  ==> FIXED
 - [ ] **`FileAttr::Attributes`**: Unscoped Enum mit Bitflags, aber ohne überladene Operatoren `|` und `&`. Erfordert überall unschöne explizite Casts wie `(FileAttr::Attributes)(result.Attrib | FileAttr::IFDIR)`.
+  ==> FIXED
 
 ---
 

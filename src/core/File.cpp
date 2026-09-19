@@ -1018,11 +1018,7 @@ void File::rename(const String& oldfile, const String& newfile)
     if (::MoveFileExW((const wchar_t*)wOld, (const wchar_t*)wNew, MOVEFILE_REPLACE_EXISTING | MOVEFILE_COPY_ALLOWED) != 0) {
         return;
     }
-    if (errno == EXDEV) { // oldfile und newfile befinden sich nicht im gleichen Filesystem.
-        copy(oldfile, newfile);
-        if (::_wunlink((const wchar_t*)wOld) == 0) return;
-    }
-    throwErrno(errno, desc);
+    throwExceptionFromWinError(GetLastError(), desc);
 #else
     if (::rename((const char*)oldfile, (const char*)newfile) == 0) {
         return;
@@ -1162,33 +1158,33 @@ static void getResultFromStat(struct stat& st, DirEntry& result, const pplib::St
 #endif
     result.NumLinks = st.st_nlink;
 
-    if ((st.st_mode & S_IFDIR) == S_IFDIR) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFDIR);
-    if ((st.st_mode & S_IFREG) == S_IFREG) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFFILE);
+    if ((st.st_mode & S_IFDIR) == S_IFDIR) result.Attrib |= FileAttr::IFDIR;
+    if ((st.st_mode & S_IFREG) == S_IFREG) result.Attrib |= FileAttr::IFFILE;
 #ifdef S_IFLNK
-    if ((st.st_mode & S_IFLNK) == S_IFLNK) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFLINK);
+    if ((st.st_mode & S_IFLNK) == S_IFLNK) result.Attrib |= FileAttr::IFLINK;
 #endif
 #ifdef S_IFSOCK
-    if ((st.st_mode & S_IFSOCK) == S_IFSOCK) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFSOCK);
+    if ((st.st_mode & S_IFSOCK) == S_IFSOCK) result.Attrib |= FileAttr::IFSOCK;
 #endif
 
 #ifdef _WIN32
-    if (st.st_mode & _S_IREAD) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
-    if (st.st_mode & _S_IWRITE) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);
-    if (st.st_mode & _S_IEXEC) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_EXECUTE);
+    if (st.st_mode & _S_IREAD) result.Attrib |= FileAttr::USR_READ;
+    if (st.st_mode & _S_IWRITE) result.Attrib |= FileAttr::USR_WRITE;
+    if (st.st_mode & _S_IEXEC) result.Attrib |= FileAttr::USR_EXECUTE;
 #else
-    if (st.st_mode & S_IRUSR) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
-    if (st.st_mode & S_IWUSR) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);
-    if (st.st_mode & S_IXUSR) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_EXECUTE);
-    if (st.st_mode & S_ISUID) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::ISUID);
+    if (st.st_mode & S_IRUSR) result.Attrib |= FileAttr::USR_READ;
+    if (st.st_mode & S_IWUSR) result.Attrib |= FileAttr::USR_WRITE;
+    if (st.st_mode & S_IXUSR) result.Attrib |= FileAttr::USR_EXECUTE;
+    if (st.st_mode & S_ISUID) result.Attrib |= FileAttr::ISUID;
 
-    if (st.st_mode & S_IRGRP) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::GRP_READ);
-    if (st.st_mode & S_IWGRP) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::GRP_WRITE);
-    if (st.st_mode & S_IXGRP) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::GRP_EXECUTE);
-    if (st.st_mode & S_ISGID) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::ISGID);
+    if (st.st_mode & S_IRGRP) result.Attrib |= FileAttr::GRP_READ;
+    if (st.st_mode & S_IWGRP) result.Attrib |= FileAttr::GRP_WRITE;
+    if (st.st_mode & S_IXGRP) result.Attrib |= FileAttr::GRP_EXECUTE;
+    if (st.st_mode & S_ISGID) result.Attrib |= FileAttr::ISGID;
 
-    if (st.st_mode & S_IROTH) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::OTH_READ);
-    if (st.st_mode & S_IWOTH) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::OTH_WRITE);
-    if (st.st_mode & S_IXOTH) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::OTH_EXECUTE);
+    if (st.st_mode & S_IROTH) result.Attrib |= FileAttr::OTH_READ;
+    if (st.st_mode & S_IWOTH) result.Attrib |= FileAttr::OTH_WRITE;
+    if (st.st_mode & S_IXOTH) result.Attrib |= FileAttr::OTH_EXECUTE;
 #endif
 }
 
@@ -1231,17 +1227,17 @@ void File::statFile(const String& filename, DirEntry& result)
     result.NumLinks = 1;
 
     if (data.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
-        result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFLINK);
+        result.Attrib |= FileAttr::IFLINK;
     }
     if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-        result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFDIR);
+        result.Attrib |= FileAttr::IFDIR;
     } else {
-        result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFFILE);
+        result.Attrib |= FileAttr::IFFILE;
     }
 
-    result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
+    result.Attrib |= FileAttr::USR_READ;
     if (!(data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)) {
-        result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);
+        result.Attrib |= FileAttr::USR_WRITE;
     }
 #else
     struct stat st;

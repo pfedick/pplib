@@ -81,6 +81,44 @@ public:
     };
 };
 
+constexpr inline FileAttr::Attributes operator|(FileAttr::Attributes a, FileAttr::Attributes b) noexcept
+{
+    return static_cast<FileAttr::Attributes>(static_cast<unsigned int>(a) | static_cast<unsigned int>(b));
+}
+
+constexpr inline FileAttr::Attributes operator&(FileAttr::Attributes a, FileAttr::Attributes b) noexcept
+{
+    return static_cast<FileAttr::Attributes>(static_cast<unsigned int>(a) & static_cast<unsigned int>(b));
+}
+
+constexpr inline FileAttr::Attributes operator^(FileAttr::Attributes a, FileAttr::Attributes b) noexcept
+{
+    return static_cast<FileAttr::Attributes>(static_cast<unsigned int>(a) ^ static_cast<unsigned int>(b));
+}
+
+constexpr inline FileAttr::Attributes operator~(FileAttr::Attributes a) noexcept
+{
+    return static_cast<FileAttr::Attributes>(~static_cast<unsigned int>(a));
+}
+
+inline FileAttr::Attributes& operator|=(FileAttr::Attributes& a, FileAttr::Attributes b) noexcept
+{
+    a = a | b;
+    return a;
+}
+
+inline FileAttr::Attributes& operator&=(FileAttr::Attributes& a, FileAttr::Attributes b) noexcept
+{
+    a = a & b;
+    return a;
+}
+
+inline FileAttr::Attributes& operator^=(FileAttr::Attributes& a, FileAttr::Attributes b) noexcept
+{
+    a = a ^ b;
+    return a;
+}
+
 /** @class File
  * @ingroup PPLGroupFileIO
  * @brief Dateizugriff
@@ -133,6 +171,7 @@ public:
          */
         APPEND,
         /** @brief Datei zum Lesen und Schreiben öffnen. Falls die Datei noch nicht existiert, wird sie erstellt.
+         * @attention Falls die Datei schon vorhanden ist, wird ihr Inhalt gelöscht (trunkiert).
          */
         READWRITE_CREATE,
     };
@@ -407,7 +446,7 @@ public:
 
     /** @brief Wide-Character String schreiben
      *
-     * %fputs schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
+     * %fputws schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
      * den Ausgabestrom.
      * @param str Pointer auf den zu schreibenden String
      * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
