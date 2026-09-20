@@ -109,7 +109,7 @@ TEST_F(ID3FrameTest, setDataGetData)
 {
     pplib::ID3Frame Frame;
     pplib::ByteArray cover;
-    pplib::File::load(cover, "testdata/cover.jpg");
+    pplib::File::load(cover, "testdata/audio/cover.jpg");
 
     ASSERT_NO_THROW({ Frame.setData(cover); });
     EXPECT_TRUE(Frame.hasData());
@@ -156,7 +156,7 @@ TEST_F(ID3TagTest, clear)
 TEST_F(ID3TagTest, Mp3LoadFileWithoutTags)
 {
     pplib::ID3Tag Tags;
-    ASSERT_NO_THROW({ Tags.load("testdata/test_192cbr.mp3"); });
+    ASSERT_NO_THROW({ Tags.load("testdata/audio/test_192cbr.mp3"); });
     EXPECT_EQ((size_t)0, Tags.frameCount());
 }
 
@@ -281,7 +281,7 @@ TEST_F(ID3TagTest, SetAndGetRemixer)
 TEST_F(ID3TagTest, Mp3LoadFileWithTags)
 {
     pplib::ID3Tag Tags;
-    ASSERT_NO_THROW({ Tags.load("testdata/test_192cbr_taggedWithCover.mp3"); });
+    ASSERT_NO_THROW({ Tags.load("testdata/audio/test_192cbr_taggedWithCover.mp3"); });
     EXPECT_EQ(pplib::String("Patrick Fedick"), Tags.getArtist());
     EXPECT_EQ(pplib::String("Powerplay Jingle"), Tags.getTitle());
     EXPECT_EQ(pplib::String("Trance"), Tags.getGenre());
@@ -303,7 +303,7 @@ TEST_F(ID3TagTest, Mp3LoadFileWithTags)
 TEST_F(ID3TagTest, Mp3InitialTaggingWithoutPicture)
 {
     pplib::ID3Tag Tags;
-    ASSERT_NO_THROW({ pplib::File::copy("testdata/test_192cbr.mp3", "tmp/test_tagged1.mp3"); });
+    ASSERT_NO_THROW({ pplib::File::copy("testdata/audio/test_192cbr.mp3", "tmp/test_tagged1.mp3"); });
     ASSERT_NO_THROW({ Tags.load("tmp/test_tagged1.mp3"); });
     EXPECT_EQ((size_t)0, Tags.frameCount());
     ASSERT_NO_THROW({
@@ -351,8 +351,8 @@ TEST_F(ID3TagTest, Mp3InitialTaggingWithPicture)
 {
     pplib::ID3Tag Tags;
     pplib::ByteArray cover;
-    pplib::File::load(cover, "testdata/cover.jpg");
-    pplib::File::copy("testdata/test_192cbr.mp3", "tmp/test_tagged2.mp3");
+    pplib::File::load(cover, "testdata/audio/cover.jpg");
+    pplib::File::copy("testdata/audio/test_192cbr.mp3", "tmp/test_tagged2.mp3");
     Tags.load("tmp/test_tagged2.mp3");
     EXPECT_EQ((size_t)0, Tags.frameCount());
     ASSERT_NO_THROW({
@@ -398,11 +398,11 @@ TEST_F(ID3TagTest, Mp3InitialTaggingWithPicture)
 TEST_F(ID3TagTest, Mp3RetagWithPicture)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_192cbr_tagged.mp3", "tmp/test_tagged3.mp3");
+    pplib::File::copy("testdata/audio/test_192cbr_tagged.mp3", "tmp/test_tagged3.mp3");
     Tags.load("tmp/test_tagged3.mp3");
 
     pplib::ByteArray cover;
-    pplib::File::load(cover, "testdata/cover.jpg");
+    pplib::File::load(cover, "testdata/audio/cover.jpg");
     Tags.setPicture(3, cover, "image/jpeg");
     Tags.save();
     pplib::DirEntry d;
@@ -414,7 +414,7 @@ TEST_F(ID3TagTest, Mp3RetagWithPicture)
 TEST_F(ID3TagTest, FindUserDefinedText)
 {
     pplib::ID3Tag Tags;
-    Tags.load("testdata/test_192cbr_tagged.mp3");
+    Tags.load("testdata/audio/test_192cbr_tagged.mp3");
     ID3Frame* frame = Tags.findUserDefinedText("TraktorRemixer");
     ASSERT_TRUE(frame != NULL);
     frame = Tags.findUserDefinedText("Gibtsnicht");
@@ -424,7 +424,7 @@ TEST_F(ID3TagTest, FindUserDefinedText)
 TEST_F(ID3TagTest, Mp3RetagStrings)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_192cbr_tagged.mp3", "tmp/test_tagged4.mp3");
+    pplib::File::copy("testdata/audio/test_192cbr_tagged.mp3", "tmp/test_tagged4.mp3");
     Tags.load("tmp/test_tagged4.mp3");
 
     Tags.setArtist("New Artist");
@@ -465,7 +465,7 @@ TEST_F(ID3TagTest, Mp3RetagStrings)
 TEST_F(ID3TagTest, Mp3RemovePicture)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_192cbr_taggedWithCover.mp3", "tmp/test_tagged5.mp3");
+    pplib::File::copy("testdata/audio/test_192cbr_taggedWithCover.mp3", "tmp/test_tagged5.mp3");
     Tags.load("tmp/test_tagged5.mp3");
     ASSERT_TRUE(Tags.hasPicture(3));
     ASSERT_NO_THROW(Tags.removePicture(3));
@@ -484,7 +484,7 @@ TEST_F(ID3TagTest, Mp3RemovePicture)
 TEST_F(ID3TagTest, Mp3RemoveAllTags)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_192cbr_taggedWithCover.mp3", "tmp/test_tagged6.mp3");
+    pplib::File::copy("testdata/audio/test_192cbr_taggedWithCover.mp3", "tmp/test_tagged6.mp3");
     Tags.load("tmp/test_tagged6.mp3");
     ASSERT_NO_THROW(Tags.clearTags());
     Tags.save();
@@ -497,7 +497,7 @@ TEST_F(ID3TagTest, Mp3RemoveAllTags)
 TEST_F(ID3TagTest, Mp3NoTagsAndNoChange)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_192cbr.mp3", "tmp/test_tagged7.mp3");
+    pplib::File::copy("testdata/audio/test_192cbr.mp3", "tmp/test_tagged7.mp3");
     Tags.load("tmp/test_tagged7.mp3");
     ASSERT_NO_THROW(Tags.clearTags());
     ASSERT_NO_THROW(Tags.save());
@@ -510,7 +510,7 @@ TEST_F(ID3TagTest, Mp3NoTagsAndNoChange)
 TEST_F(ID3TagTest, Mp3RetagWithoutChanges)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_192cbr_tagged.mp3", "tmp/test_tagged8.mp3");
+    pplib::File::copy("testdata/audio/test_192cbr_tagged.mp3", "tmp/test_tagged8.mp3");
     Tags.load("tmp/test_tagged8.mp3");
     Tags.save();
     pplib::DirEntry d;
@@ -522,14 +522,14 @@ TEST_F(ID3TagTest, Mp3RetagWithoutChanges)
 TEST_F(ID3TagTest, AiffLoadFileWithoutTags)
 {
     pplib::ID3Tag Tags;
-    ASSERT_NO_THROW({ Tags.load("testdata/test_44kHz.aiff"); });
+    ASSERT_NO_THROW({ Tags.load("testdata/audio/test_44kHz.aiff"); });
     EXPECT_EQ((size_t)0, Tags.frameCount()) << "Unexpected number of ID3-Frames";
 }
 
 TEST_F(ID3TagTest, AiffLoadFileWithTags)
 {
     pplib::ID3Tag Tags;
-    ASSERT_NO_THROW({ Tags.load("testdata/test_44kHz_taggedWithCover.aiff"); });
+    ASSERT_NO_THROW({ Tags.load("testdata/audio/test_44kHz_taggedWithCover.aiff"); });
     EXPECT_EQ(pplib::String("Patrick Fedick"), Tags.getArtist());
     EXPECT_EQ(pplib::String("Powerplay Jingle"), Tags.getTitle());
     EXPECT_EQ(pplib::String("Trance"), Tags.getGenre());
@@ -551,7 +551,7 @@ TEST_F(ID3TagTest, AiffLoadFileWithTags)
 TEST_F(ID3TagTest, AiffInitialTaggingWithoutPicture)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_44kHz.aiff", "tmp/test_tagged1.aiff");
+    pplib::File::copy("testdata/audio/test_44kHz.aiff", "tmp/test_tagged1.aiff");
     ASSERT_NO_THROW({ Tags.load("tmp/test_tagged1.aiff"); });
     EXPECT_EQ((size_t)0, Tags.frameCount()) << "Unexpected number of ID3-Frames";
 
@@ -604,8 +604,8 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithPicture)
 {
     pplib::ID3Tag Tags;
     pplib::ByteArray cover;
-    pplib::File::load(cover, "testdata/cover.jpg");
-    pplib::File::copy("testdata/test_44kHz.aiff", "tmp/test_tagged2.aiff");
+    pplib::File::load(cover, "testdata/audio/cover.jpg");
+    pplib::File::copy("testdata/audio/test_44kHz.aiff", "tmp/test_tagged2.aiff");
     Tags.load("tmp/test_tagged2.aiff");
     EXPECT_EQ((size_t)0, Tags.frameCount());
     ASSERT_NO_THROW({
@@ -651,10 +651,10 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithPicture)
 TEST_F(ID3TagTest, AiffRetagWithPicture)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_44kHz_tagged.aiff", "tmp/test_tagged3.aiff");
+    pplib::File::copy("testdata/audio/test_44kHz_tagged.aiff", "tmp/test_tagged3.aiff");
     Tags.load("tmp/test_tagged3.aiff");
     pplib::ByteArray cover;
-    pplib::File::load(cover, "testdata/cover.jpg");
+    pplib::File::load(cover, "testdata/audio/cover.jpg");
     Tags.setPicture(3, cover, "image/jpeg");
     Tags.save();
     pplib::DirEntry d;
@@ -666,7 +666,7 @@ TEST_F(ID3TagTest, AiffRetagWithPicture)
 TEST_F(ID3TagTest, AiffRetagStrings)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_44kHz_tagged.aiff", "tmp/test_tagged4.aiff");
+    pplib::File::copy("testdata/audio/test_44kHz_tagged.aiff", "tmp/test_tagged4.aiff");
     Tags.load("tmp/test_tagged4.aiff");
     Tags.setArtist("New Artist");
     Tags.setTitle("New Jingle");
@@ -706,7 +706,7 @@ TEST_F(ID3TagTest, AiffRetagStrings)
 TEST_F(ID3TagTest, AiffRetagStringsAndRetagWithCoverAgain)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_44kHz_tagged.aiff", "tmp/test_tagged10.aiff");
+    pplib::File::copy("testdata/audio/test_44kHz_tagged.aiff", "tmp/test_tagged10.aiff");
     Tags.load("tmp/test_tagged10.aiff");
 
     Tags.setArtist("Old Artist");
@@ -738,7 +738,7 @@ TEST_F(ID3TagTest, AiffRetagStringsAndRetagWithCoverAgain)
     Tags2.setKey("em");
     Tags2.setEnergyLevel("7");
     pplib::ByteArray cover;
-    pplib::File::load(cover, "testdata/cover.jpg");
+    pplib::File::load(cover, "testdata/audio/cover.jpg");
     Tags2.setPicture(3, cover, "image/jpeg");
     Tags2.save();
 
@@ -766,7 +766,7 @@ TEST_F(ID3TagTest, AiffRetagStringsAndRetagWithCoverAgain)
 TEST_F(ID3TagTest, AiffRemovePicture)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_44kHz_taggedWithCover.aiff", "tmp/test_tagged5.aiff");
+    pplib::File::copy("testdata/audio/test_44kHz_taggedWithCover.aiff", "tmp/test_tagged5.aiff");
     Tags.load("tmp/test_tagged5.aiff");
     ASSERT_TRUE(Tags.hasPicture(3));
     ASSERT_NO_THROW(Tags.removePicture(3));
@@ -785,7 +785,7 @@ TEST_F(ID3TagTest, AiffRemovePicture)
 TEST_F(ID3TagTest, AiffRemoveAllTags)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_44kHz_taggedWithCover.aiff", "tmp/test_tagged6.aiff");
+    pplib::File::copy("testdata/audio/test_44kHz_taggedWithCover.aiff", "tmp/test_tagged6.aiff");
     Tags.load("tmp/test_tagged6.aiff");
     ASSERT_NO_THROW(Tags.clearTags());
     Tags.save();
@@ -798,7 +798,7 @@ TEST_F(ID3TagTest, AiffRemoveAllTags)
 TEST_F(ID3TagTest, AiffNoTagsAndNoChange)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_44kHz.aiff", "tmp/test_tagged7.aiff");
+    pplib::File::copy("testdata/audio/test_44kHz.aiff", "tmp/test_tagged7.aiff");
     Tags.load("tmp/test_tagged7.aiff");
     ASSERT_NO_THROW(Tags.clearTags());
     ASSERT_NO_THROW(Tags.save());
@@ -811,7 +811,7 @@ TEST_F(ID3TagTest, AiffNoTagsAndNoChange)
 TEST_F(ID3TagTest, AiffRetagWithoutChanges)
 {
     pplib::ID3Tag Tags;
-    pplib::File::copy("testdata/test_44kHz_tagged.aiff", "tmp/test_tagged8.aiff");
+    pplib::File::copy("testdata/audio/test_44kHz_tagged.aiff", "tmp/test_tagged8.aiff");
     Tags.load("tmp/test_tagged8.aiff");
     Tags.save();
     pplib::DirEntry d;
@@ -833,7 +833,7 @@ TEST_F(ID3TagTest, Overflow)
 {
     pplib::ID3Tag Tags;
     try {
-        Tags.load("testdata/tags_at_eof.aiff");
+        Tags.load("testdata/audio/tags_at_eof.aiff");
     }
     catch (const pplib::Exception& ex) {
         ex.print();
