@@ -277,6 +277,10 @@ int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& targ
 
 int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& target, const pplib::String& charset)
 {
+    if (!frame || offset < 0 || (size_t)offset >= frame->size()) {
+        target.clear();
+        return offset;
+    }
     size_t size = 0;
     const char* data = frame->dataPtr() + offset;
     // printf ("frame->data=%tx, offset=%d, encoding=%d\n", (std::ptrdiff_t)frame->data, offset, encoding);
@@ -872,15 +876,13 @@ void ID3Tag::setComment(const String& description, const String& comment)
     ID3Frame* frame = &newFrame;
 
     for (auto& f : frames) {
-        if (f.name() == framename) {
-            // Wir müssen prüfen, ob die Description matcht.
-            // Die Description steht ab Offset 4 (nach Enc und Lang)
-            // und ist bei uns UTF-16LE mit BOM.
-            if (f.size() > 4 + descEnc.size()) {
-                if (memcmp(f.dataPtr() + 4, descEnc.ptr(), descEnc.size()) == 0) {
-                    frame = &f;
-                    break;
-                }
+        if (f.name() == framename && f.size() > 4) {
+            String existingDesc;
+            int encoding = Peek8(f.dataPtr());
+            decode(&f, 4, encoding, existingDesc);
+            if (existingDesc == description) {
+                frame = &f;
+                break;
             }
         }
     }

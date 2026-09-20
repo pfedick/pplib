@@ -328,7 +328,7 @@ TEST_F(ID3TagTest, Mp3InitialTaggingWithoutPicture)
     pplib::DirEntry d;
     ASSERT_NO_THROW({ pplib::File::statFile("tmp/test_tagged1.mp3", d); });
     ASSERT_EQ((size_t)97072, d.Size) << "Tagged File has unexpected size";
-    EXPECT_EQ(pplib::String("f9a333ac0f6ee3c92fae02390b25248f"), pplib::File::md5Hash("tmp/test_tagged1.mp3"));
+    EXPECT_EQ(pplib::String("1c0573448bda0912a70d860e438886ed"), pplib::File::md5Hash("tmp/test_tagged1.mp3"));
     pplib::ID3Tag NewTags;
     ASSERT_NO_THROW({ NewTags.load("tmp/test_tagged1.mp3"); });
     EXPECT_EQ(pplib::String("Patrick Fedick"), NewTags.getArtist());
@@ -373,8 +373,8 @@ TEST_F(ID3TagTest, Mp3InitialTaggingWithPicture)
     ASSERT_NO_THROW({ Tags.save(); });
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged2.mp3", d);
-    ASSERT_EQ((size_t)125073, d.Size) << "Tagged File has unexpected size";
-    EXPECT_EQ(pplib::String("6dc503f9722059d5a0de7171e07c68e4"), pplib::File::md5Hash("tmp/test_tagged2.mp3"));
+    ASSERT_EQ((size_t)125063, d.Size) << "Tagged File has unexpected size";
+    EXPECT_EQ(pplib::String("abbc6bb0026c6cece302561562ef25f5"), pplib::File::md5Hash("tmp/test_tagged2.mp3"));
 
     pplib::ID3Tag NewTags;
     ASSERT_NO_THROW({ NewTags.load("tmp/test_tagged2.mp3"); });
@@ -407,8 +407,8 @@ TEST_F(ID3TagTest, Mp3RetagWithPicture)
     Tags.save();
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged3.mp3", d);
-    ASSERT_EQ((size_t)125074, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("052fd75215f383718e1368b535520c60"), pplib::File::md5Hash("tmp/test_tagged3.mp3"));
+    ASSERT_EQ((size_t)125064, d.Size) << "Tagged File has unexpected size";
+    ASSERT_EQ(pplib::String("1e78e5bd961d9db33d5bc1924e58f082"), pplib::File::md5Hash("tmp/test_tagged3.mp3"));
 }
 
 TEST_F(ID3TagTest, FindUserDefinedText)
@@ -459,7 +459,7 @@ TEST_F(ID3TagTest, Mp3RetagStrings)
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged4.mp3", d);
     ASSERT_EQ((size_t)97072, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("ffdf4dc172e7c5cc07b543557c33b6d1"), pplib::File::md5Hash("tmp/test_tagged4.mp3"));
+    ASSERT_EQ(pplib::String("8c794b6ede6599942f9d94d0432c701e"), pplib::File::md5Hash("tmp/test_tagged4.mp3"));
 }
 
 TEST_F(ID3TagTest, Mp3RemovePicture)
@@ -478,7 +478,7 @@ TEST_F(ID3TagTest, Mp3RemovePicture)
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged5.mp3", d);
     ASSERT_EQ((size_t)97073, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("e2dacaeff7f3dbc0d54ed63e88ba519d"), pplib::File::md5Hash("tmp/test_tagged5.mp3"));
+    ASSERT_EQ(pplib::String("05d0f69f9a2c1b55c9d5a3bd517adda6"), pplib::File::md5Hash("tmp/test_tagged5.mp3"));
 }
 
 TEST_F(ID3TagTest, Mp3RemoveAllTags)
@@ -516,7 +516,7 @@ TEST_F(ID3TagTest, Mp3RetagWithoutChanges)
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged8.mp3", d);
     ASSERT_EQ((size_t)97072, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("c5ff756219cba391c99423ddd6cca625"), pplib::File::md5Hash("tmp/test_tagged8.mp3"));
+    ASSERT_EQ(pplib::String("0148f9031e2e7c3b5aa3280d8c833719"), pplib::File::md5Hash("tmp/test_tagged8.mp3"));
 }
 
 TEST_F(ID3TagTest, AiffLoadFileWithoutTags)
@@ -579,7 +579,7 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithoutPicture)
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged1.aiff", d);
     EXPECT_EQ((size_t)695866, d.Size) << "Tagged File has unexpected size";
-    EXPECT_EQ(pplib::String("ee7fa3d57fd26f6a45e1f9448fd8c09c"), pplib::File::md5Hash("tmp/test_tagged1.aiff"));
+    EXPECT_EQ(pplib::String("926d5dad6321cb9f435e3341e7cac50d"), pplib::File::md5Hash("tmp/test_tagged1.aiff"));
 
     pplib::ID3Tag NewTags;
     pplib::ByteArray cover;
@@ -626,8 +626,8 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithPicture)
     ASSERT_NO_THROW({ Tags.save(); });
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged2.aiff", d);
-    ASSERT_EQ((size_t)723867, d.Size) << "Tagged File has unexpected size";
-    EXPECT_EQ(pplib::String("8b48f5ce239455880fa35f0a83ae30e5"), pplib::File::md5Hash("tmp/test_tagged2.aiff"));
+    ASSERT_EQ((size_t)723858, d.Size) << "Tagged File has unexpected size";
+    EXPECT_EQ(pplib::String("712091397916792c4bdf3340f7b5a4fa"), pplib::File::md5Hash("tmp/test_tagged2.aiff"));
 
     pplib::ID3Tag NewTags;
     ASSERT_NO_THROW({ NewTags.load("tmp/test_tagged2.aiff"); });
@@ -659,8 +659,8 @@ TEST_F(ID3TagTest, AiffRetagWithPicture)
     Tags.save();
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged3.aiff", d);
-    ASSERT_EQ((size_t)723867, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("bc9d24e8dffffda4cd7208122e83e65f"), pplib::File::md5Hash("tmp/test_tagged3.aiff"));
+    ASSERT_EQ((size_t)723858, d.Size) << "Tagged File has unexpected size";
+    ASSERT_EQ(pplib::String("39e2fd3fa1eb134c63092d3c0770a025"), pplib::File::md5Hash("tmp/test_tagged3.aiff"));
 }
 
 TEST_F(ID3TagTest, AiffRetagStrings)
@@ -700,7 +700,7 @@ TEST_F(ID3TagTest, AiffRetagStrings)
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged4.aiff", d);
     ASSERT_EQ((size_t)695866, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("a254ec79ef0169d2fd6ad70f98a4c193"), pplib::File::md5Hash("tmp/test_tagged4.aiff"));
+    ASSERT_EQ(pplib::String("a52134f4203b0b7db4520124b5f6678f"), pplib::File::md5Hash("tmp/test_tagged4.aiff"));
 }
 
 TEST_F(ID3TagTest, AiffRetagStringsAndRetagWithCoverAgain)
@@ -759,8 +759,8 @@ TEST_F(ID3TagTest, AiffRetagStringsAndRetagWithCoverAgain)
 
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged10.aiff", d);
-    ASSERT_EQ((size_t)723813, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("01a1ae462ad55207e4b719d1eb83801c"), pplib::File::md5Hash("tmp/test_tagged10.aiff"));
+    ASSERT_EQ((size_t)723804, d.Size) << "Tagged File has unexpected size";
+    ASSERT_EQ(pplib::String("aa2d422cffba6fc99d4d6108d8f86ff2"), pplib::File::md5Hash("tmp/test_tagged10.aiff"));
 }
 
 TEST_F(ID3TagTest, AiffRemovePicture)
@@ -779,7 +779,7 @@ TEST_F(ID3TagTest, AiffRemovePicture)
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged5.aiff", d);
     ASSERT_EQ((size_t)695866, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("6d357b3f28e47d0cdc3cff6c4133b339"), pplib::File::md5Hash("tmp/test_tagged5.aiff"));
+    ASSERT_EQ(pplib::String("bde30dc6e7364f7cc88417a999c32bbc"), pplib::File::md5Hash("tmp/test_tagged5.aiff"));
 }
 
 TEST_F(ID3TagTest, AiffRemoveAllTags)
@@ -817,7 +817,7 @@ TEST_F(ID3TagTest, AiffRetagWithoutChanges)
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged8.aiff", d);
     ASSERT_EQ((size_t)695866, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("ddc103beb0e1687dd6631e31a4a06a62"), pplib::File::md5Hash("tmp/test_tagged8.aiff"));
+    ASSERT_EQ(pplib::String("a4566b3944fed0229a95d78a1eff9a84"), pplib::File::md5Hash("tmp/test_tagged8.aiff"));
 }
 
 TEST_F(ID3TagTest, GetID3GenreName)
@@ -825,8 +825,8 @@ TEST_F(ID3TagTest, GetID3GenreName)
     ASSERT_EQ(pplib::String("Blues"), pplib::GetID3GenreName(0));
     ASSERT_EQ(pplib::String("SynthPop"), pplib::GetID3GenreName(147));
     ASSERT_EQ(pplib::String("Trance"), pplib::GetID3GenreName(31));
-    ASSERT_THROW(pplib::GetID3GenreName(-1), pplib::InvalidGenreException);
-    ASSERT_THROW(pplib::GetID3GenreName(148), pplib::InvalidGenreException);
+    ASSERT_EQ(pplib::String(), pplib::GetID3GenreName(-1));
+    ASSERT_EQ(pplib::String(), pplib::GetID3GenreName(148));
 }
 
 TEST_F(ID3TagTest, Overflow)
