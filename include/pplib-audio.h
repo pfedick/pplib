@@ -37,6 +37,10 @@
 #include <list>
 
 #include <pplib/audio/id3tag.h>
+#include <pplib/audio/audioinfo.h>
+#include <pplib/audio/mp3.h>
+#include <pplib/audio/sample_formats.h>
+#include <pplib/audio/decoder.h>
 
 namespace pplib
 {
@@ -49,51 +53,6 @@ PPLIBEXCEPTION(EncoderPsychoAcousticException, EncoderException);
 PPLIBEXCEPTION(EncoderInitializationException, EncoderException);
 PPLIBEXCEPTION(EncoderAbortedException, EncoderException);
 PPLIBEXCEPTION(EncoderAudioFormatMismatchException, EncoderException);
-
-PPLIBEXCEPTION(DecoderException, Exception);
-PPLIBEXCEPTION(DecoderInitializationException, DecoderException);
-
-class AudioInfo
-{
-public:
-    AudioInfo();
-
-    enum AudioFormat
-    {
-        UNKNOWN,
-        WAVE,
-        AIFF,
-        MP3,
-        OGG
-    };
-    enum ChannelMode
-    {
-        STEREO,
-        MONO,
-        DUAL_CHANNEL,
-        JOINT_STEREO
-    };
-
-    AudioFormat Format;
-    bool HaveID3v2Tag;
-    bool IsVBR;
-    uint32_t ID3v2TagStart;
-    uint32_t FileSize;
-    uint32_t AudioStart;
-    uint32_t AudioEnd;
-    uint32_t AudioSize;
-    uint32_t Samples;
-    uint32_t Length; // Length in ms
-    uint32_t Frequency;
-    uint16_t Bitrate;
-    uint8_t BitsPerSample;
-    uint8_t BytesPerSample;
-    uint8_t Channels;
-    ChannelMode Mode;
-};
-
-bool IdentAudioFile(FileObject& file, AudioInfo& info);
-AudioInfo::AudioFormat IdentAudioFile(FileObject& file);
 
 class Icecast
 {
@@ -271,165 +230,6 @@ public:
 
     static bool isSupported();
     static unsigned int calcDiscId(AudioCD& cd);
-};
-
-//!\brief Struktur zum Speichern eines WAVE-Headers
-typedef struct tagWAVEHeader
-{
-    uint32_t datastart;
-    uint32_t numSamples;
-    uint32_t bytes;
-    uint32_t frequency;
-    uint32_t bytespersample;
-    uint32_t bytespersecond;
-    uint32_t seconds;
-    uint8_t channels;
-    uint8_t bitdepth;
-} WAVEHEADER;
-
-typedef int16_t SAMPLE16;
-
-//!\brief Struktur zum Speichern eines Stereo-Samples
-typedef struct tagSTEREOSAMPLE16
-{
-    SAMPLE16 left;
-    SAMPLE16 right;
-} STEREOSAMPLE16;
-
-typedef int32_t SAMPLE32;
-
-//!\brief Struktur zum Speichern eines Stereo-Samples
-typedef struct tagSTEREOSAMPLE32
-{
-    SAMPLE32 left;
-    SAMPLE32 right;
-} STEREOSAMPLE32;
-
-typedef struct tagSTEREOSAMPLEFLOAT
-{
-    float left;
-    float right;
-} STEREOSAMPLE_FLOAT;
-
-class AudioDecoder
-{
-public:
-    virtual ~AudioDecoder() {};
-    virtual void open(FileObject& file, const AudioInfo* info = NULL) = 0;
-    virtual const AudioInfo& getAudioInfo() const = 0;
-    virtual void getAudioInfo(AudioInfo& info) const = 0;
-    virtual void seekSample(size_t sample) = 0;
-    virtual size_t getPosition() const = 0;
-    virtual size_t getSamples(size_t num, STEREOSAMPLE16* buffer) = 0;
-    virtual size_t addSamples(size_t num, STEREOSAMPLE32* buffer) = 0;
-    virtual size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) = 0;
-    virtual size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) = 0;
-};
-
-AudioDecoder* GetAudioDecoder(FileObject& file);
-
-class AudioDecoder_Wave : public AudioDecoder
-{
-private:
-    FileObject* ff;
-    AudioInfo info;
-    size_t position;
-    size_t samplesize;
-    void readWaveHeader(FileObject& file, WAVEHEADER& header);
-
-public:
-    AudioDecoder_Wave();
-    ~AudioDecoder_Wave();
-    void open(FileObject& file, const AudioInfo* info = NULL);
-    const AudioInfo& getAudioInfo() const;
-    void getAudioInfo(AudioInfo& info) const;
-    void seekSample(size_t sample);
-    size_t getPosition() const;
-    size_t getSamples(size_t num, STEREOSAMPLE16* buffer);
-    size_t addSamples(size_t num, STEREOSAMPLE32* buffer);
-    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
-    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
-};
-
-class AudioDecoder_Aiff : public AudioDecoder
-{
-private:
-    FileObject* ff;
-    AudioInfo info;
-    size_t position;
-    size_t samplesize;
-
-public:
-    AudioDecoder_Aiff();
-    ~AudioDecoder_Aiff();
-    void open(FileObject& file, const AudioInfo* info = NULL);
-    const AudioInfo& getAudioInfo() const;
-    void getAudioInfo(AudioInfo& info) const;
-    void seekSample(size_t sample);
-    size_t getPosition() const;
-    size_t getSamples(size_t num, STEREOSAMPLE16* buffer);
-    size_t addSamples(size_t num, STEREOSAMPLE32* buffer);
-    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
-    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
-};
-
-class AudioDecoder_MP3 : public AudioDecoder
-{
-private:
-    void* decoder;
-    FileObject* ff;
-    uint8_t* readbuffer;
-    uint8_t* outbuffer;
-
-    AudioInfo info;
-    size_t position;
-    size_t samplesize;
-    size_t out_offset, out_size;
-    bool isRunning;
-    bool needInput;
-    int lastDecodeFormat;
-
-    size_t fillDecodeBuffer();
-
-public:
-    AudioDecoder_MP3();
-    ~AudioDecoder_MP3();
-    void open(FileObject& file, const AudioInfo* info = NULL);
-    const AudioInfo& getAudioInfo() const;
-    void getAudioInfo(AudioInfo& info) const;
-    void seekSample(size_t sample);
-    size_t getPosition() const;
-    size_t getSamples(size_t num, STEREOSAMPLE16* buffer);
-    size_t addSamples(size_t num, STEREOSAMPLE32* buffer);
-    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
-    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
-};
-
-class AudioDecoder_Ogg : public AudioDecoder
-{
-private:
-    void* private_data;
-    size_t position;
-    char* readbuffer;
-    size_t buffersize;
-    char* decodebuffer;
-    int decodebuffer_size;
-    AudioInfo info;
-
-    void allocateBuffer(size_t size);
-
-public:
-    AudioDecoder_Ogg();
-    ~AudioDecoder_Ogg();
-    void open(FileObject& file, const AudioInfo* info = NULL);
-    const AudioInfo& getAudioInfo() const;
-    void getAudioInfo(AudioInfo& info) const;
-    void seekSample(size_t sample);
-    size_t getPosition() const;
-    size_t getSamples(size_t num, STEREOSAMPLE16* buffer);
-    size_t addSamples(size_t num, STEREOSAMPLE32* buffer);
-    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
-    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
 };
 
 class AudioEncoder

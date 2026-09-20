@@ -27,39 +27,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_pplib.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#include "pplib.h"
-#include "pplib-audio.h"
+#include <config_pplib.h>
+#include <pplib/audio/audioinfo.h>
+#include <pplib/audio/mp3.h>
+#include <pplib/core/functions.h>
 
 namespace pplib
 {
 
 bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info);
-
-AudioDecoder* GetAudioDecoder(FileObject& file)
-{
-    AudioInfo info;
-    if (!IdentAudioFile(file, info)) return NULL;
-    AudioDecoder* decoder = NULL;
-    if (info.Format == AudioInfo::AIFF) decoder = (AudioDecoder*)new AudioDecoder_Aiff();
-    if (info.Format == AudioInfo::WAVE) decoder = (AudioDecoder*)new AudioDecoder_Wave();
-    if (info.Format == AudioInfo::MP3) decoder = (AudioDecoder*)new AudioDecoder_MP3();
-    if (info.Format == AudioInfo::OGG) decoder = (AudioDecoder*)new AudioDecoder_Ogg();
-
-    if (!decoder) return NULL;
-    decoder->open(file, &info);
-    return decoder;
-}
 
 AudioInfo::AudioInfo()
 {

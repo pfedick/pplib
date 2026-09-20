@@ -154,36 +154,4 @@ size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
     return samples;
 }
 
-/*
-size_t AudioDecoder_Wave::getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right)
-{
-    size_t samples=num;
-    if (position+samples>info.Samples) samples=info.Samples-position;
-    const char *data=ff->map(info.AudioStart+position*info.BytesPerSample, samples*info.BytesPerSample);
-    if (info.BitsPerSample==16) {
-        for (size_t i=0;i<samples;i++) {
-            left[i]=Peek16(data);
-            right[i]=Peek16(data+2);
-            data+=4;
-        }
-    }
-    position+=samples;
-    return samples;
-}
-
-size_t AudioDecoder_Wave::getSamples(size_t num, float *left, float *right)
-{
-    size_t samples=num;
-    if (position+samples>info.Samples) samples=info.Samples-position;
-    const char *data=ff->map(info.AudioStart+position*info.BytesPerSample, samples*info.BytesPerSample);
-    int16_t *buffer16=(int16_t*)data;
-    for (size_t i=0;i<samples;i++) {
-        left[i]=(float)buffer16[i*2]/32768.0;
-        right[i]=(float)buffer16[i*2+1]/32768.0;
-    }
-    position+=samples;
-    return samples;
-}
-    */
-
 } // namespace pplib

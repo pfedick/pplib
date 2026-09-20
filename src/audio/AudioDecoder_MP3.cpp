@@ -393,41 +393,4 @@ size_t AudioDecoder_MP3::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 #endif
 }
 
-/*
-size_t AudioDecoder_MP3::getSamples(size_t num, SAMPLE16* left, SAMPLE16* right)
-{
-#ifndef HAVE_MPG123
-    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
-#else
-    size_t rest = num;
-    while (rest) {
-        size_t av = out_size - out_offset;
-        if (av > 0) {
-            size_t s = (int)(av / 4);
-            if (s > rest) s = rest;
-            STEREOSAMPLE16* p = (STEREOSAMPLE16*)(outbuffer + out_offset);
-            for (size_t i = 0;i < s;i++) {
-                left[i] = p[i].left;
-                right[i] = p[i].right;
-            }
-            left += s;
-            right += s;
-            rest -= s;
-            out_offset += (s * 4);
-        }
-        else {
-            if (!fillDecodeBuffer()) break;
-        }
-    }
-    position += num - rest;
-    return num - rest;
-#endif
-}
-
-size_t AudioDecoder_MP3::getSamples(size_t num, float* left, float* right)
-{
-    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3::getSamples(size_t num, float *left, float *right)");
-}
-*/
-
 } // namespace pplib
