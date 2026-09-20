@@ -154,21 +154,49 @@ public:
      */
     size_t size() const;
 
-    /**@brief Adresse des Speicherblocks auslesen
+    /** @brief Adresse des Speicherblocks auslesen
      *
      * Mit diesem Operator wird die Adresse des Speicherblocks ausgelesen
      *
      * @return Adresse des Speicherblocks
      */
-    const void* adr() const;
+    inline const void* adr() const
+    {
+        return ptradr;
+    }
 
-    /**@brief Adresse des Speicherblocks auslesen
+    /** @brief Adresse des Speicherblocks auslesen
      *
      * Mit diesem Operator wird die Adresse des Speicherblocks ausgelesen
      *
      * @return Adresse des Speicherblocks
      */
-    const void* ptr() const;
+    inline void* adr()
+    {
+        return ptradr;
+    }
+
+    /** @brief Adresse des Speicherblocks auslesen
+     *
+     * Mit diesem Operator wird die Adresse des Speicherblocks ausgelesen
+     *
+     * @return Adresse des Speicherblocks
+     */
+    inline const void* ptr() const
+    {
+        return ptradr;
+    }
+
+    /** @brief Adresse des Speicherblocks auslesen
+     *
+     * Mit diesem Operator wird die Adresse des Speicherblocks ausgelesen
+     *
+     * @return Adresse des Speicherblocks
+     */
+    inline void* ptr()
+    {
+        return ptradr;
+    }
 
     /**@brief Referenz auf Speicherbereich setzen
      *

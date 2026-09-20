@@ -91,22 +91,12 @@ size_t ByteArrayPtr::size() const
     return ptrsize;
 }
 
-const void* ByteArrayPtr::adr() const
-{
-    return ptradr;
-}
-
 const char* ByteArrayPtr::map(size_t position, size_t size) const
 {
     if (position > ptrsize || size > ptrsize - position)
         throw OutOfBoundsException("ByteArrayPtr::map position (%zu) + size (%zu) exceeds size of ByteArray (%zu > %zu)", position, size,
                                    position + size, ptrsize);
     return (const char*)ptradr + position;
-}
-
-const void* ByteArrayPtr::ptr() const
-{
-    return ptradr;
 }
 
 void ByteArrayPtr::use(void* adr, size_t size)
