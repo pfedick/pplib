@@ -45,17 +45,17 @@
 namespace pplib
 {
 
-class ID3FrameTest : public ::testing::Test
+class ID3TagFrameTest : public ::testing::Test
 {
 protected:
-    ID3FrameTest()
+    ID3TagFrameTest()
     {
         if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
             printf("setlocale fehlgeschlagen\n");
             throw std::exception();
         }
     }
-    virtual ~ID3FrameTest()
+    virtual ~ID3TagFrameTest()
     {
     }
 };
@@ -76,7 +76,7 @@ protected:
     }
 };
 
-TEST_F(ID3FrameTest, ConstructorWithoutName)
+TEST_F(ID3TagTest, FrameConstructorWithoutName)
 {
     ASSERT_NO_THROW({
         pplib::ID3Frame Frame;
@@ -87,7 +87,7 @@ TEST_F(ID3FrameTest, ConstructorWithoutName)
     });
 }
 
-TEST_F(ID3FrameTest, ConstructorWithName)
+TEST_F(ID3TagTest, FrameConstructorWithName)
 {
     ASSERT_NO_THROW({
         pplib::ID3Frame Frame("TITL");
@@ -98,7 +98,7 @@ TEST_F(ID3FrameTest, ConstructorWithName)
     });
 }
 
-TEST_F(ID3FrameTest, setFlagsGetFlags)
+TEST_F(ID3TagTest, FramesetFlagsGetFlags)
 {
     pplib::ID3Frame Frame;
 
@@ -106,7 +106,7 @@ TEST_F(ID3FrameTest, setFlagsGetFlags)
     EXPECT_EQ((int)42, Frame.flags());
 }
 
-TEST_F(ID3FrameTest, setDataGetData)
+TEST_F(ID3TagTest, FramesetDataGetData)
 {
     pplib::ID3Frame Frame;
     pplib::ByteArray cover;
@@ -121,6 +121,29 @@ TEST_F(ID3FrameTest, setDataGetData)
     pplib::ByteArray cover2;
     ASSERT_NO_THROW({ Frame.setData(cover2); });
     EXPECT_FALSE(Frame.hasData());
+}
+
+TEST_F(ID3TagTest, FrameConstructorWithData)
+{
+    pplib::ByteArray data;
+    data.copy("TestData", 8);
+    pplib::ID3Frame frame("TIT2", 5, data);
+    EXPECT_EQ(pplib::String("TIT2"), frame.name());
+    EXPECT_EQ(5, frame.flags());
+    EXPECT_EQ((size_t)8, frame.size());
+    EXPECT_TRUE(frame.hasData());
+    EXPECT_FALSE(frame.isEmpty());
+    EXPECT_EQ(data, frame.getData());
+
+    pplib::ByteArray out;
+    frame.getData(out);
+    EXPECT_EQ(data, out);
+
+    // frame.hexDump();
+    pplib::ID3Frame emptyFrame;
+    // emptyFrame.hexDump();
+    EXPECT_TRUE(emptyFrame.isEmpty());
+    EXPECT_FALSE(emptyFrame.hasData());
 }
 
 TEST_F(ID3TagTest, ConstructorWithoutFile)
@@ -1076,6 +1099,8 @@ TEST_F(ID3TagTest, UserDefinedTextGeneric)
     const pplib::ID3Tag& ctag = tag;
     const pplib::ID3Frame* cf = ctag.findUserDefinedText("CustomField");
     EXPECT_NE(nullptr, cf);
+    EXPECT_EQ(nullptr, ctag.findUserDefinedText("DoesNotExist"));
+    EXPECT_EQ(pplib::String(), ctag.getUserDefinedText("DoesNotExist"));
 }
 
 TEST_F(ID3TagTest, WaveLoadFileWithoutTags)
@@ -1181,6 +1206,356 @@ TEST_F(ID3TagTest, WaveUpperId3Chunk)
     ASSERT_NO_THROW({ tagVerify.load("tmp/test_tagged_upper.wav"); });
     EXPECT_EQ(pplib::String("UpperID3TestUpdated"), tagVerify.getTitle());
     EXPECT_EQ((size_t)1, tagVerify.frameCount());
+}
+
+TEST_F(ID3TagTest, ConstructorWithFilenameAndPadding)
+{
+    pplib::ID3Tag tag("testdata/audio/test_44kHz.aiff");
+    EXPECT_EQ((size_t)0, tag.frameCount());
+    tag.setPaddingSize(2048);
+    tag.setPaddingSpace(256);
+    tag.setMaxPaddingSpace(4096);
+    tag.setLocalCharset("UTF-8");
+}
+
+TEST_F(ID3TagTest, TryLoadFiles)
+{
+    pplib::ID3Tag tag;
+    EXPECT_TRUE(tag.tryLoad("testdata/audio/test_44kHz.aiff"));
+    EXPECT_FALSE(tag.tryLoad("testdata/audio/non_existing_file.mp3"));
+
+    pplib::File f;
+    f.open("testdata/audio/test_44kHz.aiff", pplib::File::FileMode::READ);
+    EXPECT_TRUE(tag.tryLoad(f));
+    f.close();
+
+    pplib::MemFile mf;
+    EXPECT_FALSE(tag.tryLoad(mf));
+}
+
+TEST_F(ID3TagTest, ExceptionsAndErrorHandling)
+{
+    pplib::ID3Tag tag;
+    EXPECT_THROW(tag.save(), pplib::FilenameNotSetException);
+
+    // Unsupported audio format (size >= 1024 so IdentMPEG doesn't overflow map)
+    pplib::ByteArray dummy;
+    dummy.calloc(2048);
+    pplib::File::save(dummy.ptr(), dummy.size(), "tmp/invalid_format.bin");
+    EXPECT_THROW(tag.load("tmp/invalid_format.bin"), pplib::UnsupportedAudioFormatException);
+
+    unsigned char badVersionTag[] = {'I', 'D', '3', 5, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    pplib::ByteArray mp3;
+    pplib::File::load(mp3, "testdata/audio/test_192cbr.mp3");
+    mp3.prepend(badVersionTag, sizeof(badVersionTag));
+    pplib::File::save(mp3.ptr(), mp3.size(), "tmp/test_bad_version.mp3");
+    EXPECT_THROW(tag.load("tmp/test_bad_version.mp3"), pplib::UnsupportedID3TagVersionException);
+}
+
+TEST_F(ID3TagTest, Id3v23LoadingAndExtendedHeader)
+{
+    unsigned char tagData[] = {'I', 'D', '3', 3,   0,   0x40, 0, 0, 0, 25, 0, 0, 0, 6,   0,   0,   0,  0,
+                               0,   0,   'T', 'I', 'T', '2',  0, 0, 0, 5,  0, 0, 0, 'T', 'e', 's', 't'};
+    pplib::ByteArray mp3;
+    pplib::File::load(mp3, "testdata/audio/test_192cbr.mp3");
+    mp3.prepend(tagData, sizeof(tagData));
+    pplib::File::save(mp3.ptr(), mp3.size(), "tmp/test_v23_ext.mp3");
+
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW({ tag.load("tmp/test_v23_ext.mp3"); });
+    EXPECT_EQ(pplib::String("Test"), tag.getTitle());
+}
+
+TEST_F(ID3TagTest, FrameUnsynchronisationFlagV24)
+{
+    unsigned char tagData[] = {'I',  'D',  '3', 4, 0, 0, 0, 0, 0, 13, 'T', 'E', 'S', 'T', 0, 0, 0, 3, 0, 2, // Flags = 0x02
+                               0xFF, 0x00, 'Z'};
+    pplib::ByteArray mp3;
+    pplib::File::load(mp3, "testdata/audio/test_192cbr.mp3");
+    mp3.prepend(tagData, sizeof(tagData));
+    pplib::File::save(mp3.ptr(), mp3.size(), "tmp/test_frame_unsync.mp3");
+
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW({ tag.load("tmp/test_frame_unsync.mp3"); });
+    pplib::ID3Frame* f = tag.findFrame("TEST");
+    ASSERT_NE(nullptr, f);
+    EXPECT_EQ(0, f->flags() & 2);
+    EXPECT_EQ((size_t)2, f->size());
+    EXPECT_EQ((unsigned char)0xFF, (unsigned char)f->dataPtr()[0]);
+    EXPECT_EQ('Z', f->dataPtr()[1]);
+}
+
+TEST_F(ID3TagTest, ListFramesAndRemoveFrame)
+{
+    pplib::ID3Tag tag;
+    tag.setTitle("Sample");
+    tag.setArtist("Band");
+    testing::internal::CaptureStdout();
+    tag.listFrames(false);
+    pplib::String output = testing::internal::GetCapturedStdout();
+
+    EXPECT_FALSE(output.isEmpty());
+    EXPECT_TRUE(output.has("TIT2"));
+    EXPECT_TRUE(output.has("TPE1"));
+    EXPECT_FALSE(output.has("HEXDUMP"));
+
+    testing::internal::CaptureStdout();
+    tag.listFrames(true);
+    output = testing::internal::GetCapturedStdout();
+    EXPECT_FALSE(output.isEmpty());
+    EXPECT_TRUE(output.has("TIT2"));
+    EXPECT_TRUE(output.has("TPE1"));
+    EXPECT_TRUE(output.has("HEXDUMP"));
+
+    tag.removeFrame(nullptr);
+    pplib::ID3Frame externalFrame("COMM");
+    tag.removeFrame(&externalFrame);
+    EXPECT_EQ((size_t)2, tag.frameCount());
+}
+
+TEST_F(ID3TagTest, TextEncodings)
+{
+    pplib::ID3Tag tag;
+    tag.setTextFrame("TIT2", "UTF8-Title", pplib::ID3Tag::ENC_UTF8);
+    EXPECT_EQ(pplib::String("UTF8-Title"), tag.getTitle());
+
+    tag.setTextFrame("TIT2", "ISO-Title", pplib::ID3Tag::ENC_ISO88591);
+    EXPECT_EQ(pplib::String("ISO-Title"), tag.getTitle());
+
+    tag.setTextFrame("TIT2", "ASCII-Title", pplib::ID3Tag::ENC_USASCII);
+    EXPECT_EQ(pplib::String("ASCII-Title"), tag.getTitle());
+
+    tag.setTextFrame("TIT2", "UTF16-Title", pplib::ID3Tag::ENC_UTF16);
+    EXPECT_EQ(pplib::String("UTF16-Title"), tag.getTitle());
+
+    pplib::ID3Frame rawFrame("TIT2");
+    rawFrame.setData("RawFallbackText", 15);
+    pplib::String decoded;
+    pplib::ID3Tag::decode(&rawFrame, 0, 35, decoded, "UTF-8");
+    EXPECT_EQ(pplib::String("RawFallbackText"), decoded);
+}
+
+TEST_F(ID3TagTest, GetGenreVariations)
+{
+    pplib::ID3Tag tag;
+    tag.setTextFrame("TCON", "(17)");
+    EXPECT_EQ(pplib::GetID3GenreName(17), tag.getGenre());
+
+    tag.setTextFrame("TCON", "17");
+    EXPECT_EQ(pplib::GetID3GenreName(17), tag.getGenre());
+
+    tag.setTextFrame("TCON", "SynthPop");
+    EXPECT_EQ(pplib::String("SynthPop"), tag.getGenre());
+}
+
+TEST_F(ID3TagTest, GetYearDateVariations)
+{
+    pplib::ID3Tag tag;
+    tag.setTextFrame("TDRC", "2026/08/15");
+    EXPECT_EQ(pplib::String("2026"), tag.getYear());
+
+    tag.setTextFrame("TDRC", "2026T14:30:00");
+    EXPECT_EQ(pplib::String("2026"), tag.getYear());
+}
+
+TEST_F(ID3TagTest, PrivateDataAndPictures)
+{
+    pplib::ID3Tag tag;
+    pplib::ByteArray privData;
+    privData.copy("priv_data", 9);
+    pplib::ByteArray frameContent;
+    frameContent.copy("MyIdentifier", 12);
+    char nullByte = 0;
+    frameContent.append(&nullByte, 1);
+    frameContent.append(privData);
+
+    pplib::ID3Frame privFrame("PRIV", 0, frameContent);
+    tag.addFrame(privFrame);
+
+    pplib::ByteArray loadedPriv;
+    EXPECT_TRUE(tag.getPrivateData(loadedPriv, "MyIdentifier"));
+    EXPECT_EQ(privData, loadedPriv);
+    EXPECT_FALSE(tag.getPrivateData(loadedPriv, "WrongId"));
+
+    pplib::ByteArray cover1, cover2;
+    cover1.copy("Cover1Data", 10);
+    cover2.copy("Cover2DataNew", 13);
+    tag.setPicture(3, cover1, "image/jpeg");
+    EXPECT_EQ((size_t)10, tag.getPicture(3).size());
+
+    tag.setPicture(3, cover2, "image/png");
+    EXPECT_EQ((size_t)13, tag.getPicture(3).size());
+    EXPECT_EQ(cover2, tag.getPicture(3));
+}
+
+TEST_F(ID3TagTest, PopularimeterEdgeCases)
+{
+    pplib::ID3Tag tag;
+    EXPECT_FALSE(tag.hasPopularimeter());
+    EXPECT_FALSE(tag.hasPopularimeter("test@example.com"));
+    EXPECT_EQ(0, tag.getPopularimeter());
+    EXPECT_EQ(0, tag.getPopularimeter("test@example.com"));
+
+    tag.setPopularimeter("user1@example.com", 100);
+    tag.setPopularimeter("user2@example.com", 200);
+    EXPECT_TRUE(tag.hasPopularimeter("user1@example.com"));
+    EXPECT_EQ(100, tag.getPopularimeter("user1@example.com"));
+
+    // Update existing email
+    tag.setPopularimeter("user1@example.com", 150);
+    EXPECT_EQ(150, tag.getPopularimeter("user1@example.com"));
+
+    // Add a non-POPM frame to test non-POPM skip in removePopularimeter
+    tag.setTitle("PopularimeterTest");
+    tag.removePopularimeter();
+    EXPECT_FALSE(tag.hasPopularimeter());
+    EXPECT_EQ((size_t)1, tag.frameCount());
+    EXPECT_EQ(pplib::String("PopularimeterTest"), tag.getTitle());
+}
+
+TEST_F(ID3TagTest, GenerateId3v1EdgeCases)
+{
+    pplib::ID3Tag tag;
+    pplib::ByteArray v1, v2;
+    tag.generateId3V1Tag(v1);
+    tag.generateId3V2Tag(v2);
+    EXPECT_TRUE(v1.isEmpty());
+    EXPECT_TRUE(v2.isEmpty());
+
+    tag.setTextFrame("TIT2", "UTF8Title", pplib::ID3Tag::ENC_UTF8);
+    tag.setComment("StandardComment");
+    tag.setTextFrame("TCON", "Rock");
+
+    tag.generateId3V1Tag(v1);
+    EXPECT_FALSE(v1.isEmpty());
+    EXPECT_EQ(0, memcmp((const char*)v1.ptr() + 3, "UTF8Title", 9));
+    EXPECT_EQ(0, memcmp((const char*)v1.ptr() + 97, "StandardComment", 15));
+    EXPECT_EQ((unsigned char)255, ((const unsigned char*)v1.ptr())[127]);
+
+    // Frame with encoding 2 (UTF-16BE) returns empty string for v1
+    pplib::ID3Tag tagEnc2;
+    pplib::ID3Frame frameEnc2("TIT2");
+    char enc2Data[] = {2, 0, 'X'};
+    frameEnc2.setData(enc2Data, sizeof(enc2Data));
+    tagEnc2.addFrame(frameEnc2);
+    pplib::ByteArray v1Enc2;
+    tagEnc2.generateId3V1Tag(v1Enc2);
+    EXPECT_EQ(0, ((const char*)v1Enc2.ptr())[3]);
+}
+
+TEST_F(ID3TagTest, WaveSaveTagTooSmallForExistingChunk)
+{
+    pplib::File::copy("testdata/audio/test_44kHz.wav", "tmp/test_wave_large_chunk.wav");
+    pplib::ID3Tag tagLarge;
+    tagLarge.load("tmp/test_wave_large_chunk.wav");
+    tagLarge.setPaddingSize(10000);
+    tagLarge.setTitle("LargePaddingTitle");
+    tagLarge.save();
+
+    pplib::ID3Tag tagShrink;
+    tagShrink.load("tmp/test_wave_large_chunk.wav");
+    tagShrink.setPaddingSize(512);
+    tagShrink.setTitle("Shrunk");
+    tagShrink.save();
+
+    pplib::ID3Tag tagVerify;
+    tagVerify.load("tmp/test_wave_large_chunk.wav");
+    EXPECT_EQ(pplib::String("Shrunk"), tagVerify.getTitle());
+
+    // Test growing the tag larger than existing chunk (chunkSize < tagV2.size() -> break)
+    tagShrink.setPaddingSize(5000);
+    tagShrink.setTitle("EnlargedTag");
+    tagShrink.save();
+
+    pplib::ID3Tag tagVerify2;
+    tagVerify2.load("tmp/test_wave_large_chunk.wav");
+    EXPECT_EQ(pplib::String("EnlargedTag"), tagVerify2.getTitle());
+}
+
+TEST_F(ID3TagTest, Mp3TruncateV1TagOnRemoval)
+{
+    pplib::File::copy("testdata/audio/test_192cbr_tagged.mp3", "tmp/test_trunc_v1.mp3");
+    pplib::ID3Tag tag;
+    tag.load("tmp/test_trunc_v1.mp3");
+    tag.clearTags();
+    tag.save();
+
+    pplib::ID3Tag reloaded;
+    reloaded.load("tmp/test_trunc_v1.mp3");
+    EXPECT_EQ((size_t)0, reloaded.frameCount());
+}
+
+TEST_F(ID3TagTest, OddChunkPaddingAiffAndWave)
+{
+    unsigned char aiffHeader[] = {'F', 'O', 'R', 'M', 0, 0, 0, 17, 'A', 'I', 'F', 'F'};
+    unsigned char aiffChunk[] = {'N', 'O', 'P', 'E', 0, 0, 0, 5, 'H', 'e', 'l', 'l', 'o'};
+    pplib::ByteArray aiffData;
+    aiffData.copy(aiffHeader, sizeof(aiffHeader));
+    aiffData.append(aiffChunk, sizeof(aiffChunk));
+    pplib::File::save(aiffData.ptr(), aiffData.size(), "tmp/odd_chunk.aiff");
+
+    pplib::ID3Tag tagAiff;
+    ASSERT_NO_THROW({ tagAiff.load("tmp/odd_chunk.aiff"); });
+    tagAiff.setTitle("OddAiff");
+    ASSERT_NO_THROW({ tagAiff.save(); });
+
+    pplib::ID3Tag reloadedAiff;
+    ASSERT_NO_THROW({ reloadedAiff.load("tmp/odd_chunk.aiff"); });
+    EXPECT_EQ(pplib::String("OddAiff"), reloadedAiff.getTitle());
+
+    unsigned char waveHeader[] = {'R', 'I', 'F', 'F', 17, 0, 0, 0, 'W', 'A', 'V', 'E'};
+    unsigned char waveChunk[] = {'n', 'o', 'p', 'e', 5, 0, 0, 0, 'H', 'e', 'l', 'l', 'o'};
+    pplib::ByteArray waveData;
+    waveData.copy(waveHeader, sizeof(waveHeader));
+    waveData.append(waveChunk, sizeof(waveChunk));
+    pplib::File::save(waveData.ptr(), waveData.size(), "tmp/odd_chunk.wav");
+
+    pplib::ID3Tag tagWave;
+    ASSERT_NO_THROW({ tagWave.load("tmp/odd_chunk.wav"); });
+    tagWave.setTitle("OddWave");
+    ASSERT_NO_THROW({ tagWave.save(); });
+
+    pplib::ID3Tag reloadedWave;
+    ASSERT_NO_THROW({ reloadedWave.load("tmp/odd_chunk.wav"); });
+    EXPECT_EQ(pplib::String("OddWave"), reloadedWave.getTitle());
+}
+
+TEST_F(ID3TagTest, ZeroFrameSizeAndEmptyFrames)
+{
+    unsigned char tagData[] = {'I', 'D', '3', 4, 0, 0, 0, 0, 0, 10, 'T', 'I', 'T', '2', 0, 0, 0, 0, 0, 0};
+    pplib::ByteArray mp3;
+    pplib::File::load(mp3, "testdata/audio/test_192cbr.mp3");
+    mp3.prepend(tagData, sizeof(tagData));
+    pplib::File::save(mp3.ptr(), mp3.size(), "tmp/test_zero_framesize.mp3");
+
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW({ tag.load("tmp/test_zero_framesize.mp3"); });
+    EXPECT_EQ((size_t)0, tag.frameCount());
+
+    pplib::ID3Tag tagInvalid;
+    tagInvalid.addFrame(pplib::ID3Frame(""));
+    pplib::ByteArray v2;
+    tagInvalid.generateId3V2Tag(v2);
+    EXPECT_TRUE(v2.isEmpty());
+
+    EXPECT_EQ(nullptr, tagInvalid.findUserDefinedText("NonExistent"));
+}
+
+TEST_F(ID3TagTest, SaveMP3ErrorHandling)
+{
+    pplib::File::copy("testdata/audio/test_192cbr.mp3", "tmp/corrupt_on_save.mp3");
+    pplib::ID3Tag tag;
+    tag.load("tmp/corrupt_on_save.mp3");
+
+    pplib::ByteArray dummy;
+    dummy.calloc(2048);
+    pplib::File::save(dummy.ptr(), dummy.size(), "tmp/corrupt_on_save.mp3");
+
+    EXPECT_THROW(tag.save(), pplib::UnsupportedAudioFormatException);
+
+    pplib::ID3Tag tagUnknown;
+    tagUnknown.tryLoad("tmp/corrupt_on_save.mp3");
+    EXPECT_THROW(tagUnknown.save(), pplib::UnsupportedAudioFormatException);
 }
 
 /*
