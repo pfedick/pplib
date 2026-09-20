@@ -37,6 +37,7 @@
 #include "config_pplib.h"
 
 #include <mutex>
+#include <bit>
 #include <cerrno>
 
 #ifdef HAVE_ICONV

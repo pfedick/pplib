@@ -69,8 +69,8 @@ public:
 
     Iconv(const Iconv& other) = delete;
     Iconv& operator=(const Iconv& other) = delete;
-    Iconv(Iconv&& other);
-    Iconv& operator=(Iconv&& other);
+    Iconv(Iconv&& other) noexcept;
+    Iconv& operator=(Iconv&& other) noexcept;
     /** @brief Destruktor
      *
      * Schließt die Iconv-Konvertierungssitzung und gibt alle Ressourcen frei.
