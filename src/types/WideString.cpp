@@ -39,13 +39,8 @@
 #include <pplib/types/array.h>
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
-#include <pplib/core/iconv.h>
 
 #include "config_pplib.h"
-
-#ifdef HAVE_ICONV
-#include <iconv.h>
-#endif
 
 namespace pplib
 {
