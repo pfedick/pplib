@@ -36,6 +36,9 @@
 #include <pplib/exceptions.h>
 #include "config_pplib.h"
 
+#include <mutex>
+#include <cerrno>
+
 #ifdef HAVE_ICONV
 #include <iconv.h>
 #endif
@@ -45,26 +48,39 @@
 #include <langinfo.h>
 #endif
 
-#ifndef ICONV_UNICODE
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-#define ICONV_UNICODE (sizeof(wchar_t) == 2 ? "UTF-16BE" : "UTF-32BE")
-#else
-#define ICONV_UNICODE (sizeof(wchar_t) == 2 ? "UTF-16LE" : "UTF-32LE")
-#endif
-#endif
-
 namespace pplib
 {
 
 Iconv::Iconv()
 {
-    iconv_handle = NULL;
+    iconv_handle = nullptr;
 }
 
-Iconv::Iconv(const String& fromCode, const String& toCode)
+Iconv::Iconv(Iconv&& other)
 {
-    iconv_handle = NULL;
-    init(fromCode, toCode);
+    iconv_handle = other.iconv_handle;
+    other.iconv_handle = nullptr;
+}
+
+Iconv& Iconv::operator=(Iconv&& other)
+{
+    if (this == &other) {
+        return *this;
+    }
+    if (iconv_handle) {
+#ifdef HAVE_ICONV
+        iconv_close(static_cast<iconv_t>(iconv_handle));
+#endif
+    }
+    iconv_handle = other.iconv_handle;
+    other.iconv_handle = nullptr;
+    return *this;
+}
+
+Iconv::Iconv(const String& fromEncoding, const String& toEncoding)
+{
+    iconv_handle = nullptr;
+    init(fromEncoding, toEncoding);
 }
 
 Iconv::~Iconv()
@@ -83,11 +99,11 @@ void Iconv::init(const String& fromEncoding, const String& toEncoding)
 #else
     if (iconv_handle) {
         iconv_close((iconv_t)iconv_handle);
-        iconv_handle = NULL;
+        iconv_handle = nullptr;
     }
     iconv_handle = iconv_open((const char*)toEncoding, (const char*)fromEncoding);
     if ((iconv_t)(-1) == (iconv_t)iconv_handle) {
-        iconv_handle = NULL;
+        iconv_handle = nullptr;
         throw UnsupportedCharacterEncodingException();
     }
 
@@ -100,22 +116,86 @@ void Iconv::transcode(const ByteArrayPtr& from, ByteArray& to)
     throw UnsupportedFeatureException("Iconv");
 #else
     if (!iconv_handle) throw CharacterEncodingNotInitializedException();
-    size_t inbytes = from.size();
-    size_t outbytes = inbytes * 4 + 10;
-    ByteArray ba;
-    char* buffer = (char*)ba.malloc(outbytes);
-    char* outbuf = buffer;
-    const char* inbuffer = (const char*)from.ptr();
-    char* ret = outbuf;
-    size_t res = iconv((iconv_t)iconv_handle, (char**)(void*)&inbuffer, &inbytes, (char**)&outbuf, &outbytes);
-    if (res == (size_t)(-1)) {
-        String e = inbuffer;
-        e.cut(64);
-        e.append("...");
-        throw CharacterEncodingException("Problematische Stelle: Byte %i, Text: %s", (int)(outbuf - ret), (const char*)e);
+
+    // Reset des Shift-States vorab für einen definierten Ausgangszustand
+    auto cd = static_cast<iconv_t>(iconv_handle);
+    iconv(cd, nullptr, nullptr, nullptr, nullptr);
+
+    if (from.isEmpty()) {
+        to.clear();
+        return;
     }
-    size_t size_target = outbuf - ret;
-    to.copy(ret, size_target);
+
+    // Aliasing-Schutz: falls &to dasselbe Objekt ist wie die Quelle
+    ByteArray temp_out;
+    ByteArray& target = (&to == reinterpret_cast<const ByteArray*>(&from)) ? temp_out : to;
+
+    size_t inbytes = from.size();
+    const char* inbuffer = static_cast<const char*>(from.ptr());
+
+    // Initiale Puffergröße (z. B. 4x Eingabe + Puffer für State-Resets)
+    size_t capacity = std::max(inbytes * 4, static_cast<size_t>(64));
+    target.malloc(capacity);
+    size_t written = 0;
+
+    // 1. Eingabedaten schrittweise konvertieren
+    while (inbytes > 0) {
+        char* outbuf = static_cast<char*>(target.ptr()) + written;
+        size_t outbytes = capacity - written;
+
+        size_t res = iconv(cd, const_cast<char**>(&inbuffer), &inbytes, &outbuf, &outbytes);
+        written = capacity - outbytes;
+
+        if (res == static_cast<size_t>(-1)) {
+            if (errno == E2BIG) {
+                // Zielpuffer zu klein -> verdoppeln
+                capacity = capacity * 2 + 32;
+                target.realloc(capacity);
+                continue;
+            }
+
+            // Fehlerfall: Offset und Hex-Vorschau
+            size_t error_offset = from.size() - inbytes;
+            size_t snippet_len = std::min(inbytes, static_cast<size_t>(16));
+            String hex;
+            for (size_t i = 0; i < snippet_len; ++i) {
+                hex.appendf("%02X ", static_cast<unsigned char>(inbuffer[i]));
+            }
+
+            if (errno == EINVAL) {
+                throw CharacterEncodingException("Incomplete multibyte sequence at input offset %zu (remaining bytes: %zu, Hex: %s)",
+                                                 error_offset, inbytes, hex.c_str());
+            }
+            throw CharacterEncodingException("Invalid byte sequence at input offset %zu (remaining bytes: %zu, Hex: %s)", error_offset,
+                                             inbytes, hex.c_str());
+        }
+    }
+
+    // 2. Shift-State spülen (inbuf == nullptr)
+    while (true) {
+        char* outbuf = static_cast<char*>(target.ptr()) + written;
+        size_t outbytes = capacity - written;
+
+        size_t res = iconv(cd, nullptr, nullptr, &outbuf, &outbytes);
+        written = capacity - outbytes;
+
+        if (res == static_cast<size_t>(-1)) {
+            if (errno == E2BIG) {
+                capacity += 32;
+                target.realloc(capacity);
+                continue;
+            }
+            throw CharacterEncodingException("Error when resetting shift state");
+        }
+        break;
+    }
+
+    // Auf die tatsächlich geschriebene Größe anpassen
+    target.truncate(written);
+
+    if (&to != &target) {
+        to = std::move(temp_out);
+    }
 #endif
 }
 
@@ -132,7 +212,6 @@ void Iconv::transcode(const String& from, String& to)
     ByteArray result;
     transcode(ff, result);
     to.set((const char*)result.ptr(), result.size());
-    // to.hexDump();
 }
 
 String Iconv::transcode(const String& from)
@@ -143,7 +222,7 @@ String Iconv::transcode(const String& from)
     return String((const char*)result.ptr(), result.size());
 }
 
-const char* iconv_charsets =
+static const char* iconv_charsets =
     "437,500,500V1,850,851,852,855,856,857,860,861,862,863,864,865,866,866NAV,869,874,904,1026,1046,1047,8859_1,8859_2,"
     "8859_3,8859_4,8859_5,8859_6,8859_7,8859_8,8859_9,10646-1:1993,10646-1:1993UCS4,ANSI_X3.4-1968,ANSI_X3.4-1986,ANSI_X3.4,"
     "ANSI_X3.110-1983,ANSI_X3.110,ARABIC,ARABIC7,ARMSCII-8,ASCII,ASMO-708,ASMO_449,BALTIC,BIG-5,BIG-FIVE,BIG5-HKSCS,BIG5,"
@@ -245,18 +324,15 @@ const char* iconv_charsets =
     "WINBALTRIM,WINDOWS-31J,WINDOWS-874,WINDOWS-936,WINDOWS-1250,WINDOWS-1251,WINDOWS-1252,WINDOWS-1253,WINDOWS-1254,"
     "WINDOWS-1255,WINDOWS-1256,WINDOWS-1257,WINDOWS-1258,WINSAMI2,WS2,YU";
 
-#ifdef iconvlist
+#ifdef HAVE_ICONVLIST
 static int iconv_enumerate_do_one(unsigned int namescount, const char* const* names, void* data)
 {
     Array* a = (Array*)data;
     if (!a) return 0;
     if (namescount) {
-        // printf ("namescount=%u: ",namescount);
         for (unsigned int i = 0; i < namescount; i++) {
-            // printf ("%s, ",names[i]);
             a->add(names[i]);
         }
-        // printf ("\n");
     }
     return 0;
 }
@@ -266,50 +342,30 @@ static int iconv_enumerate_do_one_std_list(unsigned int namescount, const char* 
     std::list<pplib::String>* a = (std::list<pplib::String>*)data;
     if (!a) return 0;
     if (namescount) {
-        // printf ("namescount=%u: ",namescount);
         for (unsigned int i = 0; i < namescount; i++) {
-            // printf ("%s, ",names[i]);
             a->push_back(names[i]);
         }
-        // printf ("\n");
     }
     return 0;
 }
 
 #endif
 
-/*!\brief Auflisten aller unterstützten Charsets
- *
- * Mit dieser Funktion werden die Namen aller unterstützten Charsets in allen bekannten Variationen
- * zur Weiterverarbeitung in das Array \p list kopiert.
- *
- * @param[out] list Ein CArray-Objekt, in dem die Namen der Charsets abgelegt werden sollen.
- * Die Liste wird zu beginn geleert, eventuell noch vorhandene Einträge gehen somit verloren.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
- */
-void Iconv::enumerateCharsets(Array& list)
-{
-#ifndef HAVE_ICONV
-    throw UnsupportedFeatureException("Iconv");
-#else
-    list.clear();
-#ifdef iconvlist
-    iconvlist(iconv_enumerate_do_one, &list);
-#else
-    // Wir nehmen die interne Liste und überprüfen, was Iconv davon kennt
+static std::list<pplib::String> fallback_list;
+static std::once_flag g_charsets_init_flag;
 
+static void fill_fallback_list()
+{
     Array a;
     a.explode(iconv_charsets, ",");
     size_t count = a.size();
     for (size_t i = 0; i < count; i++) {
         iconv_t cd = iconv_open("UTF-8", (const char*)a[i]);
         if ((iconv_t)(-1) != cd) {
-            list.add(a[i]);
+            fallback_list.push_back(a[i]);
             iconv_close(cd);
         }
     }
-#endif
-#endif
 }
 
 void Iconv::enumerateCharsets(std::list<pplib::String>& list)
@@ -318,20 +374,31 @@ void Iconv::enumerateCharsets(std::list<pplib::String>& list)
     throw UnsupportedFeatureException("Iconv");
 #else
     list.clear();
-#ifdef iconvlist
+#ifdef HAVE_ICONVLIST
     iconvlist(iconv_enumerate_do_one_std_list, &list);
 #else
     // Wir nehmen die interne Liste und überprüfen, was Iconv davon kennt
+    std::call_once(g_charsets_init_flag, &fill_fallback_list);
+    for (const auto& cs : fallback_list) {
+        list.push_back(cs);
+    }
+#endif
+#endif
+}
 
-    Array a;
-    a.explode(iconv_charsets, ",");
-    size_t count = a.size();
-    for (size_t i = 0; i < count; i++) {
-        iconv_t cd = iconv_open("UTF-8", (const char*)a[i]);
-        if ((iconv_t)(-1) != cd) {
-            list.push_back(a[i]);
-            iconv_close(cd);
-        }
+void Iconv::enumerateCharsets(Array& list)
+{
+#ifndef HAVE_ICONV
+    throw UnsupportedFeatureException("Iconv");
+#else
+    list.clear();
+#ifdef HAVE_ICONVLIST
+    iconvlist(iconv_enumerate_do_one, &list);
+#else
+    // Wir nehmen die interne Liste und überprüfen, was Iconv davon kennt
+    std::call_once(g_charsets_init_flag, &fill_fallback_list);
+    for (const auto& cs : fallback_list) {
+        list.add(cs);
     }
 #endif
 #endif
@@ -352,22 +419,7 @@ String Iconv::getLocalCharset()
     }
     return String("US-ASCII");
 #else
-    const char* locale = setlocale(LC_CTYPE, NULL);
-    if (!locale) {
-        throw CharacterEncodingException();
-    }
-    String loc(locale);
-    loc.upperCase();
-    if (loc == "C" || loc == "POSIX") return String("US-ASCII");
-
-    ssize_t p = loc.instr(".");
-    if (p >= 0) {
-        String tmp = loc.mid(p + 1);
-        if (tmp == "UTF8" || tmp == "UTF-8") return String("UTF-8");
-        if (tmp.isNumeric()) return "CP" + tmp;
-        return tmp;
-    }
-    return loc;
+    throw UnsupportedFeatureException("Iconv::getLocalCharset");
 #endif
 }
 
@@ -383,9 +435,18 @@ String Iconv::localToUtf8(const String& text)
     return iconv.transcode(text);
 }
 
+constexpr const char* getIconvUnicode() noexcept
+{
+    if constexpr (std::endian::native == std::endian::big) {
+        return sizeof(wchar_t) == 2 ? "UTF-16BE" : "UTF-32BE";
+    } else {
+        return sizeof(wchar_t) == 2 ? "UTF-16LE" : "UTF-32LE";
+    }
+}
+
 String Iconv::fromWideString(const WideString& from, const String& toEncoding)
 {
-    Iconv iconv(ICONV_UNICODE, toEncoding);
+    Iconv iconv(getIconvUnicode(), toEncoding);
     ByteArray buffer;
     iconv.transcode(ByteArrayPtr(from.getPtr(), from.size() * sizeof(wchar_t)), buffer);
     return String((const char*)buffer.ptr(), buffer.size());
@@ -393,7 +454,7 @@ String Iconv::fromWideString(const WideString& from, const String& toEncoding)
 
 WideString Iconv::toWideString(const String& from, const String& fromEncoding)
 {
-    Iconv iconv(fromEncoding, ICONV_UNICODE);
+    Iconv iconv(fromEncoding, getIconvUnicode());
     ByteArray buffer;
     iconv.transcode(ByteArrayPtr(from.getPtr(), from.size()), buffer);
     return WideString((const wchar_t*)buffer.ptr(), buffer.size() / sizeof(wchar_t));

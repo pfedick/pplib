@@ -36,7 +36,7 @@
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
 #include <pplib/core/iconv.h>
-
+#include <algorithm>
 #include "pplib-tests.h"
 
 namespace
@@ -79,19 +79,23 @@ TEST_F(IconvTest, enumerateCharsets)
     ASSERT_TRUE(list.has("UTF-32"));
 }
 
+static bool list_has(const std::list<pplib::String>& list, const pplib::String& value)
+{
+    return std::find(list.begin(), list.end(), value) != list.end();
+}
+
 TEST_F(IconvTest, enumerateCharsetsStdList)
 {
     std::list<pplib::String> list;
     pplib::Iconv::enumerateCharsets(list);
     ASSERT_GT(list.size(), (size_t)10);
     // list.list();
-    /* TODO
-    ASSERT_TRUE(list.has("US-ASCII"));
-    ASSERT_TRUE(list.has("UTF-8"));
-    ASSERT_TRUE(list.has("LATIN1"));
-    ASSERT_TRUE(list.has("UTF-16"));
-    ASSERT_TRUE(list.has("UTF-32"));
-    */
+
+    ASSERT_TRUE(list_has(list, "US-ASCII"));
+    ASSERT_TRUE(list_has(list, "UTF-8"));
+    ASSERT_TRUE(list_has(list, "LATIN1"));
+    ASSERT_TRUE(list_has(list, "UTF-16"));
+    ASSERT_TRUE(list_has(list, "UTF-32"));
 }
 
 TEST_F(IconvTest, getLocalCharset)
@@ -226,7 +230,7 @@ TEST_F(IconvTest, transcodeUtf8_to_ISO88591)
 
     pplib::String source("Hällo Wörld");
     pplib::ByteArray target = pplib::Iconv::transcode("Hällo Wörld", "UTF-8", "ISO-8859-1");
-    ASSERT_EQ((size_t)11, target.size()); // "Hällo Wörld" in ISO-8859-1 should be 12 bytes
+    ASSERT_EQ((size_t)11, target.size()); // "Hällo Wörld" in ISO-8859-1 should be 11 bytes
     ASSERT_EQ('H', (unsigned char)target.get(0));
     ASSERT_EQ(228, (unsigned char)target.get(1)); // ä
     ASSERT_EQ('l', (unsigned char)target.get(2));

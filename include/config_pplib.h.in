@@ -107,6 +107,7 @@
 /*
  * Iconv
  */
+#cmakedefine HAVE_ICONVLIST 1
 #cmakedefine HAVE_LOCALCHARSET_H 1
 #cmakedefine HAVE_LANGINFO_H 1
 #cmakedefine HAVE_NL_LANGINFO 1

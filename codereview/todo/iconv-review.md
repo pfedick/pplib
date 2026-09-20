@@ -38,12 +38,16 @@ Verwendung geprüft in `tests/src/core/iconv.cpp`, `src/core/StringFunctions.cpp
   }
   ```
 
+  ==> FIXED
+
 - [ ] **Irreführende Fehlerposition: Ausgabe-Offset statt Quell-Offset gemeldet** (`Iconv.cpp:111`)
   In der Exception-Meldung steht:
   ```cpp
   throw CharacterEncodingException("Problematische Stelle: Byte %i, Text: %s", (int)(outbuf - ret), (const char*)e);
   ```
   `(int)(outbuf - ret)` ist die Anzahl der bisher in den **Zielpuffer** geschriebenen Bytes, **nicht** die Position im Eingabedatenstrom! Für den Aufrufer ist das völlig irreführend, da die defekte Zeichenfolge im Quelltext gesucht werden muss. Die fehlerhafte Position im Quellpuffer ist `from.size() - inbytes` bzw. `inbuffer - static_cast<const char*>(from.ptr())`.
+
+  ==> Mit dem Fix oben ebenfalls gefixt
 
 - [ ] **Ignorieren von `errno` und fehlende dynamische Pufferanpassung (`E2BIG`)** (`Iconv.cpp:98-111`)
   `outbytes` wird statisch auf `inbytes * 4 + 10` geschätzt. Reicht dieser Puffer nicht aus (z. B. bei zustandsbehafteten Encodings mit langen Escape-Sequenzen, UTF-7 oder zukünftigen Erweiterungen), bricht `iconv()` mit `errno == E2BIG` ab.
@@ -72,6 +76,8 @@ Verwendung geprüft in `tests/src/core/iconv.cpp`, `src/core/StringFunctions.cpp
   }
   ```
 
+  ==> FIXED
+
 - [ ] **Fehlender Reset des Shift-States bei zustandsbehafteten Encodings** (`Iconv.cpp:92-116`)
   Zustandsbehaftete Zeichensätze (z. B. `ISO-2022-JP`, `HZ`) schalten per Escape-Sequenz zwischen Zeichensätzen um. Laut POSIX muss nach Abschluss der Eingabedaten ein Aufruf von `iconv` mit `inbuf == NULL` erfolgen, um den Deskriptor in den Ausgangszustand zurückzusetzen und eventuell benötigte Shift-Sequenzen in den Zielpuffer zu spülen (z. B. Rückkehr zu ASCII):
   ```c
@@ -81,12 +87,16 @@ Verwendung geprüft in `tests/src/core/iconv.cpp`, `src/core/StringFunctions.cpp
   1. Ist die Ausgabe bei zustandsbehafteten Encodings unvollständig / ungültig, weil die abschließende Reset-Sequenz fehlt.
   2. Verbleibt der `iconv_t`-Deskriptor in einem modifizierten Shift-Zustand, wodurch nachfolgende `transcode`-Aufrufe auf derselben `Iconv`-Instanz korrumpierte Daten produzieren.
 
+  ==> FIXED
+
 - [ ] **Globales Symbol `iconv_charsets` hat externe Linkage (ODR-Risiko / Namespace-Verschmutzung)** (`Iconv.cpp:142`)
   ```cpp
   const char* iconv_charsets = "437,500,500V1,...";
   ```
   In C++ hat ein Zeiger auf `const char` (`const char*`) standardmäßig **externe Linkage**, da der Zeiger selbst nicht `const` ist! Dadurch wird `iconv_charsets` als globales Symbol in die Bibliothek exportiert.
   **Fix:** Entweder `static const char* const iconv_charsets = ...;`, `constexpr const char* iconv_charsets = ...;` oder in einen anonymen Namespace verschieben.
+
+  ==> FIXED, ist jetzt static
 
 ---
 
@@ -125,6 +135,8 @@ Verwendung geprüft in `tests/src/core/iconv.cpp`, `src/core/StringFunctions.cpp
   }
   ```
 
+  ==> FIXED
+
 - [ ] **Header ist nicht 'self-contained' (fehlende Includes für Typen)** (`iconv.h:34-36`)
   `iconv.h` gibt `ByteArray` per Value zurück (`ByteArray transcode(...)`), bindet aber weder `bytearray.h`, `bytearrayptr.h` noch `array.h` ein. Die Typen sind in `string.h` lediglich vorwärtsdeklariert.
   Wenn eine externe `.cpp`-Datei ausschließlich `#include <pplib/core/iconv.h>` inkludiert und `transcode()` aufruft, schlägt die Übersetzung fehl ("return type has incomplete type").
@@ -134,6 +146,8 @@ Verwendung geprüft in `tests/src/core/iconv.cpp`, `src/core/StringFunctions.cpp
   #include <pplib/types/bytearrayptr.h>
   #include <pplib/types/array.h>
   ```
+
+  ==> FIXED
 
 - [ ] **Doppelte Allokation und unnötige Kopie in `transcode(const ByteArrayPtr&, ByteArray&)`** (`Iconv.cpp:102-114`)
   ```cpp
@@ -147,6 +161,8 @@ Verwendung geprüft in `tests/src/core/iconv.cpp`, `src/core/StringFunctions.cpp
   **Fix:** Direkt in `to` allokieren (`to.malloc(outbytes)`), hineinschreiben und anschließend auf die tatsächliche Zielgröße kürzen (`to.truncate(size_target)`).
   *(Hinweis: Bei möglichem Aliasing `&to == &from` vorher prüfen).*
 
+  ==> FIXED
+
 - [ ] **Extrem ineffizienter Fallback in `enumerateCharsets` bei glibc/Linux (400+ `iconv_open`-Aufrufe pro Aufruf)** (`Iconv.cpp:241-251, 269-279`)
   Unter glibc (Standard auf Linux) ist `iconvlist` nicht vorhanden (GNU libiconv-Spezifikum). Der `#else`-Zweig wird daher auf jedem Standard-Linux ausgeführt: Bei **jedem** Methodenaufruf wird der 2 KB lange String `iconv_charsets` geparst und über 400 Mal `iconv_open("UTF-8", ...)` und `iconv_close(...)` aufgerufen!
   Zudem enthalten `enumerateCharsets(Array&)` und `enumerateCharsets(std::list<pplib::String>&)` 100% redundanten Code.
@@ -154,13 +170,19 @@ Verwendung geprüft in `tests/src/core/iconv.cpp`, `src/core/StringFunctions.cpp
   1. Das Ergebnis der Enumeration einmalig ermitteln und statisch cachen (Thread-sicher per `std::call_once`).
   2. Den Algorithmus vereinheitlichen (Template oder interne Hilfsfunktion).
 
+  ==> FIXED
+
 - [ ] **`getLocalCharset()`: Parsing-Schwachstellen und Widerspruch zur Dokumentation** (`Iconv.cpp:283-316`, `iconv.h:145-148`)
   - Die Dokumentation verspricht: *"Unter Windows wird dadurch zum Beispiel anstelle von '.28591' 'ISO-8859-1' zurückgegeben."* Im Code (`#else`-Zweig von `getLocalCharset()`) existiert jedoch keinerlei Mapping-Tabelle. Es wird schlicht `"CP" + tmp` erzeugt (also `"CP28591"`).
   - Wenn `setlocale` einen Locale-String mit Modifier zurückgibt (z. B. `de_DE.UTF-8@euro`), extrahiert `loc.mid(p + 1)` den String `"UTF-8@EURO"`. Der Vergleich auf `"UTF-8"` schlägt fehl, `isNumeric()` ist false, und es wird das ungültige Charset `"UTF-8@EURO"` zurückgegeben.
   - Wenn der Locale-String keinen Punkt enthält (z. B. `"German_Germany"` auf manchen Windows-Konfigurationen), wird `"GERMAN_GERMANY"` als Charset zurückgeliefert.
 
+  ==> Ausnahmebehandlung entfernt, wir werfen eine Exception, wenn Iconv keine passende Methode bereitstellt. Doku angepasst.
+
 - [ ] **Keine Abfrage des Initialisierungsstatus oder der konfigurierten Encodings** (`iconv.h:46-70`)
   Es gibt keine Methoden `bool isInitialized() const noexcept`, `const String& fromEncoding() const` oder `const String& toEncoding() const`. Die Namen der Encodings werden nach `init()` verworfen. Tritt ein Fehler auf, kann die Exception dem Benutzer nicht mitteilen, welche Zeichensätze konfiguriert waren.
+
+  ==> Habe ich noch nie gebraucht, wird nicht eingeführt
 
 ---
 
@@ -180,33 +202,50 @@ Verwendung geprüft in `tests/src/core/iconv.cpp`, `src/core/StringFunctions.cpp
       }
   }
   ```
+  ==> FIXED
 
 - [ ] **C-Style Casts und `NULL` statt Modern C++** (`Iconv.cpp` durchgehend)
   - Durchgängig `NULL` statt `nullptr` (`Iconv.cpp:55, 60, 77, 80, 89` usw.).
   - C-Style Casts wie `(iconv_t)iconv_handle`, `(const char*)toEncoding`, `(char**)(void*)&inbuffer`, `(char*)ba.malloc(...)`.
   - Stattdessen `nullptr`, `static_cast`, `reinterpret_cast` und `toEncoding.c_str()` verwenden.
 
+  ==> NULL durch nullptr ersetzt, die C-Style Casts stören mich nicht
+
 - [ ] **Redundante Überladung `static ByteArray transcode(const String&, ...)`** (`iconv.h:173`, `Iconv.cpp:342`)
   `ByteArrayPtr` hat einen impliziten Konstruktor `ByteArrayPtr(const String& data)`. Die Überladung für `const String& text` leitet lediglich an `ByteArrayPtr` weiter und ist überflüssig.
+
+  ==> Man soll aber explizit sehen können, dass man hier einen String verwenden kann. Daher bleibt es so
+
+
 
 - [ ] **Auskommentierter Debug-Code**
   - `Iconv.cpp:129`: `// to.hexDump();`
   - `Iconv.cpp:193, 195, 198, 207, 209, 212`: Auskommentierte `printf`-Zeilen in Enumeration-Callbacks.
+  ==> ENTFERNT
 
 - [ ] **Falsche Doxygen-Tags**
   - `Iconv.cpp:224`: `@return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.` — die Funktion gibt `void` zurück.
   - `Iconv.cpp:222`: `@param[out] list Ein CArray-Objekt...` — veralteter PPL7-Name (jetzt `Array`).
   - Parameter-Namen in `iconv.h` (`fromEncoding`, `toEncoding`) weichen von `Iconv.cpp` ab (`fromCode`, `toCode`).
 
+  ==> FIXED
 ---
 
 ## Befunde in anderen Dateien (separat)
 
 - [ ] **Tote Includes in `src/types/WideString.cpp`** (`WideString.cpp:42, 47`)
   `#include <pplib/core/iconv.h>` und `#include <iconv.h>` werden eingebunden, aber in `WideString.cpp` an keiner Stelle verwendet.
+  ==> FIXED
+
 - [ ] **Fehlende CMake-Erkennung für `iconvlist`** (`CMakeLists.txt:143-157`)
   In `CMakeLists.txt` wird `check_symbol_exists(iconvlist "iconv.h" HAVE_ICONVLIST)` nicht ausgeführt. `Iconv.cpp` prüft `#ifdef iconvlist`, was nur greift, wenn der Header der Library zufällig ein Präprozessormakro definiert (GNU libiconv), nicht aber bei regulärer Funktionsdeklaration.
+  ==> FIXED
+
 - [ ] **Auskommentierter Test mit ungültiger Methode in `tests/src/core/iconv.cpp`** (`tests/src/core/iconv.cpp:88-94`)
   In `IconvTest.enumerateCharsetsStdList` ist der Test-Body auskommentiert, da `std::list` keine `.has()`-Methode besitzt. Kann durch `std::find(list.begin(), list.end(), "UTF-8") != list.end()` aktiviert werden.
+  ==> FIXED
+
 - [ ] **Falscher Kommentar in Testfall** (`tests/src/core/iconv.cpp:218`)
   `// "Hällo Wörld" in ISO-8859-1 should be 12 bytes` während gegen 11 Bytes geprüft wird (11 ist korrekt).
+
+  ==> FIXED

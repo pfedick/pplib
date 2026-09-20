@@ -33,6 +33,9 @@
 #include <list>
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
+#include <pplib/types/bytearray.h>
+#include <pplib/types/bytearrayptr.h>
+#include <pplib/types/array.h>
 
 namespace pplib
 {
@@ -66,8 +69,8 @@ public:
 
     Iconv(const Iconv& other) = delete;
     Iconv& operator=(const Iconv& other) = delete;
-    Iconv(Iconv&& other) = delete;
-    Iconv& operator=(Iconv&& other) = delete;
+    Iconv(Iconv&& other);
+    Iconv& operator=(Iconv&& other);
     /** @brief Destruktor
      *
      * Schließt die Iconv-Konvertierungssitzung und gibt alle Ressourcen frei.
@@ -80,6 +83,15 @@ public:
      * @param[in] toEncoding Das Ziel-Encoding (z. B. "UTF-8", "ISO-8859-1")
      */
     void init(const String& fromEncoding, const String& toEncoding);
+
+    /** @brief Prüft, ob die Iconv-Konvertierungssitzung initialisiert wurde
+     *
+     * @return true, wenn die Iconv-Konvertierungssitzung initialisiert ist, sonst false
+     */
+    inline bool isInitialized() const
+    {
+        return iconv_handle != nullptr;
+    }
 
     /** @brief Konvertiert ein ByteArray von einem Encoding in ein anderes
      *
@@ -139,9 +151,11 @@ public:
 
     /** @brief Gibt das lokale Charset zurück
      *
-     * Diese Methode gibt das lokale Charset des Systems im MIME-, bzw. IANA-Standard zurück, wie er
-     * von Iconv verstanden wird. Unter Windows wird dadurch zum Beispiel anstelle von ".28591" "ISO-8859-1" zurückgegeben.
-     * @return String mit dem Namen des lokalen Charsets (z. B. "UTF-8", "ISO-8859-1")
+     * Diese Methode gibt das lokale Charset des Systems im MIME-, bzw. IANA-Standard zurück (z. B. "UTF-8", "ISO-8859-1"),
+     * wie es von der Iconv-Bibliothek oder nl_langinfo(CODESET) ermittelt wird.
+     *
+     * @return String mit dem Namen des lokalen Charsets
+     * @exception UnsupportedFeatureException Wenn die Plattform weder localcharset.h noch nl_langinfo unterstützt.
      */
     static String getLocalCharset();
 
