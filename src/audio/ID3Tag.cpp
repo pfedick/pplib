@@ -367,17 +367,17 @@ ID3Tag::~ID3Tag()
     clear();
 }
 
-void ID3Tag::setPaddingSize(int bytes)
+void ID3Tag::setPaddingSize(uint32_t bytes)
 {
     PaddingSize = bytes;
 }
 
-void ID3Tag::setPaddingSpace(int bytes)
+void ID3Tag::setPaddingSpace(uint32_t bytes)
 {
     PaddingSpace = bytes;
 }
 
-void ID3Tag::setMaxPaddingSpace(int bytes)
+void ID3Tag::setMaxPaddingSpace(uint32_t bytes)
 {
     MaxPaddingSpace = bytes;
 }
@@ -424,23 +424,23 @@ uint64_t ID3Tag::findId3Tag(FileObject& File)
         return 0;
     else if (myAudioFormat == AF_AIFF) {
         uint64_t p = 12;
-        while (p + 8 < File.size()) {
+        while (p + 8 <= File.size()) {
             const char* adr = File.map(p, 8);
-            if (!adr) break;
             uint32_t size = PeekN32(adr + 4);
             if (PeekN32(adr) == 0x49443320) return p + 8;
-            p += size + 8;
-            if (size % 2) p++;
+            uint64_t physicalSize = (uint64_t)size + 8 + (size % 2);
+            if (p + physicalSize <= p || p + physicalSize > File.size()) break;
+            p += physicalSize;
         }
     } else if (myAudioFormat == AF_WAVE) {
         uint64_t p = 12;
-        while (p + 8 < File.size()) {
+        while (p + 8 <= File.size()) {
             const char* adr = File.map(p, 8);
-            if (!adr) break;
             uint32_t size = Peek32(adr + 4);
             if (Peek32(adr) == 0x20336469) return p + 8; // "id3 " (Little Endian)
-            p += size + 8;
-            if (size % 2) p++;
+            uint64_t physicalSize = (uint64_t)size + 8 + (size % 2);
+            if (p + physicalSize <= p || p + physicalSize > File.size()) break;
+            p += physicalSize;
         }
     }
     return (uint64_t)-1;
@@ -456,24 +456,25 @@ void ID3Tag::load(const String& filename)
 
 static size_t synchronize(unsigned char* adr, size_t size)
 {
+    if (size < 2) return size;
     size_t src = 0;
     size_t tgt = 0;
-    for (src = 0; src < size - 3; src += 1) {
-        unsigned char byte = adr[src];
-        adr[tgt] = byte;
-        tgt++;
-
-        if (byte == 255) {
-            // HexDump(adr+src,10);
-            if (adr[src + 1] == 0 && (adr[src + 2] & (32 + 64 + 128)) == (32 + 64 + 128)) {
-                adr[tgt] = adr[src + 2];
-                src += 2;
-                tgt++;
-            } else if (adr[src + 1] == 0 && adr[src + 2] == 0) {
-                adr[tgt] = 0;
-                src += 2;
-                tgt++;
+    while (src < size) {
+        adr[tgt++] = adr[src];
+        if (adr[src] == 255 && src + 1 < size) {
+            if (adr[src + 1] == 0) {
+                if (src + 2 >= size) {
+                    src += 2;
+                } else if ((adr[src + 2] & (32 + 64 + 128)) == (32 + 64 + 128) || adr[src + 2] == 0) {
+                    src += 2;
+                } else {
+                    src++;
+                }
+            } else {
+                src++;
             }
+        } else {
+            src++;
         }
     }
     return tgt;
@@ -488,7 +489,7 @@ void ID3Tag::load(FileObject& file)
 
     // ID3V2 Header einlesen (10 Byte)
     uint64_t p = findId3Tag(file);
-    if (p == (uint64_t)-1) {
+    if (p == (uint64_t)-1 || p + 10 > file.size()) {
         return;
     }
     const char* adr = file.map(p, 10);
@@ -510,20 +511,16 @@ void ID3Tag::load(FileObject& file)
     Flags = Peek8(adr + 5);
     bool extendedHeader = false;
     bool unsyncFlag = false;
-    // bool experimentalFlag=false;
-    // bool footerFlag=false;
+    int footerSize = 0;
     if (Flags & 128) { // Unsynchonisation-Flag gesetzt
         unsyncFlag = true;
     }
     if (Flags & 64) { // Extended Header Flag
         extendedHeader = true;
     }
-    /*
-    if (version>3) {
-        if (Flags&32) experimentalFlag=true;	// Experimental Flag is set
-        if (Flags&16) footerFlag=true;			// Footer is present
+    if (version == 4 && (Flags & 16)) { // Footer vorhanden
+        footerSize = 10;
     }
-    */
     Size = Peek8(adr + 9);
     int s = Peek8(adr + 8);
     Size |= s << 7;
@@ -535,21 +532,27 @@ void ID3Tag::load(FileObject& file)
     // Read Tag into Memory
     pplib::ByteArray buffer;
     file.seek(p);
-    file.read(buffer, Size + 10);
+    file.read(buffer, Size + 10 + footerSize);
     p = 10;
-    int exHdrSize = 0;
-    int footerSize = 0;
     if (extendedHeader) {
+        if (p + 4 > buffer.size() - footerSize) return;
         adr = buffer.map(p, 4);
 #ifdef ID3DEBUG
         printf("Extended Header detected:\n");
         HexDump(adr, 4);
 #endif
-        exHdrSize = Peek8(adr + 3);
-        exHdrSize |= (Peek8(adr + 2)) << 7;
-        exHdrSize |= (Peek8(adr + 1)) << 14;
-        exHdrSize |= (Peek8(adr + 0)) << 21;
-        p += exHdrSize;
+        size_t exHdrSize = 0;
+        if (version == 4) {
+            exHdrSize = Peek8(adr + 3);
+            exHdrSize |= (Peek8(adr + 2)) << 7;
+            exHdrSize |= (Peek8(adr + 1)) << 14;
+            exHdrSize |= (Peek8(adr + 0)) << 21;
+            p += exHdrSize;
+        } else {
+            exHdrSize = PeekN32(adr);
+            p += 4 + exHdrSize;
+        }
+        if (p > buffer.size() - footerSize) return;
     }
 
 #ifdef ID3DEBUG
@@ -557,9 +560,8 @@ void ID3Tag::load(FileObject& file)
 #endif
 
     // Jetzt lesen wir alle Frames in den Speicher
-    while (p < buffer.size() - 10 - exHdrSize - footerSize) {
+    while (p + 10 <= buffer.size() - footerSize) {
         adr = buffer.map(p, 10);
-        if (!adr) break;
 #ifdef ID3DEBUG
         HexDump((void*)adr, 10);
 #endif
@@ -571,22 +573,23 @@ void ID3Tag::load(FileObject& file)
         if (version == 4) {
             frameSize = Peek8(adr + 7) | (Peek8(adr + 6) << 7) | (Peek8(adr + 5) << 14) | (Peek8(adr + 4) << 21);
         } else {
-            frameSize = Peek8(adr + 7) | (Peek8(adr + 6) << 8) | (Peek8(adr + 5) << 16) | (Peek8(adr + 4) << 24);
+            frameSize = PeekN32(adr + 4);
         }
         if (!frameSize) {
             break;
         }
-        adr = buffer.map(p + 10, frameSize);
-        if (adr) {
-            // HexDump(adr,Frame->Size);
-            if (unsyncFlag) {
-                size_t newSize = synchronize((unsigned char*)adr, frameSize);
-                Frame.setData(adr, newSize);
-            } else {
-                Frame.setData(adr, frameSize);
-            }
-            frames.push_back(std::move(Frame));
+        if (p + 10 + frameSize > buffer.size() - footerSize) {
+            break;
         }
+        adr = buffer.map(p + 10, frameSize);
+        bool frameUnsync = (version == 4 && (Frame.flags() & 2));
+        if (unsyncFlag || frameUnsync) {
+            size_t newSize = synchronize((unsigned char*)adr, frameSize);
+            Frame.setData(adr, newSize);
+        } else {
+            Frame.setData(adr, frameSize);
+        }
+        frames.push_back(std::move(Frame));
         p = p + 10 + frameSize;
     }
 }
@@ -674,8 +677,9 @@ ID3Frame* ID3Tag::findUserDefinedText(const String& description) const
 {
     for (const auto& frame : frames) {
         if (frame.name() == "TXXX") {
+            if (frame.size() < 2) continue;
             String c;
-            decode(&frame, +1, Peek8(frame.dataPtr()), c);
+            decode(&frame, 1, Peek8(frame.dataPtr()), c);
             if (c.strcmp(description) == 0) return const_cast<ID3Frame*>(&frame);
         }
     }
@@ -1112,18 +1116,13 @@ void ID3Tag::saveMP3()
 
 bool ID3Tag::trySaveAiffInExistingFile(FileObject& o, ByteArrayPtr& tagV2)
 {
-    uint32_t qp = 12;
-    while (qp + 8 < o.size()) {
+    uint64_t qp = 12;
+    while (qp + 8 <= o.size()) {
         const char* adr = o.map(qp, 8);
-        if (!adr) break;
         uint32_t chunkType = PeekN32(adr);
         uint32_t chunkSize = PeekN32(adr + 4);
         if (chunkType == 0x49443320) { // ID3-Chunk gefunden
-            // printf ("Found ID3-Chunk with size: %u, Tag is: %u\n",size,tagV2.Size());
-            if (chunkSize > tagV2.size()) {
-                // Wir haben genug Platz.
-                // Wenn der Slot VIEL zu groß ist (> 10% + Padding),
-                // machen wir lieber einen Rewrite, um die Datei zu verkleinern.
+            if (chunkSize >= tagV2.size()) {
                 uint32_t max_allowed = tagV2.size() + (tagV2.size() / 10) + PaddingSize;
                 if (chunkSize > max_allowed) break;
 
@@ -1138,27 +1137,27 @@ bool ID3Tag::trySaveAiffInExistingFile(FileObject& o, ByteArrayPtr& tagV2)
             }
             break;
         }
-        qp += chunkSize + 8;
-        if (chunkSize % 2) qp++; // AIFF Alignment-Byte überspringen!
+        uint64_t physicalSize = (uint64_t)chunkSize + 8 + (chunkSize % 2);
+        if (qp + physicalSize <= qp || qp + physicalSize > o.size()) break;
+        qp += physicalSize;
     }
     return false;
 }
 
 void ID3Tag::copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2)
 {
-    uint32_t qp = 12;
-    uint32_t tp = 12;
-    uint32_t formsize = 4;
+    uint64_t qp = 12;
+    uint64_t tp = 12;
+    uint64_t formsize = 4;
     n.copyFrom(o, 0, 12, 0); // Header kopieren
-    while (qp + 8 < o.size()) {
+    while (qp + 8 <= o.size()) {
         const char* adr = o.map(qp, 8);
-        if (!adr) break;
         uint32_t chunkType = PeekN32(adr);
         uint32_t chunkSize = PeekN32(adr + 4);
-        uint32_t physicalSize = chunkSize + 8;
-        if (chunkSize % 2) physicalSize++; // Padding einberechnen
+        uint64_t physicalSize = (uint64_t)chunkSize + 8 + (chunkSize % 2);
+        if (qp + physicalSize <= qp || qp + physicalSize > o.size()) break;
 
-        if (chunkType != 0x49443320) {           // ID3-Chunk gefunden
+        if (chunkType != 0x49443320) {           // ID3-Chunk ignorieren
             n.copyFrom(o, qp, physicalSize, tp); // append chunk to temporary file
             tp += physicalSize;
             formsize += physicalSize;
@@ -1191,7 +1190,7 @@ void ID3Tag::copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2
     }
     // FORM-Größe im Header aktualisieren
     char buffer[4];
-    PokeN32(buffer, formsize);
+    PokeN32(buffer, (uint32_t)formsize);
     n.write(buffer, 4, 4);
 }
 
@@ -1295,6 +1294,7 @@ String ID3Tag::getComment(const String& description) const
     String defaultComment;
     for (const auto& frame : frames) {
         if (frame.name() == "COMM") {
+            if (frame.size() < 5) continue;
             String desc, text;
             int encoding = Peek8(frame.dataPtr());
             int offset = decode(&frame, 4, encoding, desc);
@@ -1369,14 +1369,17 @@ bool ID3Tag::getPicture(int type, ByteArray& bin) const
     for (const auto& frame : frames) {
         if (frame.ID == "APIC") {
             // Wir haben ein Picture
+            if (frame.size() < 4) continue;
             String MimeType;
             int encoding = Peek8(frame.dataPtr());
             int offset = decode(&frame, 1, 0, MimeType);
-            if ((int)Peek8(frame.dataPtr() + offset) == type) {
+            if (offset < (int)frame.size() && (int)Peek8(frame.dataPtr() + offset) == type) {
                 String Description;
                 offset = decode(&frame, offset + 1, encoding, Description);
-                bin.copy(frame.dataPtr() + offset, frame.size() - offset);
-                return true;
+                if (offset <= (int)frame.size()) {
+                    bin.copy(frame.dataPtr() + offset, frame.size() - offset);
+                    return true;
+                }
             }
         }
     }
@@ -1395,10 +1398,10 @@ bool ID3Tag::hasPicture(int type) const
     for (const auto& frame : frames) {
         if (frame.ID == "APIC") {
             // Wir haben ein Picture
+            if (frame.size() < 4) continue;
             String MimeType;
-            // int encoding = Peek8(frame.dataPtr());
             int offset = decode(&frame, 1, 0, MimeType);
-            if ((int)Peek8(frame.dataPtr() + offset) == type) {
+            if (offset < (int)frame.size() && (int)Peek8(frame.dataPtr() + offset) == type) {
                 return true;
             }
         }
@@ -1419,7 +1422,8 @@ ByteArrayPtr ID3Tag::getPrivateData(const String& identifier) const
     for (const auto& frame : frames) {
         if (frame.ID == "PRIV") {
             // Wir haben ein PRIV-Frame
-            if (identifier.strcmp(frame.dataPtr()) == 0) {
+            if (frame.size() > identifier.size() && frame.dataPtr()[identifier.size()] == 0 &&
+                memcmp(frame.dataPtr(), identifier.c_str(), identifier.size()) == 0) {
                 return ByteArrayPtr(frame.dataPtr() + identifier.size() + 1, frame.size() - identifier.size() - 1);
             }
         }
@@ -1432,7 +1436,7 @@ String ID3Tag::getEnergyLevel() const
     String energy;
     for (const auto& frame : frames) {
         if (frame.ID == "TXXX") {
-            // Wir haben ein TXXX-Frame
+            if (frame.size() < 2) continue;
             int encoding = Peek8(frame.dataPtr());
             String identifier;
             int offset = decode(&frame, 1, encoding, identifier);
@@ -1451,7 +1455,7 @@ void ID3Tag::setEnergyLevel(const String& energy)
 
     for (auto& frame : frames) {
         if (frame.ID == "TXXX") {
-            // Wir haben ein TXXX-Frame
+            if (frame.size() < 2) continue;
             int encoding = Peek8(frame.dataPtr());
             String identifier;
             decode(&frame, 1, encoding, identifier);
@@ -1482,9 +1486,10 @@ void ID3Tag::setPicture(int type, const ByteArrayPtr& bin, const String& MimeTyp
     ID3Frame* frame = nullptr;
     for (auto& f : frames) {
         if (f.ID == name) {
+            if (f.size() < 4) continue;
             String OldMimeType;
             int offset = decode(&f, 1, 0, OldMimeType);
-            if ((int)Peek8(f.dataPtr() + offset) == type) {
+            if (offset < (int)f.size() && (int)Peek8(f.dataPtr() + offset) == type) {
                 frame = &f;
                 break;
             }
@@ -1511,9 +1516,10 @@ void ID3Tag::removePicture(int type)
     String name = "APIC";
     for (auto it = frames.begin(); it != frames.end(); ++it) {
         if ((*it).ID == name) {
+            if ((*it).size() < 4) continue;
             String MimeType;
             int offset = decode(&(*it), 1, 0, MimeType);
-            if ((int)Peek8((*it).dataPtr() + offset) == type) {
+            if (offset < (int)(*it).size() && (int)Peek8((*it).dataPtr() + offset) == type) {
                 frames.erase(it);
                 return;
             }
@@ -1537,7 +1543,7 @@ void ID3Tag::getAllPopularimeters(std::map<String, unsigned char>& data) const
     for (const auto& frame : frames) {
         if (frame.ID == "POPM") {
             String email = getNullPaddedString(frame, 0);
-            if (email.notEmpty()) {
+            if (email.notEmpty() && email.size() + 1 < frame.size()) {
                 unsigned char rating = pplib::Peek8(frame.dataPtr() + email.size() + 1);
                 data.insert(std::pair<String, unsigned char>(email, rating));
             }
@@ -1565,7 +1571,7 @@ unsigned char ID3Tag::getPopularimeter(const String& email) const
     for (const auto& frame : frames) {
         if (frame.ID == "POPM") {
             String existingemail = getNullPaddedString(frame, 0);
-            if (existingemail == email) {
+            if (existingemail == email && existingemail.size() + 1 < frame.size()) {
                 return pplib::Peek8(frame.dataPtr() + existingemail.size() + 1);
             }
         }
@@ -1578,7 +1584,9 @@ unsigned char ID3Tag::getPopularimeter() const
     for (const auto& frame : frames) {
         if (frame.ID == "POPM") {
             String existingemail = getNullPaddedString(frame, 0);
-            return pplib::Peek8(frame.dataPtr() + existingemail.size() + 1);
+            if (existingemail.size() + 1 < frame.size()) {
+                return pplib::Peek8(frame.dataPtr() + existingemail.size() + 1);
+            }
         }
     }
     return 0;
@@ -1633,10 +1641,9 @@ bool ID3Tag::hasPopularimeter() const
 
 bool ID3Tag::trySaveWaveInExistingFile(FileObject& o, ByteArrayPtr& tagV2)
 {
-    uint32_t qp = 12;
-    while (qp + 8 < o.size()) {
+    uint64_t qp = 12;
+    while (qp + 8 <= o.size()) {
         const char* adr = o.map(qp, 8);
-        if (!adr) break;
         uint32_t chunkID = Peek32(adr);
         uint32_t chunkSize = Peek32(adr + 4);
         if (chunkID == 0x20336469) { // "id3 "
@@ -1653,23 +1660,24 @@ bool ID3Tag::trySaveWaveInExistingFile(FileObject& o, ByteArrayPtr& tagV2)
             }
             break;
         }
-        qp += chunkSize + 8;
-        if (chunkSize % 2) qp++;
+        uint64_t physicalSize = (uint64_t)chunkSize + 8 + (chunkSize % 2);
+        if (qp + physicalSize <= qp || qp + physicalSize > o.size()) break;
+        qp += physicalSize;
     }
     return false;
 }
 
 void ID3Tag::copyWaveToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2)
 {
-    uint32_t qp = 12, tp = 12, formsize = 4;
+    uint64_t qp = 12, tp = 12, formsize = 4;
     n.copyFrom(o, 0, 12, 0);
-    while (qp + 8 < o.size()) {
+    while (qp + 8 <= o.size()) {
         const char* adr = o.map(qp, 8);
-        if (!adr) break;
         uint32_t chunkID = Peek32(adr);
         uint32_t chunkSize = Peek32(adr + 4);
-        uint32_t physicalSize = chunkSize + 8;
-        if (chunkSize % 2) physicalSize++;
+        uint64_t physicalSize = (uint64_t)chunkSize + 8 + (chunkSize % 2);
+        if (qp + physicalSize <= qp || qp + physicalSize > o.size()) break;
+
         if (chunkID != 0x20336469) {
             n.copyFrom(o, qp, physicalSize, tp);
             tp += physicalSize;
@@ -1697,7 +1705,7 @@ void ID3Tag::copyWaveToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2
         formsize += id3Size + 8;
     }
     char buffer[4];
-    Poke32(buffer, formsize);
+    Poke32(buffer, (uint32_t)formsize);
     n.write(buffer, 4, 4); // RIFF-Größen-Update
 }
 

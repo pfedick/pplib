@@ -7,7 +7,7 @@ Verifiziert: `ByteArrayPtr::map()` wirft bei Out-of-Bounds `OutOfBoundsException
 
 ## Bugs (kritisch)
 
-- [ ] **`ID3Tag::decode()`: Unterlauf `frame->size() - offset` wenn `offset > frame->size()` → riesige Länge an Transcode/iconv** (`ID3Tag.cpp:278-312`, betroffene Aufrufer u.a. `getComment()` ~1298-1299, `getPicture()` ~1375, `getEnergyLevel()` ~1438)
+- [x] **`ID3Tag::decode()`: Unterlauf `frame->size() - offset` wenn `offset > frame->size()` → riesige Länge an Transcode/iconv** (`ID3Tag.cpp:278-312`, betroffene Aufrufer u.a. `getComment()` ~1298-1299, `getPicture()` ~1375, `getEnergyLevel()` ~1438)
   ```cpp
   int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& target, const pplib::String& charset)
   {
@@ -35,7 +35,9 @@ Verifiziert: `ByteArrayPtr::map()` wirft bei Out-of-Bounds `OutOfBoundsException
   if ((size_t)offset >= frame->size()) { target.clear(); return offset; }
   ```
 
-- [ ] **`synchronize()`: `size_t`-Unterlauf bei `frameSize` 1 oder 2 unter gesetztem Unsynchronisation-Flag → Heap-Buffer-Overflow (Schreiben!)** (`ID3Tag.cpp:453-476`, aufgerufen aus `load()` bei `unsyncFlag` in Zeile 579)
+  ==> FIXED: Guard `if (!frame || offset < 0 || (size_t)offset >= frame->size()) { target.clear(); return offset; }` am Anfang von `decode()` eingebaut.
+
+- [x] **`synchronize()`: `size_t`-Unterlauf bei `frameSize` 1 oder 2 unter gesetztem Unsynchronisation-Flag → Heap-Buffer-Overflow (Schreiben!)** (`ID3Tag.cpp:453-476`, aufgerufen aus `load()` bei `unsyncFlag` in Zeile 579)
   ```cpp
   static size_t synchronize(unsigned char* adr, size_t size)
   {
@@ -57,7 +59,9 @@ Verifiziert: `ByteArrayPtr::map()` wirft bei Out-of-Bounds `OutOfBoundsException
       ...
   ```
 
-- [ ] **AIFF/WAVE-Chunk-Walk: Integer-Overflow bei `chunkSize + 8` → Endlosschleife (DoS)** (`findId3Tag()` AIFF-Zweig `ID3Tag.cpp:421-430`, WAVE-Zweig `431-440`; identisches Muster in `trySaveAiffInExistingFile()` `1111-1143`, `copyAiffToNewFile()` `1145-1194`, `trySaveWaveInExistingFile()` `1632-1658`, `copyWaveToNewFile()` `1660-1700`)
+  ==> FIXED: Guard `if (size < 2) return size;` und sichere while-Schleife ohne Subtraktionsunterlauf implementiert.
+
+- [x] **AIFF/WAVE-Chunk-Walk: Integer-Overflow bei `chunkSize + 8` → Endlosschleife (DoS)** (`findId3Tag()` AIFF-Zweig `ID3Tag.cpp:421-430`, WAVE-Zweig `431-440`; identisches Muster in `trySaveAiffInExistingFile()` `1111-1143`, `copyAiffToNewFile()` `1145-1194`, `trySaveWaveInExistingFile()` `1632-1658`, `copyWaveToNewFile()` `1660-1700`)
   ```cpp
   uint64_t p = 12;
   while (p + 8 < File.size()) {
@@ -72,9 +76,11 @@ Verifiziert: `ByteArrayPtr::map()` wirft bei Out-of-Bounds `OutOfBoundsException
   `size` ist `uint32_t` und kommt direkt aus der Datei. Wählt der Angreifer z.B. `size = 0xFFFFFFF8`, ergibt `size + 8` (als `uint32_t` berechnet) exakt `0` – `p` bewegt sich in dieser Iteration überhaupt nicht mehr vorwärts, die `while`-Bedingung bleibt für immer wahr → Endlosschleife, die den Thread/Prozess dauerhaft blockiert (Denial of Service). Reproduzierbar mit einer 20-Byte-Datei: `"FORM" + 4-Byte-Größe + "AIFF"` (12 Byte Header) gefolgt von einem 8-Byte-Chunk-Header mit beliebiger 4-Byte-ID (≠ `"ID3 "`) und Size-Feld `0xFFFFFFF8`. Dasselbe Muster (und dieselbe uint32_t-Falle, in `trySaveAiffInExistingFile`/`copyAiffToNewFile`/WAVE-Pendants sogar mit `uint32_t qp` statt `uint64_t`) betrifft auch `ID3Tag::save()` beim Umschreiben bestehender AIFF/WAVE-Dateien.
   Fix: `chunkSize` gegen die verbleibende Dateigröße validieren, bevor damit weitergerechnet wird, und die Addition in einem overflow-sicheren (z.B. `uint64_t`) Typ durchführen: `uint64_t next = (uint64_t)p + chunkSize + 8; if (next <= p) throw CorruptedDataException();`.
 
+  ==> FIXED: Durchgängig `uint64_t` für Offset-Berechnungen verwendet und Prüfung `if (qp + physicalSize <= qp || qp + physicalSize > o.size()) break;` eingebaut.
+
 ## Bugs (mittel)
 
-- [ ] **`getPrivateData()`: `size_t`-Unterlauf bei PRIV-Frame, dessen Inhalt exakt der Identifier-Länge entspricht** (`ID3Tag.cpp:1415-1426`)
+- [x] **`getPrivateData()`: `size_t`-Unterlauf bei PRIV-Frame, dessen Inhalt exakt der Identifier-Länge entspricht** (`ID3Tag.cpp:1415-1426`)
   ```cpp
   ByteArrayPtr ID3Tag::getPrivateData(const String& identifier) const
   {
@@ -91,7 +97,9 @@ Verifiziert: `ByteArrayPtr::map()` wirft bei Out-of-Bounds `OutOfBoundsException
   Enthält das PRIV-Frame exakt `identifier` ohne folgendes Null-Byte und ohne Nutzdaten (Frame endet direkt nach dem Identifier-String, `strcmp` matcht dank des garantierten Null-Padding von `ByteArray` trotzdem), dann ist `frame.size() == identifier.size()` und `frame.size() - identifier.size() - 1` unterläuft zu `SIZE_MAX`. Die konstruierte `ByteArrayPtr` zeigt danach zwar auf gültigen (Padding-)Speicher, hat aber eine absurde Größe. In `getPrivateData(ByteArray&, const String&)` (Zeile 1407-1413) wird das Ergebnis ungeprüft an `bin.copy(ref)` weitergereicht; `ByteArray::copy()` prüft die Größe vorab gegen `MAX_BYTEARRAY_SIZE` (siehe `ByteArray.cpp:114`) und wirft dann `OutOfMemoryException` – **kein Speicherfehler**, aber eine für eine reine Getter-Funktion unerwartete, undokumentierte Exception, ausgelöst durch eine plausible, harmlos aussehende Datei.
   Fix: vor der Subtraktion prüfen: `if (identifier.size() + 1 > frame.size()) return ByteArrayPtr();`.
 
-- [ ] **ID3v2.3 Extended-Header-Größe wird fälschlich als synchsafe (7-Bit) statt als normale 32-Bit-Zahl dekodiert** (`ID3Tag.cpp:538-549`)
+  ==> FIXED: Vor Subtraktion geprüft: `if (frame.size() > identifier.size() && frame.dataPtr()[identifier.size()] == 0 && memcmp(...))`
+
+- [x] **ID3v2.3 Extended-Header-Größe wird fälschlich als synchsafe (7-Bit) statt als normale 32-Bit-Zahl dekodiert** (`ID3Tag.cpp:538-549`)
   ```cpp
   if (extendedHeader) {
       adr = buffer.map(p, 4);
@@ -105,7 +113,9 @@ Verifiziert: `ByteArrayPtr::map()` wirft bei Out-of-Bounds `OutOfBoundsException
   Nach ID3v2.3-Spezifikation ist die Extended-Header-Größe eine normale big-endian 32-Bit-Zahl (kein Synchsafe-Integer) – nur in ID3v2.4 ist sie synchsafe. Der Code wendet das 7-Bit-Schema unabhängig von `version` an. Bei einem (seltenen, aber gültigen) ID3v2.3-Tag mit Extended Header wird `exHdrSize` dadurch falsch berechnet, was den Frame-Scan ab einem falschen Offset beginnen lässt (Frames werden verpasst oder Datenmüll als Frame-Header interpretiert – letzteres bleibt durch die `buffer.map()`-Bounds-Checks zwar speichersicher, liefert aber falsche/leere Tag-Daten).
   Fix: Verzweigung nach `version`, analog zur bereits korrekt versions-abhängigen Frame-Size-Dekodierung weiter unten (Zeile 567-571).
 
-- [ ] **ID3v2.3-Frame-Size: Signed-Shift-UB + Sign-Extension bei gesetztem High-Bit** (`ID3Tag.cpp:569-570`)
+  ==> FIXED: Bei Version 3 wird `PeekN32(adr)` (plus 4 Bytes Header) verwendet, bei Version 4 synchsafe.
+
+- [x] **ID3v2.3-Frame-Size: Signed-Shift-UB + Sign-Extension bei gesetztem High-Bit** (`ID3Tag.cpp:569-570`)
   ```cpp
   } else { // version == 3
       frameSize = Peek8(adr + 7) | (Peek8(adr + 6) << 8) | (Peek8(adr + 5) << 16) | (Peek8(adr + 4) << 24);
@@ -114,27 +124,41 @@ Verifiziert: `ByteArrayPtr::map()` wirft bei Out-of-Bounds `OutOfBoundsException
   `Peek8()` liefert `uint8_t`, das für die Shift-Operation zu `int` promotet wird. Ist das MSB des Größenfeldes (`adr[4]`) `>= 0x80` (nach Spec ungültig, aber von einer manipulierten Datei problemlos setzbar), erzeugt `Peek8(adr+4) << 24` einen Wert, der als `int` nicht mehr darstellbar ist (undefiniertes Verhalten vor C++20 bei signed-Overflow durch Shift). In der Praxis (2er-Komplement) entsteht ein negativer `int`, der bei der Zuweisung an `size_t frameSize` vorzeichenerweitert wird – aus einer eigentlich nur 32-Bit-großen (wenn auch ungültigen) Zahl wird ein ~64-Bit-Wert nahe `SIZE_MAX`. Der darauffolgende `buffer.map(p + 10, frameSize)` (Zeile 575) fängt das zwar zuverlässig per `OutOfBoundsException` ab (kein Speicherfehler), aber die Berechnung selbst basiert auf undefiniertem Verhalten und ist damit compilerabhängig fragil.
   Fix: Byteweise ohne Shift-UB zusammensetzen, z.B. über `uint32_t` statt `int`-Zwischenwerte: `frameSize = ((uint32_t)Peek8(adr+4)<<24) | ...;` (explizit unsigned rechnen, keine Vorzeichenerweiterung).
 
-- [ ] **`ID3Tag::load()`: `int footerSize` wird deklariert, aber nie gesetzt – ID3v2.4-Footer wird nicht übersprungen** (`ID3Tag.cpp:537, 556`)
+  ==> FIXED: Auf `frameSize = PeekN32(adr + 4);` umgestellt.
+
+- [x] **`ID3Tag::load()`: `int footerSize` wird deklariert, aber nie gesetzt – ID3v2.4-Footer wird nicht übersprungen** (`ID3Tag.cpp:537, 556`)
   Das (auskommentierte) `footerFlag`-Handling weiter oben (Zeile 517-522) wurde nie fertiggestellt; `footerSize` bleibt immer `0`. Ist im Tag ein 10-Byte-Footer vorhanden (v2.4, Flag `0x10`), wird dessen Signatur `"3DI"` + Spiegel-Header als vermeintliches letztes Frame interpretiert. Durch die Bounds-Checks in `buffer.map()` bleibt das speichersicher, liefert aber im Zweifel ein unsinniges Phantom-Frame oder bricht mit einer Exception ab, statt den Footer sauber zu ignorieren.
   Fix: Footer-Flag auswerten und `footerSize = 10;` setzen, wenn vorhanden – oder die tote Variable und den zugehörigen Kommentarblock entfernen, falls Footer-Unterstützung bewusst zurückgestellt wird.
 
+  ==> FIXED: Bei ID3v2.4 wird Flag 0x10 ausgewertet, `footerSize = 10` gesetzt und beim Einlesen sowie Frame-Scan berücksichtigt.
+
 ## Design
 
-- [ ] **Pro-Frame-Unsynchronisation (ID3v2.4) wird nicht ausgewertet** (`ID3Tag.cpp:578-583`)
+- [x] **Pro-Frame-Unsynchronisation (ID3v2.4) wird nicht ausgewertet** (`ID3Tag.cpp:578-583`)
   In ID3v2.4 kann jedes Frame unabhängig vom globalen Tag-Flag ein eigenes Unsynchronisation-Flag in seinem 2-Byte-Frame-Flags-Feld tragen. Der Code wendet `synchronize()` nur basierend auf dem globalen `unsyncFlag` aus dem Tag-Header an, nie pro Frame. Für v2.4-Tags, die das Frame-Flag statt des Tag-Flags nutzen, werden Frames dann nicht de-synchronisiert (führt zu Datenmüll im Frame-Inhalt, keine Speicherverletzung).
 
-- [ ] **`if (!adr) break;` ist toter Code, da `map()` nie `NULL` zurückgibt, sondern wirft** (`ID3Tag.cpp:404, 425, 435, 558, 576, 1116, 1153, 1636, 1665` u.a.)
+  ==> FIXED: Bei ID3v2.4 wird zusätzlich `Frame.flags() & 2` ausgewertet.
+
+- [x] **`if (!adr) break;` ist toter Code, da `map()` nie `NULL` zurückgibt, sondern wirft** (`ID3Tag.cpp:404, 425, 435, 558, 576, 1116, 1153, 1636, 1665` u.a.)
   Sowohl `ByteArrayPtr::map()` als auch `FileObject`/`File::map()` (siehe `mp3-review.md`) werfen bei Out-of-Bounds eine Exception statt `NULL` zu liefern. Diese Defensivchecks suggerieren eine Fehlerbehandlung, die faktisch nie greift – die tatsächliche Fehlerbehandlung ist die (in `load()`/`tryLoad()` teils gar nicht, teils per catch-all abgefangene) Exception. Kein Sicherheitsproblem, aber irreführender Code, der bei zukünftigem API-Wechsel (z.B. falls `map()` doch mal `NULL` zurückgeben würde) fälschlich als "schon abgesichert" gelesen wird.
   Fix: entweder entfernen (Doku-Kommentar, dass `map()` wirft) oder – falls gewünscht – tatsächlich `try/catch` um die einzelnen `map()`-Aufrufe legen, um pro Frame/Chunk sauber abzubrechen statt die ganze `load()` mit einer Exception zu beenden.
 
-- [ ] **`setPaddingSize`/`setPaddingSpace`/`setMaxPaddingSpace` nehmen `int`, Member sind `uint32_t`** (`id3tag.h:281-283`, `ID3Tag.cpp:366-379`, Member in `id3tag.h:178`)
+  ==> FIXED: Schleifen prüfen Grenzen vor dem Aufruf von `map()` sauber ab; redundante `if (!adr)` entfernt.
+
+- [x] **`setPaddingSize`/`setPaddingSpace`/`setMaxPaddingSpace` nehmen `int`, Member sind `uint32_t`** (`id3tag.h:281-283`, `ID3Tag.cpp:366-379`, Member in `id3tag.h:178`)
   Ein negativer Aufruf (z.B. versehentlich `setMaxPaddingSpace(-1)`) wird stillschweigend zu einer riesigen `uint32_t`-Zahl. Passt zur generellen Empfehlung aus REFACTORING.md, Interfaces zu modernisieren – hier würde `size_t`/`uint32_t` direkt in der Signatur Klarheit schaffen.
+
+  ==> FIXED: Signatur auf `uint32_t` umgestellt.
 
 ## Doku / Kosmetik
 
-- [ ] `NoID3TagFoundException` ist in `id3tag.h:46` deklariert, wird aber nirgends in `ID3Tag.cpp` geworfen (stattdessen wird bei fehlendem Tag in `load()` einfach still zurückgekehrt). Entweder tatsächlich verwenden (z.B. optional aus `load()` werfen, `tryLoad()` fängt es weiterhin ab) oder als unbenutzte Exception entfernen (passt zum bereits laufenden Cleanup, siehe Commit "Nicht verwendete Exceptions gelöscht").
+- [x] `NoID3TagFoundException` ist in `id3tag.h:46` deklariert, wird aber nirgends in `ID3Tag.cpp` geworfen (stattdessen wird bei fehlendem Tag in `load()` einfach still zurückgekehrt). Entweder tatsächlich verwenden (z.B. optional aus `load()` werfen, `tryLoad()` fängt es weiterhin ab) oder als unbenutzte Exception entfernen (passt zum bereits laufenden Cleanup, siehe Commit "Nicht verwendete Exceptions gelöscht").
 
-- [ ] `Mp3.cpp`/`ID3Tag.cpp`: mehrere `int`/`size_t`-Mischtypen bei Offsets (`decode()`s `int offset` vs. `size_t frame->size()`) – siehe Bug oben. Für neuen Code wäre eine konsistente `size_t`-API für Byte-Offsets robuster.
+  ==> FIXED: `NoID3TagFoundException` und `InvalidGenreException` entfernt.
+
+- [x] `Mp3.cpp`/`ID3Tag.cpp`: mehrere `int`/`size_t`-Mischtypen bei Offsets (`decode()`s `int offset` vs. `size_t frame->size()`) – siehe Bug oben. Für neuen Code wäre eine konsistente `size_t`-API für Byte-Offsets robuster.
+
+  ==> Teils behoben (Offsets in `decode()` abgesichert gegen Unterlauf; vollständige `size_t`-API bleibt für künftige Schnittstellenharmonisierung).
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

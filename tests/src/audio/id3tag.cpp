@@ -36,6 +36,7 @@
 #include <pplib/core/dir.h>
 #include <pplib/core/iconv.h>
 #include <pplib/core/functions.h>
+#include <pplib/core/memfile.h>
 // #include <pplib/core/regex.h>
 #include <pplib/audio/id3tag.h>
 
@@ -838,6 +839,78 @@ TEST_F(ID3TagTest, Overflow)
     catch (const pplib::Exception& ex) {
         ex.print();
     }
+}
+
+TEST_F(ID3TagTest, DecodeOffsetExceedsSize)
+{
+    pplib::ID3Frame frame("COMM");
+    char data[1] = {0}; // Only encoding byte
+    frame.setData(data, 1);
+
+    pplib::String target;
+    int nextOffset = pplib::ID3Tag::decode(&frame, 4, 0, target, "UTF-8");
+    EXPECT_EQ(4, nextOffset);
+    EXPECT_TRUE(target.isEmpty());
+}
+
+TEST_F(ID3TagTest, GetPrivateDataShortFrame)
+{
+    pplib::ID3Tag tag;
+    pplib::ID3Frame frame("PRIV");
+    frame.setData("MyIdent", 7);
+    tag.addFrame(frame);
+
+    pplib::ByteArray bin;
+    EXPECT_FALSE(tag.getPrivateData(bin, "MyIdent"));
+    pplib::ByteArrayPtr ptr = tag.getPrivateData("MyIdent");
+    EXPECT_TRUE(ptr.isNull());
+}
+
+TEST_F(ID3TagTest, UnsynchronisationShortFrame)
+{
+    unsigned char tagData[] = {
+        'I', 'D', '3', 4,   0, 0x80, 0, 0, 0, 11, // Tag Header, synchsafe size 11
+        'T', 'E', 'S', 'T', 0, 0,    0, 1, 0, 0,  // Frame Header, size 1
+        0xFF                                      // 1 data byte
+    };
+    pplib::ByteArray mp3;
+    pplib::File::load(mp3, "testdata/audio/test_192cbr.mp3");
+    mp3.prepend(tagData, sizeof(tagData));
+    pplib::File::save(mp3.ptr(), mp3.size(), "tmp/test_unsync.mp3");
+
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW({ tag.load("tmp/test_unsync.mp3"); });
+    pplib::ID3Frame* f = tag.findFrame("TEST");
+    ASSERT_NE(nullptr, f);
+    EXPECT_EQ((size_t)1, f->size());
+}
+
+TEST_F(ID3TagTest, FooterPresentIgnored)
+{
+    unsigned char tagData[] = {
+        'I', 'D', '3', 4,   0,   0x10, 0, 0, 0, 15, // Tag Header, size 15
+        'T', 'I', 'T', '2', 0,   0,    0, 5, 0, 0,  // Frame Header
+        0,   'T', 'e', 's', 't',                    // 5 bytes data (ISO-8859-1)
+        '3', 'D', 'I', 4,   0,   0x10, 0, 0, 0, 15  // 10 bytes Footer
+    };
+    pplib::ByteArray mp3;
+    pplib::File::load(mp3, "testdata/audio/test_192cbr.mp3");
+    mp3.prepend(tagData, sizeof(tagData));
+    pplib::File::save(mp3.ptr(), mp3.size(), "tmp/test_footer.mp3");
+
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW({ tag.load("tmp/test_footer.mp3"); });
+    EXPECT_EQ(pplib::String("Test"), tag.getTitle());
+    EXPECT_EQ((size_t)1, tag.frameCount());
+}
+
+TEST_F(ID3TagTest, AiffCorruptedChunkSize)
+{
+    unsigned char aiffData[] = {'F', 'O', 'R', 'M', 0, 0, 0, 12, 'A', 'I', 'F', 'F', 'N', 'O', 'P', 'E', 0xFF, 0xFF, 0xFF, 0xF8};
+    pplib::File::save(aiffData, sizeof(aiffData), "tmp/test_corrupt.aiff");
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW({ tag.load("tmp/test_corrupt.aiff"); });
+    EXPECT_EQ((size_t)0, tag.frameCount());
 }
 
 /*

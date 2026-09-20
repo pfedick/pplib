@@ -43,8 +43,6 @@ namespace pplib
 PPLIBEXCEPTION(UnsupportedAudioFormatException, Exception);
 PPLIBEXCEPTION(UnsupportedID3TagVersionException, Exception);
 PPLIBEXCEPTION(FilenameNotSetException, Exception);
-PPLIBEXCEPTION(NoID3TagFoundException, Exception);
-PPLIBEXCEPTION(InvalidGenreException, Exception);
 
 /**@ingroup PPLGroupSound
  * @brief Genre-Bezeichnung
@@ -279,9 +277,9 @@ public:
     void save();
 
     void setLocalCharset(const String& charset);
-    void setPaddingSize(int bytes);
-    void setPaddingSpace(int bytes);
-    void setMaxPaddingSpace(int bytes);
+    void setPaddingSize(uint32_t bytes);
+    void setPaddingSpace(uint32_t bytes);
+    void setMaxPaddingSpace(uint32_t bytes);
 
     /**@brief Frame hinzufügen
      *
