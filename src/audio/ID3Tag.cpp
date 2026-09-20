@@ -192,15 +192,25 @@ static const char* genres[] = {"Blues", // 0
                                "Anime",
                                "JPop",
                                "SynthPop", // 147
-                               NULL};
+                               nullptr};
 
-static size_t strlen16(const char* data)
+static size_t strnlen8(const char* data, size_t max_bytes)
 {
-    size_t l = 0;
-    uint16_t* d = (uint16_t*)data;
-    while (d[l] != 0)
-        l++;
-    return l;
+    for (size_t i = 0; i < max_bytes; ++i) {
+        if (data[i] == 0) return i;
+    }
+    return max_bytes;
+}
+
+static size_t strnlen16(const char* data, size_t max_bytes)
+{
+    size_t max_words = max_bytes / 2;
+    for (size_t i = 0; i < max_words; ++i) {
+        if (data[i * 2] == 0 && data[i * 2 + 1] == 0) {
+            return i;
+        }
+    }
+    return max_words;
 }
 
 String GetID3GenreName(int id)
@@ -241,23 +251,12 @@ void ID3Frame::hexDump() const
 
 void ID3Tag::copyAndDecodeText(String& s, const ID3Frame* frame, int offset) const
 {
-    if (!frame || frame->isEmpty()) {
-        s.clear();
-        return;
-    }
-    int encoding = Peek8(frame->dataPtr() + offset);
-    if (encoding < 32) {
-        ID3Tag::decode(frame, offset + 1, encoding, s, localCharset);
-    } else {
-        String from(frame->dataPtr() + offset, frame->size() - offset);
-        Iconv iconv("ISO-8859-1", localCharset);
-        iconv.transcode(from, s);
-    }
+    copyAndDecodeText(s, frame, offset, localCharset);
 }
 
 void ID3Tag::copyAndDecodeText(String& s, const ID3Frame* frame, int offset, const pplib::String& charset)
 {
-    if (!frame || frame->isEmpty()) {
+    if (!frame || frame->isEmpty() || offset < 0 || (size_t)offset >= frame->size()) {
         s.clear();
         return;
     }
@@ -277,42 +276,44 @@ int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& targ
 
 int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& target, const pplib::String& charset)
 {
+    target.clear();
     if (!frame || offset < 0 || (size_t)offset >= frame->size()) {
-        target.clear();
         return offset;
     }
     size_t size = 0;
     const char* data = frame->dataPtr() + offset;
-    // printf ("frame->data=%tx, offset=%d, encoding=%d\n", (std::ptrdiff_t)frame->data, offset, encoding);
+    size_t available = frame->size() - (size_t)offset;
+
     if (encoding == 0) {
-        // frame->hexDump();
-        size = strlen(data);
-        if (size + offset > frame->size()) size = frame->size() - offset;
-        // Iconv iconv("ISO-8859-1",localCharset);
+        size = strnlen8(data, available);
         target.set(Transcode(data, size, "ISO-8859-1", charset));
-        return offset + size + 1;
+        return offset + (int)size + 1;
     } else if (encoding == 1) {
-        size = strlen16(data) * 2;
-        if (size + offset > frame->size()) size = frame->size() - offset;
+        size = strnlen16(data, available) * 2;
+        if (size > available) size = available;
+        if (size % 2 != 0) size--;
         target.set(Transcode(data, size, "UTF-16", charset));
-        return offset + size + 2;
+        return offset + (int)size + 2;
     } else if (encoding == 2) {
-        size = strlen16(data) * 2;
-        if (size + offset > frame->size()) size = frame->size() - offset;
+        size = strnlen16(data, available) * 2;
+        if (size > available) size = available;
+        if (size % 2 != 0) size--;
         target.set(Transcode(data, size, "UTF-16BE", charset));
-        return offset + size + 2;
+        return offset + (int)size + 2;
     } else if (encoding == 3) {
-        size = strlen(data);
-        if (size + offset > frame->size()) size = frame->size() - offset;
-        target.set(data, size);
-        return offset + size + 1;
+        size = strnlen8(data, available);
+        if (charset.isEmpty() || charset.strCaseCmp("UTF-8") == 0) {
+            target.set(data, size);
+        } else {
+            target.set(Transcode(data, size, "UTF-8", charset));
+        }
+        return offset + (int)size + 1;
     } else if (encoding > 31) {
-        size = strlen(data);
-        if (size + offset > frame->size()) size = frame->size() - offset;
+        size = strnlen8(data, available);
         target.set(Transcode(data, size, "ISO-8859-1", charset));
-        return offset + size + 1;
+        return offset + (int)size + 1;
     }
-    return offset + size + 1;
+    return offset + 1;
 }
 
 /*!\brief Konstruktor ohne Dateinamen
@@ -411,8 +412,13 @@ ID3Tag::AudioFormat ID3Tag::identAudioFormat(FileObject& File)
     if (PeekN32(adr + 4) < File.size() && PeekN32(adr + 0) == 0x464F524D && PeekN32(adr + 8) == 0x41494646) return AF_AIFF;
     if (Peek32(adr + 4) <= File.size() - 8 && strncmp(adr + 0, "RIFF", 4) == 0 && strncmp(adr + 8, "WAVE", 4) == 0) return AF_WAVE;
 
-    if (IdentMPEG(File, NULL)) return AF_MP3;
+    if (IdentMPEG(File, nullptr)) return AF_MP3;
     return AF_UNKNOWN;
+}
+
+static inline bool isWaveId3Chunk(uint32_t chunkID)
+{
+    return chunkID == 0x20336469 || chunkID == 0x20334449; // "id3 " or "ID3 " (Little Endian)
 }
 
 uint64_t ID3Tag::findId3Tag(FileObject& File)
@@ -437,7 +443,7 @@ uint64_t ID3Tag::findId3Tag(FileObject& File)
         while (p + 8 <= File.size()) {
             const char* adr = File.map(p, 8);
             uint32_t size = Peek32(adr + 4);
-            if (Peek32(adr) == 0x20336469) return p + 8; // "id3 " (Little Endian)
+            if (isWaveId3Chunk(Peek32(adr))) return p + 8;
             uint64_t physicalSize = (uint64_t)size + 8 + (size % 2);
             if (p + physicalSize <= p || p + physicalSize > File.size()) break;
             p += physicalSize;
@@ -461,18 +467,8 @@ static size_t synchronize(unsigned char* adr, size_t size)
     size_t tgt = 0;
     while (src < size) {
         adr[tgt++] = adr[src];
-        if (adr[src] == 255 && src + 1 < size) {
-            if (adr[src + 1] == 0) {
-                if (src + 2 >= size) {
-                    src += 2;
-                } else if ((adr[src + 2] & (32 + 64 + 128)) == (32 + 64 + 128) || adr[src + 2] == 0) {
-                    src += 2;
-                } else {
-                    src++;
-                }
-            } else {
-                src++;
-            }
+        if (adr[src] == 255 && src + 1 < size && adr[src + 1] == 0) {
+            src += 2;
         } else {
             src++;
         }
@@ -533,9 +529,10 @@ void ID3Tag::load(FileObject& file)
     pplib::ByteArray buffer;
     file.seek(p);
     file.read(buffer, Size + 10 + footerSize);
+    size_t effectiveBufferSize = (buffer.size() >= (size_t)footerSize) ? (buffer.size() - footerSize) : 0;
     p = 10;
     if (extendedHeader) {
-        if (p + 4 > buffer.size() - footerSize) return;
+        if (p + 4 > effectiveBufferSize) return;
         adr = buffer.map(p, 4);
 #ifdef ID3DEBUG
         printf("Extended Header detected:\n");
@@ -547,12 +544,12 @@ void ID3Tag::load(FileObject& file)
             exHdrSize |= (Peek8(adr + 2)) << 7;
             exHdrSize |= (Peek8(adr + 1)) << 14;
             exHdrSize |= (Peek8(adr + 0)) << 21;
-            p += exHdrSize;
+            p += 4 + exHdrSize;
         } else {
             exHdrSize = PeekN32(adr);
             p += 4 + exHdrSize;
         }
-        if (p > buffer.size() - footerSize) return;
+        if (p > effectiveBufferSize) return;
     }
 
 #ifdef ID3DEBUG
@@ -560,7 +557,7 @@ void ID3Tag::load(FileObject& file)
 #endif
 
     // Jetzt lesen wir alle Frames in den Speicher
-    while (p + 10 <= buffer.size() - footerSize) {
+    while (p + 10 <= effectiveBufferSize) {
         adr = buffer.map(p, 10);
 #ifdef ID3DEBUG
         HexDump((void*)adr, 10);
@@ -578,7 +575,7 @@ void ID3Tag::load(FileObject& file)
         if (!frameSize) {
             break;
         }
-        if (p + 10 + frameSize > buffer.size() - footerSize) {
+        if (p + 10 + frameSize > effectiveBufferSize) {
             break;
         }
         adr = buffer.map(p + 10, frameSize);
@@ -586,6 +583,9 @@ void ID3Tag::load(FileObject& file)
         if (unsyncFlag || frameUnsync) {
             size_t newSize = synchronize((unsigned char*)adr, frameSize);
             Frame.setData(adr, newSize);
+            if (frameUnsync) {
+                Frame.setFlags(Frame.flags() & ~2);
+            }
         } else {
             Frame.setData(adr, frameSize);
         }
@@ -653,13 +653,32 @@ void ID3Tag::listFrames(bool hexdump) const
     }
 }
 
-ID3Frame* ID3Tag::findFrame(const String& name) const
+static void toUtf16LE(const String& localCharset, const String& text, ByteArray& enc)
+{
+    ByteArray buffer;
+    Iconv iconv(localCharset, "UTF-16LE");
+    iconv.transcode(ByteArrayPtr(text), buffer);
+    char* b = (char*)enc.malloc(2 + buffer.size());
+    if (!b) throw pplib::OutOfMemoryException();
+    b[0] = 0xff;
+    b[1] = 0xfe;
+    memcpy(b + 2, buffer.ptr(), buffer.size());
+}
+
+ID3Frame* ID3Tag::findFrame(const String& name)
+{
+    for (auto& frame : frames) {
+        if (frame.name() == name) return &frame;
+    }
+    return nullptr;
+}
+
+const ID3Frame* ID3Tag::findFrame(const String& name) const
 {
     for (const auto& frame : frames) {
-        if (frame.name() == name) return const_cast<ID3Frame*>(&frame);
+        if (frame.name() == name) return &frame;
     }
-
-    return NULL;
+    return nullptr;
 }
 
 /*!\brief Benutzerdefinierten Text in einem TXXX-Frame finden
@@ -669,21 +688,77 @@ ID3Frame* ID3Tag::findFrame(const String& name) const
  * in einem TXXX-Frame mit dem Namen \p description gesucht
  * und ein Pointer darauf zurückgegeben.
  *
- * @param name String mit der Description des gesuchten Frames.
+ * @param description String mit der Description des gesuchten Frames.
  * @return Wurde das gewünschte Frame gefunden, gibt die Funktion einen
- * Pointer auf die CID3Frame-Klasse zurück, im Fehlerfall \c NULL.
+ * Pointer auf die ID3Frame-Klasse zurück, im Fehlerfall \c nullptr.
  */
-ID3Frame* ID3Tag::findUserDefinedText(const String& description) const
+ID3Frame* ID3Tag::findUserDefinedText(const String& description)
+{
+    for (auto& frame : frames) {
+        if (frame.name() == "TXXX") {
+            if (frame.size() < 2) continue;
+            String c;
+            decode(&frame, 1, Peek8(frame.dataPtr()), c);
+            if (c.strcmp(description) == 0) return &frame;
+        }
+    }
+    return nullptr;
+}
+
+const ID3Frame* ID3Tag::findUserDefinedText(const String& description) const
 {
     for (const auto& frame : frames) {
         if (frame.name() == "TXXX") {
             if (frame.size() < 2) continue;
             String c;
             decode(&frame, 1, Peek8(frame.dataPtr()), c);
-            if (c.strcmp(description) == 0) return const_cast<ID3Frame*>(&frame);
+            if (c.strcmp(description) == 0) return &frame;
         }
     }
-    return NULL;
+    return nullptr;
+}
+
+String ID3Tag::getUserDefinedText(const String& description) const
+{
+    const ID3Frame* frame = findUserDefinedText(description);
+    if (!frame || frame->size() < 2) return String();
+    int encoding = Peek8(frame->dataPtr());
+    String desc, value;
+    int offset = decode(frame, 1, encoding, desc);
+    decode(frame, offset, encoding, value);
+    return value;
+}
+
+void ID3Tag::setUserDefinedText(const String& description, const String& value, TextEncoding enc)
+{
+    ID3Frame* frame = findUserDefinedText(description);
+    if (!frame) {
+        frames.emplace_back("TXXX");
+        frame = &frames.back();
+    }
+    frame->Flags = 0;
+    if (enc == ENC_UTF16) {
+        ByteArray valEnc, descEnc;
+        toUtf16LE(localCharset, description, descEnc);
+        toUtf16LE(localCharset, value, valEnc);
+        unsigned char* buffer = (unsigned char*)frame->data.malloc(1 + descEnc.size() + 2 + valEnc.size() + 2);
+        buffer[0] = 1; // UTF-16LE Encoding
+        memcpy(buffer + 1, descEnc.ptr(), descEnc.size());
+        Poke16(buffer + 1 + descEnc.size(), 0);
+        memcpy(buffer + 3 + descEnc.size(), valEnc.ptr(), valEnc.size());
+        Poke16(buffer + 3 + descEnc.size() + valEnc.size(), 0);
+    } else {
+        ByteArray valEnc, descEnc;
+        Iconv iconv(localCharset, "UTF-8");
+        iconv.transcode(ByteArrayPtr(description), descEnc);
+        iconv.transcode(ByteArrayPtr(value), valEnc);
+        unsigned char* buffer = (unsigned char*)frame->data.malloc(1 + descEnc.size() + 1 + valEnc.size() + 1);
+        buffer[0] = 3; // UTF-8 Encoding
+        memcpy(buffer + 1, descEnc.ptr(), descEnc.size());
+        buffer[1 + descEnc.size()] = 0;
+        memcpy(buffer + 2 + descEnc.size(), valEnc.ptr(), valEnc.size());
+        buffer[2 + descEnc.size() + valEnc.size()] = 0;
+    }
 }
 
 void ID3Tag::setTextFrame(const String& framename, const String& text, TextEncoding enc)
@@ -701,42 +776,26 @@ void ID3Tag::setTextFrameUtf8(const String& framename, const String& text)
     ByteArray enc;
     Iconv iconv(localCharset, "UTF-8");
     iconv.transcode(ByteArrayPtr(text), enc);
-    ID3Frame newFrame(framename);
     ID3Frame* frame = findFrame(framename);
     if (!frame) {
-        frame = &newFrame;
+        frames.emplace_back(framename);
+        frame = &frames.back();
     }
     frame->Flags = 0;
     unsigned char* buffer = (unsigned char*)frame->data.malloc(enc.size() + 2);
     buffer[0] = 3; // UTF-8 Encoding
     if (enc.size() > 0) memcpy(buffer + 1, enc.ptr(), enc.size());
     buffer[1 + enc.size()] = 0; // Terminierendes 0-Byte
-    // Frame hinzufügen, falls es neu ist
-    if (frame == &newFrame) {
-        frames.push_back(std::move(*frame));
-    }
-}
-
-static void toUtf16LE(const String& localCharset, const String& text, ByteArray& enc)
-{
-    ByteArray buffer;
-    Iconv iconv(localCharset, "UTF-16LE");
-    iconv.transcode(ByteArrayPtr(text), buffer);
-    char* b = (char*)enc.malloc(2 + buffer.size());
-    if (!b) throw pplib::OutOfMemoryException();
-    b[0] = 0xff;
-    b[1] = 0xfe;
-    memcpy(b + 2, buffer.ptr(), buffer.size());
 }
 
 void ID3Tag::setTextFrameUtf16(const String& framename, const String& text)
 {
     ByteArray enc;
     toUtf16LE(localCharset, text, enc);
-    ID3Frame newFrame(framename);
     ID3Frame* frame = findFrame(framename);
     if (!frame) {
-        frame = &newFrame;
+        frames.emplace_back(framename);
+        frame = &frames.back();
     }
     frame->Flags = 0;
     unsigned char* buffer = (unsigned char*)frame->data.malloc(enc.size() + 3);
@@ -744,10 +803,6 @@ void ID3Tag::setTextFrameUtf16(const String& framename, const String& text)
     Poke8(buffer, 1);
     Poke16(buffer + 1 + enc.size(), 0); // 2 terminierende 0-Byte, da UTF-16LE
     if (enc.size() > 0) memcpy(buffer + 1, enc.ptr(), enc.size());
-    // Frame hinzufügen, falls es neu ist
-    if (frame == &newFrame) {
-        frames.push_back(std::move(*frame));
-    }
 }
 
 void ID3Tag::setTextFrameISO88591(const String& framename, const String& text)
@@ -756,19 +811,15 @@ void ID3Tag::setTextFrameISO88591(const String& framename, const String& text)
     Iconv iconv(localCharset, "ISO8859-1");
     iconv.transcode((ByteArrayPtr)text, enc);
     ID3Frame* frame = findFrame(framename);
-    ID3Frame newFrame(framename);
     if (!frame) {
-        frame = &newFrame;
+        frames.emplace_back(framename);
+        frame = &frames.back();
     }
     frame->Flags = 0;
     unsigned char* buffer = (unsigned char*)frame->data.malloc(enc.size() + 2);
     buffer[0] = 0; // ISO-8859-1 Encoding
     if (enc.size() > 0) memcpy(buffer + 1, enc.ptr(), enc.size());
     buffer[1 + enc.size()] = 0; // Terminierendes 0-Byte
-    // Frame hinzufügen, falls es neu ist
-    if (frame == &newFrame) {
-        frames.push_back(std::move(*frame));
-    }
 }
 
 void ID3Tag::setArtist(const String& artist)
@@ -789,26 +840,7 @@ void ID3Tag::setAlbum(const String& album)
 void ID3Tag::setRemixer(const String& remixer)
 {
     setTextFrame("TPE4", remixer);
-    ByteArray enc, udf;
-    String udfstring = "TraktorRemixer";
-    toUtf16LE(localCharset, remixer, enc);
-    toUtf16LE(localCharset, udfstring, udf);
-    ID3Frame* frame = findUserDefinedText("TraktorRemixer");
-    ID3Frame newFrame("TXXX");
-    if (!frame) {
-        frame = &newFrame;
-    }
-    frame->Flags = 0;
-    unsigned char* buffer = (unsigned char*)frame->data.malloc(enc.size() + 5 + udf.size());
-    buffer[0] = 1; // UTF-16LE Encoding
-    memcpy(buffer + 1, udf.ptr(), udf.size());
-    Poke16(buffer + 1 + udf.size(), 0); // 2 terminierende 0-Byte, da UTF-16LE
-    memcpy(buffer + 3 + udf.size(), enc.ptr(), enc.size());
-    Poke16(buffer + 3 + udf.size() + enc.size(), 0); // 2 terminierende 0-Byte, da UTF-16LE
-    // Frame hinzufügen, falls es neu ist
-    if (frame == &newFrame) {
-        frames.push_back(std::move(*frame));
-    }
+    setUserDefinedText("TraktorRemixer", remixer, ENC_UTF16);
 }
 
 void ID3Tag::setLabel(const String& label)
@@ -844,7 +876,7 @@ void ID3Tag::setGenre(const String& genre)
     String gen = genre;
     // Gibt es in der Genre-Liste einen passenden Eintrag?
     int genreid = 0;
-    while (genres[genreid] != NULL) {
+    while (genres[genreid] != nullptr) {
         if (genre.strcmp((char*)genres[genreid]) == 0) {
             gen.setf("(%i)", genreid);
             gen += genre;
@@ -876,8 +908,7 @@ void ID3Tag::setComment(const String& description, const String& comment)
     toUtf16LE(localCharset, description, descEnc);
     toUtf16LE(localCharset, comment, enc);
 
-    ID3Frame newFrame(framename);
-    ID3Frame* frame = &newFrame;
+    ID3Frame* frame = nullptr;
 
     for (auto& f : frames) {
         if (f.name() == framename && f.size() > 4) {
@@ -889,6 +920,11 @@ void ID3Tag::setComment(const String& description, const String& comment)
                 break;
             }
         }
+    }
+
+    if (!frame) {
+        frames.emplace_back(framename);
+        frame = &frames.back();
     }
 
     frame->Flags = 0;
@@ -904,10 +940,6 @@ void ID3Tag::setComment(const String& description, const String& comment)
     // Comment (Actual Content)
     memcpy(buffer + 4 + descEnc.size() + 2, enc.ptr(), enc.size());
     Poke16(buffer + 4 + descEnc.size() + 2 + enc.size(), 0); // Terminierung Comment
-
-    if (frame == &newFrame) {
-        frames.push_back(std::move(newFrame));
-    }
 }
 
 /*!\brief Tag speichern
@@ -935,6 +967,7 @@ void ID3Tag::save()
 static String getID3v1String(const ID3Tag& tag, const String& frameId)
 {
     const ID3Frame* frame = tag.findFrame(frameId);
+    if (!frame && frameId == "TYER") frame = tag.findFrame("TDRC");
     if (!frame || frame->size() < 2) return "";
     const unsigned char* d = (const unsigned char*)frame->dataPtr();
     int enc = d[0];
@@ -995,7 +1028,13 @@ void ID3Tag::generateId3V2Tag(ByteArray& tag) const
     // Calculate required Memory
     size_t totalFrameSize = 0;
     for (const auto& frame : frames) {
-        totalFrameSize += 10 + frame.size();
+        if (frame.name().size() == 4) {
+            totalFrameSize += 10 + frame.size();
+        }
+    }
+    if (totalFrameSize == 0) {
+        tag.clear();
+        return;
     }
     size_t tagSize = 10 + totalFrameSize;
     // Allocate Buffer
@@ -1018,7 +1057,8 @@ void ID3Tag::generateId3V2Tag(ByteArray& tag) const
     buffer[6] = ((s >> 21) & 127);
 
     char* frame = buffer + 10;
-    for (auto& Frame : frames) {
+    for (const auto& Frame : frames) {
+        if (Frame.name().size() != 4) continue;
         memcpy(frame, Frame.name().c_str(), 4);
         // Descynchronisieren
         uint32_t fs = Frame.size();
@@ -1027,21 +1067,17 @@ void ID3Tag::generateId3V2Tag(ByteArray& tag) const
         Poke8(frame + 5, ((fs >> 14) & 127));
         Poke8(frame + 4, ((fs >> 21) & 127));
         PokeN16(frame + 8, Frame.Flags);
-        memcpy(frame + 10, Frame.dataPtr(), Frame.size());
+        if (Frame.size() > 0 && Frame.dataPtr() != nullptr) {
+            memcpy(frame + 10, Frame.dataPtr(), Frame.size());
+        }
         frame += 10 + Frame.size();
     }
 }
 
 void ID3Tag::saveMP3()
 {
-    String tmpfile = Filename;
-    tmpfile += ".rename.tmp";
-    File n;
     File o;
-    n.open(tmpfile, File::FileMode::WRITE);
     o.open(Filename, File::FileMode::READWRITE);
-    // Wir benötigen exklusiven Zugriff auf das File
-    // if (!o.LockExclusive(false)) return 0;		// TODO: Hat unter Windows keine Wirkung
 
     PPL_MPEG_HEADER mpg;
     if (!IdentMPEG(o, &mpg)) {
@@ -1059,39 +1095,26 @@ void ID3Tag::saveMP3()
     // überschritten wird, schreiben wir ihn in das Originalfile
     if (pn == 0) {
         // Sonderfall, keine Tags vorhanden
-
     } else if (pn > 0 && pn <= mpg.start && mpg.start - pn < MaxPaddingSpace) {
         o.seek(0);
         o.write(tagV2);
         // Mit Nullen auffüllen bis zum Start der Frames
         rest = mpg.start - pn;
         useoldfile = true;
-        // printf ("Keine Verschiebung nötig, verwende altes File\n");
-    } else {
-        n.write(tagV2);
-        if (pn < PaddingSize) {
-            // Wir füllen mit Nullen auf
-            rest = PaddingSize - pn;
-        } else {
-            // Wir lassen mindestens "PaddingSpace" frei
-            rest = PaddingSpace;
-        }
     }
-    if (rest > 0) {
-        ByteArray space_ba;
-        char* space = (char*)space_ba.calloc(1024);
-        while (rest) {
-            uint32_t bytes = rest;
-            if (bytes > 1024) bytes = 1024;
-            if (useoldfile)
-                o.write(space, bytes, pn);
-            else
-                n.write(space, bytes, pn);
-            pn += bytes;
-            rest -= bytes;
-        }
-    }
+
     if (useoldfile) {
+        if (rest > 0) {
+            ByteArray space_ba;
+            char* space = (char*)space_ba.calloc(1024);
+            while (rest) {
+                uint32_t bytes = rest;
+                if (bytes > 1024) bytes = 1024;
+                o.write(space, bytes, pn);
+                pn += bytes;
+                rest -= bytes;
+            }
+        }
         // Am Ende noch den v1-Tag reinschreiben
         if (tagV1.size() > 0) {
             o.write(tagV1.ptr(), tagV1.size(), mpg.end);
@@ -1099,22 +1122,49 @@ void ID3Tag::saveMP3()
             // Wenn kein v1-Tag mehr gewünscht ist, aber einer da war, Datei kürzen
             o.truncate(mpg.end);
         }
-        n.close();
         o.close();
-        File::remove(tmpfile);
     } else {
-        // Nun kopieren wir die Musikframes
-        n.copyFrom(o, (uint64_t)mpg.start, (uint64_t)mpg.size, (uint64_t)pn);
-        // Und am Ende noch den v1-Tag
-        if (tagV1.size() > 0) n.write(tagV1);
-        n.close();
-        o.close();
-        File::remove(Filename);
-        File::rename(tmpfile, Filename);
+        String tmpfile = Filename + ".rename.tmp";
+        File n;
+        n.open(tmpfile, File::FileMode::WRITE);
+        try {
+            if (pn > 0) {
+                n.write(tagV2);
+                if (pn < PaddingSize) {
+                    rest = PaddingSize - pn;
+                } else {
+                    rest = PaddingSpace;
+                }
+                if (rest > 0) {
+                    ByteArray space_ba;
+                    char* space = (char*)space_ba.calloc(1024);
+                    while (rest) {
+                        uint32_t bytes = rest;
+                        if (bytes > 1024) bytes = 1024;
+                        n.write(space, bytes, pn);
+                        pn += bytes;
+                        rest -= bytes;
+                    }
+                }
+            }
+            // Nun kopieren wir die Musikframes
+            n.copyFrom(o, (uint64_t)mpg.start, (uint64_t)mpg.size, (uint64_t)pn);
+            // Und am Ende noch den v1-Tag
+            if (tagV1.size() > 0) n.write(tagV1);
+            n.close();
+            o.close();
+            File::rename(tmpfile, Filename);
+        }
+        catch (...) {
+            n.close();
+            o.close();
+            File::remove(tmpfile);
+            throw;
+        }
     }
 }
 
-bool ID3Tag::trySaveAiffInExistingFile(FileObject& o, ByteArrayPtr& tagV2)
+bool ID3Tag::trySaveAiffInExistingFile(FileObject& o, const ByteArrayPtr& tagV2)
 {
     uint64_t qp = 12;
     while (qp + 8 <= o.size()) {
@@ -1144,7 +1194,7 @@ bool ID3Tag::trySaveAiffInExistingFile(FileObject& o, ByteArrayPtr& tagV2)
     return false;
 }
 
-void ID3Tag::copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2)
+void ID3Tag::copyAiffToNewFile(FileObject& o, FileObject& n, const ByteArrayPtr& tagV2)
 {
     uint64_t qp = 12;
     uint64_t tp = 12;
@@ -1154,11 +1204,16 @@ void ID3Tag::copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2
         const char* adr = o.map(qp, 8);
         uint32_t chunkType = PeekN32(adr);
         uint32_t chunkSize = PeekN32(adr + 4);
+        if (qp + 8 + (uint64_t)chunkSize > o.size() || qp + 8 + (uint64_t)chunkSize < qp) break;
         uint64_t physicalSize = (uint64_t)chunkSize + 8 + (chunkSize % 2);
-        if (qp + physicalSize <= qp || qp + physicalSize > o.size()) break;
+        uint64_t copyBytes = std::min<uint64_t>(physicalSize, o.size() - qp);
 
-        if (chunkType != 0x49443320) {           // ID3-Chunk ignorieren
-            n.copyFrom(o, qp, physicalSize, tp); // append chunk to temporary file
+        if (chunkType != 0x49443320) {        // ID3-Chunk ignorieren
+            n.copyFrom(o, qp, copyBytes, tp); // append chunk to temporary file
+            if (copyBytes < physicalSize) {
+                char pad = 0;
+                n.write(&pad, 1, tp + copyBytes);
+            }
             tp += physicalSize;
             formsize += physicalSize;
         }
@@ -1196,8 +1251,7 @@ void ID3Tag::copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2
 
 void ID3Tag::saveAiff()
 {
-    String tmpfile = Filename;
-    tmpfile += ".rename.tmp";
+    String tmpfile = Filename + ".rename.tmp";
     File n;
     File o;
 
@@ -1230,14 +1284,13 @@ void ID3Tag::saveAiff()
     }
     o.close();
     n.close();
-    File::remove(Filename);
     File::rename(tmpfile, Filename);
 }
 
 String ID3Tag::getArtist() const
 {
     String r;
-    ID3Frame* frame = findFrame("TPE1");
+    const ID3Frame* frame = findFrame("TPE1");
     if (frame) {
         // frame->hexDump();
         copyAndDecodeText(r, frame, 0);
@@ -1248,7 +1301,7 @@ String ID3Tag::getArtist() const
 String ID3Tag::getTitle() const
 {
     String r;
-    ID3Frame* frame = findFrame("TIT2");
+    const ID3Frame* frame = findFrame("TIT2");
     if (frame) copyAndDecodeText(r, frame, 0);
     return r;
 }
@@ -1257,7 +1310,7 @@ String ID3Tag::getGenre() const
 {
     String r;
     String Tmp;
-    ID3Frame* frame = findFrame("TCON");
+    const ID3Frame* frame = findFrame("TCON");
     if (frame) copyAndDecodeText(Tmp, frame, 0);
 
     // Manchmal beginnt das Genre mit einer in Klammern gesetzten Ziffer.
@@ -1310,7 +1363,7 @@ String ID3Tag::getComment(const String& description) const
 String ID3Tag::getRemixer() const
 {
     String r;
-    ID3Frame* frame = findFrame("TPE4");
+    const ID3Frame* frame = findFrame("TPE4");
     if (frame) copyAndDecodeText(r, frame, 0);
     return r;
 }
@@ -1318,15 +1371,21 @@ String ID3Tag::getRemixer() const
 String ID3Tag::getYear() const
 {
     String r;
-    ID3Frame* frame = findFrame("TYER");
-    if (frame) copyAndDecodeText(r, frame, 0);
+    const ID3Frame* frame = findFrame("TYER");
+    if (!frame) frame = findFrame("TDRC");
+    if (frame) {
+        copyAndDecodeText(r, frame, 0);
+        if (r.size() > 4 && (r[4] == '-' || r[4] == '/' || r[4] == 'T')) {
+            r = r.left(4);
+        }
+    }
     return r;
 }
 
 String ID3Tag::getLabel() const
 {
     String r;
-    ID3Frame* frame = findFrame("TPUB");
+    const ID3Frame* frame = findFrame("TPUB");
     if (frame) copyAndDecodeText(r, frame, 0);
     return r;
 }
@@ -1334,7 +1393,7 @@ String ID3Tag::getLabel() const
 String ID3Tag::getAlbum() const
 {
     String r;
-    ID3Frame* frame = findFrame("TALB");
+    const ID3Frame* frame = findFrame("TALB");
     if (frame) copyAndDecodeText(r, frame, 0);
     return r;
 }
@@ -1342,7 +1401,7 @@ String ID3Tag::getAlbum() const
 String ID3Tag::getTrack() const
 {
     String r;
-    ID3Frame* frame = findFrame("TRCK");
+    const ID3Frame* frame = findFrame("TRCK");
     if (frame) copyAndDecodeText(r, frame, 0);
     return r;
 }
@@ -1350,7 +1409,7 @@ String ID3Tag::getTrack() const
 String ID3Tag::getBPM() const
 {
     String r;
-    ID3Frame* frame = findFrame("TBPM");
+    const ID3Frame* frame = findFrame("TBPM");
     if (frame) copyAndDecodeText(r, frame, 0);
     return r;
 }
@@ -1358,7 +1417,7 @@ String ID3Tag::getBPM() const
 String ID3Tag::getKey() const
 {
     String r;
-    ID3Frame* frame = findFrame("TKEY");
+    const ID3Frame* frame = findFrame("TKEY");
     if (frame) copyAndDecodeText(r, frame, 0);
     return r;
 }
@@ -1376,7 +1435,7 @@ bool ID3Tag::getPicture(int type, ByteArray& bin) const
             if (offset < (int)frame.size() && (int)Peek8(frame.dataPtr() + offset) == type) {
                 String Description;
                 offset = decode(&frame, offset + 1, encoding, Description);
-                if (offset <= (int)frame.size()) {
+                if (offset < (int)frame.size()) {
                     bin.copy(frame.dataPtr() + offset, frame.size() - offset);
                     return true;
                 }
@@ -1400,9 +1459,14 @@ bool ID3Tag::hasPicture(int type) const
             // Wir haben ein Picture
             if (frame.size() < 4) continue;
             String MimeType;
+            int encoding = Peek8(frame.dataPtr());
             int offset = decode(&frame, 1, 0, MimeType);
             if (offset < (int)frame.size() && (int)Peek8(frame.dataPtr() + offset) == type) {
-                return true;
+                String Description;
+                offset = decode(&frame, offset + 1, encoding, Description);
+                if (offset < (int)frame.size()) {
+                    return true;
+                }
             }
         }
     }
@@ -1433,51 +1497,12 @@ ByteArrayPtr ID3Tag::getPrivateData(const String& identifier) const
 
 String ID3Tag::getEnergyLevel() const
 {
-    String energy;
-    for (const auto& frame : frames) {
-        if (frame.ID == "TXXX") {
-            if (frame.size() < 2) continue;
-            int encoding = Peek8(frame.dataPtr());
-            String identifier;
-            int offset = decode(&frame, 1, encoding, identifier);
-            if (identifier == "EnergyLevel") {
-                decode(&frame, offset, encoding, energy);
-                return energy;
-            }
-        }
-    }
-    return energy;
+    return getUserDefinedText("EnergyLevel");
 }
 
 void ID3Tag::setEnergyLevel(const String& energy)
 {
-    ID3Frame* exisitingFrame = nullptr;
-
-    for (auto& frame : frames) {
-        if (frame.ID == "TXXX") {
-            if (frame.size() < 2) continue;
-            int encoding = Peek8(frame.dataPtr());
-            String identifier;
-            decode(&frame, 1, encoding, identifier);
-            if (identifier == "EnergyLevel") {
-                exisitingFrame = &frame;
-                break;
-            }
-        }
-    }
-    ID3Frame newFrame("TXXX");
-    ID3Frame* frame = exisitingFrame ? exisitingFrame : &newFrame;
-
-    frame->Flags = 0;
-    char* buffer = (char*)frame->data.malloc(14 + energy.size());
-    buffer[0] = 3; // UTF-8 Encoding
-    strcpy(buffer + 1, "EnergyLevel");
-    Poke8(buffer + 12, 0);
-    strncpy(buffer + 13, energy.c_str(), energy.size());
-    Poke8(buffer + 13 + energy.size(), 0);
-    if (frame == &newFrame) {
-        frames.push_back(std::move(*frame));
-    }
+    setUserDefinedText("EnergyLevel", energy, ENC_UTF8);
 }
 
 void ID3Tag::setPicture(int type, const ByteArrayPtr& bin, const String& MimeType)
@@ -1495,9 +1520,9 @@ void ID3Tag::setPicture(int type, const ByteArrayPtr& bin, const String& MimeTyp
             }
         }
     }
-    ID3Frame newFrame(name);
     if (!frame) {
-        frame = &newFrame;
+        frames.emplace_back(name);
+        frame = &frames.back();
     }
     frame->Flags = 0;
     char* buffer = (char*)frame->data.malloc(bin.size() + MimeType.size() + 4);
@@ -1506,9 +1531,6 @@ void ID3Tag::setPicture(int type, const ByteArrayPtr& bin, const String& MimeTyp
     Poke8(buffer + 2 + MimeType.size(), type);
     Poke8(buffer + 3 + MimeType.size(), 0);
     memcpy(buffer + 4 + MimeType.size(), bin.ptr(), bin.size());
-    if (frame == &newFrame) {
-        frames.push_back(std::move(*frame));
-    }
 }
 
 void ID3Tag::removePicture(int type)
@@ -1543,7 +1565,7 @@ void ID3Tag::getAllPopularimeters(std::map<String, unsigned char>& data) const
     for (const auto& frame : frames) {
         if (frame.ID == "POPM") {
             String email = getNullPaddedString(frame, 0);
-            if (email.notEmpty() && email.size() + 1 < frame.size()) {
+            if (email.size() + 1 < frame.size()) {
                 unsigned char rating = pplib::Peek8(frame.dataPtr() + email.size() + 1);
                 data.insert(std::pair<String, unsigned char>(email, rating));
             }
@@ -1553,7 +1575,6 @@ void ID3Tag::getAllPopularimeters(std::map<String, unsigned char>& data) const
 
 bool ID3Tag::hasPopularimeter(const String& email) const
 {
-    if (email.isEmpty()) return false;
     for (const auto& frame : frames) {
         if (frame.ID == "POPM") {
             String existingemail = getNullPaddedString(frame, 0);
@@ -1567,7 +1588,6 @@ bool ID3Tag::hasPopularimeter(const String& email) const
 
 unsigned char ID3Tag::getPopularimeter(const String& email) const
 {
-    if (email.isEmpty()) return 0;
     for (const auto& frame : frames) {
         if (frame.ID == "POPM") {
             String existingemail = getNullPaddedString(frame, 0);
@@ -1594,7 +1614,6 @@ unsigned char ID3Tag::getPopularimeter() const
 
 void ID3Tag::setPopularimeter(const String& email, unsigned char rating)
 {
-    if (email.isEmpty()) return;
     ID3Frame* frame = nullptr;
     for (auto& f : frames) {
         if (f.ID == "POPM") {
@@ -1605,17 +1624,17 @@ void ID3Tag::setPopularimeter(const String& email, unsigned char rating)
             }
         }
     }
-    ID3Frame newFrame("POPM");
     if (!frame) {
-        frame = &newFrame;
+        frames.emplace_back("POPM");
+        frame = &frames.back();
     }
+    frame->Flags = 0;
     char* buffer = (char*)frame->data.calloc(email.size() + 6);
-    memcpy(buffer, email.getPtr(), email.size());
-    buffer[email.size() + 1] = rating;
-
-    if (frame == &newFrame) {
-        frames.push_back(std::move(*frame));
+    if (email.size() > 0) {
+        memcpy(buffer, email.getPtr(), email.size());
     }
+    buffer[email.size()] = 0;
+    buffer[email.size() + 1] = rating;
 }
 
 void ID3Tag::removePopularimeter()
@@ -1639,14 +1658,14 @@ bool ID3Tag::hasPopularimeter() const
     return false;
 }
 
-bool ID3Tag::trySaveWaveInExistingFile(FileObject& o, ByteArrayPtr& tagV2)
+bool ID3Tag::trySaveWaveInExistingFile(FileObject& o, const ByteArrayPtr& tagV2)
 {
     uint64_t qp = 12;
     while (qp + 8 <= o.size()) {
         const char* adr = o.map(qp, 8);
         uint32_t chunkID = Peek32(adr);
         uint32_t chunkSize = Peek32(adr + 4);
-        if (chunkID == 0x20336469) { // "id3 "
+        if (isWaveId3Chunk(chunkID)) {
             if (chunkSize >= tagV2.size()) {
                 uint32_t max_allowed = tagV2.size() + (tagV2.size() / 10) + PaddingSize;
                 if (chunkSize > max_allowed) break;
@@ -1667,7 +1686,7 @@ bool ID3Tag::trySaveWaveInExistingFile(FileObject& o, ByteArrayPtr& tagV2)
     return false;
 }
 
-void ID3Tag::copyWaveToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2)
+void ID3Tag::copyWaveToNewFile(FileObject& o, FileObject& n, const ByteArrayPtr& tagV2)
 {
     uint64_t qp = 12, tp = 12, formsize = 4;
     n.copyFrom(o, 0, 12, 0);
@@ -1675,11 +1694,16 @@ void ID3Tag::copyWaveToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2
         const char* adr = o.map(qp, 8);
         uint32_t chunkID = Peek32(adr);
         uint32_t chunkSize = Peek32(adr + 4);
+        if (qp + 8 + (uint64_t)chunkSize > o.size() || qp + 8 + (uint64_t)chunkSize < qp) break;
         uint64_t physicalSize = (uint64_t)chunkSize + 8 + (chunkSize % 2);
-        if (qp + physicalSize <= qp || qp + physicalSize > o.size()) break;
+        uint64_t copyBytes = std::min<uint64_t>(physicalSize, o.size() - qp);
 
-        if (chunkID != 0x20336469) {
-            n.copyFrom(o, qp, physicalSize, tp);
+        if (!isWaveId3Chunk(chunkID)) {
+            n.copyFrom(o, qp, copyBytes, tp);
+            if (copyBytes < physicalSize) {
+                char pad = 0;
+                n.write(&pad, 1, tp + copyBytes);
+            }
             tp += physicalSize;
             formsize += physicalSize;
         }
@@ -1739,7 +1763,6 @@ void ID3Tag::saveWave()
     }
     o.close();
     n.close();
-    File::remove(Filename);
     File::rename(tmpfile, Filename);
 }
 

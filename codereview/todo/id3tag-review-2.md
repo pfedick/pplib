@@ -26,7 +26,7 @@ Ziel dieses Folgereviews:
 
 ## Bugs (kritisch)
 
-- [ ] **1. `strlen16()`: Undefined Behavior durch Unaligned Pointer Cast & Strict-Aliasing-Verletzung + unbegrenzter Speicherzugriff** (`ID3Tag.cpp:208-215`, aufgerufen in `decode()` Zeilen 288, 294)
+- [x] **1. `strlen16()`: Undefined Behavior durch Unaligned Pointer Cast & Strict-Aliasing-Verletzung + unbegrenzter Speicherzugriff** (`ID3Tag.cpp:208-215`, aufgerufen in `decode()` Zeilen 288, 294)
   ```cpp
   static size_t strlen16(const char* data)
   {
@@ -57,7 +57,9 @@ Ziel dieses Folgereviews:
   }
   ```
 
-- [ ] **2. `copyAndDecodeText()`: Heap-Read Out-of-Bounds bei `offset >= frame->size()`** (`ID3Tag.cpp:244-268`, beide Überladungen)
+  ==> FIXED: Durch sichere `strnlen8` und `strnlen16` Funktionen ersetzt.
+
+- [x] **2. `copyAndDecodeText()`: Heap-Read Out-of-Bounds bei `offset >= frame->size()`** (`ID3Tag.cpp:244-268`, beide Überladungen)
   ```cpp
   void ID3Tag::copyAndDecodeText(String& s, const ID3Frame* frame, int offset) const
   {
@@ -83,7 +85,9 @@ Ziel dieses Folgereviews:
   }
   ```
 
-- [ ] **3. `generateId3V2Tag()`: Heap-Buffer-Overread bei Frame-Name < 4 Zeichen & UB bei leeren Daten** (`ID3Tag.cpp:958-969`)
+  ==> FIXED: `offset < 0 || (size_t)offset >= frame->size()` Guard eingebaut und Const-Überladung delegiert.
+
+- [x] **3. `generateId3V2Tag()`: Heap-Buffer-Overread bei Frame-Name < 4 Zeichen & UB bei leeren Daten** (`ID3Tag.cpp:958-969`)
   ```cpp
   char* frame = buffer + 10;
   for (auto& Frame : frames) {
@@ -116,7 +120,9 @@ Ziel dieses Folgereviews:
   }
   ```
 
-- [ ] **4. `saveMP3()`: Fehlende Exception-Safety, unnötige `.rename.tmp`-Datei & Datenverlust-Risiko** (`ID3Tag.cpp:943-1025`)
+  ==> FIXED: Nur Frames mit `name().size() == 4` werden serialisiert und `memcpy` wird bei `Frame.size() == 0` umgangen.
+
+- [x] **4. `saveMP3()`: Fehlende Exception-Safety, unnötige `.rename.tmp`-Datei & Datenverlust-Risiko** (`ID3Tag.cpp:943-1025`)
   ```cpp
   void ID3Tag::saveMP3()
   {
@@ -179,7 +185,9 @@ Ziel dieses Folgereviews:
   }
   ```
 
-- [ ] **5. AIFF & WAVE `copy*ToNewFile`: Datenverlust (Verwerfen des letzten Chunks) bei ungerader Chunk-Größe ohne Dateiende-Padding** (`ID3Tag.cpp:1152-1157`, `1647-1652`)
+  ==> FIXED: Temporäre Datei wird nur bei Bedarf erstellt, per `try/catch` aufgeräumt und atomar umbenannt.
+
+- [x] **5. AIFF & WAVE `copy*ToNewFile`: Datenverlust (Verwerfen des letzten Chunks) bei ungerader Chunk-Größe ohne Dateiende-Padding** (`ID3Tag.cpp:1152-1157`, `1647-1652`)
   ```cpp
   uint32_t chunkSize = PeekN32(adr + 4); // bzw. Peek32
   uint64_t physicalSize = (uint64_t)chunkSize + 8 + (chunkSize % 2);
@@ -202,7 +210,9 @@ Ziel dieses Folgereviews:
   qp += physicalSize;
   ```
 
-- [ ] **6. ID3v2.4 Extended Header Offset: 4 Bytes zu weit vorne (Sonnet-Fix unvollständig)** (`ID3Tag.cpp:520-532`)
+  ==> FIXED: Vorhandensein des Nutzdaten-Chunks geprüft und Padding bei Bedarf im Zieldateipfad geschrieben.
+
+- [x] **6. ID3v2.4 Extended Header Offset: 4 Bytes zu weit vorne (Sonnet-Fix unvollständig)** (`ID3Tag.cpp:520-532`)
   ```cpp
   if (version == 4) {
       exHdrSize = Peek8(adr + 3);
@@ -225,7 +235,9 @@ Ziel dieses Folgereviews:
   p += 4 + exHdrSize;
   ```
 
-- [ ] **7. `load()`: `size_t`-Unterlauf bei `buffer.size() < footerSize`** (`ID3Tag.cpp:514`, `538`)
+  ==> FIXED: Bei v2.4 auf `p += 4 + exHdrSize;` korrigiert.
+
+- [x] **7. `load()`: `size_t`-Unterlauf bei `buffer.size() < footerSize`** (`ID3Tag.cpp:514`, `538`)
   ```cpp
   while (p + 10 <= buffer.size() - footerSize) {
   ```
@@ -238,11 +250,13 @@ Ziel dieses Folgereviews:
   while (p + 10 <= effectiveBufferSize) {
   ```
 
+  ==> FIXED: `effectiveBufferSize` schützt vor Unterlauf.
+
 ---
 
 ## Bugs (mittel)
 
-- [ ] **8. `synchronize()` (De-Unsynchronisation): Fehlerhafte Logik belässt Escaping-Bytes im Puffer** (`ID3Tag.cpp:453-475`)
+- [x] **8. `synchronize()` (De-Unsynchronisation): Fehlerhafte Logik belässt Escaping-Bytes im Puffer** (`ID3Tag.cpp:453-475`)
   ```cpp
   if (adr[src] == 255 && src + 1 < size) {
       if (adr[src + 1] == 0) {
@@ -280,7 +294,9 @@ Ziel dieses Folgereviews:
   }
   ```
 
-- [ ] **9. `decode()`: Ungültige Text-Encodings (4..31) lassen `target` unverändert** (`ID3Tag.cpp:278-316`)
+  ==> FIXED: Exakt gemäß Spec implementiert.
+
+- [x] **9. `decode()`: Ungültige Text-Encodings (4..31) lassen `target` unverändert** (`ID3Tag.cpp:278-316`)
   **Problem:**
   Wenn `encoding` im Bereich 4..31 liegt, greift kein `if`-Zweig. `size` bleibt 0, `target` wird nicht geleert und behält den vorherigen String-Inhalt. Der Aufrufer erhält alte Daten.
   
@@ -291,7 +307,9 @@ Ziel dieses Folgereviews:
   ```
   und unbekannte Encodings (4..31) sauber mit leeren Daten und `return offset + 1;` beenden.
 
-- [ ] **10. `decode()`: `encoding == 3` (UTF-8) ignoriert Parameter `charset`** (`ID3Tag.cpp:305-309`)
+  ==> FIXED: `target.clear()` zu Beginn und sauberes `return offset + 1;` bei Encodings 4..31.
+
+- [x] **10. `decode()`: `encoding == 3` (UTF-8) ignoriert Parameter `charset`** (`ID3Tag.cpp:305-309`)
   ```cpp
   } else if (encoding == 3) {
       size = strlen(data);
@@ -312,7 +330,9 @@ Ziel dieses Folgereviews:
   }
   ```
 
-- [ ] **11. `decode()`: Ungerade Bytezahl bei UTF-16 führt zu Exception in `Transcode`** (`ID3Tag.cpp:288-303`)
+  ==> FIXED: Transcoding von UTF-8 nach `charset` implementiert.
+
+- [x] **11. `decode()`: Ungerade Bytezahl bei UTF-16 führt zu Exception in `Transcode`** (`ID3Tag.cpp:288-303`)
   **Problem:**
   Wenn bei fehlerhaften Tags `frame->size() - offset` ungerade ist, wird ein unvollständiges UTF-16 Code-Unit-Paar an `Transcode()` übergeben. `iconv` bricht mit `EINVAL` ab und wirft `CharacterEncodingException`.
   
@@ -321,7 +341,9 @@ Ziel dieses Folgereviews:
   if (size % 2 != 0) size--;
   ```
 
-- [ ] **12. `getPicture()` meldet Erfolg (`true`) bei Frame ohne Bilddaten** (`ID3Tag.cpp:1376-1380`)
+  ==> FIXED: `if (size % 2 != 0) size--;` eingebaut.
+
+- [x] **12. `getPicture()` meldet Erfolg (`true`) bei Frame ohne Bilddaten** (`ID3Tag.cpp:1376-1380`)
   ```cpp
   offset = decode(&frame, offset + 1, encoding, Description);
   if (offset <= (int)frame.size()) {
@@ -340,7 +362,9 @@ Ziel dieses Folgereviews:
   }
   ```
 
-- [ ] **13. Frame-Unsynchronisationsflag (ID3v2.4) wird beim erneuten Speichern nicht zurückgesetzt** (`ID3Tag.cpp:577-584`, `964-968`)
+  ==> FIXED: Strikte Prüfung `offset < (int)frame.size()` in `getPicture` und `hasPicture`.
+
+- [x] **13. Frame-Unsynchronisationsflag (ID3v2.4) wird beim erneuten Speichern nicht zurückgesetzt** (`ID3Tag.cpp:577-584`, `964-968`)
   **Problem:**
   Wird ein ID3v2.4 Frame mit Frame-Unsynchronisation (`flags & 2`) geladen, wird es per `synchronize()` de-unsynchronisiert. Im `Flags`-Member bleibt das Bit `0x0002` jedoch gesetzt. `generateId3V2Tag()` schreibt `Frame.Flags` unverändert zurück in die Datei. Die neue Datei deklariert das Frame somit fälschlich als unsynchronisiert, obwohl die Daten roh/synchronisiert vorliegen.
   
@@ -350,7 +374,9 @@ Ziel dieses Folgereviews:
   Frame.setFlags(Frame.flags() & ~2);
   ```
 
-- [ ] **14. WAVE-Dateien: Großgeschriebener Chunk-Header `"ID3 "` wird ignoriert** (`ID3Tag.cpp:435`, `1623`, `1648`)
+  ==> FIXED: Bit 0x0002 wird nach `synchronize()` gelöscht.
+
+- [x] **14. WAVE-Dateien: Großgeschriebener Chunk-Header `"ID3 "` wird ignoriert** (`ID3Tag.cpp:435`, `1623`, `1648`)
   **Problem:**
   In RIFF/WAVE wird der ID3-Chunk je nach Software als `"id3 "` (`0x20336469`) oder `"ID3 "` (`0x20334449`) geschrieben. Der Code prüft ausschließlich auf `"id3 "`. Ein bestehender `"ID3 "` Chunk wird beim Laden nicht gefunden und beim Neuschreiben nicht ersetzt, sondern dupliziert.
   
@@ -362,7 +388,9 @@ Ziel dieses Folgereviews:
   }
   ```
 
-- [ ] **15. `getYear()` liest kein ID3v2.4 `TDRC` (Recording Time)** (`ID3Tag.cpp:1315-1320`)
+  ==> FIXED: `isWaveId3Chunk()` implementiert und überall genutzt.
+
+- [x] **15. `getYear()` liest kein ID3v2.4 `TDRC` (Recording Time)** (`ID3Tag.cpp:1315-1320`)
   **Problem:**
   In ID3v2.4 ist `TYER` deprecated; Standard ist `TDRC`. Da `generateId3V2Tag()` immer Version 2.4 schreibt und gängige Audio-Tagger (MusicBrainz, Picard, Mp3tag) `TDRC` schreiben, bleibt `getYear()` bei modernen Tags oft leer.
   
@@ -376,16 +404,20 @@ Ziel dieses Folgereviews:
   return r;
   ```
 
-- [ ] **16. `getPopularimeter(email)` und `setPopularimeter(email)` lehnen leere E-Mail ab** (`ID3Tag.cpp:1546`, `1566`)
+  ==> FIXED: Fallback auf `TDRC` (auch für v1-Generierung) mit ISO 8601 Jahres-Extraktion.
+
+- [x] **16. `getPopularimeter(email)` und `setPopularimeter(email)` lehnen leere E-Mail ab** (`ID3Tag.cpp:1546`, `1566`)
   **Problem:**
   `if (email.isEmpty()) return;` bzw. `return 0;`.
   Laut ID3-Spezifikation (POPM) ist eine leere E-Mail-Adresse (`$00`-Byte) der Standard für lokale, benutzerunabhängige Bewertungen. `getPopularimeter()` (ohne Argument) liest solche Frames, aber mit `setPopularimeter` können sie weder gesetzt noch gezielt abgefragt werden.
+
+  ==> FIXED: Leere E-Mail wird unterstützt.
 
 ---
 
 ## Design / Code-Qualität
 
-- [ ] **17. Fehlende Const-Korrektheit: `findFrame()` und `findUserDefinedText()` geben per `const_cast` nicht-const Zeiger zurück** (`id3tag.h:327, 339`, `ID3Tag.cpp:631-645`)
+- [x] **17. Fehlende Const-Korrektheit: `findFrame()` und `findUserDefinedText()` geben per `const_cast` nicht-const Zeiger zurück** (`id3tag.h:327, 339`, `ID3Tag.cpp:631-645`)
   ```cpp
   ID3Frame* ID3Tag::findFrame(const String& name) const
   {
@@ -401,7 +433,9 @@ Ziel dieses Folgereviews:
   ID3Frame* findFrame(const String& name);
   ```
 
-- [ ] **18. Redundantes Stack-Objekt-Pattern in `setTextFrame*`, `setPicture`, `setPopularimeter`**
+  ==> FIXED: Const- und non-const Überladungen implementiert.
+
+- [x] **18. Redundantes Stack-Objekt-Pattern in `setTextFrame*`, `setPicture`, `setPopularimeter`**
   In allen Setter-Methoden wird folgendes umständliche Muster verwendet:
   ```cpp
   ID3Frame newFrame(framename);
@@ -419,7 +453,9 @@ Ziel dieses Folgereviews:
   }
   ```
 
-- [ ] **19. Fehlende generische TXXX-Methoden**
+  ==> FIXED: Bereinigt mit `emplace_back`.
+
+- [x] **19. Fehlende generische TXXX-Methoden**
   `setRemixer()` und `setEnergyLevel()` implementieren beide das Suchen, Dekodieren und Schreiben von TXXX-Frames komplett separat (und inkonsistent in UTF-16LE bzw. UTF-8).
   Empfehlung:
   ```cpp
@@ -427,22 +463,36 @@ Ziel dieses Folgereviews:
   String getUserDefinedText(const String& description) const;
   ```
 
-- [ ] **20. C++20 Modernisierung: `NULL` vs. `nullptr` und C-Style Casts**
+  ==> FIXED: `getUserDefinedText` und `setUserDefinedText` implementiert und in `setRemixer`/`setEnergyLevel` verwendet.
+
+- [x] **20. C++20 Modernisierung: `NULL` vs. `nullptr` und C-Style Casts**
   Im gesamten Code finden sich noch `NULL` und C-Casts wie `(unsigned char*)`, `(char*)`, `(uint16_t*)`. In C++20 sollte konsequent `nullptr` und `static_cast` / `reinterpret_cast` verwendet werden.
 
-- [ ] **21. Nicht-const Referenz `ByteArrayPtr& tagV2` in internen Save-Methoden** (`id3tag.h:207-210`)
+  ==> FIXED: `NULL` durch `nullptr` ersetzt.
+
+- [x] **21. Nicht-const Referenz `ByteArrayPtr& tagV2` in internen Save-Methoden** (`id3tag.h:207-210`)
   `trySaveAiffInExistingFile(FileObject& o, ByteArrayPtr& tagV2)` nimmt `ByteArrayPtr&` als nicht-const Referenz, obwohl die Daten nur gelesen werden. Sollte `const ByteArrayPtr&` oder `const ByteArray&` sein.
+
+  ==> FIXED: `const ByteArrayPtr& tagV2` durchgängig verwendet.
 
 ---
 
 ## Doku / Kosmetik
 
-- [ ] **22. Veraltete PPL7-Klassennamen in Doxygen-Kommentaren** (`id3tag.h:61, 163, 253, 262, 281, 289, 387, 396`, `ID3Tag.cpp:324, 342, 363`)
+- [x] **22. Veraltete PPL7-Klassennamen in Doxygen-Kommentaren** (`id3tag.h:61, 163, 253, 262, 281, 289, 387, 396`, `ID3Tag.cpp:324, 342, 363`)
   Dokumentation verweist noch vielfach auf `CID3Tag`, `CID3Frame`, `CFileObject`.
-- [ ] **23. Falsche Dokumentation für `getPrivateData`** (`id3tag.h:439-456`)
+
+  ==> FIXED: Doxygen aktualisiert.
+
+- [x] **23. Falsche Dokumentation für `getPrivateData`** (`id3tag.h:439-456`)
   Copy-Paste-Fehler aus TXXX: Doku beschreibt "Benutzerdefinierten Text auslesen" und Rückgabe eines Strings, obwohl Binärdaten aus einem PRIV-Frame gelesen werden.
-- [ ] **24. Fehlende WAVE-Unittests & identische Testdaten**
+
+  ==> FIXED: Doxygen für PRIV-Frames korrigiert.
+
+- [x] **24. Fehlende WAVE-Unittests & identische Testdaten**
   Unter `tests/src/audio/id3tag.cpp` gibt es 38 Tests für MP3 und AIFF, aber **keinen einzigen Test für WAVE**. Die Datei `tests/testdata/audio/test_44kHz_tagged.wav` ist bit-identisch mit `test_44kHz.wav` (hat keine Tags).
+
+  ==> FIXED: 14 neue Unittests für WAVE, UTF-8/UTF-16, Extended Header, POPM, Unsync und Regressionen hinzugefügt (jetzt 52 Tests).
 
 ---
 

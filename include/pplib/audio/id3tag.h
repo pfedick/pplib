@@ -56,7 +56,7 @@ PPLIBEXCEPTION(FilenameNotSetException, Exception);
  */
 String GetID3GenreName(int id);
 
-/**@class CID3Frame
+/**@class ID3Frame
  * @ingroup PPLGroupSound
  * @brief Klasse zum Speichern eines einzelnen ID3-Frames
  */
@@ -126,7 +126,7 @@ public:
     }
 };
 
-/**@class CID3Tag
+/**@class ID3Tag
  * @ingroup PPLGroupSound
  * @brief Klasse zum Parsen und Verändern von ID3 v1 und v2 Tags
  *
@@ -200,10 +200,10 @@ private:
     void saveMP3();
     void saveAiff();
     void saveWave();
-    bool trySaveAiffInExistingFile(FileObject& o, ByteArrayPtr& tagV2);
-    bool trySaveWaveInExistingFile(FileObject& o, ByteArrayPtr& tagV2);
-    void copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2);
-    void copyWaveToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2);
+    bool trySaveAiffInExistingFile(FileObject& o, const ByteArrayPtr& tagV2);
+    bool trySaveWaveInExistingFile(FileObject& o, const ByteArrayPtr& tagV2);
+    void copyAiffToNewFile(FileObject& o, FileObject& n, const ByteArrayPtr& tagV2);
+    void copyWaveToNewFile(FileObject& o, FileObject& n, const ByteArrayPtr& tagV2);
     String getNullPaddedString(const ID3Frame& frame, size_t offset = 0) const;
 
 public:
@@ -218,7 +218,7 @@ public:
      */
     void load(const String& filename);
 
-    /**@brief ID3-Tags aus einem CFileObject laden
+    /**@brief ID3-Tags aus einem FileObject laden
      *
      * Mit dieser Funktion werden die ID3-Tags einer bereits geöffneten Audio-Datei,
      * die durch das FileObject \p file repräsentiert wird, in den Hauptspeicher geladen.
@@ -238,7 +238,7 @@ public:
      */
     bool tryLoad(const String& filename);
 
-    /**@brief ID3-Tags aus einem CFileObject laden
+    /**@brief ID3-Tags aus einem FileObject laden
      *
      * Mit dieser Funktion werden die ID3-Tags einer bereits geöffneten Audio-Datei,
      * die durch das FileObject \p file repräsentiert wird, geladen.
@@ -254,7 +254,7 @@ public:
      *
      * Durch Aufruf dieser Funktion wird der komplette durch diese Klasse reservierte
      * Speicher freigegeben und die Klasse in den Ausgangszustand zurückversetzt.
-     * Die Funktion wird automatisch vor dem Laden einer Datei mit CID3Tag::load
+     * Die Funktion wird automatisch vor dem Laden einer Datei mit ID3Tag::load
      * aufgerufen.
      */
     void clear();
@@ -262,7 +262,7 @@ public:
     /**@brief Alle Tags löschen
      *
      * Durch Aufruf dieser Funktion werden alle Frames des geladenen Titels im Speicher gelöscht.
-     * Die Datei bleibt unverändert, erst durch Aufruf der Funktion CID3Tag::save werden
+     * Die Datei bleibt unverändert, erst durch Aufruf der Funktion ID3Tag::save werden
      * auch die ID3-Tags in der Datei aktualisiert und somit gelöscht.
      */
     void clearTags();
@@ -312,9 +312,10 @@ public:
      *
      * @param name String mit der 4-stelligen ID des gesuchten Frames.
      * @return Wurde das gewünschte Frame gefunden, gibt die Funktion einen
-     * Pointer auf ein ID3Frame-Objekt zurück, im Fehlerfall \c NULL.
+     * Pointer auf ein ID3Frame-Objekt zurück, im Fehlerfall \c nullptr.
      */
-    ID3Frame* findFrame(const String& name) const;
+    const ID3Frame* findFrame(const String& name) const;
+    ID3Frame* findFrame(const String& name);
 
     /**@brief Benutzerdefinierten Text in einem TXXX-Frame finden
      *
@@ -322,11 +323,27 @@ public:
      * in einem TXXX-Frame mit dem Namen \p description gesucht
      * und ein Pointer darauf zurückgegeben.
      *
-     * @param name String mit der Description des gesuchten Frames.
+     * @param description String mit der Description des gesuchten Frames.
      * @return Wurde das gewünschte Frame gefunden, gibt die Funktion einen
-     * Pointer auf ein ID3Frame-Objekt zurück, im Fehlerfall \c NULL.
+     * Pointer auf ein ID3Frame-Objekt zurück, im Fehlerfall \c nullptr.
      */
-    ID3Frame* findUserDefinedText(const String& description) const;
+    const ID3Frame* findUserDefinedText(const String& description) const;
+    ID3Frame* findUserDefinedText(const String& description);
+
+    /**@brief Benutzerdefinierten Text in einem TXXX-Frame auslesen
+     *
+     * @param description String mit der Description des gesuchten benutzerdefinierten Textes.
+     * @return Inhalt des TXXX-Frames oder leerer String, falls nicht gefunden.
+     */
+    String getUserDefinedText(const String& description) const;
+
+    /**@brief Benutzerdefinierten Text in einem TXXX-Frame setzen
+     *
+     * @param description String mit der Description des benutzerdefinierten Textes.
+     * @param value Textwert.
+     * @param enc Zeichenkodierung (Standard: ENC_UTF8).
+     */
+    void setUserDefinedText(const String& description, const String& value, TextEncoding enc = ENC_UTF8);
 
     /**@brief Frames auf STDOUT auflisten
      *
@@ -455,7 +472,7 @@ public:
      *
      * Mit dieser Funktion wird ein Bild eines bestimmten Typs in die Tags eingefügt oder überschrieben.
      *
-     * @param type Integer mit dem gewünschten Bild-Typ (z.B. CID3Tag::PIC_COVER_FRONT für das Front-Cover)
+     * @param type Integer mit dem gewünschten Bild-Typ (z.B. ID3Tag::PIC_COVER_FRONT für das Front-Cover)
      * @param bin ByteArray mit den Binärdaten des Bildes
      * @param MimeType String mit dem MIME-Type des Bildes (z.B. "image/jpeg")
      */
@@ -666,25 +683,24 @@ public:
      */
     void removePicture(int type);
 
-    /**@brief Benutzerdefinierten Text auslesen
+    /**@brief Binärdaten aus einem PRIV-Frame auslesen
      *
-     * Mit dieser Funktion wird der benutzerdefinierte Text mit der Description \p description
-     * aus einem TXXX-Frame ausgelesen.
+     * Mit dieser Funktion werden die Binärdaten aus einem PRIV-Frame mit dem Identifier \p identifier
+     * ausgelesen und in \p bin kopiert.
      *
-     * @param description String mit der Description des gesuchten benutzerdefinierten Textes
-     * @return Bei Erfolg wird ein String mit dem benutzerdefinierten Text zurückgegeben,
-     * im Fehlerfall ein leerer String.
+     * @param bin ByteArray, in dem die Binärdaten gespeichert werden sollen
+     * @param identifier String mit dem Bezeichner des gesuchten PRIV-Frames
+     * @return true bei Erfolg, false falls das Frame nicht existiert
      */
     bool getPrivateData(ByteArray& bin, const String& identifier) const;
 
-    /**@brief Benutzerdefinierten Text auslesen
+    /**@brief Zeiger auf Binärdaten aus einem PRIV-Frame auslesen
      *
-     * Mit dieser Funktion wird der benutzerdefinierte Text mit der Description \p description
-     * aus einem TXXX-Frame ausgelesen.
+     * Mit dieser Funktion wird ein ByteArrayPtr auf die Binärdaten eines PRIV-Frames mit dem
+     * Identifier \p identifier zurückgegeben.
      *
-     * @param description String mit der Description des gesuchten benutzerdefinierten Textes
-     * @return Bei Erfolg wird ein ByteArrayPtr mit den Binärdaten des benutzerdefinierten Textes zurückgegeben,
-     * im Fehlerfall ein leerer ByteArrayPtr.
+     * @param identifier String mit dem Bezeichner des gesuchten PRIV-Frames
+     * @return ByteArrayPtr auf die Binärdaten des PRIV-Frames, im Fehlerfall ein leerer/null ByteArrayPtr.
      */
     ByteArrayPtr getPrivateData(const String& identifier) const;
 

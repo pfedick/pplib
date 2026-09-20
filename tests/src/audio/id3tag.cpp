@@ -913,6 +913,276 @@ TEST_F(ID3TagTest, AiffCorruptedChunkSize)
     EXPECT_EQ((size_t)0, tag.frameCount());
 }
 
+TEST_F(ID3TagTest, CopyAndDecodeTextOffsetOutOfBounds)
+{
+    pplib::ID3Frame frame("TIT2");
+    frame.setData("Test", 4);
+    pplib::String target;
+    ASSERT_NO_THROW({ pplib::ID3Tag::copyAndDecodeText(target, &frame, 10, "UTF-8"); });
+    EXPECT_TRUE(target.isEmpty());
+}
+
+TEST_F(ID3TagTest, DecodeOddByteCountUtf16)
+{
+    pplib::ID3Frame frame("TIT2");
+    char data[3] = {'A', 0, 'B'};
+    frame.setData(data, 3);
+    pplib::String target;
+    ASSERT_NO_THROW({ pplib::ID3Tag::decode(&frame, 0, 1, target, "UTF-8"); });
+    EXPECT_FALSE(target.isEmpty());
+}
+
+TEST_F(ID3TagTest, DecodeUnknownEncoding)
+{
+    pplib::ID3Frame frame("TIT2");
+    frame.setData("Data", 4);
+    pplib::String target;
+    int nextOffset = pplib::ID3Tag::decode(&frame, 0, 5, target, "UTF-8");
+    EXPECT_EQ(1, nextOffset);
+    EXPECT_TRUE(target.isEmpty());
+}
+
+TEST_F(ID3TagTest, DecodeUtf8RespectsCharset)
+{
+    pplib::ID3Frame frame("TIT2");
+    pplib::String utf8Str("Übergrößenträger");
+    frame.setData(utf8Str.c_str(), utf8Str.size());
+    pplib::String target;
+    pplib::ID3Tag::decode(&frame, 0, 3, target, "ISO-8859-1");
+    pplib::String expected = pplib::Transcode(utf8Str.c_str(), utf8Str.size(), "UTF-8", "ISO-8859-1");
+    EXPECT_EQ(expected, target);
+}
+
+TEST_F(ID3TagTest, Id3v24ExtendedHeader)
+{
+    // ID3v2.4 Header with Extended Header Flag (0x40)
+    // Extended Header size (synchsafe) = 6 bytes (flags length 1, flag 1 byte, 4 bytes padding or data)
+    // Total extended header = 4 + 6 = 10 bytes
+    // Followed by TIT2 frame
+    unsigned char tagData[] = {
+        'I', 'D', '3', 4,   0,  0x40, 0, 0, 0, 25, // Header, size 25 synchsafe
+        0,   0,   0,   6,   1,  0,    0, 0, 0, 0,  // 10 bytes Extended Header (size 6 excludes itself)
+        'T', 'I', 'T', '2', 0,  0,    0, 5, 0, 0,  // TIT2 header, size 5
+        0,   'T', 'e', 's', 't'                    // 5 bytes data (ISO-8859-1)
+    };
+    pplib::ByteArray mp3;
+    pplib::File::load(mp3, "testdata/audio/test_192cbr.mp3");
+    mp3.prepend(tagData, sizeof(tagData));
+    pplib::File::save(mp3.ptr(), mp3.size(), "tmp/test_ext_header.mp3");
+
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW({ tag.load("tmp/test_ext_header.mp3"); });
+    EXPECT_EQ(pplib::String("Test"), tag.getTitle());
+}
+
+TEST_F(ID3TagTest, GenerateId3v2TagIgnoresInvalidFrameName)
+{
+    pplib::ID3Tag tag;
+    pplib::ID3Frame emptyFrame;
+    pplib::ID3Frame shortFrame("A");
+    tag.addFrame(emptyFrame);
+    tag.addFrame(shortFrame);
+    tag.setTitle("ValidTitle");
+
+    pplib::ByteArray serialized;
+    ASSERT_NO_THROW({ tag.generateId3V2Tag(serialized); });
+    EXPECT_GT(serialized.size(), (size_t)0);
+
+    // Verify loading the serialized tag
+    pplib::ByteArray mp3;
+    pplib::File::load(mp3, "testdata/audio/test_192cbr.mp3");
+    mp3.prepend(serialized);
+    pplib::File::save(mp3.ptr(), mp3.size(), "tmp/test_invalid_frames.mp3");
+
+    pplib::ID3Tag tag2;
+    ASSERT_NO_THROW({ tag2.load("tmp/test_invalid_frames.mp3"); });
+    EXPECT_EQ(pplib::String("ValidTitle"), tag2.getTitle());
+    EXPECT_EQ((size_t)1, tag2.frameCount());
+}
+
+TEST_F(ID3TagTest, UnsynchronisationReversing)
+{
+    // Tag with unsync flag (0x80) containing FF 00 41 ('A')
+    // Must be de-unsynchronized to FF 41
+    unsigned char tagData[] = {
+        'I',  'D',  '3', 4,   0, 0x80, 0, 0, 0, 13, // Tag Header, size 13
+        'T',  'E',  'S', 'T', 0, 0,    0, 3, 0, 0,  // Frame Header, size 3
+        0xFF, 0x00, 'A'                             // 3 data bytes unsynchronized
+    };
+    pplib::ByteArray mp3;
+    pplib::File::load(mp3, "testdata/audio/test_192cbr.mp3");
+    mp3.prepend(tagData, sizeof(tagData));
+    pplib::File::save(mp3.ptr(), mp3.size(), "tmp/test_unsync_ff00.mp3");
+
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW({ tag.load("tmp/test_unsync_ff00.mp3"); });
+    pplib::ID3Frame* f = tag.findFrame("TEST");
+    ASSERT_NE(nullptr, f);
+    ASSERT_EQ((size_t)2, f->size());
+    EXPECT_EQ((unsigned char)0xFF, (unsigned char)f->dataPtr()[0]);
+    EXPECT_EQ('A', f->dataPtr()[1]);
+}
+
+TEST_F(ID3TagTest, GetPictureNoPictureData)
+{
+    pplib::ID3Tag tag;
+    pplib::ID3Frame frame("APIC");
+    // APIC: Encoding(1), MIME(image/jpeg\0), PicType(3), Description(\0), but NO picture bytes!
+    const char data[] = {0, 'i', 'm', 'a', 'g', 'e', '/', 'j', 'p', 'e', 'g', 0, 3, 0};
+    frame.setData(data, sizeof(data));
+    tag.addFrame(frame);
+
+    EXPECT_FALSE(tag.hasPicture(3));
+    pplib::ByteArray bin;
+    EXPECT_FALSE(tag.getPicture(3, bin));
+    EXPECT_EQ((size_t)0, bin.size());
+}
+
+TEST_F(ID3TagTest, GetYearFallbackToTdrc)
+{
+    pplib::ID3Tag tag;
+    tag.setTextFrame("TDRC", "2024-05-12");
+    EXPECT_EQ(pplib::String("2024"), tag.getYear());
+
+    pplib::ByteArray v1;
+    tag.generateId3V1Tag(v1);
+    EXPECT_EQ(0, memcmp((const char*)v1.ptr() + 93, "2024", 4));
+}
+
+TEST_F(ID3TagTest, PopularimeterEmptyEmail)
+{
+    pplib::ID3Tag tag;
+    tag.setPopularimeter("", 196);
+    EXPECT_TRUE(tag.hasPopularimeter(""));
+    EXPECT_TRUE(tag.hasPopularimeter());
+    EXPECT_EQ(196, tag.getPopularimeter(""));
+    EXPECT_EQ(196, tag.getPopularimeter());
+
+    std::map<pplib::String, unsigned char> ratings;
+    tag.getAllPopularimeters(ratings);
+    EXPECT_EQ((size_t)1, ratings.size());
+    EXPECT_EQ(196, ratings[pplib::String("")]);
+}
+
+TEST_F(ID3TagTest, UserDefinedTextGeneric)
+{
+    pplib::ID3Tag tag;
+    tag.setUserDefinedText("CustomField", "MyValue");
+    EXPECT_EQ(pplib::String("MyValue"), tag.getUserDefinedText("CustomField"));
+
+    tag.setUserDefinedText("CustomField", "UpdatedValue");
+    EXPECT_EQ(pplib::String("UpdatedValue"), tag.getUserDefinedText("CustomField"));
+
+    const pplib::ID3Tag& ctag = tag;
+    const pplib::ID3Frame* cf = ctag.findUserDefinedText("CustomField");
+    EXPECT_NE(nullptr, cf);
+}
+
+TEST_F(ID3TagTest, WaveLoadFileWithoutTags)
+{
+    pplib::ID3Tag Tags;
+    ASSERT_NO_THROW({ Tags.load("testdata/audio/test_44kHz.wav"); });
+    EXPECT_EQ((size_t)0, Tags.frameCount());
+}
+
+TEST_F(ID3TagTest, WaveInitialTaggingAndRetagging)
+{
+    pplib::ID3Tag Tags;
+    pplib::ByteArray cover;
+    pplib::File::load(cover, "testdata/audio/cover.jpg");
+    pplib::File::copy("testdata/audio/test_44kHz.wav", "tmp/test_tagged1.wav");
+
+    ASSERT_NO_THROW({ Tags.load("tmp/test_tagged1.wav"); });
+    EXPECT_EQ((size_t)0, Tags.frameCount());
+
+    Tags.setArtist("Patrick Fedick");
+    Tags.setTitle("Wave Test");
+    Tags.setGenre("Rock");
+    Tags.setAlbum("PPL Audio");
+    Tags.setYear("2026");
+    Tags.setTrack("1/5");
+    Tags.setComment("WAV Comment");
+    Tags.setPicture(3, cover, "image/jpeg");
+    Tags.setUserDefinedText("MyCustomWavTag", "WavValue");
+
+    ASSERT_NO_THROW({ Tags.save(); });
+
+    // Reload and verify
+    pplib::ID3Tag Loaded;
+    ASSERT_NO_THROW({ Loaded.load("tmp/test_tagged1.wav"); });
+    EXPECT_EQ(pplib::String("Patrick Fedick"), Loaded.getArtist());
+    EXPECT_EQ(pplib::String("Wave Test"), Loaded.getTitle());
+    EXPECT_EQ(pplib::String("Rock"), Loaded.getGenre());
+    EXPECT_EQ(pplib::String("PPL Audio"), Loaded.getAlbum());
+    EXPECT_EQ(pplib::String("2026"), Loaded.getYear());
+    EXPECT_EQ(pplib::String("1/5"), Loaded.getTrack());
+    EXPECT_EQ(pplib::String("WAV Comment"), Loaded.getComment());
+    EXPECT_EQ(pplib::String("WavValue"), Loaded.getUserDefinedText("MyCustomWavTag"));
+    EXPECT_TRUE(Loaded.hasPicture(3));
+    pplib::ByteArray loadedCover;
+    EXPECT_TRUE(Loaded.getPicture(3, loadedCover));
+    EXPECT_EQ(cover.size(), loadedCover.size());
+    EXPECT_TRUE(cover == loadedCover);
+
+    // Remove picture and re-save
+    Loaded.removePicture(3);
+    ASSERT_NO_THROW({ Loaded.save(); });
+
+    pplib::ID3Tag LoadedNoPic;
+    ASSERT_NO_THROW({ LoadedNoPic.load("tmp/test_tagged1.wav"); });
+    EXPECT_FALSE(LoadedNoPic.hasPicture(3));
+    EXPECT_EQ(pplib::String("Patrick Fedick"), LoadedNoPic.getArtist());
+
+    // Remove all tags and re-save
+    LoadedNoPic.clearTags();
+    ASSERT_NO_THROW({ LoadedNoPic.save(); });
+
+    pplib::ID3Tag EmptyTags;
+    ASSERT_NO_THROW({ EmptyTags.load("tmp/test_tagged1.wav"); });
+    EXPECT_EQ((size_t)0, EmptyTags.frameCount());
+}
+
+TEST_F(ID3TagTest, WaveUpperId3Chunk)
+{
+    // Tag a wave file, then rename chunk 'id3 ' to 'ID3 ' in the raw file
+    pplib::File::copy("testdata/audio/test_44kHz.wav", "tmp/test_tagged_upper.wav");
+    pplib::ID3Tag tag;
+    tag.load("tmp/test_tagged_upper.wav");
+    tag.setTitle("UpperID3Test");
+    tag.save();
+
+    // Find "id3 " and change to "ID3 " in the file
+    pplib::File f;
+    f.open("tmp/test_tagged_upper.wav", pplib::File::FileMode::READWRITE);
+    pplib::ByteArray content;
+    f.read(content, f.size());
+    bool found = false;
+    for (size_t i = 12; i + 4 <= content.size(); ++i) {
+        if (memcmp((const char*)content.ptr() + i, "id3 ", 4) == 0) {
+            f.seek(i);
+            f.write("ID3 ", 4);
+            found = true;
+            break;
+        }
+    }
+    f.close();
+    ASSERT_TRUE(found);
+
+    // Verify loading recognises uppercase "ID3 "
+    pplib::ID3Tag tagUpper;
+    ASSERT_NO_THROW({ tagUpper.load("tmp/test_tagged_upper.wav"); });
+    EXPECT_EQ(pplib::String("UpperID3Test"), tagUpper.getTitle());
+
+    // Re-save and verify it doesn't duplicate the chunk
+    tagUpper.setTitle("UpperID3TestUpdated");
+    ASSERT_NO_THROW({ tagUpper.save(); });
+
+    pplib::ID3Tag tagVerify;
+    ASSERT_NO_THROW({ tagVerify.load("tmp/test_tagged_upper.wav"); });
+    EXPECT_EQ(pplib::String("UpperID3TestUpdated"), tagVerify.getTitle());
+    EXPECT_EQ((size_t)1, tagVerify.frameCount());
+}
+
 /*
 TEST_F(ID3TagTest, AiffRetagRealFile) {
 
