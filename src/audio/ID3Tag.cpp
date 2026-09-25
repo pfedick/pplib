@@ -35,6 +35,7 @@
 #include <pplib/core/regex.h>
 #include <pplib/exceptions.h>
 #include <pplib/audio/id3tag.h>
+#include <pplib/audio/audioinfo.h>
 #include <pplib/audio/mp3.h>
 
 #include <vector>

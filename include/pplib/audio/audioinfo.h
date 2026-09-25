@@ -31,10 +31,13 @@
 #define PPLIB_AUDIO_AUDIOINFO_H
 
 #include <cstdint>
+#include <pplib/core/baseexception.h>
 #include <pplib/core/fileobject.h>
 
 namespace pplib
 {
+
+PPLIBEXCEPTION(UnsupportedAudioFormatException, Exception);
 
 //!\brief Struktur zum Speichern eines WAVE-Headers
 typedef struct tagWAVEHeader

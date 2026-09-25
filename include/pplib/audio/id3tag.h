@@ -34,13 +34,13 @@
 #include <pplib/types/bytearray.h>
 #include <pplib/core/fileobject.h>
 #include <pplib/core/baseexception.h>
+#include <pplib/audio/audioinfo.h>
 #include <list>
 #include <map>
 
 namespace pplib
 {
 
-PPLIBEXCEPTION(UnsupportedAudioFormatException, Exception);
 PPLIBEXCEPTION(UnsupportedID3TagVersionException, Exception);
 PPLIBEXCEPTION(FilenameNotSetException, Exception);
 
