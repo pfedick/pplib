@@ -37,6 +37,7 @@
 #include <pplib/core/mutex.h>
 
 #include <list>
+#include <string_view>
 
 namespace pplib
 {
@@ -59,8 +60,9 @@ class PFPChunk
     friend class PFPFile;
 
 private:
-    String chunkname;
-    ByteArray chunkdata;
+    ByteArrayPtr chunkdata;
+    char chunkname[5]{"UNKN"};
+    bool ownMemory{false};
 
 public:
     /**
@@ -70,7 +72,7 @@ public:
      * Name "UNKN" ein. Ein derartiger Chunk würde durch die PFPFile-Klasse
      * nicht gespeichert.
      */
-    PFPChunk();
+    PFPChunk() = default;
 
     /**
      * @brief Konstruktor des PFPChunk mit Name und Daten
@@ -92,14 +94,17 @@ public:
      *
      * Der Copy-Konstruktor erstellt eine Kopie eines existierenden Chunks.
      */
-    PFPChunk(const PFPChunk& other) = default;
+    PFPChunk(const PFPChunk& other);
 
     /**
      * @brief Move-Konstruktor des PFPChunk
      *
      * Der Move-Konstruktor erstellt eine Kopie eines existierenden Chunks.
      */
-    PFPChunk(PFPChunk&& other) noexcept = default;
+    PFPChunk(PFPChunk&& other) noexcept;
+
+    PFPChunk& operator=(const PFPChunk& other);
+    PFPChunk& operator=(PFPChunk&& other) noexcept;
 
     /**
      * @brief Destruktor des PFPChunk
@@ -109,7 +114,7 @@ public:
      * wurde, wird er daraus entfernt.
      *
      */
-    ~PFPChunk() = default;
+    ~PFPChunk();
 
     /**
      * @brief Name des Chunks setzen
@@ -123,6 +128,8 @@ public:
      * @exception IllegalArgumentException Wird geworfen, wenn der Name des Chunks ungültig ist
      */
     void setName(const String& chunkname);
+
+    void setName(const char* chunkname, size_t size);
 
     /**
      * @brief Nutzdaten des Chunks setzen
@@ -149,6 +156,28 @@ public:
      * @exception OutOfMemoryException Nicht genug Speicher
      */
     void setData(const ByteArrayPtr& data);
+
+    /** @brief Nutzdaten des Chunks verwenden, ohne sie zu kopieren
+     *
+     * Mit dieser Funktion werden die Nutzdaten des Chunks angegeben, ohne dass sie
+     * in einen eigenen Speicherbereich kopiert werden. Es wird lediglich ein Pointer
+     * auf die vorhandenen Daten verwendet.
+     *
+     * @param ptr Ein Pointer auf den Beginn der Daten
+     * @param size Größe der Daten in Byte
+     */
+    void useData(const void* ptr, size_t size);
+
+    /**
+     * @brief Nutzdaten des Chunks verwenden, ohne sie zu kopieren
+     *
+     * Mit dieser Funktion werden die Nutzdaten des Chunks angegeben, ohne dass sie
+     * in einen eigenen Speicherbereich kopiert werden. Es wird lediglich ein Pointer
+     * auf die vorhandenen Daten verwendet.
+     *
+     * @param data Eine Referenz auf ein ByteArray oder ByteArrayPtr
+     */
+    void useData(const ByteArrayPtr& data);
 
     /**
      * @brief Größe der Nutzdaten des Chunks
@@ -182,9 +211,10 @@ public:
      *
      * @return Name des Chunks
      */
-    inline const String& name() const
+
+    inline String name() const
     {
-        return chunkname;
+        return String(chunkname, 4);
     }
 };
 
@@ -197,18 +227,20 @@ public:
  * Jedes File, ganz gleich welchen Inhalt es hat, hat bis zum Ende den gleichen Aufbau. Wichtigste
  * Neuerung dabei sind die sogenannten Chunks. Ein File kann aus bliebig vielen Chunks bestehen.
  * Diese werden von der Klasse PFPChunk abgeleitet, bekommen einen Namen und einen beliebigen
- * Inhalt. Diese können dann mit PFPFile::Add in das File hinzugefügt werden.
+ * Inhalt. Diese können dann mit PFPFile::add in das File hinzugefügt werden.
  *
  * @copydoc PFPFileVersion3
  */
 class PFPFile
 {
 private:
-    std::list<PFPChunk> Chunks;  /// Verwaltung aller Chunks in einer Liste
-    String id;                   /// ID des Files. Ist immer 4 Byte groß
-    uint8_t mainversion;         /// Hauptversion des Files
-    uint8_t subversion;          /// Unterversion des Files
-    Compression::Algorithm comp; /// Komprimierungsmethode, die für das File verwendet wird
+    std::list<PFPChunk> Chunks;  // Verwaltung aller Chunks in einer Liste
+    ByteArray payload;           // Hält dekomprimierte Daten oder File-Daten (falls PFPFile Owner ist)
+    ByteArrayPtr dataPtr;        // Zeigt auf die aktiven Daten (entweder payload oder externer Flash/RAM)
+    String id;                   // ID des Files. Ist immer 4 Byte groß
+    uint8_t mainversion;         // Hauptversion des Files
+    uint8_t subversion;          // Unterversion des Files
+    Compression::Algorithm comp; // Komprimierungsmethode, die für das File verwendet wird
 
     /**
      * @brief Interne Funktion zum Speichern von vordefinierten Chunks
@@ -225,6 +257,7 @@ private:
      * - PFPFile::SetCopyright
      */
     void setStringParam(const String& chunkname, const String& data);
+    size_t saveChunk(char* buffer, size_t pp, const PFPChunk* chunk);
 
 public:
     class Iterator
@@ -367,36 +400,6 @@ public:
     /**
      * @brief Chunk hinzufügen
      *
-     * Mit dieser Funktion wird ein neuer Chunk in die Klasse hinzugefügt. Der Chunk muss von der
-     * Anwendung mit "new" erstellt worden sein, einen Namen haben. Ist dies nicht der Fall,
-     * gibt die Funktion eine Fehlermeldung zurück.
-     *
-     * Sobald der Chunk mit AddChunk an die PFPFile-Klasse übergeben wurde, wird er von der Klasse
-     * verwaltet und gegebenenfalls auch gelöscht. Die Anwendung braucht kein "delete" darauf zu
-     * machen.
-     *
-     * @param chunk Pointer auf den hinzuzufügenden Chunk
-     * @remarks Es ist möglich mehrere Chunks mit gleichem Namen hinzuzufügen. Der Chunk wird nur in der
-     * Klasse hinzugefügt, nicht aber in die Datei geschrieben. Zum Speichern muss explizit die Funktion
-     * PFPFile::Save aufgerufen werden.
-     *
-     * @example
-     * @code
-     * void *ptr=xxxxx;    // Pointer auf die Daten
-     * int size=xxxx;      // Größe der Daten in Byte
-     * pplib::PFPFile file;
-     * pplib::PFPChunk *chunk=new pplib::PFPChunk;
-     * chunk->SetName("DATA");
-     * chunk->SetData(ptr,size);
-     * file.AddChunk(chunk);
-     * @endcode
-     *
-     */
-    [[deprecated("Use addChunk(PFPChunk&& chunk) instead")]] void addChunk(PFPChunk* chunk);
-
-    /**
-     * @brief Chunk hinzufügen
-     *
      * Mit dieser Funktion wird ein neuer Chunk in die Klasse hinzugefügt. Der Chunk muss einen Namen haben.
      * Ist dies nicht der Fall, gibt die Funktion eine Fehlermeldung zurück.
      *
@@ -520,6 +523,8 @@ public:
      * Durch das Laden eines PFP-Files werden alle bisher in der Klasse vorhandenen Chunks gelöscht.
      */
     void load(const String& file);
+
+    void useMemory(const ByteArrayPtr& data);
 
     /**
      * @brief Prüfen, ob es sich um ein PFP-File handelt

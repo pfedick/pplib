@@ -37,37 +37,140 @@
 namespace pplib
 {
 
-PFPChunk::PFPChunk()
+PFPChunk::~PFPChunk()
 {
-    chunkname = "UNKN";
+    if (ownMemory && chunkdata.ptr()) {
+        ::free(chunkdata.ptr());
+    }
 }
 
 void PFPChunk::setName(const String& chunkname)
 {
-    if (chunkname.len() != 4) throw IllegalArgumentException();
-    String s = chunkname;
-    s.upperCase();
+    setName(chunkname.c_str(), chunkname.size());
+}
+
+void PFPChunk::setName(const char* chunkname, size_t size)
+{
+    if (!chunkname || size != 4) throw IllegalArgumentException();
     for (size_t i = 0; i < 4; i++) {
-        wchar_t c = s[i];
+        unsigned char c = (unsigned char)chunkname[i];
         if (c < 32 || c > 127) throw IllegalArgumentException();
     }
-    this->chunkname = s;
+    memcpy(this->chunkname, chunkname, 4);
+    this->chunkname[4] = '\0';
+    // Chunkname muss uppercase sein
+    for (size_t i = 0; i < 4; i++) {
+        this->chunkname[i] = (char)toupper(this->chunkname[i]);
+    }
 }
 
 void PFPChunk::setData(const void* ptr, size_t size)
 {
     if (!ptr && size == 0) {
-        chunkdata.clear();
+        if (ownMemory && chunkdata.ptr()) {
+            ::free(chunkdata.ptr());
+        }
+        ownMemory = false;
+        chunkdata.use(nullptr, 0);
         return;
     }
-    if (!ptr) throw IllegalArgumentException();
-    if (size > (0xffffffff - 8)) throw IllegalArgumentException();
-    chunkdata.copy(ptr, size);
+    if (!ptr || size > (0xffffffff - 8)) throw IllegalArgumentException();
+    char* buffer = (char*)malloc(size);
+    if (!buffer) throw OutOfMemoryException();
+    memcpy(buffer, ptr, size);
+    if (ownMemory && chunkdata.ptr()) {
+        free(chunkdata.ptr());
+    }
+    chunkdata.use(buffer, size);
+    ownMemory = true;
 }
 
 void PFPChunk::setData(const ByteArrayPtr& data)
 {
     setData(data.ptr(), data.size());
+}
+
+void PFPChunk::useData(const void* ptr, size_t size)
+{
+    if (ownMemory && chunkdata.ptr() && chunkdata.ptr() != ptr) {
+        ::free(chunkdata.ptr());
+    }
+    chunkdata.use((void*)ptr, size);
+    ownMemory = false;
+}
+
+void PFPChunk::useData(const ByteArrayPtr& data)
+{
+    useData(data.ptr(), data.size());
+}
+
+PFPChunk::PFPChunk(const PFPChunk& other)
+{
+    memcpy(chunkname, other.chunkname, 5);
+    if (other.ownMemory == false) {
+        ownMemory = false;
+        chunkdata = other.chunkdata;
+    } else {
+        ownMemory = false;
+        if (other.size() > 0) {
+            char* buffer = (char*)malloc(other.size());
+            if (!buffer) throw OutOfMemoryException();
+            memcpy(buffer, other.data(), other.size());
+            chunkdata.use(buffer, other.size());
+            ownMemory = true;
+        }
+    }
+}
+
+PFPChunk::PFPChunk(PFPChunk&& other) noexcept
+{
+    memcpy(chunkname, other.chunkname, 5);
+    ownMemory = other.ownMemory;
+    chunkdata = other.chunkdata;
+    other.chunkdata.use(nullptr, 0);
+    other.ownMemory = false;
+    memcpy(other.chunkname, "UNKN", 5);
+}
+
+PFPChunk& PFPChunk::operator=(const PFPChunk& other)
+{
+    if (this != &other) {
+        char* buffer = nullptr;
+        if (other.ownMemory && other.size() > 0) {
+            buffer = (char*)malloc(other.size());
+            if (!buffer) throw OutOfMemoryException();
+            memcpy(buffer, other.data(), other.size());
+        }
+        if (ownMemory && chunkdata.ptr()) {
+            ::free(chunkdata.ptr());
+        }
+        memcpy(chunkname, other.chunkname, 5);
+        if (buffer) {
+            chunkdata.use(buffer, other.size());
+            ownMemory = true;
+        } else {
+            chunkdata = other.chunkdata;
+            ownMemory = false;
+        }
+    }
+    return *this;
+}
+
+PFPChunk& PFPChunk::operator=(PFPChunk&& other) noexcept
+{
+    if (this != &other) {
+        if (ownMemory && chunkdata.ptr()) {
+            ::free(chunkdata.ptr());
+        }
+        memcpy(chunkname, other.chunkname, 4);
+        chunkname[4] = '\0';
+        ownMemory = other.ownMemory;
+        chunkdata = other.chunkdata;
+        other.chunkdata.use(nullptr, 0);
+        other.ownMemory = false;
+        memcpy(other.chunkname, "UNKN", 5);
+    }
+    return *this;
 }
 
 PFPFile::PFPFile()
@@ -85,6 +188,8 @@ PFPFile::~PFPFile()
 void PFPFile::clear()
 {
     Chunks.clear();
+    payload.clear();
+    dataPtr.use(nullptr, 0);
     id = "UNKN";
     mainversion = subversion = 0;
     comp = Compression::Algo_NONE;
@@ -180,12 +285,10 @@ String PFPFile::getCopyright() const
     return String();
 }
 
-static size_t saveChunk(char* buffer, size_t pp, const PFPChunk* chunk)
+size_t PFPFile::saveChunk(char* buffer, size_t pp, const PFPChunk* chunk)
 {
-    const String& name = chunk->name();
-    for (int i = 0; i < 4; i++)
-        Poke8(buffer + pp + i, name[i]);
-    Poke32(buffer + pp + 4, chunk->size());
+    memcpy(buffer + pp, chunk->chunkname, 4);
+    Poke32(buffer + pp + 4, chunk->size() + 8);
     pp += 8;
     if (chunk->size() > 0) {
         memcpy(buffer + pp, chunk->data(), chunk->size());
@@ -239,7 +342,7 @@ void PFPFile::save(const String& filename)
     if (chunk) saveChunk(p, pp, chunk);
     // Restliche Chunks
     for (const auto& chunk : Chunks) {
-        const String& cn = chunk.name();
+        const std::string_view cn(chunk.chunkname, 4);
         if (cn != "NAME" && cn != "AUTH" && cn != "DESC" && cn != "COPY") {
             pp += saveChunk(p, pp, &chunk);
         }
@@ -274,27 +377,16 @@ void PFPFile::save(const String& filename)
     ff.close();
 }
 
-void PFPFile::addChunk(PFPChunk* chunk)
-{
-    if (!chunk) throw NullPointerException();
-    if (chunk->name() == "UNKN") {
-        delete chunk;
-        throw IllegalArgumentException();
-    }
-    Chunks.push_back(std::move(*chunk));
-    delete chunk;
-}
-
 PFPChunk& PFPFile::addChunk(const PFPChunk& chunk)
 {
-    if (chunk.name() == "UNKN") throw IllegalArgumentException();
+    if (strncmp(chunk.chunkname, "UNKN", 4) == 0) throw IllegalArgumentException();
     Chunks.push_back(chunk);
     return Chunks.back();
 }
 
 PFPChunk& PFPFile::addChunk(PFPChunk&& chunk)
 {
-    if (chunk.name() == "UNKN") throw IllegalArgumentException();
+    if (strncmp(chunk.chunkname, "UNKN", 4) == 0) throw IllegalArgumentException();
     Chunks.push_back(std::move(chunk));
     return Chunks.back();
 }
@@ -313,12 +405,15 @@ void PFPFile::deleteChunk(PFPChunk* chunk)
 void PFPFile::deleteChunk(const String& chunkname)
 {
     if (chunkname.len() != 4) return;
-    String s = chunkname;
-    s.upperCase();
+    char cn[4];
+    memcpy(cn, chunkname.c_str(), 4);
+    for (int i = 0; i < 4; i++)
+        cn[i] = toupper(cn[i]);
+
     // Chunks.remove_if([&s](const PFPChunk& c) { return c.name() == s; });
     auto it = Chunks.begin();
     while (it != Chunks.end()) {
-        if (it->name() == s) {
+        if (strncmp(it->chunkname, cn, 4) == 0) {
             it = Chunks.erase(it); // erase liefert den Iterator auf das nachfolgende Element
         } else {
             ++it;
@@ -347,7 +442,7 @@ PFPChunk* PFPFile::findNextChunk(Iterator& it, const String& chunkname) const
     }
 
     while (it.it != Chunks.end()) {
-        if (it.it->name() == it.findchunk) {
+        if (strncmp(it.it->chunkname, it.findchunk.c_str(), 4) == 0) {
             return const_cast<PFPChunk*>(&(*it.it));
         }
         ++it.it;
@@ -435,7 +530,7 @@ bool PFPFile::ident(FileObject& ff)
 {
     try {
         const char* p;
-        p = ff.map(0, 24); // Wieso eigentlich 24? Ich zähle 17 Bytes
+        p = ff.map(0, 24);
         if (strncmp(p, "PFP-File", 8) != 0) return false;
         if (Peek8(p + 8) != 3) return false;
         id.set(p + 10, 4);
@@ -452,7 +547,7 @@ bool PFPFile::ident(FileObject& ff)
 
 bool PFPFile::ident(const ByteArrayPtr& buffer) noexcept
 {
-    if (buffer.size() < 17) return false;
+    if (buffer.size() < 24) return false;
     const char* p = (const char*)buffer.ptr();
     if (strncmp(p, "PFP-File", 8) != 0) return false;
     if (Peek8(p + 8) != 3) return false;
@@ -461,6 +556,70 @@ bool PFPFile::ident(const ByteArrayPtr& buffer) noexcept
     subversion = Peek8(p + 14);
     comp = (Compression::Algorithm)Peek8(p + 16);
     return true;
+}
+
+void PFPFile::useMemory(const ByteArrayPtr& data)
+{
+    if (data.size() < 24) throw InvalidFormatException();
+    const char* p = (const char*)data.ptr();
+    if (strncmp(p, "PFP-File", 8) != 0) throw InvalidFormatException();
+    if (Peek8(p + 8) != 3) throw InvalidFormatException();
+    size_t hsize = Peek8(p + 9); // In der Regel 24 Byte
+    if (hsize < 24 || hsize > data.size()) throw InvalidFormatException();
+
+    Chunks.clear();
+    if (data.ptr() != payload.ptr()) {
+        payload.clear();
+    }
+    dataPtr.use(nullptr, 0);
+    id.set(p + 10, 4);
+    mainversion = Peek8(p + 15);
+    subversion = Peek8(p + 14);
+    comp = (Compression::Algorithm)Peek8(p + 16);
+
+    if (comp) {
+        // Mindestens 8 Bytes für den Komprimierungsheader erforderlich
+        if (data.size() - hsize < 8) throw InvalidFormatException();
+
+        // Wir müssen erst dekomprimieren, dazu müssen wir dann eigenen Speicher allokieren.
+        // Wir rechnen damit, dass `data` eventuell auf unseren eigenen Speicher `payload` zeigt.
+        // Wir allokieren daher eigenen Speicher für die dekomprimierten Daten.
+
+        size_t sizeunk = Peek32(p + hsize);
+        size_t sizecomp = Peek32(p + hsize + 4);
+        // Kurzer Bounds-Check, ob die komprimierten Daten innerhalb des Puffers liegen
+        if (data.size() - hsize - 8 < sizecomp) throw InvalidFormatException();
+
+        ByteArray uncompressedData;
+        uncompressedData.malloc(sizeunk + 1);
+        size_t dstlen = sizeunk;
+        Compression c;
+        c.init(comp);
+        c.uncompress((void*)uncompressedData.ptr(), &dstlen, (const char*)data.ptr() + hsize + 8, sizecomp);
+        if (dstlen != sizeunk) {
+            throw DecompressionFailedException();
+        }
+        payload = std::move(uncompressedData);
+        dataPtr.use(payload);
+
+    } else {
+        dataPtr.use((void*)(p + hsize), data.size() - hsize);
+    }
+    p = (const char*)dataPtr.ptr();
+    size_t z = 0;
+    size_t fsize = dataPtr.size();
+    while (fsize - z >= 8) { // Bounds-Check, ob noch genügend Platz für einen Chunk-Header ist
+        if (strncmp(p + z, "ENDF", 4) == 0) break;
+        size_t size = Peek32(p + z + 4);
+        // Chunk muss mindestens 8 Bytes groß sein und darf nicht über das Pufferende ragen
+        if (size < 8 || size > fsize - z) break;
+
+        PFPChunk chunk;
+        chunk.setName(p + z, 4);
+        chunk.useData(p + z + 8, size - 8);
+        addChunk(std::move(chunk));
+        z += size;
+    }
 }
 
 void PFPFile::load(const String& file)
@@ -481,53 +640,11 @@ void PFPFile::load(FileObject& ff)
     }
     if (memcmp(p, "PFP-File", 8) != 0) throw InvalidFormatException();
     if (Peek8(p + 8) != 3) throw InvalidFormatException();
-    size_t z, fsize;
 
+    // Sieht nach einer gültigen Datei aus, wir können mit dem Laden fortfahren.
     clear();
-    id.set(p + 10, 4);
-    mainversion = Peek8(p + 15);
-    subversion = Peek8(p + 14);
-    comp = (Compression::Algorithm)Peek8(p + 16);
-    size_t hsize = Peek8(p + 9);
-    ByteArray uncompressedData;
-    if (comp) {
-        p = (char*)ff.map(hsize, 8);
-        if (!p) throw ReadException();
-        size_t sizeunk = Peek32(p);
-        size_t sizecomp = Peek32(p + 4);
-        p = ff.map(hsize + 8, sizecomp);
-        if (!p) throw ReadException();
-        uncompressedData.malloc(sizeunk + 1);
-        size_t dstlen = sizeunk;
-        Compression c;
-        c.init(comp);
-        c.uncompress((void*)uncompressedData.ptr(), &dstlen, p, sizecomp);
-        if (dstlen != sizeunk) {
-            throw DecompressionFailedException();
-        }
-        p = (char*)uncompressedData.ptr();
-        fsize = dstlen;
-    } else {
-        p = ff.map();
-        p += hsize;
-        fsize = ff.size() - hsize;
-    }
-    // Wir haben nun den ersten Chunk ab Pointer p
-    z = 0;
-    String Chunkname;
-    size_t size = 0;
-    while ((z += size) < fsize) {
-        size = Peek32(p + z + 4);
-        if (strncmp(p + z, "ENDF", 4) == 0) break;
-        if (!size) break;
-        // Falls z+size über das Ende der Datei geht, stimmt mit diesem Chunk was nicht
-        if (z + size > fsize) break;
-        PFPChunk chunk;
-        Chunkname.set(p + z, 4);
-        chunk.setName(Chunkname);
-        chunk.setData(p + z + 8, size - 8);
-        addChunk(std::move(chunk));
-    }
+    ff.load(payload); // Komplettes File in den Speicher laden
+    useMemory(payload);
 }
 
 } // namespace pplib

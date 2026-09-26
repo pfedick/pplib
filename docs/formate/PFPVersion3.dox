@@ -23,7 +23,7 @@ Byte 16: Komprimierung                                 1 Byte
          1=Zlib
          2=Bzip2
 Byte 17: reserviert                                    3 Byte
-Byte 20: Timestamp der Erstellung (UTC)                4 Byte
+Byte 20: Timestamp der Erstellung (UTC)                4 Byte   // TODO! Erweitern auf 8 Byte für 64-Bit Timestamp
 \endcode
 
 Im Anschluss an den Header folgen die Nutzdaten. Sofern keine Komprimierung
