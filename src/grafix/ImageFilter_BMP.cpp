@@ -149,8 +149,10 @@ bool ImageFilter_BMP::ident(FileObject& file, IMAGE& img) noexcept
 void ImageFilter_BMP::load(FileObject& file, Drawable& surface, IMAGE& img)
 {
     uint8_t *b1, *bmia;
-    uint8_t* address = (uint8_t*)file.map();
+    ByteArrayPtr data = file.map();
+    uint8_t* address = (uint8_t*)data.ptr();
     if (address == NULL) throw NullPointerException();
+    // TODO: Bounds checking einbauen
 
     // S2i *data=(S2i *)surface->internaldata;
     // CSurface *PriSurf=((DD2i *) (data->dd_internaldata))->PrimarySurface;

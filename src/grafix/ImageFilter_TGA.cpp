@@ -32,6 +32,7 @@
 #include <pplib/grafix/image.h>
 #include <pplib/grafix/grafix.h>
 #include <pplib/grafix/imagefilter.h>
+#include <pplib/exceptions.h>
 
 namespace pplib::grafix
 {
@@ -131,8 +132,9 @@ void ImageFilter_TGA::load(FileObject& file, Drawable& surface, IMAGE& img)
     TGAHEAD tgafield, *tga = &tgafield;
     uint8_t* b1;
     Color farbwert;
-    uint8_t* address = (uint8_t*)file.map();
-
+    ByteArrayPtr data = file.map();
+    uint8_t* address = (uint8_t*)data.ptr();
+    if (address == NULL) throw NullPointerException();
     PeekHeader((char*)address, tga);
 
     // S2i *data=(S2i *)surface->internaldata;
