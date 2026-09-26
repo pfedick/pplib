@@ -198,28 +198,27 @@ class Font6Glyph
 private:
 public:
     Font6Glyph();
-    int width;
-    int height;
-    int bearingX;
-    int bearingY;
-    int advance;
+    int16_t width;
+    int16_t height;
+    int16_t bearingX;
+    int16_t bearingY;
+    int16_t advance;
     const char* bitmap;
-    std::map<wchar_t, int> Hints;
-    int getHint(wchar_t nextGlyph) const;
+    std::map<wchar_t, int16_t> Hints;
+    int16_t getHint(wchar_t nextGlyph) const;
 };
 
 class Font6Face
 {
 private:
 public:
-    int Flags;
-    int Pixelformat;
-    int Size;
-    int MaxBearingY;
-    int MaxHeight;
-    int Underscore;
+    int16_t Flags;
+    int16_t Pixelformat;
+    int16_t Size;
+    int16_t MaxBearingY;
+    int16_t MaxHeight;
+    int16_t Underscore;
     std::map<wchar_t, Font6Glyph> Glyphs;
-
     const Font6Glyph* getGlyph(wchar_t code) const;
 };
 
@@ -229,6 +228,7 @@ private:
     PFPFile ff;
     std::map<uint32_t, Font6Face> Faces;
     String Name, Author, Copyright, Description;
+    bool useKerning{true};
 
     void loadFace(const char* data, size_t size);
     void loadGlyph(Font6Face& Face, const char* data, size_t size);
@@ -239,11 +239,7 @@ private:
         const Font6Face& face, grafix::Drawable& draw, const Font& font, int x, int y, const WideString& text, const Color& color);
 
 public:
-    Font6Renderer();
-    ~Font6Renderer();
-
-    void loadFont(const String& filename);
-    void loadFont(FileObject& file);
+    void loadFont(FontFile& file, bool useKerning);
 
     const String& name() const;
     const String& author() const;
@@ -647,14 +643,6 @@ static void DrawGlyphAA8_270(const DrawableData& data, const Font6Glyph& glyph, 
     }
 }
 
-Font6Renderer::Font6Renderer()
-{
-}
-
-Font6Renderer::~Font6Renderer()
-{
-}
-
 const String& Font6Renderer::name() const
 {
     return Name;
@@ -680,24 +668,17 @@ size_t Font6Renderer::numFaces() const
     return Faces.size();
 }
 
-void Font6Renderer::loadFont(const String& filename)
+void Font6Renderer::loadFont(FontFile& file, bool useKerning)
 {
-    File file;
-    file.open(filename, File::FileMode::READ);
-    loadFont(file);
-}
-
-void Font6Renderer::loadFont(FileObject& file)
-{
-    if (!ff.ident(file)) throw InvalidFontFormatException(file.filename());
-    if (ff.getID() != "FONT") throw InvalidFontFormatException(file.filename());
-    if (ff.getMainVersion() != 6 || ff.getSubVersion() != 0) throw InvalidFontFormatException(file.filename());
-    ff.load(file);
+    ff.useMemory(file.data);
     Name = ff.getName();
     Author = ff.getAuthor();
     Copyright = ff.getCopyright();
     Description = ff.getDescription();
-
+    this->useKerning = useKerning;
+    if (file.Name.isEmpty()) {
+        file.Name = Name;
+    }
     // Die Faces laden
     PFPFile::Iterator it;
     ff.reset(it);
@@ -741,13 +722,8 @@ void Font6Renderer::loadFace(const char* data, size_t size)
 
 void Font6Renderer::loadGlyph(Font6Face& Face, const char* data, size_t size)
 {
-    Font6Glyph NewGlyph;
+    Font6Glyph Glyph;
     wchar_t unicode = Peek16(data + 4);
-    // Um spätere Kopiererei bei einfügen des Glyphs in die Map zu vermeiden,
-    // fügen wir den Glyph zuerst in die Map ein
-    Face.Glyphs.insert(std::pair<wchar_t, Font6Glyph>(unicode, NewGlyph));
-    // Und arbeiten dann auf dem Objekt innerhalb der Map
-    Font6Glyph& Glyph = Face.Glyphs[unicode];
     Glyph.width = Peek16(data + 6);
     Glyph.height = Peek16(data + 8);
     Glyph.bearingX = (short)Peek16(data + 10);
@@ -757,15 +733,16 @@ void Font6Renderer::loadGlyph(Font6Face& Face, const char* data, size_t size)
     if (Face.Flags & 8) { // Wir haben Hints
         wchar_t c;
         while ((c = Peek16(data + p))) {
-#ifndef PICO_BUILD
-            // Hints kosten auf dem Pico zuviel Speicher!
-            Glyph.Hints.insert(std::pair<wchar_t, int>(c, (short)Peek16(data + p + 2)));
-#endif
+            if (useKerning) {
+                Glyph.Hints.insert(std::pair<wchar_t, int>(c, (short)Peek16(data + p + 2)));
+            }
             p += 4;
         }
         p += 4;
     }
     Glyph.bitmap = data + p;
+    Face.Glyphs.emplace(unicode, std::move(Glyph));
+
     /*
     printf ("Reading Glyph: Size: %zi, Unicode: %i = %lc, width: %i, height: %i, advance: %i, Hints: %zi\n",
             size,unicode,unicode,Glyph.width,Glyph.height, Glyph.advance, Glyph.Hints.size());
@@ -792,10 +769,10 @@ const Font6Glyph* Font6Face::getGlyph(wchar_t code) const
     return &it->second;
 }
 
-int Font6Glyph::getHint(wchar_t nextGlyph) const
+int16_t Font6Glyph::getHint(wchar_t nextGlyph) const
 {
     if (Hints.empty()) return 0;
-    std::map<wchar_t, int>::const_iterator it;
+    std::map<wchar_t, int16_t>::const_iterator it;
     it = Hints.find(nextGlyph);
     if (it == Hints.end()) return 0;
     return it->second;
@@ -1122,50 +1099,37 @@ String FontEngineFont6::description() const
     return "Rendering of PPLib Version 6 Fonts";
 }
 
-bool FontEngineFont6::ident(FileObject& file) noexcept
+bool FontEngineFont6::ident(const ByteArrayPtr& buffer) noexcept
 {
     PFPFile ff;
-    if (!ff.ident(file)) return 0;
-    if (ff.getID() != "FONT") return 0;
+    if (!ff.ident(buffer)) return false;
+    if (ff.getID() != "FONT") return false;
     if (ff.getMainVersion() == 6 && ff.getSubVersion() == 0) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
-FontFile* FontEngineFont6::loadFont(FileObject& file, const String& fontname)
+void FontEngineFont6::loadFont(FontFile& file, bool useKerning)
 {
     Font6Renderer* render = new Font6Renderer;
-    if (!render) throw OutOfMemoryException();
     try {
-        render->loadFont(file);
+        render->loadFont(file, useKerning);
+        file.engine = this;
+        file.priv = render;
     }
     catch (...) {
         delete render;
         throw;
     }
-    FontFile* ff = new FontFile;
-    if (!ff) {
-        delete render;
-        throw OutOfMemoryException();
-    }
-    if (fontname.notEmpty())
-        ff->Name = fontname;
-    else
-        ff->Name = render->name();
-    ff->engine = this;
-    ff->priv = render;
-    return ff;
 }
 
-void FontEngineFont6::deleteFont(FontFile* file)
+void FontEngineFont6::deleteFont(FontFile& file)
 {
-    if (!file) throw NullPointerException();
-    if (file->engine != this) throw InvalidFontEngineException();
-    Font6Renderer* render = static_cast<Font6Renderer*>(file->priv);
-    delete render;
-    file->priv = NULL;
-    file->engine = NULL;
+    if (file.engine != this) throw InvalidFontEngineException();
+    delete static_cast<Font6Renderer*>(file.priv);
+    file.priv = nullptr;
+    file.engine = nullptr;
 }
 
 void FontEngineFont6::render(

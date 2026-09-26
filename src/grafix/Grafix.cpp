@@ -115,9 +115,6 @@ Grafix::~Grafix()
     ImageFilterList.clear();
 
     // cleanup fonts
-    for (auto it = FontList.begin(); it != FontList.end(); ++it) {
-        delete it->second;
-    }
     FontList.clear();
     // cleanup font engines
     for (auto it = FontEngineList.begin(); it != FontEngineList.end(); ++it) {

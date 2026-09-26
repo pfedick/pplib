@@ -86,10 +86,10 @@ private:
     Color cForeground;
     Color cBorder;
     Color cShadow;
+    float rotationDegrees;
     uint16_t fontSize;
     uint8_t flags;
     uint8_t ori;
-    double rotationDegrees;
 
 public:
     enum Orientation
@@ -104,6 +104,7 @@ public:
 
     Font();
     Font(const Font& other);
+    Font(Font&& other) noexcept;
 
     const String& name() const;
     Color color() const;
@@ -139,23 +140,32 @@ public:
     void setRotation(double degrees);
 
     Font& operator=(const Font& other);
+    Font& operator=(Font&& other) noexcept;
 };
 bool operator!=(const Font& f1, const Font& f2);
 bool operator==(const Font& f1, const Font& f2);
 
+/** @class FontFile
+ * @ingroup PPLGroupGrafik
+ * @brief Interne Klasse zur Verwaltung aller geladener Font-Dateien
+ */
 class FontFile
 {
     friend class Grafix;
 
 private:
 public:
-    String Name;
-    ByteArray Memory;
-    FontEngine* engine;
-    void* priv;
-
+    String Name;                 // Name of the font file
+    ByteArray Memory;            // Memory content of the font file
+    ByteArrayPtr data;           // Pointer to the memory content of the font file
+    FontEngine* engine{nullptr}; // Pointer to the font engine that loaded this font file
+    void* priv{nullptr};         // Pointer to private data used by the font engine
     FontFile();
     ~FontFile();
+    FontFile(const FontFile& other) = delete;
+    FontFile& operator=(const FontFile& other) = delete;
+    FontFile(FontFile&& other) noexcept;
+    FontFile& operator=(FontFile&& other) noexcept;
 };
 
 class FontEngine
@@ -167,9 +177,9 @@ public:
     FontEngine();
     virtual ~FontEngine();
 
-    virtual bool ident(FileObject& file) noexcept;
-    virtual FontFile* loadFont(FileObject& file, const String& fontname);
-    virtual void deleteFont(FontFile* file);
+    virtual bool ident(const ByteArrayPtr& buffer) noexcept;
+    virtual void loadFont(FontFile& file, bool useKerning);
+    virtual void deleteFont(FontFile& file);
     virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
     virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
     virtual Rect boundary(const FontFile& file, const Font& font, const WideString& text, int x, int y);
@@ -186,9 +196,9 @@ private:
 public:
     FontEngineFont5();
     ~FontEngineFont5();
-    bool ident(FileObject& file) noexcept override;
-    FontFile* loadFont(FileObject& file, const String& fontname) override;
-    void deleteFont(FontFile* file) override;
+    bool ident(const ByteArrayPtr& buffer) noexcept override;
+    void loadFont(FontFile& file, bool useKerning) override;
+    void deleteFont(FontFile& file) override;
     void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color) override;
     Size measure(const FontFile& file, const Font& font, const WideString& text) override;
     String name() const override;
@@ -201,9 +211,9 @@ private:
 public:
     FontEngineFont6();
     ~FontEngineFont6();
-    bool ident(FileObject& file) noexcept override;
-    FontFile* loadFont(FileObject& file, const String& fontname) override;
-    void deleteFont(FontFile* file) override;
+    bool ident(const ByteArrayPtr& buffer) noexcept override;
+    void loadFont(FontFile& file, bool useKerning) override;
+    void deleteFont(FontFile& file) override;
     void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color) override;
     Size measure(const FontFile& file, const Font& font, const WideString& text) override;
     Rect boundary(const FontFile& file, const Font& font, const WideString& text, int x, int y) override;
@@ -219,9 +229,9 @@ private:
 public:
     FontEngineFreeType();
     ~FontEngineFreeType();
-    bool ident(FileObject& file) noexcept override;
-    FontFile* loadFont(FileObject& file, const String& fontname) override;
-    void deleteFont(FontFile* file) override;
+    bool ident(const ByteArrayPtr& buffer) noexcept override;
+    void loadFont(FontFile& file, bool useKerning) override;
+    void deleteFont(FontFile& file) override;
     void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color) override;
     Size measure(const FontFile& file, const Font& font, const WideString& text) override;
     String name() const override;

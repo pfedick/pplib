@@ -296,20 +296,43 @@ bool operator==(const Font& f1, const Font& f2)
     return true;
 }
 
-/*!\class FontFile
- * \ingroup PPLGroupGrafik
- * \brief Interne Klasse zur Verwaltung aller geladener Font-Dateien
- */
 FontFile::FontFile()
 {
-    engine = NULL;
-    priv = NULL;
+    engine = nullptr;
+    priv = nullptr;
 }
 
 FontFile::~FontFile()
 {
-    if (engine) engine->deleteFont(this);
-    engine = NULL;
+    if (engine) engine->deleteFont(*this);
+    engine = nullptr;
+    priv = nullptr;
+}
+
+FontFile::FontFile(FontFile&& other) noexcept
+{
+    Name = std::move(other.Name);
+    Memory = std::move(other.Memory);
+    data = std::move(other.data);
+    engine = other.engine;
+    priv = other.priv;
+    other.engine = nullptr;
+    other.priv = nullptr;
+}
+
+FontFile& FontFile::operator=(FontFile&& other) noexcept
+{
+    if (this != &other) {
+        if (engine) engine->deleteFont(*this);
+        Name = std::move(other.Name);
+        Memory = std::move(other.Memory);
+        data = std::move(other.data);
+        engine = other.engine;
+        priv = other.priv;
+        other.engine = nullptr;
+        other.priv = nullptr;
+    }
+    return *this;
 }
 
 void Grafix::addFontEngine(FontEngine* engine)
@@ -323,49 +346,56 @@ void Grafix::addFontEngine(FontEngine* engine)
     FontEngineList.push_back(engine);
 }
 
-void Grafix::loadFont(const String& filename, const String& fontname)
+void Grafix::loadFont(const String& filename, const String& fontname, bool useKerning)
 {
     File ff;
     ff.open(filename, File::FileMode::READ);
-    loadFont(ff, fontname);
+    loadFont(ff, fontname, useKerning);
 }
 
-void Grafix::loadFont(const ByteArrayPtr& memory, const String& fontname)
-{
-    MemFile ff(memory);
-    loadFont(ff, fontname);
-}
-
-void Grafix::loadFont(FileObject& ff, const String& fontname)
+pplib::grafix::FontEngine* Grafix::findFontEngine(const ByteArrayPtr& buffer) noexcept
 {
     MutexLock lock(myMutex);
-    // Passenden Filter finden
-    FontEngine* engine;
     for (auto it = FontEngineList.begin(); it != FontEngineList.end(); ++it) {
-        engine = *it;
-        int id = engine->ident(ff);
-        if (id == 1) {
-            FontFile* font = engine->loadFont(ff, fontname);
-            if (!font) throw InvalidFontException();
-            // Falls ein Font mit gleichem Namen geladen ist, löschen wir
-            // diesen zuerst
-            auto old_it = FontList.find(font->Name);
-            if (old_it != FontList.end()) {
-                FontFile* old = old_it->second;
-                FontList.erase(old_it);
-                old->engine->deleteFont(old);
-            }
-            try {
-                FontList.insert(std::pair<pplib::String, FontFile*>(font->Name, font));
-            }
-            catch (...) {
-                font->engine->deleteFont(font);
-                throw;
-            }
-            return;
+        FontEngine* engine = *it;
+        if (engine->ident(buffer)) {
+            return engine;
         }
     }
-    throw NoSuitableFontEngineException();
+    return nullptr;
+}
+
+void Grafix::useFontFromMemory(const ByteArrayPtr& buffer, const String& fontname, bool useKerning)
+{
+    FontEngine* engine = findFontEngine(buffer);
+    if (!engine) throw NoSuitableFontEngineException();
+    FontFile font;
+    font.Name = fontname;
+    font.engine = engine;
+    font.data = buffer;
+    engine->loadFont(font, useKerning);
+
+    MutexLock lock(myMutex);
+    FontList[font.Name] = std::move(font);
+}
+
+void Grafix::loadFont(FileObject& ff, const String& fontname, bool useKerning)
+{
+    // map FileObject into memory
+    ByteArrayPtr buffer = ff.map();
+    FontEngine* engine = findFontEngine(buffer);
+    if (!engine) throw NoSuitableFontEngineException();
+    FontFile font;
+    font.Name = fontname;
+    font.engine = engine;
+    font.Memory = std::move(buffer);
+    font.data = font.Memory;
+    engine->loadFont(font, useKerning);
+
+    MutexLock lock(myMutex);
+
+    FontList[font.Name] = std::move(font);
+    return;
 }
 
 void Grafix::unloadFont(const String& fontname) noexcept
@@ -373,10 +403,9 @@ void Grafix::unloadFont(const String& fontname) noexcept
     MutexLock lock(myMutex);
     auto it = FontList.find(fontname);
     if (it != FontList.end()) {
-        FontFile* file = it->second;
-        FontList.erase(it);
-        file->engine->deleteFont(file);
+        it->second.engine->deleteFont(it->second);
     }
+    FontList.erase(it);
 }
 
 FontFile* Grafix::findFont(const String& fontname) noexcept
@@ -384,7 +413,7 @@ FontFile* Grafix::findFont(const String& fontname) noexcept
     MutexLock lock(myMutex);
     auto it = FontList.find(fontname);
     if (it != FontList.end()) {
-        return it->second;
+        return &it->second;
     }
     return nullptr;
 }
@@ -394,8 +423,8 @@ void Grafix::listFonts() noexcept
     MutexLock lock(myMutex);
     printf("Available Fonts:\n");
     for (auto it = FontList.begin(); it != FontList.end(); ++it) {
-        FontFile* ff = it->second;
-        printf("    %s, Engine: %s\n", (const char*)ff->Name, (const char*)ff->engine->name());
+        const FontFile& ff = it->second;
+        printf("    %s, Engine: %s\n", (const char*)ff.Name, (const char*)ff.engine->name());
     }
 }
 
@@ -477,17 +506,17 @@ FontEngine::~FontEngine()
 {
 }
 
-bool FontEngine::ident(FileObject& ff) throw()
+bool FontEngine::ident(const ByteArrayPtr& buffer) throw()
 {
     return false;
 }
 
-FontFile* FontEngine::loadFont(FileObject& ff, const String& fontname)
+void FontEngine::loadFont(FontFile& file, bool useKerning)
 {
     throw UnimplementedVirtualFunctionException();
 }
 
-void FontEngine::deleteFont(FontFile* file)
+void FontEngine::deleteFont(FontFile& file)
 {
     throw UnimplementedVirtualFunctionException();
 }

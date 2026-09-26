@@ -79,7 +79,6 @@ typedef struct tagFreeTypeEngineData
 
 typedef struct tagFreeTypeFaceData
 {
-    FT_Byte* buffer;
     FT_Face face;
     int kerning;
 } FREETYPE_FACE_DATA;
@@ -121,23 +120,23 @@ String FontEngineFreeType::description() const
     return "Rendering of TrueType and OpenType fonts";
 }
 
-bool FontEngineFreeType::ident(FileObject& file) throw()
+bool FontEngineFreeType::ident(const ByteArrayPtr& buffer) noexcept
 {
 #ifndef HAVE_FREETYPE2
     return 0;
 #else
     if (!ft) return false;
-    const FT_Byte* buffer = (const FT_Byte*)file.map();
-    size_t size = file.size();
     FT_Face face;
-    int error = FT_New_Memory_Face(static_cast<FREETYPE_ENGINE_DATA*>(ft)->ftlib, buffer, (FT_Long)size, 0, &face);
-    if (error != 0) return false;
+    if (FT_New_Memory_Face(static_cast<FREETYPE_ENGINE_DATA*>(ft)->ftlib, static_cast<const FT_Byte*>(buffer.ptr()), (FT_Long)buffer.size(),
+                           0, &face) != FT_Err_Ok) {
+        return false;
+    }
     FT_Done_Face(face);
     return true;
 #endif
 }
 
-FontFile* FontEngineFreeType::loadFont(FileObject& file, const String& fontname)
+void FontEngineFreeType::loadFont(FontFile& file, bool useKerning)
 {
 #ifndef HAVE_FREETYPE2
     throw UnsupportedFeatureException("Freetype2");
@@ -145,40 +144,31 @@ FontFile* FontEngineFreeType::loadFont(FileObject& file, const String& fontname)
     if (!ft) throw FontEngineUninitializedException();
     FREETYPE_FACE_DATA* face = (FREETYPE_FACE_DATA*)malloc(sizeof(FREETYPE_FACE_DATA));
     if (!face) throw OutOfMemoryException();
-    face->buffer = (FT_Byte*)file.load();
-    size_t size = file.size();
-    int error = FT_New_Memory_Face(static_cast<FREETYPE_ENGINE_DATA*>(ft)->ftlib, face->buffer, (FT_Long)size, 0, &face->face);
-    if (error != 0) {
-        free(face->buffer);
+    if (FT_New_Memory_Face(static_cast<FREETYPE_ENGINE_DATA*>(ft)->ftlib, static_cast<const FT_Byte*>(file.data.ptr()),
+                           (FT_Long)file.data.size(), 0, &face->face) != FT_Err_Ok) {
         free(face);
-        if (error != 0) throw InvalidFontException();
+        throw InvalidFontException();
     }
-    String name = fontname;
-    if (name.isEmpty()) name.set(face->face->family_name);
-    face->kerning = (int)FT_HAS_KERNING(face->face); // Kerning unterstützt?
-    FontFile* ff = new FontFile;
-    ff->Name = fontname;
-    ff->engine = this;
-    ff->priv = face;
-    return ff;
+    if (file.Name.isEmpty()) file.Name.set(face->face->family_name);
+    face->kerning = (int)(FT_HAS_KERNING(face->face) && useKerning); // Kerning unterstützt und gewollt?
+    file.engine = this;
+    file.priv = face;
 #endif
 }
 
-void FontEngineFreeType::deleteFont(FontFile* file)
+void FontEngineFreeType::deleteFont(FontFile& file)
 {
 #ifndef HAVE_FREETYPE2
     throw UnsupportedFeatureException("Freetype2");
 #else
-    if (!file) throw NullPointerException();
-    if (file->engine != this) throw InvalidFontEngineException();
-    FREETYPE_FACE_DATA* face = (FREETYPE_FACE_DATA*)file->priv;
+    if (file.engine != this) throw InvalidFontEngineException();
+    FREETYPE_FACE_DATA* face = (FREETYPE_FACE_DATA*)file.priv;
     if (face) {
         FT_Done_Face(face->face);
-        free(face->buffer);
         free(face);
-        file->priv = NULL;
     }
-    file->engine = NULL;
+    file.priv = nullptr;
+    file.engine = nullptr;
 #endif
 }
 

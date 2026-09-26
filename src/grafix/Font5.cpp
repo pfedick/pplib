@@ -175,54 +175,43 @@ String FontEngineFont5::description() const
     return "Rendering of PPLib Version 5 Fonts";
 }
 
-bool FontEngineFont5::ident(FileObject& file) throw()
+bool FontEngineFont5::ident(const ByteArrayPtr& buffer) noexcept
 {
     PFPFile ff;
-    if (!ff.ident(file)) return 0;
-    if (ff.getID() != "FONT") return 0;
+    if (!ff.ident(buffer)) return false;
+    if (ff.getID() != "FONT") return false;
     if (ff.getMainVersion() == 5 && ff.getSubVersion() == 0) {
-        return 1;
+        return true;
     }
-    return 0;
+    return false;
 }
 
-FontFile* FontEngineFont5::loadFont(FileObject& file, const String& fontname)
+void FontEngineFont5::loadFont(FontFile& file, bool useKerning)
 {
     PFPFile* File = new PFPFile;
     if (!File) throw OutOfMemoryException();
     try {
-        File->load(file);
+        File->useMemory(file.data);
+        if (File->getID() != "FONT") throw InvalidFontException();
+        if (File->getMainVersion() != 5 || File->getSubVersion() != 0) throw InvalidFontException();
+        if (file.Name.isEmpty()) {
+            file.Name = File->getName();
+        }
+        file.engine = this;
+        file.priv = File;
     }
     catch (...) {
         delete File;
         throw;
     }
-    if (File->getID() != "FONT") throw InvalidFontException();
-    if (File->getMainVersion() != 5 || File->getSubVersion() != 0) throw InvalidFontException();
-    FontFile* ff = new FontFile;
-    if (!ff) {
-        delete File;
-        throw OutOfMemoryException();
-    }
-    if (fontname.notEmpty())
-        ff->Name = fontname;
-    else
-        ff->Name = File->getName();
-    ff->engine = this;
-    // Wir Speichern nicht den Speicherblock der Daten, sondern nur den
-    // Pointer auf das PFPFile
-    ff->priv = File;
-    return ff;
 }
 
-void FontEngineFont5::deleteFont(FontFile* file)
+void FontEngineFont5::deleteFont(FontFile& file)
 {
-    if (!file) throw NullPointerException();
-    if (file->engine != this) throw InvalidFontEngineException();
-    PFPFile* f = static_cast<PFPFile*>(file->priv);
-    delete f;
-    file->priv = NULL;
-    file->engine = NULL;
+    if (file.engine != this) throw InvalidFontEngineException();
+    delete static_cast<PFPFile*>(file.priv);
+    file.engine = nullptr;
+    file.priv = nullptr;
 }
 
 static void DrawGlyphMono8(const DrawableData& data, const char* glyph, int x, int y, SurfaceColor c)

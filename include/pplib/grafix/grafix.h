@@ -83,9 +83,10 @@ private:
     Mutex myMutex;
     std::list<ImageFilter*> ImageFilterList;
     std::list<FontEngine*> FontEngineList;
-    std::map<String, FontFile*> FontList;
+    std::map<String, FontFile> FontList;
 
     void initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noexcept;
+    pplib::grafix::FontEngine* findFontEngine(const ByteArrayPtr& buffer) noexcept;
 
 public:
     /**
@@ -183,13 +184,15 @@ public:
      * Mit dieser Funktion wird ein Font aus einer Datei geladen.
      *
      * @param filename Dateiname der Fontdatei
-     * @param fontname Name, unter dem der Font in der Grafix-Engine registriert werden soll. Falls dieser
-     * nicht angegeben wird, wird entweder der Name aus der Fontdatei verwendet oder ein Name aus dem
-     * Dateinamen generiert.
+     * @param fontname Name, unter dem der Font in der Grafix-Engine registriert werden soll.
+     * @param useKerning Gibt an, ob Kerning beim Verwenden des Fonts berücksichtigt werden soll.
+     * Standardmäßig true. Gegebenenfalls wird dadurch mehr Speicher benötigt. Auf Mikrocontrollern
+     * mit wenige RAM, sollte useKerning gegebenenfallsauf false gesetzt werden.
+     *
      * @exception InvalidFontException Wird geworfen, wenn die Fontdatei nicht geladen werden konnte.
      * @exception NoSuitableFontEngineException Wird geworfen, wenn keine passende FontEngine für
      */
-    void loadFont(const String& filename, const String& fontname = String());
+    void loadFont(const String& filename, const String& fontname, bool useKerning = true);
 
     /**
      * @brief  Fontdatei aus einer geöffneten Datei laden
@@ -197,26 +200,30 @@ public:
      * Mit dieser Funktion wird ein Font aus einer bereits geöffneten Datei geladen.
      *
      * @param ff Referenz auf eine bereits geöffnete Datei mit den Fontdaten
-     * @param fontname Name, unter dem der Font in der Grafix-Engine registriert werden soll. Falls dieser
-     * nicht angegeben wird, wird entweder der Name aus der Fontdatei verwendet oder ein Name aus dem
-     * Dateinamen generiert.
+     * @param fontname Name, unter dem der Font in der Grafix-Engine registriert werden soll.
+     * @param useKerning Gibt an, ob Kerning beim Verwenden des Fonts berücksichtigt werden soll.
+     * Standardmäßig true. Gegebenenfalls wird dadurch mehr Speicher benötigt. Auf Mikrocontrollern
+     * mit wenige RAM, sollte useKerning gegebenenfallsauf false gesetzt werden.
      * @exception InvalidFontException Wird geworfen, wenn die Fontdatei nicht geladen werden konnte.
      * @exception NoSuitableFontEngineException Wird geworfen, wenn keine passende FontEngine für
      */
-    void loadFont(FileObject& ff, const String& fontname = String());
+    void loadFont(FileObject& ff, const String& fontname, bool useKerning = true);
 
-    /** @brief Fontdatei aus Speicherbereich laden
+    /** @brief Fontdatei aus Speicherbereich verwenden
      *
-     * Mit dieser Funktion wird ein Font aus einem Speicherbereich geladen.
+     * Mit dieser Funktion wird ein Font aus einem Speicherbereich verwendet. Anders als bei loadFont
+     * wird hierbei kein weiterer Speicher allokiert, sondern der vorhandene Speicherbereich direkt genutzt.
      *
      * @param memory Speicherbereich mit den Fontdaten
-     * @param fontname Name, unter dem der Font in der Grafix-Engine registriert werden soll. Falls dieser
-     * nicht angegeben wird, wird entweder der Name aus der Fontdatei verwendet oder ein Name aus dem
-     * Dateinamen generiert.
+     * @param fontname Name, unter dem der Font in der Grafix-Engine registriert werden soll.
+     * @param useKerning Gibt an, ob Kerning beim Verwenden des Fonts berücksichtigt werden soll.
+     * Standardmäßig true. Gegebenenfalls wird dadurch mehr Speicher benötigt. Auf Mikrocontrollern
+     * mit wenige RAM, sollte useKerning gegebenenfallsauf false gesetzt werden.
+     *
      * @exception InvalidFontException Wird geworfen, wenn die Fontdatei nicht geladen werden konnte.
      * @exception NoSuitableFontEngineException Wird geworfen, wenn keine passende FontEngine für
      */
-    void loadFont(const ByteArrayPtr& memory, const String& fontname = String());
+    void useFontFromMemory(const ByteArrayPtr& memory, const String& fontname, bool useKerning = true);
 
     /** @brief Fontdatei entladen
      *
