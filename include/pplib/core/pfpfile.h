@@ -539,6 +539,21 @@ public:
     /**
      * @brief Prüfen, ob es sich um ein PFP-File handelt
      *
+     * Diese Funktion prüft, ob es sich bei dem Speicherbereich \p buffer um eine Datei
+     * im \ref PFPFileVersion3 PFP-Format Version 3 handelt. Ist dies der Fall, wird deren
+     * ID und Version eingelesen.
+     *
+     * @param buffer Zeiger auf den Speicherbereich mit den Dateidaten
+     * @return Gibt \c true zurück, wenn es sich um eine Datei im PFP-Format handelt. Deren
+     * ID kann anschließend mit PFPFile::getID ausgelesen werden, Version mit PFPFile::getVersion bzw.
+     * PFPFile::getMainVersion und PFPFile::getSubVersion. Handelt es sich nicht um eine Datei
+     * im PFP-Format, gibt die Funktion \c false zurück. Es wird keine Exception geworfen.
+     */
+    bool ident(const ByteArrayPtr& buffer) noexcept;
+
+    /**
+     * @brief Prüfen, ob es sich um ein PFP-File handelt
+     *
      * Diese Funktion prüft, ob es sich bei der Datei \p file um eine Datei
      * im \ref PFPFileVersion3 PFP-Format Version 3 handelt. Ist dies der Fall, wird deren
      * ID und Version eingelesen.

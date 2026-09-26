@@ -435,7 +435,7 @@ bool PFPFile::ident(FileObject& ff)
 {
     try {
         const char* p;
-        p = ff.map(0, 24);
+        p = ff.map(0, 24); // Wieso eigentlich 24? Ich zähle 17 Bytes
         if (strncmp(p, "PFP-File", 8) != 0) return false;
         if (Peek8(p + 8) != 3) return false;
         id.set(p + 10, 4);
@@ -448,6 +448,19 @@ bool PFPFile::ident(FileObject& ff)
         return false;
     }
     return false;
+}
+
+bool PFPFile::ident(const ByteArrayPtr& buffer) noexcept
+{
+    if (buffer.size() < 17) return false;
+    const char* p = (const char*)buffer.ptr();
+    if (strncmp(p, "PFP-File", 8) != 0) return false;
+    if (Peek8(p + 8) != 3) return false;
+    id.set(p + 10, 4);
+    mainversion = Peek8(p + 15);
+    subversion = Peek8(p + 14);
+    comp = (Compression::Algorithm)Peek8(p + 16);
+    return true;
 }
 
 void PFPFile::load(const String& file)
