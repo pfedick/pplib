@@ -192,7 +192,7 @@ TEST_F(MemFileTest, MapAndMapRW)
     ASSERT_THROW(f.map(UINT64_MAX - 5, 10), pplib::OverflowException);
 
     // mapRW on read-only throws ReadOnlyException
-    ASSERT_THROW(f.mapRW(0, 5), pplib::ReadOnlyException);
+    ASSERT_THROW(f.map(0, 5, pplib::FileObject::MapProtection::READWRITE), pplib::ReadOnlyException);
 }
 
 TEST_F(MemFileTest, DynamicWriteAndClose)

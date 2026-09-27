@@ -439,20 +439,11 @@ void MemFile::setMapReadAhead(size_t bytes)
 {
 }
 
-const char* MemFile::map(uint64_t position, size_t bytes)
+char* MemFile::map(uint64_t position, size_t size, MapProtection prot)
 {
     if (MemBase == NULL) throw FileNotOpenException();
-    if (position > mysize || bytes > mysize - position) {
-        throw OverflowException();
-    }
-    return (MemBase + position);
-}
-
-char* MemFile::mapRW(uint64_t position, size_t bytes)
-{
-    if (MemBase == NULL) throw FileNotOpenException();
-    if (readonly) throw ReadOnlyException();
-    if (position > mysize || bytes > mysize - position) {
+    if (prot == MapProtection::READWRITE && readonly) throw ReadOnlyException();
+    if (position > mysize || size > mysize - position) {
         throw OverflowException();
     }
     return (MemBase + position);
