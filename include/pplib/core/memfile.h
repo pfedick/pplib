@@ -177,6 +177,7 @@ public:
     bool eof() const override;
     uint64_t size() const override;
     char* map(uint64_t position, size_t size, MapProtection prot = MapProtection::READ) override;
+    using FileObject::map;
     void unmap() override;
     void setMapReadAhead(size_t bytes) override;
 

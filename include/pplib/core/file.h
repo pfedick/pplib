@@ -623,6 +623,7 @@ public:
     virtual void unmap();
 
     using FileObject::load;
+    using FileObject::map;
 
     // Static Functions
 
