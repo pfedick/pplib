@@ -174,34 +174,6 @@ String StripSlashes(const String& str)
     return ret;
 }
 
-String Repeat(const String& str, size_t count)
-{
-    return str.repeated(count);
-}
-
-/*!\brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang und Ende des Strings ab
- * \relates String
- *
- * \desc
- * Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang und Ende des Strings ab
- * @param str Eingabe-String
- * @return Neuer String
- */
-String Trim(const String& str)
-{
-    return str.trimmed();
-}
-
-String UpperCase(const String& str)
-{
-    return str.toUpperCase();
-}
-
-String LowerCase(const String& str)
-{
-    return str.toLowerCase();
-}
-
 String UpperCaseWords(const String& str)
 {
     if (str.isEmpty()) return str;
@@ -226,33 +198,6 @@ int StrCaseCmp(const String& s1, const String& s2)
     return 0;
 }
 
-/*!\brief Sucht nach Zeichen in einem String
- * \relates String
- *
- * \code
-ssize_t Instr (const char * haystack, const char * needle, size_t start);
-ssize_t Instr (const wchar_t * haystack, const wchar_t * needle, size_t start);
-ssize_t Instr (const String &haystack, const String &needle, size_t start);
-ssize_t Instrcase (const char * haystack, const char * needle, size_t start);
-ssize_t Instrcase (const wchar_t * haystack, const wchar_t * needle, size_t start);
-ssize_t Instrcase (const String &haystack, const String &needle, size_t start);
-\endcode
- * \desc
- * Diese Funktionen suchen nach einer Zeichenkette innerhalb eines Strings, wobei
- * die Funktion \c Instr zwischen Gross- und Kleinschreibung unterschiedet, und
- * die Funktion \c Instrcase nicht.
- *
- * \param haystack ist ein Pointer auf einen Null-terminierten String, der
- * den zu durchsuchenden String enthält.
- * \param needle ist ein Pointer auf einen Null-terminierten String, der
- * den zu suchenden String enthält.
- * \param start ist ein optionaler Parameter, der die Startposition innerhalb des Suchstrings angibt.
- * Der Default ist 0, das heißt der String wurd vom Anfang an durchsucht.
- * \return Wird der String \p needle gefunden, wird seine Position zurückgegeben. Befindet sich der
- * String gleich an erster Stelle des Suchstrings, wird 0 zurückgegeben. Wird der String nicht gefunden,
- * wird -1 zurückgegeben.
- *
- */
 ssize_t Instr(const char* haystack, const char* needle, size_t start)
 {
     if (!haystack || !needle) return -1;
@@ -265,11 +210,6 @@ ssize_t Instr(const char* haystack, const char* needle, size_t start)
     return -1;
 }
 
-/*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
- * \relates String
- *
- * \copydoc Instr(const char * haystack, const char * needle, size_t start)
- */
 ssize_t Instrcase(const char* haystack, const char* needle, size_t start)
 {
     if (!haystack || !needle) return -1;
@@ -278,11 +218,6 @@ ssize_t Instrcase(const char* haystack, const char* needle, size_t start)
     return hs.instrCase(ns, start);
 }
 
-/*!\brief Sucht nach Zeichen in einem String
- * \relates String
- *
- * \copydoc Instr(const char * haystack, const char * needle, size_t start)
- */
 ssize_t Instr(const wchar_t* haystack, const wchar_t* needle, size_t start)
 {
     if (!haystack || !needle) return -1;
@@ -295,11 +230,6 @@ ssize_t Instr(const wchar_t* haystack, const wchar_t* needle, size_t start)
     return -1;
 }
 
-/*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
- * \relates String
- *
- * \copydoc Instr(const char * haystack, const char * needle, size_t start)
- */
 ssize_t Instrcase(const wchar_t* haystack, const wchar_t* needle, size_t start)
 {
     if (!haystack || !needle) return -1;
@@ -320,46 +250,6 @@ ssize_t Instrcase(const wchar_t* haystack, const wchar_t* needle, size_t start)
     return -1;
 }
 
-/*!\brief Sucht nach Zeichen in einem String
- * \relates String
- *
- * \copydoc Instr(const char * haystack, const char * needle, size_t start)
- */
-ssize_t Instr(const String& haystack, const String& needle, size_t start)
-{
-    return haystack.instr(needle, start);
-}
-
-/*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
- * \relates String
- *
- * \copydoc Instr(const char * haystack, const char * needle, size_t start)
- */
-ssize_t InstrCase(const String& haystack, const String& needle, size_t start)
-{
-    return haystack.instrCase(needle, start);
-}
-
-String Left(const String& str, size_t num)
-{
-    return str.left(num);
-}
-
-String Right(const String& str, size_t num)
-{
-    return str.right(num);
-}
-
-String Mid(const String& str, size_t start, size_t num)
-{
-    return str.mid(start, num);
-}
-
-String SubStr(const String& str, size_t start, size_t num)
-{
-    return str.substr(start, num);
-}
-
 String ToString(const char* fmt, ...)
 {
     if (!fmt) return String();
@@ -378,43 +268,6 @@ String Replace(const String& string, const String& search, const String& replace
     return Tmp;
 }
 
-bool IsTrue(const String& str)
-{
-    return str.isTrue();
-}
-
-bool IsDigits(const String& str)
-{
-    return str.isDigits();
-}
-
-bool IsInteger(const String& str)
-{
-    return str.isInteger();
-}
-
-bool IsNumeric(const String& str)
-{
-    return str.isNumeric();
-}
-
-/*!\brief String anhand eines Trennzeichens zerlegen
- *
- * \desc
- * Die StrTok-Funktion zerlegt den String \p string in mehrere Teile, wobei
- * \div als Trenner verwendet und das Ergebnis als Array zurückgegeben wird
- * Der Trenner \p div kann aus einem oder mehreren Zeichen bestehen und
- * wird nicht im Ergebnis übernommen. Eine Sequenz von mehreren Trennern
- * hintereinander wird als ein Trenner interpretiert. Trenner am Anfang und Ende
- * des Strings werden ignoriert. Mit anderen Worten: im Ergebnis gibt es keine
- * leeren Strings.
- * \note
- * Das Verhalten der Funktion entspricht dem Verhalten der C-Funktion strtok
- *
- * @param[in] string String, der zerlegt werden soll
- * @param[in] div String, der als Trenner verwendet wird
- * @return Array mit den Bestandteilen des zerlegten Strings
- */
 Array StrTok(const String& string, const String& div)
 {
     Array ret;
@@ -422,23 +275,6 @@ Array StrTok(const String& string, const String& div)
     return ret;
 }
 
-/*!\brief String anhand eines Trennzeichens zerlegen
- *
- * \desc
- * Die StrTok-Funktion zerlegt den String \p string in mehrere Teile, wobei
- * \div als Trenner verwendet und das Ergebnis im Array \p result gespeichert
- * wird. Der Trenner \p div kann aus einem oder mehreren Zeichen bestehen und
- * wird nicht im Ergebnis übernommen. Eine Sequenz von mehreren Trennern
- * hintereinander wird als ein Trenner interpretiert. Trenner am Anfang und Ende
- * des Strings werden ignoriert. Mit anderen Worten: im Ergebnis gibt es keine
- * leeren Strings.
- * \note
- * Das Verhalten der Funktion entspricht dem Verhalten der C-Funktion strtok
- *
- * @param[out] result Array, in dem die Ergebnisstrings gespeichert werden
- * @param[in] string String, der zerlegt werden soll
- * @param[in] div String, der als Trenner verwendet wird. Default=Newline
- */
 void StrTok(Array& result, const String& string, const String& div)
 {
     result.clear();
@@ -476,29 +312,6 @@ String ToHex(const ByteArrayPtr& bin)
     return bin.toHex();
 }
 
-/*!\brief String zur Verwendung in einer URL umwandeln
- *
- * \desc
- * Mit dieser Funktion kann ein beliebiger String so umkodiert werden, dass er als
- * Parameter in einer URL verwendet werden kann. Dabei werden alle Spaces durch "+" ersetzt
- * und alle nicht alphanummerischen Zeichen mit Ausnahme von "-_.!~*'()" in ihre Hex-Werte
- * mit vorangestelltem Prozentzeichen umgewandelt.
- *
- * @param text Der zu kodierende Text
- * @return Der URL-kodierte Text
- *
- * \example
- * \code
- * pplib::String text=L"Hallo Welt! 1+1=2";
- * printf("%s\n",(const char*)pplib::UrlEncode(text));
- * \endcode
- * ergibt:
- * \verbatim
-Hallo+Welt!+1%2B1%3D2
-\endverbatim
- * \see
- * Mit UrlDecode kann der Kodierte String wieder dekodiert werden
- */
 String UrlEncode(const String& text)
 {
     const char* source = text.getPtr();
@@ -539,26 +352,6 @@ static int HexPairValue(const char* code)
     return val;
 }
 
-/*!\brief URL-kodierten String dekodieren
- *
- * \desc
- * Mit dieser statischen Funktion kann ein URL-kodierter String dekodiert werden.
- *
- * @param text Der zu URL-kodierte String
- * @return Der dekodierte String
- *
- * \example
- * \code
- * pplib::String text=L"Hallo+Welt!+1%2B1%3D2";
- * printf("%s\n",(const char*)pplib::UrlDecode(text));
- * \endcode
- * ergibt:
- * \verbatim
-Hallo Welt! 1+1=2";
-\endverbatim
- * \see
- * Mit UrlEncode kann ein unkodierter String kodiert werden.
- */
 String UrlDecode(const String& text)
 {
     const char* source = text.getPtr();
