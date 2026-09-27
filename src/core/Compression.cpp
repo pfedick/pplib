@@ -487,26 +487,6 @@ void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm met
     comp.compress(out, in);
 }
 
-/*!\ingroup PPLIB_COMPRESSION
- * \relatesalso Compression
- * \brief Daten dekomprimieren
- *
- * \descr
- * Mit dieser Funktion werden die in \p in enthaltenen komprimierten Daten
- * entpackt und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * \par
- * Die Funktion geht davon aus, dass die komprimierten Daten mit einem
- * Version 2 Prefix beginnen (siehe \ref Compression_Prefix). Ist dies nicht der
- * Fall, sollte statt dieser Funktion die Klasse Compression verwendet werden,
- * deren Compression::Uncompress-Funktionen auch Dekomprimierung ohne Prefix
- * unterstützen.
- *
- * @param[out] out CBinary-Objekt, in dem die entpackten Daten gespeichert werden sollen
- * @param[in] in Das CBinary-Objekt, das die komprimierten Daten enthält
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0
- *
- * \see Compression
- */
 void Uncompress(ByteArray& out, const ByteArrayPtr& in)
 {
     Compression comp;
@@ -515,53 +495,11 @@ void Uncompress(ByteArray& out, const ByteArrayPtr& in)
 }
 
 void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
-/*!\ingroup PPLIB_COMPRESSION
- * \relatesalso Compression
- * \brief Daten mit ZLib komprimieren
- *
- * \descr
- * Mit dieser Funktion wird der durch \p in referenzierte Speicherbereich
- * mit der Komprimierungsmethode ZLib und dem Komprimierungslevel \p level komprimiert
- * und das Ergebnis im CMemory-Objekt \p out gespeichert.
- * \par
- * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
- * \ref Compression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
- * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
- *
- * @param[out] out ByteArray-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten.
- * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level). Der Default ist
- * Compression::Level_High
- *
- * \see Compression
- */
 {
     Compress(out, in, Compression::Algo_ZLIB, level);
 }
 
 void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
-/*!\ingroup PPLIB_COMPRESSION
- * \relatesalso Compression
- * \brief Daten mit BZip2 komprimieren
- *
- * \descr
- * Mit dieser Funktion wird der durch \p in referenzierte Speicherbereich
- * mit der Komprimierungsmethode BZip2 und dem Komprimierungslevel \p level komprimiert
- * und das Ergebnis im CMemory-Objekt \p out gespeichert.
- * \par
- * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
- * \ref Compression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
- * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
- *
- * @param[out] out CMemory-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] in Ein CMemoryReference-Objekt mit den zu komprimierenden Daten.
- * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level). Der Default ist
- * Compression::Level_High
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
- *
- * \see Compression
- */
 {
     Compress(out, in, Compression::Algo_BZIP2, level);
 }
