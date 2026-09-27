@@ -84,6 +84,7 @@ String ToBase64(const ByteArrayPtr& bin)
     String res;
     unsigned char in[3], out[4];
     size_t p = 0, filelen = bin.size();
+    res.reserve(((filelen + 2) / 3) * 4);
 
     while (p < filelen) {
         int len = 0;
@@ -95,9 +96,7 @@ String ToBase64(const ByteArrayPtr& bin)
         }
         if (len) {
             encodeblock(in, out, len);
-            for (int i = 0; i < 4; i++) {
-                res.appendf("%c", out[i]);
-            }
+            res.append((const char*)out, 4);
         }
     }
     return res;
@@ -157,36 +156,27 @@ ByteArray FromBase64(const String& str)
 String StripSlashes(const String& str)
 {
     if (str.isEmpty()) return str;
-    String ret = str;
-    unsigned char* ptr = (unsigned char*)ret.getPtr();
-    unsigned char* ptr2 = ptr;
+    String ret;
+    ret.reserve(str.size());
+    const char* ptr = str.c_str();
     while (*ptr) {
         if (*ptr == '\\') {
             ptr++;
             if (*ptr) {
-                *ptr2 = *ptr;
-                ptr2++;
+                ret.append(*ptr);
                 ptr++;
             }
         } else {
-            *ptr2 = *ptr;
-            ptr2++;
+            ret.append(*ptr);
             ptr++;
         }
     }
-    *ptr2 = 0;
-    ret.cut(ptr2 - (unsigned char*)ret.getPtr());
     return ret;
 }
 
 String Repeat(const String& str, size_t count)
 {
-    String ret;
-    ret.reserve(str.len() * count);
-    for (size_t i = 0; i < count; i++) {
-        ret.append(str);
-    }
-    return ret;
+    return str.repeated(count);
 }
 
 /*!\brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang und Ende des Strings ab
@@ -199,57 +189,25 @@ String Repeat(const String& str, size_t count)
  */
 String Trim(const String& str)
 {
-    String ret = str;
-    ret.trim();
-    return ret;
+    return str.trimmed();
 }
 
 String UpperCase(const String& str)
 {
-    String ret = str;
-    ret.upperCase();
-    return ret;
+    return str.toUpperCase();
 }
 
 String LowerCase(const String& str)
 {
-    String ret = str;
-    ret.lowerCase();
-    return ret;
+    return str.toLowerCase();
 }
 
 String UpperCaseWords(const String& str)
 {
-    if (str.size() == 0) return str;
-
-    // Wir wandeln den String zunächst nach Unicode um
-    std::vector<wchar_t> buffer(str.size() + 1);
-    size_t l;
-#ifdef HAVE_MBSTOWCS_S
-    if (::mbstowcs_s(&l, buffer.data(), buffer.size(), str.getPtr(), str.size()) != 0) {
-        throw CharacterEncodingException();
-    }
-    if (l > 0) l--; // Nullbyte abziehen, da mbstowcs_s dieses mitzählt
-#else
-    l = ::mbstowcs(buffer.data(), str.getPtr(), str.size());
-    if (l == (size_t)-1) {
-        throw CharacterEncodingException();
-    }
-#endif
-    bool wordstart = true;
-    for (size_t i = 0; i < l; i++) {
-        wchar_t wc = buffer[i];
-        if (wordstart) {
-            wchar_t c = towupper(wc);
-            if (c != (wchar_t)WEOF) {
-                buffer[i] = c;
-            }
-        }
-        // Wenn es keine Zahl und kein Buchstabe ist, beginnt danach ein neues Wort
-        wordstart = !::iswalnum(wc);
-    }
-    // Zurück im String speichern
-    return String(buffer.data(), l);
+    if (str.isEmpty()) return str;
+    WideString ws(str);
+    ws.upperCaseWords();
+    return String(ws);
 }
 
 int StrCmp(const String& s1, const String& s2)
@@ -297,35 +255,15 @@ ssize_t Instrcase (const String &haystack, const String &needle, size_t start);
  */
 ssize_t Instr(const char* haystack, const char* needle, size_t start)
 {
-    if (!haystack) return -1;
-    if (!needle) return -1;
-    if (start < strlen(haystack)) {
-        const char* _t = strstr((haystack + start), needle);
-        if (_t != NULL) {
-            return ((ssize_t)(_t - haystack));
-        }
-    }
-    return (-1);
+    if (!haystack || !needle) return -1;
+    size_t hlen = strlen(haystack);
+    size_t nlen = strlen(needle);
+    if (nlen == 0) return -1;
+    if (start >= hlen || nlen > hlen - start) return -1;
+    const char* p = strstr(haystack + start, needle);
+    if (p) return (ssize_t)(p - haystack);
+    return -1;
 }
-
-#ifndef HAVE_STRCASESTR
-static const char* mystrcasestr(const char* haystack, const char* needle)
-{
-    char c;
-    if ((c = *needle++) != 0) {
-        c = tolower((unsigned char)c);
-        size_t len = strlen(needle);
-        do {
-            char sc;
-            do {
-                if ((sc = *haystack++) == 0) return (NULL);
-            } while ((char)tolower((unsigned char)sc) != c);
-        } while (strncasecmp(haystack, needle, len) != 0);
-        haystack--;
-    }
-    return ((char*)haystack);
-}
-#endif
 
 /*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
  * \relates String
@@ -334,20 +272,10 @@ static const char* mystrcasestr(const char* haystack, const char* needle)
  */
 ssize_t Instrcase(const char* haystack, const char* needle, size_t start)
 {
-    if (!haystack) return -1;
-    if (!needle) return -1;
-    if (start < strlen(haystack)) {
-        const char* _t;
-#ifdef HAVE_STRCASESTR
-        _t = strcasestr((haystack + start), needle);
-#else
-        _t = mystrcasestr((haystack + start), needle);
-#endif
-        if (_t != NULL) {
-            return ((long)(_t - haystack));
-        }
-    }
-    return (-1);
+    if (!haystack || !needle) return -1;
+    String hs(haystack);
+    String ns(needle);
+    return hs.instrCase(ns, start);
 }
 
 /*!\brief Sucht nach Zeichen in einem String
@@ -357,16 +285,14 @@ ssize_t Instrcase(const char* haystack, const char* needle, size_t start)
  */
 ssize_t Instr(const wchar_t* haystack, const wchar_t* needle, size_t start)
 {
-    if (!haystack) return -1;
-    if (!needle) return -1;
-    if (start < wcslen(haystack)) {
-        const wchar_t* _t;
-        _t = wcsstr((haystack + start), needle);
-        if (_t != NULL) {
-            return ((ssize_t)(_t - haystack));
-        }
-    }
-    return (-1);
+    if (!haystack || !needle) return -1;
+    size_t hlen = wcslen(haystack);
+    size_t nlen = wcslen(needle);
+    if (nlen == 0) return -1;
+    if (start >= hlen || nlen > hlen - start) return -1;
+    const wchar_t* p = wcsstr(haystack + start, needle);
+    if (p) return (ssize_t)(p - haystack);
+    return -1;
 }
 
 /*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
@@ -376,50 +302,22 @@ ssize_t Instr(const wchar_t* haystack, const wchar_t* needle, size_t start)
  */
 ssize_t Instrcase(const wchar_t* haystack, const wchar_t* needle, size_t start)
 {
-    if (!haystack) return -1;
-    if (!needle) return -1;
-    wchar_t* myHaystack = wcsdup(haystack);
-    if (!myHaystack) throw OutOfMemoryException();
+    if (!haystack || !needle) return -1;
+    size_t hlen = wcslen(haystack);
+    size_t nlen = wcslen(needle);
+    if (nlen == 0) return -1;
+    if (start >= hlen || nlen > hlen - start) return -1;
 
-    wchar_t* myNeedle = wcsdup(needle);
-    if (!myNeedle) {
-        free(myHaystack);
-        throw OutOfMemoryException();
-    }
-
-    size_t len = wcslen(myHaystack);
-    if (start < len) {
-        // String in Kleinbuchstaben umwandeln
-        wchar_t wc;
-        for (size_t i = 0; i < len; i++) {
-            wc = myHaystack[i];
-            wc = towlower(wc);
-            if (wc != (wchar_t)WEOF) {
-                myHaystack[i] = wc;
-            }
+    for (size_t i = start; i <= hlen - nlen; i++) {
+        size_t j = 0;
+        while (j < nlen && towlower(haystack[i + j]) == towlower(needle[j])) {
+            j++;
         }
-        // Needle in Kleinbuchstaben umwandeln
-        len = wcslen(myNeedle);
-        for (size_t i = 0; i < len; i++) {
-            wc = myNeedle[i];
-            wc = towlower(wc);
-            if (wc != (wchar_t)WEOF) {
-                myNeedle[i] = wc;
-            }
-        }
-
-        const wchar_t* _t;
-        _t = wcsstr((myHaystack + start), myNeedle);
-        if (_t != NULL) {
-            ssize_t p = (ssize_t)(_t - myHaystack);
-            free(myHaystack);
-            free(myNeedle);
-            return p;
+        if (j == nlen) {
+            return (ssize_t)i;
         }
     }
-    free(myHaystack);
-    free(myNeedle);
-    return (-1);
+    return -1;
 }
 
 /*!\brief Sucht nach Zeichen in einem String
@@ -464,6 +362,7 @@ String SubStr(const String& str, size_t start, size_t num)
 
 String ToString(const char* fmt, ...)
 {
+    if (!fmt) return String();
     String str;
     va_list args;
     va_start(args, fmt);
@@ -544,17 +443,7 @@ void StrTok(Array& result, const String& string, const String& div)
 {
     result.clear();
     if (string.isEmpty()) return;
-    String Line;
-    Array a;
-    if (div.isEmpty())
-        a.explode(string, "\n");
-    else
-        a.explode(string, div);
-    // printf ("StrTok: a.size=%ti\n",a.size());
-    for (size_t i = 0; i < a.size(); i++) {
-        Line = a[i];
-        if (Line.notEmpty()) result.add(Line);
-    }
+    result.explode(string, div.isEmpty() ? "\n" : div, 0, true);
 }
 
 String EscapeHTMLTags(const String& html)
@@ -571,17 +460,15 @@ String UnescapeHTMLTags(const String& html)
 {
     String s;
     s = html;
-    s.replace("&amp;", "&");
     s.replace("&lt;", "<");
     s.replace("&gt;", ">");
+    s.replace("&amp;", "&");
     return s;
 }
 
 ByteArray Hex2ByteArray(const String& hex)
 {
-    ByteArray b;
-    b.fromHex(hex);
-    return b;
+    return ByteArray::fromHex(hex);
 }
 
 String ToHex(const ByteArrayPtr& bin)
@@ -616,42 +503,40 @@ String UrlEncode(const String& text)
 {
     const char* source = text.getPtr();
     String ret;
+    ret.reserve(text.size() * 3);
     static const char* digits = "0123456789ABCDEF";
     while (*source) {
         unsigned char ch = (unsigned char)*source;
-        if (*source == ' ') {
-            ret += L"+";
+        if (ch == ' ') {
+            ret.append('+');
         } else if ((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || (strchr("-_.!~*'()", ch))) {
-            ret += ch;
+            ret.append((char)ch);
         } else {
-            ret += "%";
-            ret += digits[(ch >> 4) & 0x0F];
-            ret += digits[ch & 0x0F];
+            ret.append('%');
+            ret.append(digits[(ch >> 4) & 0x0F]);
+            ret.append(digits[ch & 0x0F]);
         }
         source++;
     }
     return ret;
 }
 
-static char HexPairValue(const char* code)
+static int HexPairValue(const char* code)
 {
-    char value = 0;
-    const char* pch = code;
-    for (;;) {
-        int digit = *pch++;
-        if (digit >= '0' && digit <= '9') {
-            value += digit - '0';
-        } else if (digit >= 'A' && digit <= 'F') {
-            value += digit - 'A' + 10;
-        } else if (digit >= 'a' && digit <= 'f') {
-            value += digit - 'a' + 10;
-        } else {
+    int val = 0;
+    for (int i = 0; i < 2; i++) {
+        val <<= 4;
+        char c = code[i];
+        if (c >= '0' && c <= '9')
+            val += c - '0';
+        else if (c >= 'A' && c <= 'F')
+            val += c - 'A' + 10;
+        else if (c >= 'a' && c <= 'f')
+            val += c - 'a' + 10;
+        else
             return -1;
-        }
-        if (pch == code + 2) return value;
-        value <<= 4;
     }
-    return 0;
+    return val;
 }
 
 /*!\brief URL-kodierten String dekodieren
@@ -678,27 +563,28 @@ String UrlDecode(const String& text)
 {
     const char* source = text.getPtr();
     String ret;
+    ret.reserve(text.size());
 
     while (*source) {
         switch (*source) {
         case '+':
-            ret += " ";
+            ret.append(' ');
             break;
         case '%':
             if (source[1] && source[2]) {
-                char value = HexPairValue(source + 1);
+                int value = HexPairValue(source + 1);
                 if (value >= 0) {
-                    ret += value;
+                    ret.append((char)(unsigned char)value);
                     source += 2;
                 } else {
-                    ret += L"?";
+                    ret.append('?');
                 }
             } else {
-                ret += "?";
+                ret.append('?');
             }
             break;
         default:
-            ret += *source;
+            ret.append(*source);
             break;
         }
         source++;

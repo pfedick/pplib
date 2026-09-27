@@ -77,6 +77,10 @@ int StrCmp(const String& s1, const String& s2);
 int StrCaseCmp(const String& s1, const String& s2);
 ssize_t Instr(const String& haystack, const String& needle, size_t start = 0);
 ssize_t InstrCase(const String& haystack, const String& needle, size_t start = 0);
+inline ssize_t Instrcase(const String& haystack, const String& needle, size_t start = 0)
+{
+    return InstrCase(haystack, needle, start);
+}
 ssize_t Instr(const char* haystack, const char* needle, size_t start = 0);
 ssize_t Instrcase(const char* haystack, const char* needle, size_t start = 0);
 ssize_t Instr(const wchar_t* haystack, const wchar_t* needle, size_t start = 0);
