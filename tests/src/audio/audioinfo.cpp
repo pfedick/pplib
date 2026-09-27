@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author: pafe $
- * $Revision: 600 $
- * $Date: 2013-04-26 21:37:49 +0200 (Fr, 26 Apr 2013) $
- * $Id: assocarray.cpp 600 2013-04-26 19:37:49Z pafe $
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,19 +22,20 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <pthread.h>
-#include <locale.h>
-#include <pplib.h>
-#include <pplib-audio.h>
 #include <gtest/gtest.h>
+
+#include <pplib/types/string.h>
+#include <pplib/core/dir.h>
+#include <pplib/core/iconv.h>
+#include <pplib/core/functions.h>
+#include <pplib/core/memfile.h>
+#include <pplib/audio/id3tag.h>
+
 #include "pplib-tests.h"
 
 namespace
@@ -68,7 +64,7 @@ TEST_F(AudioInfoTest, ConstructorAudioInfo)
 TEST_F(AudioInfoTest, IdentMp3CBR192WithoutID3)
 {
     pplib::File file;
-    file.open("testdata/test_192cbr.mp3");
+    file.open("testdata/audio/test_192cbr.mp3");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
     EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
@@ -87,7 +83,7 @@ TEST_F(AudioInfoTest, IdentMp3CBR192WithoutID3)
 TEST_F(AudioInfoTest, IdentMp3CBR320WithoutID3)
 {
     pplib::File file;
-    file.open("testdata/test_320cbr.mp3");
+    file.open("testdata/audio/test_320cbr.mp3");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
     EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
@@ -105,7 +101,7 @@ TEST_F(AudioInfoTest, IdentMp3CBR320WithoutID3)
 TEST_F(AudioInfoTest, IdentMp3VBR192WithoutID3)
 {
     pplib::File file;
-    file.open("testdata/test_192vbr.mp3");
+    file.open("testdata/audio/test_192vbr.mp3");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
     EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
@@ -123,7 +119,7 @@ TEST_F(AudioInfoTest, IdentMp3VBR192WithoutID3)
 TEST_F(AudioInfoTest, IdentMp3CBR192WithID3)
 {
     pplib::File file;
-    file.open("testdata/test_192cbr_tagged.mp3");
+    file.open("testdata/audio/test_192cbr_tagged.mp3");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
     EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
@@ -141,7 +137,7 @@ TEST_F(AudioInfoTest, IdentMp3CBR192WithID3)
 TEST_F(AudioInfoTest, IdentAiffWithoutID3)
 {
     pplib::File file;
-    file.open("testdata/test_44kHz.aiff");
+    file.open("testdata/audio/test_44kHz.aiff");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << "Audio format was not recognized";
     EXPECT_EQ(pplib::AudioInfo::AIFF, info.Format) << "Wrong audio format detected";
@@ -160,7 +156,7 @@ TEST_F(AudioInfoTest, IdentAiffWithoutID3)
 TEST_F(AudioInfoTest, IdentAiffWithID3)
 {
     pplib::File file;
-    file.open("testdata/test_44kHz_tagged.aiff");
+    file.open("testdata/audio/test_44kHz_tagged.aiff");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << "Audio format was not recognized";
     EXPECT_EQ(pplib::AudioInfo::AIFF, info.Format) << "Wrong audio format detected";
@@ -179,7 +175,7 @@ TEST_F(AudioInfoTest, IdentAiffWithID3)
 TEST_F(AudioInfoTest, IdentWaveWithoutID3)
 {
     pplib::File file;
-    file.open("testdata/test_44kHz.wav");
+    file.open("testdata/audio/test_44kHz.wav");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << "Audio format was not recognized";
     EXPECT_EQ(pplib::AudioInfo::WAVE, info.Format) << "Wrong audio format detected";
@@ -203,9 +199,9 @@ TEST_F(AudioInfoTest, IdentWaveWithoutID3)
 TEST_F(AudioInfoTest, IdentOggVorbis)
 {
     pplib::File file;
-    file.open("testdata/test_320cbr.mp3");
+    file.open("testdata/audio/test_44kHz.wav");
     ASSERT_NE(pplib::AudioInfo::OGG, pplib::IdentAudioFile(file));
-    file.open("testdata/test_44kHz.ogg");
+    file.open("testdata/audio/test_44kHz.ogg");
     ASSERT_EQ(pplib::AudioInfo::OGG, pplib::IdentAudioFile(file));
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));

@@ -30,14 +30,10 @@
 #include <gtest/gtest.h>
 
 #include <pplib/types/string.h>
-// #include <pplib/types/widestring.h>
-//  #include <pplib/types/array.h>
-// #include <pplib/exceptions.h>
 #include <pplib/core/dir.h>
 #include <pplib/core/iconv.h>
 #include <pplib/core/functions.h>
 #include <pplib/core/memfile.h>
-// #include <pplib/core/regex.h>
 #include <pplib/audio/id3tag.h>
 
 #include "pplib-tests.h"
