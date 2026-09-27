@@ -287,6 +287,11 @@ public:
      */
     ~PFPFile();
 
+    PFPFile(const PFPFile&) = delete;
+    PFPFile& operator=(const PFPFile&) = delete;
+    PFPFile(PFPFile&& other) noexcept = default;
+    PFPFile& operator=(PFPFile&& other) noexcept = default;
+
     /**
      * @brief Inhalt der Klasse löschen
      *
@@ -761,4 +766,4 @@ public:
 
 } // namespace pplib
 
-#endif /* PPLIB_CORE_DIR_H_ */
+#endif /* PPLIB_CORE_PFPFILE_H_ */

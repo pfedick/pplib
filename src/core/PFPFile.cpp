@@ -60,13 +60,13 @@ void PFPChunk::setName(const char* chunkname, size_t size)
     this->chunkname[4] = '\0';
     // Chunkname muss uppercase sein
     for (size_t i = 0; i < 4; i++) {
-        this->chunkname[i] = (char)toupper(this->chunkname[i]);
+        this->chunkname[i] = (char)toupper((unsigned char)this->chunkname[i]);
     }
 }
 
 void PFPChunk::setData(const void* ptr, size_t size)
 {
-    if (!ptr && size == 0) {
+    if (size == 0) {
         if (ownMemory && chunkdata.ptr()) {
             ::free(chunkdata.ptr());
         }
@@ -214,7 +214,9 @@ void PFPFile::setId(const String& id)
 
 void PFPFile::setCompression(Compression::Algorithm type)
 {
-    if (type > 2 || type < 0) throw UnknownCompressionMethodException();
+    if (type != Compression::Algo_NONE && type != Compression::Algo_ZLIB && type != Compression::Algo_BZIP2) {
+        throw UnknownCompressionMethodException();
+    }
     comp = type;
 }
 
@@ -245,11 +247,22 @@ void PFPFile::setName(const String& name)
     setStringParam("NAME", name);
 }
 
+static String getStringFromChunk(const PFPChunk& chunk)
+{
+    const char* str = (const char*)chunk.data();
+    size_t len = chunk.size();
+    if (len > 0 && str && str[len - 1] == '\0') {
+        len--;
+    }
+    if (!str || len == 0) return String();
+    return String(str, len);
+}
+
 String PFPFile::getName() const
 {
-    for (auto& chunk : Chunks) {
-        if (chunk.chunkname == "NAME") {
-            return String(chunk.chunkdata);
+    for (const auto& chunk : Chunks) {
+        if (std::string_view(chunk.chunkname, 4) == "NAME") {
+            return getStringFromChunk(chunk);
         }
     }
     return String();
@@ -257,9 +270,9 @@ String PFPFile::getName() const
 
 String PFPFile::getDescription() const
 {
-    for (auto& chunk : Chunks) {
-        if (chunk.chunkname == "DESC") {
-            return String(chunk.chunkdata);
+    for (const auto& chunk : Chunks) {
+        if (std::string_view(chunk.chunkname, 4) == "DESC") {
+            return getStringFromChunk(chunk);
         }
     }
     return String();
@@ -267,9 +280,9 @@ String PFPFile::getDescription() const
 
 String PFPFile::getAuthor() const
 {
-    for (auto& chunk : Chunks) {
-        if (chunk.chunkname == "AUTH") {
-            return String(chunk.chunkdata);
+    for (const auto& chunk : Chunks) {
+        if (std::string_view(chunk.chunkname, 4) == "AUTH") {
+            return getStringFromChunk(chunk);
         }
     }
     return String();
@@ -277,9 +290,9 @@ String PFPFile::getAuthor() const
 
 String PFPFile::getCopyright() const
 {
-    for (auto& chunk : Chunks) {
-        if (chunk.chunkname == "COPY") {
-            return String(chunk.chunkdata);
+    for (const auto& chunk : Chunks) {
+        if (std::string_view(chunk.chunkname, 4) == "COPY") {
+            return getStringFromChunk(chunk);
         }
     }
     return String();
@@ -329,17 +342,26 @@ void PFPFile::save(const String& filename)
     size_t pp = hsize;
     // Chunks zusammenfassen
     // Zuerst die vordefinierten, die wir am Anfang des Files wollen
-    Iterator it;
-    reset(it);
-    PFPChunk* chunk;
-    chunk = findFirstChunk(it, "NAME");
-    if (chunk) saveChunk(p, pp, chunk);
-    chunk = findFirstChunk(it, "AUTH");
-    if (chunk) saveChunk(p, pp, chunk);
-    chunk = findFirstChunk(it, "DESC");
-    if (chunk) saveChunk(p, pp, chunk);
-    chunk = findFirstChunk(it, "COPY");
-    if (chunk) saveChunk(p, pp, chunk);
+    for (const auto& chunk : Chunks) {
+        if (std::string_view(chunk.chunkname, 4) == "NAME") {
+            pp += saveChunk(p, pp, &chunk);
+        }
+    }
+    for (const auto& chunk : Chunks) {
+        if (std::string_view(chunk.chunkname, 4) == "AUTH") {
+            pp += saveChunk(p, pp, &chunk);
+        }
+    }
+    for (const auto& chunk : Chunks) {
+        if (std::string_view(chunk.chunkname, 4) == "DESC") {
+            pp += saveChunk(p, pp, &chunk);
+        }
+    }
+    for (const auto& chunk : Chunks) {
+        if (std::string_view(chunk.chunkname, 4) == "COPY") {
+            pp += saveChunk(p, pp, &chunk);
+        }
+    }
     // Restliche Chunks
     for (const auto& chunk : Chunks) {
         const std::string_view cn(chunk.chunkname, 4);
@@ -353,22 +375,20 @@ void PFPFile::save(const String& filename)
 
     size_t savesize = pp - hsize;
     // Komprimierung?
-    Compression c;
     ByteArray compressedData;
     if (comp) {
-        size_t dstlen = savesize + 64;
-        compressedData.malloc(dstlen);
+        Compression c;
         c.init(comp, Compression::Level_High);
-        c.compress((void*)compressedData.ptr(), &dstlen, p + hsize, savesize);
-        savesize = dstlen;
+        compressedData = c.compress(ByteArrayPtr(p + hsize, savesize));
+        savesize = compressedData.size();
     }
 
     ff.open(filename, File::FileMode::WRITE);
     ff.write(p, hsize);
     if (comp) {
         char t[8];
-        Poke32(t, (int)(pp - hsize));
-        Poke32(t + 4, (int)savesize);
+        Poke32(t, (uint32_t)(pp - hsize));
+        Poke32(t + 4, (uint32_t)savesize);
         ff.write(t, 8);
         ff.write(compressedData.ptr(), savesize);
     } else {
@@ -408,7 +428,7 @@ void PFPFile::deleteChunk(const String& chunkname)
     char cn[4];
     memcpy(cn, chunkname.c_str(), 4);
     for (int i = 0; i < 4; i++)
-        cn[i] = toupper(cn[i]);
+        cn[i] = (char)toupper((unsigned char)cn[i]);
 
     // Chunks.remove_if([&s](const PFPChunk& c) { return c.name() == s; });
     auto it = Chunks.begin();
@@ -431,6 +451,7 @@ PFPChunk* PFPFile::findNextChunk(Iterator& it, const String& chunkname) const
 {
     if (chunkname.notEmpty()) {
         it.findchunk = chunkname;
+        it.findchunk.upperCase();
     }
     if (it.findchunk.len() != 4) throw IllegalArgumentException();
 
@@ -547,15 +568,20 @@ bool PFPFile::ident(FileObject& ff)
 
 bool PFPFile::ident(const ByteArrayPtr& buffer) noexcept
 {
-    if (buffer.size() < 24) return false;
-    const char* p = (const char*)buffer.ptr();
-    if (strncmp(p, "PFP-File", 8) != 0) return false;
-    if (Peek8(p + 8) != 3) return false;
-    id.set(p + 10, 4);
-    mainversion = Peek8(p + 15);
-    subversion = Peek8(p + 14);
-    comp = (Compression::Algorithm)Peek8(p + 16);
-    return true;
+    try {
+        if (!buffer.ptr() || buffer.size() < 24) return false;
+        const char* p = (const char*)buffer.ptr();
+        if (strncmp(p, "PFP-File", 8) != 0) return false;
+        if (Peek8(p + 8) != 3) return false;
+        id.set(p + 10, 4);
+        mainversion = Peek8(p + 15);
+        subversion = Peek8(p + 14);
+        comp = (Compression::Algorithm)Peek8(p + 16);
+        return true;
+    }
+    catch (...) {
+        return false;
+    }
 }
 
 void PFPFile::useMemory(const ByteArrayPtr& data)
@@ -614,10 +640,15 @@ void PFPFile::useMemory(const ByteArrayPtr& data)
         // Chunk muss mindestens 8 Bytes groß sein und darf nicht über das Pufferende ragen
         if (size < 8 || size > fsize - z) break;
 
-        PFPChunk chunk;
-        chunk.setName(p + z, 4);
-        chunk.useData(p + z + 8, size - 8);
-        addChunk(std::move(chunk));
+        try {
+            PFPChunk chunk;
+            chunk.setName(p + z, 4);
+            chunk.useData(p + z + 8, size - 8);
+            addChunk(std::move(chunk));
+        }
+        catch (...) {
+            // Ungültige Chunks ignorieren
+        }
         z += size;
     }
 }
