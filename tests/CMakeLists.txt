@@ -20,6 +20,9 @@ target_link_libraries(pplib_test_common PUBLIC gtest pplib::core)
 
 include(GoogleTest)
 
+set(ALL_TEST_SOURCES "")
+set(ALL_TEST_LIBS pplib_test_common)
+
 # Hilfsmakro zum Erstellen einzelner Testsuites
 macro(add_pplib_test_suite name source_glob link_lib)
     file(GLOB TEST_SOURCES CONFIGURE_DEPENDS ${source_glob})

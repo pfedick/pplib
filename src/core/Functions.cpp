@@ -87,6 +87,13 @@ void HexDump(const ByteArrayPtr& data, bool skipheader)
 
 void HexDump(const void* address, size_t bytes, bool skipheader)
 {
+    if (!address || bytes == 0) {
+        if (!skipheader) {
+            printf("HEXDUMP: %zu Bytes starting at Address %p:\n\n", bytes, address);
+        }
+        return;
+    }
+
     char buff[1024], tmp[10], cleartext[20];
     if (!skipheader) {
         printf("HEXDUMP: %zu Bytes starting at Address %p:\n", bytes, address);
@@ -197,18 +204,15 @@ void Poke64(void* Adresse, uint64_t Wert)
 
 void PokeFloat(void* Adresse, float Wert)
 {
-    // Immer Little-Endian ablegen, Byte für Byte
-    uint8_t* dst = (uint8_t*)Adresse;
-    uint8_t* src = (uint8_t*)&Wert;
-    dst[0] = src[0];
-    dst[1] = src[1];
-    dst[2] = src[2];
-    dst[3] = src[3];
+    // Immer Little-Endian ablegen
+    uint32_t val = 0;
+    memcpy(&val, &Wert, sizeof(float));
+    Poke32(Adresse, val);
 }
 
 uint8_t Peek8(const void* Adresse)
 {
-    return (uint32_t)((uint8_t*)Adresse)[0];
+    return ((uint8_t*)Adresse)[0];
 }
 
 uint16_t Peek16(const void* Adresse)
@@ -220,50 +224,43 @@ uint16_t Peek16(const void* Adresse)
 
 uint32_t Peek24(const void* Adresse)
 {
-    uint8_t wert1, wert2, wert3;
-    wert1 = ((uint8_t*)Adresse)[0];
-    wert2 = ((uint8_t*)Adresse)[1];
-    wert3 = ((uint8_t*)Adresse)[2];
-    return ((uint32_t)wert1 | (wert2 << 8) | (wert3 << 16));
+    uint8_t wert1 = ((uint8_t*)Adresse)[0];
+    uint8_t wert2 = ((uint8_t*)Adresse)[1];
+    uint8_t wert3 = ((uint8_t*)Adresse)[2];
+    return ((uint32_t)wert1 | ((uint32_t)wert2 << 8) | ((uint32_t)wert3 << 16));
 }
 
 uint32_t Peek32(const void* Adresse)
 {
-    uint8_t wert1, wert2, wert3, wert4;
-    wert1 = ((uint8_t*)Adresse)[0];
-    wert2 = ((uint8_t*)Adresse)[1];
-    wert3 = ((uint8_t*)Adresse)[2];
-    wert4 = ((uint8_t*)Adresse)[3];
+    uint8_t wert1 = ((uint8_t*)Adresse)[0];
+    uint8_t wert2 = ((uint8_t*)Adresse)[1];
+    uint8_t wert3 = ((uint8_t*)Adresse)[2];
+    uint8_t wert4 = ((uint8_t*)Adresse)[3];
 
-    return ((uint32_t)(uint32_t)wert1 | ((uint32_t)wert2 << 8) | ((uint32_t)wert3 << 16) | ((uint32_t)wert4 << 24));
+    return ((uint32_t)wert1 | ((uint32_t)wert2 << 8) | ((uint32_t)wert3 << 16) | ((uint32_t)wert4 << 24));
 }
 
 uint64_t Peek64(const void* Adresse)
 {
-    uint8_t wert1, wert2, wert3, wert4, wert5, wert6, wert7, wert8;
-    wert1 = ((uint8_t*)Adresse)[0];
-    wert2 = ((uint8_t*)Adresse)[1];
-    wert3 = ((uint8_t*)Adresse)[2];
-    wert4 = ((uint8_t*)Adresse)[3];
-    wert5 = ((uint8_t*)Adresse)[4];
-    wert6 = ((uint8_t*)Adresse)[5];
-    wert7 = ((uint8_t*)Adresse)[6];
-    wert8 = ((uint8_t*)Adresse)[7];
+    uint8_t wert1 = ((uint8_t*)Adresse)[0];
+    uint8_t wert2 = ((uint8_t*)Adresse)[1];
+    uint8_t wert3 = ((uint8_t*)Adresse)[2];
+    uint8_t wert4 = ((uint8_t*)Adresse)[3];
+    uint8_t wert5 = ((uint8_t*)Adresse)[4];
+    uint8_t wert6 = ((uint8_t*)Adresse)[5];
+    uint8_t wert7 = ((uint8_t*)Adresse)[6];
+    uint8_t wert8 = ((uint8_t*)Adresse)[7];
 
-    return ((uint64_t)(uint64_t)wert1 | ((uint64_t)wert2 << 8) | ((uint64_t)wert3 << 16) | ((uint64_t)wert4 << 24) |
-            ((uint64_t)wert5 << 32) | ((uint64_t)wert6 << 40) | ((uint64_t)wert7 << 48) | ((uint64_t)wert8 << 56));
+    return ((uint64_t)wert1 | ((uint64_t)wert2 << 8) | ((uint64_t)wert3 << 16) | ((uint64_t)wert4 << 24) | ((uint64_t)wert5 << 32) |
+            ((uint64_t)wert6 << 40) | ((uint64_t)wert7 << 48) | ((uint64_t)wert8 << 56));
 }
 
 float PeekFloat(const void* Adresse)
 {
     // Immer aus Little-Endian zusammensetzen
-    float Wert;
-    uint8_t* dst = (uint8_t*)&Wert;
-    const uint8_t* src = (const uint8_t*)Adresse;
-    dst[0] = src[0];
-    dst[1] = src[1];
-    dst[2] = src[2];
-    dst[3] = src[3];
+    uint32_t val = Peek32(Adresse);
+    float Wert = 0.0f;
+    memcpy(&Wert, &val, sizeof(float));
     return Wert;
 }
 
@@ -334,7 +331,7 @@ uint32_t PeekN32(const void* Adresse)
     wert2 = ((uint8_t*)Adresse)[2];
     wert3 = ((uint8_t*)Adresse)[1];
     wert4 = ((uint8_t*)Adresse)[0];
-    return ((uint32_t)(uint32_t)wert1 | ((uint32_t)wert2 << 8) | ((uint32_t)wert3 << 16) | ((uint32_t)wert4 << 24));
+    return ((uint32_t)wert1 | ((uint32_t)wert2 << 8) | ((uint32_t)wert3 << 16) | ((uint32_t)wert4 << 24));
 }
 
 uint64_t PeekN64(const void* Adresse)
@@ -348,28 +345,43 @@ uint64_t PeekN64(const void* Adresse)
     wert6 = ((uint8_t*)Adresse)[2];
     wert7 = ((uint8_t*)Adresse)[1];
     wert8 = ((uint8_t*)Adresse)[0];
-    return ((uint64_t)(uint64_t)wert1 | ((uint64_t)wert2 << 8) | ((uint64_t)wert3 << 16) | ((uint64_t)wert4 << 24) |
-            ((uint64_t)wert5 << 32) | ((uint64_t)wert6 << 40) | ((uint64_t)wert7 << 48) | ((uint64_t)wert8 << 56));
+    return ((uint64_t)wert1 | ((uint64_t)wert2 << 8) | ((uint64_t)wert3 << 16) | ((uint64_t)wert4 << 24) | ((uint64_t)wert5 << 32) |
+            ((uint64_t)wert6 << 40) | ((uint64_t)wert7 << 48) | ((uint64_t)wert8 << 56));
+}
+
+static bool MatchArg(const char* arg, const String& argument, size_t argl)
+{
+    if (strncmp(arg, argument, argl) != 0) return false;
+    // Wenn argument mit "--" beginnt (lange Option) und nicht mit '=' endet:
+    // arg darf an Position argl nur '\0' (exakter Treffer) oder '=' (Trenner für Wert) haben.
+    if (argl >= 2 && argument[0] == '-' && argument[1] == '-' && argument[argl - 1] != '=') {
+        if (arg[argl] != '\0' && arg[argl] != '=') {
+            return false;
+        }
+    }
+    return true;
 }
 
 String GetArgv(int argc, char* argv[], const String& argument)
 {
-    if (argc > 1) {
-        size_t argl = strlen(argument);
-        for (int i = 1; i < argc; i++) {
-            if (strncmp(argv[i], argument, argl) == 0) {
-                size_t l = strlen(argv[i]);
-                if (l > argl || argv[i + 1] == NULL) {
-                    const char* ret = (argv[i] + argl);
-                    // if (ret[0]=='-') return (char*)"";
-                    // if (ret[0]=='\\' && ret[1]=='-') return ret+1;
-                    return String(ret);
-                } else {
-                    const char* ret = (argv[i + 1]);
-                    if (ret[0] == '-') return String();
-                    if (ret[0] == '\\' && ret[1] == '-') return ret + 1;
-                    return String(ret);
+    if (!argv || argc <= 1 || argument.isEmpty()) return String();
+    size_t argl = strlen(argument);
+    for (int i = 1; i < argc; i++) {
+        if (!argv[i]) continue;
+        if (MatchArg(argv[i], argument, argl)) {
+            size_t l = strlen(argv[i]);
+            bool hasEqual = (strchr(argv[i], '=') != nullptr);
+            if (l > argl || hasEqual || i + 1 >= argc || argv[i + 1] == NULL) {
+                const char* ret = (argv[i] + argl);
+                if (ret[0] == '=' && (argl == 0 || argument[argl - 1] != '=')) {
+                    ret++;
                 }
+                return String(ret);
+            } else {
+                const char* ret = (argv[i + 1]);
+                if (ret[0] == '-') return String();
+                if (ret[0] == '\\' && ret[1] == '-') return ret + 1;
+                return String(ret);
             }
         }
     }
@@ -378,12 +390,12 @@ String GetArgv(int argc, char* argv[], const String& argument)
 
 bool HaveArgv(int argc, char* argv[], const String& argument)
 {
-    if (argc > 1) {
-        size_t argl = strlen(argument);
-        for (int i = 1; i < argc; i++) {
-            if (strncmp(argv[i], argument, argl) == 0) {
-                return true;
-            }
+    if (!argv || argc <= 1 || argument.isEmpty()) return false;
+    size_t argl = strlen(argument);
+    for (int i = 1; i < argc; i++) {
+        if (!argv[i]) continue;
+        if (MatchArg(argv[i], argument, argl)) {
+            return true;
         }
     }
     return false;

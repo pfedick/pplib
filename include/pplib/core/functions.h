@@ -80,17 +80,6 @@ void HexDump(const void* address, size_t bytes, bool skipheader = false);
  * @ingroup PPLGroupPeekPoke
  *
  * Gibt den Inhalt des Speichers ab der angegebenen Adresse für die angegebene Anzahl von Bytes
- * in hexadezimaler Form aus. Die Kopfzeile wird immer angezeigt.
- *
- * @param address Speicheradresse, deren Inhalt ausgegeben werden soll
- * @param bytes Anzahl der auszugebenden Bytes
- */
-void HexDump(const void* address, size_t bytes);
-
-/** @brief Speicherinhalt in hexadezimaler Form ausgeben
- * @ingroup PPLGroupPeekPoke
- *
- * Gibt den Inhalt des Speichers ab der angegebenen Adresse für die angegebene Anzahl von Bytes
  * in hexadezimaler Form aus. Optional kann die Kopfzeile übersprungen werden.
  *
  * @param data ByteArrayPtr, dessen Inhalt ausgegeben werden soll

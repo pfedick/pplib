@@ -31,6 +31,7 @@
 
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
+#include <pplib/types/bytearray.h>
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
 
@@ -316,6 +317,39 @@ TEST_F(PeekAndPokeTest, PokeN16)
     ASSERT_EQ(0, buffer[7]) << "Unexpected Value";
 }
 
+TEST_F(PeekAndPokeTest, PokeN24)
+{
+    unsigned char buffer[32];
+    memset(buffer, 0, 32);
+    pplib::PokeN24(buffer, 123);
+    ASSERT_EQ(0, buffer[0]) << "Unexpected Value";
+    ASSERT_EQ(0, buffer[1]) << "Unexpected Value";
+    ASSERT_EQ(123, buffer[2]) << "Unexpected Value";
+    ASSERT_EQ(0, buffer[3]) << "Unexpected Value";
+    memset(buffer, 0, 32);
+    pplib::PokeN24(buffer, 65535);
+    ASSERT_EQ(0, buffer[0]) << "Unexpected Value";
+    ASSERT_EQ(255, buffer[1]) << "Unexpected Value";
+    ASSERT_EQ(255, buffer[2]) << "Unexpected Value";
+    ASSERT_EQ(0, buffer[3]) << "Unexpected Value";
+    memset(buffer, 0, 32);
+    pplib::PokeN24(buffer, 0xffffff);
+    ASSERT_EQ(255, buffer[0]) << "Unexpected Value";
+    ASSERT_EQ(255, buffer[1]) << "Unexpected Value";
+    ASSERT_EQ(255, buffer[2]) << "Unexpected Value";
+    ASSERT_EQ(0, buffer[3]) << "Unexpected Value";
+    memset(buffer, 0, 32);
+    pplib::PokeN24(buffer, 0x2ae9a4);
+    ASSERT_EQ(0x2a, buffer[0]) << "Unexpected Value";
+    ASSERT_EQ(0xe9, buffer[1]) << "Unexpected Value";
+    ASSERT_EQ(0xa4, buffer[2]) << "Unexpected Value";
+    ASSERT_EQ(0, buffer[3]) << "Unexpected Value";
+    ASSERT_EQ(0, buffer[4]) << "Unexpected Value";
+    ASSERT_EQ(0, buffer[5]) << "Unexpected Value";
+    ASSERT_EQ(0, buffer[6]) << "Unexpected Value";
+    ASSERT_EQ(0, buffer[7]) << "Unexpected Value";
+}
+
 TEST_F(PeekAndPokeTest, PokeN32)
 {
     unsigned char buffer[32];
@@ -517,6 +551,18 @@ TEST_F(PeekAndPokeTest, PeekN16)
     ASSERT_EQ((uint32_t)0xffff, pplib::PeekN16(buffer3)) << "Unexpected Value";
 }
 
+TEST_F(PeekAndPokeTest, PeekN24)
+{
+    unsigned char buffer1[8] = {0xa4, 0xe9, 0x2a, 0xf0, 0xee, 0x9d, 0x47, 0xa1};
+    unsigned char buffer2[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    unsigned char buffer3[8] = {
+        255, 255, 255, 255, 255, 255, 255, 255,
+    };
+    ASSERT_EQ((uint32_t)0xa4e92a, pplib::PeekN24(buffer1)) << "Unexpected Value";
+    ASSERT_EQ((uint32_t)0, pplib::PeekN24(buffer2)) << "Unexpected Value";
+    ASSERT_EQ((uint32_t)0xffffff, pplib::PeekN24(buffer3)) << "Unexpected Value";
+}
+
 TEST_F(PeekAndPokeTest, PeekN32)
 {
     unsigned char buffer1[8] = {0xa4, 0xe9, 0x2a, 0xf0, 0xee, 0x9d, 0x47, 0xa1};
@@ -539,6 +585,175 @@ TEST_F(PeekAndPokeTest, PeekN64)
     ASSERT_EQ((uint64_t)0xa4e92af0ee9d47a1, pplib::PeekN64(buffer1)) << "Unexpected Value";
     ASSERT_EQ((uint64_t)0, pplib::PeekN64(buffer2)) << "Unexpected Value";
     ASSERT_EQ((uint64_t)0xffffffffffffffff, pplib::PeekN64(buffer3)) << "Unexpected Value";
+}
+
+TEST(HexDumpTest, DefaultHeaderAndContent)
+{
+    unsigned char data[20];
+    for (int i = 0; i < 20; i++)
+        data[i] = (unsigned char)(65 + i); // 'A', 'B', ...
+    testing::internal::CaptureStdout();
+    pplib::HexDump(data, 20);
+    pplib::String out = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(out.has("HEXDUMP: 20 Bytes starting at Address"));
+    EXPECT_TRUE(out.has("41 42 43 44 45 46 47 48 49 4A 4B 4C 4D 4E 4F 50"));
+    EXPECT_TRUE(out.has("ABCDEFGHIJKLMNOP"));
+    EXPECT_TRUE(out.has("51 52 53 54"));
+    EXPECT_TRUE(out.has("QRST"));
+}
+
+TEST(HexDumpTest, SkipHeader)
+{
+    unsigned char data[8] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+    testing::internal::CaptureStdout();
+    pplib::HexDump(data, 8, true);
+    pplib::String out = testing::internal::GetCapturedStdout();
+    EXPECT_FALSE(out.has("HEXDUMP:"));
+    EXPECT_TRUE(out.has("01 02 03 04 05 06 07 08"));
+}
+
+TEST(HexDumpTest, ByteArrayPtr)
+{
+    pplib::ByteArray ba;
+    ba.append("Hello HexDump Test Data!", 24);
+    testing::internal::CaptureStdout();
+    pplib::HexDump(ba, false);
+    pplib::String out = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(out.has("HEXDUMP: 24 Bytes starting at Address"));
+    EXPECT_TRUE(out.has("Hello HexDump Te"));
+
+    testing::internal::CaptureStdout();
+    pplib::HexDump(ba, true);
+    pplib::String outSkip = testing::internal::GetCapturedStdout();
+    EXPECT_FALSE(outSkip.has("HEXDUMP:"));
+    EXPECT_TRUE(outSkip.has("Hello HexDump Te"));
+}
+
+TEST(HexDumpTest, EmptyAndNull)
+{
+    testing::internal::CaptureStdout();
+    pplib::HexDump(nullptr, 0, false);
+    pplib::String out1 = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(out1.has("HEXDUMP: 0 Bytes starting at Address"));
+
+    testing::internal::CaptureStdout();
+    pplib::HexDump(nullptr, 0, true);
+    pplib::String out2 = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(out2.isEmpty());
+
+    testing::internal::CaptureStdout();
+    pplib::HexDump(nullptr, 16, false);
+    pplib::String out3 = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(out3.has("HEXDUMP: 16 Bytes starting at Address"));
+
+    unsigned char data[4] = {1, 2, 3, 4};
+    testing::internal::CaptureStdout();
+    pplib::HexDump(data, 0, false);
+    pplib::String out4 = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(out4.has("HEXDUMP: 0 Bytes starting at Address"));
+}
+
+TEST(ArgvTest, HaveArgvBasic)
+{
+    char* argv[] = {(char*)"myprog", (char*)"-h", (char*)"--verbose", (char*)"-c", (char*)"test.conf", nullptr};
+    int argc = 5;
+
+    EXPECT_TRUE(pplib::HaveArgv(argc, argv, "-h"));
+    EXPECT_TRUE(pplib::HaveArgv(argc, argv, "--verbose"));
+    EXPECT_TRUE(pplib::HaveArgv(argc, argv, "-c"));
+    EXPECT_FALSE(pplib::HaveArgv(argc, argv, "-x"));
+    EXPECT_FALSE(pplib::HaveArgv(argc, argv, "--other"));
+}
+
+TEST(ArgvTest, HaveArgvPrefixAndEqual)
+{
+    char* argv[] = {(char*)"myprog", (char*)"--config=test.conf", (char*)"--prefix-path=/usr", (char*)"-ctest", nullptr};
+    int argc = 4;
+
+    EXPECT_TRUE(pplib::HaveArgv(argc, argv, "--config"));
+    EXPECT_TRUE(pplib::HaveArgv(argc, argv, "--config="));
+    EXPECT_FALSE(pplib::HaveArgv(argc, argv, "--prefix"));
+    EXPECT_TRUE(pplib::HaveArgv(argc, argv, "--prefix-path"));
+    EXPECT_TRUE(pplib::HaveArgv(argc, argv, "-c"));
+}
+
+TEST(ArgvTest, HaveArgvEdgeCases)
+{
+    char* argv[] = {(char*)"myprog", nullptr, (char*)"-h", nullptr};
+    EXPECT_FALSE(pplib::HaveArgv(0, argv, "-h"));
+    EXPECT_FALSE(pplib::HaveArgv(1, argv, "-h"));
+    EXPECT_FALSE(pplib::HaveArgv(3, nullptr, "-h"));
+    EXPECT_FALSE(pplib::HaveArgv(3, argv, ""));
+    EXPECT_TRUE(pplib::HaveArgv(3, argv, "-h"));
+}
+
+TEST(ArgvTest, GetArgvBasicAndAttached)
+{
+    char* argv[] = {(char*)"myprog",           (char*)"-c",      (char*)"my.conf", (char*)"-ofile.txt",
+                    (char*)"--input=data.bin", (char*)"--mode=", (char*)"fast",    nullptr};
+    int argc = 7;
+
+    EXPECT_EQ(pplib::String("my.conf"), pplib::GetArgv(argc, argv, "-c"));
+    EXPECT_EQ(pplib::String("file.txt"), pplib::GetArgv(argc, argv, "-o"));
+    EXPECT_EQ(pplib::String("data.bin"), pplib::GetArgv(argc, argv, "--input"));
+    EXPECT_EQ(pplib::String("data.bin"), pplib::GetArgv(argc, argv, "--input="));
+    EXPECT_EQ(pplib::String(""), pplib::GetArgv(argc, argv, "--mode="));
+}
+
+TEST(ArgvTest, GetArgvDashHandlingAndEscaping)
+{
+    char* argv[] = {(char*)"myprog", (char*)"-a", (char*)"-b", (char*)"-t", (char*)"\\-10", nullptr};
+    int argc = 5;
+
+    EXPECT_EQ(pplib::String(""), pplib::GetArgv(argc, argv, "-a"));
+    EXPECT_EQ(pplib::String("-10"), pplib::GetArgv(argc, argv, "-t"));
+}
+
+TEST(ArgvTest, GetArgvLastArgWithoutValue)
+{
+    char* argv[2] = {(char*)"myprog", (char*)"-c"};
+    EXPECT_EQ(pplib::String(""), pplib::GetArgv(2, argv, "-c"));
+
+    char* argvNullTerm[] = {(char*)"myprog", (char*)"-c", nullptr};
+    EXPECT_EQ(pplib::String(""), pplib::GetArgv(2, argvNullTerm, "-c"));
+}
+
+TEST(ArgvTest, GetArgvEdgeCases)
+{
+    char* argv[] = {(char*)"myprog", (char*)"--prefix-path=/usr", nullptr, (char*)"-c", (char*)"test.conf", nullptr};
+    EXPECT_EQ(pplib::String(""), pplib::GetArgv(0, argv, "-c"));
+    EXPECT_EQ(pplib::String(""), pplib::GetArgv(1, argv, "-c"));
+    EXPECT_EQ(pplib::String(""), pplib::GetArgv(5, nullptr, "-c"));
+    EXPECT_EQ(pplib::String(""), pplib::GetArgv(5, argv, ""));
+    EXPECT_EQ(pplib::String(""), pplib::GetArgv(5, argv, "--prefix"));
+    EXPECT_EQ(pplib::String("/usr"), pplib::GetArgv(5, argv, "--prefix-path"));
+    EXPECT_EQ(pplib::String("test.conf"), pplib::GetArgv(5, argv, "-c"));
+}
+
+TEST(PrintDebugTest, PrintDebug)
+{
+    testing::internal::CaptureStdout();
+    pplib::PrintDebug(nullptr);
+    pplib::String outNull = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(outNull.isEmpty());
+
+    testing::internal::CaptureStdout();
+    pplib::PrintDebug("Debug value: %d %s\n", 42, "test");
+    pplib::String out = testing::internal::GetCapturedStdout();
+    EXPECT_EQ(pplib::String("Debug value: 42 test\n"), out);
+}
+
+TEST(PrintDebugTest, PrintDebugTime)
+{
+    testing::internal::CaptureStdout();
+    pplib::PrintDebugTime(nullptr);
+    pplib::String outNull = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(outNull.isEmpty());
+
+    testing::internal::CaptureStdout();
+    pplib::PrintDebugTime("Time test %d\n", 123);
+    pplib::String out = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(out.has("Time test 123\n"));
 }
 
 } // namespace
