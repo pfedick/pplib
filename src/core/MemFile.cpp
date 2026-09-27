@@ -110,6 +110,48 @@ MemFile::MemFile(const ByteArrayPtr& memory)
     readonly = true;
 }
 
+MemFile::MemFile(MemFile&& other) noexcept
+{
+    mysize = other.mysize;
+    pos = other.pos;
+    maxsize = other.maxsize;
+    buffersize = other.buffersize;
+    MemBase = other.MemBase;
+    buffer = other.buffer;
+    readonly = other.readonly;
+
+    other.mysize = 0;
+    other.pos = 0;
+    other.maxsize = 0;
+    other.buffersize = 0;
+    other.MemBase = nullptr;
+    other.buffer = nullptr;
+    other.readonly = true;
+}
+
+MemFile& MemFile::operator=(MemFile&& other) noexcept
+{
+    if (this != &other) {
+        close();
+        mysize = other.mysize;
+        pos = other.pos;
+        maxsize = other.maxsize;
+        buffersize = other.buffersize;
+        MemBase = other.MemBase;
+        buffer = other.buffer;
+        readonly = other.readonly;
+
+        other.mysize = 0;
+        other.pos = 0;
+        other.maxsize = 0;
+        other.buffersize = 0;
+        other.MemBase = nullptr;
+        other.buffer = nullptr;
+        other.readonly = true;
+    }
+    return *this;
+}
+
 MemFile::~MemFile()
 {
     close();
@@ -230,6 +272,7 @@ void MemFile::close()
     mysize = 0;
     pos = 0;
     buffersize = 0;
+    readonly = true;
     if (buffer != 0) {
         free(buffer);
         buffer = 0;
@@ -251,8 +294,6 @@ void MemFile::seek(uint64_t position)
     if (MemBase != NULL || readonly == false) {
         if (position <= mysize) {
             pos = position;
-        } else if (mysize == 0 && position == 0) {
-            return;
         } else {
             throw OverflowException();
         }
@@ -326,6 +367,7 @@ size_t MemFile::fwrite(const void* ptr, size_t size, size_t nmemb)
 
 char* MemFile::fgets(char* buffer1, size_t num)
 {
+    if (buffer1 == nullptr || num == 0) throw IllegalArgumentException();
     if (MemBase != NULL) {
         if (pos >= mysize) throw EndOfFileException();
         uint64_t by;
@@ -349,8 +391,8 @@ char* MemFile::fgets(char* buffer1, size_t num)
 
 wchar_t* MemFile::fgetws(wchar_t* buffer1, size_t num)
 {
+    if (buffer1 == nullptr || num == 0) throw IllegalArgumentException();
     if (MemBase == NULL) throw FileNotOpenException();
-    if (num == 0) throw IllegalArgumentException();
     if (pos >= mysize) throw EndOfFileException();
 
     size_t available_wchars = (mysize - pos) / sizeof(wchar_t);
@@ -373,6 +415,7 @@ wchar_t* MemFile::fgetws(wchar_t* buffer1, size_t num)
 
 void MemFile::fputs(const char* str)
 {
+    if (!str) throw IllegalArgumentException();
     if (MemBase != NULL || readonly == false) {
         fwrite((void*)str, 1, (uint32_t)strlen(str));
         return;
@@ -382,6 +425,7 @@ void MemFile::fputs(const char* str)
 
 void MemFile::fputws(const wchar_t* str)
 {
+    if (!str) throw IllegalArgumentException();
     if (MemBase != NULL || readonly == false) {
         fwrite(str, 1, (uint32_t)wcslen(str) * sizeof(wchar_t));
         return;
