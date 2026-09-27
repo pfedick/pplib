@@ -46,36 +46,11 @@
 #include <pplib/core/functions.h>
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
+#include <pplib/types/bytearrayptr.h>
 
 namespace pplib
 {
 
-static int printdebug = 0;
-
-/*!\brief Ausgabe für Debug-Output angeben
- *
- * Mit dieser Funktion wird festgelegt, an welcher Stelle die Textausgabe erfolgen soll.
- * Einige Funktionen (z.B. CAssocArray::List) geben Informationen aus. Standardmäßig werden diese
- * per STDOUT auf die Konsole ausgegeben. Unter Windows gibt es aber manchmal keine Konsole. Hier kann
- * es dann ganz hilfreich sein die Ausgabe im Debugger von Visual Studio zu sehen.
- *
- * \param[in] type 0=STDOUT, 1=VisualStudio Debugger
- */
-void SetGlobalOutput(int type)
-{
-    printdebug = type;
-}
-
-/*!\brief Interne Funktion zur Ausgabe von Text
- *
- * Diese Funktion dient als Ersatz für "printf" und wird intern von einigen Funktionen/Klasse zur
- * Ausgabe von Text verwendet. Über die Funktion SetGlobalOutput kann bestimmt werden, ob dieser
- * Text per STDOUT auf die Konsole ausgegeben werden soll oder beispielsweise im Debugger von
- * VisualStudio unter Windows.
- *
- * \param[in] format Formatstring für den Text
- * \param[in] ...    Optionale Parameter, die im Formatstring eingesetzt werden sollen
- */
 void PrintDebug(const char* format, ...)
 {
     if (!format) return;
@@ -84,28 +59,10 @@ void PrintDebug(const char* format, ...)
     String buff;
     buff.vasprintf(format, args);
     va_end(args);
-    if (printdebug == 1) {
-#ifdef PPLVISUALC
-        OutputDebugString((const char*)buff);
-#elif defined _WIN32
-        OutputDebugString((const char*)buff);
-#endif
-    } else {
-        buff.print();
-        fflush(stdout);
-    }
+    buff.print();
+    fflush(stdout);
 }
 
-/*!\brief Interne Funktion zur Ausgabe von Text
- *
- * Diese Funktion dient als Ersatz für "printf" und wird intern von einigen Funktionen/Klasse zur
- * Ausgabe von Text verwendet. Über die Funktion SetGlobalOutput kann bestimmt werden, ob dieser
- * Text per STDOUT auf die Konsole ausgegeben werden soll oder beispielsweise im Debugger von
- * VisualStudio unter Windows.
- *
- * \param[in] format Formatstring für den Text
- * \param[in] ...    Optionale Parameter, die im Formatstring eingesetzt werden sollen
- */
 void PrintDebugTime(const char* format, ...)
 {
     if (!format) return;
@@ -119,20 +76,13 @@ void PrintDebugTime(const char* format, ...)
     String Time = now.getISO8601withMsec();
     Time += ": ";
 
-    if (printdebug == 1) {
-#ifdef PPLVISUALC
-        OutputDebugString((const char*)Time);
-        OutputDebugString((const char*)buff);
+    printf("%s%s", (const char*)Time, (const char*)buff);
+    fflush(stdout);
+}
 
-#elif defined _WIN32
-        OutputDebugString((const char*)Time);
-        OutputDebugString((const char*)buff);
-
-#endif
-    } else {
-        printf("%s%s", (const char*)Time, (const char*)buff);
-        fflush(stdout);
-    }
+void HexDump(const ByteArrayPtr& data, bool skipheader)
+{
+    HexDump(data.ptr(), data.size(), skipheader);
 }
 
 void HexDump(const void* address, size_t bytes, bool skipheader)
@@ -174,11 +124,6 @@ void HexDump(const void* address, size_t bytes, bool skipheader)
     if (!skipheader) printf("\n");
 }
 
-void HexDump(const void* address, size_t bytes)
-{
-    HexDump(address, bytes, false);
-}
-
 /*!\defgroup PPLGroupPeekPoke Peek und Poke
  * \brief Funktionen zum Zugriff auf den Speicher
  * \ingroup PPLGroupMemory
@@ -212,53 +157,17 @@ void HexDump(const void* address, size_t bytes)
  *
  */
 
-/*!\brief 8-Bit-Wert schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 8 Bit des Wertes werden in die angegebene Speicheradresse
- * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void Poke8(void* Adresse, uint8_t Wert)
 {
     ((uint8_t*)Adresse)[0] = Wert;
 }
 
-/*!\brief 16-Bit-Wert schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 16 Bit des Wertes werden in die angegebene Speicheradresse
- * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void Poke16(void* Adresse, uint16_t Wert)
 {
     ((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
     ((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 8) & 255);
 }
 
-/*!\brief 24-Bit-Wert schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 24 Bit des Wertes werden in die angegebene Speicheradresse
- * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void Poke24(void* Adresse, uint32_t Wert)
 {
     ((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
@@ -266,18 +175,6 @@ void Poke24(void* Adresse, uint32_t Wert)
     ((uint8_t*)Adresse)[2] = (uint8_t)((Wert >> 16) & 255);
 }
 
-/*!\brief 32-Bit-Wert schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 32 Bit des Wertes werden in die angegebene Speicheradresse
- * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void Poke32(void* Adresse, uint32_t Wert)
 {
     ((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
@@ -286,18 +183,6 @@ void Poke32(void* Adresse, uint32_t Wert)
     ((uint8_t*)Adresse)[3] = (uint8_t)((Wert >> 24) & 255);
 }
 
-/*!\brief 64-Bit-Wert schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 64 Bit des Wertes werden in die angegebene Speicheradresse
- * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void Poke64(void* Adresse, uint64_t Wert)
 {
     ((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
@@ -310,18 +195,6 @@ void Poke64(void* Adresse, uint64_t Wert)
     ((uint8_t*)Adresse)[7] = (uint8_t)((Wert >> 56) & 255);
 }
 
-/*!\brief 32-Bit-Float-Wert schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die Inhalt des Floats \p Wert wird in die angegebene Speicheradresse
- * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void PokeFloat(void* Adresse, float Wert)
 {
     // Immer Little-Endian ablegen, Byte für Byte
@@ -333,33 +206,11 @@ void PokeFloat(void* Adresse, float Wert)
     dst[3] = src[3];
 }
 
-/*!\brief 8-Bit-Wert auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 8 Bit der angegebenen Adresse werden im Little-Endian-Format
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint8_t Peek8(const void* Adresse)
 {
     return (uint32_t)((uint8_t*)Adresse)[0];
 }
 
-/*!\brief 16-Bit-Wert auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 16 Bit der angegebenen Adresse werden im Little-Endian-Format
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint16_t Peek16(const void* Adresse)
 {
     uint8_t wert1 = ((uint8_t*)Adresse)[0];
@@ -367,17 +218,6 @@ uint16_t Peek16(const void* Adresse)
     return ((uint16_t)wert1 | ((uint16_t)wert2 << 8));
 }
 
-/*!\brief 24-Bit-Wert auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 24 Bit der angegebenen Adresse werden im Little-Endian-Format
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint32_t Peek24(const void* Adresse)
 {
     uint8_t wert1, wert2, wert3;
@@ -387,17 +227,6 @@ uint32_t Peek24(const void* Adresse)
     return ((uint32_t)wert1 | (wert2 << 8) | (wert3 << 16));
 }
 
-/*!\brief 32-Bit-Wert auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 32 Bit der angegebenen Adresse werden im Little-Endian-Format
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint32_t Peek32(const void* Adresse)
 {
     uint8_t wert1, wert2, wert3, wert4;
@@ -409,17 +238,6 @@ uint32_t Peek32(const void* Adresse)
     return ((uint32_t)(uint32_t)wert1 | ((uint32_t)wert2 << 8) | ((uint32_t)wert3 << 16) | ((uint32_t)wert4 << 24));
 }
 
-/*!\brief 64-Bit-Wert auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 64 Bit der angegebenen Adresse werden im Little-Endian-Format
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint64_t Peek64(const void* Adresse)
 {
     uint8_t wert1, wert2, wert3, wert4, wert5, wert6, wert7, wert8;
@@ -436,17 +254,6 @@ uint64_t Peek64(const void* Adresse)
             ((uint64_t)wert5 << 32) | ((uint64_t)wert6 << 40) | ((uint64_t)wert7 << 48) | ((uint64_t)wert8 << 56));
 }
 
-/*!\brief 32-Bit-Float-Wert auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 32 Bit der angegebenen Adresse werden im Little-Endian-Format
- * ausgelesen und als Float-Wert zurückgegeben.
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 float PeekFloat(const void* Adresse)
 {
     // Immer aus Little-Endian zusammensetzen
@@ -460,53 +267,17 @@ float PeekFloat(const void* Adresse)
     return Wert;
 }
 
-/*!\brief 8-Bit-Wert in Network-Byteorder schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 8 Bit des Wertes werden in die angegebene Speicheradresse
- * im Big-Endian-Format (Network-Byteorder) geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void PokeN8(void* Adresse, uint8_t Wert)
 {
     ((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
 }
 
-/*!\brief 16-Bit-Wert in Network-Byteorder schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 16 Bit des Wertes werden in die angegebene Speicheradresse
- * im Big-Endian-Format (Network-Byteorder) geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void PokeN16(void* Adresse, uint16_t Wert)
 {
     ((uint8_t*)Adresse)[1] = (uint8_t)(Wert & 255);
     ((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 8) & 255);
 }
 
-/*!\brief 24-Bit-Wert in Network-Byteorder schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 24 Bit des Wertes werden in die angegebene Speicheradresse
- * im Big-Endian-Format (Network-Byteorder) geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void PokeN24(void* Adresse, uint32_t Wert)
 {
     // Immer als Big-Endian (Network Order) ablegen: [0]=MSB ... [2]=LSB
@@ -515,18 +286,6 @@ void PokeN24(void* Adresse, uint32_t Wert)
     ((uint8_t*)Adresse)[2] = (uint8_t)(Wert & 255);
 }
 
-/*!\brief 32-Bit-Wert in Network-Byteorder schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 32 Bit des Wertes werden in die angegebene Speicheradresse
- * im Big-Endian-Format (Network-Byteorder) geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void PokeN32(void* Adresse, uint32_t Wert)
 {
     ((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 24) & 255);
@@ -535,18 +294,6 @@ void PokeN32(void* Adresse, uint32_t Wert)
     ((uint8_t*)Adresse)[3] = (uint8_t)(Wert & 255);
 }
 
-/*!\brief 64-Bit-Wert in Network-Byteorder schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 64 Bit des Wertes werden in die angegebene Speicheradresse
- * im Big-Endian-Format (Network-Byteorder) geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 void PokeN64(void* Adresse, uint64_t Wert)
 {
     ((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 56) & 255);
@@ -559,33 +306,11 @@ void PokeN64(void* Adresse, uint64_t Wert)
     ((uint8_t*)Adresse)[7] = (uint8_t)(Wert & 255);
 }
 
-/*!\brief 8-Bit-Wert in Network-Byteorder auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 8 Bit der angegebenen Adresse werden im Big-Endian-Format (Network-Byteorder)
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint8_t PeekN8(const void* Adresse)
 {
     return (uint8_t)((uint8_t*)Adresse)[0];
 }
 
-/*!\brief 16-Bit-Wert in Network-Byteorder auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 16 Bit der angegebenen Adresse werden im Big-Endian-Format (Network-Byteorder)
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint16_t PeekN16(const void* Adresse)
 {
     uint8_t wert1, wert2;
@@ -594,17 +319,6 @@ uint16_t PeekN16(const void* Adresse)
     return ((uint16_t)(uint16_t)wert1 | ((uint16_t)wert2 << 8));
 }
 
-/*!\brief 24-Bit-Wert in Network-Byteorder auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 24 Bit der angegebenen Adresse werden im Big-Endian-Format (Network-Byteorder)
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint32_t PeekN24(const void* Adresse)
 {
     uint8_t msb = ((uint8_t*)Adresse)[0];
@@ -613,17 +327,6 @@ uint32_t PeekN24(const void* Adresse)
     return ((uint32_t)msb << 16) | ((uint32_t)mid << 8) | (uint32_t)lsb;
 }
 
-/*!\brief 32-Bit-Wert in Network-Byteorder auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 32 Bit der angegebenen Adresse werden im Big-Endian-Format (Network-Byteorder)
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint32_t PeekN32(const void* Adresse)
 {
     uint8_t wert1, wert2, wert3, wert4;
@@ -634,17 +337,6 @@ uint32_t PeekN32(const void* Adresse)
     return ((uint32_t)(uint32_t)wert1 | ((uint32_t)wert2 << 8) | ((uint32_t)wert3 << 16) | ((uint32_t)wert4 << 24));
 }
 
-/*!\brief 64-Bit-Wert in Network-Byteorder auslesen
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 64 Bit der angegebenen Adresse werden im Big-Endian-Format (Network-Byteorder)
- * ausgelesen und als Wert zurückgegeben
- *
- * @param Adresse Speicheradresse, aus der gelesen werden soll
- * @return Ausgelesener Wert
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
 uint64_t PeekN64(const void* Adresse)
 {
     uint8_t wert1, wert2, wert3, wert4, wert5, wert6, wert7, wert8;

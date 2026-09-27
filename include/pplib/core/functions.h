@@ -27,8 +27,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef PPLIB_FUNCTIONS_H_
-#define PPLIB_FUNCTIONS_H_
+#ifndef PPLIB_CORE_FUNCTIONS_H_
+#define PPLIB_CORE_FUNCTIONS_H_
 
 #include <stdint.h>
 #include <pplib/types/string.h>
@@ -40,13 +40,302 @@
 namespace pplib
 {
 
-// Functions
+/** @brief Interne Funktion zur Ausgabe von Text
+ *
+ * Diese Funktion dient als Ersatz für "printf" und wird intern von einigen Funktionen/Klasse zur
+ * Ausgabe von Text verwendet. Über die Funktion SetGlobalOutput kann bestimmt werden, ob dieser
+ * Text per STDOUT auf die Konsole ausgegeben werden soll oder beispielsweise im Debugger von
+ * VisualStudio unter Windows.
+ *
+ * \param[in] format Formatstring für den Text
+ * \param[in] ...    Optionale Parameter, die im Formatstring eingesetzt werden sollen
+ */
 void PrintDebug(const char* format, ...);
-void PrintDebugTime(const char* format, ...);
-void SetGlobalOutput(int type);
 
-void HexDump(const void* address, size_t bytes, bool skipheader);
+/** @brief Interne Funktion zur Ausgabe von Text
+ *
+ * Diese Funktion dient als Ersatz für "printf" und wird intern von einigen Funktionen/Klasse zur
+ * Ausgabe von Text verwendet. Über die Funktion SetGlobalOutput kann bestimmt werden, ob dieser
+ * Text per STDOUT auf die Konsole ausgegeben werden soll oder beispielsweise im Debugger von
+ * VisualStudio unter Windows.
+ *
+ * \param[in] format Formatstring für den Text
+ * \param[in] ...    Optionale Parameter, die im Formatstring eingesetzt werden sollen
+ */
+void PrintDebugTime(const char* format, ...);
+
+/** @brief Speicherinhalt in hexadezimaler Form ausgeben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Gibt den Inhalt des Speichers ab der angegebenen Adresse für die angegebene Anzahl von Bytes
+ * in hexadezimaler Form aus. Optional kann die Kopfzeile übersprungen werden.
+ *
+ * @param address Speicheradresse, deren Inhalt ausgegeben werden soll
+ * @param bytes Anzahl der auszugebenden Bytes
+ * @param skipheader Wenn true, wird die Kopfzeile übersprungen (Default=false)
+ */
+void HexDump(const void* address, size_t bytes, bool skipheader = false);
+
+/** @brief Speicherinhalt in hexadezimaler Form ausgeben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Gibt den Inhalt des Speichers ab der angegebenen Adresse für die angegebene Anzahl von Bytes
+ * in hexadezimaler Form aus. Die Kopfzeile wird immer angezeigt.
+ *
+ * @param address Speicheradresse, deren Inhalt ausgegeben werden soll
+ * @param bytes Anzahl der auszugebenden Bytes
+ */
 void HexDump(const void* address, size_t bytes);
+
+/** @brief Speicherinhalt in hexadezimaler Form ausgeben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Gibt den Inhalt des Speichers ab der angegebenen Adresse für die angegebene Anzahl von Bytes
+ * in hexadezimaler Form aus. Optional kann die Kopfzeile übersprungen werden.
+ *
+ * @param data ByteArrayPtr, dessen Inhalt ausgegeben werden soll
+ * @param skipheader Wenn true, wird die Kopfzeile übersprungen (Default=false)
+ */
+void HexDump(const ByteArrayPtr& data, bool skipheader = false);
+
+// Speicherzugriff
+
+/** @brief 8-Bit-Wert schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 8 Bit des Wertes werden in die angegebene Speicheradresse
+ * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
+ * Rechners mit Little- oder Big-Endian arbeitet.
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+void Poke8(void* Adresse, uint8_t Wert);
+
+/** @brief 16-Bit-Wert schreiben im Little-Endian-Format schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 16 Bit des Wertes werden in die angegebene Speicheradresse
+ * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
+ * Rechners mit Little- oder Big-Endian arbeitet.
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+void Poke16(void* Adresse, uint16_t Wert);
+
+/** @brief 24-Bit-Wert schreiben im Little-Endian-Format schreiben
+ * \ingroup PPLGroupPeekPoke
+ *
+ * \desc
+ * Die ersten 24 Bit des Wertes werden in die angegebene Speicheradresse
+ * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
+ * Rechners mit Little- oder Big-Endian arbeitet.
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+void Poke24(void* Adresse, uint32_t Wert);
+
+/** @brief 32-Bit-Wert schreiben im Little-Endian-Format schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 32 Bit des Wertes werden in die angegebene Speicheradresse
+ * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
+ * Rechners mit Little- oder Big-Endian arbeitet.
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+void Poke32(void* Adresse, uint32_t Wert);
+
+/** @brief 64-Bit-Wert schreiben im Little-Endian-Format schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 64 Bit des Wertes werden in die angegebene Speicheradresse
+ * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
+ * Rechners mit Little- oder Big-Endian arbeitet.
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+void Poke64(void* Adresse, uint64_t Wert);
+
+/** @brief 32-Bit-Float-Wert schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die Inhalt des Floats \p Wert wird in die angegebene Speicheradresse geschrieben.
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+void PokeFloat(void* Adresse, float Wert);
+
+/** @brief 8-Bit-Wert auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 8 Bit der angegebenen Adresse werden im Little-Endian-Format
+ * ausgelesen und als Wert zurückgegeben
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+uint8_t Peek8(const void* Adresse);
+
+/** @brief 16-Bit-Wert auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 16 Bit der angegebenen Adresse werden im Little-Endian-Format
+ * ausgelesen und als Wert zurückgegeben
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+uint16_t Peek16(const void* Adresse);
+
+/** @brief 24-Bit-Wert auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 24 Bit der angegebenen Adresse werden im Little-Endian-Format
+ * ausgelesen und als Wert zurückgegeben
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+uint32_t Peek24(const void* Adresse);
+
+/** @brief 32-Bit-Wert auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 32 Bit der angegebenen Adresse werden im Little-Endian-Format
+ * ausgelesen und als Wert zurückgegeben
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+uint32_t Peek32(const void* Adresse);
+
+/** @brief 64-Bit-Wert auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 64 Bit der angegebenen Adresse werden im Little-Endian-Format
+ * ausgelesen und als Wert zurückgegeben
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+uint64_t Peek64(const void* Adresse);
+
+/** @brief 32-Bit-Float-Wert auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * Die ersten 32 Bit der angegebenen Adresse werden im Little-Endian-Format
+ * ausgelesen und als Float-Wert zurückgegeben.
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+float PeekFloat(const void* Adresse);
+
+// Network-Byte-Order
+
+/** @brief 8-Bit-Wert in Network-Byteorder / Big-Endian-Format schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Zu schreibender Wert
+ */
+void PokeN8(void* Adresse, uint8_t Wert);
+
+/** @brief 16-Bit-Wert in Network-Byteorder / Big-Endian-Format schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Zu schreibender Wert
+ */
+void PokeN16(void* Adresse, uint16_t Wert);
+
+/** @brief 24-Bit-Wert in Network-Byteorder / Big-Endian-Format schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Zu schreibender Wert
+ */
+void PokeN24(void* Adresse, uint32_t Wert);
+
+/** @brief 32-Bit-Wert in Network-Byteorder / Big-Endian-Format schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Zu schreibender Wert
+ */
+void PokeN32(void* Adresse, uint32_t Wert);
+
+/** @brief 64-Bit-Wert in Network-Byteorder / Big-Endian-Format schreiben
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Zu schreibender Wert
+ */
+void PokeN64(void* Adresse, uint64_t Wert);
+
+/** @brief 8-Bit-Wert aus Network-Byteorder / Big-Endian-Format auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ */
+uint8_t PeekN8(const void* Adresse);
+
+/** @brief 16-Bit-Wert aus Network-Byteorder / Big-Endian-Format auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ */
+uint16_t PeekN16(const void* Adresse);
+
+/** @brief 24-Bit-Wert aus Network-Byteorder / Big-Endian-Format auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ */
+uint32_t PeekN24(const void* Adresse);
+
+/** @brief 32-Bit-Wert aus Network-Byteorder / Big-Endian-Format auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ */
+uint32_t PeekN32(const void* Adresse);
+
+/** @brief 64-Bit-Wert aus Network-Byteorder / Big-Endian-Format auslesen
+ * @ingroup PPLGroupPeekPoke
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ */
+uint64_t PeekN64(const void* Adresse);
+
+String GetArgv(int argc, char* argv[], const String& argument);
+bool HaveArgv(int argc, char* argv[], const String& argument);
+
+//********************************************************************************************* */
+
 String ToBase64(const ByteArrayPtr& bin);
 ByteArray FromBase64(const String& str);
 
@@ -149,36 +438,6 @@ bool IsNumeric(const String& str);
 Array StrTok(const String& string, const String& div = String("\n"));
 void StrTok(Array& result, const String& string, const String& div = String("\n"));
 
-String GetArgv(int argc, char* argv[], const String& argument);
-bool HaveArgv(int argc, char* argv[], const String& argument);
-
-// Speicherzugriff
-void Poke8(void* Adresse, uint8_t Wert);
-void Poke16(void* Adresse, uint16_t Wert);
-void Poke24(void* Adresse, uint32_t Wert);
-void Poke32(void* Adresse, uint32_t Wert);
-void Poke64(void* Adresse, uint64_t Wert);
-void PokeFloat(void* Adresse, float Wert);
-uint8_t Peek8(const void* Adresse);
-uint16_t Peek16(const void* Adresse);
-uint32_t Peek24(const void* Adresse);
-uint32_t Peek32(const void* Adresse);
-uint64_t Peek64(const void* Adresse);
-float PeekFloat(const void* Adresse);
-
-// Network-Byte-Order
-void PokeN8(void* Adresse, uint8_t Wert);
-void PokeN16(void* Adresse, uint16_t Wert);
-void PokeN24(void* Adresse, uint32_t Wert);
-void PokeN32(void* Adresse, uint32_t Wert);
-void PokeN64(void* Adresse, uint64_t Wert);
-
-uint8_t PeekN8(const void* Adresse);
-uint16_t PeekN16(const void* Adresse);
-uint32_t PeekN24(const void* Adresse);
-uint32_t PeekN32(const void* Adresse);
-uint64_t PeekN64(const void* Adresse);
-
 // cpu.cpp
 namespace CPUCAPS
 {
@@ -258,4 +517,4 @@ public:
 
 }; // namespace pplib
 
-#endif // PPLIB_FUNCTIONS_H_
+#endif // PPLIB_CORE_FUNCTIONS_H_
