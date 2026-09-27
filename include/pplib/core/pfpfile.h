@@ -268,6 +268,9 @@ public:
         bool started = false;
     };
 
+    typedef std::list<PFPChunk>::const_iterator const_iterator;
+    typedef std::list<PFPChunk>::iterator iterator;
+
     /**
      * @brief Konstruktor der Klasse
      *
@@ -730,21 +733,29 @@ public:
      */
     PFPChunk* getNext(Iterator& it) const;
 
-    auto begin()
+    const_iterator begin() const
     {
         return Chunks.begin();
     }
-    auto end()
+    const_iterator end() const
     {
         return Chunks.end();
     }
-    auto begin() const
+    const_iterator cbegin() const
     {
         return Chunks.cbegin();
     }
-    auto end() const
+    const_iterator cend() const
     {
         return Chunks.cend();
+    }
+    iterator begin()
+    {
+        return Chunks.begin();
+    }
+    iterator end()
+    {
+        return Chunks.end();
     }
 };
 

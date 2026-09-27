@@ -68,6 +68,7 @@ String Dir::currentPath()
         return String(path.c_str());
     }
 
+    // LCOV_EXCL_START
     // Gezielte Fehlerbehandlung über std::error_code
     if (ec == std::errc::no_such_file_or_directory) {
         throw FileNotFoundException();
@@ -75,6 +76,7 @@ String Dir::currentPath()
         throw PermissionDeniedException();
     }
     throw UnknownException("Dir::currentPath failed: %s", ec.message().c_str());
+    // LCOV_EXCL_STOP
 }
 
 String Dir::homePath()
@@ -85,11 +87,13 @@ String Dir::homePath()
         return String(userProfile);
     }
     // 2. Fallback: HOMEDRIVE + HOMEPATH
+    // LCOV_EXCL_START
     const wchar_t* homeDriveEnv = _wgetenv(L"HOMEDRIVE");
     const wchar_t* homePathEnv = _wgetenv(L"HOMEPATH");
     if (homeDriveEnv && homePathEnv) {
         return String(homeDriveEnv) + String(homePathEnv).trimRight("\\");
     }
+    // LCOV_EXCL_STOP
 #else
     // 1. Umgebungsvariable HOME auslesen
     if (const char* home = getenv("HOME"); home && strlen(home) > 0) {
@@ -112,7 +116,9 @@ String Dir::homePath()
     }
 #endif
 
+    // LCOV_EXCL_START
     throw UnsupportedFeatureException("Dir::homePath: Could not determine user home directory");
+    // LCOV_EXCL_STOP
 }
 
 String Dir::tempPath()
@@ -124,6 +130,7 @@ String Dir::tempPath()
     }
 
     // Fallback für den unwahrscheinlichen Fall eines Fehlers:
+    // LCOV_EXCL_START
 #ifdef _WIN32
     if (const wchar_t* tmp = _wgetenv(L"TEMP")) return String(tmp).trimRight("/\\");
     if (const wchar_t* tmp = _wgetenv(L"TMP")) return String(tmp).trimRight("/\\");
@@ -132,13 +139,16 @@ String Dir::tempPath()
     if (const char* tmp = getenv("TMPDIR")) return String(tmp).trimRight("/");
     return String("/tmp");
 #endif
+    // LCOV_EXCL_STOP
 }
 
 String Dir::applicationDataPath()
 {
 #ifdef _WIN32
     wchar_t* p = _wgetenv(L"LOCALAPPDATA");
+    // LCOV_EXCL_START
     if (!p || wcslen(p) == 0) throw KeyNotFoundException("LOCALAPPDATA");
+    // LCOV_EXCL_STOP
     return String(p).trimRight("\\");
 #else
     return homePath() + "/.config";
@@ -163,7 +173,9 @@ String Dir::documentsPath()
         CoTaskMemFree(pathPtr); // Speicher von SHGetKnownFolderPath freigeben
         return String(wpath);
     }
+    // LCOV_EXCL_START
     throw KeyNotFoundException("FOLDERID_Documents");
+    // LCOV_EXCL_STOP
 #else
     return Dir::homePath() + "/Documents";
 #endif
@@ -213,11 +225,15 @@ void Dir::mkDir(const String& path, mode_t mode, bool recursive)
         String s = path;
         s.replace("/", "\\");
         if (_wmkdir((const wchar_t*)WideString(s)) == 0) return;
+        // LCOV_EXCL_START
         if (errno == EEXIST && Dir::exists(s)) return;
+        // LCOV_EXCL_STOP
         throwExceptionFromErrno(errno, s);
 #else
         if (mkdir((const char*)path, mode) == 0) return;
+        // LCOV_EXCL_START
         if (errno == EEXIST && Dir::exists(path)) return;
+        // LCOV_EXCL_STOP
         throwExceptionFromErrno(errno, path);
 #endif
     }
@@ -249,12 +265,16 @@ void Dir::mkDir(const String& path, mode_t mode, bool recursive)
 #ifdef _WIN32
             currentPathStr.replace("/", "\\");
             if (_wmkdir((const wchar_t*)WideString(currentPathStr)) != 0) {
+                // LCOV_EXCL_START
                 if (errno == EEXIST && Dir::exists(currentPathStr)) continue;
+                // LCOV_EXCL_STOP
                 throwExceptionFromErrno(errno, currentPathStr);
             }
 #else
             if (mkdir((const char*)currentPathStr, mode) != 0) {
+                // LCOV_EXCL_START
                 if (errno == EEXIST && Dir::exists(currentPathStr)) continue;
+                // LCOV_EXCL_STOP
                 throwExceptionFromErrno(errno, currentPathStr);
             }
 #endif
@@ -280,13 +300,29 @@ void Dir::rmDir(const String& path, bool recursive)
     if (ec) {
         if (ec == std::errc::no_such_file_or_directory) {
             return; // Verzeichnis existiert nicht, Ziel erreicht :-)
-        } else if (ec == std::errc::permission_denied) {
-            throw PermissionDeniedException("%s", (const char*)path);
         } else if (ec == std::errc::directory_not_empty) {
             throw DirectoryNotEmptyException("%s", (const char*)path);
+#ifdef _WIN32
+        } else if (ec == std::errc::permission_denied) {
+            // Windows CRT _rmdir sets errno to EACCES (permission_denied) when directory is not empty
+            std::error_code ec_check;
+            if (std::filesystem::is_directory(fsPath, ec_check) && !std::filesystem::is_empty(fsPath, ec_check)) {
+                throw DirectoryNotEmptyException("%s", (const char*)path);
+            }
+            // LCOV_EXCL_START
+            throw PermissionDeniedException("%s", (const char*)path);
+            // LCOV_EXCL_STOP
+#else
+            // LCOV_EXCL_START
+        } else if (ec == std::errc::permission_denied) {
+            throw PermissionDeniedException("%s", (const char*)path);
+            // LCOV_EXCL_STOP
+#endif
         }
+        // LCOV_EXCL_START
         // Fallback für alle weiteren OS-/CRT-Fehlercodes:
         throwExceptionFromErrno(ec.value(), path);
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -504,10 +540,12 @@ void Dir::open(const String& path, Sort sortOrder)
     if (ec) {
         if (ec == std::errc::no_such_file_or_directory) {
             throw FileNotFoundException("%s", (const char*)Path);
+            // LCOV_EXCL_START
         } else if (ec == std::errc::permission_denied) {
             throw PermissionDeniedException("%s", (const char*)Path);
         }
         throw CouldNotOpenDirectoryException("%s", (const char*)Path);
+        // LCOV_EXCL_STOP
     }
 
     // 2. Einträge einlesen und Meta-Daten via File::statFile ermitteln
@@ -524,18 +562,22 @@ void Dir::open(const String& path, Sort sortOrder)
             File::statFile(currentFile, de);
             Files.push_back(de);
         }
+        // LCOV_EXCL_START
         catch (...) {
             // Einzelne Dateien ohne Rechte/Zugriff ignorieren
             ++skipped_entries_count;
         }
+        // LCOV_EXCL_STOP
         // Nächster Schritt ohne Exception:
         it.increment(ec);
+        // LCOV_EXCL_START
         if (ec) {
             // Ein Fehler beim Vorrücken (z.B. gelöschte Datei oder Permission Denied):
             // Iterator wird bei Fehler im OS oft ungültig/beendet oder man bricht kontrolliert ab.
             ++skipped_entries_count;
             break;
         }
+        // LCOV_EXCL_STOP
     }
 
     // 3. Gewünschte Sortierung anwenden
