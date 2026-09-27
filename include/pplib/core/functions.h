@@ -36,6 +36,7 @@
 #include <pplib/types/datetime.h>
 #include <pplib/types/assocarray.h>
 #include <pplib/core/random.h>
+#include <pplib/core/args.h>
 
 namespace pplib
 {
@@ -319,9 +320,6 @@ uint32_t PeekN32(const void* Adresse);
  * @return Ausgelesener Wert
  */
 uint64_t PeekN64(const void* Adresse);
-
-String GetArgv(int argc, char* argv[], const String& argument);
-bool HaveArgv(int argc, char* argv[], const String& argument);
 
 //********************************************************************************************* */
 
