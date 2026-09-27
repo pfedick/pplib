@@ -44,7 +44,7 @@
 
 #include <pplib/types/bytearray.h>
 #include <pplib/types/array.h>
-#include <pplib/core/functions.h>
+#include <pplib/core/stringfunctions.h>
 #include <pplib/core/iconv.h>
 #include <pplib/exceptions.h>
 

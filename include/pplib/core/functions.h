@@ -37,6 +37,7 @@
 #include <pplib/types/assocarray.h>
 #include <pplib/core/random.h>
 #include <pplib/core/args.h>
+#include <pplib/core/stringfunctions.h>
 
 namespace pplib
 {
@@ -323,9 +324,6 @@ uint64_t PeekN64(const void* Adresse);
 
 //********************************************************************************************* */
 
-String ToBase64(const ByteArrayPtr& bin);
-ByteArray FromBase64(const String& str);
-
 /**
  * @ingroup PPLGroupMath
  * @brief Berechnet den polynomischen CRC32-Wert eines Buffers
@@ -359,71 +357,6 @@ String Md5(const ByteArrayPtr& buffer);
 String Sha256(const void* buffer, size_t size);
 String Sha256(const ByteArrayPtr& buffer);
 double Calc(const String& expression);
-
-/**@brief Entfernt Backslashes aus einem String
- * @relates String
- *
- * Entfernt Backslashes aus einem String
- * @param str Eingabe-String
- * @return Neuer String
- */
-String StripSlashes(const String& str);
-String EscapeHTMLTags(const String& html);
-String UnescapeHTMLTags(const String& html);
-ByteArray Hex2ByteArray(const String& hex);
-String ToHex(const ByteArrayPtr& bin);
-String UrlEncode(const String& text);
-String UrlDecode(const String& text);
-
-String Trim(const String& str);
-String UpperCase(const String& str);
-String LowerCase(const String& str);
-
-/**@brief Anfangsbuchstaben der Wörter groß
- *
- * Diese Funktion wandelt die Anfangsbuchstaben aller im String enthaltenen Wörter in
- * Großbuchstaben um.
- *
- * @param str Eingabe-String
- * @return Neuer String
- *
- */
-String UpperCaseWords(const String& str);
-int StrCmp(const String& s1, const String& s2);
-int StrCaseCmp(const String& s1, const String& s2);
-ssize_t Instr(const String& haystack, const String& needle, size_t start = 0);
-ssize_t InstrCase(const String& haystack, const String& needle, size_t start = 0);
-ssize_t Instr(const char* haystack, const char* needle, size_t start = 0);
-ssize_t Instrcase(const char* haystack, const char* needle, size_t start = 0);
-ssize_t Instr(const wchar_t* haystack, const wchar_t* needle, size_t start = 0);
-ssize_t Instrcase(const wchar_t* haystack, const wchar_t* needle, size_t start = 0);
-
-String ToString(const char* fmt, ...);
-String Left(const String& str, size_t num);
-String Right(const String& str, size_t num);
-String Mid(const String& str, size_t start, size_t num = (size_t)-1);
-String SubStr(const String& str, size_t start, size_t num = (size_t)-1);
-String Replace(const String& string, const String& search, const String& replace);
-
-/**@brief Wiederholt einen String
- * @relates String
- *
- * Wiederholt einen String \p count mal und gibt den neuen String zurück.
- * @param str Eingabe-String
- * @param count Anzahl der Wiederholungen
- * @return Neuer String
- */
-String Repeat(const String& str, size_t count);
-
-String Transcode(const char* str, size_t size, const String& fromEncoding, const String& toEncoding);
-String Transcode(const String& str, const String& fromEncoding, const String& toEncoding);
-bool IsTrue(const String& str);
-bool IsDigits(const String& str);
-bool IsInteger(const String& str);
-bool IsNumeric(const String& str);
-
-Array StrTok(const String& string, const String& div = String("\n"));
-void StrTok(Array& result, const String& string, const String& div = String("\n"));
 
 // cpu.cpp
 namespace CPUCAPS
