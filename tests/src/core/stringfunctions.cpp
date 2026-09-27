@@ -383,6 +383,9 @@ TEST_F(StringFunctionTest, UrlEncodeAndDecode)
     EXPECT_EQ(pplib::String("test?"), pplib::UrlDecode(pplib::String("test%")));
     EXPECT_EQ(pplib::String("test?1"), pplib::UrlDecode(pplib::String("test%1")));
     EXPECT_EQ(pplib::String("test?ZZ"), pplib::UrlDecode(pplib::String("test%ZZ")));
+
+    // Test lowercase hex characters
+    EXPECT_EQ(pplib::String("a+b=c"), pplib::UrlDecode(pplib::String("a%2bb%3dc")));
 }
 
 TEST_F(StringFunctionTest, Transcode)
