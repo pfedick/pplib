@@ -275,18 +275,6 @@ public:
         return Rect(0, 0, data.width, data.height);
     }
 
-    /** @brief Rechteck des Drawable auslesen
-     *
-     * Dieser Funktion liefert das Rechteck des Drawable zurück. Die Koordinaten des
-     * Rechtecks sind immer 0/0, Breite und Höhe sind die des Drawable.
-     *
-     * @return Ein Objekt von Typ Rect16, das die Koordinaten und Größe des Rechtecks in 16-Bit Ganzzahlen enthält.
-     */
-    inline Rect16 rect16() const
-    {
-        return Rect16(0, 0, data.width, data.height);
-    }
-
     /** @brief Größe des Drawable auslesen
      *
      * Diese Funktion liefert Breite und Höhe des Drawable in einem Size-Objekt zurück.
@@ -296,17 +284,6 @@ public:
     inline Size size() const
     {
         return Size(data.width, data.height);
-    }
-
-    /** @brief Größe des Drawable in 16-Bit Ganzzahlen auslesen
-     *
-     * Diese Funktion liefert Breite und Höhe des Drawable in einem Size16-Objekt zurück.
-     *
-     * @return Objekt von Typ Size16, das die Breite und Höhe in 16-Bit Ganzzahlen enthält.
-     */
-    inline Size16 size16() const
-    {
-        return Size16(data.width, data.height);
     }
 
     /** @brief Breite der Grafik in Pixel
@@ -401,16 +378,6 @@ public:
      * sein, wenn der Ausschnitt außerhalb des Drawable liegt.
      */
     Drawable getDrawable(const Rect& rect) const;
-
-    /** @brief Ein neues Drawable anhand eines Ausschnitts erstellen
-     *
-     * Diese Funktion erstellt ein neues Drawable Objekt anhand des angegebenen Ausschnitts \p rect.
-     *
-     * @param rect Der gewünschte Bildausschnitt
-     * @return Neues Drawable, das den gewünschten Ausschnitt repräsentiert. Kann leer
-     * sein, wenn der Ausschnitt außerhalb des Drawable liegt.
-     */
-    Drawable getDrawable(const Rect16& rect) const;
 
     /** @brief Ein neues Drawable anhand eines Ausschnitts erstellen
      *

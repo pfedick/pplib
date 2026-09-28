@@ -49,11 +49,8 @@ typedef double real_t;
 #endif
 
 class Point;
-class Point16;
 class Size;
-class Size16;
 class Rect;
-class Rect16;
 
 class PointF;
 
@@ -91,12 +88,6 @@ public:
           y(y)
     {
     }
-
-    /** @brief Konstruktor mit Initialisierung aus einem Point16
-     *
-     * @param[in] other Ein anderer Point16
-     */
-    Point(const Point16& other);
 
     /** @brief Konstruktor mit Initialisierung aus einem PointF
      *
@@ -160,14 +151,6 @@ public:
         y = other.y;
     }
 
-    /** @brief X und Y-Koordinate von einem anderen Point16 übernehmen
-     *
-     * Mit dieser Funktion werden die Koordinaten des Punktes \p other
-     * übernommen.
-     * \param[in] other Ein anderer Punkt
-     */
-    void setPoint(const Point16& other);
-
     /** @brief X und Y-Koordinate von einem anderen PointF übernehmen
      *
      * Mit dieser Funktion werden die Koordinaten des Punktes \p other
@@ -214,8 +197,6 @@ public:
      *
      */
     int manhattanLength() const;
-
-    Point& operator=(const Point16& other);
 
     Point& operator=(const PointF& other);
 
@@ -308,102 +289,6 @@ const Point operator/(const Point& point, real_t divisor);
  * Der Abstand zwischen den beiden Punkten als \c real_t.
  */
 real_t Distance(const Point& p1, const Point& p2);
-
-class Point16
-{
-public:
-    int16_t x = 0;
-    int16_t y = 0;
-
-    Point16() = default;
-
-    /** @brief Konstruktor mit Initialisierung auf die angegebenen Koordinaten
-     *
-     * Durch Verwendung dieses Konstruktors wird der Punkt mit den Koordinaten (\p x /\p y ) initialisiert.
-     * \param[in] x Die gewünschte X-Koordinate
-     * \param[in] y Die gewünschte Y-Koordinate
-     */
-    Point16(int16_t x, int16_t y) noexcept
-        : x(x),
-          y(y)
-    {
-    }
-    Point16(const Point& other) noexcept;
-
-    /** @brief Liefert \c true zurück, wenn sowohl x als auch y 0 sind.
-     *
-     * Diese Funktion liefert \c true zurück, wenn der Punkt die Koordinaten (0/0) enthält.
-     * \return
-     * Liefert \c true zurück, wenn x und y 0 sind. Ist dies nicht der Fall, gibt die Funktion false zurück.
-     *
-     */
-    inline bool isNull() const
-    {
-        return (x == 0 && y == 0);
-    }
-
-    bool inside(const Rect16& r) const;
-    float vectorLength() const;
-    int manhattanLength() const;
-
-    /** @brief X-Koordinate setzen
-     *
-     * \param[in] x X-Koordinate
-     */
-    inline void setX(int16_t x)
-    {
-        this->x = x;
-    }
-
-    /** @brief Y-Koordinate setzen
-     *
-     * \param[in] y Y-Koordinate
-     */
-    inline void setY(int16_t y)
-    {
-        this->y = y;
-    }
-
-    /** @brief X und Y-Koordinate gleichzeitig setzen
-     *
-     * Mit dieser Funktion kann die X- und Y-Koordinate des Punktes gleichzeitig gesetzt werden.
-     * \param[in] x X-Koordinate
-     * \param[in] y Y-Koordinate
-     */
-    inline void setPoint(int16_t x, int16_t y)
-    {
-        this->x = x;
-        this->y = y;
-    }
-
-    inline void setPoint(const Point16& other) noexcept
-    {
-        x = other.x;
-        y = other.y;
-    }
-
-    void setPoint(const Point& other) noexcept;
-    Point16& operator=(const Point& other) noexcept;
-    Point16& operator*=(float factor);
-    Point16& operator+=(const Point16& point);
-    Point16& operator-=(const Point16& point);
-    Point16& operator/=(float divisor);
-
-    bool operator<(const Point16& other) const;
-    bool operator<=(const Point16& other) const;
-    bool operator==(const Point16& other) const;
-    bool operator!=(const Point16& other) const;
-    bool operator>=(const Point16& other) const;
-    bool operator>(const Point16& other) const;
-};
-
-const Point16 operator*(const Point16& point, float factor);
-const Point16 operator*(float factor, const Point16& point);
-const Point16 operator+(const Point16& p1, const Point16& p2);
-const Point16 operator-(const Point16& p1, const Point16& p2);
-const Point16 operator-(const Point16& point);
-const Point16 operator/(const Point16& point, float divisor);
-float Distance(const Point16& p1, const Point16& p2);
 
 class PointF
 {
