@@ -57,13 +57,13 @@ Iconv::Iconv()
     iconv_handle = nullptr;
 }
 
-Iconv::Iconv(Iconv&& other)
+Iconv::Iconv(Iconv&& other) noexcept
 {
     iconv_handle = other.iconv_handle;
     other.iconv_handle = nullptr;
 }
 
-Iconv& Iconv::operator=(Iconv&& other)
+Iconv& Iconv::operator=(Iconv&& other) noexcept
 {
     if (this == &other) {
         return *this;
