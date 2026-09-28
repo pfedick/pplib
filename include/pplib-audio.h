@@ -41,68 +41,11 @@
 #include <pplib/audio/mp3.h>
 #include <pplib/audio/sample_formats.h>
 #include <pplib/audio/decoder.h>
+#include <pplib/audio/encoder.h>
+#include <pplib/audio/icecast.h>
 
 namespace pplib
 {
-
-PPLIBEXCEPTION(EncoderException, Exception);
-PPLIBEXCEPTION(EncoderAlreadyStartedException, EncoderException);
-PPLIBEXCEPTION(EncoderNotStartedException, EncoderException);
-PPLIBEXCEPTION(EncoderBufferTooSmallException, EncoderException);
-PPLIBEXCEPTION(EncoderPsychoAcousticException, EncoderException);
-PPLIBEXCEPTION(EncoderInitializationException, EncoderException);
-PPLIBEXCEPTION(EncoderAbortedException, EncoderException);
-PPLIBEXCEPTION(EncoderAudioFormatMismatchException, EncoderException);
-
-class Icecast
-{
-private:
-    void* shout;
-    bool bconnected;
-
-public:
-    Icecast();
-    ~Icecast();
-    String getVersion(int* major = NULL, int* minor = NULL, int* patch = NULL) const;
-    String version() const;
-    bool connected();
-    void setConnection(const String& host, int port, const String& password);
-    String host() const;
-    int port() const;
-    String password() const;
-    void setMount(const String& mount);
-    String mount() const;
-    void setName(const String& name);
-    String name() const;
-    void setUrl(const String& url);
-    String url() const;
-    void setGenre(const String& genre);
-    String genre() const;
-    void setUser(const String& user);
-    String user() const;
-    void setAgent(const String& agent);
-    String agent() const;
-    void setDescription(const String& description);
-    String description() const;
-    void setDumpfile(const String& file);
-    String dumpfile() const;
-    void setAudioInfo(const String& name, const String& value);
-    String audioInfo(const String& name) const;
-    void setPublic(bool makepublic);
-    void setFormatMP3();
-    void setFormatOGG();
-    void setNonBlocking(bool flag);
-
-    void connect();
-    void disconnect();
-
-    void send(const void* buffer, size_t bytes);
-    int delay();
-    void sync();
-
-    void sendMetadata(const String& name, const String& value);
-    void setTitle(const String& title);
-};
 
 class AudioCD
 {
@@ -230,83 +173,6 @@ public:
 
     static bool isSupported();
     static unsigned int calcDiscId(AudioCD& cd);
-};
-
-class AudioEncoder
-{
-};
-
-//!\brief Struktur zum Speichern des Fortschritts bei einem MP3-Encode-Vorgang
-typedef struct tagSOUNDPROGRESS
-{
-    double timestarted;
-    double timeend;
-    double now;
-    double past;
-    float percent;
-    float faktor;
-    double eta;
-    uint64_t position;
-    uint64_t bytes;
-    uint64_t position_thisfile;
-    uint64_t bytes_thisfile;
-    // PPL_WAVEHEADER *wav;
-    // PPL_MPEG_HEADER *mpg;
-} PPL_SOUNDPROGRESS;
-
-class AudioEncoder_MP3
-{
-private:
-    class FirstAudio
-    {
-    public:
-        int frequency;
-        int channels;
-    };
-    void* gfp;
-    FirstAudio firstAudio;
-    // PPL_SOUNDPROGRESS progress;
-    FileObject* out;
-    char* readcache;
-    int mp3bufsize;
-    unsigned char* mp3buf;
-
-    uint32_t samples;
-
-    void (*ProgressFunc)(int progress, void* priv);
-    void* ProgressFuncPrivData;
-
-    bool have_firstaudio;
-    bool started;
-    bool bStopEncode;
-
-    void writeEncodedBytes(const char* buffer, size_t bytes);
-
-public:
-    AudioEncoder_MP3();
-    ~AudioEncoder_MP3();
-    void setVBR(int min = 32, int max = 320, int quality = 2);
-    void setCBR(int kbps = 320, int quality = 2);
-    void setABR(int kbps = 192, int quality = 2);
-    void setQuality(int quality = 2);
-    void setStereoMode(const AudioInfo::ChannelMode mode = AudioInfo::JOINT_STEREO);
-    void setLowpassFreq(int freq = -1);  // -1=Disabled
-    void setHighpassFreq(int freq = -1); // -1=Disabled
-    void setProgressFunction(void (*ProgressFunc)(int progress, void* priv), void* priv);
-    void startEncode(FileObject& output);
-    void writeID3v2Tag(const ID3Tag& tag);
-    void writeID3v1Tag(const ID3Tag& tag);
-    void encode(AudioDecoder& decoder);
-    void finish();
-    void stop();
-
-    void startEncode(int frequency, int channels);
-    int encodeBuffer(SAMPLE16* left, SAMPLE16* right, int num, void* mp3buf, size_t buffersize);
-    int encodeBuffer(STEREOSAMPLE16* buffer, int num, void* mp3buf, size_t buffersize);
-    int flushBuffer(void* mp3buf, size_t buffersize);
-
-    static const char* getLameVersion();
-    static const char* getPSYVersion();
 };
 
 } // end of namespace pplib

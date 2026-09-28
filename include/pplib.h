@@ -30,25 +30,6 @@
 #ifndef _PPLIB_INCLUDE
 #define _PPLIB_INCLUDE
 
-#include <pplib/version.h>
-#include <pplib-exceptions.h>
-#include <pplib/types.h>
-#include <pplib/core/functions.h>
-#include <pplib/core/regex.h>
-#include <pplib/core/timer.h>
-#include <pplib/core/mutex.h>
-#include <pplib/core/threadevent.h>
-#include <pplib/core/signal.h>
-#include <pplib/core/thread.h>
-#include <pplib/core/fileobject.h>
-#include <pplib/core/memfile.h>
-#include <pplib/core/file.h>
-#include <pplib/core/pfpfile.h>
-#include <pplib/core/resource.h>
-#include <pplib/core/logging.h>
-#include <pplib/core/configparser.h>
-#include <pplib/core/compression.h>
-#include <pplib/core/iconv.h>
-#include <pplib/core/json.h>
+#include <pplib/core.h>
 
 #endif // #ifndef _PPLIB_INCLUDE

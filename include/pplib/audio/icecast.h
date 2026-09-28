@@ -27,34 +27,64 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef PPLIB_CORE_H_
-#define PPLIB_CORE_H_
+#ifndef PPLIB_AUDIO_ICECAST_H
+#define PPLIB_AUDIO_ICECAST_H
 
-#include <pplib/version.h>
-#include <pplib-exceptions.h>
-#include <pplib/types.h>
-#include <pplib/core/functions.h>
-#include <pplib/core/stringfunctions.h>
-#include <pplib/core/random.h>
-#include <pplib/core/args.h>
-#include <pplib/core/regex.h>
-#include <pplib/core/timer.h>
-#include <pplib/core/mutex.h>
-#include <pplib/core/signal.h>
-#include <pplib/core/thread.h>
-#include <pplib/core/threadevent.h>
-#include <pplib/core/threadpool.h>
-#include <pplib/core/fileobject.h>
-#include <pplib/core/dir.h>
-#include <pplib/core/memfile.h>
-#include <pplib/core/file.h>
-#include <pplib/core/gzfile.h>
-#include <pplib/core/pfpfile.h>
-#include <pplib/core/resource.h>
-#include <pplib/core/logging.h>
-#include <pplib/core/configparser.h>
-#include <pplib/core/compression.h>
-#include <pplib/core/iconv.h>
-#include <pplib/core/json.h>
+#include <cstdint>
+#include <pplib/types/string.h>
 
-#endif /* PPLIB_CORE_H_ */
+namespace pplib
+{
+class Icecast
+{
+private:
+    void* shout;
+    bool bconnected;
+
+public:
+    Icecast();
+    ~Icecast();
+    String getVersion(int* major = NULL, int* minor = NULL, int* patch = NULL) const;
+    String version() const;
+    bool connected();
+    void setConnection(const String& host, int port, const String& password);
+    String host() const;
+    int port() const;
+    String password() const;
+    void setMount(const String& mount);
+    String mount() const;
+    void setName(const String& name);
+    String name() const;
+    void setUrl(const String& url);
+    String url() const;
+    void setGenre(const String& genre);
+    String genre() const;
+    void setUser(const String& user);
+    String user() const;
+    void setAgent(const String& agent);
+    String agent() const;
+    void setDescription(const String& description);
+    String description() const;
+    void setDumpfile(const String& file);
+    String dumpfile() const;
+    void setAudioInfo(const String& name, const String& value);
+    String audioInfo(const String& name) const;
+    void setPublic(bool makepublic);
+    void setFormatMP3();
+    void setFormatOGG();
+    void setNonBlocking(bool flag);
+
+    void connect();
+    void disconnect();
+
+    void send(const void* buffer, size_t bytes);
+    int delay();
+    void sync();
+
+    void sendMetadata(const String& name, const String& value);
+    void setTitle(const String& title);
+};
+
+} // namespace pplib
+
+#endif // PPLIB_AUDIO_ICECAST_H
