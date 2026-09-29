@@ -87,6 +87,9 @@ private:
 
     void initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noexcept;
     void initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noexcept;
+    void initDrawable8(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noexcept;
+    void initDrawable1(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noexcept;
+
     pplib::grafix::FontEngine* findFontEngine(const ByteArrayPtr& buffer) noexcept;
 
 public:

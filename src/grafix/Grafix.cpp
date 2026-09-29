@@ -135,6 +135,8 @@ DRAWABLE_FUNCTIONS* Grafix::getGrafixFunctions(const RGBFormat& format)
     memcpy(fn, defaultfn, sizeof(DRAWABLE_FUNCTIONS));
     if (format.bitdepth() == 32) initDrawable32(fn, format);
     if (format.bitdepth() == 16) initDrawable16(fn, format);
+    if (format.bitdepth() == 8) initDrawable8(fn, format);
+    if (format.bitdepth() == 1) initDrawable1(fn, format);
     drawable_functions[format] = fn;
     return fn;
 }
