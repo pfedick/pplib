@@ -87,6 +87,128 @@ static SurfaceColor RGBBlend255_16_R5G6B5(const DrawableData& data, SurfaceColor
     return (r << 11) | (g << 5) | b;
 }
 
+static SurfaceColor RGBBlend255_16_X1555(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
+{
+    if (intensity == 0) return ground;
+    if (intensity == 255) return top;
+
+    uint32_t c1_src = (top >> 10) & 0x1F;
+    uint32_t c2_src = (top >> 5) & 0x1F;
+    uint32_t c3_src = top & 0x1F;
+
+    uint32_t c1_dst = (ground >> 10) & 0x1F;
+    uint32_t c2_dst = (ground >> 5) & 0x1F;
+    uint32_t c3_dst = ground & 0x1F;
+
+    uint32_t inv = 255 - intensity;
+    uint32_t c1 = (c1_src * intensity + c1_dst * inv) / 255;
+    uint32_t c2 = (c2_src * intensity + c2_dst * inv) / 255;
+    uint32_t c3 = (c3_src * intensity + c3_dst * inv) / 255;
+
+    return (c1 << 10) | (c2 << 5) | c3;
+}
+
+static SurfaceColor RGBBlend255_16_A1555(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
+{
+    if (!(top & 0x8000) || intensity == 0) return ground;
+
+    if (!(ground & 0x8000)) {
+        return (intensity >= 128) ? top : ground;
+    }
+    if (intensity == 255) return top;
+
+    uint32_t c1_src = (top >> 10) & 0x1F;
+    uint32_t c2_src = (top >> 5) & 0x1F;
+    uint32_t c3_src = top & 0x1F;
+
+    uint32_t c1_dst = (ground >> 10) & 0x1F;
+    uint32_t c2_dst = (ground >> 5) & 0x1F;
+    uint32_t c3_dst = ground & 0x1F;
+
+    uint32_t inv = 255 - intensity;
+    uint32_t c1 = (c1_src * intensity + c1_dst * inv) / 255;
+    uint32_t c2 = (c2_src * intensity + c2_dst * inv) / 255;
+    uint32_t c3 = (c3_src * intensity + c3_dst * inv) / 255;
+
+    return 0x8000 | (c1 << 10) | (c2 << 5) | c3;
+}
+
+static SurfaceColor RGBBlend255_16_X444(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
+{
+    if (intensity == 0) return ground;
+    if (intensity == 255) return top;
+
+    uint32_t c1_src = (top >> 8) & 0x0F;
+    uint32_t c2_src = (top >> 4) & 0x0F;
+    uint32_t c3_src = top & 0x0F;
+
+    uint32_t c1_dst = (ground >> 8) & 0x0F;
+    uint32_t c2_dst = (ground >> 4) & 0x0F;
+    uint32_t c3_dst = ground & 0x0F;
+
+    uint32_t inv = 255 - intensity;
+    uint32_t c1 = (c1_src * intensity + c1_dst * inv) / 255;
+    uint32_t c2 = (c2_src * intensity + c2_dst * inv) / 255;
+    uint32_t c3 = (c3_src * intensity + c3_dst * inv) / 255;
+
+    return (c1 << 8) | (c2 << 4) | c3;
+}
+
+static SurfaceColor RGBBlend255_16_A444(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
+{
+    uint32_t a_src_4 = (top >> 12) & 0x0F;
+    uint32_t a_src = (a_src_4 * intensity) / 255;
+    if (a_src == 0) return ground;
+
+    uint32_t a_dst = (ground >> 12) & 0x0F;
+    if (a_src == 15 && a_dst == 15) return top;
+
+    uint32_t inv_a_src = 15 - a_src;
+    uint32_t a_out = a_src + (a_dst * inv_a_src) / 15;
+    if (a_out == 0) return ground;
+
+    uint32_t c1_src = (top >> 8) & 0x0F;
+    uint32_t c2_src = (top >> 4) & 0x0F;
+    uint32_t c3_src = top & 0x0F;
+
+    uint32_t c1_dst = (ground >> 8) & 0x0F;
+    uint32_t c2_dst = (ground >> 4) & 0x0F;
+    uint32_t c3_dst = ground & 0x0F;
+
+    uint32_t c1 = (c1_src * a_src + c1_dst * a_dst * inv_a_src / 15) / a_out;
+    uint32_t c2 = (c2_src * a_src + c2_dst * a_dst * inv_a_src / 15) / a_out;
+    uint32_t c3 = (c3_src * a_src + c3_dst * a_dst * inv_a_src / 15) / a_out;
+
+    return (a_out << 12) | (c1 << 8) | (c2 << 4) | c3;
+}
+
+static SurfaceColor RGBBlend255_16_A8R3G3B2(const DrawableData& data, SurfaceColor ground, SurfaceColor top, uint8_t intensity)
+{
+    uint8_t a_src = (((top >> 8) & 0xFF) * intensity) / 255;
+    if (a_src == 0) return ground;
+
+    uint8_t a_dst = (ground >> 8) & 0xFF;
+    if (a_src == 255 && a_dst == 255) return top;
+
+    uint32_t inv_a_src = 255 - a_src;
+    uint32_t a_out_32 = a_src + (a_dst * inv_a_src) / 255;
+    uint8_t a_out = (a_out_32 > 255) ? 255 : (uint8_t)a_out_32;
+    if (a_out == 0) return ground;
+
+    uint32_t r_src = (top >> 5) & 0x07;
+    uint32_t g_src = (top >> 2) & 0x07;
+    uint32_t b_src = top & 0x03;
+
+    uint32_t r_dst = (ground >> 5) & 0x07;
+    uint32_t g_dst = (ground >> 2) & 0x07;
+    uint32_t b_dst = ground & 0x03;
+
+    uint32_t r = (r_src * a_src + r_dst * a_dst * inv_a_src / 255) / a_out;
+    uint32_t g = (g_src * a_src + g_dst * a_dst * inv_a_src / 255) / a_out;
+    uint32_t b = (b_src * a_src + b_dst * a_dst * inv_a_src / 255) / a_out;
+
+    return ((uint32_t)a_out << 8) | (r << 5) | (g << 2) | b;
+}
 #endif
 
 // Für RP2040 gäb es noch diese Alternative ohne Division durch 255, was ungenauer,
@@ -144,7 +266,7 @@ static void Blt_16(const DrawableData& target, const DrawableData& source, const
             for (int sx = 0; sx < q.width(); sx++) {
                 SurfaceColor p = source.fn->GetPixel(source, q.left() + sx, q.top() + sy);
                 Color c = source.fn->FromNativeColor(p);
-                target.base32[target_pitch16 * (y + sy) + x + sx] = target.fn->ToNativeColor(c);
+                target.base16[target_pitch16 * (y + sy) + x + sx] = (uint16_t)target.fn->ToNativeColor(c);
             }
         }
     }
@@ -193,9 +315,9 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
 
     fn->PutPixel = PutPixel_16;
     fn->GetPixel = GetPixel_16;
+    fn->AlphaPixel = AlphaPixel_16;
+    fn->BlendPixel = BlendPixel_16;
     /*
-    fn->AlphaPixel = AlphaPixel_32;
-    fn->BlendPixel = BlendPixel_32;
     // fn->DrawRect = DrawRect_32; // Optimierung lohnt sich nicht
     */
     fn->FillRect = FillRect_16;
@@ -221,13 +343,10 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         };
 
 #ifdef PICO_BUILD
-        fn->BlendPixel = RGBBlend255_16_R5G6B5_Fast;
+        fn->RGBBlend255 = RGBBlend255_16_R5G6B5_Fast;
 #else
         fn->RGBBlend255 = RGBBlend255_16_R5G6B5;
 #endif
-        fn->BlendPixel = BlendPixel_16;
-        fn->AlphaPixel = AlphaPixel_16;
-
         break;
 #ifndef PICO_BUILD
     case RGBFormat::B5G6R5:
@@ -237,6 +356,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale5to8(c & 0x1F), scale6to8((c >> 5) & 0x3F), scale5to8((c >> 11) & 0x1F));
         };
+        fn->RGBBlend255 = RGBBlend255_16_R5G6B5;
         break;
         // 5-5-5 Formate (X1 / A1)
     case RGBFormat::X1R5G5B5:
@@ -246,6 +366,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale5to8((c >> 10) & 0x1F), scale5to8((c >> 5) & 0x1F), scale5to8(c & 0x1F), 255);
         };
+        fn->RGBBlend255 = RGBBlend255_16_X1555;
         break;
 
     case RGBFormat::X1B5G5R5:
@@ -255,6 +376,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale5to8(c & 0x1F), scale5to8((c >> 5) & 0x1F), scale5to8((c >> 10) & 0x1F), 255);
         };
+        fn->RGBBlend255 = RGBBlend255_16_X1555;
         break;
 
     case RGBFormat::A1R5G5B5:
@@ -264,6 +386,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale5to8((c >> 10) & 0x1F), scale5to8((c >> 5) & 0x1F), scale5to8(c & 0x1F), scale1to8((c >> 15) & 0x01));
         };
+        fn->RGBBlend255 = RGBBlend255_16_A1555;
         break;
 
     case RGBFormat::A1B5G5R5:
@@ -273,6 +396,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale5to8(c & 0x1F), scale5to8((c >> 5) & 0x1F), scale5to8((c >> 10) & 0x1F), scale1to8((c >> 15) & 0x01));
         };
+        fn->RGBBlend255 = RGBBlend255_16_A1555;
         break;
     // 4-4-4 Formate (X4 / A4)
     case RGBFormat::X4R4G4B4:
@@ -282,6 +406,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale4to8((c >> 8) & 0x0F), scale4to8((c >> 4) & 0x0F), scale4to8(c & 0x0F), 255);
         };
+        fn->RGBBlend255 = RGBBlend255_16_X444;
         break;
 
     case RGBFormat::X4B4G4R4:
@@ -291,6 +416,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale4to8(c & 0x0F), scale4to8((c >> 4) & 0x0F), scale4to8((c >> 8) & 0x0F), 255);
         };
+        fn->RGBBlend255 = RGBBlend255_16_X444;
         break;
 
     case RGBFormat::A4R4G4B4:
@@ -300,6 +426,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale4to8((c >> 8) & 0x0F), scale4to8((c >> 4) & 0x0F), scale4to8(c & 0x0F), scale4to8((c >> 12) & 0x0F));
         };
+        fn->RGBBlend255 = RGBBlend255_16_A444;
         break;
 
     case RGBFormat::A4B4G4R4:
@@ -309,6 +436,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale4to8(c & 0x0F), scale4to8((c >> 4) & 0x0F), scale4to8((c >> 8) & 0x0F), scale4to8((c >> 12) & 0x0F));
         };
+        fn->RGBBlend255 = RGBBlend255_16_A444;
         break;
         // 8-3-3-2 Format
     case RGBFormat::A8R3G3B2:
@@ -318,6 +446,7 @@ void Grafix::initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noe
         fn->FromNativeColor = [](const SurfaceColor c) -> Color {
             return Color(scale3to8((c >> 5) & 0x07), scale3to8((c >> 2) & 0x07), scale2to8(c & 0x03), (c >> 8) & 0xFF);
         };
+        fn->RGBBlend255 = RGBBlend255_16_A8R3G3B2;
         break;
 
 #endif
