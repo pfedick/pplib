@@ -27,6 +27,8 @@ set(ALL_TEST_LIBS pplib_test_common)
 macro(add_pplib_test_suite name source_glob link_lib)
     file(GLOB TEST_SOURCES CONFIGURE_DEPENDS ${source_glob})
     if(TEST_SOURCES)
+        list(APPEND ALL_TEST_SOURCES ${TEST_SOURCES})
+        list(APPEND ALL_TEST_LIBS ${link_lib})
         add_executable(${name} ${TEST_SOURCES})
         target_link_libraries(${name} PRIVATE pplib_test_common ${link_lib})
         gtest_discover_tests(${name}
@@ -39,6 +41,8 @@ endmacro()
 if(PPLIB_ENABLE_CORE)
     file(GLOB CORE_TEST_SOURCES CONFIGURE_DEPENDS "src/core/*.cpp" "src/types/*.cpp" "src/math/*.cpp")
     if(CORE_TEST_SOURCES)
+        list(APPEND ALL_TEST_SOURCES ${CORE_TEST_SOURCES})
+        list(APPEND ALL_TEST_LIBS pplib::core)
         add_executable(test_core ${CORE_TEST_SOURCES})
         target_link_libraries(test_core PRIVATE pplib_test_common pplib::core)
         gtest_discover_tests(test_core
@@ -68,3 +72,13 @@ endif()
 if(PPLIB_ENABLE_AUDIO)
     add_pplib_test_suite(test_audio "src/audio/*.cpp" pplib::audio)
 endif()
+
+
+add_executable(test_all ${ALL_TEST_SOURCES})
+target_link_libraries(test_all PRIVATE ${ALL_TEST_LIBS})
+
+
+gtest_discover_tests(test_all
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    EXTRA_ARGS "--gtest_output=xml:${CMAKE_BINARY_DIR}/testresult_test_all.xml"
+)
