@@ -57,7 +57,7 @@ private:
 public:
     ImageReference();
     ImageReference(const Drawable& draw, DrawMethod method = DrawMethod::ALPHABLT, const Color& diffuse = Color());
-    Size16 size() const;
+    Size size() const;
     DrawMethod drawMethod() const;
     const Drawable& getDrawable() const;
     Color diffuseColor() const;

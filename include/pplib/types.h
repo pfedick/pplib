@@ -37,6 +37,10 @@
 #include <pplib/types/widestring.h>
 #include <pplib/types/array.h>
 #include <pplib/types/assocarray.h>
+#include <pplib/types/date.h>
+#include <pplib/types/time.h>
+#include <pplib/types/timezone.h>
+#include <pplib/types/timedelta.h>
 #include <pplib/types/datetime.h>
 
 #endif /* PPLIB_TYPES_H_ */

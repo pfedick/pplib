@@ -160,23 +160,6 @@ Drawable Drawable::getDrawable(const Rect& rect) const
                     intersect.width(), intersect.height(), data.rgbformat);
 }
 
-Drawable Drawable::getDrawable(const Rect16& rect) const
-{
-    // Das Monochrome1BitVertical-Format wird nicht unterstützt
-    if (data.rgbformat.format() == RGBFormat::Monochrome1BitVertical) {
-        throw Exception("getDrawable for Monochrome1BitVertical format not supported");
-    }
-    if (isEmpty()) return Drawable();
-    Rect16 self_rect(0, 0, data.width, data.height);
-    Rect16 intersect = rect.intersected(self_rect);
-    if (intersect.isNull()) {
-        // Leeres Drawable zurückgeben
-        return Drawable();
-    }
-    return Drawable(data.base8 + intersect.top() * data.pitch + (intersect.left() * data.rgbformat.bitdepth()) / 8, data.pitch,
-                    intersect.width(), intersect.height(), data.rgbformat);
-}
-
 inline void* Drawable::adr(uint32_t x, uint32_t y) const
 {
     if (x < data.width && y < data.height) return (void*)((uint8_t*)data.base + y * data.pitch + x * data.rgbformat.bytesPerPixel());

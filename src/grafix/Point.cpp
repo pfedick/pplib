@@ -34,34 +34,16 @@
 namespace pplib::grafix
 {
 
-void Point::setPoint(const Point16& other)
-{
-    x = other.x;
-    y = other.y;
-}
-
 void Point::setPoint(const PointF& other)
 {
     x = (int)other.x;
     y = (int)other.y;
 }
 
-Point::Point(const Point16& other)
-    : x(other.x),
-      y(other.y)
-{
-}
 Point::Point(const PointF& other)
     : x((int)other.x),
       y((int)other.y)
 {
-}
-
-Point& Point::operator=(const Point16& other)
-{
-    x = other.x;
-    y = other.y;
-    return *this;
 }
 
 Point& Point::operator=(const PointF& other)

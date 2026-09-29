@@ -26,35 +26,65 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-#include <pplib/grafix/rect.h>
 
-namespace pplib::grafix
+#ifndef PPLIB_AUDIO_ICECAST_H
+#define PPLIB_AUDIO_ICECAST_H
+
+#include <cstdint>
+#include <pplib/types/string.h>
+
+namespace pplib
 {
-
-static inline int16_t clamp16(int value)
+class Icecast
 {
-    if (value < -32768) return -32768;
-    if (value > 32767) return 32767;
-    return value;
-}
+private:
+    void* shout;
+    bool bconnected;
 
-Size16::Size16(const Size& other)
-{
-    width = clamp16(other.width);
-    height = clamp16(other.height);
-}
+public:
+    Icecast();
+    ~Icecast();
+    String getVersion(int* major = NULL, int* minor = NULL, int* patch = NULL) const;
+    String version() const;
+    bool connected();
+    void setConnection(const String& host, int port, const String& password);
+    String host() const;
+    int port() const;
+    String password() const;
+    void setMount(const String& mount);
+    String mount() const;
+    void setName(const String& name);
+    String name() const;
+    void setUrl(const String& url);
+    String url() const;
+    void setGenre(const String& genre);
+    String genre() const;
+    void setUser(const String& user);
+    String user() const;
+    void setAgent(const String& agent);
+    String agent() const;
+    void setDescription(const String& description);
+    String description() const;
+    void setDumpfile(const String& file);
+    String dumpfile() const;
+    void setAudioInfo(const String& name, const String& value);
+    String audioInfo(const String& name) const;
+    void setPublic(bool makepublic);
+    void setFormatMP3();
+    void setFormatOGG();
+    void setNonBlocking(bool flag);
 
-void Size16::setSize(const Size& other)
-{
-    width = clamp16(other.width);
-    height = clamp16(other.height);
-}
+    void connect();
+    void disconnect();
 
-Size16& Size16::operator=(const Size& other)
-{
-    width = clamp16(other.width);
-    height = clamp16(other.height);
-    return *this;
-}
+    void send(const void* buffer, size_t bytes);
+    int delay();
+    void sync();
 
-} // namespace pplib::grafix
+    void sendMetadata(const String& name, const String& value);
+    void setTitle(const String& title);
+};
+
+} // namespace pplib
+
+#endif // PPLIB_AUDIO_ICECAST_H

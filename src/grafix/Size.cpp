@@ -31,23 +31,4 @@
 namespace pplib::grafix
 {
 
-Size::Size(const Size16& other)
-{
-    width = other.width;
-    height = other.height;
-}
-
-void Size::setSize(const Size16& other)
-{
-    width = other.width;
-    height = other.height;
-}
-
-Size& Size::operator=(const Size16& other)
-{
-    width = other.width;
-    height = other.height;
-    return *this;
-}
-
 } // namespace pplib::grafix

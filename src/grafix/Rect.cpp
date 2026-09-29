@@ -96,14 +96,6 @@ Rect::Rect(const Point& p, const Size& s)
     h = s.height;
 }
 
-Rect::Rect(const Rect16& other)
-{
-    x = other.left();
-    y = other.top();
-    w = other.width();
-    h = other.height();
-}
-
 Rect::Rect(int x, int y, int width, int height)
 {
     this->x = x;
@@ -172,14 +164,6 @@ void Rect::setRect(const Rect& other)
     h = other.h;
 }
 
-void Rect::setRect(const Rect16& other)
-{
-    x = other.left();
-    y = other.top();
-    w = other.width();
-    h = other.height();
-}
-
 void Rect::setCoords(int x1, int y1, int x2, int y2)
 {
     x = min(x1, x2);
@@ -207,15 +191,6 @@ void Rect::setBottom(int bottom)
     if (bottom < y) {
         y = bottom;
     }
-}
-
-Rect& Rect::operator=(const Rect16& other)
-{
-    x = other.left();
-    y = other.top();
-    w = other.width();
-    h = other.height();
-    return *this;
 }
 
 bool operator!=(const Rect& r1, const Rect& r2)

@@ -27,34 +27,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef PPLIB_CORE_H_
-#define PPLIB_CORE_H_
+#ifndef PPLIB_AUDIO_H
+#define PPLIB_AUDIO_H
 
-#include <pplib/version.h>
-#include <pplib-exceptions.h>
-#include <pplib/types.h>
-#include <pplib/core/functions.h>
-#include <pplib/core/stringfunctions.h>
-#include <pplib/core/random.h>
-#include <pplib/core/args.h>
-#include <pplib/core/regex.h>
-#include <pplib/core/timer.h>
-#include <pplib/core/mutex.h>
-#include <pplib/core/signal.h>
-#include <pplib/core/thread.h>
-#include <pplib/core/threadevent.h>
-#include <pplib/core/threadpool.h>
-#include <pplib/core/fileobject.h>
-#include <pplib/core/dir.h>
-#include <pplib/core/memfile.h>
-#include <pplib/core/file.h>
-#include <pplib/core/gzfile.h>
-#include <pplib/core/pfpfile.h>
-#include <pplib/core/resource.h>
-#include <pplib/core/logging.h>
-#include <pplib/core/configparser.h>
-#include <pplib/core/compression.h>
-#include <pplib/core/iconv.h>
-#include <pplib/core/json.h>
+#include <pplib/audio/id3tag.h>
+#include <pplib/audio/audioinfo.h>
+#include <pplib/audio/mp3.h>
+#include <pplib/audio/sample_formats.h>
+#include <pplib/audio/decoder.h>
+#include <pplib/audio/encoder.h>
+#include <pplib/audio/icecast.h>
 
-#endif /* PPLIB_CORE_H_ */
+#endif // PPLIB_AUDIO_H
