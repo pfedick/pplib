@@ -54,7 +54,6 @@ public:
 
         Monochrome1BitVertical, ///< 1 Bit pro Pixel, vertikal gepackt (z.B. SSD1322)
         GREY8,                  ///< 8 Bit pro Pixel: 8 Bit Graustufe
-        A8,                     ///< 8 Bit pro Pixel: 8 Bit Alpha (Transparenz)
         R5G6B5,                 ///< 16 Bit pro Pixel: 5 Bit Rot, 6 Bit Grün, 5 Bit Blau
         A8R8G8B8,               ///< 32 Bit pro Pixel: 8 Bit Alpha, 8 Bit Rot, 8 Bit Grün, 8 Bit Blau
 
@@ -73,6 +72,8 @@ public:
          * wurde.
          */
         Palette,
+
+        A8, ///< 8 Bit pro Pixel: 8 Bit Alpha (Transparenz)
 
         R3G3B2, /// 8-Bit, 3 Bit für Rot, 3 Bit für Grün und 2 Bit für Blau, wobei Blau in den unteren Bits enthalten ist.
 
@@ -115,8 +116,6 @@ public:
         /// 16-Bit, 3 Bit für Rot, 3 Bit für Grün, 2 Bit für Blau und 8 Bit für den Alphakanal, wobei Blau in den unteren Bits enthalten
         /// ist und in den höchstwertigen 8-Bit der Alphakanal (Transparenz).
         A8R3G3B2,
-
-        GREY8_ALPHA8, /// 16-Bit, 8 Bit Graustufe und 8 Bit Alphakanal (Trans
 
         /// 24-Bit Truecolor, jeweils 8 Bit für Rot, Grün und Blau, wobei Blau im untersten Byte gespeichert wird.
         R8G8B8,

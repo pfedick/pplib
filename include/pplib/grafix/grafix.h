@@ -86,6 +86,7 @@ private:
     std::map<String, FontFile> FontList;
 
     void initDrawable32(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noexcept;
+    void initDrawable16(DRAWABLE_FUNCTIONS* fn, const RGBFormat& format) noexcept;
     pplib::grafix::FontEngine* findFontEngine(const ByteArrayPtr& buffer) noexcept;
 
 public:

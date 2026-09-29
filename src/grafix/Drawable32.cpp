@@ -137,9 +137,10 @@ static void Blt_32(const DrawableData& target, const DrawableData& source, const
     if (!clip(target, source, srect, x, y, q)) return;
     uint32_t target_pitch32 = target.pitch >> 2;
     if (target.rgbformat == source.rgbformat) {
+        uint32_t source_pitch32 = source.pitch >> 2;
+        size_t width = q.width() * 4;
         for (int sy = 0; sy < q.height(); sy++) {
-            memmove(&target.base32[target_pitch32 * (y + sy) + x], &source.base32[(source.pitch >> 2) * (q.top() + sy) + q.left()],
-                    q.width() * sizeof(SurfaceColor));
+            memmove(&target.base32[target_pitch32 * (y + sy) + x], &source.base32[source_pitch32 * (q.top() + sy) + q.left()], width);
         }
     } else {
         for (int sy = 0; sy < q.height(); sy++) {
