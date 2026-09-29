@@ -395,30 +395,6 @@ typedef struct
 uint32_t GetCPUCaps(CPUCaps& cpu);
 uint32_t GetCPUCaps();
 
-// Time
-ppl_time_t GetTime(PPLTIME* t = nullptr);
-ppl_time_t GetTime(PPLTIME* t, ppl_time_t tt);
-ppl_time_t GetTime(PPLTIME& t, ppl_time_t tt);
-
-void USleep(uint64_t microseconds); // 1 sec = 1000000 microseconds
-void MSleep(uint64_t milliseconds); // 1 sec = 1000 milliseconds
-void SSleep(uint64_t seconds);
-double GetMicrotime();
-uint64_t GetMilliSeconds();
-
-ppl_time_t MkTime(
-    const String& year, const String& month, const String& day, const String& hour = "0", const String& min = "0", const String& sec = "0");
-ppl_time_t MkTime(int year, int month, int day, int hour = 0, int min = 0, int sec = 0);
-ppl_time_t MkTime(const String& iso8601date, PPLTIME* t = NULL);
-ppl_time_t MkTime(const PPLTIME& t);
-
-String MkISO8601Date(ppl_time_t sec = 0);
-String MkISO8601Date(const PPLTIME& t);
-String MkRFC822Date(ppl_time_t sec = 0);
-String MkRFC822Date(const PPLTIME& t);
-String MkDate(const String& format, ppl_time_t sec);
-String MkDate(const String& format, const PPLTIME& t);
-
 class PerlHelper
 {
 public:

@@ -30,6 +30,7 @@
 #include <gtest/gtest.h>
 #include <pplib/core/thread.h>
 #include <pplib/core/functions.h>
+#include <pplib/core/time.h>
 #include <pplib/exceptions.h>
 #include <atomic>
 #include <chrono>

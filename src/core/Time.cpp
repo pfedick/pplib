@@ -34,7 +34,7 @@
 #include <chrono>
 
 #include "config_pplib.h"
-#include <pplib/core/functions.h>
+#include <pplib/core/time.h>
 #include <pplib/core/timer.h>
 #include <pplib/core/regex.h>
 #include <pplib/exceptions.h>

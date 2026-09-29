@@ -31,6 +31,7 @@
 #include <pplib/core/pfpfile.h>
 #include <pplib/core/compression.h>
 #include <pplib/core/functions.h>
+#include <pplib/core/time.h>
 #include <pplib/core/file.h>
 #include <pplib/exceptions.h>
 

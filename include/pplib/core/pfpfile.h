@@ -31,6 +31,7 @@
 #define PPLIB_CORE_PFPFILE_H_
 
 #include <pplib/types/string.h>
+#include <pplib/types/bytearrayptr.h>
 #include <pplib/types/bytearray.h>
 #include <pplib/core/compression.h>
 #include <pplib/core/fileobject.h>

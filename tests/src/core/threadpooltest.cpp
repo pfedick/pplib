@@ -31,6 +31,7 @@
 #include <pplib/core/thread.h>
 #include <pplib/core/threadpool.h>
 #include <pplib/core/functions.h>
+#include <pplib/core/time.h>
 #include <pplib/exceptions.h>
 #include <atomic>
 

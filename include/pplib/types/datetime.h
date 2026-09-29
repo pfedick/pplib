@@ -37,32 +37,13 @@
 #include "pplib/types/time.h"
 #include "pplib/types/timezone.h"
 #include "pplib/types/timedelta.h"
+#include <pplib/core/time.h>
 #include <time.h>
 
 namespace pplib
 {
 
 class String;
-
-/// Eine Struktur zum Erfassen von Uhrzeit, Datum und Zeitzone
-typedef struct tagTime
-{
-    int64_t epoch;        //!< Unix-Timestamp in Sekunden. Vor 1970 immer 0.
-    int32_t year;         //!< Jahr (Gregorianischer Kalender)
-    int32_t gmt_offset;   //!< Offset zur GMT in Sekunden
-    int16_t day_of_year;  //!< Der Tag im Jahr (1-366)
-    int8_t month;         //!< Monat (1-12)
-    int8_t day;           //!< Tag im Monat (1-31)
-    int8_t hour;          //!< Stunde (0-23)
-    int8_t min;           //!< Minute (0-59)
-    int8_t sec;           //!< Sekunde (0-59)
-    int8_t day_of_week;   //!< Wochentag (0=Sonntag, 1=Montag, ..., 6=Samstag)
-    bool have_gmt_offset; //!< Gibt an, ob ein GMT-Offset vorhanden ist
-    bool summertime;      //!< Gibt an, ob Sommerzeit aktiv ist
-} PPLTIME;
-
-/// Datentyp für Unix-Timestamps in 64 Bit
-typedef uint64_t ppl_time_t;
 
 /** @class DateTime
  * @ingroup PPLGroupDataTypes

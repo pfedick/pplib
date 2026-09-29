@@ -15,8 +15,12 @@ Einige Klassen sind sehr gut dokumentiert und getestet, andere wiederum eher wen
 - Testabdeckung erhöhen
 - Alle Tests gehen von UTF-8 als locale aus, auch unter Windows
 - pico-pplib integrieren (siehe eigenes Kapitel)?
-- C++17 als Standard, oder besser gleich C++20?
+- C++20 als Standard
 - CMake statt autoconf/makefile ausprobieren
+- Klassen, die kaum benutzt wurden oder veraltet sind, überdenken und ggf. entfernen
+
+
+# Ausgangszustand (PPL7)
 
 ## autoconf / makefile vs. CMake
 ### vorheriger Zustand
@@ -57,7 +61,7 @@ namespace ppl7 = pplib;
 ```
 
 ## Module
-Da in Anwenungsprogrammen, die pplib verwenden, oft nur ein Subset an Funktionen benötigt wird, teilen wir die Library in Module ein, die über CMake gesteuert werden können:
+Da in Anwendungsprogrammen, die pplib verwenden, oft nur ein Subset an Funktionen benötigt wird, teilen wir die Library in Module ein, die über CMake gesteuert werden können:
 - Core
 - Crypto
 - Grafix
@@ -86,21 +90,27 @@ gestartet werden (wip = work in progress).
 
 # Fortschritt
 ## TODO
-- Funktionen reviewn, überarbeiten, Dokumentieren, Tests erstellen
 - Codereviews sichten, bewerten und abarbeiten
+- Testabdeckung erhöhen
 - Grafix überarbeiten (teilweise done)
 - Audio überarbeiten
 - Internet überarbeiten
 - Database überarbeiten (oder in separates Projekt auslagern?)
+- JSON-Parser: AssocArray unterstützt nicht alle Datentypen nativ. Die Frage ist, ob wir die in AssocArray ergänzen sollten. Siehe auch Kapitel "AssocArray" weiter unten.
+- YAML-Parser/Writer ergänzen? Könnte beim parsen von Konfigurationsdateien hilfreich sein.
 
+### AssocArray
+Ein VariantArray könnte hilfreich sein, dann müssten wir das nicht mit dem Counter im AssocArray simulieren. Ferner werde die Frage, ob wir weitere Datentypen ergänzen sollten, um zum Beispiel JSON vollständig abzubilden. Es fehlen noch:
+- Null-Werte
+- Boolean
+- Arrays
+- Integer
+- Float
 
 ### Codereviews
 Ich habe mittels KI eine Reihe von Klassen auf Fehler prüfen lassen. Die Ergebnisse der Reviews sind im Order "codereview/todo" zu finden. Diese müssen Schritt für Schritt geprüft, bewertet und abgearbeitet werden.
 
 Bereits erledigte Codereviews werden nach "codereview/done" verschoben.
-
-### Font6
-Option, damit die Hints auf dem Pico nicht geladen werden, oder durch Kompiler-Option generell deaktivieren. Oder Fonts ohne Hints generieren?
 
 ### Crypto-Funktionen
 - Unterstützung für moderne Algorithmen hinzufügen (AEAD-Modi)
@@ -127,6 +137,8 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - Thread-Klasse komplett überarbeitet, inklusive Doku, Codereview und Tests
 - ThreadPool-Klasse nach Codereview refaktoriert, dokumentiert
 - Neue Random-Klasse mit statischen Methoden für Zufallszahlen und Zufallsdaten eingeführt, die auf Methoden der C++ Standardbibliothek basieren
+- Funktionen reviewn, überarbeiten, Dokumentieren, Tests erstellen
+- Fonts überarbeitet: es gibt neue Methoden mit denen die Fonts auf bereits vorhandenen Daten im Speicher arbeiten können, ohne neu allokieren zu müssen. Ferner können die Hints beim Laden deaktiviert werden, um zum Beispiel auf dem Pico RAM zu sparen. Gilt auch für FreeType.
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft
