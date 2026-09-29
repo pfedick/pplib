@@ -163,9 +163,13 @@ bool ImageFilter_PNG::ident(FileObject& file, IMAGE& img) noexcept
             img.format = RGBFormat::A8R8G8B8;
             break;
         case PNG_COLOR_TYPE_GRAY_ALPHA:
+            // Graustufen mit Alpha werden derzeit nicht unterstützt
+            supported = false; // Mark as unsupported
+            /*
             img.colors = 256;
             img.bitdepth = 16;
             img.format = RGBFormat::GREY8_ALPHA8;
+            */
             break;
         };
 
@@ -359,8 +363,8 @@ void ImageFilter_PNG::save(const Drawable& surface, FileObject& file, ColorType 
         RGBFormat fmt = surface.rgbformat();
         if (fmt == RGBFormat::GREY8 || fmt == RGBFormat::A8) {
             color_type = ColorType::Gray;
-        } else if (fmt == RGBFormat::GREY8_ALPHA8) {
-            color_type = ColorType::GrayAlpha;
+            //} else if (fmt == RGBFormat::GREY8_ALPHA8) {
+            //    color_type = ColorType::GrayAlpha;
         } else if (fmt == RGBFormat::A8R8G8B8 || fmt == RGBFormat::R8G8B8A8 || fmt == RGBFormat::A8B8G8R8 || fmt == RGBFormat::B8G8R8A8) {
             color_type = ColorType::RGBA;
         } else {
