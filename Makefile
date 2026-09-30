@@ -43,7 +43,7 @@ release:
 
 debug:
 	cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug
-	cmake --build build/debug -j1
+	cmake --build build/debug -j
 	ln -sf build/debug/compile_commands.json compile_commands.json
 
 configure:

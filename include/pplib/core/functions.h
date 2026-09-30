@@ -358,43 +358,6 @@ String Sha256(const void* buffer, size_t size);
 String Sha256(const ByteArrayPtr& buffer);
 double Calc(const String& expression);
 
-// cpu.cpp
-namespace CPUCAPS
-{
-enum
-{
-    CPU_NONE = 0x00000000,
-    CPU_HAVE_CPUID = 0x00000001,
-    CPU_HAVE_MMX = 0x00000002,
-    CPU_HAVE_MMXExt = 0x00000004,
-    CPU_HAVE_3DNow = 0x00000008,
-    CPU_HAVE_3DNowExt = 0x00000010,
-    CPU_HAVE_SSE = 0x00000020,
-    CPU_HAVE_SSE2 = 0x00000040,
-    CPU_HAVE_AMD64 = 0x00000080,
-    CPU_HAVE_SSE3 = 0x00000100,
-    CPU_HAVE_SSSE3 = 0x00000200,
-    CPU_HAVE_SSE4a = 0x00000400,
-    CPU_HAVE_SSE41 = 0x00000800,
-    CPU_HAVE_SSE42 = 0x00001000,
-    CPU_HAVE_AES = 0x00002000,
-    CPU_HAVE_AVX = 0x00004000,
-    CPU_HAVE_AVX2 = 0x00008000,
-    CPU_HAVE_AVX512 = 0x00010000,
-    CPU_HAVE_SHA = 0x00020000,
-};
-} // namespace CPUCAPS
-
-typedef struct
-{
-    uint32_t caps; // Struktur kann um weitere Informationen erweitert werden
-    uint32_t bits;
-
-} CPUCaps;
-
-uint32_t GetCPUCaps(CPUCaps& cpu);
-uint32_t GetCPUCaps();
-
 class PerlHelper
 {
 public:
