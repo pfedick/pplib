@@ -42,6 +42,10 @@
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
 
+#ifndef SSIZE_MAX
+#define SSIZE_MAX (std::numeric_limits<ssize_t>::max())
+#endif
+
 namespace pplib
 {
 

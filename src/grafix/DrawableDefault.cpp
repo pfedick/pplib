@@ -229,7 +229,11 @@ static void defaultBltDiffuse(const DrawableData& target, const DrawableData& so
 {
     Rect q;
     if (!clip(target, source, srect, x, y, q)) return;
+#ifndef PICO_BUILD
     if (source.rgbformat == RGBFormat::GREY8 || source.rgbformat == RGBFormat::A8) {
+#else
+    if (source.rgbformat == RGBFormat::GREY8) {
+#endif
         // Fast Path für 8-Bit Graustufen / Alpha-Masken
         for (int sy = 0; sy < q.height(); sy++) {
             for (int sx = 0; sx < q.width(); sx++) {

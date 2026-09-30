@@ -32,8 +32,38 @@
 
 #include <mutex>
 
+#ifdef PICO_BUILD
+#include "pico/mutex.h"
+
+namespace pplib::internal
+{
+struct PicoMutexBackend
+{
+    mutex_t raw;
+    PicoMutexBackend()
+    {
+        mutex_init(&raw);
+    }
+    void lock()
+    {
+        mutex_enter_blocking(&raw);
+    }
+    void unlock()
+    {
+        mutex_exit(&raw);
+    }
+    bool try_lock() noexcept
+    {
+        return mutex_try_enter(&raw, nullptr);
+    }
+};
+} // namespace pplib::internal
+
+#endif
+
 namespace pplib
 {
+
 /**
  * @class Mutex
  * @ingroup PPLGroupThreads
@@ -50,7 +80,11 @@ namespace pplib
 class Mutex
 {
 private:
+#ifdef PICO_BUILD
+    internal::PicoMutexBackend mtx; ///< PICO spezifischer Mutex
+#else
     std::mutex mtx; ///< Der eigentliche Mutex aus der C++ Standardbibliothek
+#endif
 
 public:
     /**

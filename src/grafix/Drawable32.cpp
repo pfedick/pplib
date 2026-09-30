@@ -159,8 +159,11 @@ static void BltDiffuse_32(const DrawableData& target, const DrawableData& source
     if (!clip(target, source, srect, x, y, q)) return;
 
     uint32_t target_pitch32 = target.pitch >> 2;
-
+#ifndef PICO_BUILD
     if (source.rgbformat == RGBFormat::GREY8 || source.rgbformat == RGBFormat::A8) {
+#else
+    if (source.rgbformat == RGBFormat::GREY8) {
+#endif
         // Fast Path für 8-Bit Quelle -> 32-Bit Ziel mit direktem Speicherzugriff
         for (int sy = 0; sy < q.height(); sy++) {
             const uint8_t* src = source.base8 + (q.top() + sy) * source.pitch + q.left();
@@ -264,13 +267,17 @@ static void BltAlpha_32(const DrawableData& target, const DrawableData& source, 
     if (target.rgbformat == source.rgbformat) {
         switch (target.rgbformat) {
         case RGBFormat::A8R8G8B8:
+#ifndef PICO_BUILD
         case RGBFormat::A8B8G8R8:
+#endif
             BltAlpha_32_A8X8X8X8(target, source, q, x, y);
             return;
+#ifndef PICO_BUILD
         case RGBFormat::R8G8B8A8:
         case RGBFormat::B8G8R8A8:
             BltAlpha_32_X8X8X8A8(target, source, q, x, y);
             return;
+#endif
         }
         uint32_t target_pitch32 = target.pitch >> 2;
         uint32_t source_pitch32 = source.pitch >> 2;

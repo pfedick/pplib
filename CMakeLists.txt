@@ -20,9 +20,25 @@ option(PPLIB_ENABLE_CRYPTO   "Build Crypto module" ON)
 option(PPLIB_ENABLE_GRAFIX   "Build Grafix module" ON)
 option(PPLIB_ENABLE_INTERNET "Build Internet module" ON)
 option(PPLIB_ENABLE_DATABASE "Build Database module" ON)
+option(PPLIB_ENABLE_PICO     "Build Pico module" OFF)
 
 option(PPLIB_BUILD_TESTS     "Build Unit Tests" ON)
 option(PPLIB_ENABLE_COVERAGE "Enable Code Coverage" OFF)
+
+
+# Wenn für Pico gebaut wird, alle Module und Tests deaktivieren
+if(PPLIB_ENABLE_PICO OR PICO_ON_DEVICE)
+    set(PPLIB_ENABLE_PICO ON)
+    set(PPLIB_ENABLE_CORE OFF)
+    set(PPLIB_ENABLE_AUDIO OFF)
+    set(PPLIB_ENABLE_CRYPTO OFF)
+    set(PPLIB_ENABLE_GRAFIX OFF)
+    set(PPLIB_ENABLE_INTERNET OFF)
+    set(PPLIB_ENABLE_DATABASE OFF)
+    set(PPLIB_BUILD_TESTS OFF)
+    set(PPLIB_WITH_ASM OFF)
+endif()
+
 
 # Coverage flags
 if(PPLIB_ENABLE_COVERAGE)
@@ -435,6 +451,66 @@ if(PPLIB_ENABLE_AUDIO)
 endif()
 
 
+
+# ==============================================================================
+# PICO (Selektives Modul für Raspberry Pi Pico)
+# ==============================================================================
+if(PPLIB_ENABLE_PICO)
+    set(PICO_SOURCES
+        src/core/Exceptions.cpp
+        src/core/Functions.cpp
+        src/core/StringFunctions.cpp
+        src/core/FileObject.cpp
+        src/core/MemFile.cpp
+        src/math/crc.cpp
+        src/math/md5.cpp
+        src/math/random.cpp
+        src/types/Array.cpp
+        src/types/ByteArray.cpp
+        src/types/ByteArrayPtr.cpp
+        src/types/String.cpp
+        src/types/WideString.cpp
+        src/grafix/Color.cpp
+        src/grafix/Drawable.cpp
+        src/grafix/Drawable1.cpp
+        src/grafix/Drawable8.cpp
+        src/grafix/Drawable16.cpp
+        src/grafix/Drawable32.cpp
+        src/grafix/DrawableDefault.cpp
+        src/grafix/DrawableLines.cpp
+        src/grafix/Font6.cpp
+        src/grafix/Fonts.cpp
+        src/grafix/Grafix.cpp
+        src/grafix/Image.cpp
+        src/grafix/ImageList.cpp
+        src/grafix/Point.cpp
+        src/grafix/PointF.cpp
+        src/grafix/Rect.cpp
+        src/grafix/RGBFormat.cpp
+        src/grafix/Size.cpp
+        src/grafix/Sprite.cpp
+
+    )
+
+    add_library(pplib_pico STATIC ${PICO_SOURCES})
+    add_library(pplib::pico ALIAS pplib_pico)
+
+    target_include_directories(pplib_pico PUBLIC ${PPLIB_INCLUDE_DIRS})
+    target_compile_definitions(pplib_pico PUBLIC
+        PPLIBLIB=1
+        HAVE_CONFIG_H=1
+        PICO_BUILD=1
+        _GNU_SOURCE=1
+        _DEFAULT_SOURCE=1
+    )
+    target_compile_features(pplib_pico PUBLIC cxx_std_20)
+
+    if(TARGET pico_stdlib)
+        target_link_libraries(pplib_pico PUBLIC pico_stdlib)
+    endif()
+endif()
+
+
 # das landet in ${CMAKE_CURRENT_BINARY_DIR}/include
 configure_file(include/config_pplib.h.in include/config_pplib.h)
 
@@ -456,6 +532,7 @@ pplib_bool_str(PPLIB_ENABLE_CRYPTO STR_CRYPTO)
 pplib_bool_str(PPLIB_ENABLE_GRAFIX STR_GRAFIX)
 pplib_bool_str(PPLIB_ENABLE_INTERNET STR_INET)
 pplib_bool_str(PPLIB_ENABLE_DATABASE STR_DB)
+pplib_bool_str(PPLIB_ENABLE_PICO STR_PICO)
 
 pplib_bool_str(CMAKE_ASM_NASM_COMPILER_LOADED STR_ASM)
 pplib_bool_str(ZLIB_FOUND STR_ZLIB)
@@ -497,12 +574,13 @@ message(STATUS " Build Tests       : ${STR_TESTS}")
 message(STATUS " Enable Coverage   : ${STR_COVERAGE}")
 message(STATUS "")
 message(STATUS " Enabled Modules:")
-message(STATUS "   - core          : ${STR_CORE}")
-message(STATUS "   - audio         : ${STR_AUDIO}")
-message(STATUS "   - crypto        : ${STR_CRYPTO}")
-message(STATUS "   - grafix        : ${STR_GRAFIX}")
-message(STATUS "   - internet      : ${STR_INET}")
-message(STATUS "   - database      : ${STR_DB}")
+message(STATUS "   - core           : ${STR_CORE}")
+message(STATUS "   - audio          : ${STR_AUDIO}")
+message(STATUS "   - crypto         : ${STR_CRYPTO}")
+message(STATUS "   - grafix         : ${STR_GRAFIX}")
+message(STATUS "   - internet       : ${STR_INET}")
+message(STATUS "   - database       : ${STR_DB}")
+message(STATUS "   - Raspberry PICO : ${STR_PICO}")
 message(STATUS "")
 message(STATUS " Third-Party Libraries & Features:")
 message(STATUS "   - NASM (x86 asm): ${STR_ASM}")

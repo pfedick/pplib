@@ -31,6 +31,7 @@
 
 #include <string>
 #include <stdint.h>
+#include <stdarg.h>
 
 #ifdef PPL_WITH_QT6
 #include <QAnyStringView>

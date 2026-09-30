@@ -56,7 +56,7 @@ static void PutPixelMonochrome1BitVertical(const DrawableData& data, int x, int 
 
 static SurfaceColor GetPixelMonochrome1BitVertical(const DrawableData& data, int x, int y)
 {
-    if (x < 0 || y < 0 || x >= data.width || y >= data.height) return;
+    if (x < 0 || y < 0 || x >= data.width || y >= data.height) return 0;
 
     uint8_t* ptr = data.base8 + x + (y >> 3) * data.pitch;
     int bit_offset = y & 7; // Bit innerhalb des Bytes (vertikal!)

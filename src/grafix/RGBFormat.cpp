@@ -58,13 +58,13 @@ void RGBFormat::setFormat(const String& Identifier)
         format_id = Monochrome1BitVertical;
     else if (Identifier == "GREY8")
         format_id = GREY8;
-    else if (Identifier == "A8")
-        format_id = A8;
     else if (Identifier == "R5G6B5")
         format_id = R5G6B5;
     else if (Identifier == "A8R8G8B8")
         format_id = A8R8G8B8;
 #ifndef PICO_BUILD
+    else if (Identifier == "A8")
+        format_id = A8;
     else if (Identifier == "Palette")
         format_id = Palette;
     else if (Identifier == "R3G3B2")
@@ -123,13 +123,13 @@ String RGBFormat::name() const
         return "Monochrome1BitVertical";
     case RGBFormat::GREY8:
         return "GREY8";
-    case RGBFormat::A8:
-        return "A8";
     case RGBFormat::R5G6B5:
         return "R5G6B5";
     case RGBFormat::A8R8G8B8:
         return "A8R8G8B8";
 #ifndef PICO_BUILD
+    case RGBFormat::A8:
+        return "A8";
     case RGBFormat::Palette:
         return "Palette";
     case RGBFormat::R3G3B2:
@@ -180,7 +180,6 @@ String RGBFormat::name() const
 int RGBFormat::bitdepth() const
 {
     switch (format_id) {
-    case RGBFormat::A8:
     case RGBFormat::GREY8:
         return 8;
 
@@ -193,6 +192,8 @@ int RGBFormat::bitdepth() const
         return 32;
 
 #ifndef PICO_BUILD
+    case RGBFormat::A8:
+        return 8;
     case RGBFormat::Palette:
     case RGBFormat::R3G3B2:
         return 8;

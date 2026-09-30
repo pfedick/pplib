@@ -69,7 +69,7 @@ real_t Point::vectorLength() const
     return std::sqrt((real_t)(((real_t)x * (real_t)x) + ((real_t)y * (real_t)y)));
 }
 
-double Distance(const Point& p1, const Point& p2)
+real_t Distance(const Point& p1, const Point& p2)
 {
     double a = abs(p2.x - p1.x);
     double b = abs(p2.y - p1.y);

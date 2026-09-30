@@ -32,13 +32,14 @@
 
 #include <cstdint>
 #include <stdint.h>
+#include <time.h>
+
 #include "pplib/types/string.h"
 #include "pplib/types/date.h"
 #include "pplib/types/time.h"
 #include "pplib/types/timezone.h"
 #include "pplib/types/timedelta.h"
 #include <pplib/core/time.h>
-#include <time.h>
 
 namespace pplib
 {
