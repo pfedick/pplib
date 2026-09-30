@@ -29,61 +29,54 @@
 
 #include <gtest/gtest.h>
 
-#include <pplib/types/string.h>
-#include <pplib/types/widestring.h>
-#include <pplib/types/array.h>
-#include <pplib/exceptions.h>
-#include <pplib/core/file.h>
-#include <pplib/core/dir.h>
-#include <pplib-crypto.h>
 #include <pplib/core/functions.h>
-// #include <pplib/core/regex.h>
-#include <pplib/exceptions.h>
 
 #include "pplib-tests.h"
 
 namespace
 {
 
-class Sha256Test : public ::testing::Test
+TEST(CrcTest, Crc32)
 {
-protected:
-    Sha256Test()
-    {
-        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
-            printf("setlocale fehlgeschlagen\n");
-            throw std::exception();
-        }
-    }
-    virtual ~Sha256Test()
-    {
-    }
-};
-
-TEST_F(Sha256Test, Sha256WithByteArrayPtr)
-{
-    pplib::ByteArrayPtr bap("Hello World", 11);
-    ASSERT_EQ(pplib::String("a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e"), pplib::Sha256(bap));
+    const char* input = "123456789";
+    uint32_t crc = pplib::Crc32(input, strlen(input));
+    ASSERT_EQ(0xCBF43926, crc);
 }
 
-TEST_F(Sha256Test, Sha256WithPtr)
+TEST(CrcTest, Crc32Context)
 {
-    pplib::ByteArrayPtr bap("Hello World", 11);
-    ASSERT_EQ(pplib::String("a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e"), pplib::Sha256(bap.adr(), bap.size()));
-
-    ASSERT_EQ(pplib::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),
-              pplib::Sha256(loremipsum, strlen(loremipsum)));
-    ASSERT_THROW(pplib::Sha256(nullptr, 10), pplib::IllegalArgumentException);
-    ASSERT_THROW(pplib::Sha256("Hello World", 0), pplib::IllegalArgumentException);
+    const char* input = "123456789";
+    pplib::Crc32Context ctx;
+    ctx.update(input, strlen(input));
+    ASSERT_EQ(0xCBF43926, ctx.get());
+    ctx.update("abcdefghijklmnop", 16);
+    ASSERT_EQ(0xE0DFBC17, ctx.get());
+    ctx.reset();
+    ASSERT_EQ(0xFFFFFFFF ^ 0xFFFFFFFF, ctx.get());
+    ctx.update(input, strlen(input));
+    ASSERT_EQ(0xCBF43926, ctx.get());
 }
 
-TEST_F(Sha256Test, Sha256Context)
+TEST(CrcTest, Crc16)
 {
-    pplib::Sha256Context ctx;
-    ctx.update("Hello World", 11);
-    ASSERT_EQ(pplib::String("a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e"), ctx.get());
-    ASSERT_THROW(pplib::Sha256Context ctx2; ctx2.update(nullptr, 5); ctx2.get(), pplib::IllegalArgumentException);
-    ASSERT_THROW(pplib::Sha256Context ctx3; ctx3.update("Hello World", 0); ctx3.get(), pplib::IllegalArgumentException);
+    const char* input = "123456789";
+    uint32_t crc = pplib::Crc16(input, strlen(input));
+    ASSERT_EQ(0x29B1, crc);
+    ASSERT_EQ(0x29B1, pplib::Crc16("56789", 5, pplib::Crc16("1234", 4)));
+}
+
+TEST(CrcTest, Crc16Context)
+{
+    const char* input = "123456789";
+    pplib::Crc16Context ctx;
+    ctx.update(input, strlen(input));
+    ASSERT_EQ(0x29B1, ctx.get());
+    ctx.update("56789", 5);
+    ASSERT_EQ(0x6817, ctx.get());
+    ctx.reset();
+    ASSERT_EQ(0xFFFF, ctx.get());
+    ctx.update(input, strlen(input));
+    ASSERT_EQ(0x29B1, ctx.get());
 }
 
 } // namespace

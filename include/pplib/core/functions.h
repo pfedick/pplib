@@ -330,13 +330,47 @@ uint64_t PeekN64(const void* Adresse);
  *
  * Berechnet die zyklisch redundante polynomische Prüfsumme mit einer Länge von 32-Bit.
  *
- *
  * @param buffer Pointer auf den Beginn der Daten
  * @param size Länge der Daten in Byte
- * @param initial_crc Initialwert für die Berechnung. Standardwert ist 0xFFFFFFFF
- * \return Integer mit der Prüfsumme
+ * @return Integer mit der Prüfsumme
  */
-uint32_t Crc32(const void* buffer, size_t size, uint32_t initial_crc = 0xFFFFFFFF);
+uint32_t Crc32(const void* buffer, size_t size);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Kontext für die Berechnung des CRC32-Werts
+ *
+ * Diese Klasse ermöglicht die schrittweise Berechnung des CRC32-Werts eines Datenstroms.
+ * Die Berechnung kann in mehreren Schritten erfolgen, indem `update` mehrfach aufgerufen wird.
+ */
+class Crc32Context
+{
+private:
+    uint32_t state_;
+
+public:
+    /** @brief Konstruktor, initialisiert den CRC32-Kontext */
+    Crc32Context()
+        : state_(0xffffffff)
+    {
+    }
+    /** @brief Aktualisiert den CRC32-Wert mit neuen Daten
+     * @param buffer Pointer auf den Beginn der neuen Daten
+     * @param size Länge der neuen Daten in Byte
+     */
+    void update(const void* buffer, size_t size);
+
+    /** @brief Gibt den aktuellen CRC32-Wert zurück */
+    uint32_t get() const
+    {
+        return state_ ^ 0xffffffff;
+    }
+    /** @brief Setzt den CRC32-Kontext zurück */
+    void reset()
+    {
+        state_ = 0xffffffff;
+    }
+};
 
 /**
  * @ingroup PPLGroupMath
@@ -348,14 +382,84 @@ uint32_t Crc32(const void* buffer, size_t size, uint32_t initial_crc = 0xFFFFFFF
  * @param buffer Pointer auf den Beginn der Daten
  * @param size Länge der Daten in Byte
  * @param initial_crc Initialwert (Standard 0xFFFF). Nützlich zum Fortsetzen einer Checksumme.
+ * @note Anders als Crc32 kann hier ein Initialwert angegeben werden, um die Berechnung einer bestehenden Prüfsumme fortzusetzen.
  * @return Integer mit der Prüfsumme
  */
 uint16_t Crc16(const void* buffer, size_t size, uint16_t initial_crc = 0xFFFF);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Kontext für die Berechnung des CRC-16-CCITT Werts
+ *
+ * Diese Klasse ermöglicht die schrittweise Berechnung des CRC-16-CCITT Werts eines Datenstroms.
+ * Die Berechnung kann in mehreren Schritten erfolgen, indem `update` mehrfach aufgerufen wird.
+ */
+class Crc16Context
+{
+private:
+    uint16_t state_;
+
+public:
+    /** @brief Konstruktor, initialisiert den CRC-16-CCITT-Kontext */
+    Crc16Context()
+        : state_(0xffff)
+    {
+    }
+
+    /** @brief Aktualisiert den CRC-16-CCITT-Wert mit neuen Daten
+     * @param buffer Pointer auf den Beginn der neuen Daten
+     * @param size Länge der neuen Daten in Byte
+     */
+    void update(const void* buffer, size_t size);
+
+    /** @brief Gibt den aktuellen CRC-16-CCITT-Wert zurück */
+    uint16_t get() const
+    {
+        return state_;
+    }
+
+    /** @brief Setzt den CRC-16-CCITT-Kontext zurück */
+    void reset()
+    {
+        state_ = 0xffff;
+    }
+};
 
 String Md5(const void* buffer, size_t size);
 String Md5(const ByteArrayPtr& buffer);
 String Sha256(const void* buffer, size_t size);
 String Sha256(const ByteArrayPtr& buffer);
+
+class Sha256Struct
+{
+public:
+    uint32_t state[8];
+    uint64_t bitcount;
+    unsigned char buffer[64];
+};
+
+class Sha256Context
+{
+private:
+    Sha256Struct ctx;
+
+public:
+    /** @brief Konstruktor, initialisiert den SHA-256-Kontext */
+    Sha256Context();
+
+    /** @brief Aktualisiert den SHA-256-Wert mit neuen Daten
+     * @param buffer Pointer auf den Beginn der neuen Daten
+     * @param size Länge der neuen Daten in Byte
+     */
+    void update(const void* buffer, size_t size);
+
+    /** @brief Gibt den SHA-256-Wert zurück */
+    String get();
+
+    /** @brief Setzt den SHA-256-Kontext zurück */
+    void reset();
+};
+
 double Calc(const String& expression);
 
 }; // namespace pplib

@@ -50,20 +50,12 @@ namespace pplib
 #define sigma0(x) (ROTR(x, 7) ^ ROTR(x, 18) ^ ((x) >> 3))
 #define sigma1(x) (ROTR(x, 17) ^ ROTR(x, 19) ^ ((x) >> 10))
 
-class Sha256Context
-{
-public:
-    uint32_t state[8];
-    uint64_t bitcount;
-    unsigned char buffer[64];
-};
+static void SHA256Init(Sha256Struct& ctx);
+static void SHA256Update(Sha256Struct& ctx, const unsigned char* data, size_t len);
+static void SHA256Final(Sha256Struct& ctx, unsigned char digest[32]);
+static void SHA256Transform(Sha256Struct& ctx, const unsigned char data[64]);
 
-static void SHA256Init(Sha256Context& ctx);
-static void SHA256Update(Sha256Context& ctx, const unsigned char* data, size_t len);
-static void SHA256Final(Sha256Context& ctx, unsigned char digest[32]);
-static void SHA256Transform(Sha256Context& ctx, const unsigned char data[64]);
-
-static void SHA256Init(Sha256Context& ctx)
+static void SHA256Init(Sha256Struct& ctx)
 {
     ctx.bitcount = 0;
     ctx.state[0] = 0x6a09e667;
@@ -76,7 +68,7 @@ static void SHA256Init(Sha256Context& ctx)
     ctx.state[7] = 0x5be0cd19;
 }
 
-static void SHA256Update(Sha256Context& ctx, const unsigned char* data, size_t len)
+static void SHA256Update(Sha256Struct& ctx, const unsigned char* data, size_t len)
 {
     size_t i;
     size_t index = (ctx.bitcount / 8) % 64;
@@ -99,7 +91,7 @@ static void SHA256Update(Sha256Context& ctx, const unsigned char* data, size_t l
     memcpy(&ctx.buffer[index], &data[i], len - i);
 }
 
-static void SHA256Final(Sha256Context& ctx, unsigned char digest[32])
+static void SHA256Final(Sha256Struct& ctx, unsigned char digest[32])
 {
     uint64_t total_bits = ctx.bitcount;
     size_t index = (total_bits / 8) % 64;
@@ -125,7 +117,7 @@ static void SHA256Final(Sha256Context& ctx, unsigned char digest[32])
     }
 }
 
-static void SHA256Transform(Sha256Context& ctx, const unsigned char data[64])
+static void SHA256Transform(Sha256Struct& ctx, const unsigned char data[64])
 {
     static const uint32_t K[64] = {
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be,
@@ -177,9 +169,9 @@ static void SHA256Transform(Sha256Context& ctx, const unsigned char data[64])
 // Public functions
 String Sha256(const void* buffer, size_t size)
 {
-    if (buffer == NULL || size == 0) throw EmptyDataException();
+    if (buffer == NULL || size == 0) throw IllegalArgumentException();
     unsigned char digest[32];
-    Sha256Context ctx;
+    Sha256Struct ctx;
     SHA256Init(ctx);
     SHA256Update(ctx, (const unsigned char*)buffer, size);
     SHA256Final(ctx, digest);
@@ -199,12 +191,37 @@ String Sha256(const ByteArrayPtr& buffer)
     return Sha256(buffer.ptr(), buffer.size());
 }
 
+Sha256Context::Sha256Context()
+{
+    SHA256Init(ctx);
+}
+
+void Sha256Context::update(const void* buffer, size_t size)
+{
+    if (buffer == NULL || size == 0) throw IllegalArgumentException();
+    SHA256Update(ctx, (const unsigned char*)buffer, size);
+}
+
+String Sha256Context::get()
+{
+    unsigned char digest[32];
+    SHA256Final(ctx, digest);
+    static const char hex[] = "0123456789abcdef";
+    char hexbuf[65];
+    for (int i = 0; i < 32; i++) {
+        hexbuf[i * 2] = hex[digest[i] >> 4];
+        hexbuf[i * 2 + 1] = hex[digest[i] & 0x0f];
+    }
+    hexbuf[64] = '\0';
+    return String(hexbuf);
+}
+
 String FileObject::sha256()
 {
     if (!isOpen()) throw FileNotOpenException();
     ByteArray buffer(1024 * 1024);
     unsigned char digest[32];
-    Sha256Context ctx;
+    Sha256Struct ctx;
     SHA256Init(ctx);
 
     bool is_pipe = false;

@@ -64,14 +64,21 @@ static const uint32_t crc32_table[256] = {
     0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37,
     0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d};
 
-uint32_t Crc32(const void* buffer, size_t size, uint32_t initial_crc)
+uint32_t Crc32(const void* buffer, size_t size)
 {
-    uint32_t ulCRC = initial_crc;
+    uint32_t ulCRC(0xffffffff);
     unsigned char* b = (unsigned char*)buffer;
     size_t len = size;
     while (len--)
         ulCRC = (ulCRC >> 8) ^ crc32_table[(ulCRC & 0xFF) ^ *b++];
     return ulCRC ^ 0xffffffff;
+}
+
+void Crc32Context::update(const void* buffer, size_t size)
+{
+    unsigned char* b = (unsigned char*)buffer;
+    while (size--)
+        state_ = (state_ >> 8) ^ crc32_table[(state_ & 0xFF) ^ *b++];
 }
 
 static const uint16_t crc16_table[256] = {
@@ -100,6 +107,14 @@ uint16_t Crc16(const void* buffer, size_t size, uint16_t initial_crc)
         crc = (crc << 8) ^ crc16_table[((crc >> 8) ^ *b++) & 0xFF];
     }
     return crc;
+}
+
+void Crc16Context::update(const void* buffer, size_t size)
+{
+    const unsigned char* b = (const unsigned char*)buffer;
+    while (size--) {
+        state_ = (state_ << 8) ^ crc16_table[((state_ >> 8) ^ *b++) & 0xFF];
+    }
 }
 
 } // namespace pplib
