@@ -32,6 +32,8 @@ gegengeprüft, deckt auch den Mehrblock-Pfad in `SHA256Update` ab). Die Kernimpl
   Fix: den `size == 0`-Fall genauso wie in `FileObject::sha256()` behandeln (einfach durchlaufen lassen); nur bei
   `buffer == NULL && size > 0` eine Exception (z.B. `IllegalArgumentException`) werfen.
 
+  ==> Fixed
+
 ## Design
 
 - [ ] **`FileObject::sha256()` hat – anders als `FileObject::md5()` in `md5.cpp` – keine defensive Absicherung gegen einen 0-Byte-Read ohne `eof()`** (Zeile 213-218 vs. `md5.cpp:324-328`)
@@ -51,6 +53,8 @@ gegengeprüft, deckt auch den Mehrblock-Pfad in `SHA256Update` ab). Die Kernimpl
   `md5()` das abfangen würde. Kein aktuell reproduzierbarer Bug, aber eine Inkonsistenz zwischen zwei nahezu
   identischen Funktionen, die sich beim nächsten Refactoring leicht angleichen ließe (den `break` übernehmen).
 
+  ==> FIXED
+
 ## Doku / Kosmetik
 
 - `functions.h` dokumentiert `Sha256()` nicht (kein `@brief`/`@param`/`@return`, im Gegensatz zu `Crc32`/`Crc16`/
@@ -59,6 +63,8 @@ gegengeprüft, deckt auch den Mehrblock-Pfad in `SHA256Update` ab). Die Kernimpl
   `isNull()`/`size()==0`-Check, sondern verlässt sich vollständig auf den Check in der aufgerufenen
   `Sha256(const void*, size_t)`. Funktional gleichwertig, aber ein weiteres kleines Stil-Inkonsistenz-Detail
   zwischen den beiden ansonsten fast identischen Dateien `md5.cpp`/`sha256.cpp`.
+
+  ==> Fixed
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

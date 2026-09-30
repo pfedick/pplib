@@ -73,8 +73,8 @@ TEST_F(Sha256Test, Sha256WithPtr)
 
     ASSERT_EQ(pplib::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),
               pplib::Sha256(loremipsum, strlen(loremipsum)));
-    ASSERT_THROW(pplib::Sha256(nullptr, 10), pplib::IllegalArgumentException);
-    ASSERT_THROW(pplib::Sha256("Hello World", 0), pplib::IllegalArgumentException);
+    ASSERT_EQ(pplib::String("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"), pplib::Sha256(nullptr, 10));
+    ASSERT_EQ(pplib::String("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"), pplib::Sha256("Hello World", 0));
 }
 
 TEST_F(Sha256Test, Sha256Context)
@@ -82,8 +82,10 @@ TEST_F(Sha256Test, Sha256Context)
     pplib::Sha256Context ctx;
     ctx.update("Hello World", 11);
     ASSERT_EQ(pplib::String("a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e"), ctx.get());
-    ASSERT_THROW(pplib::Sha256Context ctx2; ctx2.update(nullptr, 5); ctx2.get(), pplib::IllegalArgumentException);
-    ASSERT_THROW(pplib::Sha256Context ctx3; ctx3.update("Hello World", 0); ctx3.get(), pplib::IllegalArgumentException);
+    ctx.reset();
+    ASSERT_NO_THROW(ctx.update(nullptr, 5));
+    ASSERT_NO_THROW(ctx.update("Hello World", 0));
+    ASSERT_EQ(pplib::String("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"), ctx.get());
 }
 
 } // namespace

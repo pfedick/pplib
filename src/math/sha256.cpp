@@ -169,11 +169,10 @@ static void SHA256Transform(Sha256Struct& ctx, const unsigned char data[64])
 // Public functions
 String Sha256(const void* buffer, size_t size)
 {
-    if (buffer == NULL || size == 0) throw IllegalArgumentException();
     unsigned char digest[32];
     Sha256Struct ctx;
     SHA256Init(ctx);
-    SHA256Update(ctx, (const unsigned char*)buffer, size);
+    if (buffer != nullptr && size > 0) SHA256Update(ctx, (const unsigned char*)buffer, size);
     SHA256Final(ctx, digest);
 
     static const char hex[] = "0123456789abcdef";
@@ -198,14 +197,15 @@ Sha256Context::Sha256Context()
 
 void Sha256Context::update(const void* buffer, size_t size)
 {
-    if (buffer == NULL || size == 0) throw IllegalArgumentException();
+    if (!buffer || size == 0) return;
     SHA256Update(ctx, (const unsigned char*)buffer, size);
 }
 
-String Sha256Context::get()
+String Sha256Context::get() const
 {
+    Sha256Struct copy = ctx;
     unsigned char digest[32];
-    SHA256Final(ctx, digest);
+    SHA256Final(copy, digest);
     static const char hex[] = "0123456789abcdef";
     char hexbuf[65];
     for (int i = 0; i < 32; i++) {
@@ -214,6 +214,11 @@ String Sha256Context::get()
     }
     hexbuf[64] = '\0';
     return String(hexbuf);
+}
+
+void Sha256Context::reset()
+{
+    SHA256Init(ctx);
 }
 
 String FileObject::sha256()

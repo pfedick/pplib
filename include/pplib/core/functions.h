@@ -431,9 +431,40 @@ public:
 
 String Md5(const void* buffer, size_t size);
 String Md5(const ByteArrayPtr& buffer);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Berechnet den SHA-256 Wert eines Buffers
+ *
+ * Berechnet die SHA-256 Prüfsumme eines gegebenen Datenbuffers.
+ *
+ * @param buffer Pointer auf den Beginn der Daten
+ * @param size Länge der Daten in Byte
+ * @return String mit dem SHA-256 Hash
+ * @note Wenn der Buffer null ist oder die Größe 0 beträgt, wird der SHA-256 Wert des leeren Strings zurückgegeben.
+ * Dieser ist immer "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855".
+ */
 String Sha256(const void* buffer, size_t size);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Berechnet den SHA-256 Wert eines ByteArrayPtr
+ *
+ * Berechnet die SHA-256 Prüfsumme eines gegebenen ByteArrayPtr.
+ *
+ * @param buffer ByteArrayPtr auf die Daten
+ * @return String mit dem SHA-256 Hash
+ * @note Wenn der Buffer null ist oder die Größe 0 beträgt, wird der SHA-256 Wert des leeren Strings zurückgegeben.
+ * Dieser ist immer "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855".
+ */
 String Sha256(const ByteArrayPtr& buffer);
 
+/**
+ * @ingroup PPLGroupMath
+ * @brief Interner SHA-256 Kontext
+ *
+ * Diese Struktur wird intern für die Berechnung des SHA-256 Hashes verwendet.
+ */
 class Sha256Struct
 {
 public:
@@ -442,6 +473,14 @@ public:
     unsigned char buffer[64];
 };
 
+/** @class Sha256Context
+ * @ingroup PPLGroupMath
+ * @brief SHA-256 Berechnung
+ *
+ * Mit dieser Klasse kann der SHA-256 Hash schrittweise über mehrere Datenblöcke berechnet werden.
+ * Mit `update` können neue Datenblöcke hinzugefügt werden, mit `get` kann der aktuelle Hash abgerufen werden, und mit `reset` kann der
+ * Kontext zurückgesetzt werden.
+ */
 class Sha256Context
 {
 private:
@@ -457,8 +496,8 @@ public:
      */
     void update(const void* buffer, size_t size);
 
-    /** @brief Gibt den SHA-256-Wert zurück */
-    String get();
+    /** @brief Gibt den aktuellen SHA-256-Wert zurück */
+    String get() const;
 
     /** @brief Setzt den SHA-256-Kontext zurück */
     void reset();
