@@ -55,6 +55,17 @@ struct ParserState
 static void readDict(pplib::AssocArray& data, pplib::FileObject& file);
 static void readArray(pplib::AssocArray& data, pplib::FileObject& file);
 
+static String escapeString(const String& s)
+{
+    String ret = s;
+    ret.replace("\\", "\\\\");
+    ret.replace("\"", "\\\"");
+    ret.replace("\n", "\\n");
+    ret.replace("\r", "\\r");
+    ret.replace("\t", "\\t");
+    return ret;
+}
+
 static pplib::String getString(pplib::FileObject& file)
 {
     pplib::String str;
@@ -369,7 +380,7 @@ static void writeValue(pplib::FileObject& file, const pplib::String& key, const 
         else if (str == "true" || str == "false" || str == "null")
             file.puts(str);
         else
-            file.putsf("\"%s\"", (const char*)pplib::PythonHelper::escapeString(str));
+            file.putsf("\"%s\"", (const char*)escapeString(str));
     } else if (value->isWideString()) {
         const pplib::WideString& wstr = value->toWideString();
         pplib::ByteArray ba = wstr.toUtf8();
@@ -379,7 +390,7 @@ static void writeValue(pplib::FileObject& file, const pplib::String& key, const 
         else if (str == "true" || str == "false" || str == "null")
             file.puts(str);
         else
-            file.putsf("\"%s\"", (const char*)pplib::PythonHelper::escapeString(str));
+            file.putsf("\"%s\"", (const char*)escapeString(str));
     } else if (value->isArray()) {
         writeArray(value->toArray(), file);
     } else if (value->isAssocArray()) {

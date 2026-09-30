@@ -358,22 +358,6 @@ String Sha256(const void* buffer, size_t size);
 String Sha256(const ByteArrayPtr& buffer);
 double Calc(const String& expression);
 
-class PerlHelper
-{
-public:
-    static String escapeString(const String& s);
-    static String escapeRegExp(const String& s);
-    static String toHash(const AssocArray& a, const String& s);
-};
-
-class PythonHelper
-{
-public:
-    static String escapeString(const String& s);
-    static String escapeRegExp(const String& s);
-    static String toHash(const AssocArray& a, const String& name, int indention = 0);
-};
-
 }; // namespace pplib
 
 #endif // PPLIB_CORE_FUNCTIONS_H_
