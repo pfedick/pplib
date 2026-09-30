@@ -36,6 +36,15 @@
 
 namespace pplib::grafix
 {
+#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#define __LITTLE_ENDIAN__ 1
+#elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#define __BIG_ENDIAN__ 1
+#elif defined(_WIN32) || defined(__i386__) || defined(__x86_64__) || defined(__arm__) || defined(__aarch64__)
+#define __LITTLE_ENDIAN__ 1
+#endif
+#endif
 
 /**
  * @class Color
