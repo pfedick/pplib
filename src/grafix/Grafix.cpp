@@ -64,6 +64,7 @@ Grafix::Grafix()
 
     // Standardfilter anlegen
 
+#ifndef PICO_BUILD
     ImageFilter* filter = new ImageFilter_BMP;
     addImageFilter(filter);
     filter = new ImageFilter_GIF;
@@ -89,6 +90,7 @@ Grafix::Grafix()
 
     FontEngineFont5* font5 = new FontEngineFont5;
     addFontEngine(font5);
+#endif
     FontEngineFont6* font6 = new FontEngineFont6;
     addFontEngine(font6);
 

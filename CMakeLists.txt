@@ -457,11 +457,13 @@ endif()
 # ==============================================================================
 if(PPLIB_ENABLE_PICO)
     set(PICO_SOURCES
+        src/core/Compression.cpp
         src/core/Exceptions.cpp
         src/core/Functions.cpp
         src/core/StringFunctions.cpp
         src/core/FileObject.cpp
         src/core/MemFile.cpp
+        src/core/PFPFile.cpp
         src/math/crc.cpp
         src/math/md5.cpp
         src/math/random.cpp
