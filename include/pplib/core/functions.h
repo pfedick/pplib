@@ -333,6 +333,7 @@ uint64_t PeekN64(const void* Adresse);
  * @param buffer Pointer auf den Beginn der Daten
  * @param size Länge der Daten in Byte
  * @return Integer mit der Prüfsumme
+ * @note Gibt 0 zurück, wenn der Buffer null ist oder die Größe 0 beträgt.
  */
 uint32_t Crc32(const void* buffer, size_t size);
 
@@ -357,6 +358,7 @@ public:
     /** @brief Aktualisiert den CRC32-Wert mit neuen Daten
      * @param buffer Pointer auf den Beginn der neuen Daten
      * @param size Länge der neuen Daten in Byte
+     * @note Prüfsumme wird nicht aktualisiert, wenn der Buffer null ist oder die Größe 0 beträgt.
      */
     void update(const void* buffer, size_t size);
 
@@ -384,6 +386,7 @@ public:
  * @param initial_crc Initialwert (Standard 0xFFFF). Nützlich zum Fortsetzen einer Checksumme.
  * @note Anders als Crc32 kann hier ein Initialwert angegeben werden, um die Berechnung einer bestehenden Prüfsumme fortzusetzen.
  * @return Integer mit der Prüfsumme
+ * @note Gibt den Initialwert zurück, wenn der Buffer null ist oder die Größe 0 beträgt.
  */
 uint16_t Crc16(const void* buffer, size_t size, uint16_t initial_crc = 0xFFFF);
 
@@ -409,6 +412,7 @@ public:
     /** @brief Aktualisiert den CRC-16-CCITT-Wert mit neuen Daten
      * @param buffer Pointer auf den Beginn der neuen Daten
      * @param size Länge der neuen Daten in Byte
+     * @note Prüfsumme wird nicht aktualisiert, wenn der Buffer null ist oder die Größe 0 beträgt.
      */
     void update(const void* buffer, size_t size);
 

@@ -43,6 +43,15 @@ TEST(CrcTest, Crc32)
     ASSERT_EQ(0xCBF43926, crc);
 }
 
+TEST(CrcTest, Crc32Empty)
+{
+    const char* input = "";
+    uint32_t crc = pplib::Crc32(input, strlen(input));
+    ASSERT_EQ(0xFFFFFFFF ^ 0xFFFFFFFF, crc);
+
+    ASSERT_EQ(0, pplib::Crc32(nullptr, 0));
+}
+
 TEST(CrcTest, Crc32Context)
 {
     const char* input = "123456789";
@@ -50,6 +59,8 @@ TEST(CrcTest, Crc32Context)
     ctx.update(input, strlen(input));
     ASSERT_EQ(0xCBF43926, ctx.get());
     ctx.update("abcdefghijklmnop", 16);
+    ctx.update(nullptr, 0);
+    ctx.update("", 0);
     ASSERT_EQ(0xE0DFBC17, ctx.get());
     ctx.reset();
     ASSERT_EQ(0xFFFFFFFF ^ 0xFFFFFFFF, ctx.get());
@@ -65,6 +76,15 @@ TEST(CrcTest, Crc16)
     ASSERT_EQ(0x29B1, pplib::Crc16("56789", 5, pplib::Crc16("1234", 4)));
 }
 
+TEST(CrcTest, Crc16Empty)
+{
+    const char* input = "";
+    uint16_t crc = pplib::Crc16(input, strlen(input), 0xFFFF);
+    ASSERT_EQ(0xFFFF, crc);
+
+    ASSERT_EQ(0xFFFF, pplib::Crc16(nullptr, 0, 0xFFFF));
+}
+
 TEST(CrcTest, Crc16Context)
 {
     const char* input = "123456789";
@@ -72,6 +92,8 @@ TEST(CrcTest, Crc16Context)
     ctx.update(input, strlen(input));
     ASSERT_EQ(0x29B1, ctx.get());
     ctx.update("56789", 5);
+    ctx.update(nullptr, 0);
+    ctx.update("", 0);
     ASSERT_EQ(0x6817, ctx.get());
     ctx.reset();
     ASSERT_EQ(0xFFFF, ctx.get());

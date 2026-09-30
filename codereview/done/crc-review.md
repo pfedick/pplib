@@ -39,6 +39,8 @@ dokumentiert in `include/pplib/core/functions.h:52-78`. Beide Tabellen und Algor
   Update/Finalize-Aufspaltung anbieten (`Crc32Update(uint32_t& state, ...)` + `Crc32Finalize(uint32_t state)`),
   wobei `Crc32()` selbst weiterhin als Bequemlichkeits-Wrapper für den Einzelaufruf bestehen bleibt.
 
+  ==> FIXED
+
 ## Design
 
 - [ ] **`Crc32()` castet `const void*` unnötig auf ein nicht-konstantes `unsigned char*`** (Zeile 70)
@@ -50,6 +52,8 @@ dokumentiert in `include/pplib/core/functions.h:52-78`. Beide Tabellen und Algor
   und inkonsistent mit der Schwesterfunktion im selben File.
   Fix: `const unsigned char* b = (const unsigned char*)buffer;`
 
+  ==> FIXED
+
 - [ ] **Keine Eingabevalidierung, inkonsistent zu `Md5`/`Sha256` im selben `math/`-Modul**
   `Crc32(nullptr, 10)` / `Crc16(nullptr, 10)` dereferenzieren den Null-Pointer direkt (Absturz), während
   `Md5(nullptr, 0)`/`Sha256(nullptr, 0)` in dieser Fällen dokumentiert per `EmptyDataException` abbrechen. Für
@@ -57,6 +61,8 @@ dokumentiert in `include/pplib/core/functions.h:52-78`. Beide Tabellen und Algor
   `size > 0` bleibt ungeprüft. Passend zum REFACTORING.md-Ziel "weniger Exceptions" ist ein Crash hier vermutlich
   nicht gewollt, ein einheitliches Verhalten über die math-Funktionen hinweg (entweder alle prüfen, oder keine)
   wäre aber wünschenswert.
+
+  ==> FIXED und Dokumentiert
 
 ## Doku / Kosmetik
 

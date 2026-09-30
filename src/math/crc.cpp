@@ -67,7 +67,8 @@ static const uint32_t crc32_table[256] = {
 uint32_t Crc32(const void* buffer, size_t size)
 {
     uint32_t ulCRC(0xffffffff);
-    unsigned char* b = (unsigned char*)buffer;
+    if (buffer == nullptr || size == 0) return ulCRC ^ 0xffffffff;
+    const unsigned char* b = (const unsigned char*)buffer;
     size_t len = size;
     while (len--)
         ulCRC = (ulCRC >> 8) ^ crc32_table[(ulCRC & 0xFF) ^ *b++];
@@ -76,7 +77,8 @@ uint32_t Crc32(const void* buffer, size_t size)
 
 void Crc32Context::update(const void* buffer, size_t size)
 {
-    unsigned char* b = (unsigned char*)buffer;
+    if (buffer == nullptr || size == 0) return;
+    const unsigned char* b = (const unsigned char*)buffer;
     while (size--)
         state_ = (state_ >> 8) ^ crc32_table[(state_ & 0xFF) ^ *b++];
 }
@@ -101,6 +103,7 @@ static const uint16_t crc16_table[256] = {
 
 uint16_t Crc16(const void* buffer, size_t size, uint16_t initial_crc)
 {
+    if (buffer == nullptr || size == 0) return initial_crc;
     uint16_t crc = initial_crc;
     const unsigned char* b = (const unsigned char*)buffer;
     while (size--) {
@@ -111,6 +114,7 @@ uint16_t Crc16(const void* buffer, size_t size, uint16_t initial_crc)
 
 void Crc16Context::update(const void* buffer, size_t size)
 {
+    if (buffer == nullptr || size == 0) return;
     const unsigned char* b = (const unsigned char*)buffer;
     while (size--) {
         state_ = (state_ << 8) ^ crc16_table[((state_ >> 8) ^ *b++) & 0xFF];
