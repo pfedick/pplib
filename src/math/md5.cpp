@@ -292,7 +292,7 @@ String Md5(const void* buffer, size_t size)
 /*!\ingroup PPLGroupMath
  */
 {
-    if (buffer == NULL || size == 0) throw EmptyDataException();
+    if (buffer == NULL || size == 0) throw IllegalArgumentException();
     char tmp[33];
     MD5_CTX ctx;
     MD5Init(&ctx);
@@ -304,7 +304,6 @@ String Md5(const void* buffer, size_t size)
 
 String Md5(const ByteArrayPtr& buffer)
 {
-    if (buffer.isNull() || buffer.size() == 0) throw EmptyDataException();
     return Md5(buffer.ptr(), buffer.size());
 }
 
