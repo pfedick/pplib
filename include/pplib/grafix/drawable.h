@@ -158,7 +158,7 @@ public:
 
     Drawable() noexcept = default;
 
-    /** @class Copy-Konstruktor
+    /** @brief Copy-Konstruktor
      *
      * Mit diesem Konstruktor wird eine Kopie eines anderen Drawable oder davon abgeleiteten
      * Klasse erstellt.
@@ -167,7 +167,7 @@ public:
      */
     Drawable(const Drawable& other);
 
-    /** @class Move-Konstruktor
+    /** @brief Move-Konstruktor
      *
      * Mit diesem Konstruktor wird ein Drawable von einem anderen Drawable oder davon abgeleiteten
      * Klasse übernommen.
@@ -176,7 +176,7 @@ public:
      */
     Drawable(Drawable&& other);
 
-    /** @class Konstruktor mit Speicherbereich
+    /** @brief Konstruktor mit Speicherbereich
      *
      * Mit diesem Konstruktor wird ein Drawable anhand eines Speicherbereichs erstellt.
      *
