@@ -432,7 +432,7 @@ TEST_F(ConfigParserTest, deleteSection)
 
     // Auf die Section darf kein Zugriff mehr erfolgen
     ASSERT_THROW({ conf.getSectionName(); }, pplib::NoSectionSelectedException);
-    ASSERT_THROW({ conf.get("key1"); }, pplib::NoSectionSelectedException);
+    ASSERT_EQ(pplib::String(""), conf.get("key1"));
     ASSERT_THROW({ conf.add("key9", "value9"); }, pplib::NoSectionSelectedException);
 }
 
@@ -447,7 +447,7 @@ TEST_F(ConfigParserTest, unload)
 
     // Auf die Section darf kein Zugriff mehr erfolgen
     ASSERT_THROW({ conf.getSectionName(); }, pplib::NoSectionSelectedException);
-    ASSERT_THROW({ conf.get("key1"); }, pplib::NoSectionSelectedException);
+    ASSERT_EQ(pplib::String(""), conf.get("key1"));
     ASSERT_THROW({ conf.add("key9", "value9"); }, pplib::NoSectionSelectedException);
 }
 
