@@ -75,9 +75,8 @@ coverage:
 	ln -sf build/coverage/compile_commands.json compile_commands.json
 	-cd tests && ../build/coverage/tests/test_all$(EXE)
 	mkdir -p coverage_html
-	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --exclude 'tests/.*'
+	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --xml-pretty -o coverage.xml --exclude 'tests/.*'
 	@echo "Report: coverage_html/index.html"
-	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --xml-pretty -o coverage.xml --exclude 'tests/.*'
 
 wip:
 	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
@@ -85,8 +84,7 @@ wip:
 	ln -sf build/coverage/compile_commands.json compile_commands.json
 	-cd tests && ../build/coverage/tests/test_all$(EXE) --gtest_filter=RegExTest*
 	mkdir -p coverage_html
-	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --exclude 'tests/.*'
-	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --xml-pretty -o coverage.xml --exclude 'tests/.*'
+	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --xml-pretty -o coverage.xml --exclude 'tests/.*'
 
 clean:
 	-rm -rf build
