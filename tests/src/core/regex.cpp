@@ -59,14 +59,12 @@ protected:
 
 TEST_F(RegExTest, bool_compile_match)
 {
-
     ASSERT_NO_THROW({
         pplib::RegEx::Pattern p = pplib::RegEx::compile("^Hello.*$");
         ASSERT_TRUE(pplib::RegEx::match(p, "Hello World"));
         ASSERT_FALSE(pplib::RegEx::match(p, "Helleo World"));
-    } pplib::RegEx::compile("^.*\\.json$");
-
-    );
+    });
+    ASSERT_NO_THROW({ pplib::RegEx::compile("^.*\\.json$"); });
 }
 
 TEST_F(RegExTest, bool_match)
@@ -162,6 +160,164 @@ TEST_F(RegExTest, escape)
 {
     pplib::String s1("Lorem ipsum dolor sit amet.");
     ASSERT_EQ(pplib::String("Hello \\+Wor\\/ld"), pplib::RegEx::escape("Hello +Wor/ld"));
+}
+
+TEST_F(RegExTest, PatternLifecycle)
+{
+    // Default constructor
+    pplib::RegEx::Pattern empty;
+    EXPECT_THROW(pplib::RegEx::match(empty, "test"), pplib::IllegalRegularExpressionException);
+    std::vector<pplib::String> m;
+    EXPECT_THROW(pplib::RegEx::capture(empty, "test", m), pplib::IllegalRegularExpressionException);
+    EXPECT_THROW(pplib::RegEx::replace(empty, "test", "X"), pplib::IllegalRegularExpressionException);
+
+    // Copy constructor
+    pplib::RegEx::Pattern p1 = pplib::RegEx::compile("^foo$");
+    pplib::RegEx::Pattern p2(p1);
+    EXPECT_TRUE(pplib::RegEx::match(p1, "foo"));
+    EXPECT_TRUE(pplib::RegEx::match(p2, "foo"));
+    EXPECT_FALSE(pplib::RegEx::match(p2, "bar"));
+
+    // Move constructor: Quelle muss geleert werden und wirft bei Benutzung
+    pplib::RegEx::Pattern p3(std::move(p1));
+    EXPECT_TRUE(pplib::RegEx::match(p3, "foo"));
+    EXPECT_THROW(pplib::RegEx::match(p1, "foo"), pplib::IllegalRegularExpressionException);
+
+    // Copy assignment
+    pplib::RegEx::Pattern p4;
+    p4 = p2;
+    EXPECT_TRUE(pplib::RegEx::match(p4, "foo"));
+    EXPECT_TRUE(pplib::RegEx::match(p2, "foo"));
+
+    // Move assignment
+    pplib::RegEx::Pattern p5;
+    p5 = std::move(p2);
+    EXPECT_TRUE(pplib::RegEx::match(p5, "foo"));
+    EXPECT_THROW(pplib::RegEx::match(p2, "foo"), pplib::IllegalRegularExpressionException);
+
+    // Self-assignment
+    p4 = p4;
+    EXPECT_TRUE(pplib::RegEx::match(p4, "foo"));
+    p4 = std::move(p4);
+    EXPECT_TRUE(pplib::RegEx::match(p4, "foo"));
+
+    // Swap
+    pplib::RegEx::Pattern pA = pplib::RegEx::compile("^A$");
+    pplib::RegEx::Pattern pB = pplib::RegEx::compile("^B$");
+    pA.swap(pB);
+    EXPECT_TRUE(pplib::RegEx::match(pA, "B"));
+    EXPECT_TRUE(pplib::RegEx::match(pB, "A"));
+}
+
+TEST_F(RegExTest, WidthMismatch)
+{
+    pplib::RegEx::Pattern p = pplib::RegEx::compile("^foo$");
+    EXPECT_THROW(pplib::RegEx::match(p, pplib::WideString(L"foo")), pplib::IllegalArgumentException);
+    std::vector<pplib::WideString> wm;
+    EXPECT_THROW(pplib::RegEx::capture(p, pplib::WideString(L"foo"), wm), pplib::IllegalArgumentException);
+    EXPECT_THROW(pplib::RegEx::replace(p, pplib::WideString(L"foo"), pplib::WideString(L"bar")), pplib::IllegalArgumentException);
+}
+
+TEST_F(RegExTest, CompileErrors)
+{
+    EXPECT_THROW(pplib::RegEx::compile("[unterminated"), pplib::IllegalRegularExpressionException);
+    EXPECT_THROW(pplib::RegEx::compile("*startingWithQuantifier"), pplib::IllegalRegularExpressionException);
+    EXPECT_THROW(pplib::RegEx::compile("/[/"), pplib::IllegalRegularExpressionException);
+    // Ungültiges UTF-8 Bytefolge muss abgefangen werden
+    EXPECT_THROW(pplib::RegEx::compile(pplib::String("\xFF\xFF")), pplib::IllegalRegularExpressionException);
+}
+
+TEST_F(RegExTest, Flags)
+{
+    // CASELESS
+    EXPECT_TRUE(pplib::RegEx::match("^abc$", "ABC", pplib::RegEx::Flags::CASELESS));
+    EXPECT_FALSE(pplib::RegEx::match("^abc$", "ABC"));
+
+    // ANCHORED
+    EXPECT_TRUE(pplib::RegEx::match("hello", "hello world", pplib::RegEx::Flags::ANCHORED));
+    EXPECT_FALSE(pplib::RegEx::match("world", "hello world", pplib::RegEx::Flags::ANCHORED));
+
+    // EXTENDED
+    EXPECT_TRUE(pplib::RegEx::match("hello # comment\n  world", "helloworld", pplib::RegEx::Flags::EXTENDED));
+
+    // UNGREEDY
+    EXPECT_EQ(pplib::String("Xa2b"), pplib::RegEx::replace("a.*b", "a1ba2b", "X", pplib::RegEx::Flags::UNGREEDY, 1));
+
+    // PerlRegEx Flags: i, m, s, x, a, u
+    EXPECT_TRUE(pplib::RegEx::match("/^abc$/i", "ABC"));
+    EXPECT_TRUE(pplib::RegEx::match("/hello # comment\n  world/x", "helloworld"));
+    EXPECT_TRUE(pplib::RegEx::match("/hello/a", "hello world"));
+    EXPECT_FALSE(pplib::RegEx::match("/world/a", "hello world"));
+    EXPECT_EQ(pplib::String("Xa2b"), pplib::RegEx::replace("/a.*b/u", "a1ba2b", "X", 0, 1));
+}
+
+TEST_F(RegExTest, PerlRegExWithoutClosingSlash)
+{
+    // String fängt mit '/' an, hat aber keinen schließenden '/' -> normales Regex
+    EXPECT_TRUE(pplib::RegEx::match("/usr/local/bin", "/usr/local/bin"));
+    EXPECT_FALSE(pplib::RegEx::match("/usr/local/bin", "other"));
+    EXPECT_TRUE(pplib::RegEx::match("/bin", "/bin"));
+    EXPECT_FALSE(pplib::RegEx::match("/bin", "other"));
+}
+
+TEST_F(RegExTest, MatchSubjectRuntimeError)
+{
+    // Ungültiges UTF-8 im Subject führt zu Laufzeitfehler in pcre2_match -> OperationFailedException
+    EXPECT_THROW(pplib::RegEx::match("^abc$", pplib::String("\xFF\xFF")), pplib::OperationFailedException);
+    pplib::RegEx::Pattern p = pplib::RegEx::compile("^abc$");
+    EXPECT_THROW(pplib::RegEx::match(p, pplib::String("\xFF\xFF")), pplib::OperationFailedException);
+    std::vector<pplib::String> m;
+    EXPECT_THROW(pplib::RegEx::capture(p, pplib::String("\xFF\xFF"), m), pplib::OperationFailedException);
+    EXPECT_THROW(pplib::RegEx::replace(p, pplib::String("\xFF\xFF"), "X"), pplib::OperationFailedException);
+}
+
+TEST_F(RegExTest, ZeroLengthMatchReplace)
+{
+    // Alltägliches Zero-Length Match (a* auf nicht-a String) darf nicht hängen
+    ASSERT_EQ(pplib::String("XtXeXsXtX"), pplib::RegEx::replace("a*", "test", "X"));
+
+    // Mit max
+    ASSERT_EQ(pplib::String("XtXest"), pplib::RegEx::replace("a*", "test", "X", 0, 2));
+
+    // Mit UTF-8 Multibyte Codepoints
+    ASSERT_EQ(pplib::String("XäXöXüX"), pplib::RegEx::replace("a*", "äöü", "X"));
+
+    // Am Stringanfang / Stringende
+    ASSERT_EQ(pplib::String("!test"), pplib::RegEx::replace("^", "test", "!"));
+    ASSERT_EQ(pplib::String("test!"), pplib::RegEx::replace("$", "test", "!"));
+
+    // Ohne Match
+    ASSERT_EQ(pplib::String("hello"), pplib::RegEx::replace("xyz", "hello", "X"));
+}
+
+TEST_F(RegExTest, CaptureDetails)
+{
+    std::vector<pplib::String> m;
+    EXPECT_FALSE(pplib::RegEx::capture("^([0-9]+)$", "abc", m));
+    EXPECT_TRUE(m.empty());
+
+    EXPECT_TRUE(pplib::RegEx::capture("^([a-z]+)-([0-9]+)$", "abc-123", m));
+    ASSERT_EQ((size_t)3, m.size());
+    EXPECT_EQ(pplib::String("abc-123"), m[0]);
+    EXPECT_EQ(pplib::String("abc"), m[1]);
+    EXPECT_EQ(pplib::String("123"), m[2]);
+}
+
+TEST_F(RegExTest, EscapeAllMetacharacters)
+{
+    EXPECT_EQ(pplib::String(""), pplib::RegEx::escape(""));
+    EXPECT_EQ(pplib::String("Hello World 123"), pplib::RegEx::escape("Hello World 123"));
+
+    // Alle Metazeichen: \ . ^ $ * + - ? ( ) [ ] { } | /
+    pplib::String allMeta("\\.^$*+-?()[]{}|/");
+    pplib::String escaped = pplib::RegEx::escape(allMeta);
+    EXPECT_EQ(pplib::String("\\\\\\.\\^\\$\\*\\+\\-\\?\\(\\)\\[\\]\\{\\}\\|\\/"), escaped);
+
+    // Literal Matching Test: Eingebetteter escaped String matcht exakt sich selbst
+    pplib::String literal = "foo[bar](1+2)*{x}?$test^/baz\\qux-end.";
+    pplib::String pattern = "^" + pplib::RegEx::escape(literal) + "$";
+    EXPECT_TRUE(pplib::RegEx::match(pattern, literal));
+    EXPECT_FALSE(pplib::RegEx::match(pattern, "foo bar 1 2"));
 }
 
 class RegExTestWideChar : public ::testing::Test
@@ -264,6 +420,171 @@ TEST_F(RegExTestWideChar, escape)
 {
     pplib::WideString s1(L"Lorem ipsum dolor sit amet.");
     ASSERT_EQ(pplib::WideString(L"Hello \\+Wor\\/ld"), pplib::RegEx::escape(L"Hello +Wor/ld"));
+}
+
+TEST_F(RegExTestWideChar, PatternLifecycle)
+{
+    // Default constructor
+    pplib::RegEx::Pattern empty;
+    EXPECT_THROW(pplib::RegEx::match(empty, pplib::WideString(L"test")), pplib::IllegalRegularExpressionException);
+    std::vector<pplib::WideString> m;
+    EXPECT_THROW(pplib::RegEx::capture(empty, pplib::WideString(L"test"), m), pplib::IllegalRegularExpressionException);
+    EXPECT_THROW(pplib::RegEx::replace(empty, pplib::WideString(L"test"), pplib::WideString(L"X")),
+                 pplib::IllegalRegularExpressionException);
+
+    // Copy constructor
+    pplib::RegEx::Pattern p1 = pplib::RegEx::compile(pplib::WideString(L"^foo$"));
+    pplib::RegEx::Pattern p2(p1);
+    EXPECT_TRUE(pplib::RegEx::match(p1, pplib::WideString(L"foo")));
+    EXPECT_TRUE(pplib::RegEx::match(p2, pplib::WideString(L"foo")));
+    EXPECT_FALSE(pplib::RegEx::match(p2, pplib::WideString(L"bar")));
+
+    // Move constructor
+    pplib::RegEx::Pattern p3(std::move(p1));
+    EXPECT_TRUE(pplib::RegEx::match(p3, pplib::WideString(L"foo")));
+    EXPECT_THROW(pplib::RegEx::match(p1, pplib::WideString(L"foo")), pplib::IllegalRegularExpressionException);
+
+    // Copy assignment
+    pplib::RegEx::Pattern p4;
+    p4 = p2;
+    EXPECT_TRUE(pplib::RegEx::match(p4, pplib::WideString(L"foo")));
+    EXPECT_TRUE(pplib::RegEx::match(p2, pplib::WideString(L"foo")));
+
+    // Move assignment
+    pplib::RegEx::Pattern p5;
+    p5 = std::move(p2);
+    EXPECT_TRUE(pplib::RegEx::match(p5, pplib::WideString(L"foo")));
+    EXPECT_THROW(pplib::RegEx::match(p2, pplib::WideString(L"foo")), pplib::IllegalRegularExpressionException);
+
+    // Self-assignment
+    p4 = p4;
+    EXPECT_TRUE(pplib::RegEx::match(p4, pplib::WideString(L"foo")));
+    p4 = std::move(p4);
+    EXPECT_TRUE(pplib::RegEx::match(p4, pplib::WideString(L"foo")));
+}
+
+TEST_F(RegExTestWideChar, WidthMismatch)
+{
+    pplib::RegEx::Pattern wp = pplib::RegEx::compile(pplib::WideString(L"^foo$"));
+    EXPECT_THROW(pplib::RegEx::match(wp, "foo"), pplib::IllegalArgumentException);
+    std::vector<pplib::String> m;
+    EXPECT_THROW(pplib::RegEx::capture(wp, "foo", m), pplib::IllegalArgumentException);
+    EXPECT_THROW(pplib::RegEx::replace(wp, "foo", "bar"), pplib::IllegalArgumentException);
+}
+
+TEST_F(RegExTestWideChar, CompileErrors)
+{
+    EXPECT_THROW(pplib::RegEx::compile(pplib::WideString(L"[unterminated")), pplib::IllegalRegularExpressionException);
+    EXPECT_THROW(pplib::RegEx::compile(pplib::WideString(L"*startingWithQuantifier")), pplib::IllegalRegularExpressionException);
+    EXPECT_THROW(pplib::RegEx::compile(pplib::WideString(L"/[/")), pplib::IllegalRegularExpressionException);
+}
+
+TEST_F(RegExTestWideChar, Flags)
+{
+    // CASELESS
+    EXPECT_TRUE(pplib::RegEx::match(pplib::WideString(L"^abc$"), pplib::WideString(L"ABC"), pplib::RegEx::Flags::CASELESS));
+    EXPECT_FALSE(pplib::RegEx::match(pplib::WideString(L"^abc$"), pplib::WideString(L"ABC")));
+
+    // ANCHORED
+    EXPECT_TRUE(pplib::RegEx::match(pplib::WideString(L"hello"), pplib::WideString(L"hello world"), pplib::RegEx::Flags::ANCHORED));
+    EXPECT_FALSE(pplib::RegEx::match(pplib::WideString(L"world"), pplib::WideString(L"hello world"), pplib::RegEx::Flags::ANCHORED));
+
+    // EXTENDED
+    EXPECT_TRUE(pplib::RegEx::match(pplib::WideString(L"hello # comment\n  world"), pplib::WideString(L"helloworld"),
+                                    pplib::RegEx::Flags::EXTENDED));
+
+    // UNGREEDY
+    EXPECT_EQ(pplib::WideString(L"Xa2b"), pplib::RegEx::replace(pplib::WideString(L"a.*b"), pplib::WideString(L"a1ba2b"),
+                                                                pplib::WideString(L"X"), pplib::RegEx::Flags::UNGREEDY, 1));
+
+    // PerlRegEx Flags
+    EXPECT_TRUE(pplib::RegEx::match(pplib::WideString(L"/^abc$/i"), pplib::WideString(L"ABC")));
+    EXPECT_TRUE(pplib::RegEx::match(pplib::WideString(L"/hello # comment\n  world/x"), pplib::WideString(L"helloworld")));
+    EXPECT_TRUE(pplib::RegEx::match(pplib::WideString(L"/hello/a"), pplib::WideString(L"hello world")));
+    EXPECT_FALSE(pplib::RegEx::match(pplib::WideString(L"/world/a"), pplib::WideString(L"hello world")));
+    EXPECT_EQ(pplib::WideString(L"Xa2b"),
+              pplib::RegEx::replace(pplib::WideString(L"/a.*b/u"), pplib::WideString(L"a1ba2b"), pplib::WideString(L"X"), 0, 1));
+}
+
+TEST_F(RegExTestWideChar, PerlRegExWithoutClosingSlash)
+{
+    EXPECT_TRUE(pplib::RegEx::match(pplib::WideString(L"/usr/local/bin"), pplib::WideString(L"/usr/local/bin")));
+    EXPECT_FALSE(pplib::RegEx::match(pplib::WideString(L"/usr/local/bin"), pplib::WideString(L"other")));
+    EXPECT_TRUE(pplib::RegEx::match(pplib::WideString(L"/bin"), pplib::WideString(L"/bin")));
+    EXPECT_FALSE(pplib::RegEx::match(pplib::WideString(L"/bin"), pplib::WideString(L"other")));
+}
+
+TEST_F(RegExTestWideChar, MatchSubjectRuntimeError)
+{
+#if defined(HAVE_PCRE2_BITS_16) && (WCHAR_MAX <= 0xffff)
+    // Unter Windows / UTF-16 führt ein ungültiges Surrogatpaar zu OperationFailedException
+    pplib::WideString invalidSurrogate(L"\xD83D");
+    EXPECT_THROW(pplib::RegEx::match(pplib::WideString(L"^abc$"), invalidSurrogate), pplib::OperationFailedException);
+    pplib::RegEx::Pattern p = pplib::RegEx::compile(pplib::WideString(L"^abc$"));
+    EXPECT_THROW(pplib::RegEx::match(p, invalidSurrogate), pplib::OperationFailedException);
+    std::vector<pplib::WideString> m;
+    EXPECT_THROW(pplib::RegEx::capture(p, invalidSurrogate, m), pplib::OperationFailedException);
+    EXPECT_THROW(pplib::RegEx::replace(p, invalidSurrogate, pplib::WideString(L"X")), pplib::OperationFailedException);
+#endif
+}
+
+TEST_F(RegExTestWideChar, ZeroLengthMatchReplace)
+{
+    // Alltägliches Zero-Length Match darf nicht hängen
+    ASSERT_EQ(pplib::WideString(L"XtXeXsXtX"),
+              pplib::RegEx::replace(pplib::WideString(L"a*"), pplib::WideString(L"test"), pplib::WideString(L"X")));
+
+    // Mit max
+    ASSERT_EQ(pplib::WideString(L"XtXest"),
+              pplib::RegEx::replace(pplib::WideString(L"a*"), pplib::WideString(L"test"), pplib::WideString(L"X"), 0, 2));
+
+    // Mit Umlauten
+    ASSERT_EQ(pplib::WideString(L"XäXöXüX"),
+              pplib::RegEx::replace(pplib::WideString(L"a*"), pplib::WideString(L"äöü"), pplib::WideString(L"X")));
+
+    // UTF-16 Surrogat-Paar (Emoji: 🚀 \xD83D\xDE80)
+    ASSERT_EQ(pplib::WideString(L"X\xD83D\xDE80X"),
+              pplib::RegEx::replace(pplib::WideString(L"a*"), pplib::WideString(L"\xD83D\xDE80"), pplib::WideString(L"X")));
+
+    // Am Stringanfang / Stringende
+    ASSERT_EQ(pplib::WideString(L"!test"),
+              pplib::RegEx::replace(pplib::WideString(L"^"), pplib::WideString(L"test"), pplib::WideString(L"!")));
+    ASSERT_EQ(pplib::WideString(L"test!"),
+              pplib::RegEx::replace(pplib::WideString(L"$"), pplib::WideString(L"test"), pplib::WideString(L"!")));
+
+    // Ohne Match
+    ASSERT_EQ(pplib::WideString(L"hello"),
+              pplib::RegEx::replace(pplib::WideString(L"xyz"), pplib::WideString(L"hello"), pplib::WideString(L"X")));
+}
+
+TEST_F(RegExTestWideChar, CaptureDetails)
+{
+    std::vector<pplib::WideString> m;
+    EXPECT_FALSE(pplib::RegEx::capture(pplib::WideString(L"^([0-9]+)$"), pplib::WideString(L"abc"), m));
+    EXPECT_TRUE(m.empty());
+
+    EXPECT_TRUE(pplib::RegEx::capture(pplib::WideString(L"^([a-z]+)-([0-9]+)$"), pplib::WideString(L"abc-123"), m));
+    ASSERT_EQ((size_t)3, m.size());
+    EXPECT_EQ(pplib::WideString(L"abc-123"), m[0]);
+    EXPECT_EQ(pplib::WideString(L"abc"), m[1]);
+    EXPECT_EQ(pplib::WideString(L"123"), m[2]);
+}
+
+TEST_F(RegExTestWideChar, EscapeAllMetacharacters)
+{
+    EXPECT_EQ(pplib::WideString(L""), pplib::RegEx::escape(pplib::WideString(L"")));
+    EXPECT_EQ(pplib::WideString(L"Hello World 123"), pplib::RegEx::escape(pplib::WideString(L"Hello World 123")));
+
+    // Alle Metazeichen: \ . ^ $ * + - ? ( ) [ ] { } | /
+    pplib::WideString allMeta(L"\\.^$*+-?()[]{}|/");
+    pplib::WideString escaped = pplib::RegEx::escape(allMeta);
+    EXPECT_EQ(pplib::WideString(L"\\\\\\.\\^\\$\\*\\+\\-\\?\\(\\)\\[\\]\\{\\}\\|\\/"), escaped);
+
+    // Literal Matching Test: Eingebetteter escaped String matcht exakt sich selbst
+    pplib::WideString literal = L"foo[bar](1+2)*{x}?$test^/baz\\qux-end.";
+    pplib::WideString pattern = L"^" + pplib::RegEx::escape(literal) + L"$";
+    EXPECT_TRUE(pplib::RegEx::match(pattern, literal));
+    EXPECT_FALSE(pplib::RegEx::match(pattern, L"foo bar 1 2"));
 }
 
 } // namespace

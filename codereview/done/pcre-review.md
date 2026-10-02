@@ -12,7 +12,7 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
 
 ## Bugs (kritisch)
 
-- [ ] **`replace()`: Zero-Length-Match führt zu Endlosschleife + unbegrenztem Speicherwachstum** (`Pcre.cpp:357-380` und `403-426`)
+- [x] **`replace()`: Zero-Length-Match führt zu Endlosschleife + unbegrenztem Speicherwachstum** (`Pcre.cpp:357-380` und `403-426`)
   Die Replace-Schleife rückt den Suchoffset nur über `offset = ovector[1]` vor. Bei einem Pattern, das an einer Stelle
   eine leere Zeichenkette matchen kann (jedes `*`, `?`, `{0,n}`, optionale Gruppe `(...)?` – alltägliche Konstrukte),
   liefert `pcre2_match` `ovector[0] == ovector[1] == offset`. Der Offset ändert sich nicht, `while (offset <= subj_len)`
@@ -41,8 +41,9 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
       continue;
   }
   ```
+  ==> FIXED (für Narrow- und WideString; Zero-Length-Matches am Stringende und mit UTF-8/UTF-16-Surrogaten berücksichtigt), Tests ergänzt
 
-- [ ] **„Move-Konstruktor“ von `Pattern` nullt die Quelle nicht → Double-Free** (`regex.h:67`, `Pcre.cpp:104-109`)
+- [x] **„Move-Konstruktor“ von `Pattern` nullt die Quelle nicht → Double-Free** (`regex.h:67`, `Pcre.cpp:104-109`)
   ```cpp
   // regex.h
   Pattern(const Pattern&& other);
@@ -67,7 +68,9 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   `Pattern p2(std::move(p1))` schreibt, was ein ganz normaler, zu erwartender Gebrauch eines Move-Konstruktors wäre.
   Fix: Parameter zu `Pattern&& other` ändern und `other.p = nullptr; other.bits = 0;` nach der Übernahme setzen.
 
-- [ ] **Kein Bits/Width-Check zwischen `Pattern` und aufgerufener Overload → Type Confusion** (`match`, `capture`, `replace`,
+  ==> FIXED (`Pattern(Pattern&& other) noexcept`, `other.p = NULL; other.bits = 0;`), Tests ergänzt
+
+- [x] **Kein Bits/Width-Check zwischen `Pattern` und aufgerufener Overload → Type Confusion** (`match`, `capture`, `replace`,
   jeweils String- und WideString-Overload, z.B. `Pcre.cpp:234-250, 252-272, 280-304, 312-336, 344-382, 390-428`)
   `Pattern::bits` (8, 16 oder 32) wird beim Kompilieren gesetzt, aber keine der sechs `match`/`capture`/`replace`-
   Funktionen prüft, ob `pattern.bits` zur aufgerufenen Overload passt – nur `pattern.p == NULL` wird geprüft:
@@ -88,7 +91,9 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   Fix: in den String-Overloads `if (pattern.bits != 8) throw IllegalArgumentException(...)`, in den Wide-Overloads
   `if (pattern.bits != pcre2_bits_wide) throw IllegalArgumentException(...)`.
 
-- [ ] **`RegEx::escape()` escaped nur 5 Zeichen, wird aber von `PerlHelper`/`PythonHelper` als vollständiges
+  ==> FIXED (`IllegalArgumentException` in allen 6 Overloads geworfen), Tests ergänzt
+
+- [x] **`RegEx::escape()` escaped nur 5 Zeichen, wird aber von `PerlHelper`/`PythonHelper` als vollständiges
   Regex-Escaping angeboten → Regex-Injection** (`Pcre.cpp:438-452`, `src/core/PerlHelper.cpp:47`, `src/core/PythonHelper.cpp:49`)
   ```cpp
   String compare = "-+\\*/";   // nur diese 5 Zeichen werden escaped
@@ -106,9 +111,11 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   gegenprüfen, die sich auf den aktuellen engen Umfang verlässt), oder für `PerlHelper`/`PythonHelper` eine eigene,
   vollständige Escape-Funktion einführen statt `RegEx::escape()` zu missbrauchen.
 
+  ==> FIXED (`RegEx::escape()` escaped nun alle 16 PCRE-Metazeichen `\ . ^ $ * + - ? ( ) [ ] { } | /`), Tests ergänzt
+
 ## Bugs (mittel)
 
-- [ ] **`compile(const String&)`: `PCRE2_NO_UTF_CHECK` ohne jede Validierung des Patterns** (`Pcre.cpp:135`)
+- [x] **`compile(const String&)`: `PCRE2_NO_UTF_CHECK` ohne jede Validierung des Patterns** (`Pcre.cpp:135`)
   ```cpp
   int options = PCRE2_UTF | PCRE2_NO_UTF_CHECK;
   ```
@@ -122,7 +129,9 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   Fix: `PCRE2_NO_UTF_CHECK` entfernen (Kosten: eine zusätzliche, schnelle Validierung beim Compile) oder zumindest
   dokumentieren, dass der Aufrufer für garantiert valides UTF-8 im Pattern verantwortlich ist.
 
-- [ ] **`compile(const WideString&)` setzt nie `PCRE2_UTF` – auf 16-Bit-`wchar_t`-Plattformen (Windows) falsch** (`Pcre.cpp:182`)
+  ==> FIXED (`PCRE2_NO_UTF_CHECK` entfernt), Tests ergänzt
+
+- [x] **`compile(const WideString&)` setzt nie `PCRE2_UTF` – auf 16-Bit-`wchar_t`-Plattformen (Windows) falsch** (`Pcre.cpp:182`)
   ```cpp
   int options = 0;   // kein PCRE2_UTF16 trotz HAVE_PCRE2_BITS_16-Pfad
   ```
@@ -135,7 +144,9 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   Fix: `PCRE2_UTF` (und ggf. `PCRE2_NO_UTF_CHECK` mit denselben Vorbehalten wie oben) nur für den 16-Bit-Zweig setzen;
   für den 32-Bit-Zweig kann es wie bisher entfallen.
 
-- [ ] **PerlRegEx-Parsing (`/pattern/flags`) ohne schließenden Trenner interpretiert den Pattern-Text teilweise als
+  ==> FIXED (`PCRE2_UTF` für 16-Bit wchar_t Plattformen gesetzt), Tests ergänzt
+
+- [x] **PerlRegEx-Parsing (`/pattern/flags`) ohne schließenden Trenner interpretiert den Pattern-Text teilweise als
   Flags** (`Pcre.cpp:145-158` narrow, `193-208` wide)
   ```cpp
   if (r[0] == '/') { // PerlRegEx
@@ -161,7 +172,9 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   sonst explizit als "kein schließender Trenner gefunden" behandeln (z.B. Exception oder gesamten String als Pattern
   ohne Flags verwenden).
 
-- [ ] **Kein NULL-Check von `pcre2_match_data_create_from_pattern_*` vor Gebrauch** (alle sechs `match`/`capture`/
+  ==> FIXED (kein ByteArray Heap Overread/Overflow mehr, schließender Slash geprüft, führender Slash ohne schließenden Delimiter wird als normales Regex kompiliert), Tests ergänzt
+
+- [x] **Kein NULL-Check von `pcre2_match_data_create_from_pattern_*` vor Gebrauch** (alle sechs `match`/`capture`/
   `replace`-Implementierungen, z.B. `Pcre.cpp:240, 261, 286, 318, 350, 396`)
   ```cpp
   pcre2_match_data_8* md = pcre2_match_data_create_from_pattern_8((pcre2_code_8*)pattern.p, NULL);
@@ -173,9 +186,11 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   Fix: nach jedem `pcre2_match_data_create_from_pattern_*`-Aufruf auf `NULL` prüfen und ggf. `OutOfMemoryException`
   werfen, bevor `pcre2_match_*` aufgerufen wird.
 
+  ==> FIXED (in allen 6 Implementierungen geprüft und `OutOfMemoryException` geworfen)
+
 ## Design
 
-- [ ] **`Pattern` ist nach aktueller Deklaration überhaupt nicht zuweisbar** (`regex.h:64-69`)
+- [x] **`Pattern` ist nach aktueller Deklaration überhaupt nicht zuweisbar** (`regex.h:64-69`)
   Durch die Kombination aus user-deklariertem Kopier-Konstruktor, dem (kaputten) "Move-Konstruktor" und dem
   user-deklarierten Destruktor wird der implizite Kopier-Zuweisungsoperator laut Standard als `deleted` deklariert,
   und ein impliziter Move-Zuweisungsoperator wird gar nicht erst generiert. Weder `p1 = p2;` noch `p1 = std::move(p2);`
@@ -185,6 +200,8 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   Falle für zukünftigen Code (z.B. `Pattern p; if (x) p = compile(...);` kompiliert nicht).
   Fix: zusammen mit dem Move-Konstruktor-Fix oben auch `operator=(const Pattern&)` und `operator=(Pattern&&)` explizit
   implementieren (klassisches Copy-and-Swap bietet sich an, inkl. Self-Assignment-Sicherheit).
+
+  ==> FIXED (`operator=(const Pattern&)`, `operator=(Pattern&&) noexcept` und `swap(Pattern&) noexcept` implementiert), Tests ergänzt
 
 - [ ] **Kein Match-/Backtracking-Limit gesetzt → ReDoS-Risiko** (alle `pcre2_match_*`-Aufrufe übergeben `NULL` als
   Match-Context)
@@ -198,7 +215,9 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   einführen und bei `PCRE2_ERROR_MATCHLIMIT`/`_RECURSIONLIMIT` eine eigene Exception werfen statt generisch
   `IllegalRegularExpressionException`.
 
-- [ ] **`IllegalRegularExpressionException` wird auch für reine Laufzeitfehler beim Matchen geworfen, nicht nur für
+  ==> WONTFIX (PCRE2-Standardverhalten beibehalten)
+
+- [x] **`IllegalRegularExpressionException` wird auch für reine Laufzeitfehler beim Matchen geworfen, nicht nur für
   ungültige Syntax** (z.B. `Pcre.cpp:245, 265, 292, 323, 365, 411`)
   In `match`/`capture`/`replace` ist das Pattern zu diesem Zeitpunkt bereits erfolgreich kompiliert (sonst wäre
   `compile()` schon fehlgeschlagen). Ein negativer Rückgabewert von `pcre2_match_*` ungleich `PCRE2_ERROR_NOMATCH`
@@ -208,19 +227,26 @@ Mehrere der unten genannten Bugs wurden mit einem Standalone-Repro gegen echtes 
   Fix: für den Matching-Fehlerfall `OperationFailedException` (existiert bereits in `exceptions.h:55`) statt
   `IllegalRegularExpressionException` verwenden.
 
+  ==> FIXED (`OperationFailedException` bei Matching-Laufzeitfehlern geworfen), Tests ergänzt
+
 ## Doku / Kosmetik
 
-- [ ] Falscher Include-Guard-Kommentar am Dateiende: `#endif // PPLIB_CORE_MEMORYHEAP_H_` (`regex.h:97`) – Copy-&-Paste-
+- [x] Falscher Include-Guard-Kommentar am Dateiende: `#endif // PPLIB_CORE_MEMORYHEAP_H_` (`regex.h:97`) – Copy-&-Paste-
       Rest aus einem anderen Header, sollte `PPLIB_CORE_REGEX_H_` heißen.
-- [ ] Debug-Ausgaben in Produktionscode: `pplib::PrintDebug("RegEx::Pattern::Pattern using copy constructor\n")`
+  ==> FIXED
+
+- [x] Debug-Ausgaben in Produktionscode: `pplib::PrintDebug("RegEx::Pattern::Pattern using copy constructor\n")`
       (`Pcre.cpp:89`), `"...using move constructor\n"` (`Pcre.cpp:106`) sowie `pplib::PrintDebug("debug 1\n")` in
       `match(const Pattern&, const WideString&)` (`Pcre.cpp:255`) und ein auskommentiertes `// pplib::PrintDebug("debug 2, rc=%d\n", rc);`
       (`Pcre.cpp:266`) wirken wie vergessene Debugging-Reste; `PrintDebug` formatiert und gibt bei jedem Aufruf
       tatsächlich Text aus (kein No-Op im Release-Build).
-- [ ] `RegEx::escape()` ist dokumentiert als "Fügt dem String Escape-Zeichen zu, zur Verwendung in einem Regulären
+  ==> FIXED (alle Debug-Prints entfernt)
+
+- [x] `RegEx::escape()` ist dokumentiert als "Fügt dem String Escape-Zeichen zu, zur Verwendung in einem Regulären
       Ausdruck" – das klingt nach einem allgemeinen Escaping, ist aber bewusst nur auf `- + \ * /` beschränkt (siehe
       Bug-Eintrag oben zu `PerlHelper`/`PythonHelper`). Sollte in der Doku explizit als "nur für die Wildcard→Regex-
       Konvertierung in Dir" gekennzeichnet werden, um Fehlgebrauch wie in `PerlHelper::escapeRegExp` zu vermeiden.
+  ==> FIXED (Doku und Implementierung auf alle 16 PCRE-Metazeichen erweitert)
 
 ## Verifiziert OK (kein Handlungsbedarf)
 

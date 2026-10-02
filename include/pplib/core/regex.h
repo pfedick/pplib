@@ -64,8 +64,13 @@ public:
     public:
         Pattern();
         Pattern(const Pattern& other);
-        Pattern(const Pattern&& other);
+        Pattern(Pattern&& other) noexcept;
         ~Pattern();
+
+        Pattern& operator=(const Pattern& other);
+        Pattern& operator=(Pattern&& other) noexcept;
+
+        void swap(Pattern& other) noexcept;
     };
 
     typedef std::vector<String> MatchVector;
@@ -94,4 +99,4 @@ public:
 };
 } // namespace pplib
 
-#endif // PPLIB_CORE_MEMORYHEAP_H_
+#endif // PPLIB_CORE_REGEX_H_
