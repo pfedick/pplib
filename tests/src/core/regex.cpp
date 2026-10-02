@@ -42,22 +42,22 @@ namespace
 {
 
 // The fixture for testing class Foo.
-class PcreTest : public ::testing::Test
+class RegExTest : public ::testing::Test
 {
 protected:
-    PcreTest()
+    RegExTest()
     {
         if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
             printf("setlocale fehlgeschlagen\n");
             throw std::exception();
         }
     }
-    virtual ~PcreTest()
+    virtual ~RegExTest()
     {
     }
 };
 
-TEST_F(PcreTest, bool_compile_match)
+TEST_F(RegExTest, bool_compile_match)
 {
 
     ASSERT_NO_THROW({
@@ -69,7 +69,7 @@ TEST_F(PcreTest, bool_compile_match)
     );
 }
 
-TEST_F(PcreTest, bool_match)
+TEST_F(RegExTest, bool_match)
 {
 
     ASSERT_NO_THROW({
@@ -78,7 +78,7 @@ TEST_F(PcreTest, bool_match)
     });
 }
 
-TEST_F(PcreTest, MatchPositive)
+TEST_F(RegExTest, MatchPositive)
 {
     pplib::String s1(
         "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis "
@@ -96,7 +96,7 @@ TEST_F(PcreTest, MatchPositive)
     ASSERT_TRUE(pplib::RegEx::match("^.*\\.json$", "blah.json"));
 }
 
-TEST_F(PcreTest, MatchNegativ)
+TEST_F(RegExTest, MatchNegativ)
 {
     pplib::String s1(
         "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis "
@@ -114,7 +114,7 @@ TEST_F(PcreTest, MatchNegativ)
     ASSERT_FALSE(pplib::RegEx::match("^.*\\.json$", "."));
 }
 
-TEST_F(PcreTest, MatchPerlRegExPositive)
+TEST_F(RegExTest, MatchPerlRegExPositive)
 {
     pplib::String s1(
         "Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis "
@@ -131,7 +131,7 @@ TEST_F(PcreTest, MatchPerlRegExPositive)
     ASSERT_TRUE(pplib::RegEx::match(expr, s1));
 }
 
-TEST_F(PcreTest, capture)
+TEST_F(RegExTest, capture)
 {
     std::vector<pplib::String> m;
     pplib::String s1("2012-05-18");
@@ -142,7 +142,7 @@ TEST_F(PcreTest, capture)
     ASSERT_EQ(18, m[3].toInt()) << "Unexpected value in capture";
 }
 
-TEST_F(PcreTest, replace)
+TEST_F(RegExTest, replace)
 {
     pplib::String s1("Lorem ipsum dolor sit amet.");
     pplib::String expected("Lor3m ipsum dolor sit am3t.");
@@ -158,35 +158,35 @@ TEST_F(PcreTest, replace)
     ASSERT_EQ(pplib::String("208"), pplib::RegEx::replace("/.aiff$/i", s2, ""));
 }
 
-TEST_F(PcreTest, escape)
+TEST_F(RegExTest, escape)
 {
     pplib::String s1("Lorem ipsum dolor sit amet.");
     ASSERT_EQ(pplib::String("Hello \\+Wor\\/ld"), pplib::RegEx::escape("Hello +Wor/ld"));
 }
 
-class PcreTestWideChar : public ::testing::Test
+class RegExTestWideChar : public ::testing::Test
 {
 protected:
-    PcreTestWideChar()
+    RegExTestWideChar()
     {
         if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
             printf("setlocale fehlgeschlagen\n");
             throw std::exception();
         }
     }
-    virtual ~PcreTestWideChar()
+    virtual ~RegExTestWideChar()
     {
     }
 };
 
-TEST_F(PcreTestWideChar, bool_compile)
+TEST_F(RegExTestWideChar, bool_compile)
 {
 
     ASSERT_NO_THROW({ pplib::RegEx::Pattern p = pplib::RegEx::compile(L"^Hello.*$"); });
     ASSERT_NO_THROW({ pplib::RegEx::compile(L"^.*\\.json$"); });
 }
 
-TEST_F(PcreTestWideChar, bool_match)
+TEST_F(RegExTestWideChar, bool_match)
 {
 
     ASSERT_NO_THROW({
@@ -196,7 +196,7 @@ TEST_F(PcreTestWideChar, bool_match)
     });
 }
 
-TEST_F(PcreTestWideChar, MatchPositive)
+TEST_F(RegExTestWideChar, MatchPositive)
 {
     pplib::WideString s1(L"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum "
                          L"sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
@@ -210,7 +210,7 @@ TEST_F(PcreTestWideChar, MatchPositive)
     ASSERT_TRUE(pplib::RegEx::match(expr, s1, pplib::RegEx::Flags::DOTALL));
 }
 
-TEST_F(PcreTestWideChar, MatchMultiline)
+TEST_F(RegExTestWideChar, MatchMultiline)
 {
     pplib::WideString s1(L"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum "
                          L"sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
@@ -219,7 +219,7 @@ TEST_F(PcreTestWideChar, MatchMultiline)
     ASSERT_TRUE(pplib::RegEx::match(expr, s1, pplib::RegEx::Flags::MULTILINE));
 }
 
-TEST_F(PcreTestWideChar, MatchNegativ)
+TEST_F(RegExTestWideChar, MatchNegativ)
 {
     pplib::WideString s1(L"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum "
                          L"sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
@@ -236,7 +236,7 @@ TEST_F(PcreTestWideChar, MatchNegativ)
     ASSERT_FALSE(pplib::RegEx::match(L"^.*\\.json$", L"."));
 }
 
-TEST_F(PcreTestWideChar, capture)
+TEST_F(RegExTestWideChar, capture)
 {
     std::vector<pplib::WideString> m;
     pplib::WideString s1(L"2012-05-18");
@@ -248,7 +248,7 @@ TEST_F(PcreTestWideChar, capture)
     ASSERT_EQ(18, m[3].toInt()) << "Unexpected value in capture";
 }
 
-TEST_F(PcreTestWideChar, replace)
+TEST_F(RegExTestWideChar, replace)
 {
     pplib::WideString s1(L"Lorem ipsum dolor sit amet.");
     pplib::WideString expected(L"Lor3m ipsum dolor sit am3t.");
@@ -260,7 +260,7 @@ TEST_F(PcreTestWideChar, replace)
     ASSERT_EQ(pplib::WideString(L"Lor4m ipsum dolor sit amet."), pplib::RegEx::replace(L"e", s1, L"4", 0, 1));
 }
 
-TEST_F(PcreTestWideChar, escape)
+TEST_F(RegExTestWideChar, escape)
 {
     pplib::WideString s1(L"Lorem ipsum dolor sit amet.");
     ASSERT_EQ(pplib::WideString(L"Hello \\+Wor\\/ld"), pplib::RegEx::escape(L"Hello +Wor/ld"));
