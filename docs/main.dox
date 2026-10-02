@@ -40,6 +40,7 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
 - <a class="el" href="classes.html">Die Klassen</a>
 - <a class="el" href="modules.html">Übersicht der Module</a>
   - \subpage PPLGroupThreads
+  - \subpage PPLGroupShutdownHandler
   - \subpage PPLGroupMemory
   - \subpage PPLGroupMath
   - \subpage PPLGroupDateTime

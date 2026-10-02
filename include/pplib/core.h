@@ -40,9 +40,9 @@
 #include <pplib/core/regex.h>
 #include <pplib/core/timer.h>
 #include <pplib/core/mutex.h>
-#include <pplib/core/signal.h>
 #include <pplib/core/thread.h>
 #include <pplib/core/threadevent.h>
+#include <pplib/core/shutdown.h>
 #include <pplib/core/threadpool.h>
 #include <pplib/core/fileobject.h>
 #include <pplib/core/dir.h>

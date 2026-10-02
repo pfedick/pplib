@@ -112,6 +112,9 @@ Ich habe mittels KI eine Reihe von Klassen auf Fehler prüfen lassen. Die Ergebn
 
 Bereits erledigte Codereviews werden nach "codereview/done" verschoben.
 
+### Sockets
+- Die Verwendung von Signal-Handlern für SIGPIPE um zu verhinden, dass bei Verbindungsabbruch die Anwendung beendet wird, ist obsolete und wird unter Windows sowieso nicht unterstützt. Stattdessen sollte die Option `SO_NOSIGPIPE` auf dem Socket gesetzt werden, oder die Fehlerbehandlung direkt auf den Rückgabewerten der Socket-Funktionen erfolgen.
+
 ### Crypto-Funktionen
 - Unterstützung für moderne Algorithmen hinzufügen (AEAD-Modi)
   - GCM
@@ -139,6 +142,7 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - Neue Random-Klasse mit statischen Methoden für Zufallszahlen und Zufallsdaten eingeführt, die auf Methoden der C++ Standardbibliothek basieren
 - Funktionen reviewn, überarbeiten, Dokumentieren, Tests erstellen
 - Fonts überarbeitet: es gibt neue Methoden mit denen die Fonts auf bereits vorhandenen Daten im Speicher arbeiten können, ohne neu allokieren zu müssen. Ferner können die Hints beim Laden deaktiviert werden, um zum Beispiel auf dem Pico RAM zu sparen. Gilt auch für FreeType.
+- Signale-Klasse entfernt und durch ShutdownHandler-Funktionen ersetzt
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft
