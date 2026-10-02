@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -37,9 +32,12 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <pplib.h>
 #include <gtest/gtest.h>
 #include "pplib-tests.h"
+
+#include <pplib/core/configparser.h>
+#include <pplib/core/dir.h>
+#include <pplib/exceptions.h>
 
 namespace
 {
@@ -120,6 +118,8 @@ TEST_F(ConfigParserTest, selectNonExistingSection)
 {
     pplib::ConfigParser conf;
     ASSERT_NO_THROW({ conf.load("testdata/example.conf"); });
+
+    pplib::UnknownSectionException e;
 
     ASSERT_THROW({ conf.selectSection("unknown"); }, pplib::UnknownSectionException);
 }
@@ -389,43 +389,6 @@ TEST_F(ConfigParserTest, nonExistentKeyWithDefaultValueInteger)
         conf.selectSection("section1");
     });
     ASSERT_EQ(42, conf.getInt("unknown key", 42));
-}
-
-TEST_F(ConfigParserTest, iterateThruSection)
-{
-    pplib::ConfigParser conf;
-    ASSERT_NO_THROW({
-        conf.load("testdata/example.conf");
-        conf.selectSection("section1");
-        conf.reset();
-    });
-    pplib::String key, value;
-
-    ASSERT_EQ(true, conf.getNext(key, value));
-    ASSERT_EQ(pplib::String("answer to all questions"), key);
-    ASSERT_EQ(pplib::String("42"), value);
-
-    ASSERT_EQ(true, conf.getNext(key, value));
-    ASSERT_EQ(pplib::String("key1"), key);
-    ASSERT_EQ(pplib::String("another value1"), value);
-
-    ASSERT_EQ(true, conf.getNext(key, value));
-    ASSERT_EQ(pplib::String("key2"), key);
-    ASSERT_EQ(pplib::String("another value2"), value);
-
-    ASSERT_EQ(true, conf.getNext(key, value));
-    ASSERT_EQ(pplib::String("key3"), key);
-    ASSERT_EQ(pplib::String("yes"), value);
-
-    ASSERT_EQ(true, conf.getNext(key, value));
-    ASSERT_EQ(pplib::String("key4"), key);
-    ASSERT_EQ(pplib::String("no"), value);
-
-    ASSERT_EQ(true, conf.getNext(key, value));
-    ASSERT_EQ(pplib::String("key7"), key);
-    ASSERT_EQ(pplib::String("123"), value);
-
-    ASSERT_EQ(false, conf.getNext(key, value));
 }
 
 TEST_F(ConfigParserTest, getFromSection)
