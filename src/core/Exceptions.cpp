@@ -52,13 +52,15 @@ const char* Exception::what() const noexcept
 {
     std::call_once(whatOnce, [this]() {
         try {
-            if (ErrorText && *ErrorText) {
+            if (ErrorText && ErrorText[0]) {
                 whatBuffer = String(className()) + ": " + (const char*)ErrorText;
             }
         }
+        // LCOV_EXCL_START
         catch (...) {
             // Allokationsfehler? Null Risiko: Statisches Literal der Subklasse liefern!
         }
+        // LCOV_EXCL_STOP
     });
     if (whatBuffer.notEmpty()) {
         return whatBuffer.c_str();
@@ -83,6 +85,33 @@ Exception::Exception(Exception&& other) noexcept
     // other.whatBuffer bleibt wo er ist
 }
 
+Exception::Exception(const char* msg, ...) noexcept
+{
+    if (msg) {
+        String Msg;
+        va_list args;
+        va_start(args, msg);
+        try {
+            Msg.vasprintf(msg, args);
+            ErrorText = strdup((const char*)Msg);
+        }
+        // LCOV_EXCL_START
+        catch (...) {
+            ErrorText = NULL;
+        }
+        // LCOV_EXCL_STOP
+        va_end(args);
+
+    } else {
+        ErrorText = NULL;
+    }
+}
+
+Exception::Exception(const String& msg) noexcept
+{
+    ErrorText = strdup(msg.c_str());
+}
+
 void Exception::initFromFormat(const char* fmt, va_list args) noexcept
 {
     if (!fmt) {
@@ -94,9 +123,11 @@ void Exception::initFromFormat(const char* fmt, va_list args) noexcept
         Msg.vasprintf(fmt, args);
         ErrorText = strdup((const char*)Msg);
     }
+    // LCOV_EXCL_START
     catch (...) {
         ErrorText = NULL;
     }
+    // LCOV_EXCL_STOP
 }
 
 Exception& Exception::operator=(const Exception& other) noexcept
@@ -119,31 +150,6 @@ Exception& Exception::operator=(Exception&& other) noexcept
     other.ErrorText = nullptr;
     whatBuffer.clear();
     return *this;
-}
-
-Exception::Exception(const char* msg, ...) noexcept
-{
-    if (msg) {
-        String Msg;
-        va_list args;
-        va_start(args, msg);
-        try {
-            Msg.vasprintf(msg, args);
-            ErrorText = strdup((const char*)Msg);
-        }
-        catch (...) {
-            ErrorText = NULL;
-        }
-        va_end(args);
-
-    } else {
-        ErrorText = NULL;
-    }
-}
-
-Exception::Exception(const String& msg) noexcept
-{
-    ErrorText = strdup(msg.c_str());
 }
 
 const char* Exception::text() const noexcept
@@ -188,9 +194,9 @@ void throwExceptionFromErrno(int e, const String& info)
 {
     switch (e) {
     case ENOMEM:
-        throw OutOfMemoryException();
+        throw OutOfMemoryException(info);
     case EINVAL:
-        throw InvalidArgumentsException();
+        throw InvalidArgumentsException(info);
     case ENOTDIR:
     case ENAMETOOLONG:
         throw InvalidFileNameException(info);
@@ -208,39 +214,39 @@ void throwExceptionFromErrno(int e, const String& info)
     case EROFS:
         throw ReadOnlyException(info);
     case EMFILE:
-        throw TooManyOpenFilesException();
+        throw TooManyOpenFilesException(info);
 #ifdef EOPNOTSUPP
     case EOPNOTSUPP:
         throw UnsupportedFileOperationException(info);
 #endif
     case ENOSPC:
-        throw FilesystemFullException();
+        throw FilesystemFullException(info);
 #ifdef EDQUOT
     case EDQUOT:
-        throw QuotaExceededException();
+        throw QuotaExceededException(info);
 #endif
     case EIO:
-        throw IOErrorException();
+        throw IOErrorException(info);
     case EBADF:
-        throw BadFiledescriptorException();
+        throw BadFiledescriptorException(info);
     case EFAULT:
-        throw BadAddressException();
+        throw BadAddressException(info);
 #ifdef EOVERFLOW
     case EOVERFLOW:
-        throw OverflowException();
+        throw OverflowException(info);
 #endif
     case EEXIST:
-        throw FileExistsException();
+        throw FileExistsException(info);
     case EAGAIN:
-        throw OperationBlockedException();
+        throw OperationBlockedException(info);
     case EDEADLK:
-        throw DeadlockException();
+        throw DeadlockException(info);
     case EINTR:
-        throw OperationInterruptedException();
+        throw OperationInterruptedException(info);
     case ENOLCK:
-        throw TooManyLocksException();
+        throw TooManyLocksException(info);
     case ESPIPE:
-        throw IllegalOperationOnPipeException();
+        throw IllegalOperationOnPipeException(info);
     case ETIMEDOUT:
         throw TimeoutException(info);
 
@@ -297,16 +303,8 @@ void throwExceptionFromErrno(int e, const String& info)
         throw ProtocolWrongTypeForSocketException(info);
     default: {
         String ret;
-#ifdef HAVE_STRERROR_S
-        ByteArray buffer(128);
-        if (NULL == strerror_s((char*)buffer.ptr(), buffer.size(), e)) {
-            ret.set((const char*)buffer);
-        }
-#else
-        ret = strerror(e);
-#endif
-        ret += ": " + info;
-        printf("Hier fliegt errno: %d, info: %s, %s\n", e, info.c_str(), ret.c_str());
+        ret.setf("errno: %d, str: %s", e, strerror(e));
+        if (info.notEmpty()) ret += ": " + info;
         throw UnknownException(ret);
     }
     }
