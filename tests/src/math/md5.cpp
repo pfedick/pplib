@@ -72,8 +72,8 @@ TEST_F(Md5Test, Md5WithPtr)
     ASSERT_EQ(pplib::String("b10a8db164e0754105b7a99be72e3fe5"), pplib::Md5(bap.adr(), bap.size()));
 
     ASSERT_EQ(pplib::String("901736df3fbc807121c46f9eaed8ff28"), pplib::Md5(loremipsum, strlen(loremipsum)));
-    ASSERT_THROW(pplib::Md5(nullptr, 10), pplib::IllegalArgumentException);
-    ASSERT_THROW(pplib::Md5("Hello World", 0), pplib::IllegalArgumentException);
+    ASSERT_EQ(pplib::String("d41d8cd98f00b204e9800998ecf8427e"), pplib::Md5(nullptr, strlen(loremipsum)));
+    ASSERT_EQ(pplib::String("d41d8cd98f00b204e9800998ecf8427e"), pplib::Md5(loremipsum, 0));
 }
 
 } // namespace

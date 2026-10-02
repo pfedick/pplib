@@ -36,6 +36,8 @@ Review vom 2026-09-01, Scope: `src/math/md5.cpp` (341 Zeilen). Öffentliche API:
   (d.h. entfernen und stattdessen einfach den leeren Puffer durch `MD5Init`+`MD5Final` laufen lassen); nur bei
   `buffer == NULL && size > 0` bleibt eine Exception (z.B. `IllegalArgumentException`) sinnvoll.
 
+  ==> FIXED
+
 ## Design
 
 - [ ] **Redundanter Doppel-Check in `Md5(const ByteArrayPtr&)`** (Zeile 305-309)
@@ -50,11 +52,16 @@ Review vom 2026-09-01, Scope: `src/math/md5.cpp` (341 Zeilen). Öffentliche API:
   aber unnötige Doppelpflege einer Bedingung an zwei Stellen. Fällt mit dem Fix oben ohnehin weg bzw. vereinfacht
   sich.
 
+  ==> Entfernt
+
 ## Doku / Kosmetik
 
 - `functions.h` dokumentiert `Md5()` gar nicht (kein `@brief`/`@param`/`@return`, im Gegensatz zu `Crc32`/`Crc16`/
   `Random`). Insbesondere das Verhalten bei leerer Eingabe (Exception statt Hash) ist an keiner Stelle erwähnt und
   daher für Aufrufer überraschend.
+
+  ==> Doku ergänzt
+  
 - `typedef struct MD5Context {...} MD5_CTX;` (Zeile 43-48) ist reiner C-Stil; in C++ wäre `struct MD5Context`
   ausreichend. Rein kosmetisch, keine funktionalen Auswirkungen (der Typ ist intern, keine Namenskollision mit
   OpenSSLs `MD5_CTX`, da innerhalb `namespace pplib` deklariert).

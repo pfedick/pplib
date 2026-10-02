@@ -40,12 +40,12 @@ namespace pplib
 {
 
 // MD5 Berechnung
-typedef struct MD5Context
+struct MD5_CTX
 {
     uint32_t state[4];        /* state (ABCD) */
     uint32_t count[2];        /* number of bits, modulo 2^64 (lsb first) */
     unsigned char buffer[64]; /* input buffer */
-} MD5_CTX;
+};
 
 static void MD5Init(MD5_CTX* context);
 static void MD5Update(MD5_CTX* context, const unsigned char* input, size_t inputLen);
@@ -292,11 +292,10 @@ String Md5(const void* buffer, size_t size)
 /*!\ingroup PPLGroupMath
  */
 {
-    if (buffer == NULL || size == 0) throw IllegalArgumentException();
     char tmp[33];
     MD5_CTX ctx;
     MD5Init(&ctx);
-    MD5Update(&ctx, (const unsigned char*)buffer, size);
+    if (buffer != nullptr && size > 0) MD5Update(&ctx, (const unsigned char*)buffer, size);
     MD5End(&ctx, tmp);
     tmp[32] = 0;
     return String(tmp);

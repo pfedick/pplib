@@ -429,7 +429,31 @@ public:
     }
 };
 
+/**
+ * @ingroup PPLGroupMath
+ * @brief Berechnet den MD5 Wert eines Buffers
+ *
+ * Berechnet die MD5 Prüfsumme eines gegebenen Datenbuffers.
+ *
+ * @param buffer Pointer auf den Beginn der Daten
+ * @param size Länge der Daten in Byte
+ * @return String mit dem MD5 Hash
+ * @note Wenn der Buffer null ist oder die Größe 0 beträgt, wird der MD5 Wert des leeren Strings zurückgegeben.
+ * Dieser ist immer "d41d8cd98f00b204e9800998ecf8427e".
+ */
 String Md5(const void* buffer, size_t size);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Berechnet den MD5 Wert eines ByteArrayPtr
+ *
+ * Berechnet die MD5 Prüfsumme eines gegebenen ByteArrayPtr.
+ *
+ * @param buffer ByteArrayPtr auf die Daten
+ * @return String mit dem MD5 Hash
+ * @note Wenn der Buffer null ist oder die Größe 0 beträgt, wird der MD5 Wert des leeren Strings zurückgegeben.
+ * Dieser ist immer "d41d8cd98f00b204e9800998ecf8427e".
+ */
 String Md5(const ByteArrayPtr& buffer);
 
 /**
