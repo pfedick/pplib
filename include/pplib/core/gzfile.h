@@ -36,9 +36,23 @@
 #include <pplib/core/fileobject.h>
 #include <pplib/core/file.h>
 
+/**
+ * @file pplib/core/gzfile.h
+ * @brief Test 1
+ */
+
 namespace pplib
 {
 
+/** @class GzFile
+ * @ingroup PPLGroupFileIO
+ * @brief Zugriff auf eine mit gzip komprimierte Datei
+ *
+ * Mit dieser Klasse können mit gzip-komprimierte Dateien geladen, verändert und
+ * gespeichert werden. Sie dient als Wrapper-Klasse für die Methoden aus der zlib-Bibliothek.
+ *
+ * @headerfile <pplib/core/gzfile.h>
+ */
 class GzFile : public FileObject
 {
 private:
@@ -47,20 +61,83 @@ private:
 
 public:
 private:
-    void throwErrno(int e);
+    /** @brief %Exception anhand errno-Variable werfen
+     *
+     * Diese Funktion wird intern verwendet, um nach Auftreten eines Fehlers, anhand der globalen
+     * "errno"-Variablen die passende Exception zu werfen.
+     * @param e Errorcode aus der errno-Variablen
+     * @param filename Dateiname, bei der der Fehler aufgetreten ist
+     */
     void throwErrno(int e, const String& filename);
 
 public:
+    /** @brief Konstruktor der Klasse
+     *
+     * Konstruktor der Klasse
+     */
     GzFile();
+
+    /** @brief Konstruktor der Klasse mit gleichzeitigem Öffnen einer Datei
+     *
+     * Konstruktor der Klasse, mit dem gleichzeitig eine Datei geöffnet wird.
+     * @param[in] filename Name der zu öffnenden Datei
+     * @param[in] mode Zugriffsmodus. Defaultmäßig wird die Datei zum binären Lesen
+     * geöffnet (siehe @ref pplib_File_Filemodi)
+     */
     GzFile(const String& filename, File::FileMode mode = File::FileMode::READ);
+
+    /** @brief Konstruktor mit Übernahme eines C-Filehandles
+     *
+     * Konstruktor der Klasse mit Übernahme eines C-Filehandles einer bereits mit ::fopen geöffneten Datei.
+     * @param[in] handle File-Handle
+     */
     GzFile(int fd);
     virtual ~GzFile();
 
+    /** @brief Datei öffnen
+     *
+     * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
+     * @param[in] filename Dateiname
+     * @param mode Zugriffsmodus
+     *
+     * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
+     */
     void open(const String& filename, File::FileMode mode = File::FileMode::READ);
+
+    /** @brief Datei zum Lesen oder Schreiben öffnen
+     *
+     * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
+     * @param filename Dateiname als C-String
+     * @param mode String, der angibt, wie die Datei geöffnet werden soll (siehe @ref pplib_File_Filemodi)
+     *
+     * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
+     */
     void open(const char* filename, File::FileMode mode = File::FileMode::READ);
+
+    /** @brief Bereits geöffnete Datei übernehmen
+     *
+     * Mit dieser Funktion kann eine mit der C-Funktion @c fopen bereits geöffnete Datei
+     * übernommen werden.
+     *
+     * @param[in] handle Das Filehandle
+     * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
+     */
     void open(int fd, File::FileMode mode = File::FileMode::READ);
 
     // Virtuelle Funktionen
+
+    /** @brief Datei schließen
+     *
+     * Diese Funktion schließt die aktuell geöffnete Datei. Sie wird automatisch vom Destruktor der
+     * Klasse aufgerufen, so dass ihr expliziter Aufruf nicht erforderlich ist.
+     *
+     * Wenn  der  Stream  zur  Ausgabe  eingerichtet  war,  werden  gepufferte  Daten  zuerst  durch
+     * FileObject::flush
+     * geschrieben. Der zugeordnete Datei-Deskriptor wird geschlossen, alle Systemressourcen werden
+     * freigegeben.
+     *
+     * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
+     */
     virtual void close();
     virtual void rewind();
     virtual void seek(uint64_t position);

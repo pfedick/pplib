@@ -56,35 +56,12 @@ static const char* fmode(File::FileMode mode)
     }
 }
 
-/*!\class GzFile
- * \ingroup PPLGroupFileIO
- * \brief Zugriff auf eine mit gzip komprimierte Datei
- *
- * \header \#include <pplib.h>
- * \desc
- * Mit dieser Klasse können mit gzip-komprimierte Dateien geladen, verändert und
- * gespeichert werden. Sie dient als Wrapper-Klasse für die Methoden aus der zlib-Bibliothek.
- *
- */
-
-/*!\brief Konstruktor der Klasse
- *
- * \desc
- * Konstruktor der Klasse
- */
 GzFile::GzFile()
 {
     ff = NULL;
     fh = NULL;
 }
 
-/*!\brief Konstruktor der Klasse mit gleichzeitigem Öffnen einer Datei
- *
- * Konstruktor der Klasse, mit dem gleichzeitig eine Datei geöffnet wird.
- * @param[in] filename Name der zu öffnenden Datei
- * @param[in] mode Zugriffsmodus. Defaultmäßig wird die Datei zum binären Lesen
- * geöffnet (siehe \ref pplib_File_Filemodi)
- */
 GzFile::GzFile(const String& filename, File::FileMode mode)
 {
     ff = NULL;
@@ -92,26 +69,12 @@ GzFile::GzFile(const String& filename, File::FileMode mode)
     open(filename, mode);
 }
 
-/*!\brief Konstruktor mit Übernahme eines C-Filehandles
- *
- * \desc
- * Konstruktor der Klasse mit Übernahme eines C-Filehandles einer bereits mit ::fopen geöffneten Datei.
- *
- * @param[in] handle File-Handle
- */
 GzFile::GzFile(int fd)
 {
     ff = NULL;
     fh = NULL;
     open(fd);
 }
-
-/*!\brief Destruktor der Klasse
- *
- * \desc
- * Der Destruktor der Klasse sorgt dafür, dass eine noch geöffnete Datei geschlossen wird und
- * alle Systemresourcen wieder freigegeben werden.
- */
 
 GzFile::~GzFile()
 {
@@ -124,42 +87,11 @@ GzFile::~GzFile()
     }
 }
 
-/*!\brief %Exception anhand errno-Variable werfen
- *
- * \desc
- * Diese Funktion wird intern verwendet, um nach Auftreten eines Fehlers, anhand der globalen
- * "errno"-Variablen die passende Exception zu werfen.
- *
- * @param e Errorcode aus der errno-Variablen
- * @param filename Dateiname, bei der der Fehler aufgetreten ist
- */
 void GzFile::throwErrno(int e, const String& filename)
 {
     throwExceptionFromErrno(e, filename);
 }
 
-/*!\brief Exception anhand errno-Variable werfen
- *
- * \desc
- * Diese Funktion wird intern verwendet, um nach Auftreten eines Fehlers, anhand der globalen
- * "errno"-Variablen die passende Exception zu werfen.
- *
- * @param e Errorcode aus der errno-Variablen
- */
-void GzFile::throwErrno(int e)
-{
-    throwExceptionFromErrno(e, filename());
-}
-
-/*!\brief Datei öffnen
- *
- * \desc
- * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
- * @param[in] filename Dateiname
- * @param mode Zugriffsmodus
- *
- * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
 void GzFile::open(const String& filename, File::FileMode mode)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
@@ -175,16 +107,6 @@ void GzFile::open(const String& filename, File::FileMode mode)
     setFilename(filename);
 }
 
-/*!\brief Datei zum Lesen oder Schreiben öffnen
- *
- * \desc
- * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
- *
- * \param filename Dateiname als C-String
- * \param mode String, der angibt, wie die Datei geöffnet werden soll (siehe \ref pplib_File_Filemodi)
- *
- * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
 void GzFile::open(const char* filename, File::FileMode mode)
 {
     if (filename == NULL || strlen(filename) == 0) throw IllegalArgumentException();
@@ -201,15 +123,6 @@ void GzFile::open(const char* filename, File::FileMode mode)
     setFilename(filename);
 }
 
-/*
- *!\brief Bereits geöffnete Datei übernehmen
- *
- * Mit dieser Funktion kann eine mit der C-Funktion \c fopen bereits geöffnete Datei
- * übernommen werden.
- *
- * @param[in] handle Das Filehandle
- * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
 void GzFile::open(int fd, File::FileMode mode)
 {
     if (fd == 0) throw IllegalArgumentException();
@@ -221,19 +134,6 @@ void GzFile::open(int fd, File::FileMode mode)
     setFilename("FILE");
 }
 
-/*!\brief Datei schließen
- *
- * \desc
- * Diese Funktion schließt die aktuell geöffnete Datei. Sie wird automatisch vom Destruktor der
- * Klasse aufgerufen, so dass ihr expliziter Aufruf nicht erforderlich ist.
- * \par
- * Wenn  der  Stream  zur  Ausgabe  eingerichtet  war,  werden  gepufferte  Daten  zuerst  durch
- * FileObject::flush
- * geschrieben. Der zugeordnete Datei-Deskriptor wird geschlossen, alle Systemressourcen werden
- * freigegeben.
- *
- * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
- */
 void GzFile::close()
 {
     setFilename("");
