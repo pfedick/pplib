@@ -30,6 +30,9 @@
 #ifndef PPLIB_TYPES_VARIANT_H_
 #define PPLIB_TYPES_VARIANT_H_
 
+#include <cstddef>
+#include <cstdint>
+#include <type_traits>
 #include <utility>
 namespace pplib
 {
@@ -65,6 +68,10 @@ class VariantArray;
  * - TimeDelta
  * - TimeZone
  * - VariantArray
+ * - Null (nullptr)
+ * - Boolean
+ * - 64-Bit Integer (Alle anderen Ganzzahltypen werden automatisch in 64-Bit Integer konvertiert)
+ * - Double (Alle anderen Gleitkommatypen werden automatisch in Double konvertiert)
  */
 class Variant
 {
@@ -372,6 +379,43 @@ public:
      */
     Variant(VariantArray&& value);
 
+    Variant(std::nullptr_t)
+    {
+        value = nullptr;
+        t = TYPE_NULL;
+    }
+
+    template <typename T>
+        requires std::is_same_v<T, bool>
+    Variant(T value)
+    {
+        set(value);
+    }
+
+    Variant(int64_t value)
+    {
+        set(value);
+    }
+
+    template <typename T>
+        requires std::is_integral_v<T> && (!std::is_same_v<T, bool>) && (!std::is_same_v<T, int64_t>)
+    Variant(T value)
+    {
+        set(static_cast<int64_t>(value));
+    }
+
+    Variant(double value)
+    {
+        set(value);
+    }
+
+    template <typename T>
+        requires std::is_floating_point_v<T> && (!std::is_same_v<T, double>)
+    Variant(T value)
+    {
+        set(static_cast<double>(value));
+    }
+
     /** @brief Inhalt des Objekts löschen
      *
      * Der im Objekte gespeicherte Datentyp wird gelöscht und sein Speicher
@@ -613,6 +657,43 @@ public:
      */
     Variant& set(VariantArray&& value);
 
+    Variant& set(std::nullptr_t)
+    {
+        clear();
+        t = TYPE_NULL;
+        return *this;
+    }
+
+    Variant& setNull()
+    {
+        return set(nullptr);
+    }
+
+    template <typename T>
+        requires std::is_same_v<T, bool>
+    Variant& set(T value)
+    {
+        return setCopy<bool, TYPE_BOOL>(value);
+    }
+
+    Variant& set(int64_t value);
+
+    template <typename T>
+        requires std::is_integral_v<T> && (!std::is_same_v<T, bool>) && (!std::is_same_v<T, int64_t>)
+    Variant& set(T value)
+    {
+        return set(static_cast<int64_t>(value));
+    }
+
+    Variant& set(double value);
+
+    template <typename T>
+        requires std::is_floating_point_v<T> && (!std::is_same_v<T, double>)
+    Variant& set(T value)
+    {
+        return set(static_cast<double>(value));
+    }
+
     /** @brief Liefert den Datentyp des Objekts zurück
      *
      * Diese Funktion liefert den Datentyp des Objekts zurück.
@@ -768,6 +849,26 @@ public:
     inline bool isVariantArray() const
     {
         return t == TYPE_VARIANTARRAY;
+    }
+
+    inline bool isNull() const
+    {
+        return t == TYPE_NULL;
+    }
+
+    inline bool isBool() const
+    {
+        return t == TYPE_BOOL;
+    }
+
+    inline bool isInt64() const
+    {
+        return t == TYPE_INT64;
+    }
+
+    inline bool isDouble() const
+    {
+        return t == TYPE_DOUBLE;
     }
 
     /** @brief Typkonvertierung zu: const String
@@ -1061,6 +1162,10 @@ public:
      * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
      */
     const VariantArray& toVariantArray() const;
+
+    bool toBool() const;
+    int64_t toInt64() const;
+    double toDouble() const;
 
     /** @brief Typkonvertierung zu: String
      *
@@ -1398,6 +1503,21 @@ public:
         return toVariantArray();
     }
 
+    inline operator bool() const
+    {
+        return toBool();
+    }
+
+    inline operator int64_t() const
+    {
+        return toInt64();
+    }
+
+    inline operator double() const
+    {
+        return toDouble();
+    }
+
     /** @brief Zuweisungsoperator
      *
      * Der Aufruf dieses Operators weist dem Variant den Wert des übergebenen Variants zu.
@@ -1572,6 +1692,42 @@ public:
     {
         set(std::move(other));
         return *this;
+    }
+
+    Variant& operator=(std::nullptr_t)
+    {
+        return set(nullptr);
+    }
+
+    template <typename T>
+        requires std::is_same_v<T, bool>
+    Variant& operator=(T value)
+    {
+        return set(value);
+    }
+
+    inline Variant& operator=(int64_t other)
+    {
+        return set(other);
+    }
+
+    template <typename T>
+        requires std::is_integral_v<T> && (!std::is_same_v<T, bool>) && (!std::is_same_v<T, int64_t>)
+    inline Variant& operator=(T other)
+    {
+        return set(static_cast<int64_t>(other));
+    }
+
+    inline Variant& operator=(double other)
+    {
+        return set(other);
+    }
+
+    template <typename T>
+        requires std::is_floating_point_v<T> && (!std::is_same_v<T, double>)
+    inline Variant& operator=(T other)
+    {
+        return set(static_cast<double>(other));
     }
 
     bool operator==(const Variant& other) const;

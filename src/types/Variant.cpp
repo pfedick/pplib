@@ -162,7 +162,10 @@ Variant::Variant(VariantArray&& value)
 
 void Variant::clear()
 {
-    if (!value) return;
+    if (!value) {
+        t = TYPE_UNKNOWN;
+        return;
+    }
     switch (t) {
     case TYPE_STRING:
         delete (static_cast<String*>(value));
@@ -200,6 +203,17 @@ void Variant::clear()
     case TYPE_VARIANTARRAY:
         delete (static_cast<VariantArray*>(value));
         break;
+    case TYPE_NULL:
+        break;
+    case TYPE_BOOL:
+        delete (static_cast<bool*>(value));
+        break;
+    case TYPE_INT64:
+        delete (static_cast<int64_t*>(value));
+        break;
+    case TYPE_DOUBLE:
+        delete (static_cast<double*>(value));
+        break;
     default:
         break;
     }
@@ -211,6 +225,11 @@ Variant& Variant::set(const Variant& value)
 {
     // Self-Assignment: clear() würde den eigenen Inhalt löschen, bevor kopiert wird
     if (this == &value) return *this;
+    if (value.t == TYPE_NULL) {
+        clear();
+        t = TYPE_NULL;
+        return *this;
+    }
     if (!value.value) {
         clear();
         return *this;
@@ -242,6 +261,12 @@ Variant& Variant::set(const Variant& value)
         return setCopy<TimeZone, TYPE_TIMEZONE>(*static_cast<TimeZone*>(value.value));
     case TYPE_VARIANTARRAY:
         return setCopy<VariantArray, TYPE_VARIANTARRAY>(*static_cast<VariantArray*>(value.value));
+    case TYPE_BOOL:
+        return setCopy<bool, TYPE_BOOL>(*static_cast<bool*>(value.value));
+    case TYPE_INT64:
+        return setCopy<int64_t, TYPE_INT64>(*static_cast<int64_t*>(value.value));
+    case TYPE_DOUBLE:
+        return setCopy<double, TYPE_DOUBLE>(*static_cast<double*>(value.value));
     default:
         break;
     }
@@ -548,6 +573,27 @@ const VariantArray& Variant::toVariantArray() const
     return *static_cast<VariantArray*>(value);
 }
 
+bool Variant::toBool() const
+{
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_BOOL) throw TypeConversionException();
+    return *static_cast<bool*>(value);
+}
+
+int64_t Variant::toInt64() const
+{
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_INT64) throw TypeConversionException();
+    return *static_cast<int64_t*>(value);
+}
+
+double Variant::toDouble() const
+{
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_DOUBLE) throw TypeConversionException();
+    return *static_cast<double*>(value);
+}
+
 bool Variant::operator==(const Variant& other) const
 {
     if (t != other.t) return false;
@@ -576,6 +622,14 @@ bool Variant::operator==(const Variant& other) const
         return (*static_cast<TimeZone*>(value) == *static_cast<TimeZone*>(other.value));
     case TYPE_VARIANTARRAY:
         return (*static_cast<VariantArray*>(value) == *static_cast<VariantArray*>(other.value));
+    case TYPE_NULL:
+        return true; // Null-Varianten sind immer gleich
+    case TYPE_BOOL:
+        return (*static_cast<bool*>(value) == *static_cast<bool*>(other.value));
+    case TYPE_INT64:
+        return (*static_cast<int64_t*>(value) == *static_cast<int64_t*>(other.value));
+    case TYPE_DOUBLE:
+        return (*static_cast<double*>(value) == *static_cast<double*>(other.value));
     default:
         break;
     }
