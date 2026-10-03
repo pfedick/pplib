@@ -33,6 +33,11 @@
 #include <thread>
 #include <chrono>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #include "config_pplib.h"
 #include <pplib/core/time.h>
 #include <pplib/core/timer.h>
@@ -64,121 +69,91 @@ static bool safe_localtime(time_t t, struct tm* tmstruct)
 #endif
 }
 
-/*!\ingroup PPLGroupDateTime
- * \brief Liefert die aktuelle Unixtime in einer Struktur zurück
- *
- * Liefert die aktuelle Unix-Zeit als Return-Wert zurück, sowie aufgeschlüsselt in der
- * Struktur PPLTIME.
- *
- * \param t ist ein Pointer auf eine Struktur vom Typ PPLTIME oder NULL.
- * \returns Bei Erfolg wird die Zeit seit 1.1.1970, 00:00 Uhr in Sekunden zurückgegeben,
- * sowie die Struktur PPLTIME gefüllt, sofert der Parameter \a t nicht NULL ist.
- * Tritt ein Fehler auf, wird ((uint64_t)-1) zurückgegeben und errno entsprechend gesetzt.
- *
- * \see pplib::GetTime()
- * \see pplib::GetTime(PPLTIME *t, uint64_t now)
- *
- */
-uint64_t GetTime(PPLTIME* t)
+static bool safe_gmtime(time_t t, struct tm* tmstruct)
+{
+#ifdef _WIN32
+    return (gmtime_s(tmstruct, &t) == 0);
+#else
+    return (gmtime_r(&t, tmstruct) != nullptr);
+#endif
+}
+
+ppl_time_t GetTime()
 {
     time_t now;
     time(&now);
-    if (t) GetTime(t, now);
     return (uint64_t)now;
 }
 
-/*!\ingroup PPLGroupDateTime
- * \brief Liefert die aktuelle Unixtime in einer Struktur zurück
- *
- * Liefert die aktuelle Unix-Zeit als Return-Wert zurück, sowie aufgeschlüsselt in der
- * Struktur PPLTIME.
- *
- * \param t Referenz aif eine Struktur vom Typ PPLTIME.
- * \returns Bei Erfolg wird die Zeit seit 1.1.1970, 00:00 Uhr in Sekunden zurückgegeben,
- * sowie die Struktur PPLTIME gefüllt.
- * Tritt ein Fehler auf, wird ((uint64_t)-1) zurückgegeben und errno entsprechend gesetzt.
- *
- */
-uint64_t GetTime(PPLTIME& t)
+static void fill_ppltime_from_tm(PPLTIME& t, const struct tm& tmstruct, ppl_time_t now)
 {
-    time_t now;
-    time(&now);
-    return GetTime(t, now);
-}
-
-/*! \fn pplib::GetTime (PPLTIME *t, uint64_t now)
- * \ingroup PPLGroupDateTime
- * \brief Wandelt Unix-Zeit in die Struktur PPLTIME um
- *
- * Wandelt die angegebene Unix-Zeit in eine Struktur vom Typ PPLTIME um.
- *
- * \param t ist ein Pointer auf eine Struktur vom Typ PPLTIME oder NULL.
- * \param now enthält die Sekunden seit 1970, die in die PPLTIME-Struktur umgewandelt werden
- * sollen.
- * \returns Bei Erfolg werden die über den Parameter \a now angegebenen Sekunden
- * zurückgeliefert und die Struktur PPLTIME wird gefüllt,
- * \exception Bei Auftreten eines Fehlers wird eine InvalidDateException geworfen.
- *
- * \see pplib::GetTime()
- * \see pplib::GetTime(PPLTIME *t)
- *
- */
-ppl_time_t GetTime(PPLTIME* t, ppl_time_t now)
-{
-    if (!t) return now;
-    struct tm tmstruct;
-    time_t n = (time_t)now;
-    if (!safe_localtime(n, &tmstruct)) throw InvalidDateException();
-
-    t->year = tmstruct.tm_year + 1900;
-    t->month = tmstruct.tm_mon + 1;
-    t->day = tmstruct.tm_mday;
-    t->hour = tmstruct.tm_hour;
-    t->min = tmstruct.tm_min;
-    t->sec = tmstruct.tm_sec;
-    t->epoch = now;
-    t->day_of_week = tmstruct.tm_wday;
-    t->day_of_year = tmstruct.tm_yday;
-    t->summertime = tmstruct.tm_isdst;
+    t.year = tmstruct.tm_year + 1900;
+    t.month = tmstruct.tm_mon + 1;
+    t.day = tmstruct.tm_mday;
+    t.hour = tmstruct.tm_hour;
+    t.min = tmstruct.tm_min;
+    t.sec = tmstruct.tm_sec;
+    t.epoch = now;
+    t.day_of_week = tmstruct.tm_wday;
+    t.day_of_year = tmstruct.tm_yday;
+    t.summertime = tmstruct.tm_isdst != 0;
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    t->gmt_offset = tmstruct.tm_gmtoff;
-    t->have_gmt_offset = 1;
+    t.gmt_offset = tmstruct.tm_gmtoff;
+    t.have_gmt_offset = true;
 #else
-    t->gmt_offset = 0;
-    t->have_gmt_offset = 0;
+    t.gmt_offset = 0;
+    t.have_gmt_offset = false;
 #endif
-    return now;
 }
 
-/*!\ingroup PPLGroupDateTime
- * \brief Wandelt Unix-Zeit in die Struktur PPLTIME um
- *
- * Wandelt die angegebene Unix-Zeit in eine Struktur vom Typ PPLTIME um.
- *
- * \param t Referenz auf Eine PPLTIME-Struktur
- * \param now enthält die Sekunden seit 1970, die in die PPLTIME-Struktur umgewandelt werden
- * sollen.
- * \returns Bei Erfolg werden die über den Parameter \a now angegebenen Sekunden
- * zurückgeliefert und die Struktur PPLTIME wird gefüllt.
- * \exception Bei Auftreten eines Fehlers wird eine InvalidDateException geworfen.
- *
- * \see pplib::GetTime()
- * \see pplib::GetTime(PPLTIME *t)
- *
- */
-ppl_time_t GetTime(PPLTIME& t, ppl_time_t now)
+PPLTIME LocalTime(ppl_time_t tt)
 {
-    return GetTime(&t, now);
+    struct tm tmstruct;
+    time_t n = (time_t)tt;
+    if (!safe_localtime(n, &tmstruct)) throw InvalidDateException();
+    PPLTIME t;
+    fill_ppltime_from_tm(t, tmstruct, tt);
+    return t;
+}
+
+PPLTIME GMTime(ppl_time_t tt)
+{
+    struct tm tmstruct;
+    time_t n = (time_t)tt;
+    if (!safe_gmtime(n, &tmstruct)) throw InvalidDateException();
+    PPLTIME t;
+    fill_ppltime_from_tm(t, tmstruct, tt);
+    return t;
 }
 
 void USleep(uint64_t microseconds)
 {
+#if defined(_WIN32) && defined(CREATE_WAITABLE_TIMER_HIGH_RESOLUTION)
+    // CREATE_WAITABLE_TIMER_HIGH_RESOLUTION gibt es seit Windows 10 (1803)
+    HANDLE timer = CreateWaitableTimerExW(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+
+    if (timer) {
+        LARGE_INTEGER due_time;
+        // Negative Zahl = relative Zeit in 100ns-Einheiten
+        due_time.QuadPart = -static_cast<LONGLONG>(microseconds * 10);
+
+        SetWaitableTimer(timer, &due_time, 0, NULL, NULL, 0);
+        WaitForSingleObject(timer, INFINITE);
+        CloseHandle(timer);
+    } else {
+        // LCOV_EXCL_START
+        // Fallback für sehr alte Windows-Versionen
+        std::this_thread::sleep_for(std::chrono::microseconds(microseconds));
+        // LCOV_EXCL_STOP
+    }
+#else
     std::this_thread::sleep_for(std::chrono::microseconds(microseconds));
+#endif
 }
 
 void MSleep(uint64_t milliseconds)
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+    USleep(milliseconds * 1000);
 }
 
 void SSleep(uint64_t seconds)
@@ -186,9 +161,12 @@ void SSleep(uint64_t seconds)
     std::this_thread::sleep_for(std::chrono::seconds(seconds));
 }
 
+void Sleep(double seconds)
+{
+    USleep(static_cast<uint64_t>(seconds * 1000000));
+}
+
 double GetMicrotime()
-/*!\ingroup PPLGroupDateTime
- */
 {
     auto now = std::chrono::high_resolution_clock::now();
     auto duration = now.time_since_epoch();
@@ -196,41 +174,20 @@ double GetMicrotime()
 }
 
 uint64_t GetMilliSeconds()
-/*!\ingroup PPLGroupDateTime
- * \brief Aktuelle Zeit in Millisekunden
- *
- * \desc
- * Diese Funktion liefert die Anzahl Millisekunden, die seit dem 1.1.1970 0 Uhr vergangen
- * sind. (1000 Millisekunden = 1 Sekunde).
- *
- * \return Anzahl Millisekunden seit 1970.
- *
- */
 {
     auto now = std::chrono::system_clock::now();
     auto duration = now.time_since_epoch();
     return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
 
-ppl_time_t MkTime(const String& year, const String& month, const String& day, const String& hour, const String& min, const String& sec)
-/*!\ingroup PPLGroupDateTime
- */
+uint64_t GetMicroSeconds()
 {
-    struct tm Time;
-    memset(&Time, 0, sizeof(Time));
-    Time.tm_mday = day.toInt();
-    Time.tm_mon = month.toInt() - 1;
-    Time.tm_year = year.toInt() - 1900;
-    Time.tm_hour = hour.toInt();
-    Time.tm_min = min.toInt();
-    Time.tm_sec = sec.toInt();
-    time_t LTime = mktime(&Time);
-    return (ppl_time_t)LTime;
+    auto now = std::chrono::system_clock::now();
+    auto duration = now.time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 }
 
 ppl_time_t MkTime(int year, int month, int day, int hour, int min, int sec)
-/*!\ingroup PPLGroupDateTime
- */
 {
     struct tm Time;
     if (year < 1900 || month < 1) return 0;
@@ -250,7 +207,7 @@ ppl_time_t MkTime(const PPLTIME& t)
  */
 {
     struct tm Time;
-    if (t.year < 1900 || t.month < 1 || t.month > 12) return 0;
+    if (t.year < 1900 || t.month < 1) return 0;
     memset(&Time, 0, sizeof(Time));
     Time.tm_mday = t.day;
     Time.tm_mon = t.month - 1;
@@ -262,7 +219,7 @@ ppl_time_t MkTime(const PPLTIME& t)
     return (ppl_time_t)LTime;
 }
 
-ppl_time_t MkTime(const String& iso8601date, PPLTIME* t)
+ppl_time_t MkTime(const String& iso8601date)
 /*!\ingroup PPLGroupDateTime
  */
 {
@@ -289,32 +246,10 @@ ppl_time_t MkTime(const String& iso8601date, PPLTIME* t)
 
     time_t LTime = ::mktime(&Time);
     if (LTime == (time_t)-1) throw InvalidDateException(iso8601date);
-    if (t) GetTime(t, (uint64_t)LTime);
     return (ppl_time_t)LTime;
 }
 
 String MkRFC822Date(const PPLTIME& t)
-/*!\ingroup PPLGroupDateTime
- * \brief Datumstring nach RFC-822 (Mailformat) erzeugen
- *
- * \desc
- * Mit dieser Funktion wird ein Datummstring nach RFC-822 erzeugt, wie er im Header einer Email verwendet wird.
- * Das Format lautet:
- * \code
- * weekday, day month year time zone
- * \endcode
- * und hat folgende Bedeutung:
- * - weekday: Name des Wochentags ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
- * - day: Tag des Monats mit ein oder zwei Ziffern
- * - month: Name des Monats ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
- * - year: Das Jahr mit 4 Ziffern
- * - time: Stunde:Minute:Sekunde (hh:mm:ss), jeweils mit zwei Ziffern und Doppelpunkt getrennt
- * - zone: Offset zu UTC in Stunden und Minuten (+|-HHMM)
- *
- * \param[in] t Eine PPLTIME-Struktur, der die Datumsinformationen entnommen werden
- *
- * \exception Exception::FunctionFailed Die Funktion wirft eine Exception, wenn die Datumsinformation in der PPLTIME-Struktur ungültig ist.
- */
 {
     String s;
     const char* day[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
@@ -328,53 +263,25 @@ String MkRFC822Date(const PPLTIME& t)
     s += ", ";
     s.appendf("%i ", t.day);
     s += month[t.month - 1];
-    s.appendf(" %04i %02i:%02i:%02i ", t.year, t.hour, t.min, t.sec);
+    s.appendf(" %04i %02i:%02i:%02i", t.year, t.hour, t.min, t.sec);
     if (t.have_gmt_offset) {
         if (t.gmt_offset >= 0)
-            s.appendf("+%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
+            s.appendf(" +%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
         else
-            s.appendf("-%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
+            s.appendf(" -%02i%02i", abs(t.gmt_offset / 3600), abs(t.gmt_offset % 3600));
     }
     return s;
 }
 
 String MkRFC822Date(ppl_time_t sec)
-/*!\ingroup PPLGroupDateTime
- * \brief Datumstring nach RFC-822 (Mailformat) erzeugen
- *
- * \desc
- * Mit dieser Funktion wird ein Datummstring nach RFC-822 erzeugt, wie er im Header einer Email verwendet wird.
- * Das Format lautet:
- * \code
- * weekday, day month year time zone
- * \endcode
- * und hat folgende Bedeutung:
- * - weekday: Name des Wochentags ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
- * - day: Tag des Monats mit ein oder zwei Ziffern
- * - month: Name des Monats ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
- * - year: Das Jahr mit 4 Ziffern
- * - time: Stunde:Minute:Sekunde (hh:mm:ss), jeweils mit zwei Ziffern und Doppelpunkt getrennt
- * - zone: Offset zu UTC in Stunden und Minuten (+|-HHMM)
- *
- * \param[in] sec Ein Optionaler Parameter mit Sekunden seit 1970. Ist er 0 oder wird nicht angegeben, wird die
- * aktuelle Zeit verwendet.
- *
- * \exception Exception::FunctionFailed Die Funktion wirft eine Exception, wenn die Datumsinformation in der PPLTIME-Struktur ungültig ist.
- */
 {
-    PPLTIME t;
-    if (!sec) sec = GetTime();
-    if (GetTime(t, sec) != sec) throw OperationFailedException();
+    PPLTIME t = LocalTime(sec);
     return MkRFC822Date(t);
 }
 
 String MkISO8601Date(ppl_time_t sec)
-/*!\ingroup PPLGroupDateTime
- */
 {
-    PPLTIME t;
-    if (!sec) sec = GetTime();
-    if (GetTime(t, sec) != sec) throw OperationFailedException();
+    PPLTIME t = LocalTime(sec);
     return MkISO8601Date(t);
 }
 
@@ -382,6 +289,9 @@ String MkISO8601Date(const PPLTIME& t)
 /*!\ingroup PPLGroupDateTime
  */
 {
+    // PPLTIME prüfen
+    if (t.month < 1 || t.month > 12) throw IllegalArgumentException("MkRFC822Date: month<0 order month>12");
+
     String buffer;
     buffer.setf("%04i-%02i-%02iT%02i:%02i:%02i", t.year, t.month, t.day, t.hour, t.min, t.sec);
     if (t.have_gmt_offset) {
@@ -392,32 +302,10 @@ String MkISO8601Date(const PPLTIME& t)
             buffer.appendf("-%02i:%02i", h, m);
         else
             buffer.appendf("+%02i:%02i", h, m);
-    } else {
-        if (t.summertime)
-            buffer.append("+01:00");
-        else
-            buffer.append("+02:00");
     }
     return buffer;
 }
 
-/*!\brief Datum/Zeit formatieren
- * \ingroup PPLGroupDateTime
- *
- * \header \#include <pplib.h>
- * \desc
- * Die Funktion MkDate wandelt einen Unix-Timestamp in einen String um.
- *
- * \param format ist ein beliebiger String, der verschiedene  Platzhalter
- * entahlten darf (siehe unten)
- * \param sec
- * \return Bei Erfolg gibt die Funktion einen neuen String mit dem formatierten
- * Zeitpunkt zurück.
- * \exception Im Fehlerfall wird eine Exception geworfen
- *
- * \par Syntax-Formatstring
- * \copydoc strftime.dox
- */
 String MkDate(const String& format, ppl_time_t sec)
 {
     size_t size = strlen(format) * 2 + 32;
@@ -435,48 +323,6 @@ String MkDate(const String& format, ppl_time_t sec)
 String MkDate(const String& format, const PPLTIME& t)
 {
     return MkDate(format, MkTime(t));
-}
-
-/*
- * Timer-Klasse
- */
-
-/*!\class Timer
- * \ingroup PPLGroupDateTime
- */
-
-Timer::Timer()
-{
-    startzeit = GetMicrotime();
-    endzeit = 0.0;
-    myduration = 0.0;
-}
-
-Timer::~Timer()
-{
-}
-
-double Timer::start()
-{
-    startzeit = GetMicrotime();
-    return startzeit;
-}
-
-double Timer::stop()
-{
-    endzeit = GetMicrotime();
-    myduration = endzeit - startzeit;
-    return myduration;
-}
-
-double Timer::currentDuration()
-{
-    return GetMicrotime() - startzeit;
-}
-
-double Timer::duration()
-{
-    return myduration;
 }
 
 } // namespace pplib

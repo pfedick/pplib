@@ -30,25 +30,114 @@
 #ifndef PPLIB_CORE_TIMER_H_
 #define PPLIB_CORE_TIMER_H_
 
-#include <vector>
-#include <pplib/types/string.h>
+#include <chrono>
 
 namespace pplib
 {
-//! \brief Timer-Klasse
+/** @class Timer
+ * @brief  Ein hochauflösender Timer, der die verstrichene Zeit misst.
+ *
+ * Diese Klasse ermöglicht es, die verstrichene Zeit zwischen Start und Stopp zu messen.
+ * Die Genauigkeit liegt im Bereich von Nanosekunden, abhängig von der Implementierung
+ * der Standardbibliothek und der Hardware.
+ *
+ * Die verstrichene Zeit kann über die Methoden `stop()`, `currentDuration()` und `duration()` abgefragt werden.
+ *
+ * Mit `stop()` wird der interne Zähler hochgezählt. Mehrere aufeinanderfolgende Aufrufe von `start()` und  `stop()`
+ * summieren die verstrichene Zeit. Mit `reset()` kann der Timer zurückgesetzt werden.
+ */
 class Timer
 {
 private:
-    double startzeit, endzeit, myduration;
+    std::chrono::steady_clock::time_point _start;
+    double _duration;
 
 public:
     Timer();
-    ~Timer();
-    double start();
+
+    /**
+     * @brief Startet den Timer und setzt den Startzeitpunkt auf die aktuelle Zeit.
+     */
+    void start();
+
+    /**
+     * @brief Stoppt den Timer und gibt die bisher verstrichene Zeit zurück.
+     *
+     * Diese Methode summiert die verstrichene Zeit seit dem letzten Start zum internen Zähler.
+     *
+     * @return Die bisher verstrichene Zeit in Sekunden.
+     */
     double stop();
-    double currentDuration();
-    double duration();
+
+    /**
+     * @brief Gibt die aktuelle verstrichene Zeit seit dem letzten Start zurück, ohne den internen Zähler zu ändern.
+     *
+     * @return Die aktuelle verstrichene Zeit in Sekunden.
+     */
+    double currentDuration() const;
+
+    /**
+     * @brief Setzt den Timer zurück, indem der interne Zähler auf 0 gesetzt wird.
+     */
+    inline void reset()
+    {
+        _duration = 0.0;
+    }
+
+    /**
+     * @brief Gibt die verstrichene Zeit bis zum letzten Stopp zurück.
+     *
+     * @return Die bisher verstrichene Zeit in Sekunden.
+     */
+    inline double duration() const
+    {
+        return _duration;
+    }
+
+    /**
+     * @brief Addiert eine zusätzliche Dauer zur bisherigen verstrichenen Zeit.
+     *
+     * @param additionalDuration Die zusätzliche Dauer in Sekunden.
+     * @return Die aktualisierte verstrichene Zeit in Sekunden.
+     */
+    inline double addDuration(double additionalDuration)
+    {
+        _duration += additionalDuration;
+        return _duration;
+    }
+
+    /**
+     * @brief Addiert eine zusätzliche Dauer zur bisherigen verstrichenen Zeit über den `+=` Operator.
+     *
+     * @param additionalDuration Die zusätzliche Dauer in Sekunden.
+     * @return Die aktualisierte verstrichene Zeit in Sekunden.
+     */
+    inline double operator+=(double additionalDuration)
+    {
+        _duration += additionalDuration;
+        return _duration;
+    }
+
+    /**
+     * @brief Addiert die verstrichene Zeit eines anderen Timers zur bisherigen verstrichenen Zeit über den `+=` Operator.
+     *
+     * @param other Der andere Timer.
+     * @return Die aktualisierte verstrichene Zeit in Sekunden.
+     */
+    inline double operator+=(const Timer& other)
+    {
+        _duration += other.duration();
+        return _duration;
+    }
 };
+
+inline Timer operator+(const Timer& lhs, const Timer& rhs)
+{
+    Timer result = lhs;
+    result += rhs;
+    return result;
+}
+
 } // namespace pplib
 
 #endif /* PPLIB_CORE_TIMER_H_ */
