@@ -45,6 +45,7 @@ class Date;
 class Time;
 class TimeDelta;
 class TimeZone;
+class VariantArray;
 
 /** @class Variant
  * @ingroup PPLGroupDataTypes
@@ -63,6 +64,7 @@ class TimeZone;
  * - Time
  * - TimeDelta
  * - TimeZone
+ * - VariantArray
  */
 class Variant
 {
@@ -82,7 +84,13 @@ public:
         TYPE_DATE = 13,         /// @brief Datentyp ist Date
         TYPE_TIME = 14,         /// @brief Datentyp ist Time
         TYPE_TIMEDELTA = 15,    /// @brief Datentyp ist TimeDelta
-        TYPE_TIMEZONE = 16      /// @brief Datentyp ist TimeZone
+        TYPE_TIMEZONE = 16,     /// @brief Datentyp ist TimeZone
+
+        TYPE_NULL = 17,        /// @brief Datentyp ist Null
+        TYPE_BOOL = 18,        /// @brief Datentyp ist Boolean
+        TYPE_DOUBLE = 19,      /// @brief Datentyp ist Double
+        TYPE_INT64 = 20,       /// @brief Datentyp ist 64-Bit Integer
+        TYPE_VARIANTARRAY = 21 /// @brief Datentyp ist ein Array von Variant-Objekten
     };
 
 private:
@@ -348,6 +356,22 @@ public:
         set(std::move(value));
     }
 
+    /** @brief Konstruktor mit Datentyp VariantArray
+     *
+     * Der Inhalt des VariantArray-Objekts \p value wird kopiert.
+     *
+     * @param value
+     */
+    Variant(const VariantArray& value);
+
+    /** @brief Move Konstruktor mit Datentyp VariantArray
+     *
+     * Der Inhalt des VariantArray-Objekts \p value wird übernommen.
+     *
+     * @param value
+     */
+    Variant(VariantArray&& value);
+
     /** @brief Inhalt des Objekts löschen
      *
      * Der im Objekte gespeicherte Datentyp wird gelöscht und sein Speicher
@@ -571,6 +595,24 @@ public:
      */
     Variant& set(TimeZone&& value);
 
+    /** @brief Wert eines VariantArrays kopieren
+     *
+     * Der Wert des VariantArrays \p value wird kopiert.
+     *
+     * @param value
+     * @return Referenz auf dieses Objekt
+     */
+    Variant& set(const VariantArray& value);
+
+    /** @brief Wert eines VariantArrays übernehmen
+     *
+     * Der Wert des VariantArrays \p value wird übernommen.
+     *
+     * @param value
+     * @return Referenz auf dieses Objekt
+     */
+    Variant& set(VariantArray&& value);
+
     /** @brief Liefert den Datentyp des Objekts zurück
      *
      * Diese Funktion liefert den Datentyp des Objekts zurück.
@@ -715,6 +757,17 @@ public:
     inline bool isTimeZone() const
     {
         return t == TYPE_TIMEZONE;
+    }
+
+    /** @brief Prüft, ob es sich um den Datentyp VariantArray handelt
+     *
+     * Prüft, ob es sich um den Datentyp VariantArray handelt
+     *
+     * @return Liefert \c true zurück, wenn es sich um den Datentyp VariantArray handelt, sonst \c false.
+     */
+    inline bool isVariantArray() const
+    {
+        return t == TYPE_VARIANTARRAY;
     }
 
     /** @brief Typkonvertierung zu: const String
@@ -984,6 +1037,30 @@ public:
      * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
      */
     TimeZone& toTimeZone();
+
+    /** @brief Typkonvertierung zu: VariantArray
+     *
+     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+     * VariantArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return Referenz auf VariantArray
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen VariantArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
+    VariantArray& toVariantArray();
+
+    /** @brief Typkonvertierung zu: const VariantArray
+     *
+     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+     * VariantArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return const Referenz auf VariantArray
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen VariantArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
+    const VariantArray& toVariantArray() const;
 
     /** @brief Typkonvertierung zu: String
      *
@@ -1293,6 +1370,34 @@ public:
         return toTimeZone();
     }
 
+    /** @brief Typkonvertierung zu: VariantArray
+     *
+     * Der Aufruf dieser Operators liefert eine Referenz des gespeicherten VariantArrays zurück, sofern der Variant diesen Datentyp enthält.
+     * Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return Referenz des gespeicherten VariantArrays
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen VariantArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
+    inline operator VariantArray&()
+    {
+        return toVariantArray();
+    }
+
+    /** @brief Typkonvertierung zu: const VariantArray
+     *
+     * Der Aufruf dieser Operators liefert eine unveränderliche Referenz des gespeicherten VariantArrays zurück, sofern der Variant diesen
+     * Datentyp enthält. Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return const Referenz des gespeicherten VariantArrays
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen VariantArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
+    inline operator const VariantArray&() const
+    {
+        return toVariantArray();
+    }
+
     /** @brief Zuweisungsoperator
      *
      * Der Aufruf dieses Operators weist dem Variant den Wert des übergebenen Variants zu.
@@ -1452,6 +1557,18 @@ public:
     }
 
     inline Variant& operator=(TimeZone&& other)
+    {
+        set(std::move(other));
+        return *this;
+    }
+
+    inline Variant& operator=(const VariantArray& other)
+    {
+        set(other);
+        return *this;
+    }
+
+    inline Variant& operator=(VariantArray&& other)
     {
         set(std::move(other));
         return *this;

@@ -37,6 +37,7 @@
 #include <pplib/types/array.h>
 #include <pplib/types/assocarray.h>
 #include <pplib/types/datetime.h>
+#include <pplib/types/variantarray.h>
 #include <pplib/exceptions.h>
 
 namespace pplib
@@ -145,6 +146,20 @@ Variant::Variant(const TimeZone& value)
     set(value);
 }
 
+Variant::Variant(const VariantArray& value)
+{
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
+}
+
+Variant::Variant(VariantArray&& value)
+{
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(std::move(value));
+}
+
 void Variant::clear()
 {
     if (!value) return;
@@ -181,6 +196,9 @@ void Variant::clear()
         break;
     case TYPE_TIMEZONE:
         delete (static_cast<TimeZone*>(value));
+        break;
+    case TYPE_VARIANTARRAY:
+        delete (static_cast<VariantArray*>(value));
         break;
     default:
         break;
@@ -222,6 +240,8 @@ Variant& Variant::set(const Variant& value)
         return setCopy<TimeDelta, TYPE_TIMEDELTA>(*static_cast<TimeDelta*>(value.value));
     case TYPE_TIMEZONE:
         return setCopy<TimeZone, TYPE_TIMEZONE>(*static_cast<TimeZone*>(value.value));
+    case TYPE_VARIANTARRAY:
+        return setCopy<VariantArray, TYPE_VARIANTARRAY>(*static_cast<VariantArray*>(value.value));
     default:
         break;
     }
@@ -348,6 +368,16 @@ Variant& Variant::set(const TimeZone& value)
 Variant& Variant::set(TimeZone&& value)
 {
     return setMove<TimeZone, TYPE_TIMEZONE>(std::move(value));
+}
+
+Variant& Variant::set(const VariantArray& value)
+{
+    return setCopy<VariantArray, TYPE_VARIANTARRAY>(value);
+}
+
+Variant& Variant::set(VariantArray&& value)
+{
+    return setMove<VariantArray, TYPE_VARIANTARRAY>(std::move(value));
 }
 
 const String& Variant::toString() const
@@ -504,6 +534,20 @@ TimeZone& Variant::toTimeZone()
     return *static_cast<TimeZone*>(value);
 }
 
+VariantArray& Variant::toVariantArray()
+{
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_VARIANTARRAY) throw TypeConversionException();
+    return *static_cast<VariantArray*>(value);
+}
+
+const VariantArray& Variant::toVariantArray() const
+{
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_VARIANTARRAY) throw TypeConversionException();
+    return *static_cast<VariantArray*>(value);
+}
+
 bool Variant::operator==(const Variant& other) const
 {
     if (t != other.t) return false;
@@ -530,6 +574,8 @@ bool Variant::operator==(const Variant& other) const
         return (*static_cast<TimeDelta*>(value) == *static_cast<TimeDelta*>(other.value));
     case TYPE_TIMEZONE:
         return (*static_cast<TimeZone*>(value) == *static_cast<TimeZone*>(other.value));
+    case TYPE_VARIANTARRAY:
+        return (*static_cast<VariantArray*>(value) == *static_cast<VariantArray*>(other.value));
     default:
         break;
     }
