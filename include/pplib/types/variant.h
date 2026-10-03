@@ -676,7 +676,10 @@ public:
         return setCopy<bool, TYPE_BOOL>(value);
     }
 
-    Variant& set(int64_t value);
+    Variant& set(int64_t value)
+    {
+        return setCopy<int64_t, TYPE_INT64>(value);
+    }
 
     template <typename T>
         requires std::is_integral_v<T> && (!std::is_same_v<T, bool>) && (!std::is_same_v<T, int64_t>)
@@ -685,7 +688,10 @@ public:
         return set(static_cast<int64_t>(value));
     }
 
-    Variant& set(double value);
+    Variant& set(double value)
+    {
+        return setCopy<double, TYPE_DOUBLE>(value);
+    }
 
     template <typename T>
         requires std::is_floating_point_v<T> && (!std::is_same_v<T, double>)

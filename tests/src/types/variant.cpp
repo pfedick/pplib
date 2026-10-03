@@ -41,6 +41,7 @@
 #include <pplib/types/array.h>
 #include <pplib/types/assocarray.h>
 #include <pplib/types/variant.h>
+#include <pplib/types/variantarray.h>
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
 
@@ -1575,6 +1576,211 @@ TEST_F(VariantTest, AliasingSelfReferenceMove)
     varAssoc.set(std::move(varAssoc.toAssocArray()));
     ASSERT_EQ(pplib::Variant::TYPE_ASSOCARRAY, varAssoc.type());
     ASSERT_EQ(assoc, varAssoc.toAssocArray());
+}
+
+TEST_F(VariantTest, TestWithNull)
+{
+    pplib::Variant var1(nullptr);
+    ASSERT_EQ(pplib::Variant::TYPE_NULL, var1.type());
+    ASSERT_TRUE(var1.isNull());
+    ASSERT_FALSE(var1.isBool());
+    ASSERT_FALSE(var1.isString());
+
+    pplib::Variant var2;
+    var2.setNull();
+    ASSERT_EQ(pplib::Variant::TYPE_NULL, var2.type());
+    ASSERT_TRUE(var2.isNull());
+
+    pplib::Variant var3;
+    var3 = nullptr;
+    ASSERT_EQ(pplib::Variant::TYPE_NULL, var3.type());
+    ASSERT_TRUE(var3.isNull());
+
+    ASSERT_TRUE(var1 == var2);
+    ASSERT_FALSE(var1 != var2);
+
+    pplib::Variant varEmpty;
+    ASSERT_FALSE(var1 == varEmpty);
+    ASSERT_TRUE(var1 != varEmpty);
+
+    ASSERT_THROW({ var1.toString(); }, pplib::EmptyDataException);
+    ASSERT_THROW({ var1.toInt64(); }, pplib::EmptyDataException);
+    ASSERT_THROW({ var1.toBool(); }, pplib::EmptyDataException);
+}
+
+TEST_F(VariantTest, setWithNullVariant)
+{
+    pplib::Variant var1;
+    var1.set(pplib::String("Hello World"));
+
+    pplib::Variant var2(nullptr);
+
+    var1.set(var2);
+    ASSERT_EQ(pplib::Variant::TYPE_NULL, var1.type());
+    ASSERT_TRUE(var1.isNull());
+}
+
+TEST_F(VariantTest, TestWithBool)
+{
+    pplib::Variant var1(true);
+    pplib::Variant var2(var1);
+    ASSERT_EQ(pplib::Variant::TYPE_BOOL, var2.type());
+    ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_BOOL));
+    ASSERT_TRUE(var2.isBool());
+    ASSERT_FALSE(var2.isNull());
+    ASSERT_FALSE(var2.isInt64());
+
+    ASSERT_TRUE(var2.toBool());
+    ASSERT_TRUE((bool)var2);
+
+    var2 = false;
+    ASSERT_FALSE(var2.toBool());
+    ASSERT_FALSE((bool)var2);
+
+    ASSERT_FALSE(var1 == var2);
+    ASSERT_TRUE(var1 != var2);
+
+    ASSERT_THROW({ var1.toString(); }, pplib::TypeConversionException);
+    ASSERT_THROW({ var1.toInt64(); }, pplib::TypeConversionException);
+}
+
+TEST_F(VariantTest, TestWithInt64)
+{
+    int64_t val = 9223372036854775800LL;
+    pplib::Variant var1(val);
+    pplib::Variant var2(var1);
+    ASSERT_EQ(pplib::Variant::TYPE_INT64, var2.type());
+    ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_INT64));
+    ASSERT_TRUE(var2.isInt64());
+    ASSERT_FALSE(var2.isDouble());
+
+    ASSERT_EQ(val, var2.toInt64());
+    ASSERT_EQ(val, (int64_t)var2);
+
+    // Template-Konstruktor / Zuweisung mit int (32-Bit)
+    pplib::Variant var3(42);
+    ASSERT_EQ(pplib::Variant::TYPE_INT64, var3.type());
+    ASSERT_EQ(42, var3.toInt64());
+
+    var3 = -100;
+    ASSERT_EQ(-100, var3.toInt64());
+
+    ASSERT_FALSE(var1 == var3);
+    ASSERT_TRUE(var1 != var3);
+
+    ASSERT_THROW({ var1.toString(); }, pplib::TypeConversionException);
+    ASSERT_THROW({ var1.toBool(); }, pplib::TypeConversionException);
+}
+
+TEST_F(VariantTest, TestWithDouble)
+{
+    double val = 3.141592653589793;
+    pplib::Variant var1(val);
+    pplib::Variant var2(var1);
+    ASSERT_EQ(pplib::Variant::TYPE_DOUBLE, var2.type());
+    ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_DOUBLE));
+    ASSERT_TRUE(var2.isDouble());
+    ASSERT_FALSE(var2.isInt64());
+
+    ASSERT_DOUBLE_EQ(val, var2.toDouble());
+    ASSERT_DOUBLE_EQ(val, (double)var2);
+
+    // Template-Konstruktor mit float
+    pplib::Variant var3(1.5f);
+    ASSERT_EQ(pplib::Variant::TYPE_DOUBLE, var3.type());
+    ASSERT_DOUBLE_EQ(1.5, var3.toDouble());
+
+    var3 = -0.001;
+    ASSERT_DOUBLE_EQ(-0.001, var3.toDouble());
+
+    ASSERT_FALSE(var1 == var3);
+    ASSERT_TRUE(var1 != var3);
+
+    ASSERT_THROW({ var1.toString(); }, pplib::TypeConversionException);
+    ASSERT_THROW({ var1.toInt64(); }, pplib::TypeConversionException);
+}
+
+TEST_F(VariantTest, TestWithVariantArray)
+{
+    pplib::VariantArray va;
+    va.add(pplib::String("First"));
+    va.add(42);
+    va.add(true);
+
+    pplib::Variant var1(va);
+    pplib::Variant var2(var1);
+    ASSERT_EQ(pplib::Variant::TYPE_VARIANTARRAY, var2.type());
+    ASSERT_TRUE(var2.isType(pplib::Variant::TYPE_VARIANTARRAY));
+    ASSERT_TRUE(var2.isVariantArray());
+    ASSERT_FALSE(var2.isArray());
+
+    pplib::VariantArray va2 = var2.toVariantArray();
+    ASSERT_EQ(3, va2.size());
+    ASSERT_EQ(pplib::String("First"), va2.get(0).toString());
+    ASSERT_EQ(42, va2.get(1).toInt64());
+    ASSERT_TRUE(va2.get(2).toBool());
+
+    const pplib::Variant var3 = var1;
+    ASSERT_EQ(va, var3.toVariantArray());
+    ASSERT_EQ(va, (const pplib::VariantArray&)var3);
+
+    // Move
+    pplib::Variant varMove(std::move(va2));
+    ASSERT_TRUE(varMove.isVariantArray());
+    ASSERT_EQ(3, varMove.toVariantArray().size());
+
+    ASSERT_THROW({ var1.toString(); }, pplib::TypeConversionException);
+    ASSERT_THROW({ var1.toArray(); }, pplib::TypeConversionException);
+}
+
+TEST_F(VariantTest, TestWithVariantArrayEquals)
+{
+    pplib::VariantArray va1;
+    va1.add(1);
+    va1.add(2);
+    va1.add(3);
+
+    pplib::VariantArray va2;
+    va2.add(1);
+    va2.add(2);
+    va2.add(3);
+
+    pplib::Variant var1(va1);
+    pplib::Variant var2(va2);
+
+    ASSERT_TRUE(var1 == var2);
+    ASSERT_FALSE(var1 != var2);
+
+    va2.add(4);
+    pplib::Variant var3(va2);
+    ASSERT_FALSE(var1 == var3);
+    ASSERT_TRUE(var1 != var3);
+}
+
+TEST_F(VariantTest, ToVariantArrayThrows)
+{
+    pplib::Variant var1(42);
+    ASSERT_THROW({ var1.toVariantArray(); }, pplib::TypeConversionException);
+    pplib::Variant var2;
+    ASSERT_THROW({ var2.toVariantArray(); }, pplib::EmptyDataException);
+}
+
+TEST_F(VariantTest, ToConstVariantArrayThrows)
+{
+    pplib::Variant var1(42);
+    const pplib::Variant var1Const(var1);
+    ASSERT_THROW({ var1Const.toVariantArray(); }, pplib::TypeConversionException);
+    pplib::Variant var2;
+    const pplib::Variant var2Const(var2);
+    ASSERT_THROW({ var2Const.toVariantArray(); }, pplib::EmptyDataException);
+}
+
+TEST_F(VariantTest, ToDoubleThrows)
+{
+    pplib::Variant var1("not a double");
+    ASSERT_THROW({ var1.toDouble(); }, pplib::TypeConversionException);
+    pplib::Variant var2;
+    ASSERT_THROW({ var2.toDouble(); }, pplib::EmptyDataException);
 }
 
 } // namespace

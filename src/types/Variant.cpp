@@ -160,6 +160,11 @@ Variant::Variant(VariantArray&& value)
     set(std::move(value));
 }
 
+template <typename T> static inline void deleteValue(void* value)
+{
+    delete (static_cast<T*>(value));
+}
+
 void Variant::clear()
 {
     if (!value) {
@@ -168,54 +173,54 @@ void Variant::clear()
     }
     switch (t) {
     case TYPE_STRING:
-        delete (static_cast<String*>(value));
+        deleteValue<String>(value);
         break;
     case TYPE_ASSOCARRAY:
-        delete (static_cast<AssocArray*>(value));
+        deleteValue<AssocArray>(value);
         break;
     case TYPE_BYTEARRAY:
-        delete (static_cast<ByteArray*>(value));
+        deleteValue<ByteArray>(value);
         break;
     case TYPE_WIDESTRING:
-        delete (static_cast<WideString*>(value));
+        deleteValue<WideString>(value);
         break;
     case TYPE_ARRAY:
-        delete (static_cast<Array*>(value));
+        deleteValue<Array>(value);
         break;
     case TYPE_DATETIME:
-        delete (static_cast<DateTime*>(value));
+        deleteValue<DateTime>(value);
         break;
     case TYPE_BYTEARRAYPTR:
-        delete (static_cast<ByteArrayPtr*>(value));
+        deleteValue<ByteArrayPtr>(value);
         break;
     case TYPE_DATE:
-        delete (static_cast<Date*>(value));
+        deleteValue<Date>(value);
         break;
     case TYPE_TIME:
-        delete (static_cast<Time*>(value));
+        deleteValue<Time>(value);
         break;
     case TYPE_TIMEDELTA:
-        delete (static_cast<TimeDelta*>(value));
+        deleteValue<TimeDelta>(value);
         break;
     case TYPE_TIMEZONE:
-        delete (static_cast<TimeZone*>(value));
+        deleteValue<TimeZone>(value);
         break;
     case TYPE_VARIANTARRAY:
-        delete (static_cast<VariantArray*>(value));
-        break;
-    case TYPE_NULL:
+        deleteValue<VariantArray>(value);
         break;
     case TYPE_BOOL:
-        delete (static_cast<bool*>(value));
+        deleteValue<bool>(value);
         break;
     case TYPE_INT64:
-        delete (static_cast<int64_t*>(value));
+        deleteValue<int64_t>(value);
         break;
     case TYPE_DOUBLE:
-        delete (static_cast<double*>(value));
+        deleteValue<double>(value);
         break;
+    // LCOV_EXCL_START
     default:
         break;
+        // LCOV_EXCL_STOP
     }
     value = nullptr;
     t = TYPE_UNKNOWN;
@@ -267,11 +272,13 @@ Variant& Variant::set(const Variant& value)
         return setCopy<int64_t, TYPE_INT64>(*static_cast<int64_t*>(value.value));
     case TYPE_DOUBLE:
         return setCopy<double, TYPE_DOUBLE>(*static_cast<double*>(value.value));
+    // LCOV_EXCL_START
     default:
         break;
     }
     clear();
     return *this;
+    // LCOV_EXCL_STOP
 }
 
 Variant& Variant::set(Variant&& value)
