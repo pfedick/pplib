@@ -56,22 +56,17 @@ namespace pplib
 extern size_t exportVariantBinary(const Variant& v, char* buffer, size_t buffersize);
 extern size_t importVariantBinary(Variant& v, const char* ptr, size_t buffersize);
 
-AssocArray::AssocArray()
-{
-    maxint = 0;
-}
-
 AssocArray::AssocArray(const AssocArray& other)
 {
-    maxint = 0;
+    // maxint = 0;
     add(other);
 }
 
 AssocArray::AssocArray(AssocArray&& other)
 {
-    maxint = other.maxint;
+    // maxint = other.maxint;
     Tree = std::move(other.Tree);
-    other.maxint = 0;
+    // other.maxint = 0;
     other.Tree.clear();
 }
 
@@ -87,7 +82,32 @@ void AssocArray::clear()
         delete (*it).second;
     }
     Tree.clear();
-    maxint = 0;
+    // maxint = 0;
+}
+
+Variant* AssocArray::findInVariantArray(VariantArray& var_array, const String& key) const
+{
+    Array tok(key, "/", 0, true);
+    if (tok.count() == 0) throw InvalidKeyException(key);
+    String firstkey = tok.shift();
+    String rest = tok.implode("/");
+
+    if (firstkey.isDigits()) {
+        uint64_t index = firstkey.toUnsignedInt64();
+        if (index >= var_array.size()) return nullptr;
+        Variant& v = var_array.get(index);
+        if (tok.count() > 0) {
+            if (v.isAssocArray()) {
+                return v.toAssocArray().findInternal(rest);
+            } else if (v.isVariantArray()) {
+                return findInVariantArray(v.toVariantArray(), rest);
+            } else {
+                return nullptr;
+            }
+        }
+        return &v;
+    }
+    return nullptr;
 }
 
 Variant* AssocArray::findInternal(const String& key) const
@@ -99,18 +119,20 @@ Variant* AssocArray::findInternal(const String& key) const
     String rest = tok.implode("/");
 
     const_iterator it = Tree.find(firstkey);
-    if (it == Tree.end()) return NULL;
+    if (it == Tree.end()) return nullptr;
     // Ist noch was im Pfad rest?
     if (tok.count() > 0) { // Ja, koennen wir iterieren?
         if (it->second->isAssocArray()) {
             return it->second->toAssocArray().findInternal(rest);
+        } else if (it->second->isVariantArray()) {
+            return findInVariantArray(it->second->toVariantArray(), rest);
         } else {
-            return NULL;
+            return nullptr;
         }
     }
     // Der Value könnte ein leerer Variant sein (TYPE_UNKNOWN). Das ist ein Fall,
     // der bei createTree() vorkommen kann, wenn ein BadAlloc in set() geworfen wurde.
-    if (it->second->type() == Variant::TYPE_UNKNOWN) return NULL;
+    if (it->second->type() == Variant::TYPE_UNKNOWN) return nullptr;
     return it->second;
 }
 
@@ -123,34 +145,24 @@ Variant* AssocArray::createTree(const String& key)
     String rest = tok.implode("/");
     // printf ("firstkey=%ls, rest=%ls\n",(const wchar_t *)firstkey,(const wchar_t *)rest);
     if (firstkey == "[]") {
-        if (maxint == UINT64_MAX) throw InvalidKeyException(key);
-        firstkey.setf("%llu", maxint);
-        maxint++;
-    }
-    // Beginnt Firstkey mit einer Zahl?
-    if (firstkey.isDigits()) {
-        // Die Zahl darf nicht UINT64_MAX sein
-        uint64_t keyint = firstkey.toUnsignedInt64();
-        if (keyint == UINT64_MAX) throw InvalidKeyException(firstkey);
-        if (keyint >= maxint) maxint = keyint + 1;
-        firstkey.setf("%llu", keyint);
+        // Das dürfte nicht mehr vorkommen und wäre ein Fehler.
+        throw InvalidKeyException(key);
     }
 
     iterator it = Tree.find(firstkey);
     if (it != Tree.end()) {
-        // Ist noch was im Pfad rest?
-        if (tok.count() > 0) { // Ja, koennen wir iterieren?
-            if (it->second->isAssocArray() == false) {
-                // Nein, wir loeschen daher diesen Zweig und machen ein Array draus
+        if (tok.count() > 0) {
+            if (it->second->isVariantArray() || tok[0] == "[]") {
+                if (!it->second->isVariantArray()) {
+                    it->second->set(pplib::VariantArray());
+                }
+                return createVariantArrayTree(it->second->toVariantArray(), rest);
+            }
+            if (!it->second->isAssocArray()) {
                 it->second->set(pplib::AssocArray());
             }
             return it->second->toAssocArray().createTree(rest);
         }
-        // Nein, wir haben die Zielposition gefunden.
-        // Wichtig: Hier wird der Knoten NICHT vorab geleert! Der Aufrufer schreibt den
-        // neuen Wert per Variant::set(), das den alten Inhalt erst nach erfolgreicher
-        // Konstruktion des neuen Werts freigibt. Ein vorzeitiges clear() würde bei
-        // Aliasing (z.B. a.set(key, a.getString(key))) zu Use-after-free führen.
         return it->second;
     }
 
@@ -158,15 +170,65 @@ Variant* AssocArray::createTree(const String& key)
 
     // Ist noch was im Pfad rest?
     if (tok.count() > 0) { // Ja, wir erstellen ein Array und iterieren
-        // printf ("Iteration\n");
-        Variant* newnode = new Variant(pplib::AssocArray());
-        Tree.insert(std::pair<String, Variant*>(firstkey, newnode));
-        return newnode->toAssocArray().createTree(rest);
+        // das nächste Token könnte ein "[]" sein, was auf ein numerisches Array hindeutet
+        if (tok[0] == "[]") {
+            // Handle numeric array case if needed
+            Variant* newnode = new Variant(pplib::VariantArray());
+            Tree.insert(std::pair<String, Variant*>(firstkey, newnode));
+            return createVariantArrayTree(newnode->toVariantArray(), rest);
+        } else {
+            Variant* newnode = new Variant(pplib::AssocArray());
+            Tree.insert(std::pair<String, Variant*>(firstkey, newnode));
+            return newnode->toAssocArray().createTree(rest);
+        }
     } else {
         Variant* newnode = new Variant();
         Tree.insert(std::pair<String, Variant*>(firstkey, newnode));
         return newnode;
     }
+}
+
+Variant* AssocArray::createVariantArrayTree(VariantArray& var_array, const String& key)
+{
+    Array tok(key, "/", 0, true);
+    if (tok.count() == 0) throw InvalidKeyException(key);
+    String firstkey = tok.shift();
+    String rest = tok.implode("/");
+
+    if (firstkey == "[]") {
+        if (tok.count() == 0) {
+            // Letztes Token: z.B. "user_list/[]" -> leeren Variant anfügen
+            return &var_array.add(Variant());
+        }
+        // Weiter im Pfad:
+        if (tok[0] == "[]") {
+            // Nächstes Token ist wieder Array: z.B. "matrix/[]/[]"
+            Variant& v = var_array.add(VariantArray());
+            return createVariantArrayTree(v.toVariantArray(), rest);
+        } else {
+            // Nächstes Token ist Key: z.B. "user_list/[]/name"
+            Variant& v = var_array.add(AssocArray());
+            return v.toAssocArray().createTree(rest);
+        }
+    } else if (firstkey.isDigits()) {
+        uint64_t index = firstkey.toUnsignedInt64();
+        if (index >= var_array.size()) {
+            var_array.set(index, Variant()); // Füllt Lücken automatisch auf
+        }
+        Variant& v = var_array.get(index);
+        if (tok.count() == 0) {
+            return &v;
+        }
+        if (tok[0] == "[]") {
+            if (!v.isVariantArray()) v.set(VariantArray());
+            return createVariantArrayTree(v.toVariantArray(), rest);
+        } else {
+            if (!v.isAssocArray()) v.set(AssocArray());
+            return v.toAssocArray().createTree(rest);
+        }
+    }
+
+    throw InvalidKeyException(key);
 }
 
 size_t AssocArray::count(bool recursive) const
@@ -691,7 +753,7 @@ AssocArray& AssocArray::operator=(const AssocArray& other)
     if (this == &other) return *this;
     clear();
     add(other);
-    maxint = other.maxint;
+    // maxint = other.maxint;
     return *this;
 }
 
@@ -700,10 +762,10 @@ AssocArray& AssocArray::operator=(AssocArray&& other) noexcept
     if (this == &other) return *this;
     clear();
     Tree = std::move(other.Tree);
-    maxint = other.maxint;
-    // Moved-from-Zustand konsistent zum Move-Konstruktor zurücksetzen,
-    // damit set("[]", ...) auf "other" wieder bei 0 beginnt.
-    other.maxint = 0;
+    // maxint = other.maxint;
+    //  Moved-from-Zustand konsistent zum Move-Konstruktor zurücksetzen,
+    //  damit set("[]", ...) auf "other" wieder bei 0 beginnt.
+    // other.maxint = 0;
     other.Tree.clear();
     return *this;
 }

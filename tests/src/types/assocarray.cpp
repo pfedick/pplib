@@ -1400,4 +1400,63 @@ TEST(AssocArrayTest, ExportImportOfNewTypes)
     ASSERT_EQ(b.get("variantarray").toVariantArray().size(), 2);
 }
 
+TEST(AssocArrayTest, RecursiveAssocArrayWithVariantArray)
+{
+    pplib::AssocArray a;
+    pplib::VariantArray va;
+    va.set(0, pplib::String("It's a String"));
+    pplib::AssocArray b;
+    b.set("key1", "value1");
+    b.set("key2", "value2");
+    va.set(1, b);
+    va.set(2, 42);
+    pplib::AssocArray c;
+    c.set("key3", "value3");
+    va.set(3, c);
+
+    pplib::VariantArray va2;
+    va2.append(pplib::String("Another String"));
+    va2.append(pplib::String("Another One"));
+    va.set(4, va2);
+
+    a.set("key1/subkey", va);
+    a.set("key2", "Test");
+
+    EXPECT_EQ(pplib::String("It's a String"), a.get("key1/subkey/0").toString());
+    EXPECT_EQ(pplib::String("value1"), a.get("key1/subkey/1/key1").toString());
+    EXPECT_EQ(pplib::String("value2"), a.get("key1/subkey/1/key2").toString());
+    EXPECT_EQ(42, a.get("key1/subkey/2").toInt64());
+    EXPECT_EQ(pplib::String("Test"), a.get("key2").toString());
+    EXPECT_EQ(pplib::String("value3"), a.get("key1/subkey/3/key3").toString());
+    EXPECT_EQ(pplib::String("Another String"), a.get("key1/subkey/4/0").toString());
+    EXPECT_EQ(pplib::String("Another One"), a.get("key1/subkey/4/1").toString());
+
+    EXPECT_THROW({ a.get("key1/subkey/nostring"); }, pplib::KeyNotFoundException);
+}
+
+TEST(AssocArrayTest, AutocreateVariantArray)
+{
+    pplib::AssocArray user1;
+    user1.set("uid", 12345);
+    user1.set("login", "testuser");
+    user1.set("name", "Test User");
+
+    pplib::AssocArray user2;
+    user2.set("uid", 67890);
+    user2.set("login", "anotheruser");
+    user2.set("name", "Another User");
+
+    pplib::AssocArray a;
+    a.set("user_list/[]", user1);
+    a.set("user_list/[]", user2);
+
+    EXPECT_EQ(a.get("user_list/0/uid").toInt64(), 12345);
+    EXPECT_EQ(a.get("user_list/0/login").toString(), "testuser");
+    EXPECT_EQ(a.get("user_list/0/name").toString(), "Test User");
+
+    EXPECT_EQ(a.get("user_list/1/uid").toInt64(), 67890);
+    EXPECT_EQ(a.get("user_list/1/login").toString(), "anotheruser");
+    EXPECT_EQ(a.get("user_list/1/name").toString(), "Another User");
+}
+
 } // namespace

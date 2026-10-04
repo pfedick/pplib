@@ -97,6 +97,7 @@ private:
     {
         bool operator()(const String& a, const String& b) const
         {
+            /*
             // 1. Beide numerisch -> numerischer Vergleich
             bool aNum = a.isDigits();
             bool bNum = b.isDigits();
@@ -108,12 +109,13 @@ private:
                 return aNum; // Numerische Keys zuerst
             }
             // 3. Beide Text -> Case-Insensitiver Vergleich
+            */
             return a.strCaseCmp(b) < 0;
         }
     };
 
     std::map<String, Variant*, ArrayKeyCompare> Tree;
-    uint64_t maxint;
+    // uint64_t maxint;
 
     /** @brief Interne Funktion zum Suchen eines Elements
      *
@@ -131,6 +133,7 @@ private:
      * Die Funktion wird von allen Get...- und Concat-Funktionen verwendet.
      */
     Variant* findInternal(const String& key) const;
+    Variant* findInVariantArray(VariantArray& var_array, const String& key) const;
 
     /** @brief Interne Funktion, die ein Element im Baum sucht oder anlegt
      *
@@ -154,6 +157,7 @@ private:
      * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
      */
     Variant* createTree(const String& key);
+    Variant* createVariantArrayTree(VariantArray& var_array, const String& key);
     size_t importBinaryPrePPLib8(const void* buffer, size_t buffersize);
 
 public:
@@ -171,7 +175,7 @@ public:
      *
      * Initialisiert die Instanz mit 0 und initialisiert den AVL-Baum.
      */
-    AssocArray();
+    AssocArray() = default;
 
     /** @brief Copy-Konstruktor des Assoziativen Arrays
      *
