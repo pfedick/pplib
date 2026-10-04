@@ -86,7 +86,7 @@ VariantArray::VariantArray(Array&& other)
     extend(std::move(other));
 }
 
-void VariantArray::add(Variant value)
+Variant& VariantArray::add(Variant value)
 {
     if (elements.size() >= static_cast<size_t>(SSIZE_MAX)) {
         // LCOV_EXCL_START
@@ -94,6 +94,7 @@ void VariantArray::add(Variant value)
         // LCOV_EXCL_STOP
     }
     runAndCatchOperation([&]() { elements.push_back(std::move(value)); });
+    return elements.back();
 }
 
 void VariantArray::extend(const VariantArray& other)
@@ -184,7 +185,7 @@ const Variant& VariantArray::get(ssize_t index) const
     return elements[correctedIndex];
 }
 
-void VariantArray::set(ssize_t index, Variant value)
+Variant& VariantArray::set(ssize_t index, Variant value)
 {
     size_t real_index = correctNegativeIndex(index, elements.size());
     if (real_index >= static_cast<size_t>(SSIZE_MAX)) throw OutOfBoundsException();
@@ -194,9 +195,10 @@ void VariantArray::set(ssize_t index, Variant value)
         }
         elements[real_index] = std::move(value);
     });
+    return elements[real_index];
 }
 
-void VariantArray::insert(ssize_t index, Variant value)
+Variant& VariantArray::insert(ssize_t index, Variant value)
 {
     size_t real_index = correctNegativeIndex(index, elements.size());
     if (elements.size() >= static_cast<size_t>(SSIZE_MAX) || real_index >= static_cast<size_t>(SSIZE_MAX)) throw OutOfBoundsException();
@@ -206,6 +208,7 @@ void VariantArray::insert(ssize_t index, Variant value)
         }
         elements.insert(elements.begin() + real_index, std::move(value));
     });
+    return elements[real_index];
 }
 
 bool VariantArray::has(const Variant& value) const

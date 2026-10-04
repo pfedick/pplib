@@ -117,17 +117,19 @@ public:
      * Fügt ein neues Element am Ende des Arrays hinzu.
      *
      * @param value Das hinzuzufügende Element
+     * @return Referenz auf das hinzugefügte Element
      */
-    void add(Variant value);
+    Variant& add(Variant value);
 
     /** @brief Element am Ende des Arrays anhängen
      *
      * @param value Das hinzuzufügende Element
+     * @return Referenz auf das hinzugefügte Element
      * @note Diese Methode ist ein Alias für \c add().
      */
-    inline void append(Variant value)
+    inline Variant& append(Variant value)
     {
-        add(std::move(value));
+        return add(std::move(value));
     }
 
     /** @brief Array an das aktuelle Array anhängen
@@ -208,9 +210,10 @@ public:
      *
      * @param index Position des zu setzenden Elements. Bei einem nagativen Wert wird vom Ende des Arrays gezählt.
      * @param value Neuer Wert des Elements
+     * @return Referenz auf das gesetzte Element
      * @exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
      */
-    void set(ssize_t index, Variant value);
+    Variant& set(ssize_t index, Variant value);
 
     /** @brief Element an einer bestimmten Position im Array einfügen
      *
@@ -219,9 +222,10 @@ public:
      *
      * @param index Position, an der das Element eingefügt werden soll. Bei einem nagativen Wert wird vom Ende des Arrays gezählt.
      * @param value Wert des einzufügenden Elements
+     * @return Referenz auf das eingefügte Element
      * @exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
      */
-    void insert(ssize_t index, Variant value);
+    Variant& insert(ssize_t index, Variant value);
 
     /** @brief Prüfen, ob das Array leer ist
      *
