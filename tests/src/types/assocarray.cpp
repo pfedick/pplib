@@ -510,6 +510,12 @@ TEST(AssocArrayTest, exportAndImportBinary)
             throw;
         }
     });
+
+    // Wir schreiben die binären Daten in ein File
+    pplib::File file("assocarray_v2.bin", pplib::File::FileMode::WRITE);
+    file.write(ba);
+    file.close();
+
     // pplib::HexDump(buffer,realsize);
     ASSERT_EQ((size_t)2272, ba.size());
     // ba.hexDump();
