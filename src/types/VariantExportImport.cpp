@@ -48,7 +48,6 @@ size_t exportVariantBinary(const Variant& v, char* buffer, size_t buffersize)
     if (!buffer) buffersize = 0;
     size_t vallen = 0;
     Variant::DataType t = v.type();
-    if (t == Variant::TYPE_UNKNOWN) return 0;
     // Sonderfall: ByteArrayPtr wird als ByteArray exportiert
     if (t == Variant::TYPE_BYTEARRAYPTR) t = Variant::TYPE_BYTEARRAY;
 
@@ -193,7 +192,7 @@ size_t exportVariantBinary(const Variant& v, char* buffer, size_t buffersize)
     } break;
     // LCOV_EXCL_START
     default:
-        // Unbekannter Typ, keine Aktion
+        // Unbekannter Typ oder TYPE_UNKNOWN, keine Aktion
         break;
         // LCOV_EXCL_STOP
     }
@@ -346,6 +345,9 @@ size_t importVariantBinary(Variant& v, const char* ptr, size_t buffersize)
         size_t bytes = va.importBinary(ptr + p, buffersize - p);
         p += bytes;
         v.set(std::move(va));
+    } break;
+    case Variant::TYPE_UNKNOWN: {
+        // TYPE_UNKNOWN, keine Aktion
     } break;
     // LCOV_EXCL_START
     default:
