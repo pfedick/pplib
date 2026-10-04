@@ -437,7 +437,7 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
     if (!buffer) buffersize = 0;
     if (p + 8 <= buffersize) memcpy(ptr, "PPL8ASOC", 8);
     p += 8;
-    if (p + 1 <= buffersize) PokeN8(ptr + p, 2); // Version 2
+    if (p + 1 <= buffersize) PokeN8(ptr + p, 1); // Version 1
     p++;
     // if (p + 8 < buffersize) PokeN64(ptr + p, maxint);
     // p += 8;
@@ -491,6 +491,12 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
     if (buffersize == 0) throw IllegalArgumentException();
     const char* ptr = (const char*)buffer;
     size_t p = 0;
+    if (buffersize >= 7 && strncmp((const char*)ptr, "PPLASOC", 7) == 0) {
+        // Alte Version des Formats, vor PPL8
+        throw ImportFailedException("Exports from PPLib 7 are not yet supported");
+        // TODO: return importBinaryPrePPLib8(buffer, buffersize);
+    }
+
     if (buffersize < 8 || strncmp((const char*)ptr, "PPL8ASOC", 8) != 0) {
         throw ImportFailedException("Not an PPL8 AssocArray binary export");
     }
@@ -498,11 +504,7 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
     if (p + 1 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
     int version = PeekN8(ptr + p);
     p++;
-    if (version == 1) {
-        size_t remaining = (buffersize > p) ? (buffersize - p) : 0;
-        return p + importBinaryV1(ptr + p, remaining);
-    }
-    if (version != 2) throw ImportFailedException("Invalid PPL8 AssocArray binary export version %d", version);
+    if (version != 1) throw ImportFailedException("Invalid PPL8 AssocArray binary export version %d", version);
 
     auto requireBytes = [&](size_t n) {
         if (buffersize - p < n) {
@@ -528,7 +530,8 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
     return p;
 }
 
-size_t AssocArray::importBinaryV1(const void* buffer, size_t buffersize)
+#ifdef PPLIB_ENABLE_PRE_PPLIB8_IMPORT
+size_t AssocArray::importBinaryPrePPLib8(const void* buffer, size_t buffersize)
 {
     size_t p = 0;
     const char* ptr = (const char*)buffer;
@@ -663,32 +666,7 @@ size_t AssocArray::importBinaryV1(const void* buffer, size_t buffersize)
             set(key, TimeZone(offset, name));
             p += vallen;
         } break;
-        case Variant::TYPE_NULL: {
-            // Null-Werte haben keine zusätzlichen Daten
-            set(key, nullptr);
-        } break;
-        case Variant::TYPE_INT64: {
-            vallen = 8;
-            requireBytes(vallen);
-            set(key, (int64_t)PeekN64(ptr + p));
-            p += vallen;
-        } break;
-        case Variant::TYPE_BOOL: {
-            vallen = 1;
-            requireBytes(vallen);
-            set(key, static_cast<bool>(PeekN8(ptr + p) != 0));
-            p += vallen;
-        } break;
-        case Variant::TYPE_DOUBLE: {
-            vallen = 8;
-            requireBytes(vallen);
-            uint64_t tmp = PeekN64(ptr + p);
-            set(key, std::bit_cast<double>(tmp));
-            p += vallen;
-        } break;
-        case Variant::TYPE_VARIANTARRAY: {
-            // TODO
-        } break;
+
         default:
             throw ImportFailedException("unknown datatype in AssocArray binary export [type=%d, size=%zu]", type, vallen);
         };
@@ -696,6 +674,7 @@ size_t AssocArray::importBinaryV1(const void* buffer, size_t buffersize)
     // p++;
     return p;
 }
+#endif
 
 const Variant& AssocArray::operator[](const String& key) const
 {

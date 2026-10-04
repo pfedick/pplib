@@ -532,6 +532,52 @@ TEST(AssocArrayTest, exportAndImportBinary)
     ASSERT_EQ(pplib::Array("red green blue white", " "), b.get("stringarray").toArray()) << "unexpected value";
 }
 
+TEST(AssocArrayTest, importAssocArrayFromPPLib7)
+{
+    pplib::AssocArray a;
+    unsigned char ptr[] = "PPLASOC00000";
+    EXPECT_THROW({ a.importBinary(ptr, 7); }, pplib::ImportFailedException);
+
+    /*
+    pplib::ByteArray ba = pplib::File::load("testdata/assocarray_v1.bin");
+    pplib::AssocArray b;
+    EXPECT_NO_THROW({ b.importBinary(ba); });
+    ASSERT_EQ(b.count(), 16) << "Unexpected size of AssocArray";
+    ASSERT_EQ(b.count(true), 76) << "Unexpected size of AssocArray";
+    ASSERT_EQ(pplib::String("Dieser Wert geht ueber\nmehrere Zeilen"), b.getString("key1")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value7"), b.getString("key2")) << "unexpected value";
+    ASSERT_EQ(pplib::String("value5"), b.getString("array1/unterkey2")) << "unexpected value";
+    ASSERT_EQ(pplib::String("32324234213"), b.getString("data/1/sysinfo/uptime")) << "unexpected value";
+    ASSERT_EQ(pplib::String("3"), b.getString("data/0/cpu/system")) << "unexpected value";
+    ASSERT_EQ(pplib::WideString(L"this is a widestring - äöü"), b.get("widestring").toWideString()) << "unexpected value";
+    ASSERT_EQ(pplib::Time("12:45:10.123456"), b.get("time").toTime()) << "unexpected value";
+    ASSERT_EQ(pplib::Date("2018-12-03"), b.get("date").toDate()) << "unexpected value";
+    ASSERT_EQ(pplib::TimeDelta("12:45:10.123456"), b.get("timedelta").toTimeDelta()) << "unexpected value";
+    ASSERT_EQ(pplib::TimeZone(2, 0, "Europe/Berlin"), b.get("timezone").toTimeZone()) << "unexpected value";
+    ASSERT_EQ(pplib::DateTime("2018-12-03 13:49:10.123456"), b.get("datetime").toDateTime()) << "unexpected value";
+    ASSERT_EQ(pplib::DateTime("2018-12-03 13:49:10.123456+02:00"), b.get("datetimetz").toDateTime()) << "unexpected value";
+    ASSERT_EQ(pplib::Array("red green blue white", " "), b.get("stringarray").toArray()) << "unexpected value";
+    */
+}
+
+TEST(AssocArrayTest, importThrows)
+{
+    unsigned char raw[32] = {0};
+    memcpy(raw, "PPL8ASOC", 8); // Magic (0-7)
+    raw[8] = 2;                 // Version (8)
+
+    pplib::AssocArray a;
+    EXPECT_THROW({ a.importBinary(nullptr, 1); }, pplib::IllegalArgumentException);
+    EXPECT_THROW({ a.importBinary(raw, 0); }, pplib::IllegalArgumentException);
+    EXPECT_THROW({ a.importBinary(raw, 4); }, pplib::ImportFailedException);
+
+    EXPECT_THROW({ a.importBinary(raw, 8); }, pplib::ImportFailedException);
+    EXPECT_THROW({ a.importBinary(raw, 9); }, pplib::ImportFailedException);
+
+    memcpy(raw, "BLAHBLAH", 8); // Magic (0-7)
+    EXPECT_THROW({ a.importBinary(raw, 10); }, pplib::ImportFailedException);
+}
+
 TEST(AssocArrayTest, CountNonRecursive)
 {
     pplib::AssocArray a1;
@@ -1216,18 +1262,17 @@ TEST(AssocArrayTest, ImportBinaryDatetimeTruncatedValueThrows)
     // aber nur so viele Bytes vorhanden, dass p + vallen > buffersize wird.
     // Muss eine ImportFailedException werfen statt den Import still abzubrechen.
     unsigned char raw[32] = {0};
-    memcpy(raw, "PPL8ASOC", 8); // Magic (0-7)
-    raw[8] = 1;                 // Version (8)
-    // maxint (64Bit) = 0 (9-16), bereits durch Initialisierung
-    raw[17] = pplib::Variant::TYPE_DATETIME; // Type-Byte (17)
-    raw[18] = 2;                             // keylen low (18)
-    raw[19] = 0;                             // keylen high (19)
-    memcpy(raw + 20, "k1", 2);               // Key (20-21)
-    raw[22] = 5;                             // vallen = 5 (22-25)
+    memcpy(raw, "PPL8ASOC", 8);             // Magic (0-7)
+    raw[8] = 1;                             // Version (8)
+    raw[9] = pplib::Variant::TYPE_DATETIME; // Type-Byte (9)
+    raw[10] = 2;                            // keylen low (10)
+    raw[11] = 0;                            // keylen high (11)
+    memcpy(raw + 12, "k1", 2);              // Key (12-13)
+    raw[14] = 5;                            // vallen = 5 (14-17)
     // Kopierender Konstruktor (useadr würde das Stack-Array später free()n):
     // p+4=26 <= 27 lässt das Lesen von vallen durch, aber p+vallen=31 > 27
     // muss beim Bounds-Check werfen.
-    pplib::ByteArray buffer(raw, 27);
+    pplib::ByteArray buffer(raw, 19);
     ASSERT_THROW(
         {
             pplib::AssocArray b;

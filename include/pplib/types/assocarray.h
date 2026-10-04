@@ -154,7 +154,7 @@ private:
      * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
      */
     Variant* createTree(const String& key);
-    size_t importBinaryV1(const void* buffer, size_t buffersize);
+    size_t importBinaryPrePPLib8(const void* buffer, size_t buffersize);
 
 public:
     PPLIBEXCEPTION(InvalidKeyException, Exception);
