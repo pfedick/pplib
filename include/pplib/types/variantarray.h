@@ -296,6 +296,12 @@ public:
      */
     Array toArray(bool strict = true) const;
 
+    size_t exportBinary(void* buffer, size_t buffersize) const;
+    size_t importBinary(const void* buffer, size_t buffersize);
+    size_t binarySize() const;
+    ByteArray exportBinary() const;
+    void importBinary(const ByteArrayPtr& buffer);
+
     VariantArray& operator+=(const VariantArray& other)
     {
         extend(other);

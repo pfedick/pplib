@@ -26,7 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
+#include <string.h>
 #include "pplib/types/date.h"
 #include "pplib/types/time.h"
 #include <pplib/types/variant.h>
@@ -39,6 +39,7 @@
 #include <pplib/types/datetime.h>
 #include <pplib/types/variantarray.h>
 #include <pplib/exceptions.h>
+#include <pplib/core/functions.h>
 
 namespace pplib
 {

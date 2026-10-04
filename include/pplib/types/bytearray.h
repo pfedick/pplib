@@ -138,7 +138,7 @@ public:
      *
      * @param[in] size Gewünschte Größe des Speicherblocks in Bytes
      */
-    ByteArray(size_t size);
+    explicit ByteArray(size_t size);
 
     /**@brief Destruktor der Klasse
      *

@@ -119,7 +119,7 @@ public:
      * Tages liegt.
      * @param[in] seconds Sekunden seit Mitternacht (0-86399)
      */
-    inline Time(uint32_t seconds) noexcept
+    explicit inline Time(uint32_t seconds) noexcept
     {
         setFromSeconds(seconds);
     }

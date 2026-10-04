@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <bit>
 #include <pplib/types/array.h>
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
@@ -51,6 +52,9 @@
 
 namespace pplib
 {
+
+extern size_t exportVariantBinary(const Variant& v, char* buffer, size_t buffersize);
+extern size_t importVariantBinary(Variant& v, const char* ptr, size_t buffersize);
 
 AssocArray::AssocArray()
 {
@@ -429,134 +433,34 @@ size_t AssocArray::exportBinary(void* buffer, size_t buffersize) const
 {
     char* ptr = (char*)buffer;
     size_t p = 0;
-    size_t vallen = 0;
-    String key;
-    ByteArray ba;
+    // ByteArray ba;
     if (!buffer) buffersize = 0;
-    if (p + 8 < buffersize) memcpy(ptr, "PPL8ASOC", 8);
+    if (p + 8 <= buffersize) memcpy(ptr, "PPL8ASOC", 8);
     p += 8;
-    if (p + 1 < buffersize) PokeN8(ptr + p, 1); // Version
+    if (p + 1 <= buffersize) PokeN8(ptr + p, 2); // Version 2
     p++;
-    if (p + 8 < buffersize) PokeN64(ptr + p, maxint);
-    p += 8;
+    // if (p + 8 < buffersize) PokeN64(ptr + p, maxint);
+    // p += 8;
     AssocArray::const_iterator it;
     for (it = Tree.begin(); it != Tree.end(); ++it) {
         const Variant* a = it->second;
         if (a->type() == Variant::TYPE_UNKNOWN) continue;
-        if (p < buffersize) {
-            if (a->isByteArrayPtr())
-                PokeN8(ptr + p, Variant::TYPE_BYTEARRAY);
-            else
-                PokeN8(ptr + p, a->type());
-        }
-        p++;
-        key = it->first;
+        String key = it->first;
         size_t keylen = key.size();
         if (keylen > 0xFFFF) {
             // Key-Länge wird nur mit 16 Bit gespeichert, größere Keys können
             // nicht exportiert werden
             throw ExportBufferToSmallException("Key too long (%zd > 65535)", keylen);
         }
-        if (p + 4 < buffersize) PokeN16(ptr + p, (int)keylen);
+        if (p + 2 <= buffersize) PokeN16(ptr + p, (int)keylen);
         p += 2;
-        if (p + keylen < buffersize) strncpy(ptr + p, (const char*)key, (int)keylen);
+        if (p + keylen <= buffersize) memcpy(ptr + p, (const char*)key, (int)keylen);
         p += keylen;
-        if (a->isString()) {
-            String string = a->toString();
-            vallen = string.size();
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) strncpy(ptr + p, (const char*)string, vallen);
-            p += vallen;
-        } else if (a->isWideString()) {
-            String string(a->toWideString()); // Konvertierung in UTF-8
-            vallen = string.size();
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) strncpy(ptr + p, (const char*)string, vallen);
-            p += vallen;
-
-        } else if (a->isAssocArray()) {
-            if (!buffer)
-                p += a->toAssocArray().exportBinary(NULL, 0);
-            else
-                p += a->toAssocArray().exportBinary(ptr + p, buffersize - p);
-        } else if (a->isArray()) {
-            pplib::Array aaa(a->toArray());
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)aaa.size());
-            p += 4;
-            for (ssize_t i = 0; i < (ssize_t)aaa.size(); i++) {
-                const String s = aaa.get(i);
-                if (p + 4 < buffersize) PokeN32(ptr + p, (int)s.size());
-                p += 4;
-                vallen = s.size();
-                if (p + vallen < buffersize) strncpy(ptr + p, (const char*)s, vallen);
-                p += vallen;
-            }
-        } else if (a->isDateTime()) {
-            const DateTime& dt = a->toDateTime();
-            // DateTime könnte invalid sein
-            if (dt.isEmpty()) {
-                if (p + 4 < buffersize) PokeN32(ptr + p, 0);
-                p += 4;
-            } else {
-                vallen = 10;                           // PPL8 speichert Microseconds in 8 und Zeitzone in 2 Bytes,
-                vallen += dt.timeZone().name().size(); // plus die Länge des Zeitzonen-Namens, der aber leer sein kann.
-                if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-                p += 4;
-                if (p + vallen < buffersize) {
-                    PokeN64(ptr + p, dt.toMicroseconds());
-                    PokeN16(ptr + p + 8, dt.timeZone().offsetMinutes());
-                    memcpy(ptr + p + 10, (const char*)dt.timeZone().name(), dt.timeZone().name().size());
-                }
-                p += vallen;
-            }
-        } else if (a->isByteArray() == true || a->isByteArrayPtr() == true) {
-            vallen = a->toByteArrayPtr().size();
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) memcpy(ptr + p, a->toByteArrayPtr().adr(), vallen);
-            p += vallen;
-
-        } else if (a->isDate() == true) {
-            vallen = 4; // Date exportiert das Datum als 32Bit Integer (YYYYMMDD)
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) {
-                PokeN32(ptr + p, a->toDate().toInt());
-            }
-            p += vallen;
-        } else if (a->isTime() == true) {
-            vallen = 8; // Time exportiert die Zeit in Microseconds als 64Bit Integer
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) {
-                PokeN64(ptr + p, a->toTime().toMicroseconds());
-            }
-            p += vallen;
-        } else if (a->isTimeDelta()) {
-            vallen = 8; // TimeDelta exportiert die Zeit in Microseconds als 64Bit Integer
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) {
-                PokeN64(ptr + p, a->toTimeDelta().toMicroseconds());
-            }
-            p += vallen;
-        } else if (a->isTimeZone()) { // keine vollständige Coverage hier erreichbar, da keine anderen Typen exportiert werden
-            const TimeZone& tz = a->toTimeZone();
-            vallen = 2;                 // TimeZone exportiert die OffsetMinutes als 16Bit Integer,
-            vallen += tz.name().size(); // und den Namen als String, der aber leer sein kann
-            if (p + 4 < buffersize) PokeN32(ptr + p, (int)vallen);
-            p += 4;
-            if (p + vallen < buffersize) {
-                PokeN16(ptr + p, tz.offsetMinutes());
-                memcpy(ptr + p + 2, (const char*)tz.name(), tz.name().size());
-            }
-            p += vallen;
-        }
+        size_t remaining = (buffersize > p) ? (buffersize - p) : 0;
+        p += exportVariantBinary(*a, ptr + p, remaining);
     }
-    if (p < buffersize) PokeN8(ptr + p, 0);
-    p++;
+    if (p + 2 <= buffersize) PokeN16(ptr + p, 0);
+    p += 2;
     if (buffersize == 0 || p <= buffersize) return p;
     throw ExportBufferToSmallException("%zd < %zd", buffersize, p);
 }
@@ -593,8 +497,42 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
     p += 8;
     if (p + 1 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
     int version = PeekN8(ptr + p);
-    if (version != 1) throw ImportFailedException("Invalid PPL8 AssocArray binary export version %d", version);
     p++;
+    if (version == 1) {
+        size_t remaining = (buffersize > p) ? (buffersize - p) : 0;
+        return p + importBinaryV1(ptr + p, remaining);
+    }
+    if (version != 2) throw ImportFailedException("Invalid PPL8 AssocArray binary export version %d", version);
+
+    auto requireBytes = [&](size_t n) {
+        if (buffersize - p < n) {
+            throw ImportFailedException("Buffer too small for import");
+        }
+    };
+
+    while (1) {
+        requireBytes(2);
+        size_t keylen = PeekN16(ptr + p);
+        p += 2;
+        if (keylen == 0) break; // Terminator erreicht
+
+        requireBytes(keylen);
+        String key;
+        key.set(ptr + p, keylen);
+        p += keylen;
+
+        Variant var;
+        p += importVariantBinary(var, ptr + p, buffersize - p);
+        set(key, std::move(var));
+    }
+    return p;
+}
+
+size_t AssocArray::importBinaryV1(const void* buffer, size_t buffersize)
+{
+    size_t p = 0;
+    const char* ptr = (const char*)buffer;
+
     if (p + 8 > buffersize) throw ImportFailedException("Invalid PPL8 AssocArray binary export");
     maxint = PeekN64(ptr + p);
     p += 8;
@@ -724,6 +662,32 @@ size_t AssocArray::importBinary(const void* buffer, size_t buffersize)
             }
             set(key, TimeZone(offset, name));
             p += vallen;
+        } break;
+        case Variant::TYPE_NULL: {
+            // Null-Werte haben keine zusätzlichen Daten
+            set(key, nullptr);
+        } break;
+        case Variant::TYPE_INT64: {
+            vallen = 8;
+            requireBytes(vallen);
+            set(key, (int64_t)PeekN64(ptr + p));
+            p += vallen;
+        } break;
+        case Variant::TYPE_BOOL: {
+            vallen = 1;
+            requireBytes(vallen);
+            set(key, static_cast<bool>(PeekN8(ptr + p) != 0));
+            p += vallen;
+        } break;
+        case Variant::TYPE_DOUBLE: {
+            vallen = 8;
+            requireBytes(vallen);
+            uint64_t tmp = PeekN64(ptr + p);
+            set(key, std::bit_cast<double>(tmp));
+            p += vallen;
+        } break;
+        case Variant::TYPE_VARIANTARRAY: {
+            // TODO
         } break;
         default:
             throw ImportFailedException("unknown datatype in AssocArray binary export [type=%d, size=%zu]", type, vallen);

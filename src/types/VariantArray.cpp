@@ -37,6 +37,7 @@
 
 #include <pplib/types/variantarray.h>
 #include <pplib/types/string.h>
+#include <pplib/types/bytearray.h>
 #include <pplib/exceptions.h>
 
 #ifndef SSIZE_MAX
@@ -268,6 +269,33 @@ VariantArray& VariantArray::operator=(Array&& other)
     elements.clear();
     extend(std::move(other));
     return *this;
+}
+
+size_t VariantArray::exportBinary(void* buffer, size_t buffersize) const
+{
+    return 0;
+}
+
+size_t VariantArray::importBinary(const void* buffer, size_t buffersize)
+{
+    return 0;
+}
+
+size_t VariantArray::binarySize() const
+{
+    return 0;
+}
+
+ByteArray VariantArray::exportBinary() const
+{
+    ByteArray buffer;
+    size_t size = binarySize();
+    buffer.malloc(size);
+    exportBinary((void*)buffer.adr(), buffer.size());
+    return buffer;
+}
+void VariantArray::importBinary(const ByteArrayPtr& buffer)
+{
 }
 
 } // namespace pplib

@@ -492,7 +492,7 @@ TEST(AssocArrayTest, binarySize)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({ createDefaultAssocArray(a); });
-    ASSERT_EQ((size_t)2272, a.binarySize());
+    ASSERT_EQ((size_t)2155, a.binarySize());
 }
 
 TEST(AssocArrayTest, exportAndImportBinary)
@@ -511,7 +511,7 @@ TEST(AssocArrayTest, exportAndImportBinary)
         }
     });
     // pplib::HexDump(buffer,realsize);
-    ASSERT_EQ((size_t)2272, ba.size());
+    ASSERT_EQ((size_t)2155, ba.size());
     // ba.hexDump();
     EXPECT_NO_THROW({ b.importBinary(ba); });
 
@@ -1233,10 +1233,8 @@ TEST(AssocArrayTest, ImportBinaryDatetimeTruncatedValueThrows)
             pplib::AssocArray b;
             b.importBinary(buffer);
         },
-        pplib::AssocArray::ImportFailedException);
+        pplib::ImportFailedException);
 }
-
-// Debug
 
 TEST(AssocArrayTest, list)
 {
@@ -1258,130 +1256,105 @@ TEST(AssocArrayTest, list)
     ASSERT_TRUE(output.contains("datetimetz=DateTime(2018-12-03T13:49:10.123+02:00)"));
 }
 
-#ifdef OLDCODE
-
-static void createWalkingArray(pplib::AssocArray& a)
-{
-    pplib::DateTime now = pplib::DateTime::currentTime();
-    pplib::ByteArray ba(1234);
-    pplib::ByteArrayPtr bap = ba;
-    pplib::Random(ba, 1234);
-    a.set("time", now);
-    a.set("aaaa", "first element");
-    a.set("blah", "blubb");
-    a.set("bytearray", ba);
-    a.set("bytearrayptr", bap);
-    pplib::Array a1("red green blue yellow black white", " ");
-    a.set("array0", a1);
-    a.set("key1", "Dieser Wert geht über\nmehrere Zeilen");
-    a.set("key2", "value6");
-    a.set("array1/unterkey1", "value2");
-    a.set("array1/unterkey2", "value3");
-    a.set("array1/noch ein array/unterkey1", "value4");
-    a.set("array1/unterkey2", "value5");
-    a.set("key3", "value7");
-    a.set("array2/unterkey1", "value7");
-    a.set("array2/unterkey2", "value8");
-    a.set("array2/unterkey1", "value9");
-}
-
-TEST(AssocArrayTest, ToTemplate)
+TEST(AssocArrayTest, TypeNull)
 {
     pplib::AssocArray a;
-    pplib::ByteArray bin;
-    pplib::String out;
-    pplib::File::load(bin, "src/main.cpp");
-    a.set("key1", "Dieser Wert geht über\nmehrere Zeilen");
-    a.set("array1/unterkey1", "value2");
-    a.set("array1/unterkey2", "value3");
-    a.set("array1/noch ein array/unterkey1", "value4");
-    a.set("array1/unterkey2", "value5");
-    a.set("key2", "value6");
-    a.set("dateien/main.cpp", bin);
-    a.set("array2/unterkey1", "value7");
-    a.set("array2/unterkey2", "value8");
-    a.set("array2/unterkey1", "value9");
-    a.toTemplate(out, "foo");
-    // out.printnl();
-    ASSERT_EQ(pplib::String("foo/array1/noch ein array/unterkey1=value4\n"
-                            "foo/array1/unterkey1=value2\n"
-                            "foo/array1/unterkey2=value5\n"
-                            "foo/array2/unterkey1=value9\n"
-                            "foo/array2/unterkey2=value8\n"
-                            "foo/key1=Dieser Wert geht über\n"
-                            "foo/key1=mehrere Zeilen\n"
-                            "foo/key2=value6\n"),
-              out);
+    a.set("key", nullptr);
+    ASSERT_TRUE(a.get("key").isNull());
 }
 
-TEST(AssocArrayTest, fromTemplate)
+TEST(AssocArrayTest, TypeInt)
 {
-    pplib::AssocArray a1, a2;
-    pplib::String Template("key=line1\n"
-                           "key = line2 \n"
-                           "foo  =  bar\n"
-                           "words=20\n"
-                           " blah=blubb\n"
-                           "hello=world");
-    ASSERT_NO_THROW({
-        a1.fromTemplate(Template, "\n", "=", "\n", false);
-        a2.fromTemplate(Template, "\n", "=", "\n", true);
-    });
-    ASSERT_EQ(pplib::String("line1\n line2 "), a1.getString("key")) << "unexpected value";
-    ASSERT_EQ(pplib::String("  bar"), a1.getString("foo")) << "unexpected value";
-    ASSERT_EQ(pplib::String("20"), a1.getString("words")) << "unexpected value";
-    ASSERT_EQ(pplib::String("blubb"), a1.getString("blah")) << "unexpected value";
-    ASSERT_EQ(pplib::String("world"), a1.getString("hello")) << "unexpected value";
+    pplib::AssocArray a;
+    a.set("key", 42);
+    ASSERT_TRUE(a.get("key").isInt64());
+    ASSERT_EQ(a.get("key").toInt64(), 42);
 
-    ASSERT_EQ(pplib::String("line1\nline2"), a2.getString("key")) << "unexpected value";
-    ASSERT_EQ(pplib::String("bar"), a2.getString("foo")) << "unexpected value";
-    ASSERT_EQ(pplib::String("20"), a2.getString("words")) << "unexpected value";
-    ASSERT_EQ(pplib::String("blubb"), a2.getString("blah")) << "unexpected value";
-    ASSERT_EQ(pplib::String("world"), a2.getString("hello")) << "unexpected value";
+    a.set("key", static_cast<int32_t>(42));
+    ASSERT_TRUE(a.get("key").isInt64());
+    ASSERT_EQ(a.get("key").toInt64(), 42);
+
+    a.set("key", static_cast<uint32_t>(42));
+    ASSERT_TRUE(a.get("key").isInt64());
+    ASSERT_EQ(a.get("key").toInt64(), 42);
 }
 
-TEST(AssocArrayTest, fromConfig)
+TEST(AssocArrayTest, TypeDouble)
 {
-    pplib::AssocArray a1, a2;
-    pplib::String Template("[Abschnitt_1]\n"
-                           "key =line1\n"
-                           "key = line2 \n"
-                           "foo  =  bar\n"
-                           "words=20\n"
-                           "# Kommentarzeile, die überlesen wird\n"
-                           "key1=value1\n"
-                           "key2=value2\n"
-                           "[Abschnitt_2]\n"
-                           "key1=value3\n"
-                           "key2=value4\n"
-                           " blah=  blubb \n"
-                           "hello=world");
-    ASSERT_NO_THROW({
-        a1.fromConfig(Template, "\n", "=", "\n", false);
-        a2.fromConfig(Template, "\n", "=", "\n", true);
-    });
-    // a1.list("a1");
+    pplib::AssocArray a;
+    a.set("key", 3.14);
+    ASSERT_TRUE(a.get("key").isDouble());
+    ASSERT_EQ(a.get("key").toDouble(), 3.14);
 
-    ASSERT_EQ(pplib::String("line1\n line2 "), a1.getString("Abschnitt_1/key")) << "unexpected value";
-    ASSERT_EQ(pplib::String("  bar"), a1.getString("Abschnitt_1/foo")) << "unexpected value";
-    ASSERT_EQ(pplib::String("20"), a1.getString("Abschnitt_1/words")) << "unexpected value";
-    ASSERT_EQ(pplib::String("value1"), a1.getString("Abschnitt_1/key1")) << "unexpected value";
-    ASSERT_EQ(pplib::String("value2"), a1.getString("Abschnitt_1/key2")) << "unexpected value";
-    ASSERT_EQ(pplib::String("  blubb "), a1.getString("Abschnitt_2/blah")) << "unexpected value";
-    ASSERT_EQ(pplib::String("world"), a1.getString("Abschnitt_2/hello")) << "unexpected value";
-    ASSERT_EQ(pplib::String("value3"), a1.getString("Abschnitt_2/key1")) << "unexpected value";
-    ASSERT_EQ(pplib::String("value4"), a1.getString("Abschnitt_2/key2")) << "unexpected value";
-
-    ASSERT_EQ(pplib::String("line1\nline2"), a2.getString("Abschnitt_1/key")) << "unexpected value";
-    ASSERT_EQ(pplib::String("bar"), a2.getString("Abschnitt_1/foo")) << "unexpected value";
-    ASSERT_EQ(pplib::String("20"), a2.getString("Abschnitt_1/words")) << "unexpected value";
-    ASSERT_EQ(pplib::String("value1"), a2.getString("Abschnitt_1/key1")) << "unexpected value";
-    ASSERT_EQ(pplib::String("value2"), a2.getString("Abschnitt_1/key2")) << "unexpected value";
-    ASSERT_EQ(pplib::String("blubb"), a2.getString("Abschnitt_2/blah")) << "unexpected value";
-    ASSERT_EQ(pplib::String("world"), a2.getString("Abschnitt_2/hello")) << "unexpected value";
-    ASSERT_EQ(pplib::String("value3"), a2.getString("Abschnitt_2/key1")) << "unexpected value";
-    ASSERT_EQ(pplib::String("value4"), a2.getString("Abschnitt_2/key2")) << "unexpected value";
+    a.set("key", static_cast<float>(3.14f));
+    ASSERT_TRUE(a.get("key").isDouble());
+    ASSERT_FLOAT_EQ(a.get("key").toDouble(), 3.14f);
 }
-#endif
+
+TEST(AssocArrayTest, TypeBool)
+{
+    pplib::AssocArray a;
+    a.set("key", true);
+    ASSERT_TRUE(a.get("key").isBool());
+    ASSERT_EQ(a.get("key").toBool(), true);
+
+    a.set("key", false);
+    ASSERT_TRUE(a.get("key").isBool());
+    ASSERT_EQ(a.get("key").toBool(), false);
+}
+
+TEST(AssocArrayTest, TypeVariantArray)
+{
+    pplib::AssocArray a;
+    pplib::VariantArray va;
+    va.append(1);
+    va.append(pplib::String("Hello World"));
+    a.set("key", va);
+    ASSERT_TRUE(a.get("key").isVariantArray());
+    ASSERT_EQ(a.get("key").toVariantArray().size(), 2);
+}
+
+TEST(AssocArrayTest, ExportImportOfNewTypes)
+{
+    pplib::AssocArray a;
+    pplib::VariantArray va;
+    va.append(1);
+    va.append(pplib::String("Hello World"));
+    // a.set("variantarray", va);
+    a.set("integer", 42);
+    a.set("string", pplib::String("Hello World"));
+    a.set("boolean", true);
+    a.set("null", nullptr);
+    a.set("double", 3.14);
+
+    pplib::ByteArray buffer = a.exportBinary();
+    pplib::AssocArray b;
+    b.importBinary(buffer);
+
+    ASSERT_TRUE(b.exists("integer"));
+    ASSERT_TRUE(b.get("integer").isInt64());
+    ASSERT_EQ(b.get("integer").toInt64(), 42);
+
+    ASSERT_TRUE(b.exists("string"));
+    ASSERT_TRUE(b.get("string").isString());
+    ASSERT_EQ(b.get("string").toString(), "Hello World");
+
+    ASSERT_TRUE(b.exists("boolean"));
+    ASSERT_TRUE(b.get("boolean").isBool());
+    ASSERT_EQ(b.get("boolean").toBool(), true);
+
+    ASSERT_TRUE(b.exists("null"));
+    ASSERT_TRUE(b.get("null").isNull());
+
+    ASSERT_TRUE(b.exists("double"));
+    ASSERT_TRUE(b.get("double").isDouble());
+    ASSERT_EQ(b.get("double").toDouble(), 3.14);
+
+    /*
+    ASSERT_TRUE(b.exists("variantarray"));
+    ASSERT_TRUE(b.get("variantarray").isVariantArray());
+    ASSERT_EQ(b.get("variantarray").toVariantArray().size(), 2);
+    */
+}
 
 } // namespace

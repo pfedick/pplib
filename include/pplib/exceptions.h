@@ -117,6 +117,9 @@ PPLIBEXCEPTION(InvalidSSLCipherException, Exception);
 PPLIBEXCEPTION(SSLPrivatKeyException, Exception);
 PPLIBEXCEPTION(SSLFailedToReadDHParams, Exception);
 
+PPLIBEXCEPTION(ExportBufferToSmallException, Exception);
+PPLIBEXCEPTION(ImportFailedException, Exception);
+
 //! @name IO-Exceptions
 //@{
 PPLIBEXCEPTION(IOException, Exception);

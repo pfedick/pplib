@@ -872,6 +872,11 @@ public:
         return t == TYPE_INT64;
     }
 
+    inline bool isInt() const
+    {
+        return t == TYPE_INT64;
+    }
+
     inline bool isDouble() const
     {
         return t == TYPE_DOUBLE;
@@ -1171,6 +1176,11 @@ public:
 
     bool toBool() const;
     int64_t toInt64() const;
+    inline int toInt() const
+    {
+        return static_cast<int>(toInt64());
+    }
+
     double toDouble() const;
 
     /** @brief Typkonvertierung zu: String

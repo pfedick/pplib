@@ -35,6 +35,7 @@
 
 #include <pplib/types/variant.h>
 #include <pplib/types/string.h>
+#include <pplib/types/variantarray.h>
 #include <pplib/core/baseexception.h>
 
 namespace pplib
@@ -153,57 +154,10 @@ private:
      * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
      */
     Variant* createTree(const String& key);
-
-    /** @brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
-     *
-     * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
-     * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
-     * @param[in] buffer Pointer auf einen ausreichend großen Puffer. Die Größe des benötigten Puffers
-     * kann zuvor mit der Funktion AssocArray::binarySize ermittelt werden. Wird als Buffer NULL
-     * übergeben, wird in der Variable @p realsize ebenfalls die Anzahl Bytes zurückgegeben
-     * @param[in] buffersize Die Größe des Puffers in Bytes
-     * @param[out] realsize In dieser Variable wird gespeichert, wieviele Bytes tatsächlich für den Export
-     * verwendet wurden
-     * @exception ExportBufferToSmallException: Wird geworfen, wenn @p buffersize nicht groß genug ist, um
-     * das Assoziative Array vollständig exportieren zu können.
-     *
-     * @attention
-     * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
-     * werden folgende Typen unterstützt:
-     * - String (Wird als UTF-8 exportiert)
-     * - Array
-     * - AssocArray
-     * - ByteArray
-     * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
-     * - DateTime
-     * @see
-     * - AssocArray::binarySize
-     * - AssocArray::importBinary
-     *
-     * @note
-     * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
-     */
-    size_t exportBinary(void* buffer, size_t buffersize) const;
-
-    /** @brief Daten aus einem vorherigen Export wieder importieren
-     *
-     * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
-     * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
-     * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
-     * @param[in] buffer Pointer auf den Puffer, der die zu importierenden Daten enthält
-     * @param[in] buffersize Größe des Puffers
-     * @exception ImportFailedException
-     *
-     * @see
-     * - AssocArray::exportBinary
-     * - AssocArray::binarySize
-     */
-    size_t importBinary(const void* buffer, size_t buffersize);
+    size_t importBinaryV1(const void* buffer, size_t buffersize);
 
 public:
     PPLIBEXCEPTION(InvalidKeyException, Exception);
-    PPLIBEXCEPTION(ExportBufferToSmallException, Exception);
-    PPLIBEXCEPTION(ImportFailedException, Exception);
 
     typedef std::map<String, Variant*, ArrayKeyCompare>::iterator iterator;
     typedef std::map<String, Variant*, ArrayKeyCompare>::const_iterator const_iterator;
@@ -377,6 +331,36 @@ public:
     {
         createTree(key)->set(value);
     }
+    inline void set(const String& key, std::nullptr_t)
+    {
+        createTree(key)->setNull();
+    }
+
+    template <typename T>
+        requires std::is_integral_v<T> && (!std::is_same_v<T, bool>)
+    inline void set(const String& key, T value)
+    {
+        createTree(key)->set(static_cast<int64_t>(value));
+    }
+
+    template <typename T>
+        requires std::is_floating_point_v<T>
+    inline void set(const String& key, T value)
+    {
+        createTree(key)->set(static_cast<double>(value));
+    }
+
+    template <typename T>
+        requires std::is_same_v<T, bool>
+    inline void set(const String& key, T value)
+    {
+        createTree(key)->set(static_cast<bool>(value));
+    }
+
+    inline void set(const String& key, const VariantArray& value)
+    {
+        createTree(key)->set(value);
+    }
 
     /** @brief Formatierten String hinzufügen
      *
@@ -432,6 +416,10 @@ public:
         createTree(key)->set(std::move(value));
     }
     inline void set(const String& key, Variant&& value)
+    {
+        createTree(key)->set(std::move(value));
+    }
+    inline void set(const String& key, VariantArray&& value)
     {
         createTree(key)->set(std::move(value));
     }
@@ -512,6 +500,43 @@ public:
 
     //!\name Import und Export von Daten
     //@{
+
+    /** @brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
+     *
+     * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
+     * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
+     * @param[in] buffer Pointer auf einen ausreichend großen Puffer. Die Größe des benötigten Puffers
+     * kann zuvor mit der Funktion AssocArray::binarySize ermittelt werden. Wird als Buffer NULL
+     * übergeben, wird in der Variable @p realsize ebenfalls die Anzahl Bytes zurückgegeben
+     * @param[in] buffersize Die Größe des Puffers in Bytes
+     * @param[out] realsize In dieser Variable wird gespeichert, wieviele Bytes tatsächlich für den Export
+     * verwendet wurden
+     * @exception ExportBufferToSmallException: Wird geworfen, wenn @p buffersize nicht groß genug ist, um
+     * das Assoziative Array vollständig exportieren zu können.
+     *
+     * @see
+     * - AssocArray::binarySize
+     * - AssocArray::importBinary
+     *
+     * @note
+     * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
+     */
+    size_t exportBinary(void* buffer, size_t buffersize) const;
+
+    /** @brief Daten aus einem vorherigen Export wieder importieren
+     *
+     * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
+     * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
+     * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
+     * @param[in] buffer Pointer auf den Puffer, der die zu importierenden Daten enthält
+     * @param[in] buffersize Größe des Puffers
+     * @exception ImportFailedException
+     *
+     * @see
+     * - AssocArray::exportBinary
+     * - AssocArray::binarySize
+     */
+    size_t importBinary(const void* buffer, size_t buffersize);
 
     /** @brief Liefert Anzahl Bytes, die für exportBinary erforderlich sind
      *

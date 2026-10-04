@@ -113,6 +113,16 @@ private:
     Variant* createTree(const String& key);
 
     size_t exportBinary(void* buffer, size_t buffersize) const;
+    void exportDataType(
+        size_t& p, size_t buffersize, const pplib::Variant* a, char* ptr, pplib::AssocArray::const_iterator& it, void* buffer) const;
+    void exportDataType(size_t& p,
+                        size_t buffersize,
+                        const pplib::Variant* a,
+                        char* ptr,
+                        pplib::String& key,
+                        pplib::AssocArray::const_iterator& it,
+                        size_t& vallen,
+                        void* buffer) const;
     size_t importBinary(const void* buffer, size_t buffersize);
 
 public:
