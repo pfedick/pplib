@@ -38,6 +38,7 @@
 #include <pplib/types/variantarray.h>
 #include <pplib/types/string.h>
 #include <pplib/types/bytearray.h>
+#include <pplib/core/functions.h>
 #include <pplib/exceptions.h>
 
 #ifndef SSIZE_MAX
@@ -46,6 +47,9 @@
 
 namespace pplib
 {
+
+extern size_t exportVariantBinary(const Variant& v, char* buffer, size_t buffersize);
+extern size_t importVariantBinary(Variant& v, const char* ptr, size_t buffersize);
 
 template <typename Func> static void runAndCatchOperation(Func&& op)
 {
@@ -273,17 +277,66 @@ VariantArray& VariantArray::operator=(Array&& other)
 
 size_t VariantArray::exportBinary(void* buffer, size_t buffersize) const
 {
-    return 0;
+    char* ptr = (char*)buffer;
+    size_t p = 0;
+    // ByteArray ba;
+    if (!buffer) buffersize = 0;
+    if (p + 8 <= buffersize) memcpy(ptr, "PPL8VAAR", 8);
+    p += 8;
+    if (p + 1 <= buffersize) PokeN8(ptr + p, 1); // Version 1
+    p++;
+    if (p + 8 <= buffersize) PokeN64(ptr + p, elements.size());
+    p += 8;
+    VariantArray::const_iterator it;
+    for (it = elements.begin(); it != elements.end(); ++it) {
+        const Variant& a = *it;
+        size_t remaining = (buffersize > p) ? (buffersize - p) : 0;
+        p += exportVariantBinary(a, ptr + p, remaining);
+    }
+    if (buffersize == 0 || p <= buffersize) return p;
+    throw ExportBufferToSmallException("%zd < %zd", buffersize, p);
 }
 
 size_t VariantArray::importBinary(const void* buffer, size_t buffersize)
 {
-    return 0;
+    if (!buffer) throw IllegalArgumentException();
+    if (buffersize == 0) throw IllegalArgumentException();
+    const char* ptr = (const char*)buffer;
+    size_t p = 0;
+    if (buffersize < 8 || strncmp((const char*)ptr, "PPL8VAAR", 8) != 0) {
+        throw ImportFailedException("Not an PPL8 VariantArray binary export");
+    }
+    p += 8;
+    if (p + 1 > buffersize) throw ImportFailedException("Invalid PPL8 VariantArray binary export");
+    int version = PeekN8(ptr + p);
+    p++;
+    if (version != 1) throw ImportFailedException("Invalid PPL8 VariantArray binary export version %d", version);
+
+    auto requireBytes = [&](size_t n) {
+        if (buffersize - p < n) {
+            throw ImportFailedException("Buffer too small for import");
+        }
+    };
+    requireBytes(8);
+    size_t elementCount = PeekN64(ptr + p);
+    p += 8;
+    // Jedes Element muss mindestens 1 Byte im Buffer belegen
+    if (elementCount > static_cast<size_t>(SSIZE_MAX) || buffersize - p < elementCount) {
+        throw ImportFailedException("Invalid element count (%zu) or buffer too small", elementCount);
+    }
+    clear();
+    reserve(elementCount);
+    for (size_t i = 0; i < elementCount; i++) {
+        Variant var;
+        p += importVariantBinary(var, ptr + p, buffersize - p);
+        add(std::move(var));
+    }
+    return p;
 }
 
 size_t VariantArray::binarySize() const
 {
-    return 0;
+    return exportBinary(NULL, 0);
 }
 
 ByteArray VariantArray::exportBinary() const
@@ -296,6 +349,7 @@ ByteArray VariantArray::exportBinary() const
 }
 void VariantArray::importBinary(const ByteArrayPtr& buffer)
 {
+    importBinary(buffer.adr(), buffer.size());
 }
 
 } // namespace pplib

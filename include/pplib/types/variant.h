@@ -34,9 +34,11 @@
 #include <cstdint>
 #include <type_traits>
 #include <utility>
+#include <pplib/core/baseexception.h>
 namespace pplib
 {
 
+PPLIBEXCEPTION(UnknownDataType, Exception);
 class String;
 class WideString;
 class Array;

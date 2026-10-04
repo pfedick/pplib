@@ -1365,7 +1365,7 @@ TEST(AssocArrayTest, ExportImportOfNewTypes)
     pplib::VariantArray va;
     va.append(1);
     va.append(pplib::String("Hello World"));
-    // a.set("variantarray", va);
+    a.set("variantarray", va);
     a.set("integer", 42);
     a.set("string", pplib::String("Hello World"));
     a.set("boolean", true);
@@ -1395,11 +1395,9 @@ TEST(AssocArrayTest, ExportImportOfNewTypes)
     ASSERT_TRUE(b.get("double").isDouble());
     ASSERT_EQ(b.get("double").toDouble(), 3.14);
 
-    /*
     ASSERT_TRUE(b.exists("variantarray"));
     ASSERT_TRUE(b.get("variantarray").isVariantArray());
     ASSERT_EQ(b.get("variantarray").toVariantArray().size(), 2);
-    */
 }
 
 } // namespace
