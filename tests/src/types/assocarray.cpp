@@ -469,6 +469,11 @@ static void createDefaultAssocArray(pplib::AssocArray& a)
     data.setf("sysinfo/procs", "%d", 12321);
     a.set("data/[]", data);
     a.set("data/[]", data);
+
+    a.set("types/integer", 42);
+    a.set("types/floating", 3.14159);
+    a.set("types/boolean", true);
+    a.set("types/null", pplib::Variant(nullptr));
     // a.list();
 }
 
@@ -1299,6 +1304,10 @@ TEST(AssocArrayTest, list)
     ASSERT_TRUE(output.contains("bytearrayptr=ByteArrayPtr, 591 Bytes"));
     ASSERT_TRUE(output.contains("stringarray/Array(1)=green"));
     ASSERT_TRUE(output.contains("datetimetz=DateTime(2018-12-03T13:49:10.123+02:00)"));
+    ASSERT_TRUE(output.contains("types/integer=42"));
+    ASSERT_TRUE(output.contains("types/floating=3.141590"));
+    ASSERT_TRUE(output.contains("types/boolean=true"));
+    ASSERT_TRUE(output.contains("types/null=Null"));
 }
 
 TEST(AssocArrayTest, TypeNull)

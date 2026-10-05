@@ -797,6 +797,55 @@ AssocArray operator+(const AssocArray& a1, const AssocArray& a2)
     a.add(a2);
     return a;
 }
+static void printType(const Variant& v, const String& prefix);
+static void printVariantArray(const VariantArray& a, const String& prefix)
+{
+    for (size_t i = 0; i < a.size(); i++) {
+        printType(a[i], prefix + String::format("/%zu", i));
+    }
+}
+
+static void printType(const Variant& v, const String& prefix)
+{
+    if (v.isString()) {
+        PrintDebug("%s=%s\n", (const char*)prefix, (const char*)v.toString().getPtr());
+    } else if (v.isWideString()) {
+        PrintDebug("%s=%ls\n", (const char*)prefix, (const wchar_t*)v.toWideString().getPtr());
+    } else if (v.isByteArray()) {
+        PrintDebug("%s=ByteArray, %zu Bytes\n", (const char*)prefix, v.toByteArray().size());
+    } else if (v.isByteArrayPtr()) {
+        PrintDebug("%s=ByteArrayPtr, %zu Bytes\n", (const char*)prefix, v.toByteArrayPtr().size());
+    } else if (v.isAssocArray()) {
+        v.toAssocArray().list(prefix);
+    } else if (v.isVariantArray()) {
+        printVariantArray((const VariantArray&)v, prefix);
+    } else if (v.isArray()) {
+        const Array& a = (const Array&)v;
+        for (size_t i = 0; i < a.size(); i++) {
+            PrintDebug("%s/Array(%zu)=%s\n", (const char*)prefix, i, (const char*)a[i]);
+        }
+    } else if (v.isDateTime()) {
+        PrintDebug("%s=DateTime(%s)\n", (const char*)prefix, (const char*)v.toDateTime().getISO8601withMsec());
+    } else if (v.isDate()) {
+        PrintDebug("%s=Date(%s)\n", (const char*)prefix, (const char*)v.toDate().toString());
+    } else if (v.isTime()) {
+        PrintDebug("%s=Time(%s)\n", (const char*)prefix, (const char*)v.toTime().toString());
+    } else if (v.isTimeDelta()) {
+        PrintDebug("%s=TimeDelta(TODO)\n", (const char*)prefix);
+    } else if (v.isTimeZone()) {
+        PrintDebug("%s=TimeZone(%s)\n", (const char*)prefix, (const char*)v.toTimeZone().toString(true));
+    } else if (v.isInt64()) {
+        PrintDebug("%s=%lld\n", (const char*)prefix, (long long)v.toInt64());
+    } else if (v.isDouble()) {
+        PrintDebug("%s=%f\n", (const char*)prefix, v.toDouble());
+    } else if (v.isBool()) {
+        PrintDebug("%s=%s\n", (const char*)prefix, v.toBool() ? "true" : "false");
+    } else if (v.isNull()) {
+        PrintDebug("%s=Null\n", (const char*)prefix);
+    } else {
+        PrintDebug("%s=UnknownDataType Id=%i\n", (const char*)prefix, v.type());
+    }
+}
 
 void AssocArray::list(const String& prefix) const
 {
@@ -807,36 +856,7 @@ void AssocArray::list(const String& prefix) const
     const_iterator it;
     for (it = Tree.begin(); it != Tree.end(); ++it) {
         Variant* p = it->second;
-        if (p->isString()) {
-            PrintDebug("%s%s=%s\n", (const char*)key, (const char*)it->first, (const char*)p->toString().getPtr());
-        } else if (p->isWideString()) {
-            PrintDebug("%s%s=%ls\n", (const char*)key, (const char*)it->first, (const wchar_t*)p->toWideString().getPtr());
-        } else if (p->isByteArray()) {
-            PrintDebug("%s%s=ByteArray, %zu Bytes\n", (const char*)key, (const char*)it->first, p->toByteArray().size());
-        } else if (p->isByteArrayPtr()) {
-            PrintDebug("%s%s=ByteArrayPtr, %zu Bytes\n", (const char*)key, (const char*)it->first, p->toByteArrayPtr().size());
-        } else if (p->isAssocArray()) {
-            pre.setf("%s%s", (const char*)key, (const char*)it->first);
-            p->toAssocArray().list(pre);
-        } else if (p->isArray()) {
-            const Array& a = (const Array&)*p;
-            for (size_t i = 0; i < a.size(); i++) {
-                PrintDebug("%s%s/Array(%zu)=%s\n", (const char*)key, (const char*)it->first, i, (const char*)a[i]);
-            }
-        } else if (p->isDateTime()) {
-            PrintDebug("%s%s=DateTime(%s)\n", (const char*)key, (const char*)it->first, (const char*)p->toDateTime().getISO8601withMsec());
-        } else if (p->isDate()) {
-            PrintDebug("%s%s=Date(%s)\n", (const char*)key, (const char*)it->first, (const char*)p->toDate().toString());
-        } else if (p->isTime()) {
-            PrintDebug("%s%s=Time(%s)\n", (const char*)key, (const char*)it->first, (const char*)p->toTime().toString());
-        } else if (p->isTimeDelta()) {
-            PrintDebug("%s%s=TimeDelta(TODO)\n", (const char*)key, (const char*)it->first);
-        } else if (p->isTimeZone()) {
-            PrintDebug("%s%s=TimeZone(%s)\n", (const char*)key, (const char*)it->first, (const char*)p->toTimeZone().toString(true));
-
-            //} else {
-            //    PrintDebug("%s%s=UnknownDataType Id=%i\n", (const char*)key, (const char*)it->first, p->type());
-        }
+        printType(*p, key + it->first);
     }
 }
 
