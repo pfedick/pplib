@@ -53,12 +53,28 @@ Ablösung des alten "Fake-Array"-Mechanismus in `AssocArray` (bei dem Arrays üb
     1. Erwartung, dass `a.set("[]", "wert")` oder `a.set("users/[]", ...)` numerische String-Keys (`"0"`, `"1"`, ...) in der `std::map` erzeugt.
     2. Sortier- und Zähl-Erwartungen mit `maxint` bzw. `ArrayKeyCompare` auf numerischen Schlüsseln.
     3. Altes Verhalten beim Anhängen eines klassischen `Array` (reines String-Array).
+  Weitere 6 Tests im Json-Parser schlagen fehl, teilweise offensichtlich im Zusammenhang mit Listen
+
+* Fehlschlagende Tests:
+[  FAILED  ] JsonTest.ParseFromStringWithDictToAssocArray
+[  FAILED  ] JsonTest.ParseFromStringWithArrayToAssocArray
+[  FAILED  ] JsonTest.NegativTest_GarbageAfterEnd
+[  FAILED  ] JsonTest.DumpsSimpleListAtFirstLevel
+[  FAILED  ] JsonTest.DumpsNestedListAtFirstLevel
+[  FAILED  ] JsonTest.DumpsNestedListAtSecondLevel
+[  FAILED  ] AssocArrayTest.addAssocArrayWithLists
+[  FAILED  ] AssocArrayTest.NumericKeyOverflow
+[  FAILED  ] AssocArrayTest.AutomaticKeyOverflow
+[  FAILED  ] AssocArrayTest.NumericKeyNormalization
+[  FAILED  ] AssocArrayTest.MoveAssignmentResetsMaxint
+[  FAILED  ] AssocArrayTest.list
+
 
 ---
 
 ## 4. Nächste Schritte
 
-1. **Prüfung der 6 fehlschlagenden Tests in `assocarray.cpp`:**
+1. **Prüfung der 6 fehlschlagenden Tests in `assocarray.cpp`, sowie weiterer 6 Tests in `json.cpp`**
    * Handelt es sich um Tests von altem, jetzt obsoletem Verhalten (simulierte Arrays via `maxint`)?
    * Falls ja: Erwartungshaltung auf `VariantArray` modernisieren oder Alttests anpassen/entfernen.
 2. **`createVariantArrayTree` & `createTree` vervollständigen:**
