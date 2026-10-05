@@ -231,13 +231,32 @@ Variant* AssocArray::createVariantArrayTree(VariantArray& var_array, const Strin
     throw InvalidKeyException(key);
 }
 
+static size_t countVariantArray(const VariantArray& var_array)
+{
+    size_t num = var_array.size();
+    for (size_t i = 0; i < var_array.size(); ++i) {
+        const Variant& v = var_array.get(i);
+        if (v.isAssocArray()) {
+            num += v.toAssocArray().count(true);
+        } else if (v.isVariantArray()) {
+            num += countVariantArray(v.toVariantArray());
+        }
+    }
+    return num;
+}
+
 size_t AssocArray::count(bool recursive) const
 {
     if (!recursive) return Tree.size();
     const_iterator it;
     size_t num = Tree.size();
     for (it = Tree.begin(); it != Tree.end(); ++it) {
-        if (it->second->isAssocArray()) num += it->second->toAssocArray().count(recursive);
+        if (it->second->isAssocArray())
+            num += it->second->toAssocArray().count(true);
+        else if (it->second->isVariantArray())
+            num += countVariantArray(it->second->toVariantArray());
+        else if (it->second->isArray())
+            num += it->second->toArray().size();
     }
     return num;
 }

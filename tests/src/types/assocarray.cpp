@@ -237,20 +237,22 @@ TEST(AssocArrayTest, addAssocArrayWithLists)
 {
     pplib::AssocArray a;
     pplib::AssocArray b;
-    a.set("[]", "value1");
-    a.set("[]", "value2");
-    a.set("[]", "value3");
-    b.set("[]", "value1");
-    b.set("[]", "value2");
-    b.set("[]", "value3");
-    b.set("[]", "value4");
-    b.set("[]", "value5");
-    b.set("[]", "value6");
+    a.set("array/[]", "value1");
+    a.set("array/[]", "value2");
+    a.set("array/[]", "value3");
+    b.set("array/[]", "value1");
+    b.set("array/[]", "value2");
+    b.set("array/[]", "value3");
+    b.set("array/[]", "value4");
+    b.set("array/[]", "value5");
+    b.set("array/[]", "value6");
+    printf("DEBUG 1\n");
     a.add(b);
-    a.set("[]", "value7");
-    // a.list();
+    printf("DEBUG 2\n");
+    a.set("array/[]", "value7");
+    a.list();
     ASSERT_EQ((size_t)7, a.count(true)) << "Unexpected size of AssocArray";
-    ASSERT_EQ(pplib::String("value7"), a.getString("6")) << "unexpected value";
+    ASSERT_EQ(pplib::String("array/value7"), a.getString("6")) << "unexpected value";
 }
 
 TEST(AssocArrayTest, appendf)
@@ -621,6 +623,30 @@ TEST(AssocArrayTest, CountRecursive)
     ASSERT_EQ((size_t)8, a1.count(true));
 
     ASSERT_EQ((size_t)5, a1.size());
+}
+
+TEST(AssocArrayTest, count)
+{
+    pplib::AssocArray a;
+    a.set("string", "value1");
+    a.set("subkey1/key1", "value2");
+    a.set("subkey1/key2", "value3");
+    a.set("subkey2/key1", "value3a");
+    a.set("key2", "value4");
+    a.set("key3", "value5");
+    a.set("integer", 42);
+    a.set("double", 3.14);
+    a.set("boolean", true);
+    a.set("null", pplib::Variant(nullptr));
+    a.set("array/[]", "value1");
+    a.set("array/[]", "value2");
+    a.set("array/[]", "value3");
+    a.set("array/[]", "value4");
+
+    a.set("array3", pplib::Array("red, green, blue, yellow, black, white", ","));
+
+    ASSERT_EQ((size_t)11, a.count(false));
+    ASSERT_EQ((size_t)24, a.count(true));
 }
 
 TEST(AssocArrayTest, countForKey)

@@ -53,6 +53,7 @@ Ablösung des alten "Fake-Array"-Mechanismus in `AssocArray` (bei dem Arrays üb
     1. Erwartung, dass `a.set("[]", "wert")` oder `a.set("users/[]", ...)` numerische String-Keys (`"0"`, `"1"`, ...) in der `std::map` erzeugt.
     2. Sortier- und Zähl-Erwartungen mit `maxint` bzw. `ArrayKeyCompare` auf numerischen Schlüsseln.
     3. Altes Verhalten beim Anhängen eines klassischen `Array` (reines String-Array).
+    4. Bisher waren Array an oberster Ebene erlaubt (`set("[]", ...)`). Das geht jetzt nicht mehr.
   Weitere 6 Tests im Json-Parser schlagen fehl, teilweise offensichtlich im Zusammenhang mit Listen
 
 * Fehlschlagende Tests:
@@ -67,7 +68,7 @@ Ablösung des alten "Fake-Array"-Mechanismus in `AssocArray` (bei dem Arrays üb
 [  FAILED  ] AssocArrayTest.AutomaticKeyOverflow
 [  FAILED  ] AssocArrayTest.NumericKeyNormalization
 [  FAILED  ] AssocArrayTest.MoveAssignmentResetsMaxint
-[  FAILED  ] AssocArrayTest.list
+[  FAILED  ] AssocArrayTest.list   ==> FIXED
 
 
 ---
@@ -82,3 +83,10 @@ Ablösung des alten "Fake-Array"-Mechanismus in `AssocArray` (bei dem Arrays üb
    * Saubere Behandlung von `[]` auf Root-Ebene vs. Unterbäumen.
 3. **JSON-Parser/Writer vorbereiten:**
    * Rückgabe von `Variant` für beliebige Dokument-Roots (`AssocArray` oder `VariantArray`).
+
+
+# Zu treffende Entscheidungen
+- Wie gehen wir mit dem bisherigen Typ `Array` um? Transofmieren wir in in ein VariantArray, oder ist Array jetzt ein eigener Typ, der aber nur Strings enthält und nicht weiter verschachtelt werden kann? Wir müssen ihn dann aber überall gesondert behandeln.
+
+- Was passiert beim Merge zweier `VariantArray`-Instanzen? Sollen die Elemente einfach angehängt werden? Bisher war der Index ein Key im AssocArray. Ein neues Element mit einem vorhandenen Key hat das alte Element überschrieben. Wie soll dieses Verhalten in `VariantArray` umgesetzt werden?
+
