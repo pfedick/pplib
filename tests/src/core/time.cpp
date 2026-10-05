@@ -95,7 +95,7 @@ TEST_F(TimeFunctionTest, LocalTime)
     EXPECT_EQ(6, ppltime.day_of_week) << "LocalTime should return the correct day of the week";
     EXPECT_EQ(275, ppltime.day_of_year) << "LocalTime should return the correct day of the year";
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    EXPECT_EQ(7200, ppltime.gmtoff) << "LocalTime should return the correct GMT offset";
+    EXPECT_EQ(7200, ppltime.gmt_offset) << "LocalTime should return the correct GMT offset";
     EXPECT_TRUE(ppltime.have_gmt_offset) << "LocalTime should indicate no GMT offset";
 #else
     EXPECT_EQ(0, ppltime.gmt_offset) << "LocalTime should return the correct GMT offset";
@@ -116,7 +116,7 @@ TEST_F(TimeFunctionTest, GmTime)
     EXPECT_EQ(6, ppltime.day_of_week) << "LocalTime should return the correct day of the week";
     EXPECT_EQ(275, ppltime.day_of_year) << "LocalTime should return the correct day of the year";
 #if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
-    EXPECT_EQ(7200, ppltime.gmtoff) << "LocalTime should return the correct GMT offset";
+    EXPECT_EQ(0, ppltime.gmt_offset) << "LocalTime should return the correct GMT offset";
     EXPECT_TRUE(ppltime.have_gmt_offset) << "LocalTime should indicate no GMT offset";
 #else
     EXPECT_EQ(0, ppltime.gmt_offset) << "LocalTime should return the correct GMT offset";
@@ -282,7 +282,11 @@ TEST_F(TimeFunctionTest, MkRFC822Date_Throws)
 TEST_F(TimeFunctionTest, MkRFC822DateWithUnixTime)
 {
     pplib::ppl_time_t unix_time = 1791024720; // Corresponds to Sat, 3 Oct 2026 11:52:00 GMT
+#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
+    EXPECT_EQ(pplib::MkRFC822Date(unix_time), "Sat, 3 Oct 2026 12:52:00 +0200") << "MkRFC822Date with Unix time returns unexpected value";
+#else
     EXPECT_EQ(pplib::MkRFC822Date(unix_time), "Sat, 3 Oct 2026 12:52:00") << "MkRFC822Date with Unix time returns unexpected value";
+#endif
 }
 
 TEST_F(TimeFunctionTest, MkISO8601Date)
@@ -350,7 +354,11 @@ TEST_F(TimeFunctionTest, MkISO8601DateThrows)
 TEST_F(TimeFunctionTest, MkISO8601DateWithUnixTime)
 {
     pplib::ppl_time_t unix_time = 1791024720; // Corresponds to 2026-10-03T11:52:00+01:00
+#if defined(STRUCT_TM_HAS_GMTOFF) || defined(__GLIBC__) || defined(__APPLE__) || defined(__FreeBSD__)
+    EXPECT_EQ(pplib::MkISO8601Date(unix_time), "2026-10-03T12:52:00+02:00") << "MkISO8601Date with Unix time returns unexpected value";
+#else
     EXPECT_EQ(pplib::MkISO8601Date(unix_time), "2026-10-03T12:52:00") << "MkISO8601Date with Unix time returns unexpected value";
+#endif
 }
 
 TEST_F(TimeFunctionTest, MkTime_withIso8601String_withoutTimezone)
