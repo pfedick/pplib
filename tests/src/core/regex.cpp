@@ -542,10 +542,15 @@ TEST_F(RegExTestWideChar, ZeroLengthMatchReplace)
     ASSERT_EQ(pplib::WideString(L"XäXöXüX"),
               pplib::RegEx::replace(pplib::WideString(L"a*"), pplib::WideString(L"äöü"), pplib::WideString(L"X")));
 
+#if defined(HAVE_PCRE2_BITS_16) && (WCHAR_MAX <= 0xffff)
     // UTF-16 Surrogat-Paar (Emoji: 🚀 \xD83D\xDE80)
     ASSERT_EQ(pplib::WideString(L"X\xD83D\xDE80X"),
               pplib::RegEx::replace(pplib::WideString(L"a*"), pplib::WideString(L"\xD83D\xDE80"), pplib::WideString(L"X")));
-
+#else
+    // 32-Bit Unicode (Emoji: 🚀 \U0001F680)
+    ASSERT_EQ(pplib::WideString(L"X\U0001F680X"),
+              pplib::RegEx::replace(pplib::WideString(L"a*"), pplib::WideString(L"\U0001F680"), pplib::WideString(L"X")));
+#endif
     // Am Stringanfang / Stringende
     ASSERT_EQ(pplib::WideString(L"!test"),
               pplib::RegEx::replace(pplib::WideString(L"^"), pplib::WideString(L"test"), pplib::WideString(L"!")));
