@@ -370,15 +370,15 @@ TEST(AssocArrayTest, addAndDeleteWordlist)
 {
     pplib::AssocArray a;
     size_t total = Wordlist.count();
-    pplib::PrintDebugTime("Loading wordlist\n");
+    // pplib::PrintDebugTime("Loading wordlist\n");
     pplib::String empty;
     for (size_t i = 0; i < total; i++) {
         a.set(Wordlist[i], empty);
     }
-    pplib::PrintDebugTime("done\n");
-    // ASSERT_EQ(total,a.count()) << "Tree has unexpected size";
+    // pplib::PrintDebugTime("done\n");
+    //  ASSERT_EQ(total,a.count()) << "Tree has unexpected size";
 
-    pplib::PrintDebugTime("Deleting wordlist\n");
+    // pplib::PrintDebugTime("Deleting wordlist\n");
     for (size_t i = 0; i < total; i++) {
         try {
             a.erase(Wordlist[i]);
@@ -386,7 +386,7 @@ TEST(AssocArrayTest, addAndDeleteWordlist)
         catch (pplib::KeyNotFoundException&) {
         }
     }
-    pplib::PrintDebugTime("done\n");
+    // pplib::PrintDebugTime("done\n");
     ASSERT_EQ((size_t)0, a.count()) << "Tree has unexpected size";
 }
 
@@ -1373,6 +1373,8 @@ TEST(AssocArrayTest, list)
     pplib::AssocArray a;
     createDefaultAssocArray(a);
 
+    a.set("types/boolean2", false);
+
     testing::internal::CaptureStdout();
     a.list();
     pplib::String output = testing::internal::GetCapturedStdout();
@@ -1389,6 +1391,7 @@ TEST(AssocArrayTest, list)
     ASSERT_TRUE(output.contains("types/integer=42"));
     ASSERT_TRUE(output.contains("types/double=3.141590"));
     ASSERT_TRUE(output.contains("types/boolean=true"));
+    ASSERT_TRUE(output.contains("types/boolean2=false"));
     ASSERT_TRUE(output.contains("types/null=Null"));
 }
 
@@ -1578,6 +1581,117 @@ TEST(AssocArrayTest, replaceAssocArrayByVariantArray)
 
     EXPECT_EQ(a.get("key1/0").toString(), "value1");
     EXPECT_EQ(a.get("key1/1").toString(), "value2");
+}
+
+TEST(AssocArrayTest, findInternalWithUnknownVariantReturnsNull)
+{
+    pplib::AssocArray a;
+    a.set("unknown", pplib::Variant());
+    EXPECT_FALSE(a.exists("unknown"));
+    EXPECT_THROW(a.get("unknown"), pplib::KeyNotFoundException);
+}
+
+TEST(AssocArrayTest, OverwriteExistingScalarWithVariantArrayUsingEmptyBrackets)
+{
+    pplib::AssocArray a;
+    a.set("items", "scalar_value");
+    a.set("items/[]", "first_element");
+    EXPECT_TRUE(a.get("items").isVariantArray());
+    EXPECT_EQ(a.getString("items/0"), "first_element");
+}
+
+TEST(AssocArrayTest, VariantArrayIndexElementBecomesVariantArray)
+{
+    pplib::AssocArray a;
+    a.set("list/[]", "scalar");
+    a.set("list/0/[]", "sub_item");
+    EXPECT_TRUE(a.get("list/0").isVariantArray());
+    EXPECT_EQ(a.getString("list/0/0"), "sub_item");
+}
+
+TEST(AssocArrayTest, VariantArrayIndexElementBecomesAssocArray)
+{
+    pplib::AssocArray a;
+    a.set("list/[]", "scalar");
+    a.set("list/0/name", "Bob");
+    EXPECT_TRUE(a.get("list/0").isAssocArray());
+    EXPECT_EQ(a.getString("list/0/name"), "Bob");
+}
+
+TEST(AssocArrayTest, CountRecursiveWithNestedVariantArray)
+{
+    pplib::AssocArray a;
+    a.set("matrix/[]/[]", 1);
+    a.set("matrix/0/[]", 2);
+    EXPECT_EQ(a.count(true), (size_t)4);
+}
+
+TEST(AssocArrayTest, CountRecursiveWithClassicArrayVariant)
+{
+    pplib::AssocArray a;
+    pplib::Variant var(pplib::Array("one,two,three", ","));
+    ASSERT_TRUE(var.isArray());
+    a.set("raw_array", var);
+    EXPECT_EQ(a.count(false), (size_t)1);
+    EXPECT_EQ(a.count(true), (size_t)4);
+}
+
+TEST(AssocArrayTest, AddAssocArrayTypeMismatchVariantArray)
+{
+    // Fall 1: existing ist VariantArray, other ist String
+    pplib::AssocArray a1, b1;
+    a1.set("key/[]", "item1");
+    b1.set("key", "scalar");
+    a1.add(b1);
+    EXPECT_TRUE(a1.get("key").isString());
+    EXPECT_EQ(a1.getString("key"), "scalar");
+
+    // Fall 2: existing ist String, other ist VariantArray
+    pplib::AssocArray a2, b2;
+    a2.set("key", "scalar");
+    b2.set("key/[]", "item1");
+    a2.add(b2);
+    EXPECT_TRUE(a2.get("key").isVariantArray());
+    EXPECT_EQ(a2.getString("key/0"), "item1");
+}
+
+TEST(AssocArrayTest, ExportBinaryKeyTooLongThrows)
+{
+    pplib::AssocArray a;
+    pplib::String longKey;
+    longKey.repeat('x', 65536);
+    a.set(longKey, "value");
+    EXPECT_THROW(a.binarySize(), pplib::ExportBufferToSmallException);
+}
+
+TEST(AssocArrayTest, ExportBinaryBufferTooSmallThrows)
+{
+    pplib::AssocArray a;
+    a.set("key", "value");
+    char smallBuffer[5];
+    EXPECT_THROW(a.exportBinary(smallBuffer, sizeof(smallBuffer)), pplib::ExportBufferToSmallException);
+}
+
+TEST(AssocArrayTest, ExportBinaryReturningByteArray)
+{
+    pplib::AssocArray a;
+    a.set("key", "value");
+    pplib::ByteArray ba = a.exportBinary();
+    EXPECT_GT(ba.size(), (size_t)0);
+    pplib::AssocArray b;
+    b.importBinary(ba);
+    EXPECT_EQ(b.getString("key"), "value");
+}
+
+TEST(AssocArrayTest, ListWithUnknownDataType)
+{
+    pplib::AssocArray a;
+    a.set("unknown", pplib::Variant());
+    // stdout capture
+    testing::internal::CaptureStdout();
+    EXPECT_NO_THROW(a.list());
+    pplib::String output = testing::internal::GetCapturedStdout();
+    ASSERT_TRUE(output.contains("unknown=UnknownDataType Id=0"));
 }
 
 } // namespace

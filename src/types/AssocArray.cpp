@@ -88,7 +88,7 @@ void AssocArray::clear()
 Variant* AssocArray::findInVariantArray(VariantArray& var_array, const String& key) const
 {
     Array tok(key, "/", 0, true);
-    if (tok.count() == 0) throw InvalidKeyException(key);
+    if (tok.count() == 0) throw InvalidKeyException(key); // LCOV_EXCL_LINE   - Kann nie erreicht werden
     String firstkey = tok.shift();
     String rest = tok.implode("/");
 
@@ -191,7 +191,7 @@ Variant* AssocArray::createTree(const String& key)
 Variant* AssocArray::createVariantArrayTree(VariantArray& var_array, const String& key)
 {
     Array tok(key, "/", 0, true);
-    if (tok.count() == 0) throw InvalidKeyException(key);
+    if (tok.count() == 0) throw InvalidKeyException(key); // LCOV_EXCL_LINE   - Kann nie erreicht werden
     String firstkey = tok.shift();
     String rest = tok.implode("/");
 
@@ -844,13 +844,6 @@ static void printType(const Variant& v, const String& prefix)
         v.toAssocArray().list(prefix);
     } else if (v.isVariantArray()) {
         printVariantArray((const VariantArray&)v, prefix);
-        /*
-        } else if (v.isArray()) {
-            const Array& a = (const Array&)v;
-            for (size_t i = 0; i < a.size(); i++) {
-                PrintDebug("%s/Array(%zu)=%s\n", (const char*)prefix, i, (const char*)a[i]);
-            }
-                */
     } else if (v.isDateTime()) {
         PrintDebug("%s=DateTime(%s)\n", (const char*)prefix, (const char*)v.toDateTime().getISO8601withMsec());
     } else if (v.isDate()) {
