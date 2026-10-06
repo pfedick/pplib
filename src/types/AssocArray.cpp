@@ -314,11 +314,11 @@ void AssocArray::add(const AssocArray& other)
         Variant* existing = findInternal(it->first);
         if (existing && existing->isAssocArray() && it->second->isAssocArray()) {
             existing->toAssocArray().add(it->second->toAssocArray());
-
+        } else if (existing && existing->isVariantArray() && it->second->isVariantArray()) {
+            existing->toVariantArray().extend((it->second->toVariantArray()));
         } else
             set(it->first, *it->second);
     }
-    // if (other.maxint > maxint) maxint = other.maxint; // Tritt nicht ein, da set den maxint bereits aktualisiert
 }
 
 const Variant& AssocArray::get(const String& key, Variant::DataType type) const
@@ -409,14 +409,20 @@ const AssocArray& AssocArray::getAssocArray(const String& key) const
     return get(key, Variant::DataType::TYPE_ASSOCARRAY).toAssocArray();
 }
 
-Array& AssocArray::getArray(const String& key)
+VariantArray& AssocArray::getVariantArray(const String& key)
 {
-    return get(key, Variant::DataType::TYPE_ARRAY).toArray();
+    return get(key, Variant::DataType::TYPE_VARIANTARRAY).toVariantArray();
 }
 
-const Array& AssocArray::getArray(const String& key) const
+const VariantArray& AssocArray::getVariantArray(const String& key) const
 {
-    return get(key, Variant::DataType::TYPE_ARRAY).toArray();
+    return get(key, Variant::DataType::TYPE_VARIANTARRAY).toVariantArray();
+}
+
+Array AssocArray::getArray(const String& key)
+{
+    VariantArray& va = get(key, Variant::DataType::TYPE_VARIANTARRAY).toVariantArray();
+    return va.toArray();
 }
 
 void AssocArray::erase(const String& key)
@@ -838,11 +844,13 @@ static void printType(const Variant& v, const String& prefix)
         v.toAssocArray().list(prefix);
     } else if (v.isVariantArray()) {
         printVariantArray((const VariantArray&)v, prefix);
-    } else if (v.isArray()) {
-        const Array& a = (const Array&)v;
-        for (size_t i = 0; i < a.size(); i++) {
-            PrintDebug("%s/Array(%zu)=%s\n", (const char*)prefix, i, (const char*)a[i]);
-        }
+        /*
+        } else if (v.isArray()) {
+            const Array& a = (const Array&)v;
+            for (size_t i = 0; i < a.size(); i++) {
+                PrintDebug("%s/Array(%zu)=%s\n", (const char*)prefix, i, (const char*)a[i]);
+            }
+                */
     } else if (v.isDateTime()) {
         PrintDebug("%s=DateTime(%s)\n", (const char*)prefix, (const char*)v.toDateTime().getISO8601withMsec());
     } else if (v.isDate()) {

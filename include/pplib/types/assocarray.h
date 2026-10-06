@@ -52,7 +52,7 @@ class Variant;
  * veschiedene Datentypen enthalten. Gegenwärtig werden folgende Datentypen unterstützt:
  * - String
  * - WideString
- * - Array
+ * - Array (wird in ein VariantArray umgewandelt)
  * - ByteArray
  * - ByteArrayPtr
  * - AssocArray
@@ -61,6 +61,11 @@ class Variant;
  * - Time
  * - TimeDelta
  * - TimeZone
+ * - VariantArray
+ * - Integer mit 64 Bit
+ * - Double
+ * - Boolean
+ * - Null (kein Wert)
  *
  * Die Schlüssel werden sortiert in einer std::map verwaltet, so dass auch bei
  * sehr großen Arrays eine schnelle Verarbeitung gewährleistet ist. Gross-/Kleinschreibung wird
@@ -282,7 +287,6 @@ public:
      * werden die bisherigen Werte überschrieben.
      * @param[in] a Das zu kopierende AssocArray
      *
-     * @exception std::bad_alloc: Kein Speicher mehr frei
      * @exception OutOfMemoryException: Kein Speicher mehr frei
      * @exception InvalidKeyException: Ungültiger Schlüssel
      */
@@ -295,9 +299,19 @@ public:
     {
         createTree(key)->set(value);
     }
+
+    /** @brief Setzt ein Array als Wert
+     *
+     * @param[in] key Der Schlüssel, unter dem das Array gespeichert werden soll
+     * @param[in] value Das zu speichernde Array
+     * @note Das Array wird intern als VariantArray gespeichert.
+     *
+     * @exception OutOfMemoryException: Kein Speicher mehr frei
+     * @exception InvalidKeyException: Ungültiger Schlüssel
+     */
     inline void set(const String& key, const Array& value)
     {
-        createTree(key)->set(value);
+        set(key, std::move(VariantArray(value)));
     }
     inline void set(const String& key, const ByteArray& value)
     {
@@ -389,7 +403,7 @@ public:
     }
     inline void set(const String& key, Array&& value)
     {
-        createTree(key)->set(std::move(value));
+        set(key, std::move(VariantArray(value)));
     }
     inline void set(const String& key, ByteArray&& value)
     {
@@ -683,15 +697,66 @@ public:
 
     /** @brief AssocArray auslesen
      *
+     * Gibt eine Referenz auf ein verschachteltes AssocArray zurück, das dem Schlüssel \p key zugeordnet ist.
+     *
      * @param key Name des Schlüssels
-     * @return Referenz auf einen String mit dem Wert des Schlüssels
+     * @return Referenz auf das verschachtelte AssocArray
+     * @exception InvalidKeyException: Ungültiger Schlüssel
+     * @exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+     * @exception TypeConversionException: Der Wert des Schlüssels ist kein AssocArray
+     */
+    AssocArray& getAssocArray(const String& key);
+
+    /** @brief AssocArray auslesen (konstant)
+     *
+     * Gibt eine Referenz auf ein verschachteltes AssocArray zurück, das dem Schlüssel \p key zugeordnet ist.
+     *
+     * @param key Name des Schlüssels
+     * @return Referenz auf das verschachtelte AssocArray
+     * @exception InvalidKeyException: Ungültiger Schlüssel
+     * @exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+     * @exception TypeConversionException: Der Wert des Schlüssels ist kein AssocArray
+     */
+    const AssocArray& getAssocArray(const String& key) const;
+
+    /** @brief VariantArray auslesen
+     *
+     * Gibt eine Referenz auf ein verschachteltes VariantArray zurück, das dem Schlüssel \p key zugeordnet ist.
+     *
+     * @param key Name des Schlüssels
+     * @return Referenz auf das verschachtelte VariantArray
+     * @exception InvalidKeyException: Ungültiger Schlüssel
+     * @exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+     * @exception TypeConversionException: Der Wert des Schlüssels ist kein VariantArray
+     */
+    VariantArray& getVariantArray(const String& key);
+
+    /** @brief VariantArray auslesen (const)
+     *
+     * Gibt eine Referenz auf ein verschachteltes VariantArray zurück, das dem Schlüssel \p key zugeordnet ist.
+     *
+     * @param key Name des Schlüssels
+     * @return Referenz auf das verschachtelte VariantArray
+     * @exception InvalidKeyException: Ungültiger Schlüssel
+     * @exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+     * @exception TypeConversionException: Der Wert des Schlüssels ist kein VariantArray
+     */
+    const VariantArray& getVariantArray(const String& key) const;
+
+    /** @brief Array auslesen
+     * Diese Funktion liefert den Wert des Schlüssels \p key als Array zurück, sofern
+     * er existiert und einen VariantArray enthält. Andernfalls wird eine Ausnahme geworfen.
+     *
+     * AssocArray unterstützt Array nicht mehr direkt, sondern wandelt es intern in einen VariantArray um.
+     * Daher wird beim Auslesen mit dieser Methode ein Array als Kopie zurückgegeben und nicht als Referenz.
+     * Ferner funktioniert diese Methode auch nur dann, wenn der Inhalt des Arrays auch nur aus Strings besteht.
+     *
+     * @param key Name des Schlüssels
+     * @return Array mit den Werten des Schlüssels
      * @exception InvalidKeyException: Ungültiger Schlüssel
      * @exception KeyNotFoundException: Schlüssel wurde nicht gefunden
      */
-    AssocArray& getAssocArray(const String& key);
-    const AssocArray& getAssocArray(const String& key) const;
-    Array& getArray(const String& key);
-    const Array& getArray(const String& key) const;
+    Array getArray(const String& key);
 
     /** @brief Schlüssel vorhanden
      *

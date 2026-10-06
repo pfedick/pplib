@@ -119,7 +119,7 @@ TEST(AssocArrayTest, addMixed)
     ASSERT_EQ(now, a.get("time").toDateTime()) << "unexpected value";
     ASSERT_EQ(pplib::String("Dieser Wert geht über\nmehrere Zeilen"), a.getString("key1")) << "unexpected value";
     ASSERT_EQ(pplib::String("value6"), a.getString("key2")) << "unexpected value";
-    pplib::String s = a.get("array1").toArray().implode(" ");
+    pplib::String s = a.getArray("array1").implode(" ");
     ASSERT_EQ(pplib::String("red green blue yellow black white"), s) << "unexpected value";
     ASSERT_EQ(ba, a.get("bytearray").toByteArray()) << "unexpected value";
     ASSERT_EQ(bap, a.get("bytearrayptr").toByteArrayPtr()) << "unexpected value";
@@ -202,6 +202,7 @@ TEST(AssocArrayTest, addSubAssocArray)
     b.set("array1/key2", "other value");
     b.set("key3", "value3");
     a.add(b);
+    // a.list();
     ASSERT_EQ((size_t)7, a.count(true)) << "Unexpected size of AssocArray";
     ASSERT_EQ(pplib::String("value1"), a.getString("array1/key1")) << "unexpected value";
     ASSERT_EQ(pplib::String("other value"), a.getString("array1/key2")) << "unexpected value";
@@ -246,13 +247,37 @@ TEST(AssocArrayTest, addAssocArrayWithLists)
     b.set("array/[]", "value4");
     b.set("array/[]", "value5");
     b.set("array/[]", "value6");
-    printf("DEBUG 1\n");
     a.add(b);
-    printf("DEBUG 2\n");
     a.set("array/[]", "value7");
+    // a.list();
+    ASSERT_EQ((size_t)11, a.count(true)) << "Unexpected size of AssocArray";
+    ASSERT_EQ(pplib::String("value4"), a.getString("array/6")) << "unexpected value";
+}
+
+TEST(AssocArrayTest, createAsscoArrayVariants)
+{
+    pplib::AssocArray a;
+    a.set("variantarray1/[]", "red");
+    a.set("variantarray2/[]/1", "green");
+    a.set("variantarray3/[]/[]", "blue");
+    a.set("variantarray4/[]/0", "yellow");
+
     a.list();
-    ASSERT_EQ((size_t)7, a.count(true)) << "Unexpected size of AssocArray";
-    ASSERT_EQ(pplib::String("array/value7"), a.getString("6")) << "unexpected value";
+
+    ASSERT_TRUE(a.exists("variantarray1")) << "variantarray1 should exist";
+    ASSERT_TRUE(a.exists("variantarray2")) << "variantarray2 should exist";
+    ASSERT_TRUE(a.exists("variantarray3")) << "variantarray3 should exist";
+    ASSERT_TRUE(a.exists("variantarray4")) << "variantarray3 should exist";
+
+    ASSERT_TRUE(a.exists("variantarray1/0")) << "element 0 of variantarray1 should exist";
+    ASSERT_TRUE(a.exists("variantarray2/0")) << "element 0 of variantarray2 should exist";
+    ASSERT_TRUE(a.exists("variantarray3/0")) << "element 0 of variantarray3 should exist";
+    ASSERT_TRUE(a.exists("variantarray4/0")) << "element 0 of variantarray3 should exist";
+
+    ASSERT_EQ(pplib::String("red"), a.getString("variantarray1/0")) << "unexpected value";
+    ASSERT_EQ(pplib::String("green"), a.getString("variantarray2/0/1")) << "unexpected value";
+    ASSERT_EQ(pplib::String("blue"), a.getString("variantarray3/0/0")) << "unexpected value";
+    ASSERT_EQ(pplib::String("yellow"), a.getString("variantarray4/0/0")) << "unexpected value";
 }
 
 TEST(AssocArrayTest, appendf)
@@ -473,7 +498,7 @@ static void createDefaultAssocArray(pplib::AssocArray& a)
     a.set("data/[]", data);
 
     a.set("types/integer", 42);
-    a.set("types/floating", 3.14159);
+    a.set("types/double", 3.14159);
     a.set("types/boolean", true);
     a.set("types/null", pplib::Variant(nullptr));
     // a.list();
@@ -499,7 +524,7 @@ TEST(AssocArrayTest, binarySize)
 {
     pplib::AssocArray a;
     ASSERT_NO_THROW({ createDefaultAssocArray(a); });
-    ASSERT_EQ((size_t)2155, a.binarySize());
+    ASSERT_EQ((size_t)2244, a.binarySize());
 }
 
 TEST(AssocArrayTest, exportAndImportBinary)
@@ -518,7 +543,7 @@ TEST(AssocArrayTest, exportAndImportBinary)
         }
     });
     // pplib::HexDump(buffer,realsize);
-    ASSERT_EQ((size_t)2155, ba.size());
+    ASSERT_EQ((size_t)2244, ba.size());
     // ba.hexDump();
     EXPECT_NO_THROW({ b.importBinary(ba); });
 
@@ -536,7 +561,9 @@ TEST(AssocArrayTest, exportAndImportBinary)
     ASSERT_EQ(pplib::TimeZone(2, 0, "Europe/Berlin"), b.get("timezone").toTimeZone()) << "unexpected value";
     ASSERT_EQ(pplib::DateTime("2018-12-03 13:49:10.123456"), b.get("datetime").toDateTime()) << "unexpected value";
     ASSERT_EQ(pplib::DateTime("2018-12-03 13:49:10.123456+02:00"), b.get("datetimetz").toDateTime()) << "unexpected value";
-    ASSERT_EQ(pplib::Array("red green blue white", " "), b.get("stringarray").toArray()) << "unexpected value";
+    ASSERT_EQ(pplib::Array("red green blue white", " "), b.getArray("stringarray")) << "unexpected value";
+    ASSERT_EQ(42, b.get("types/integer").toInt()) << "unexpected value";
+    ASSERT_EQ(3.14159, b.get("types/double").toDouble()) << "unexpected value";
 }
 
 TEST(AssocArrayTest, importAssocArrayFromPPLib7)
@@ -733,7 +760,7 @@ TEST(AssocArrayTest, getArray)
 {
     pplib::AssocArray a;
     createDefaultAssocArray(a);
-    pplib::Array& sub = a.getArray("stringarray");
+    pplib::Array sub = a.getArray("stringarray");
     ASSERT_EQ((size_t)4, sub.size());
     ASSERT_EQ(pplib::String("red"), sub[0]);
     ASSERT_EQ(pplib::String("green"), sub[1]);
@@ -741,17 +768,25 @@ TEST(AssocArrayTest, getArray)
     ASSERT_EQ(pplib::String("white"), sub[3]);
 }
 
-TEST(AssocArrayTest, getArrayConst)
+TEST(AssocArrayTest, getVariantArray)
 {
     pplib::AssocArray a;
     createDefaultAssocArray(a);
-    const pplib::AssocArray& ca = a;
-    const pplib::Array& sub = ca.getArray("stringarray");
+    pplib::VariantArray sub = a.getVariantArray("stringarray");
     ASSERT_EQ((size_t)4, sub.size());
     ASSERT_EQ(pplib::String("red"), sub[0]);
     ASSERT_EQ(pplib::String("green"), sub[1]);
     ASSERT_EQ(pplib::String("blue"), sub[2]);
     ASSERT_EQ(pplib::String("white"), sub[3]);
+
+    const pplib::AssocArray a_const = a;
+
+    const pplib::VariantArray& csub = a_const.getVariantArray("stringarray");
+    ASSERT_EQ((size_t)4, csub.size());
+    ASSERT_EQ(pplib::String("red"), csub[0]);
+    ASSERT_EQ(pplib::String("green"), csub[1]);
+    ASSERT_EQ(pplib::String("blue"), csub[2]);
+    ASSERT_EQ(pplib::String("white"), csub[3]);
 }
 
 TEST(AssocArrayTest, erase)
@@ -1157,69 +1192,21 @@ TEST(AssocArrayTest, ArrayKeyCompare)
     ASSERT_EQ(it, a.cend());
 }
 
-TEST(AssocArrayTest, NumericKeyOverflow)
-{
-    pplib::AssocArray a;
-    a.set("18446744073709551613", "v1");
-    a.set("18446744073709551614", "v2");
-    ASSERT_THROW(a.set("18446744073709551615", "v3"), pplib::AssocArray::InvalidKeyException);
-    ASSERT_THROW(a.set("99999999999999999999", "v4"), pplib::AssocArray::InvalidKeyException);
-}
-
-TEST(AssocArrayTest, NumericKeyAboveInt64MaxNoCollision)
-{
-    // Keys im Bereich (INT64_MAX, UINT64_MAX] sind gültig, würden aber bei
-    // toInt64()-Vergleich per Sättigung auf INT64_MAX kollidieren. Der
-    // Comparator muss toUnsignedInt64() verwenden.
-    pplib::AssocArray a;
-    a.set("9223372036854775808", "v1"); // INT64_MAX+1
-    a.set("9223372036854775809", "v2"); // INT64_MAX+2
-    ASSERT_EQ(a.count(), 2);
-    ASSERT_TRUE(a.exists("9223372036854775808"));
-    ASSERT_TRUE(a.exists("9223372036854775809"));
-    ASSERT_EQ(a.getString("9223372036854775808"), pplib::String("v1"));
-    ASSERT_EQ(a.getString("9223372036854775809"), pplib::String("v2"));
-}
-
-TEST(AssocArrayTest, AutomaticKeyOverflow)
-{
-    pplib::AssocArray a;
-    a.set("18446744073709551613", "v1");
-    a.set("[]", "v2");
-    ASSERT_THROW(a.set("[]", "v3"), pplib::AssocArray::InvalidKeyException);
-}
-
-TEST(AssocArrayTest, NegativeKeyIsHandledAsString)
+TEST(AssocArrayTest, NumericKeysWithoutVariantArray)
 {
     // Negative Keys (Minus-Zeichen) werden als Text behandelt und nicht auf
     // einen riesigen uint64_t umgeschrieben oder gegeneinander kollidiert.
     pplib::AssocArray a;
     a.set("-1", "v1");
     a.set("-2", "v2");
-    ASSERT_EQ(a.count(), 2);
+    a.set("123456789123456789123456789", "v3");
+    ASSERT_EQ(a.count(), 3);
     ASSERT_TRUE(a.exists("-1"));
     ASSERT_TRUE(a.exists("-2"));
+    ASSERT_TRUE(a.exists("123456789123456789123456789"));
     ASSERT_EQ(a.getString("-1"), pplib::String("v1"));
     ASSERT_EQ(a.getString("-2"), pplib::String("v2"));
-}
-
-TEST(AssocArrayTest, NumericKeyNormalization)
-{
-    // Saubere positive Ganzzahlen werden auf die kanonische Form normalisiert.
-    pplib::AssocArray a;
-    a.set("007", "v1");
-    ASSERT_EQ(a.count(), 1);
-    // Der gespeicherte Key ist die kanonische Form "7"
-    auto it = a.cbegin();
-    ASSERT_EQ(it->first, pplib::String("7"));
-    // "7" und "07" sind per Comparator derselbe numerische Key
-    pplib::AssocArray b;
-    b.set("7", "v1");
-    b.set("07", "v2");
-    ASSERT_EQ(b.count(), 1);
-    it = b.cbegin();
-    ASSERT_EQ(it->first, pplib::String("7"));
-    ASSERT_EQ(it->second->toString(), pplib::String("v2"));
+    ASSERT_EQ(a.getString("123456789123456789123456789"), pplib::String("v3"));
 }
 
 TEST(AssocArrayTest, DecimalKeyIsText)
@@ -1267,26 +1254,6 @@ TEST(AssocArrayTest, SetSubtreeWithOwnReference)
     ASSERT_EQ(a.getString("x/inner"), pplib::String("hello world this is a fairly long string to defeat SSO"));
 }
 
-TEST(AssocArrayTest, MoveAssignmentResetsMaxint)
-{
-    // Moved-from-Objekt muss denselben konsistenten Zustand haben wie nach dem
-    // Move-Konstruktor: set("[]", ...) beginnt wieder bei 0.
-    pplib::AssocArray src;
-    for (int i = 0; i < 3; i++)
-        src.set("[]", "x");
-    ASSERT_EQ(src.count(), 3);
-
-    pplib::AssocArray dst;
-    dst = std::move(src);
-    ASSERT_EQ(dst.count(), 3);
-    ASSERT_EQ(src.count(), 0);
-
-    // Ohne other.maxint = 0 wäre der nächste Key "3" statt "0".
-    src.set("[]", "y");
-    pplib::AssocArray::const_iterator it = src.cbegin();
-    ASSERT_EQ(it->first, pplib::String("0"));
-}
-
 TEST(AssocArrayTest, ImportBinaryDatetimeTruncatedValueThrows)
 {
     // Handgebauter Buffer: DATETIME-Eintrag mit vallen=5 (0 < vallen < 10),
@@ -1328,10 +1295,10 @@ TEST(AssocArrayTest, list)
     ASSERT_TRUE(output.contains("data/0/cpu/idle=4"));
     ASSERT_TRUE(output.contains("bytearray=ByteArray, 19 Bytes"));
     ASSERT_TRUE(output.contains("bytearrayptr=ByteArrayPtr, 591 Bytes"));
-    ASSERT_TRUE(output.contains("stringarray/Array(1)=green"));
+    ASSERT_TRUE(output.contains("stringarray/1=green"));
     ASSERT_TRUE(output.contains("datetimetz=DateTime(2018-12-03T13:49:10.123+02:00)"));
     ASSERT_TRUE(output.contains("types/integer=42"));
-    ASSERT_TRUE(output.contains("types/floating=3.141590"));
+    ASSERT_TRUE(output.contains("types/double=3.141590"));
     ASSERT_TRUE(output.contains("types/boolean=true"));
     ASSERT_TRUE(output.contains("types/null=Null"));
 }

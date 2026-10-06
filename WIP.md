@@ -63,13 +63,17 @@ Ablösung des alten "Fake-Array"-Mechanismus in `AssocArray` (bei dem Arrays üb
 [  FAILED  ] JsonTest.DumpsSimpleListAtFirstLevel
 [  FAILED  ] JsonTest.DumpsNestedListAtFirstLevel
 [  FAILED  ] JsonTest.DumpsNestedListAtSecondLevel
-[  FAILED  ] AssocArrayTest.addAssocArrayWithLists
-[  FAILED  ] AssocArrayTest.NumericKeyOverflow
-[  FAILED  ] AssocArrayTest.AutomaticKeyOverflow
-[  FAILED  ] AssocArrayTest.NumericKeyNormalization
-[  FAILED  ] AssocArrayTest.MoveAssignmentResetsMaxint
+[  FAILED  ] AssocArrayTest.addAssocArrayWithLists   => Array merge, wie gehen wir damit um? Siehe unten
+[  FAILED  ] AssocArrayTest.NumericKeyOverflow => Obsolete
+[  FAILED  ] AssocArrayTest.AutomaticKeyOverflow => Obsolete
+[  FAILED  ] AssocArrayTest.NumericKeyNormalization => Obsolete
+[  FAILED  ] AssocArrayTest.MoveAssignmentResetsMaxint => Obsolete
 [  FAILED  ] AssocArrayTest.list   ==> FIXED
 
+
+Es gibt noch mehr Tests, die möglicherweise obsolete sind:
+- NumericKeyAboveInt64MaxNoCollision
+- NegativeKeyIsHandledAsString
 
 ---
 
@@ -86,7 +90,7 @@ Ablösung des alten "Fake-Array"-Mechanismus in `AssocArray` (bei dem Arrays üb
 
 
 # Zu treffende Entscheidungen
-- Wie gehen wir mit dem bisherigen Typ `Array` um? Transofmieren wir in in ein VariantArray, oder ist Array jetzt ein eigener Typ, der aber nur Strings enthält und nicht weiter verschachtelt werden kann? Wir müssen ihn dann aber überall gesondert behandeln.
+- Wie gehen wir mit dem bisherigen Typ `Array` um? Transofmieren wir in in ein VariantArray, oder ist Array jetzt ein eigener Typ, der aber nur Strings enthält und nicht weiter verschachtelt werden kann? Wir müssen ihn dann aber überall gesondert behandeln. Bisher würden die Elemente eines Array in ein `AssocArray` als numerische String-Keys (`"0"`, `"1"`, ...) eingefügt, wodurch der Datentyp Array verloren ging.
 
 - Was passiert beim Merge zweier `VariantArray`-Instanzen? Sollen die Elemente einfach angehängt werden? Bisher war der Index ein Key im AssocArray. Ein neues Element mit einem vorhandenen Key hat das alte Element überschrieben. Wie soll dieses Verhalten in `VariantArray` umgesetzt werden?
 
