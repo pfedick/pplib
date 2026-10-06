@@ -127,6 +127,14 @@ TEST(AssocArrayTest, addMixed)
     // a.list();
 }
 
+TEST(AssocArrayTest, keyNotFound)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    ASSERT_THROW(a.getString("nonexistent"), pplib::KeyNotFoundException);
+    ASSERT_THROW(a.getString("key1/unterkey"), pplib::KeyNotFoundException);
+}
+
 TEST(AssocArrayTest, append)
 {
     pplib::AssocArray a;
@@ -262,7 +270,7 @@ TEST(AssocArrayTest, createAsscoArrayVariants)
     a.set("variantarray3/[]/[]", "blue");
     a.set("variantarray4/[]/0", "yellow");
 
-    a.list();
+    // a.list();
 
     ASSERT_TRUE(a.exists("variantarray1")) << "variantarray1 should exist";
     ASSERT_TRUE(a.exists("variantarray2")) << "variantarray2 should exist";
@@ -278,6 +286,49 @@ TEST(AssocArrayTest, createAsscoArrayVariants)
     ASSERT_EQ(pplib::String("green"), a.getString("variantarray2/0/1")) << "unexpected value";
     ASSERT_EQ(pplib::String("blue"), a.getString("variantarray3/0/0")) << "unexpected value";
     ASSERT_EQ(pplib::String("yellow"), a.getString("variantarray4/0/0")) << "unexpected value";
+}
+
+TEST(AssocArrayTest, SetVariantArrayByIndex)
+{
+    pplib::AssocArray a;
+    // 1. VariantArray initial anlegen
+    a.set("list/[]", "item0");
+    a.set("list/[]", "item1");
+
+    // 2. Vorhandenen Index gezielt überschreiben (firstkey.isDigits, tok.count() == 0)
+    a.set("list/0", "updated0");
+    EXPECT_EQ(a.getString("list/0"), "updated0");
+    EXPECT_EQ(a.getString("list/1"), "item1");
+
+    // 3. Lücke füllen (index >= size)
+    a.set("list/4", "item4");
+    EXPECT_EQ(a.getVariantArray("list").size(), 5);
+    EXPECT_TRUE(a.get("list/2").isEmpty());
+    EXPECT_TRUE(a.get("list/3").isEmpty());
+    EXPECT_EQ(a.getString("list/4"), "item4");
+
+    // 4. Verschachteltes VariantArray an Index anhängen (tok[0] == "[]")
+    a.set("list/0/[]", "sub0");
+    EXPECT_TRUE(a.get("list/0").isVariantArray());
+    EXPECT_EQ(a.getString("list/0/0"), "sub0");
+
+    // 5. Verschachteltes AssocArray an Index setzen (tok[0] != "[]")
+    a.set("list/1/name", "Alice");
+    EXPECT_TRUE(a.get("list/1").isAssocArray());
+    EXPECT_EQ(a.getString("list/1/name"), "Alice");
+
+    // 6. Ungültiger String-Key auf existierendem VariantArray wirft InvalidKeyException
+    EXPECT_THROW(a.set("list/invalid_key", "fail"), pplib::AssocArray::InvalidKeyException);
+}
+
+TEST(AssocArrayTest, doubleSlashesGetIgnored)
+{
+    pplib::AssocArray a;
+    a.set("key1", "value1");
+    a.set("key2///blah", "value2");
+    ASSERT_EQ(a.getString("key1"), "value1");
+    ASSERT_EQ(a.getString("key2/blah"), "value2");
+    ASSERT_EQ(a.getString("key2////blah"), "value2");
 }
 
 TEST(AssocArrayTest, appendf)
@@ -787,6 +838,44 @@ TEST(AssocArrayTest, getVariantArray)
     ASSERT_EQ(pplib::String("green"), csub[1]);
     ASSERT_EQ(pplib::String("blue"), csub[2]);
     ASSERT_EQ(pplib::String("white"), csub[3]);
+}
+
+TEST(AssocArrayTest, getValueFromVariantArray)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+    a.set("recursivearray/[]/[]", "blah");
+    ASSERT_EQ(pplib::String("red"), a.getString("stringarray/0"));
+    ASSERT_EQ(pplib::String("green"), a.getString("stringarray/1"));
+    ASSERT_EQ(pplib::String("blue"), a.getString("stringarray/2"));
+    ASSERT_EQ(pplib::String("white"), a.getString("stringarray/3"));
+    ASSERT_EQ(pplib::String("blah"), a.getString("recursivearray/0/0"));
+
+    ASSERT_THROW(a.getString("stringarray/9999"), pplib::KeyNotFoundException);
+    ASSERT_THROW(a.getString("recursivearray/0/0/1"), pplib::KeyNotFoundException);
+    ASSERT_THROW(a.getString("recursivearray/0/0/blah"), pplib::KeyNotFoundException);
+}
+
+TEST(AssocArrayTest, getWithEmptyKeyThrows)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+    ASSERT_THROW(a.getString(""), pplib::AssocArray::InvalidKeyException);
+    ASSERT_THROW(a.getString("////"), pplib::AssocArray::InvalidKeyException);
+}
+
+TEST(AssocArrayTest, setWithEmptyKeyThrows)
+{
+    pplib::AssocArray a;
+    createDefaultAssocArray(a);
+    ASSERT_THROW(a.set("", pplib::String("value")), pplib::AssocArray::InvalidKeyException);
+    ASSERT_THROW(a.set("////", pplib::String("value")), pplib::AssocArray::InvalidKeyException);
+}
+
+TEST(AssocArrayTest, setVariantArrayOnRootLevelThrows)
+{
+    pplib::AssocArray a;
+    ASSERT_THROW(a.set("[]", pplib::VariantArray()), pplib::AssocArray::InvalidKeyException);
 }
 
 TEST(AssocArrayTest, erase)
@@ -1459,6 +1548,36 @@ TEST(AssocArrayTest, AutocreateVariantArray)
     EXPECT_EQ(a.get("user_list/1/uid").toInt64(), 67890);
     EXPECT_EQ(a.get("user_list/1/login").toString(), "anotheruser");
     EXPECT_EQ(a.get("user_list/1/name").toString(), "Another User");
+}
+
+TEST(AssocArrayTest, replaceStringByVariantArray)
+{
+    pplib::AssocArray a;
+    a.set("key", "initial string");
+
+    pplib::VariantArray va;
+    va.append(pplib::String("value1"));
+    va.append(pplib::String("value2"));
+
+    a.set("key", va);
+
+    EXPECT_EQ(a.get("key/0").toString(), "value1");
+    EXPECT_EQ(a.get("key/1").toString(), "value2");
+}
+
+TEST(AssocArrayTest, replaceAssocArrayByVariantArray)
+{
+    pplib::AssocArray a;
+    a.set("key1/key2", "initial string");
+
+    pplib::VariantArray va;
+    va.append(pplib::String("value1"));
+    va.append(pplib::String("value2"));
+
+    a.set("key1", va);
+
+    EXPECT_EQ(a.get("key1/0").toString(), "value1");
+    EXPECT_EQ(a.get("key1/1").toString(), "value2");
 }
 
 } // namespace

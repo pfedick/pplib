@@ -153,6 +153,8 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - WideString Klasse refakturiert und geprüft
 - DateTime Klasse refakturiert und geprüft
 - Neu: Date, Time, TimeZone, TimeDelta
+- Neu: VariantArray. Eine Array, welches Variants als Value verwendet wird. Jedes Element der Liste kann ein beliebiger Variant-Typ sein, einschließlich weiterer VariantArrays oder AssocArrays.
+- Variant-Klasse kennt jetzt auch Integer-Werte (64-Bit), Double, Boolean und einen NULL-Wert.
 
 ### Drawable
 Die Implementierung der DRAWABLE_FUNCTIONS muss überarbeitet werden. Sie erstreckt sich über mehrere Dateien und unterstützt eigentlich nur ein 32-Bit-Format. Es wäre besser, wenn wir pro Format eine Datei mit der vollständigen Implementierung hätten. Die Verwendung von Assembler verkompliziert das ganze zusätzlich und ist für so simple-Methoden wie PutPixel eigentlich nicht notwendig.

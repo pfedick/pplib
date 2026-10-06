@@ -726,6 +726,17 @@ public:
         return (this->t == type);
     }
 
+    /** @brief Prüft, ob der Variant uninitialisiert ist (leer=empty)
+     *
+     * Prüft, ob der Variant noch uninitialisiert ist, also keinen Datentyp enthält.
+     *
+     * @return Liefert \c true zurück, wenn der Variant uninitialisiert ist, sonst \c false.
+     */
+    inline bool isEmpty() const
+    {
+        return t == TYPE_UNKNOWN;
+    }
+
     /** @brief Prüft, ob es sich um den Datentyp String handelt
      *
      * Prüft, ob es sich um den Datentyp String handelt
