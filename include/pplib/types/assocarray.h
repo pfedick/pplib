@@ -756,7 +756,7 @@ public:
      * @exception InvalidKeyException: Ungültiger Schlüssel
      * @exception KeyNotFoundException: Schlüssel wurde nicht gefunden
      */
-    Array getArray(const String& key);
+    Array getArray(const String& key) const;
 
     /** @brief Schlüssel vorhanden
      *

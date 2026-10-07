@@ -367,6 +367,7 @@ bool AssocArray::getBoolean(const String& key, bool default_value) const
 {
     Variant* node = findInternal(key);
     if (!node) return default_value;
+    if (node->isBool()) return node->toBool();
     if (node->isString()) return node->toString().isTrue();
     if (node->isWideString()) return node->toWideString().isTrue();
     return default_value;
@@ -376,6 +377,7 @@ int AssocArray::getInt(const String& key, int default_value) const
 {
     Variant* node = findInternal(key);
     if (!node) return default_value;
+    if (node->isInt64()) return node->toInt64();
     if (node->isString()) return node->toString().toInt();
     if (node->isWideString()) return node->toWideString().toInt();
     return default_value;
@@ -385,6 +387,7 @@ int64_t AssocArray::getInt64t(const String& key, int64_t default_value) const
 {
     Variant* node = findInternal(key);
     if (!node) return default_value;
+    if (node->isInt64()) return node->toInt64();
     if (node->isString()) return node->toString().toInt64();
     if (node->isWideString()) return node->toWideString().toInt64();
     return default_value;
@@ -394,6 +397,7 @@ bool AssocArray::isTrue(const String& key) const
 {
     Variant* node = findInternal(key);
     if (!node) return false;
+    if (node->isBool()) return node->toBool();
     if (node->isString()) return node->toString().isTrue();
     if (node->isWideString()) return node->toWideString().isTrue();
     return false;
@@ -419,9 +423,9 @@ const VariantArray& AssocArray::getVariantArray(const String& key) const
     return get(key, Variant::DataType::TYPE_VARIANTARRAY).toVariantArray();
 }
 
-Array AssocArray::getArray(const String& key)
+Array AssocArray::getArray(const String& key) const
 {
-    VariantArray& va = get(key, Variant::DataType::TYPE_VARIANTARRAY).toVariantArray();
+    const VariantArray& va = get(key, Variant::DataType::TYPE_VARIANTARRAY).toVariantArray();
     return va.toArray();
 }
 
