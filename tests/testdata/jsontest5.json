@@ -1,0 +1,35 @@
+{
+    "integer": 12345,
+    "string": "hello world",
+    "boolean_true": true,
+    "boolean_false": false,
+    "null": null,
+    "double": 3.14159,
+    "subkey": {
+        "key1": "value1",
+        "key2": "value2",
+        "subarray": [
+            {
+                "key10": "value10",
+                "integer": 111
+            }
+        ]
+    },
+    "string_array": [
+        "red",
+        "green",
+        "blue",
+        "white"
+    ],
+    "array": [
+        {
+            "name": "patrick",
+            "uid": 1001
+        },
+        {
+            "name": "nick",
+            "uid": 1002
+        },
+        12345
+    ]
+}

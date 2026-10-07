@@ -360,14 +360,13 @@ TEST_F(JsonTest, DumpsWithIndentation)
     data.set("key2/[]", int64_t(1));
     data.set("key2/[]", int64_t(2));
     pplib::String str = pplib::Json::dumps(data, 4);
-    pplib::String expected =
-        "{\n"
-        "    \"key1\": \"value1\",\n"
-        "    \"key2\": [\n"
-        "        1,\n"
-        "        2\n"
-        "    ]\n"
-        "}\n";
+    pplib::String expected = "{\n"
+                             "    \"key1\": \"value1\",\n"
+                             "    \"key2\": [\n"
+                             "        1,\n"
+                             "        2\n"
+                             "    ]\n"
+                             "}\n";
     ASSERT_EQ(expected, str);
 }
 
@@ -375,15 +374,14 @@ TEST_F(JsonTest, PrettyPrint)
 {
     pplib::String json = "{\"a\":1,\"b\":[true,false,null]}";
     pplib::String pp = pplib::Json::pp(json, 2);
-    pplib::String expected =
-        "{\n"
-        "  \"a\": 1,\n"
-        "  \"b\": [\n"
-        "    true,\n"
-        "    false,\n"
-        "    null\n"
-        "  ]\n"
-        "}\n";
+    pplib::String expected = "{\n"
+                             "  \"a\": 1,\n"
+                             "  \"b\": [\n"
+                             "    true,\n"
+                             "    false,\n"
+                             "    null\n"
+                             "  ]\n"
+                             "}\n";
     ASSERT_EQ(expected, pp);
 }
 
@@ -417,6 +415,116 @@ TEST_F(JsonTest, StringControlCharacterEscaping)
     pplib::Variant loaded = pplib::Json::loads(dumped);
     ASSERT_TRUE(loaded.isVariantArray());
     EXPECT_EQ(loaded.toVariantArray()[0].toString(), "line1\nline2\ttab\bback\fform\rreturn\"quote\\slash");
+}
+
+TEST_F(JsonTest, readJsonTest5)
+{
+    pplib::File file("testdata/jsontest5.json");
+    pplib::Variant data = pplib::Json::load(file);
+    ASSERT_TRUE(data.isAssocArray());
+    const pplib::AssocArray& a = data.toAssocArray();
+    ASSERT_EQ(12345, a.getInt("integer"));
+    ASSERT_EQ(pplib::String("hello world"), a.getString("string"));
+    ASSERT_TRUE(a.get("boolean_true").toBool());
+    ASSERT_FALSE(a.get("boolean_false").toBool());
+    ASSERT_TRUE(a.get("null").isNull());
+    ASSERT_FALSE(a.exists("non_existent_key"));
+    ASSERT_TRUE(a.get("double").isDouble());
+    ASSERT_EQ(3.14159, a.get("double").toDouble());
+    ASSERT_TRUE(a.get("array").isVariantArray());
+    const pplib::VariantArray& arr = a.getVariantArray("array");
+    ASSERT_EQ(3, arr.size());
+    ASSERT_TRUE(arr[0].isAssocArray());
+    ASSERT_TRUE(arr[1].isAssocArray());
+    ASSERT_TRUE(arr[2].isInt64());
+    ASSERT_EQ(pplib::String("patrick"), a.getString("array/0/name"));
+    ASSERT_EQ(1001, a.getInt("array/0/uid"));
+    ASSERT_EQ(pplib::String("nick"), a.getString("array/1/name"));
+    ASSERT_EQ(1002, a.getInt("array/1/uid"));
+    ASSERT_EQ(12345, arr[2].toInt64());
+    ASSERT_EQ(pplib::String("value10"), a.getString("subkey/subarray/0/key10"));
+    pplib::Array string_array = a.getArray("string_array");
+    ASSERT_EQ(4, string_array.size());
+    ASSERT_EQ(pplib::String("red"), string_array[0]);
+    ASSERT_EQ(pplib::String("green"), string_array[1]);
+    ASSERT_EQ(pplib::String("blue"), string_array[2]);
+    ASSERT_EQ(pplib::String("white"), string_array[3]);
+}
+
+TEST_F(JsonTest, readBeatportDataOneLineer)
+{
+    // Example test for reading Beatport data in one line
+    pplib::File file("testdata/data_one_line.json");
+    pplib::Variant data = pplib::Json::load(file);
+    ASSERT_TRUE(data.isAssocArray());
+    const pplib::AssocArray& a = data.toAssocArray();
+    ASSERT_TRUE(a.exists("props/pageProps/track"));
+    const pplib::AssocArray& track = a.getAssocArray("props/pageProps/track");
+    // track.list();
+    ASSERT_TRUE(track.exists("track_name"));
+    ASSERT_EQ(pplib::String("Firefly "), track.getString("track_name"));
+    ASSERT_EQ(pplib::String("Extended Mix"), track.getString("mix_name"));
+    ASSERT_EQ(pplib::String("D Minor"), track.getString("key"));
+    ASSERT_TRUE(track.get("bpm").isInt64());
+    ASSERT_EQ(140, track.getInt64t("bpm"));
+    ASSERT_EQ(179000, track.getInt("sample_start_ms"));
+    ASSERT_TRUE(track.exists("artists"));
+    ASSERT_TRUE(track.get("artists").isVariantArray());
+    const pplib::VariantArray& artists = track.getVariantArray("artists");
+    ASSERT_EQ(1, artists.size());
+    const pplib::AssocArray& artist = artists[0].toAssocArray();
+    ASSERT_TRUE(artist.exists("name"));
+    ASSERT_EQ(pplib::String("Rob Binner"), artist.getString("name"));
+    ASSERT_TRUE(artist.exists("id"));
+    ASSERT_EQ(595934, artist.getInt("id"));
+    ASSERT_EQ(pplib::String("Extrema Global Music"), track.getString("label/name"));
+    ASSERT_EQ(pplib::String("Trance (Main Floor)"), track.getString("genre/name"));
+    ASSERT_EQ(pplib::String("Uplifting Trance"), track.getString("genre/sub_genre/name"));
+}
+
+TEST_F(JsonTest, readBeatportDataIndented)
+{
+    // Example test for reading Beatport data in one line
+    pplib::File file("testdata/data_indented.json");
+    pplib::Variant data = pplib::Json::load(file);
+    ASSERT_TRUE(data.isAssocArray());
+    const pplib::AssocArray& a = data.toAssocArray();
+    ASSERT_TRUE(a.exists("props/pageProps/track"));
+    const pplib::AssocArray& track = a.getAssocArray("props/pageProps/track");
+    // track.list();
+    ASSERT_TRUE(track.exists("track_name"));
+    ASSERT_EQ(pplib::String("Firefly "), track.getString("track_name"));
+    ASSERT_EQ(pplib::String("Extended Mix"), track.getString("mix_name"));
+    ASSERT_EQ(pplib::String("D Minor"), track.getString("key"));
+    ASSERT_TRUE(track.get("bpm").isInt64());
+    ASSERT_EQ(140, track.getInt64t("bpm"));
+    ASSERT_EQ(179000, track.getInt("sample_start_ms"));
+    ASSERT_TRUE(track.exists("artists"));
+    ASSERT_TRUE(track.get("artists").isVariantArray());
+    const pplib::VariantArray& artists = track.getVariantArray("artists");
+    ASSERT_EQ(1, artists.size());
+    const pplib::AssocArray& artist = artists[0].toAssocArray();
+    ASSERT_TRUE(artist.exists("name"));
+    ASSERT_EQ(pplib::String("Rob Binner"), artist.getString("name"));
+    ASSERT_TRUE(artist.exists("id"));
+    ASSERT_EQ(595934, artist.getInt("id"));
+    ASSERT_EQ(pplib::String("Extrema Global Music"), track.getString("label/name"));
+    ASSERT_EQ(pplib::String("Trance (Main Floor)"), track.getString("genre/name"));
+    ASSERT_EQ(pplib::String("Uplifting Trance"), track.getString("genre/sub_genre/name"));
+}
+
+TEST_F(JsonTest, writeClassicArray)
+{
+    pplib::Array array("red,green,blue,white", ",");
+    pplib::Variant v(array);
+    pplib::String json = pplib::Json::dumps(v);
+    ASSERT_EQ(pplib::String("[\"red\",\"green\",\"blue\",\"white\"]"), json);
+
+    // Empty Array
+    pplib::Array emptyArray;
+    pplib::Variant emptyVariant(emptyArray);
+    pplib::String emptyJson = pplib::Json::dumps(emptyVariant);
+    ASSERT_EQ(pplib::String("[]"), emptyJson);
 }
 
 } // namespace
