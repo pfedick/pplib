@@ -39,6 +39,7 @@
 #include <pplib/types/variantarray.h>
 #include <pplib/types/assocarray.h>
 #include <pplib/types/array.h>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -83,7 +84,9 @@ static int nextNonWhitespace(pplib::FileObject& file)
                 skipToEOL(file);
                 continue;
             } else {
-                file.seek(-1, pplib::File::SEEKCUR);
+                if (c2 != EOF) {
+                    file.seek(-1, pplib::File::SEEKCUR);
+                }
                 return c;
             }
         }
@@ -104,6 +107,34 @@ static void readChars(pplib::FileObject& file, const char* chars)
     }
 }
 
+static void appendUtf8(pplib::String& str, uint32_t codePoint)
+{
+    if (codePoint >= 0xD800 && codePoint <= 0xDFFF) {
+        throw pplib::CharacterEncodingException("Lone surrogate 0x%04X in JSON string", codePoint);
+    }
+    if (codePoint < 0x80) {
+        str.append(static_cast<char>(codePoint));
+    } else if (codePoint < 0x800) {
+        char buf[2];
+        buf[0] = static_cast<char>(0xC0 | (codePoint >> 6));
+        buf[1] = static_cast<char>(0x80 | (codePoint & 0x3F));
+        str.append(buf, 2);
+    } else if (codePoint < 0x10000) {
+        char buf[3];
+        buf[0] = static_cast<char>(0xE0 | (codePoint >> 12));
+        buf[1] = static_cast<char>(0x80 | ((codePoint >> 6) & 0x3F));
+        buf[2] = static_cast<char>(0x80 | (codePoint & 0x3F));
+        str.append(buf, 3);
+    } else {
+        char buf[4];
+        buf[0] = static_cast<char>(0xF0 | (codePoint >> 18));
+        buf[1] = static_cast<char>(0x80 | ((codePoint >> 12) & 0x3F));
+        buf[2] = static_cast<char>(0x80 | ((codePoint >> 6) & 0x3F));
+        buf[3] = static_cast<char>(0x80 | (codePoint & 0x3F));
+        str.append(buf, 4);
+    }
+}
+
 static pplib::String getString(pplib::FileObject& file)
 {
     pplib::String str;
@@ -112,27 +143,31 @@ static pplib::String getString(pplib::FileObject& file)
         c = file.fgetc();
         if (c == '\\') {
             c = file.fgetc();
+            if (c == EOF) throw pplib::UnexpectedEndOfDataException();
             if (c == 'n')
-                str.append("\n");
+                str.append('\n');
             else if (c == 'r')
-                str.append("\r");
+                str.append('\r');
             else if (c == 't')
-                str.append("\t");
+                str.append('\t');
             else if (c == 'b')
-                str.append("\b");
+                str.append('\b');
             else if (c == 'f')
-                str.append("\f");
+                str.append('\f');
             else if (c == '"')
-                str.append("\"");
+                str.append('"');
             else if (c == '\\')
-                str.append("\\");
+                str.append('\\');
             else if (c == '/')
-                str.append("/");
+                str.append('/');
             else if (c == 'u') {
                 char hex[5];
                 for (int i = 0; i < 4; i++) {
                     int h = file.fgetc();
                     if (h == EOF) throw pplib::UnexpectedEndOfDataException();
+                    if (!isxdigit(h)) {
+                        throw pplib::InvalidEscapeSequenceException("Invalid hex digit in \\u escape sequence: >>%c<<", h);
+                    }
                     hex[i] = (char)h;
                 }
                 hex[4] = 0;
@@ -141,12 +176,17 @@ static pplib::String getString(pplib::FileObject& file)
                 // Handle surrogate pairs
                 if (codePoint >= 0xD800 && codePoint <= 0xDBFF) {
                     int nextC = file.fgetc();
+                    if (nextC == EOF) throw pplib::UnexpectedEndOfDataException();
                     if (nextC == '\\') {
                         int nextNextC = file.fgetc();
+                        if (nextNextC == EOF) throw pplib::UnexpectedEndOfDataException();
                         if (nextNextC == 'u') {
                             for (int i = 0; i < 4; i++) {
                                 int h = file.fgetc();
                                 if (h == EOF) throw pplib::UnexpectedEndOfDataException();
+                                if (!isxdigit(h)) {
+                                    throw pplib::InvalidEscapeSequenceException("Invalid hex digit in \\u escape sequence: >>%c<<", h);
+                                }
                                 hex[i] = (char)h;
                             }
                             hex[4] = 0;
@@ -154,19 +194,20 @@ static pplib::String getString(pplib::FileObject& file)
                             if (lowSurrogate >= 0xDC00 && lowSurrogate <= 0xDFFF) {
                                 codePoint = 0x10000 + ((codePoint - 0xD800) << 10) + (lowSurrogate - 0xDC00);
                             } else {
-                                file.seek(-6, pplib::File::SEEKCUR);
+                                throw pplib::CharacterEncodingException(
+                                    "Expected low surrogate (0xDC00-0xDFFF) after high surrogate 0x%04X, got 0x%04X", codePoint,
+                                    lowSurrogate);
                             }
                         } else {
-                            file.seek(-2, pplib::File::SEEKCUR);
+                            throw pplib::CharacterEncodingException("Expected '\\u' low surrogate after high surrogate 0x%04X", codePoint);
                         }
                     } else {
-                        file.seek(-1, pplib::File::SEEKCUR);
+                        throw pplib::CharacterEncodingException("Expected low surrogate escape sequence after high surrogate 0x%04X",
+                                                                codePoint);
                     }
                 }
 
-                pplib::WideString ws;
-                ws.append((wchar_t)codePoint);
-                str.append(ws.toUtf8().toString());
+                appendUtf8(str, codePoint);
             } else
                 throw InvalidEscapeSequenceException("\\%c", c);
         } else if (c == '"') {
@@ -174,7 +215,7 @@ static pplib::String getString(pplib::FileObject& file)
         } else if (c == EOF) {
             break;
         } else {
-            str.append(c);
+            str.append(static_cast<char>(c));
         }
     }
     throw pplib::UnexpectedEndOfDataException();
@@ -183,20 +224,23 @@ static pplib::String getString(pplib::FileObject& file)
 static pplib::Variant getNumber(pplib::FileObject& file, int firstChar)
 {
     pplib::String str;
-    str.append(firstChar);
+    str.append(static_cast<char>(firstChar));
     bool isFloat = false;
     while (!file.eof()) {
         int c = file.fgetc();
         if (c == EOF) break;
         if (c == '.' || c == 'e' || c == 'E') {
             isFloat = true;
-            str.append(c);
+            str.append(static_cast<char>(c));
         } else if (c == '-' || c == '+' || (c >= '0' && c <= '9')) {
-            str.append(c);
+            str.append(static_cast<char>(c));
         } else {
             file.seek(-1, pplib::File::SEEKCUR);
             break;
         }
+    }
+    if (str == "-") {
+        throw pplib::UnexpectedCharacterException("Invalid number >>-<< at position %lld", file.tell());
     }
     if (isFloat) {
         return pplib::Variant(str.toDouble());
@@ -272,7 +316,8 @@ static pplib::AssocArray parseDict(pplib::FileObject& file)
 
         c = nextNonWhitespace(file);
         if (c != ':') {
-            throw pplib::UnexpectedCharacterException("Expected ':' after key >>%s<< at position %lld, got >>%c<<", (const char*)key, file.tell(), c);
+            throw pplib::UnexpectedCharacterException("Expected ':' after key >>%s<< at position %lld, got >>%c<<", (const char*)key,
+                                                      file.tell(), c);
         }
 
         c = nextNonWhitespace(file);
@@ -311,10 +356,15 @@ static void expectEof(pplib::FileObject& file)
 
 void Json::load(pplib::Variant& data, pplib::FileObject& file)
 {
-    int c = nextNonWhitespace(file);
-    if (c == EOF) throw pplib::UnexpectedEndOfDataException();
-    data = parseValue(file, c);
-    expectEof(file);
+    try {
+        int c = nextNonWhitespace(file);
+        if (c == EOF) throw pplib::UnexpectedEndOfDataException();
+        data = parseValue(file, c);
+        expectEof(file);
+    }
+    catch (const pplib::EndOfFileException&) {
+        throw pplib::UnexpectedEndOfDataException();
+    }
 }
 
 void Json::loads(pplib::Variant& data, const pplib::String& json)
@@ -382,13 +432,27 @@ static String escapeString(const String& s)
     for (size_t i = 0; i < len; ++i) {
         char c = p[i];
         switch (c) {
-        case '"': ret.append("\\\""); break;
-        case '\\': ret.append("\\\\"); break;
-        case '\b': ret.append("\\b"); break;
-        case '\f': ret.append("\\f"); break;
-        case '\n': ret.append("\\n"); break;
-        case '\r': ret.append("\\r"); break;
-        case '\t': ret.append("\\t"); break;
+        case '"':
+            ret.append("\\\"");
+            break;
+        case '\\':
+            ret.append("\\\\");
+            break;
+        case '\b':
+            ret.append("\\b");
+            break;
+        case '\f':
+            ret.append("\\f");
+            break;
+        case '\n':
+            ret.append("\\n");
+            break;
+        case '\r':
+            ret.append("\\r");
+            break;
+        case '\t':
+            ret.append("\\t");
+            break;
         default:
             if (static_cast<unsigned char>(c) < 32) {
                 char ubuf[8];
@@ -542,13 +606,12 @@ void Json::dumps(pplib::String& json, const pplib::Variant& data, int indent)
     pplib::MemFile file((void*)NULL, 0, true);
     Json::dump(file, data, indent);
     size_t size = file.tell();
-    unsigned char* str = (unsigned char*)malloc(size + 1);
-    if (!str) throw OutOfMemoryException();
+    ByteArray ba;
+    unsigned char* str = (unsigned char*)ba.malloc(size + 1);
     file.rewind();
     file.fread(str, size, 1);
     str[size] = 0;
     json.set((const char*)str, size);
-    free(str);
 }
 
 pplib::String Json::dumps(const pplib::Variant& data, int indent)
@@ -573,13 +636,12 @@ void Json::dumps(pplib::String& json, const pplib::AssocArray& data, int indent)
     pplib::MemFile file((void*)NULL, 0, true);
     Json::dump(file, data, indent);
     size_t size = file.tell();
-    unsigned char* str = (unsigned char*)malloc(size + 1);
-    if (!str) throw OutOfMemoryException();
+    ByteArray ba;
+    unsigned char* str = (unsigned char*)ba.malloc(size + 1);
     file.rewind();
     file.fread(str, size, 1);
     str[size] = 0;
     json.set((const char*)str, size);
-    free(str);
 }
 
 pplib::String Json::dumps(const pplib::AssocArray& data, int indent)
@@ -604,13 +666,13 @@ void Json::dumps(pplib::String& json, const pplib::VariantArray& data, int inden
     pplib::MemFile file((void*)NULL, 0, true);
     Json::dump(file, data, indent);
     size_t size = file.tell();
-    unsigned char* str = (unsigned char*)malloc(size + 1);
+    ByteArray ba;
+    unsigned char* str = (unsigned char*)ba.malloc(size + 1);
     if (!str) throw OutOfMemoryException();
     file.rewind();
     file.fread(str, size, 1);
     str[size] = 0;
     json.set((const char*)str, size);
-    free(str);
 }
 
 pplib::String Json::dumps(const pplib::VariantArray& data, int indent)

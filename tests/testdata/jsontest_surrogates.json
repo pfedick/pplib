@@ -1,0 +1,8 @@
+{
+    "emoji_direct": "😀",
+    "emoji_surrogate": "\uD83D\uDE00",
+    "gclef_surrogate": "\uD834\uDD1E",
+    "mixed": "Hello \uD83D\uDE03 World!",
+    "ascii_escape": "\u0041",
+    "bmp_escape": "\u00E4\u20AC"
+}

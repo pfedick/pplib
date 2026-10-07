@@ -32,8 +32,10 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
+#include <limits>
 #include <pplib/core/json.h>
 #include <pplib/core/file.h>
+#include <pplib/core/memfile.h>
 #include <pplib/exceptions.h>
 #include <pplib/types/array.h>
 #include <pplib/core/functions.h>
@@ -525,6 +527,254 @@ TEST_F(JsonTest, writeClassicArray)
     pplib::Variant emptyVariant(emptyArray);
     pplib::String emptyJson = pplib::Json::dumps(emptyVariant);
     ASSERT_EQ(pplib::String("[]"), emptyJson);
+}
+
+TEST_F(JsonTest, SurrogatePairsFromFile)
+{
+    pplib::File file("testdata/jsontest_surrogates.json");
+    pplib::Variant data = pplib::Json::load(file);
+    ASSERT_TRUE(data.isAssocArray());
+    const pplib::AssocArray& a = data.toAssocArray();
+    EXPECT_EQ(pplib::String("😀"), a.getString("emoji_direct"));
+    EXPECT_EQ(pplib::String("😀"), a.getString("emoji_surrogate"));
+    EXPECT_EQ(a.getString("emoji_direct"), a.getString("emoji_surrogate"));
+    EXPECT_EQ(pplib::String("𝄞"), a.getString("gclef_surrogate"));
+    EXPECT_EQ(pplib::String("Hello 😃 World!"), a.getString("mixed"));
+    EXPECT_EQ(pplib::String("A"), a.getString("ascii_escape"));
+    EXPECT_EQ(pplib::String("ä€"), a.getString("bmp_escape"));
+}
+
+TEST_F(JsonTest, SurrogatePairsRoundtripAndEdgeCases)
+{
+    // Valid surrogate pairs via loads
+    pplib::Variant v1 = pplib::Json::loads("\"\\uD83D\\uDE00\"");
+    EXPECT_EQ(pplib::String("😀"), v1.toString());
+
+    pplib::Variant v2 = pplib::Json::loads("\"\\uD834\\uDD1E\"");
+    EXPECT_EQ(pplib::String("𝄞"), v2.toString());
+
+    // High surrogate followed by non-escape character
+    EXPECT_THROW(pplib::Json::loads("\"\\uD83Dabc\""), pplib::CharacterEncodingException);
+
+    // High surrogate followed by escape other than \u
+    EXPECT_THROW(pplib::Json::loads("\"\\uD83D\\n\""), pplib::CharacterEncodingException);
+
+    // High surrogate followed by invalid low surrogate (e.g. BMP char)
+    EXPECT_THROW(pplib::Json::loads("\"\\uD83D\\u0041\""), pplib::CharacterEncodingException);
+
+    // High surrogate followed by another high surrogate
+    EXPECT_THROW(pplib::Json::loads("\"\\uD83D\\uD83D\""), pplib::CharacterEncodingException);
+
+    // Lone high surrogate at end of string
+    EXPECT_THROW(pplib::Json::loads("\"\\uD83D\""), pplib::CharacterEncodingException);
+
+    // Lone low surrogate
+    EXPECT_THROW(pplib::Json::loads("\"\\uDE00\""), pplib::CharacterEncodingException);
+
+    // Invalid hex digit in first \u
+    EXPECT_THROW(pplib::Json::loads("\"\\u12G4\""), pplib::InvalidEscapeSequenceException);
+
+    // Invalid hex digit in low surrogate \u
+    EXPECT_THROW(pplib::Json::loads("\"\\uD83D\\uDE0G\""), pplib::InvalidEscapeSequenceException);
+
+    // Incomplete escape sequence at EOF
+    EXPECT_THROW(pplib::Json::loads("\"\\u12"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Json::loads("\"\\uD83D\\u12"), pplib::UnexpectedEndOfDataException);
+}
+
+TEST_F(JsonTest, CommentsParsing)
+{
+    pplib::File file("testdata/jsontest_comments.json");
+    pplib::Variant data = pplib::Json::load(file);
+    ASSERT_TRUE(data.isAssocArray());
+    const pplib::AssocArray& a = data.toAssocArray();
+    EXPECT_EQ(pplib::String("Patrick"), a.getString("name"));
+    ASSERT_TRUE(a.get("items").isVariantArray());
+    const pplib::VariantArray& items = a.getVariantArray("items");
+    ASSERT_EQ(3, items.size());
+    EXPECT_EQ(1, items[0].toInt64());
+    EXPECT_EQ(2, items[1].toInt64());
+    EXPECT_EQ(3, items[2].toInt64());
+
+    // Single slash not followed by slash throws UnexpectedCharacterException
+    EXPECT_THROW(pplib::Json::loads("{\"a\": /}"), pplib::UnexpectedCharacterException);
+}
+
+TEST_F(JsonTest, EscapeSequencesAndControlChars)
+{
+    // Escaped forward slash
+    pplib::Variant v = pplib::Json::loads("\"http:\\/\\/example.com\\/path\"");
+    EXPECT_EQ(pplib::String("http://example.com/path"), v.toString());
+
+    // Invalid escape sequences
+    EXPECT_THROW(pplib::Json::loads("\"\\a\""), pplib::InvalidEscapeSequenceException);
+    EXPECT_THROW(pplib::Json::loads("\"\\x\""), pplib::InvalidEscapeSequenceException);
+    EXPECT_THROW(pplib::Json::loads("\"\\1\""), pplib::InvalidEscapeSequenceException);
+
+    // Backslash at EOF
+    EXPECT_THROW(pplib::Json::loads("\"abc\\"), pplib::UnexpectedEndOfDataException);
+
+    // Unclosed string at EOF (from memory and from file)
+    EXPECT_THROW(pplib::Json::loads("\"unterminated"), pplib::UnexpectedEndOfDataException);
+    {
+        pplib::File f("testdata/jsontest_unterminated.json");
+        EXPECT_THROW(pplib::Json::load(f), pplib::UnexpectedEndOfDataException);
+    }
+
+    // Control characters < 32 escaping in dumps and re-parsing
+    pplib::VariantArray arr;
+    arr.add(pplib::String("\x01\x02\x1f"));
+    pplib::String dumped = pplib::Json::dumps(arr);
+    EXPECT_EQ(pplib::String("[\"\\u0001\\u0002\\u001f\"]"), dumped);
+    pplib::Variant reloaded = pplib::Json::loads(dumped);
+    ASSERT_TRUE(reloaded.isVariantArray());
+    EXPECT_EQ(pplib::String("\x01\x02\x1f"), reloaded.toVariantArray()[0].toString());
+}
+
+TEST_F(JsonTest, NumberFormatsAndEdgeCases)
+{
+    // Scientific notation
+    EXPECT_DOUBLE_EQ(1e5, pplib::Json::loads("1e5").toDouble());
+    EXPECT_DOUBLE_EQ(1E5, pplib::Json::loads("1E5").toDouble());
+    EXPECT_DOUBLE_EQ(1e-3, pplib::Json::loads("1e-3").toDouble());
+    EXPECT_DOUBLE_EQ(2.5e+2, pplib::Json::loads("2.5e+2").toDouble());
+    EXPECT_DOUBLE_EQ(-2.5e-1, pplib::Json::loads("-2.5e-1").toDouble());
+
+    // Negative integers and zero
+    EXPECT_EQ(-42, pplib::Json::loads("-42").toInt64());
+    EXPECT_EQ(-123456789LL, pplib::Json::loads("-123456789").toInt64());
+    EXPECT_EQ(0, pplib::Json::loads("-0").toInt64());
+
+    // Invalid numbers
+    EXPECT_THROW(pplib::Json::loads("-"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("[-]"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("{\"a\": -}"), pplib::UnexpectedCharacterException);
+}
+
+TEST_F(JsonTest, LiteralsAndSyntaxEdgeCases)
+{
+    // Incomplete literals at EOF
+    EXPECT_THROW(pplib::Json::loads("tru"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Json::loads("fal"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Json::loads("nul"), pplib::UnexpectedEndOfDataException);
+
+    // Invalid literal characters
+    EXPECT_THROW(pplib::Json::loads("tree"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("fool"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("none"), pplib::UnexpectedCharacterException);
+
+    // Empty object key maps to "_empty_"
+    pplib::AssocArray assoc;
+    pplib::Json::loads(assoc, "{\"\": \"empty_key_val\"}");
+    EXPECT_EQ(pplib::String("empty_key_val"), assoc.getString("_empty_"));
+
+    // Missing comma in array
+    EXPECT_THROW(pplib::Json::loads("[1 2]"), pplib::UnexpectedCharacterException);
+
+    // Missing comma in object
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1 \"b\": 2}"), pplib::UnexpectedCharacterException);
+
+    // Missing colon in object
+    EXPECT_THROW(pplib::Json::loads("{\"a\" 1}"), pplib::UnexpectedCharacterException);
+
+    // Non-string key in object
+    EXPECT_THROW(pplib::Json::loads("{123: 1}"), pplib::UnexpectedCharacterException);
+
+    // Unclosed structures
+    EXPECT_THROW(pplib::Json::loads("[1, 2"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Json::loads("[1, "), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1, "), pplib::UnexpectedEndOfDataException);
+
+    // Empty structures
+    EXPECT_EQ((size_t)0, pplib::Json::loads("[]").toVariantArray().size());
+    EXPECT_EQ((size_t)0, pplib::Json::loads("{}").toAssocArray().size());
+
+    // Empty input
+    EXPECT_THROW(pplib::Json::loads(""), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Json::loads("   "), pplib::UnexpectedEndOfDataException);
+}
+
+TEST_F(JsonTest, APIOverloadsAndSerializers)
+{
+    // Json::load(AssocArray&, FileObject&)
+    pplib::String jsonDict = "{\"key\": \"val\"}";
+    pplib::MemFile mfDict((void*)jsonDict.getPtr(), jsonDict.size());
+    pplib::AssocArray assocLoaded;
+    pplib::Json::load(assocLoaded, mfDict);
+    EXPECT_EQ(pplib::String("val"), assocLoaded.getString("key"));
+
+    // Json::load(AssocArray&, FileObject&) with wrong root type
+    pplib::String jsonArray = "[1, 2, 3]";
+    pplib::MemFile mfArray((void*)jsonArray.getPtr(), jsonArray.size());
+    EXPECT_THROW(pplib::Json::load(assocLoaded, mfArray), pplib::TypeConversionException);
+
+    // Json::load(VariantArray&, FileObject&)
+    pplib::MemFile mfArray2((void*)jsonArray.getPtr(), jsonArray.size());
+    pplib::VariantArray varrLoaded;
+    pplib::Json::load(varrLoaded, mfArray2);
+    ASSERT_EQ(3, varrLoaded.size());
+    EXPECT_EQ(1, varrLoaded[0].toInt64());
+
+    // Json::load(VariantArray&, FileObject&) with wrong root type
+    pplib::MemFile mfDict2((void*)jsonDict.getPtr(), jsonDict.size());
+    EXPECT_THROW(pplib::Json::load(varrLoaded, mfDict2), pplib::TypeConversionException);
+
+    // Json::loads(VariantArray&, const String&) with wrong root type
+    EXPECT_THROW(pplib::Json::loads(varrLoaded, jsonDict), pplib::TypeConversionException);
+
+    // Json::dump with FileObject for Variant, AssocArray and VariantArray
+    pplib::MemFile outMf;
+    pplib::Json::dump(outMf, assocLoaded, 2);
+    EXPECT_GT(outMf.size(), 0);
+
+    pplib::MemFile outMf2;
+    pplib::Json::dump(outMf2, varrLoaded, 2);
+    EXPECT_GT(outMf2.size(), 0);
+
+    pplib::MemFile outMf3;
+    pplib::Json::dump(outMf3, pplib::Variant(varrLoaded), 2);
+    EXPECT_GT(outMf3.size(), 0);
+
+    // Json::dumps overloads for VariantArray
+    pplib::String vaDumpsStr;
+    pplib::Json::dumps(vaDumpsStr, varrLoaded);
+    EXPECT_EQ(pplib::String("[1,2,3]"), vaDumpsStr);
+
+    pplib::String vaDumpsReturn = pplib::Json::dumps(varrLoaded);
+    EXPECT_EQ(pplib::String("[1,2,3]"), vaDumpsReturn);
+
+    // Empty VariantArray serialization
+    pplib::VariantArray emptyVa;
+    EXPECT_EQ(pplib::String("[]"), pplib::Json::dumps(emptyVa));
+
+    // Json::dumps overload returning String for AssocArray
+    pplib::String assocDumpsReturn = pplib::Json::dumps(assocLoaded);
+    EXPECT_EQ(pplib::String("{\"key\":\"val\"}"), assocDumpsReturn);
+
+    // Root primitive serialization via Json::dumps(const Variant&)
+    EXPECT_EQ(pplib::String("42"), pplib::Json::dumps(pplib::Variant(int64_t(42))));
+    EXPECT_EQ(pplib::String("\"test\""), pplib::Json::dumps(pplib::Variant("test")));
+    EXPECT_EQ(pplib::String("true"), pplib::Json::dumps(pplib::Variant(true)));
+    EXPECT_EQ(pplib::String("false"), pplib::Json::dumps(pplib::Variant(false)));
+    EXPECT_EQ(pplib::String("null"), pplib::Json::dumps(pplib::Variant(nullptr)));
+    EXPECT_EQ(pplib::String("3.14"), pplib::Json::dumps(pplib::Variant(3.14)));
+
+    // NaN and Infinity serialize as null
+    EXPECT_EQ(pplib::String("null"), pplib::Json::dumps(pplib::Variant(std::numeric_limits<double>::quiet_NaN())));
+    EXPECT_EQ(pplib::String("null"), pplib::Json::dumps(pplib::Variant(std::numeric_limits<double>::infinity())));
+    EXPECT_EQ(pplib::String("null"), pplib::Json::dumps(pplib::Variant(-std::numeric_limits<double>::infinity())));
+
+    // ByteArrayPtr serialization
+    const char rawData[] = "binary_data";
+    pplib::ByteArrayPtr bap((void*)rawData, sizeof(rawData) - 1);
+    pplib::Variant vBap(bap);
+    pplib::String expectedBap = "\"" + bap.toBase64() + "\"";
+    EXPECT_EQ(expectedBap, pplib::Json::dumps(vBap));
+
+    // Unsupported Variant type throws UnsupportedDataTypeException
+    pplib::Variant unk;
+    EXPECT_THROW(pplib::Json::dumps(unk), pplib::UnsupportedDataTypeException);
 }
 
 } // namespace

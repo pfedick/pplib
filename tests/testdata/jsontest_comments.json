@@ -1,0 +1,12 @@
+// Kopfkommentar vor dem Root-Objekt
+{
+    // Kommentar in Dict
+    "name": "Patrick", // Inline-Kommentar
+    "items": [
+        // Kommentar in Array
+        1,
+        2,
+        3 // Inline nach Element
+    ]
+}
+// Kommentar am Dateiende
