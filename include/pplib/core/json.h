@@ -32,6 +32,8 @@
 
 #include <pplib/types/string.h>
 #include <pplib/types/widestring.h>
+#include <pplib/types/variant.h>
+#include <pplib/types/variantarray.h>
 #include <pplib/types/assocarray.h>
 #include <pplib/core/fileobject.h>
 
@@ -40,31 +42,52 @@ namespace pplib
 /** @brief Hilfsklasse um JSON-Daten zu laden und zu speichern.
  *
  * Die Json-Klasse stellt statische Methoden zum Laden und Speichern von JSON-Daten
- * in und aus pplib::AssocArray-Objekten sowie zum Pretty-Printen von JSON-Strings bereit.
+ * in und aus pplib::Variant-Objekten (sowie AssocArray und VariantArray) sowie zum
+ * Pretty-Printen von JSON-Strings bereit.
  *
- * Die Json-Klasse unterstützt sowohl einfache als auch verschachtelte Arrays und Assoziativ-Arrays.
+ * Die Json-Klasse unterstützt sowohl Objekte als auch Arrays und Skalare auf Root-Ebene
+ * sowie beliebig tief verschachtelte Strukturen.
  *
  * @note ByteArray und ByteArrayPtr werden als Base64-codierte Strings exportiert. Beim Import
  * werden diese allerdings nicht wieder zu ByteArray oder ByteArrayPtr konvertiert, sondern
- * als Base64-codierte Strings behandelt. Die Funktion kann nicht wissen, ob ein String
- * ursprünglich ein ByteArray oder bereits ein Base64-codierter String war.
+ * als String behandelt.
  *
  * Ähnlich verhält es sich bei den Zeit-Objekten DateTime, Date, Time, TimeZone und TimeDelta. Auch diese
- * werden als String exportiert und als String wieder importiert.
+ * werden als ISO-8601-String exportiert und als String wieder importiert.
  */
 class Json
 {
 public:
+    // --- Parsen (Basis auf Variant) ---
+    static void loads(pplib::Variant& data, const pplib::String& json);
+    static void load(pplib::Variant& data, pplib::FileObject& file);
+    static pplib::Variant loads(const pplib::String& json);
+    static pplib::Variant load(pplib::FileObject& file);
+
+    // --- Parsen (Komfort für AssocArray und VariantArray) ---
     static void loads(pplib::AssocArray& data, const pplib::String& json);
     static void load(pplib::AssocArray& data, pplib::FileObject& file);
-    static pplib::AssocArray loads(const pplib::String& json);
-    static pplib::AssocArray load(pplib::FileObject& file);
+    static void loads(pplib::VariantArray& data, const pplib::String& json);
+    static void load(pplib::VariantArray& data, pplib::FileObject& file);
 
-    static void dumps(pplib::String& json, const pplib::AssocArray& data);
-    static void dump(pplib::FileObject& file, const pplib::AssocArray& data);
-    static pplib::String dumps(const pplib::AssocArray& data);
-    static pplib::String pp(const pplib::String& json, unsigned int indent = 4);
+    // --- Serialisieren (Basis auf Variant) ---
+    static void dumps(pplib::String& json, const pplib::Variant& data, int indent = -1);
+    static void dump(pplib::FileObject& file, const pplib::Variant& data, int indent = -1);
+    static pplib::String dumps(const pplib::Variant& data, int indent = -1);
+
+    // --- Serialisieren (Komfort für AssocArray und VariantArray) ---
+    static void dumps(pplib::String& json, const pplib::AssocArray& data, int indent = -1);
+    static void dump(pplib::FileObject& file, const pplib::AssocArray& data, int indent = -1);
+    static pplib::String dumps(const pplib::AssocArray& data, int indent = -1);
+
+    static void dumps(pplib::String& json, const pplib::VariantArray& data, int indent = -1);
+    static void dump(pplib::FileObject& file, const pplib::VariantArray& data, int indent = -1);
+    static pplib::String dumps(const pplib::VariantArray& data, int indent = -1);
+
+    // --- Pretty-Print ---
+    static pplib::String pp(const pplib::String& json, int indent = 4);
 };
+
 } // namespace pplib
 
 #endif /* PPLIB_CORE_JSON_H_ */
