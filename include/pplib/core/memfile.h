@@ -31,6 +31,7 @@
 #define PPLIB_CORE_MEMFILE_H_
 
 #include <pplib/core/fileobject.h>
+#include <pplib/types/bytearray.h>
 
 namespace pplib
 {
@@ -52,13 +53,14 @@ namespace pplib
 class MemFile : public FileObject
 {
 private:
+    ByteArray writebuffer;
     size_t mysize;
     size_t pos;
     size_t maxsize;
-    size_t buffersize;
+    // size_t buffersize;
     char* MemBase;
-    char* buffer;
     bool readonly;
+    bool is_open;
 
     void resizeBuffer(size_t size);
 
@@ -69,7 +71,7 @@ public:
      * der Speicherbereich initial 0 Byte gross ist. Beim ersten Schreibzugriff wird der notwendige
      * Speicher allokiert.
      */
-    MemFile();
+    MemFile() noexcept;
 
     /** @brief Konstruktor der Klasse mit Angabe eines Speicherbereichs
      *
@@ -142,9 +144,24 @@ public:
      * @param size Größe des Speicherbereichs
      * @see open: Datei wird nur zum Lesen geöffnet
      * @see setMaxSize: Legt die maximale Größe der Datei im Speicher fest (Default=unlimitiert)
+     * @attention Die Verwaltung des Speichers geht an die MemFile-Klasse über. Der Speicher darf nicht mehr
+     * von der Applikation verändert oder freigegeben werden!
      */
     void openReadWrite(void* adresse, size_t size);
-    char* adr(size_t adresse);
+
+    /** @brief Interne Adresse des Speicherbereichs
+     *
+     * Diese Funktion gibt einen Zeiger auf die interne Speicheradresse zurück. Sie kann verwendet werden,
+     * um direkt auf den Speicherbereich zuzugreifen, der von der MemFile-Klasse verwaltet wird.
+     *
+     * @param adresse Offset innerhalb des Speicherbereichs
+     * @return Zeiger auf die interne Speicheradresse ab dem angegebenen Offset
+     * @exception FileNotOpenException Wird geworfen, wenn die Datei nicht geöffnet ist.
+     * @exception OutOfBoundsException Wird geworfen, wenn der angegebene Offset außerhalb des Speicherbereichs liegt.
+     * @attention Der zurückgegebene Zeiger ist nur gültig, solange die Datei geöffnet ist und der interne Speicherbereich nicht verändert
+     * wird. Die Methode ist mit Vorsicht zu verwenden, da leicht über den gültigen Speicherbereich hinaus zugegriffen werden kann.
+     */
+    char* adr(size_t adresse = 0);
 
     /** @brief Maximale Dateigröße festlegen
      *
@@ -190,7 +207,10 @@ public:
     void flush() override;
     void sync() override;
     void truncate(uint64_t length) override;
-    bool isOpen() const override;
+    inline bool isOpen() const override
+    {
+        return is_open;
+    }
 
     /** @copybrief FileObject::lockShared
      *

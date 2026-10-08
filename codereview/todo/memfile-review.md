@@ -17,7 +17,7 @@ Mitgelesene Dateien:
 
 ## Bugs (kritisch)
 
-- [ ] **`MemFile::fgetc()` wirft `EndOfFileException` statt `EOF` zurückzugeben** (`src/core/MemFile.cpp:372`)
+- [✅] **`MemFile::fgetc()` wirft `EndOfFileException` statt `EOF` zurückzugeben** (`src/core/MemFile.cpp:372`)
   Der POSIX/C-Standard definiert `fgetc(FILE*)` so, dass am Dateiende `EOF` (`-1`) zurückgegeben wird. Auch die Schwesterklasse `File::fgetc()` gibt am Dateiende `EOF` zurück und wirft keine Exception:
   ```cpp
   int File::fgetc()
@@ -50,7 +50,9 @@ Mitgelesene Dateien:
   }
   ```
 
-- [ ] **`MemFile::fgetwc()` wirft `EndOfFileException` statt `(wchar_t)WEOF` zurückzugeben** (`src/core/MemFile.cpp:376-382`)
+  ==> FIXED
+
+- [✅] **`MemFile::fgetwc()` wirft `EndOfFileException` statt `(wchar_t)WEOF` zurückzugeben** (`src/core/MemFile.cpp:376-382`)
   Analog zu `fgetc`: Die POSIX-Funktion `fgetwc()` liefert am Dateiende `WEOF`. In `File::fgetwc()` wird am Dateiende `(wchar_t)WEOF` zurückgegeben.
   In `MemFile::fgetwc()` ruft die Implementierung `fread(buf, sizeof(wchar_t), 1)` auf:
   ```cpp
@@ -76,8 +78,9 @@ Mitgelesene Dateien:
       return ch;
   }
   ```
+  ==> FIXED
 
-- [ ] **`MemFile::fgets()` wirft `EndOfFileException` statt `nullptr` zurückzugeben** (`src/core/MemFile.cpp:287`)
+- [✅] **`MemFile::fgets()` wirft `EndOfFileException` statt `nullptr` zurückzugeben** (`src/core/MemFile.cpp:287`)
   POSIX `fgets()` und `File::fgets()` geben am Dateiende (wenn keine Zeichen mehr gelesen werden konnten) `NULL` zurück. `FileObject::fgets` dokumentiert dies ausdrücklich:
   `@return Bei Erfolg wird @p buffer zurückgegeben, bei Dateiende wird NULL zurückgegeben. Im Fehlerfall wird eine Exception geworfen.`
   In `MemFile::fgets` steht jedoch:
@@ -122,7 +125,9 @@ Mitgelesene Dateien:
   }
   ```
 
-- [ ] **`MemFile::fgetws()` wirft `EndOfFileException` & gerät in Endlosschleife bei unvollständigen Wide-Chars** (`src/core/MemFile.cpp:313, 315-328`)
+  ==> FIXED, ferner habe ich `isOpen()` jetzt als inline-Funktion implementiert.
+
+- [✅] **`MemFile::fgetws()` wirft `EndOfFileException` & gerät in Endlosschleife bei unvollständigen Wide-Chars** (`src/core/MemFile.cpp:313, 315-328`)
   `MemFile::fgetws()` hat zwei gravierende Fehler:
   1. **Exception statt `nullptr` am Dateiende:** Bei `pos >= mysize` wird `throw EndOfFileException();` ausgeführt, anstatt `nullptr` zurückzugeben (`File::fgetws` gibt `NULL` zurück). Dadurch bricht auch `FileObject::getws(WideString&, size_t)` mit einer Exception ab, statt wie spezifiziert `0` zurückzugeben.
   2. **Endlosschleife (Infinite Loop):** Wenn am Dateiende noch Rest-Bytes vorhanden sind, die für kein vollständiges `wchar_t` mehr ausreichen (`0 < (mysize - pos) < sizeof(wchar_t)`):
@@ -161,7 +166,9 @@ Mitgelesene Dateien:
   }
   ```
 
-- [ ] **`MemFile::fwrite()` gibt geschriebene Bytes statt Elemente zurück** (`src/core/MemFile.cpp:270-281`)
+  ==> FIXED
+
+- [✅] **`MemFile::fwrite()` gibt geschriebene Bytes statt Elemente zurück** (`src/core/MemFile.cpp:270-281`)
   Die Signatur in `FileObject` lautet:
   ```cpp
   virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb);
@@ -189,8 +196,9 @@ Mitgelesene Dateien:
   ```cpp
   return nmemb;
   ```
+  ==> FIXED
 
-- [ ] **Inkonsistenter `isOpen()`-Zustand und ungültige Exceptions bei Default-Konstruktion** (`src/core/MemFile.cpp:35-44, 173-176, 256, 369, 434`)
+- [✅] **Inkonsistenter `isOpen()`-Zustand und ungültige Exceptions bei Default-Konstruktion** (`src/core/MemFile.cpp:35-44, 173-176, 256, 369, 434`)
   1. Laut Dokumentation in `memfile.h:60`:
      `Durch Verwendung dieses Konstruktors wird die Klasse zum Lesen und Schreiben geöffnet, wobei der Speicherbereich initial 0 Byte gross ist.`
      Nach `MemFile f;` ist `MemBase == NULL` und `readonly == false`.
@@ -210,7 +218,7 @@ Mitgelesene Dateien:
 
 ## Bugs (mittel / Warnungen)
 
-- [ ] **Fehlende Bounds-Prüfung in `MemFile::adr(size_t adresse)` → Zeiger ins Nirvana** (`src/core/MemFile.cpp:393-399`)
+- [✅] **Fehlende Bounds-Prüfung in `MemFile::adr(size_t adresse)` → Zeiger ins Nirvana** (`src/core/MemFile.cpp:393-399`)
   ```cpp
   char* MemFile::adr(size_t adresse)
   {
@@ -231,8 +239,9 @@ Mitgelesene Dateien:
       return (MemBase + adresse);
   }
   ```
+  ==> FIXED
 
-- [ ] **Integer-Überlauf bei Puffer-Rundung in `resizeBuffer()`** (`src/core/MemFile.cpp:160`)
+- [✅] **Integer-Überlauf bei Puffer-Rundung in `resizeBuffer()`** (`src/core/MemFile.cpp:160`)
   ```cpp
   size_t newsize = (((size + 8191) >> 13) << 13);
   ```
@@ -241,8 +250,9 @@ Mitgelesene Dateien:
   ```cpp
   if (size > SIZE_MAX - 8191) throw OverflowException();
   ```
+  ==> FIXED
 
-- [ ] **Möglicher Additions-Überlauf in `fwrite()` bei `pos + bytes`** (`src/core/MemFile.cpp:276-277`)
+- [✅] **Möglicher Additions-Überlauf in `fwrite()` bei `pos + bytes`** (`src/core/MemFile.cpp:276-277`)
   `fwrite` prüft zwar Multiplikationsüberlauf bei `nmemb * size`, aber nicht:
   ```cpp
   size_t bytes = nmemb * size;
@@ -253,8 +263,9 @@ Mitgelesene Dateien:
   ```cpp
   if (bytes > SIZE_MAX - pos) throw OverflowException();
   ```
+  ==> FIXED
 
-- [ ] **32-Bit-Truncation und Überlauf-Risiko in `fputs()` und `fputws()`** (`src/core/MemFile.cpp:339, 349`)
+- [✅] **32-Bit-Truncation und Überlauf-Risiko in `fputs()` und `fputws()`** (`src/core/MemFile.cpp:339, 349`)
   In `fputs`:
   ```cpp
   fwrite((void*)str, 1, (uint32_t)strlen(str));
@@ -281,8 +292,9 @@ Mitgelesene Dateien:
       fwrite(str, sizeof(wchar_t), wcslen(str));
   }
   ```
+  ==> FIXED
 
-- [ ] **`MemFile::rewind()` ignoriert geschlossenen Zustand** (`src/core/MemFile.cpp:198-201`)
+- [✅] **`MemFile::rewind()` ignoriert geschlossenen Zustand** (`src/core/MemFile.cpp:198-201`)
   ```cpp
   void MemFile::rewind()
   {
@@ -297,8 +309,9 @@ Mitgelesene Dateien:
       seek(0);
   }
   ```
+  ==> FIXED
 
-- [ ] **Move-Konstruktor und Move-Zuweisung verlieren `filename()`** (`src/core/MemFile.cpp:63-111`)
+- [✅] **Move-Konstruktor und Move-Zuweisung verlieren `filename()`** (`src/core/MemFile.cpp:63-111`)
   Die Basisklasse `FileObject` verwaltet `MyFilename`. Im Gegensatz zu `File::File(File&& other)`:
   ```cpp
   setFilename(other.filename());
@@ -308,34 +321,41 @@ Mitgelesene Dateien:
   **Fix:**
   `setFilename(other.filename()); other.setFilename("");` in Move-Konstruktor und Move-Operator aufnehmen.
 
-- [ ] **32-Bit-Plattform-Truncation in `truncate(uint64_t length)`** (`src/core/MemFile.cpp:434-445`)
+  ==> FIXED
+
+- [✅] **32-Bit-Plattform-Truncation in `truncate(uint64_t length)`** (`src/core/MemFile.cpp:434-445`)
   Der Parameter `length` ist `uint64_t`. Auf 32-Bit-Systemen (wie Raspberry Pico / x86-32) ist `size_t` 32 Bit groß. Wenn `length > SIZE_MAX`, wird der Wert bei `size_t increase = length - mysize;` und `resizeBuffer(length)` unbemerkt auf 32 Bit abgeschnitten.
   **Fix:**
   ```cpp
   if (length > SIZE_MAX) throw OverflowException();
   ```
+  ==> FIXED
 
-- [ ] **Inkonsistente Exceptions bei Positionierung über das Dateiende hinaus** (`src/core/MemFile.cpp:208, 240`)
+- [✅] **Inkonsistente Exceptions bei Positionierung über das Dateiende hinaus** (`src/core/MemFile.cpp:208, 240`)
   - `seek(uint64_t position)`: wirft bei `position > mysize` eine `OverflowException`.
   - `seek(int64_t offset, SeekOrigin origin)`: wirft bei `newpos > mysize` eine `FileSeekException`.
   Da beide Methoden die gleiche fachliche Operation durchführen, sollte bei Überschreitung des Dateiendes einheitlich `FileSeekException` geworfen werden.
+  ==> FIXED
 
 ---
 
 ## Code Smells & Modernisierung (C++20, REFACTORING.md)
 
-- [ ] **Verwendung von `NULL` und `0` statt `nullptr`** (`src/core/MemFile.cpp`)
+- [✅] **Verwendung von `NULL` und `0` statt `nullptr`** (`src/core/MemFile.cpp`)
   In `MemFile.cpp` wird an zahlreichen Stellen noch C-artiges `NULL` bzw. `0` für Zeiger verwendet:
   - `buffer = NULL;`, `MemBase = NULL;` (Zeile 37, 40, 180, 186)
   - `if (buffer != 0)` (Zeile 184)
   - `if (ptr == NULL)` (Zeile 257, 272)
   Empfehlung: Konsequent durch C++11/C++20 `nullptr` ersetzen.
+  ==> FIXED
 
-- [ ] **C-Style Typecasts statt C++-Casts** (`src/core/MemFile.cpp`)
+- [❌] **C-Style Typecasts statt C++-Casts** (`src/core/MemFile.cpp`)
   Verwendung veralteter C-Casts wie `(char*)adresse`, `(char*)realloc(...)`, `(int64_t)pos`, `(void*)str`.
   Empfehlung: Durch `static_cast<char*>` bzw. `reinterpret_cast` ersetzen.
 
-- [ ] **Unnötiger Cast in `size()`** (`src/core/MemFile.cpp:195`)
+  ==> Ich habe nichts gegen C-Style-Casts. Bei neu-Implementierung achte ich darauf, würde es hier aber so lassen
+
+- [✅] **Unnötiger Cast in `size()`** (`src/core/MemFile.cpp:195`)
   ```cpp
   uint64_t MemFile::size() const
   {
@@ -345,7 +365,10 @@ Mitgelesene Dateien:
   `mysize` ist `size_t`. Der Zwischen-Cast nach `(int64_t)` ist redundant und birgt bei extrem großen Werten das Risiko von Signed Integer Overflows.
   Empfehlung: Direkt `return mysize;`.
 
-- [ ] **Konstruktor-Delegation für `MemFile(const ByteArrayPtr& memory)`** (`src/core/MemFile.cpp:52-61`)
+  ==> Das muss auf `uint64_t` geändert werden. FIXED
+
+- [✅] **Konstruktor-Delegation für `MemFile(const ByteArrayPtr& memory)`** (`src/core/MemFile.cpp:52-61`)
+  ==> FIXED
   Aktuell dupliziert dieser Konstruktor die Zuweisungen von `open()` manuell.
   Empfehlung: Delegierender Konstruktor an `open(memory)`:
   ```cpp
@@ -355,9 +378,12 @@ Mitgelesene Dateien:
       open(memory);
   }
   ```
+  ==> FIXED
 
-- [ ] **Interne Pufferverwaltung via `malloc`/`realloc`/`free`** (`src/core/MemFile.cpp:163, 185`)
+- [✅] **Interne Pufferverwaltung via `malloc`/`realloc`/`free`** (`src/core/MemFile.cpp:163, 185`)
   Historisch nutzt `MemFile` rohe C-Heap-Funktionen. Gemäß REFACTORING.md (Modernisierung) wäre die Kapselung in einen RAII-Container (z. B. `pplib::ByteArray` oder `std::vector<char>`) deutlich robuster gegen Memory Leaks und Heap Corruption.
+
+  ==> FIXED, verwende jetzt `pplib::ByteArray` für die interne Pufferverwaltung.
 
 ---
 
@@ -366,12 +392,15 @@ Mitgelesene Dateien:
 - [ ] **Fehlende Doxygen-Kommentare im Header `include/pplib/core/memfile.h` für virtuelle Overrides**
   Im Header `include/pplib/core/memfile.h` fehlen ab Zeile 163 für fast alle geerbten Funktionen Doxygen-Dokumentationen oder `@copydoc FileObject::<methode>`. Dadurch fehlen in IntelliSense und IDE-Hover Beschreibungen und Hinweistexte zu den Methoden von `MemFile`.
 
-- [ ] **Fehlende Dokumentation von `adr(size_t)`** (`include/pplib/core/memfile.h:145`)
+- [✅] **Fehlende Dokumentation von `adr(size_t)`** (`include/pplib/core/memfile.h:145`)
   Die Methode `char* adr(size_t adresse);` besitzt keinerlei Doxygen-Kommentar. Es sollte dokumentiert werden, was der Rückgabewert ist und welche Exceptions geworfen werden.
 
-- [ ] **Klarstellung der Ownership bei `open(..., writeable=true)` und `openReadWrite()`** (`include/pplib/core/memfile.h:116, 143`)
+  ==> FIXED
+
+- [✅] **Klarstellung der Ownership bei `open(..., writeable=true)` und `openReadWrite()`** (`include/pplib/core/memfile.h:116, 143`)
   `MemFile::open(void* adresse, size_t size, bool writeable = false)` besitzt einen `@attention`-Hinweis, dass der Speicher an `MemFile` übergeht (`free`/`realloc`). Bei `openReadWrite()` fehlt dieser `@attention`-Hinweis vollständig, obwohl es dieselbe Ownership-Übernahme durchführt.
 
+  ==> FIXED
 ---
 
 ## Befunde in Drittdateien
