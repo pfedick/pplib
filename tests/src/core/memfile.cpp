@@ -67,8 +67,8 @@ TEST_F(MemFileTest, SeekUint64)
     ASSERT_NO_THROW(f.seek((uint64_t)10));
     ASSERT_EQ((uint64_t)10, f.tell());
 
-    // Seeking past EOF throws OverflowException
-    ASSERT_THROW(f.seek((uint64_t)11), pplib::OverflowException);
+    // Seeking past EOF throws FileSeekException
+    ASSERT_THROW(f.seek((uint64_t)11), pplib::FileSeekException);
 }
 
 TEST_F(MemFileTest, SeekOriginSeekSet)
@@ -139,24 +139,24 @@ TEST_F(MemFileTest, SeekInvalidOrigin)
     ASSERT_THROW(f.seek(0, (pplib::FileObject::SeekOrigin)99), pplib::IllegalArgumentException);
 }
 
-TEST_F(MemFileTest, FgetcThrowsEndOfFileException)
+TEST_F(MemFileTest, FgetcReturnsEofOnEndOfFile)
 {
     const char data[] = "AB";
     pplib::MemFile f((void*)data, 2, false);
 
     ASSERT_EQ('A', f.fgetc());
     ASSERT_EQ('B', f.fgetc());
-    ASSERT_THROW(f.fgetc(), pplib::EndOfFileException);
+    ASSERT_EQ(EOF, f.fgetc());
 }
 
-TEST_F(MemFileTest, FgetwcThrowsEndOfFileException)
+TEST_F(MemFileTest, FgetwcReturnsWeofOnEndOfFile)
 {
     const wchar_t data[] = L"AB";
     pplib::MemFile f((void*)data, 2 * sizeof(wchar_t), false);
 
     ASSERT_EQ(L'A', f.fgetwc());
     ASSERT_EQ(L'B', f.fgetwc());
-    ASSERT_THROW(f.fgetwc(), pplib::EndOfFileException);
+    ASSERT_EQ(static_cast<wchar_t>(WEOF), f.fgetwc());
 }
 
 TEST_F(MemFileTest, FgetwsClampingAndIllegalArgument)
@@ -173,7 +173,7 @@ TEST_F(MemFileTest, FgetwsClampingAndIllegalArgument)
     ASSERT_NE(nullptr, f.fgetws(buf, 64));
     ASSERT_STREQ(L"World", buf);
 
-    ASSERT_THROW(f.fgetws(buf, 64), pplib::EndOfFileException);
+    ASSERT_EQ(nullptr, f.fgetws(buf, 64));
 }
 
 TEST_F(MemFileTest, MapAndMapRW)
@@ -215,7 +215,7 @@ TEST_F(MemFileTest, DynamicWriteAndClose)
 
     f.close();
     ASSERT_FALSE(f.isOpen());
-    ASSERT_EQ((uint64_t)0, f.size());
+    ASSERT_THROW(f.size(), pplib::FileNotOpenException);
 }
 
 TEST_F(MemFileTest, FreadPosixPartialRead)
@@ -325,7 +325,7 @@ TEST_F(MemFileTest, FgetsReadsLinesAndEof)
     ASSERT_NE(nullptr, f.fgets(buf, sizeof(buf)));
     EXPECT_STREQ("ThirdNoNewline", buf);
 
-    EXPECT_THROW(f.fgets(buf, sizeof(buf)), pplib::EndOfFileException);
+    EXPECT_EQ(nullptr, f.fgets(buf, sizeof(buf)));
 }
 
 TEST_F(MemFileTest, FputsAndFputws)
@@ -415,6 +415,9 @@ TEST_F(MemFileTest, ClosedFileThrowsFileNotOpenException)
     EXPECT_THROW(f.fputs("test"), pplib::FileNotOpenException);
     EXPECT_THROW(f.fputws(L"test"), pplib::FileNotOpenException);
     EXPECT_THROW(f.fwrite("test", 1, 4), pplib::FileNotOpenException);
+    EXPECT_THROW(f.size(), pplib::FileNotOpenException);
+    EXPECT_THROW(f.rewind(), pplib::FileNotOpenException);
+    EXPECT_THROW(f.truncate(0), pplib::FileNotOpenException);
 }
 
 TEST_F(MemFileTest, MoveConstructorAndAssignment)
@@ -429,7 +432,7 @@ TEST_F(MemFileTest, MoveConstructorAndAssignment)
     EXPECT_EQ(9u, f2.size());
     EXPECT_TRUE(f2.isOpen());
     EXPECT_FALSE(f1.isOpen());
-    EXPECT_EQ(0u, f1.size());
+    EXPECT_THROW(f1.size(), pplib::FileNotOpenException);
 
     char buf[10] = {0};
     f2.rewind();
@@ -442,6 +445,7 @@ TEST_F(MemFileTest, MoveConstructorAndAssignment)
     EXPECT_EQ(9u, f3.size());
     EXPECT_TRUE(f3.isOpen());
     EXPECT_FALSE(f2.isOpen());
+    EXPECT_THROW(f2.size(), pplib::FileNotOpenException);
 
     // Self-move assignment
     f3 = std::move(f3);
@@ -513,6 +517,63 @@ TEST_F(MemFileTest, ReadOnlyEnforcement)
     EXPECT_THROW(f.truncate(4), pplib::ReadOnlyException);
     EXPECT_THROW(f.fputc('x'), pplib::ReadOnlyException);
     EXPECT_THROW(f.fputwc(L'x'), pplib::ReadOnlyException);
+}
+
+TEST_F(MemFileTest, DefaultConstructorIsOpenAndEmpty)
+{
+    pplib::MemFile f;
+    EXPECT_TRUE(f.isOpen());
+    EXPECT_EQ(0u, f.size());
+    EXPECT_EQ(0u, f.tell());
+    EXPECT_TRUE(f.eof());
+    EXPECT_EQ(EOF, f.fgetc());
+    EXPECT_EQ(static_cast<wchar_t>(WEOF), f.fgetwc());
+    char buf[10];
+    EXPECT_EQ(nullptr, f.fgets(buf, sizeof(buf)));
+    wchar_t wbuf[10];
+    EXPECT_EQ(nullptr, f.fgetws(wbuf, 10));
+    EXPECT_THROW(f.fread(buf, 1, 1), pplib::EndOfFileException);
+}
+
+TEST_F(MemFileTest, FwriteReturnsNmembNotBytes)
+{
+    pplib::MemFile f;
+    const wchar_t wtext[] = L"Test";
+    size_t count = wcslen(wtext);
+    size_t written = f.fwrite(wtext, sizeof(wchar_t), count);
+    EXPECT_EQ(count, written);
+    EXPECT_EQ(count * sizeof(wchar_t), f.size());
+}
+
+TEST_F(MemFileTest, AdrOutOfBoundsThrows)
+{
+    const char text[] = "Testing";
+    pplib::MemFile f((void*)text, 7, false);
+    EXPECT_NO_THROW(f.adr(7));
+    EXPECT_THROW(f.adr(8), pplib::OutOfBoundsException);
+}
+
+TEST_F(MemFileTest, OpenNullptrValidation)
+{
+    pplib::MemFile f;
+    EXPECT_THROW(f.open(nullptr, 0, false), pplib::IllegalArgumentException);
+    EXPECT_THROW(f.open(nullptr, 10, false), pplib::IllegalArgumentException);
+    EXPECT_THROW(f.open(nullptr, 10, true), pplib::IllegalArgumentException);
+    EXPECT_NO_THROW(f.open(nullptr, 0, true));
+    EXPECT_TRUE(f.isOpen());
+    EXPECT_EQ(0u, f.size());
+}
+
+TEST_F(MemFileTest, FileObjectGetsLoop)
+{
+    const char text[] = "Line1\nLine2\n";
+    pplib::MemFile f((void*)text, strlen(text), false);
+    pplib::String line;
+    EXPECT_EQ(1, f.gets(line, 100));
+    EXPECT_EQ(pplib::String("Line1\n"), line);
+    EXPECT_EQ(1, f.gets(line, 100));
+    EXPECT_EQ(pplib::String("Line2\n"), line);
+    EXPECT_EQ(0, f.gets(line, 100));
 }
 
 } // namespace

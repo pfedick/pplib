@@ -112,6 +112,9 @@ MemFile::~MemFile()
 
 void MemFile::open(void* adresse, size_t size, bool writeable)
 {
+    if (adresse == nullptr) {
+        if (!writeable || size > 0) throw IllegalArgumentException();
+    }
     close();
     MemBase = (char*)adresse;
     mysize = size;
@@ -120,7 +123,6 @@ void MemFile::open(void* adresse, size_t size, bool writeable)
         if (adresse != nullptr && size > 0) writebuffer.useadr(adresse, size);
         readonly = false;
     } else {
-        if (adresse == nullptr && size == 0) throw IllegalArgumentException();
         readonly = true;
     }
     is_open = true;
@@ -151,8 +153,8 @@ void MemFile::resizeBuffer(size_t size)
 {
     if (readonly) throw ReadOnlyException();
     if (maxsize > 0 && size > maxsize) throw BufferExceedsLimitException();
-    size_t newsize = (((size + 8191) >> 13) << 13);
     if (size > SIZE_MAX - 8191) throw OverflowException();
+    size_t newsize = (((size + 8191) >> 13) << 13);
     if (newsize > writebuffer.size()) {
         // pplib::PrintDebug("MemFile::resizeBuffer, old size: %d, requested size: %d, new size: %d\n", (int)buffersize, size, newsize);
         MemBase = (char*)writebuffer.realloc(newsize);
@@ -230,7 +232,8 @@ size_t MemFile::fread(void* ptr, size_t size, size_t nmemb)
     if (size == 0 || nmemb == 0) return 0;
     if (pos >= mysize) throw EndOfFileException();
     size_t by = nmemb;
-    if (pos + (by * size) > mysize) by = (size_t)(mysize - pos) / size;
+    size_t available = (mysize - pos) / size;
+    if (by > available) by = available;
     if (by == 0) throw EndOfFileException();
     memmove(ptr, MemBase + pos, by * size);
     pos += (by * size);
@@ -259,7 +262,7 @@ char* MemFile::fgets(char* buffer1, size_t num)
     if (pos >= mysize) return nullptr;
 
     size_t by = num - 1;
-    if (pos + by > mysize) by = mysize - pos;
+    if (by > mysize - pos) by = mysize - pos;
     const char* ptr = MemBase + pos;
     size_t i;
     for (i = 0; i < by; i++) {
@@ -336,7 +339,7 @@ int MemFile::fgetc()
 wchar_t MemFile::fgetwc()
 {
     if (!isOpen()) throw FileNotOpenException();
-    if (pos + sizeof(wchar_t) > mysize) return static_cast<wchar_t>(WEOF);
+    if (pos >= mysize || sizeof(wchar_t) > mysize - pos) return static_cast<wchar_t>(WEOF);
     wchar_t ch;
     memcpy(&ch, MemBase + pos, sizeof(wchar_t));
     pos += sizeof(wchar_t);

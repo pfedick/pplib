@@ -57,7 +57,6 @@ private:
     size_t mysize;
     size_t pos;
     size_t maxsize;
-    // size_t buffersize;
     char* MemBase;
     bool readonly;
     bool is_open;

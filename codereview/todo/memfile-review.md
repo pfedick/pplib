@@ -433,13 +433,15 @@ Mitgelesene Dateien:
   **Fix:**
   `ff.load();` in allen drei Funktionen durch `load(ff);` ersetzen.
 
-- [ ] **Unit-Tests in `tests/src/core/memfile.cpp` codieren das fehlerhafte Verhalten fest** (`tests/src/core/memfile.cpp:115, 125, 142, 332`)
+- [✅] **Unit-Tests in `tests/src/core/memfile.cpp` codieren das fehlerhafte Verhalten fest** (`tests/src/core/memfile.cpp:115, 125, 142, 332`)
   Vier Unit-Tests wurden so geschrieben, dass sie das fehlerhafte Werfen von `EndOfFileException` erwarten:
   - `TEST_F(MemFileTest, FgetcThrowsEndOfFileException)`: `ASSERT_THROW(f.fgetc(), pplib::EndOfFileException);`
   - `TEST_F(MemFileTest, FgetwcThrowsEndOfFileException)`: `ASSERT_THROW(f.fgetwc(), pplib::EndOfFileException);`
   - `TEST_F(MemFileTest, FgetwsClampingAndIllegalArgument)`: `ASSERT_THROW(f.fgetws(buf, 64), pplib::EndOfFileException);`
   - `TEST_F(MemFileTest, FgetsReadsLinesAndEof)`: `EXPECT_THROW(f.fgets(buf, sizeof(buf)), pplib::EndOfFileException);`
   Sobald `MemFile` POSIX-konform korrigiert wird (`fgetc` -> `EOF`, `fgetwc` -> `WEOF`, `fgets` -> `nullptr`, `fgetws` -> `nullptr`), müssen diese Tests entsprechend aktualisiert werden.
+
+  ==> FIXED, Tests auf POSIX-konforme Rückgabewerte aktualisiert und um Tests für Default-Konstruktor, fwrite-Rückgabe und adr-Bounds erweitert.
 
 - [ ] **`FileObjectTest::GetsAndGetwsOverloads` musste `MockStringIoFile` als Workaround verwenden** (`tests/src/core/fileobject.cpp:302-337`)
   In `tests/src/core/fileobject.cpp` wurde ein spezieller Mock `MockStringIoFile` gebaut, um `gets` und `getws` bei EOF zu testen, weil `MemFile` aufgrund der geworfenen `EndOfFileException` nicht für diese Standardtests verwendet werden konnte. Nach dem Fix von `MemFile` kann `MemFile` auch hier regulär getestet werden.
