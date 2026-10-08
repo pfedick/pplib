@@ -5,6 +5,8 @@ Mitgelesen: `include/pplib/core/memfile.h` + `src/core/MemFile.cpp` und `tests/s
 
 * Review done by: GitHub Copilot (Gemini 3.8 Flash)
 
+
+==> Die Klasse wurde komplett rafaktoriert, neues Codereview ist notwendig
 ---
 
 ## Bugs (kritisch)
