@@ -53,14 +53,24 @@ namespace pplib
 class MemFile : public FileObject
 {
 private:
-    ByteArray writebuffer;
-    size_t mysize;
-    size_t pos;
-    size_t maxsize;
-    char* MemBase;
-    bool readonly;
-    bool is_open;
+    ByteArray writebuffer; // Puffer für Schreiboperationen
+    size_t mysize;         // Aktuelle Größe des Speicherbereichs
+    size_t pos;            // Aktuelle Position im Speicherbereich
+    size_t maxsize;        // Maximale Größe des Speicherbereichs bei Schreiboperationen
+    char* MemBase;         // Basisadresse des Speicherbereichs
+    bool readonly;         // Gibt an, ob der Speicherbereich nur lesbar ist
+    bool is_open;          // Gibt an, ob die Datei geöffnet ist
 
+    /** @brief Passt die Größe des Schreibpuffers an
+     *
+     * @param size Neue Größe des Schreibpuffers
+     * @exception ReadOnlyException Wird geworfen, wenn versucht wird, den Schreibpuffer zu ändern, obwohl der Speicherbereich nur lesbar
+     * ist.
+     * @exception OverflowException Wird geworfen, wenn die neue Größe des Schreibpuffers die maximal zulässige Größe überschreitet.
+     * @exception BufferExceedsLimitException Wird geworfen, wenn die neue Größe des Schreibpuffers die maximal erlaubte Größe
+     * überschreitet.
+     * @exception OutOfMemoryException Wird geworfen, wenn nicht genügend Speicher für die neue Größe des Schreibpuffers verfügbar ist.
+     */
     void resizeBuffer(size_t size);
 
 public:
@@ -96,11 +106,33 @@ public:
      * @param size Größe des Speicherbereichs
      */
     MemFile(const ByteArrayPtr& memory);
+
+    /** @brief Destruktor der Klasse
+     *
+     * Gibt den von der MemFile-Klasse verwalteten Speicherbereich frei, falls vorhanden.
+     */
     ~MemFile();
 
+    /** @brief Kopierkonstruktor ist gelöscht, um Kopien zu verhindern */
     MemFile(const MemFile&) = delete;
+
+    /** @brief Zuweisungsoperator ist gelöscht, um Kopien zu verhindern */
     MemFile& operator=(const MemFile&) = delete;
+
+    /** @brief Move-Konstruktor des MemFile-Objekts
+     *
+     * @param other Das MemFile-Objekt, das verschoben werden soll.
+     */
     MemFile(MemFile&& other) noexcept;
+
+    /** @brief Move-Zuweisungsoperator
+     *
+     * Mit diesem Operator kann ein MemFile-Objekt effizient verschoben werden, ohne dass der zugrunde liegende
+     * Speicherbereich kopiert werden muss.
+     *
+     * @param other Das MemFile-Objekt, das verschoben werden soll.
+     * @return Referenz auf das aktuelle MemFile-Objekt.
+     */
     MemFile& operator=(MemFile&& other) noexcept;
 
     /** @brief Speicherbereich zum Lesen öffnen
@@ -172,63 +204,298 @@ public:
      * @see Mit der Funktion MemFile::maxSize kann das derzeitige Limit ausgelesen werden.
      */
     void setMaxSize(size_t size);
+
+    /** @brief Maximale Dateigröße abfragen
+     *
+     * Mit dieser Funktion kann die derzeitige maximale Größe einer Datei im Hauptspeicher abgefragt werden.
+     * @return Maximale Größe in Bytes. Der Wert "0" bedeutet, dass keine Limitierung gesetzt ist.
+     */
     size_t maxSize() const;
 
-    // Virtuelle Funktionen
+    /** @brief Datei schließen
+     *
+     * Diese Funktion schließt die aktuell geöffnete Datei. Sie wird automatisch vom Destruktor der
+     * Klasse aufgerufen, so dass ihr expliziter Aufruf nicht erforderlich ist.
+     *
+     * Wenn  der  Stream  zur  Ausgabe  eingerichtet  war,  werden  gepufferte  Daten  zuerst  durch FileObject::Flush
+     * geschrieben. Der zugeordnete Datei-Deskriptor wird geschlossen.
+     */
     void close() override;
+
+    /** @brief Dateizeiger an den Anfang der Datei bringen
+     *
+     * Diese Funktion bewegt den internen Dateizeiger an den Anfang der Datei
+     */
     void rewind() override;
+
+    /** @brief Dateizeiger auf gewünschte Stelle bringen
+     *
+     * Diese Funktion bewegt den internen Dateizeiger auf die gewünschte Stelle
+     * @param[in] position Gewünschte Position innerhalb der Datei
+     * @exception diverse
+     */
     void seek(uint64_t position) override;
+
+    /** @brief Dateizeiger auf gewünschte Stelle bringen
+     *
+     * Die Funktion %seek setzt den Dateipositionszeiger für den Stream. Die neue Position,
+     * gemessen in Byte, wird erreicht durch addieren von  \p offset  zu  der  Position,  die  durch  \p origin
+     * angegeben  ist. Wenn \p origin auf SEEK_SET, SEEK_CUR, oder SEEK_END, gesetzt ist, ist der Offset relativ
+     * zum Dateianfang, der aktuellen Position, oder dem Dateiende.
+     * Ein  erfolgreicher  Aufruf  der  Funktion fseek  löscht  den Dateiendezeiger für den Stream.
+     * @param offset Anzahl Bytes, die gesprungen werden soll.
+     * @param origin Gibt die Richtung an, in die der Dateizeiger bewegt werden soll. Es kann einen
+     * der folgenden Werte annehmen:
+     * - SEEKSET @p offset wird vom Beginn der Datei berechnet
+     * - SEEKCUR @p offset wird von der aktuellen Dateiposition gerechnet
+     * - SEEKEND @p offset wird vom Ende der Datei aus nach vorne berechnet
+     * @return Liefert die neue Position zurück, wenn der Dateizeiger erfolgreich auf
+     * die gewünschte Position bewegt werden konnte.
+     * Im Fehlerfall wird eine Exception geworfen. Die Position des Schreib-/Lesezeigers
+     * ist in diesem Fall undefiniert und sollte mittels FileObject::ftell verifiziert
+     * werden.
+     */
     uint64_t seek(int64_t offset, SeekOrigin origin) override;
+
+    /** @brief Aktuelle Dateiposition ermitteln
+     *
+     * Die Funktion %tell liefert den aktuellen Wert des Dateipositionszeigers für  den  Stream zurück.
+     * @return Position des Zeigers innerhalb der Datei. Im Fehlerfall wird eine
+     * Exception geworfen
+     */
     uint64_t tell() override;
+
+    /** @brief Lesen eines Datenstroms
+     *
+     * Die  Funktion  %fread  liest \p nmemb Datenelemente vom Dateistrom und speichert
+     * es an  der  Speicherposition,  die  durch \p ptr bestimmt ist.  Jedes davon ist
+     * \ size Byte lang.
+     * @param[out] ptr Pointer auf den Speicherbereich, in den die gelesenen Daten
+     * abgelegt werden sollen. Der Aufrufer muss vorher mindestens @p size * @p nmemb
+     * Bytes Speicher reserviert haben.
+     * @param[in] size Größe der zu lesenden Datenelemente
+     * @param[in] nmemb Anzahl zu lesender Datenelemente
+     * @return %fread  gibt die Anzahl der erfolgreich gelesenen Elemente zurück
+     * (nicht die Anzahl  der  Zeichen).  Wenn  ein Fehler  auftritt  oder  das
+     * Dateiende erreicht ist, wird eine Exception geworfen.
+     * @exception EndOfFileException: Wird geworfen, wenn das Dateiende erreicht wurde
+     */
     size_t fread(void* ptr, size_t size, size_t nmemb) override;
+
+    /** @brief Schreiben eines Datenstroms
+     *
+     * Die Funktion %fwrite schreibt \p nmemb Datenelemente der Größe \p size Bytes,
+     * in  den  Dateistrom. Sie werden von der Speicherstelle, die durch \p ptr angegeben ist, gelesen.
+     * @param ptr Pointer auf den Beginn des zu schreibenden Speicherbereiches.
+     * @param size Größe der zu schreibenden Datenelemente
+     * @param nmemb Anzahl zu schreibender Datenelemente
+     * @return %fwrite gibt die Anzahl der erfolgreich geschriebenen Elemente zurück (nicht die
+     * Anzahl der Zeichen). Wenn ein Fehler auftritt, wird eine Exception geworfen.
+     */
     size_t fwrite(const void* ptr, size_t size, size_t nmemb) override;
+
+    /** @brief String lesen
+     *
+     * fgets liest höchstens \p num minus ein Zeichen aus der Datei und speichert
+     * sie in dem Puffer, auf den \p buffer zeigt. Das Lesen stoppt nach einem
+     * EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird, wird
+     * er in dem Puffer gespeichert. Am Ende der gelesenen Daten wird ein
+     * 0-Byte angehangen.
+     * @param buffer Pointer auf den Speicherbereich, in den die gelesenen Daten
+     * geschrieben werden sollen. Dieser muss vorher vom Aufrufer allokiert worden
+     * sein und mindestens @p num Bytes groß sein.
+     * @param num Anzahl zu lesender Zeichen
+     * @return Bei Erfolg wird @p buffer zurückgegeben, bei Dateiende wird NULL
+     * zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
+     */
     char* fgets(char* buffer, size_t num) override;
+
+    /** @brief Wide-Character String lesen
+     *
+     * %fgetws liest höchstens \p num minus ein Zeichen (nicht Bytes)
+     * eines Wide-Character-Strings aus der Datei
+     * und speichert sie in dem Puffer, auf den \p buffer zeigt. Das Lesen stoppt
+     * nach einem EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird,
+     * wird er in dem Puffer gespeichert. Am Ende der gelesenen Daten wird ein
+     * 0-Byte angehangen.
+     * @param buffer Pointer auf den Speicherbereich, in den die gelesenen Daten
+     * geschrieben werden sollen. Dieser muss vorher vom Aufrufer allokiert worden
+     * sein und mindestens @p num * @c sizeof(wchar_t) Bytes groß sein.
+     * @param num Anzahl zu lesender Zeichen
+     * @return Bei Erfolg wird @p buffer zurückgegeben, bei Dateiende wird NULL
+     * zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
+     *
+     * @note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
+     * verfügbar. In diesem Fall wird eine @exception UnimplementedVirtualFunctionException
+     * geworfen.
+     *
+     * @attention Unter Unix konvertiert fgetws aus dem lokalen Format (z.B. UTF-8) nach
+     * wchar_t. Unter Windows wird aber UTF-16 erwartet. Das lesen einer Datei, die nicht
+     * UTF-16 kodiert ist, wird zu unerwartetem Verhalten führen!
+     */
     wchar_t* fgetws(wchar_t* buffer, size_t num = 1024) override;
+
+    /** @brief String schreiben
+     *
+     * %fputs schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
+     * den Ausgabestrom.
+     * @param str Pointer auf den zu schreibenden String
+     */
     void fputc(int c) override;
+
+    /** @brief Zeichen lesen
+     *
+     * %fgetc liest das  nächste Zeichen aus der Datei und gibt seinen unsigned char Wert gecastet
+     * in einem int zurück.
+     * @return Bei Erfolg wird der Wert des gelesenen Zeichens zurückgegeben, im
+     * Fehlerfall wird eine Exception geworfen.
+     */
     int fgetc() override;
+
+    /** @brief Wide-Character Zeichen schreiben
+     *
+     * %fputwc schreibt das Wide-Character Zeichen \p c in den Ausgabestrom.
+     * @param c Zu schreibendes Zeichen
+     */
     void fputwc(wchar_t c) override;
+
+    /** @brief Wide-Character Zeichen lesen
+     *
+     * %fgetwc liest das nächste Wide-Character Zeichen aus der Datei und gibt seinen Wert als Integer
+     * zurück.
+     * @return Bei Erfolg wird das gelesene Zeichen als Integer Wert zurückgegeben,
+     * im Fehlerfall wird eine Exception geworfen.
+     */
     wchar_t fgetwc() override;
+
+    /** @brief String schreiben
+     *
+     * %fputs schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
+     * den Ausgabestrom.
+     * @param str Pointer auf den zu schreibenden String
+     */
     void fputs(const char* str) override;
+
+    /** @brief Wide-Character String schreiben
+     *
+     * %fputws schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
+     * den Ausgabestrom.
+     * @param str Pointer auf den zu schreibenden String
+     *
+     */
     void fputws(const wchar_t* str) override;
+
+    /** @brief Prüfen, ob Dateiende erreicht ist
+     *
+     * Die Funktion prüft, ob das Dateiende erreicht wurde
+     * @return Liefert @c true zurück, wenn das Dateiende erreicht wurde, sonst @c false
+     * Falls die Datei nicht geöffnet war, wird wird eine Exception geworfen.
+     */
     bool eof() const override;
+
+    /** @brief Größe der geöffneten Datei
+     *
+     * Diese Funktion liefert die Größe der geöffneten Datei in Bytes zurück.
+     * @return Größe der Datei in Bytes. Falls Fehler auftreten, wird eine Exception geworfen.
+     */
     uint64_t size() const override;
+
+    /** @brief Datei in den Speicher mappen
+     *
+     * Mit dieser Funktion wird ein Teil der Datei in den Speicher gemapped. Dies macht das Lesen und
+     * Schreiben von Dateien effizienter, da nur die tatsächlich benötigten Teile in den Speicher geladen
+     * werden.
+     *
+     * Je nach Protection-Modus @p prot kann der gemappte Speicher nur gelesen oder auch beschrieben werden.
+     *
+     * @param[in] position Die gewünschte Startposition innerhalb der Datei
+     * @param[in] size Die Anzahl Bytes, die gemapped werden sollen.
+     * @param[in] prot Zugriffsmodus für das Mapping. Standardmäßig wird nur Lesezugriff gewährt.
+     * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
+     * in dem sich die Datei befindet, im Fehlerfall wird eine Exception geworfen.
+     */
     char* map(uint64_t position, size_t size, MapProtection prot = MapProtection::READ) override;
+
     using FileObject::map;
+
+    /** @brief Mapping aufheben
+     *
+     * Ein mit map oder mapRW eingerichtetes Mapping einer Datei in den Hauptspeicher
+     * wird wieder aufgehoben.
+     */
     void unmap() override;
+
+    /** @brief Minimalgröße des Speicherblocks bei Zugriffen mit FileObject::Map
+     *
+     * Hat in MemMap keine Funktionalität und wird ignoriert.
+     * @param bytes Anzahl Bytes, die im Voraus gemapped werden sollen.
+     */
     void setMapReadAhead(size_t bytes) override;
 
-    /** @copybrief FileObject::getFileNo
+    /** @brief Filenummer der Datei
      *
-     * Diese Funktion steht bei bei dieser Speicherklasse nicht zur Verfügung. Bei
-     * Aufruf der Funktion wird eine OperationUnavailableException geworfen.
+     * Da MemFile keine echte Datei im Dateisystem repräsentiert, sondern nur einen
+     * Speicherbereich, wird hier eine Exception geworfen!
+     * @exception OperationUnavailableException Immer, da MemFile keine echte Datei repräsentiert.
      */
     int getFileNo() const override;
+
+    /** @brief Gepufferte Daten schreiben
+     *
+     * Bei MemFile hat diese Funktion keine Auswirkung, da alle Änderungen direkt im Speicher erfolgen.
+     */
     void flush() override;
+
+    /** @brief Gepufferte Daten synchronisieren
+     *
+     * Bei MemFile hat diese Funktion keine Auswirkung, da alle Änderungen direkt im Speicher erfolgen.
+     */
     void sync() override;
+
+    /** @brief Datei abschneiden
+     *
+     * Die Funktionen Truncate bewirkt, dass die aktuell geöffnete Datei auf eine Größe von
+     * exakt \p length Bytes abgeschnitten wird.
+     *
+     * Wenn die Datei vorher größer war, gehen überschüssige Daten verloren. Wenn die Datei
+     * vorher kleiner war, wird sie vergrößert und die zusätzlichen Bytes werden als Nullen geschrieben.
+     *
+     * Der Dateizeiger wird nicht verändert. Die Datei muss zum Schreiben geöffnet sein.
+     *
+     * @param length Position, an der die Datei abgeschnitten werden soll.
+     */
     void truncate(uint64_t length) override;
+
+    /** @brief Prüfen, ob die Datei geöffnet ist
+     *
+     * @return Liefert true, wenn die Datei geöffnet ist, sonst false.
+     */
     inline bool isOpen() const override
     {
         return is_open;
     }
 
-    /** @copybrief FileObject::lockShared
+    /** @brief Datei zum Lesen sperren
      *
      * Diese Funktion steht bei bei dieser Speicherklasse nicht zur Verfügung. Bei
      * Aufruf der Funktion wird eine OperationUnavailableException geworfen.
+     * @exception OperationUnavailableException Immer, da MemFile keine echte Datei repräsentiert.
      */
     void lockShared(bool block = true) override;
 
-    /** @copybrief FileObject::lockExclusive
+    /** @brief Datei zum Schreiben sperren
      *
      * Diese Funktion steht bei bei dieser Speicherklasse nicht zur Verfügung. Bei
      * Aufruf der Funktion wird eine OperationUnavailableException geworfen.
+     * @exception OperationUnavailableException Immer, da MemFile keine echte Datei repräsentiert.
      */
     void lockExclusive(bool block = true) override;
 
-    /** @copybrief FileObject::unlock
+    /** @brief Dateisperre aufheben
      *
      * Diese Funktion steht bei bei dieser Speicherklasse nicht zur Verfügung. Bei
      * Aufruf der Funktion wird eine OperationUnavailableException geworfen.
+     * @exception OperationUnavailableException Immer, da MemFile keine echte Datei repräsentiert.
      */
     void unlock() override;
 };
