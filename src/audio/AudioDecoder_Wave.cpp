@@ -69,14 +69,16 @@ void AudioDecoder_Wave::open(FileObject& file, const AudioInfo* info)
     this->ff = &file;
 }
 
+void AudioDecoder_Wave::close()
+{
+    ff = NULL;
+    position = 0;
+    samplesize = 0;
+}
+
 const AudioInfo& AudioDecoder_Wave::getAudioInfo() const
 {
     return info;
-}
-
-void AudioDecoder_Wave::getAudioInfo(AudioInfo& info) const
-{
-    info = this->info;
 }
 
 void AudioDecoder_Wave::seekSample(size_t sample)

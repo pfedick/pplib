@@ -149,19 +149,7 @@ AudioDecoder_Ogg::AudioDecoder_Ogg()
 
 AudioDecoder_Ogg::~AudioDecoder_Ogg()
 {
-#ifdef HAVE_LIBVORBIS
-    if (decodebuffer) {
-        free(decodebuffer);
-        decodebuffer = NULL;
-        decodebuffer_size = 0;
-    }
-    if (private_data) {
-        OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
-        ov_clear(&oggp->vf);
-        free(private_data);
-    }
-    if (readbuffer) free(readbuffer);
-#endif
+    close();
 }
 
 void AudioDecoder_Ogg::allocateBuffer(size_t size)
@@ -181,7 +169,12 @@ void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
     file.seek(0);
     int res = ov_open_callbacks(&file, &oggp->vf, NULL, 0, oggp->callbacks);
     if (res != 0) throw UnsupportedAudioFormatException();
-    getAudioInfo(this->info);
+    if (!info) {
+        GetVorbisAudioInfo(this->info, oggp->vf);
+    } else {
+        this->info = *info;
+    }
+
     if (this->info.Channels < 1 || this->info.Channels > 2) throw UnsupportedAudioFormatException("channels <1 or >2");
     if (this->info.Channels == 1 && decodebuffer == NULL) {
         decodebuffer_size = 4096;
@@ -193,17 +186,32 @@ void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
 #endif
 }
 
+void AudioDecoder_Ogg::close()
+{
+#ifdef HAVE_LIBVORBIS
+    if (decodebuffer) {
+        free(decodebuffer);
+        decodebuffer = NULL;
+        decodebuffer_size = 0;
+    }
+    if (private_data) {
+        OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
+        ov_clear(&oggp->vf);
+        free(private_data);
+        private_data = NULL;
+    }
+    if (readbuffer) {
+        free(readbuffer);
+        readbuffer = NULL;
+        buffersize = 0;
+    }
+#endif
+    position = 0;
+}
+
 const AudioInfo& AudioDecoder_Ogg::getAudioInfo() const
 {
     return info;
-}
-
-void AudioDecoder_Ogg::getAudioInfo(AudioInfo& info) const
-{
-#ifdef HAVE_LIBVORBIS
-    OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
-    GetVorbisAudioInfo(info, oggp->vf);
-#endif
 }
 
 void AudioDecoder_Ogg::seekSample(size_t sample)

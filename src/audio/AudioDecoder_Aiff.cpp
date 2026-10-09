@@ -46,6 +46,7 @@ AudioDecoder_Aiff::AudioDecoder_Aiff()
 
 AudioDecoder_Aiff::~AudioDecoder_Aiff()
 {
+    close();
 }
 
 void AudioDecoder_Aiff::open(FileObject& file, const AudioInfo* info)
@@ -75,14 +76,16 @@ void AudioDecoder_Aiff::open(FileObject& file, const AudioInfo* info)
     this->ff = &file;
 }
 
+void AudioDecoder_Aiff::close()
+{
+    ff = NULL;
+    position = 0;
+    samplesize = 0;
+}
+
 const AudioInfo& AudioDecoder_Aiff::getAudioInfo() const
 {
     return info;
-}
-
-void AudioDecoder_Aiff::getAudioInfo(AudioInfo& info) const
-{
-    info = this->info;
 }
 
 void AudioDecoder_Aiff::seekSample(size_t sample)

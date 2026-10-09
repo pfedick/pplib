@@ -48,6 +48,7 @@ AudioDecoder* GetAudioDecoder(FileObject& file)
 
     if (!decoder) return NULL;
     decoder->open(file, &info);
+
     return decoder;
 }
 

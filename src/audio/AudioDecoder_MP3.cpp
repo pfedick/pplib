@@ -79,10 +79,8 @@ AudioDecoder_MP3::AudioDecoder_MP3()
 
 AudioDecoder_MP3::~AudioDecoder_MP3()
 {
-    free(readbuffer);
-    free(outbuffer);
+    close();
 #ifdef HAVE_MPG123
-    if (decoder) mpg123_delete((mpg123_handle*)decoder);
     MPG123_GlobalMutex.lock();
     if (mpg123_instances) {
         mpg123_instances--;
@@ -91,7 +89,6 @@ AudioDecoder_MP3::~AudioDecoder_MP3()
         }
     }
     MPG123_GlobalMutex.unlock();
-
 #endif
 }
 
@@ -138,14 +135,25 @@ void AudioDecoder_MP3::open(FileObject& file, const AudioInfo* info)
 #endif
 }
 
+void AudioDecoder_MP3::close()
+{
+    free(readbuffer);
+    free(outbuffer);
+#ifdef HAVE_MPG123
+    if (decoder) mpg123_delete((mpg123_handle*)decoder);
+#endif
+    ff = NULL;
+    position = 0;
+    out_offset = 0;
+    out_size = 0;
+    isRunning = false;
+    needInput = false;
+    decoder = nullptr;
+}
+
 const AudioInfo& AudioDecoder_MP3::getAudioInfo() const
 {
     return info;
-}
-
-void AudioDecoder_MP3::getAudioInfo(AudioInfo& info) const
-{
-    info = this->info;
 }
 
 void AudioDecoder_MP3::seekSample(size_t sample)

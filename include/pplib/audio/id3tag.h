@@ -44,7 +44,7 @@ namespace pplib
 PPLIBEXCEPTION(UnsupportedID3TagVersionException, Exception);
 PPLIBEXCEPTION(FilenameNotSetException, Exception);
 
-/**@ingroup PPLGroupSound
+/** @ingroup PPLGroupSound
  * @brief Genre-Bezeichnung
  *
  * Mit dieser Funktion kann die Bezeichnung eines Genres anhand der Genre-ID ausgelesen werden.
