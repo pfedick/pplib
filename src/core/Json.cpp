@@ -606,12 +606,7 @@ void Json::dumps(pplib::String& json, const pplib::Variant& data, int indent)
     pplib::MemFile file((void*)NULL, 0, true);
     Json::dump(file, data, indent);
     size_t size = file.tell();
-    ByteArray ba;
-    unsigned char* str = (unsigned char*)ba.malloc(size + 1);
-    file.rewind();
-    file.fread(str, size, 1);
-    str[size] = 0;
-    json.set((const char*)str, size);
+    json.set((const char*)file.map(0, size), size);
 }
 
 pplib::String Json::dumps(const pplib::Variant& data, int indent)
@@ -636,12 +631,7 @@ void Json::dumps(pplib::String& json, const pplib::AssocArray& data, int indent)
     pplib::MemFile file((void*)NULL, 0, true);
     Json::dump(file, data, indent);
     size_t size = file.tell();
-    ByteArray ba;
-    unsigned char* str = (unsigned char*)ba.malloc(size + 1);
-    file.rewind();
-    file.fread(str, size, 1);
-    str[size] = 0;
-    json.set((const char*)str, size);
+    json.set((const char*)file.map(0, size), size);
 }
 
 pplib::String Json::dumps(const pplib::AssocArray& data, int indent)
@@ -666,13 +656,7 @@ void Json::dumps(pplib::String& json, const pplib::VariantArray& data, int inden
     pplib::MemFile file((void*)NULL, 0, true);
     Json::dump(file, data, indent);
     size_t size = file.tell();
-    ByteArray ba;
-    unsigned char* str = (unsigned char*)ba.malloc(size + 1);
-    if (!str) throw OutOfMemoryException();
-    file.rewind();
-    file.fread(str, size, 1);
-    str[size] = 0;
-    json.set((const char*)str, size);
+    json.set((const char*)file.map(0, size), size);
 }
 
 pplib::String Json::dumps(const pplib::VariantArray& data, int indent)
