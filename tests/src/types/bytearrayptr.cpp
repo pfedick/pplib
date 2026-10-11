@@ -337,15 +337,15 @@ TEST(ByteArrayPtrTest, toBase64)
     ////0d,0e,37,42,81,ff,42,00,4c,17,12
     pplib::ByteArrayPtr b2;
     b2.use(binarydata, 7);
-    EXPECT_EQ(pplib::String("DQ43QoH/Qo=="), b2.toBase64());
+    EXPECT_EQ(pplib::String("DQ43QoH/Qg=="), b2.toBase64());
     b2.use(binarydata, 8);
-    EXPECT_EQ(pplib::String("DQ43QoH/QgD="), b2.toBase64());
+    EXPECT_EQ(pplib::String("DQ43QoH/QgA="), b2.toBase64());
     b2.use(binarydata, 9);
     EXPECT_EQ(pplib::String("DQ43QoH/QgBM"), b2.toBase64());
     b2.use(binarydata, 10);
     EXPECT_EQ(pplib::String("DQ43QoH/QgBMFw=="), b2.toBase64());
     b2.use(binarydata, 11);
-    EXPECT_EQ(pplib::String("DQ43QoH/QgBMFxJ="), b2.toBase64());
+    EXPECT_EQ(pplib::String("DQ43QoH/QgBMFxI="), b2.toBase64());
 }
 
 static const char* teststring = "Hello World";

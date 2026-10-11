@@ -223,7 +223,7 @@ TEST_F(CryptoTest, EncryptDecryptWithBase64_AES_256_CFB)
     crypteddata = encrypt.encrypt(pplib::ByteArrayPtr(clearData)).toBase64();
 
     ASSERT_EQ(40, crypteddata.size());
-    ASSERT_EQ(pplib::String("O2k5VBdaAV/4KXSLjjGxHexJoIdy/P148zvHAR7="), crypteddata);
+    ASSERT_EQ(pplib::String("O2k5VBdaAV/4KXSLjjGxHexJoIdy/P148zvHAR4="), crypteddata);
 
     pplib::ByteArray decrypteddata;
     decrypt.decrypt(pplib::FromBase64(crypteddata), decrypteddata);

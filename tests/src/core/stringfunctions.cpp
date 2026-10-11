@@ -64,15 +64,15 @@ TEST_F(StringFunctionTest, ToBase64)
 {
     pplib::ByteArrayPtr b2;
     b2.use(binarydata, 7);
-    EXPECT_EQ(pplib::String("DQ43QoH/Qo=="), ToBase64(b2));
+    EXPECT_EQ(pplib::String("DQ43QoH/Qg=="), ToBase64(b2));
     b2.use(binarydata, 8);
-    EXPECT_EQ(pplib::String("DQ43QoH/QgD="), ToBase64(b2));
+    EXPECT_EQ(pplib::String("DQ43QoH/QgA="), ToBase64(b2));
     b2.use(binarydata, 9);
     EXPECT_EQ(pplib::String("DQ43QoH/QgBM"), ToBase64(b2));
     b2.use(binarydata, 10);
     EXPECT_EQ(pplib::String("DQ43QoH/QgBMFw=="), ToBase64(b2));
     b2.use(binarydata, 11);
-    EXPECT_EQ(pplib::String("DQ43QoH/QgBMFxJ="), ToBase64(b2));
+    EXPECT_EQ(pplib::String("DQ43QoH/QgBMFxI="), ToBase64(b2));
 }
 
 TEST_F(StringFunctionTest, FromBase64)

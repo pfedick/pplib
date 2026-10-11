@@ -83,15 +83,17 @@ String ToBase64(const ByteArrayPtr& bin)
 {
     String res;
     unsigned char in[3], out[4];
-    size_t p = 0, filelen = bin.size();
-    res.reserve(((filelen + 2) / 3) * 4);
+    size_t p = 0, size = bin.size();
+    res.reserve(((size + 2) / 3) * 4);
 
-    while (p < filelen) {
+    while (p < size) {
         int len = 0;
         for (int i = 0; i < 3; i++) {
-            if (p < filelen) {
+            if (p < size) {
                 in[i] = (unsigned char)bin.get(p++);
                 len++;
+            } else {
+                in[i] = 0;
             }
         }
         if (len) {
@@ -124,18 +126,18 @@ ByteArray FromBase64(const String& str)
     ByteArray res;
     unsigned char in[4], out[3], v;
     int i, len;
-    size_t p = 0, filelen = str.len();
-    while (p < filelen) {
-        for (len = 0, i = 0; i < 4 && p < filelen; i++) {
+    size_t p = 0, size = str.len();
+    while (p < size) {
+        for (len = 0, i = 0; i < 4 && p < size; i++) {
             v = 0;
-            while (p < filelen && v == 0) {
+            while (p < size && v == 0) {
                 v = str.get(p++);
                 v = ((v < 43 || v > 122) ? 0 : cd64[v - 43]);
                 if (v) {
                     v = ((v == '$') ? 0 : v - 61);
                 }
             }
-            if (p < filelen + 1) {
+            if (p < size + 1) {
                 if (v) {
                     len++;
                     in[i] = (unsigned char)(v - 1);
