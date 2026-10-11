@@ -192,11 +192,20 @@ public:
      *
      * @param str Referenz auf String der STL
      * @exception OutOfMemoryException
-     * @exception UnsupportedFeatureException
-     * @exception UnsupportedCharacterEncodingException
-     * @exception CharacterEncodingException
      */
     String(const std::string& str);
+
+    /** @brief Konstruktor aus std::string_view
+     *
+     * Ein String wird aus einem std::string_view erstellt.
+     *
+     * @param sv Referenz auf ein std::string_view
+     * @exception OutOfMemoryException
+     */
+    String(std::string_view sv)
+    {
+        set(sv.data(), sv.size());
+    }
 
     /** @brief Konstruktor aus Standard-Template Wide-String
      *
@@ -1520,6 +1529,11 @@ public:
     operator std::string() const;
     operator std::wstring() const;
 
+    operator std::string_view() const noexcept
+    {
+        return std::string_view(ptr ? ptr : "", stringlen);
+    }
+
     /** @brief Einzelnes Byte auslesen
      *
      * Mit diesem Operator kann der Wert eines einzelnen Bytes an der Position
@@ -1564,6 +1578,10 @@ public:
     String& operator+=(const String& str);
     String& operator+=(const WideString& str);
     String& operator+=(const std::string& str);
+    String& operator=(std::string_view sv)
+    {
+        return set(sv.data(), sv.size());
+    }
     String& operator+=(const std::wstring& str);
     String& operator+=(char c);
 
