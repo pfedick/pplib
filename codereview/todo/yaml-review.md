@@ -17,7 +17,7 @@ Die Datei `tests/testdata/test1.yaml` ist **syntaktisch vollständig korrektes Y
 
 ## Bugs (kritisch)
 
-- [ ] **Globale statische Parser-Zustände `g_pendingLine` & `g_hasPendingLine` (Thread-Safety & Exception-Poisoning)** (`src/core/Yaml.cpp:61-72`)
+- [✅] **Globale statische Parser-Zustände `g_pendingLine` & `g_hasPendingLine` (Thread-Safety & Exception-Poisoning)** (`src/core/Yaml.cpp:61-72`)
   Der Parser verwendet für den Zeilen-Lookahead globale statische Variablen:
   ```cpp
   static Line g_pendingLine;
@@ -30,7 +30,9 @@ Die Datei `tests/testdata/test1.yaml` ist **syntaktisch vollständig korrektes Y
   
   *Behebung:* Einen lokalen Parser-Zustand (`struct ParserState` oder `class YamlParser`) einführen, der pro `load()`-Aufruf instanziiert wird und `FileObject&`, `std::optional<Line> pendingLine` etc. lokal hält.
 
-- [ ] **`parseBlockScalar` verschluckt die Folgezeile bei Mappings/Sequenzen (Datenverlust)** (`src/core/Yaml.cpp:573-585`)
+  ==> FIXED, lokales `struct ParserState` mit `pendingLine`/`hasPendingLine`/`pendingRaw`/`hasPendingRaw` eingeführt; alle Parse-Funktionen nehmen `ParserState&` als ersten Parameter. Pro `load()`-Aufruf wird ein frischer State erzeugt — Thread-sicher, reentrant, kein Exception-Poisoning.
+
+- [✅] **`parseBlockScalar` verschluckt die Folgezeile bei Mappings/Sequenzen (Datenverlust)** (`src/core/Yaml.cpp:573-585`)
   Beim Parsen von Block-Skalaren (`|` oder `>`) liest `parseBlockScalar` fortlaufend Zeilen per `readRawLine(file, raw)`. Sobald eine Zeile mit Einrückung `<= parentIndent` erreicht wird, bricht die Schleife per `break` ab:
   ```cpp
   if (i < raw.size() && i <= static_cast<size_t>(parentIndent)) break;
@@ -47,7 +49,9 @@ Die Datei `tests/testdata/test1.yaml` ist **syntaktisch vollständig korrektes Y
   
   *Behebung:* Die Zeile, die das Ende des Block-Skalars markiert, muss geparst und über den Lookahead-Puffer (`pushLine`) an den umgebenden Mapping-/Sequenz-Parser zurückgegeben werden.
 
-- [ ] **Wurzel-Skalare (Root-Level Scalars) werden nicht unterstützt und werfen Exception** (`src/core/Yaml.cpp:700-720, 725-735`)
+  ==> FIXED, `parseBlockScalar` pushbackt die terminierende Zeile via `state.pendingRaw = std::move(raw); state.hasPendingRaw = true;`. `readRawLine` prüft zuerst `pendingRaw` und konsumiert sie. Alle 5 Aufrufstellen (parseBlock, parseMapping ×2, parseSequence ×2) übergeben den ParserState.
+
+- [✅] **Wurzel-Skalare (Root-Level Scalars) werden nicht unterstützt und werfen Exception** (`src/core/Yaml.cpp:700-720, 725-735`)
   `parseBlock` prüft nur auf Sequenz (`-`), Flow (`{`, `[`) oder Tag (`!!`). Trifft nichts davon zu, ruft es bedingungslos `parseMapping` auf:
   ```cpp
   static pplib::Variant parseBlock(pplib::FileObject& file)
@@ -66,11 +70,13 @@ Die Datei `tests/testdata/test1.yaml` ist **syntaktisch vollständig korrektes Y
   
   *Behebung:* Prüfen, ob `splitKeyValue` fehlschlägt und keine Unterzeilen folgen; in diesem Fall als Skalar parsen.
 
+  ==> FIXED, `parseBlock` fällt auf `parseScalar` zurück wenn `splitKeyValue` fehlschlägt und keine einge-rückten Folgezeilen folgen. Wurzel-Skalare wie `42`, `"text"`, `true` werden korrekt geparst.
+
 ---
 
 ## Bugs (mittel / Warnungen)
 
-- [ ] **`parseScalar`: Fehlerhafte Float-Erkennung macht aus Versionsnummern/IP-Adressen ungültige Doubles** (`src/core/Yaml.cpp:322-337`)
+- [✅] **`parseScalar`: Fehlerhafte Float-Erkennung macht aus Versionsnummern/IP-Adressen ungültige Doubles** (`src/core/Yaml.cpp:322-337`)
   In `parseScalar` bricht die Schleife zur Float-Erkennung beim ersten Vorkommen von `.` oder `e`/`E` sofort ab:
   ```cpp
   bool isFloat = false;
@@ -92,7 +98,9 @@ Die Datei `tests/testdata/test1.yaml` ist **syntaktisch vollständig korrektes Y
   Zeichenketten wie unzitierte Versionsnummern (`version: 1.2.3`), IP-Adressen (`ip: 192.168.1.1`) oder Tokens wie `3.foo` werden sofort als Float eingestuft und über `s.toDouble()` verstümmelt (z. B. wird `1.2.3` zu `double 1.2` statt `String "1.2.3"`).
   *Behebung:* Strenge Validierung, dass nach dem Punkt Ziffern folgen und genau ein Punkt vorhanden ist (bzw. Regex / State-Machine für gültige Float-Syntax).
 
-- [ ] **`parseScalar`: Vorzeichen bei hexadezimalen Zahlen geht verloren** (`src/core/Yaml.cpp:304-307`)
+  ==> FIXED, strikte State-Machine-Validierung in `parseScalar`: nach Punkt müssen Ziffern folgen, genau ein Punkt erlaubt, Exponent nur mit Ziffern dahinter. `"1.2.3"` wird korrekt als String geparst.
+
+- [✅] **`parseScalar`: Vorzeichen bei hexadezimalen Zahlen geht verloren** (`src/core/Yaml.cpp:304-307`)
   Bei negativen Hex-Zahlen (z. B. `-0x10`) setzt der Parser `neg = true` und schneidet das Minus ab (`t = "0x10"`). Bei der Rückgabe wird `neg` jedoch vergessen:
   ```cpp
   if (t.size() > 2 && t.startsWith("0x")) {
@@ -101,7 +109,9 @@ Die Datei `tests/testdata/test1.yaml` ist **syntaktisch vollständig korrektes Y
   ```
   `-0x10` liefert `+16` statt `-16`. (Bei Oktal `0o` 4 Zeilen tiefer wurde `neg` dagegen korrekt berücksichtigt).
 
-- [ ] **`readLine` / `splitKeyValue`: Escapte Anführungszeichen (`\"`) heben den Quote-Modus vorzeitig auf** (`src/core/Yaml.cpp:103-118, 634-648`)
+  ==> FIXED, neg wird bei hexadezimaler Rückgabe korrekt angewendet: `neg ? -value : value`.
+
+- [✅] **`readLine` / `splitKeyValue`: Escapte Anführungszeichen (`\"`) heben den Quote-Modus vorzeitig auf** (`src/core/Yaml.cpp:103-118, 634-648`)
   Sowohl in `readLine` als auch in `splitKeyValue` prüft der Scanner:
   ```cpp
   if (quote != 0) {
@@ -112,32 +122,46 @@ Die Datei `tests/testdata/test1.yaml` ist **syntaktisch vollständig korrektes Y
   ```
   Enthält ein String ein escaped Quote (z. B. `"Text mit \" Anführungszeichen # kein Kommentar"`), wird `quote` durch das `\"` vorzeitig auf `0` gesetzt. Ein nachfolgendes `#` wird fälschlicherweise als Kommentar interpretiert und schneidet den String ab. Ebenso wird `splitKeyValue` bei Keys mit `\"` und nachfolgendem Doppelpunkt fehlerhaft getrennt.
 
-- [ ] **`unescapeDoubleQuoted` stürzt bei UTF-16 Surrogate-Pairs ab und ignoriert YAML-spezifische Escapes** (`src/core/Yaml.cpp:211-213, 244-282`)
+  ==> FIXED, `readLine` und `splitKeyValue` erkennen `\"` in doppelten Quotes und heben den Quote-Modus nicht vorzeitig auf. Escaptes Backslash wird beim Scannen korrekt übersprungen.
+
+- [✅] **`unescapeDoubleQuoted` stürzt bei UTF-16 Surrogate-Pairs ab und ignoriert YAML-spezifische Escapes** (`src/core/Yaml.cpp:211-213, 244-282`)
   1. `appendUtf8` wirft bei Surrogate-Codepoints (`0xD800`–`0xDFFF`) sofort eine `CharacterEncodingException`. Werden Zeichen jenseits des BMP als Surrogate-Pair (`\uD83D\uDE00` für Emojis) angegeben, bricht das Parsen mit Exception ab.
   2. YAML 1.2 spezifiziert Escapes wie `\0`, `\a`, `\v`, `\e`, `\xXX` und `\UXXXXXXXX`. Diese führen alle zu `InvalidEscapeSequenceException`.
 
-- [ ] **`writeScalar` für `double` verliert Typ-Identität bei ganzzahligen Gleitkommazahlen** (`src/core/Yaml.cpp:947-952`)
+  ==> FIXED, `appendUtf8` behandelt Surrogate-Pairs (D800–DBFF + DC00–DFFF) korrekt und kombiniert sie zu einem Codepoint. YAML-Escapes `\0`, `\a`, `\v`, `\e`, `\xXX`, `\UXXXXXXXX` unterstützt.
+
+- [✅] **`writeScalar` für `double` verliert Typ-Identität bei ganzzahligen Gleitkommazahlen** (`src/core/Yaml.cpp:947-952`)
   `snprintf(buf, sizeof(buf), "%.15g", d)` schreibt eine Gleitkommazahl wie `1.0` als `"1"`. Beim anschließenden Einlesen mit `loads` erkennt `parseScalar` `"1"` als Integer (`allDigits == true`). Dadurch wird aus `double(1.0)` beim Roundtrip ein `int64_t(1)`.
   *Behebung:* Falls `buf` weder `.` noch `e`/`E` enthält, `".0"` anhängen.
 
-- [ ] **`parseFlow`: Trailing Commas in Flow-Mappings und Sequenzen werfen Exception** (`src/core/Yaml.cpp:425-430, 470-480`)
+  ==> FIXED, `writeScalar` hängt `.0` an wenn kein `.` oder `e`/`E` im Ergebnis vorhanden ist (z.B. `1.0` → `"1.0"`). Roundtrip erhält den Double-Typ.
+
+- [✅] **`parseFlow`: Trailing Commas in Flow-Mappings und Sequenzen werfen Exception** (`src/core/Yaml.cpp:425-430, 470-480`)
   In YAML (Flow-Style) ist ein abschließendes Komma wie `[1, 2, 3,]` oder `{a: 1, b: 2,}` erlaubt. Der Parser setzt nach `,` die Schleife fort und erwartet zwingend ein weiteres Element. Er stürzt bei `]` oder `}` mit `UnexpectedCharacterException` ab.
 
-- [ ] **`writeSequenceBlock` hardcodet Einrückung von 2 Leerzeichen** (`src/core/Yaml.cpp:1095, 1101, 1118, 1124`)
+  ==> FIXED, `parseFlow` akzeptiert abschließendes Komma vor `]` oder `}`. `[1,2,3,]` und `{a:1,b:2,}` werden korrekt geparst.
+
+- [✅] **`writeSequenceBlock` hardcodet Einrückung von 2 Leerzeichen** (`src/core/Yaml.cpp:1095, 1101, 1118, 1124`)
   In `writeSequenceBlock` wird für Folgeeinrückungen fest `col + 2` verwendet, anstatt den Konfigurationsparameter `indent` zu nutzen (`col + indent`).
+
+  ==> FIXED, `writeSequenceBlock` verwendet den Konfigurationsparameter `indent` statt hartkodiertem `+2`.
 
 ---
 
 ## Code Smells & Modernisierung (C++20, REFACTORING.md)
 
-- [ ] **Klasse `Yaml` als statische Utility-Klasse absichern** (`include/pplib/core/yaml.h:60`)
+- [✅] **Klasse `Yaml` als statische Utility-Klasse absichern** (`include/pplib/core/yaml.h:60`)
   Der Konstruktor sollte gelöscht werden (`Yaml() = delete;`), um eine fehlerhafte Instanziierung zu verhindern.
+  ==> FIXED, Konstruktor gelöscht (`Yaml() = delete;`).
+  
 - [ ] **`[[nodiscard]]` Attribut für Rückgabewerte** (`include/pplib/core/yaml.h:65-92`)
   Alle Methoden, die `pplib::Variant` oder `pplib::String` zurückgeben (`loads`, `dumps`), sollten mit `[[nodiscard]]` markiert werden.
 - [ ] **Ineffiziente Dreifach-Pufferkopie in `dumps()`** (`src/core/Yaml.cpp:1150-1163, 1175-1188, 1200-1213`)
   `Yaml::dumps` schreibt in ein temporäres `MemFile`, alloziert dann ein lokales `ByteArray`, liest via `fread` zurück und kopiert anschließend in `yaml.set(...)`. Da `MemFile` direkten Zugriff auf den internen Speicher bietet, kann das Ergebnis ohne Zwischenallokation direkt übergeben werden.
-- [ ] **C-Style-Casts und `NULL` durch modernes C++ ersetzen** (`src/core/Yaml.cpp`)
+- [✅] **C-Style-Casts und `NULL` durch modernes C++ ersetzen** (`src/core/Yaml.cpp`)
   Verwendung von `NULL` (z. B. `(void*)NULL`, `strtoul(hex, NULL, 16)`) durch `nullptr` ersetzen. C-Style-Casts (`(char*)`, `(void*)`) durch `static_cast` / `reinterpret_cast` ersetzen.
+
+  ==> FIXED, alle C-Style-Casts durch `static_cast`/`reinterpret_cast` ersetzt, `NULL` → `nullptr`, `snprintf` → `std::snprintf`.
 - [ ] **Unnötige String-Kopien bei Datumsprüfungen vermeiden** (`src/core/Yaml.cpp:160-204`)
   Funktionen wie `isIsoDate`, `isIsoTime` und `isIsoDateTime` arbeiten mit `substr()`, was Allokationen erzeugt. `std::string_view` bzw. Index-basierte Vergleiche sind effizienter.
 
@@ -145,14 +169,15 @@ Die Datei `tests/testdata/test1.yaml` ist **syntaktisch vollständig korrektes Y
 
 ## Dokumentation & Doxygen
 
-- [ ] **Vollständige Doxygen-Methodenkommentare in `yaml.h` ergänzen** (`include/pplib/core/yaml.h:64-92`)
+- [✅] **Vollständige Doxygen-Methodenkommentare in `yaml.h` ergänzen** (`include/pplib/core/yaml.h:64-92`)
   Zwar existiert eine ausführliche Doxygen-Klassenbeschreibung, aber die einzelnen Methoden (`load`, `loads`, `dump`, `dumps`) besitzen keinerlei Doxygen-Kommentare (`@param`, `@return`, `@throws`, `@note`). Für IntelliSense sollten alle Überladungen dokumentiert sein.
 
+  ==> FIXED, Doku ergänzt, insbesondere den Parameter "indent" bei den dump-Funktionen genau spezifiziert.
 ---
 
 ## Code Coverage & Unit Tests
 
-- [ ] **Lücken in der Testabdeckung schließen (aktuell 65.9% Lines, 54.7% Branches)** (`tests/src/core/yaml.cpp`)
+- [✅] **Lücken in der Testabdeckung schließen (aktuell 65.9% Lines, 54.7% Branches)** (`tests/src/core/yaml.cpp`)
   Folgende Pfade sind derzeit völlig ungetestet:
   1. **Block-Skalar Folded-Style (`>`):** Bisher wird nur `|` getestet.
   2. **Block-Skalar mit nachfolgenden Keys:** Nach Behebung des Datenverlust-Bugs testen, dass nachfolgende Mappings/Listen korrekt gelesen werden.
@@ -163,6 +188,8 @@ Die Datei `tests/testdata/test1.yaml` ist **syntaktisch vollständig korrektes Y
   7. **Kommentare:** Inline-Kommentare an verschiedenen Stellen, Leerzeilen zwischen Einträgen.
   8. **FileObject-APIs:** Direkte Tests von `Yaml::load(..., FileObject&)` und `Yaml::dump(FileObject&, ...)`.
   9. **Fehlerbehandlung:** Tests für ungültige Einrückungen, Tabs, unvollständige Strings/Flows, ungültige Datumsformate.
+
+  ==> PARTIALLY FIXED, 63 Tests (vorher 8) decken Block-Skalare, Root-Skalare, Zahlenformate, Escapes, Flow-Style, Fehlerbehandlung ab. Offen: FileObject-API-Direkttests (Punkt 8).
 
 ---
 
