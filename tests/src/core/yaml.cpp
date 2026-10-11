@@ -1,4 +1,4 @@
-#include <cmath>
+﻿#include <cmath>
 #include <locale.h>
 #include <gtest/gtest.h>
 #include "pplib-tests.h"
@@ -388,8 +388,8 @@ TEST_F(YamlTest, SingleQuotedEscapedQuote)
 TEST_F(YamlTest, EscapedQuoteInDoubleQuotedWithComment)
 {
     // Bug: \" hebe den Quote-Modus vorzeitig auf -> # wurde als Kommentar interpretiert
-    Variant v = Yaml::loads("x: \"Text mit \\\" Anführungszeichen # kein Kommentar\"\n");
-    EXPECT_EQ(String("Text mit \" Anführungszeichen # kein Kommentar"), v.toAssocArray()["x"].toString());
+    Variant v = Yaml::loads("x: \"Text mit \\\" AnfÃ¼hrungszeichen # kein Kommentar\"\n");
+    EXPECT_EQ(String("Text mit \" AnfÃ¼hrungszeichen # kein Kommentar"), v.toAssocArray()["x"].toString());
 }
 
 // ============================================================================
@@ -793,4 +793,1207 @@ TEST_F(YamlTest, dumpsFromVariantArray)
     for (size_t i = 0; i < array.size(); i++) {
         EXPECT_EQ(array[i], parsedArray[i]);
     }
+}
+
+// --- Writer: escaped characters in string output ---
+
+TEST_F(YamlTest, DumpsStringWithBackslash)
+{
+    Variant v("line1\\line2");
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "\"line1\\\\line2\"\n");
+}
+
+TEST_F(YamlTest, DumpsStringWithControlChars)
+{
+    // \x01 (SOH), \x07 (BEL), \x1b (ESC) must be escaped as \uXXXX
+    Variant v(String("\x01\x07\x1b"));
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "\"\\u0001\\u0007\\u001b\"\n");
+}
+
+TEST_F(YamlTest, DumpsStringWithTabAndNewline)
+{
+    Variant v(String("a\tb\nc"));
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "\"a\\tb\\nc\"\n");
+}
+
+// --- Writer: wide string (UTF-8) output ---
+
+TEST_F(YamlTest, DumpsWideString)
+{
+    Variant v(WideString("Héllo"));
+    String out = Yaml::dumps(v);
+    // Writer schreibt rohe UTF-8 Bytes in doppelte Anführungszeichen
+    Variant back = Yaml::loads(out);
+    // Bei Reload wird es als String gelesen (UTF-8 Bytes)
+    EXPECT_EQ(back.toString(), String("Héllo"));
+}
+
+// --- Writer: Date / Time / DateTime output ---
+
+TEST_F(YamlTest, DumpsDate)
+{
+    Variant v(Date(2025, 12, 24));
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "2025-12-24\n");
+}
+
+TEST_F(YamlTest, DumpsTime)
+{
+    Variant v(Time(3661)); // 01:01:01
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "01:01:01.000000\n");
+}
+
+TEST_F(YamlTest, DumpsDateTime)
+{
+    Variant v(DateTime(1735017600)); // 2025-01-01 00:00:00 UTC (approx)
+    String out = Yaml::dumps(v);
+    // ISO 8601 Format mit "T"-Separator und Mikrosekunden
+    EXPECT_NE(out.find("T"), String::npos);
+    EXPECT_NE(out.find("."), String::npos);
+    // Roundtrip
+    Variant back = Yaml::loads(out);
+    EXPECT_TRUE(back.isDateTime());
+}
+
+// --- Writer: byte array output ---
+
+TEST_F(YamlTest, DumpsByteArrayInline)
+{
+    const char data[] = "Hello";
+    Variant v(ByteArray(data, 5));
+    String out = Yaml::dumps(v);
+    // Base64 von "Hello" ist "SGVsbG8="; Writer nutzt doppelte Anführungszeichen
+    EXPECT_NE(out.find("!!binary"), String::npos);
+    EXPECT_NE(out.find("SGVsbG8="), String::npos);
+}
+
+TEST_F(YamlTest, DumpsByteArrayBlock)
+{
+    const char data[] = "Hello";
+    Variant v(ByteArray(data, 5));
+    AssocArray arr;
+    arr.set("data", v);
+    String out = Yaml::dumps(arr, 2);
+    EXPECT_NE(out.find("!!binary"), String::npos);
+    EXPECT_NE(out.find("SGVsbG8="), String::npos);
+}
+
+// --- Writer: empty containers in block style ---
+
+TEST_F(YamlTest, DumpsEmptyMapping)
+{
+    AssocArray arr;
+    String out = Yaml::dumps(arr, 2);
+    EXPECT_EQ(out, "{}\n");
+}
+
+TEST_F(YamlTest, DumpsEmptySequence)
+{
+    VariantArray arr;
+    String out = Yaml::dumps(arr, 2);
+    EXPECT_EQ(out, "[]\n");
+}
+
+// --- Writer: nested structures in block style (writeDictBlock/writeSequenceBlock) ---
+
+TEST_F(YamlTest, DumpsNestedMappingBlock)
+{
+    AssocArray inner;
+    inner.set("x", 1);
+    inner.set("y", 2);
+
+    AssocArray outer;
+    outer.set("inner", Variant(inner));
+    String out = Yaml::dumps(outer, 2);
+    EXPECT_EQ(out, "\"inner\":\n  \"x\": 1\n  \"y\": 2\n");
+}
+
+TEST_F(YamlTest, DumpsSequenceOfMappings)
+{
+    VariantArray arr;
+    AssocArray m1;
+    m1.set("a", 1);
+    arr.add(Variant(m1));
+    AssocArray m2;
+    m2.set("b", 2);
+    arr.add(Variant(m2));
+
+    String out = Yaml::dumps(arr, 2);
+    EXPECT_EQ(out, "- \"a\": 1\n- \"b\": 2\n");
+}
+
+// --- Writer: flow style with nested structures (writeVariantFlow) ---
+
+TEST_F(YamlTest, DumpsNestedMappingFlow)
+{
+    AssocArray inner;
+    inner.set("x", 1);
+    inner.set("y", 2);
+
+    AssocArray outer;
+    outer.set("inner", Variant(inner));
+    String out = Yaml::dumps(outer, -1);
+    EXPECT_EQ(out, "{\"inner\":{\"x\":1,\"y\":2}}");
+}
+
+TEST_F(YamlTest, DumpsSequenceOfMappingsFlow)
+{
+    VariantArray arr;
+    AssocArray m1;
+    m1.set("a", 1);
+    arr.add(Variant(m1));
+    AssocArray m2;
+    m2.set("b", 2);
+    arr.add(Variant(m2));
+
+    String out = Yaml::dumps(arr, -1);
+    EXPECT_EQ(out, "[{\"a\":1},{\"b\":2}]");
+}
+
+// --- dump/dumps AssocArray overloads (out-param and FileObject) ---
+
+TEST_F(YamlTest, dumpsAssocArrayOutParam)
+{
+    AssocArray arr;
+    arr.set("key", 42);
+    String out;
+    Yaml::dumps(out, arr);
+    EXPECT_EQ(out, "\"key\": 42\n");
+}
+
+TEST_F(YamlTest, dumpsAssocArrayOutParamFlow)
+{
+    AssocArray arr;
+    arr.set("key", 42);
+    String out;
+    Yaml::dumps(out, arr, -1);
+    EXPECT_EQ(out, "{\"key\":42}");
+}
+
+TEST_F(YamlTest, dumpAssocArrayFileObject)
+{
+    AssocArray arr;
+    arr.set("key", 42);
+    MemFile file;
+    Yaml::dump(file, arr);
+    file.seek(0);
+    ByteArray ba = file.load();
+    String content(reinterpret_cast<const char*>(ba.ptr()), ba.size());
+    EXPECT_EQ(content, "\"key\": 42\n");
+}
+
+// --- dump/dumps VariantArray overloads (out-param and FileObject) ---
+
+TEST_F(YamlTest, dumpsVariantArrayOutParam)
+{
+    VariantArray arr;
+    arr.add(Variant(1));
+    arr.add(Variant("two"));
+    String out;
+    Yaml::dumps(out, arr);
+    EXPECT_EQ(out, "- 1\n- \"two\"\n");
+}
+
+TEST_F(YamlTest, dumpsVariantArrayOutParamFlow)
+{
+    VariantArray arr;
+    arr.add(Variant(1));
+    arr.add(Variant("two"));
+    String out;
+    Yaml::dumps(out, arr, -1);
+    EXPECT_EQ(out, "[1,\"two\"]");
+}
+
+TEST_F(YamlTest, dumpVariantArrayFileObject)
+{
+    VariantArray arr;
+    arr.add(Variant(1));
+    arr.add(Variant("two"));
+    MemFile file;
+    Yaml::dump(file, arr);
+    file.seek(0);
+    ByteArray ba = file.load();
+    String content(reinterpret_cast<const char*>(ba.ptr()), ba.size());
+    EXPECT_EQ(content, "- 1\n- \"two\"\n");
+}
+
+// --- Parser: quoted keys in flow mappings ---
+
+TEST_F(YamlTest, FlowDoubleQuotedKey)
+{
+    Variant v = Yaml::loads(R"({"key": value})");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr.size(), 1);
+    EXPECT_EQ(arr["key"].toString(), String("value"));
+}
+
+TEST_F(YamlTest, FlowSingleQuotedKey)
+{
+    Variant v = Yaml::loads("{'key': value}");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr.size(), 1);
+    EXPECT_EQ(arr["key"].toString(), String("value"));
+}
+
+TEST_F(YamlTest, FlowSingleQuotedKeyWithSpace)
+{
+    Variant v = Yaml::loads("{'my key': value}");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr.size(), 1);
+    EXPECT_EQ(arr["my key"].toString(), String("value"));
+}
+
+TEST_F(YamlTest, FlowDoubleQuotedKeyWithNewlineEscape)
+{
+    Variant v = Yaml::loads(R"({"a\nb": value})");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr.size(), 1);
+}
+
+// --- Parser: ISO time with timezone offsets ---
+
+TEST_F(YamlTest, TimeWithTimezoneOffset)
+{
+    Variant v = Yaml::loads("t: 2025-06-15T12:30:45+02:00");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_TRUE(v.toAssocArray()["t"].isDateTime());
+}
+
+TEST_F(YamlTest, TimeWithTimezoneOffsetNoColon)
+{
+    Variant v = Yaml::loads("t: 2025-06-15T12:30:45+0200");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_TRUE(v.toAssocArray()["t"].isDateTime());
+}
+
+TEST_F(YamlTest, TimeWithNegativeTimezoneOffset)
+{
+    Variant v = Yaml::loads("t: 2025-06-15T12:30:45-05:30");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_TRUE(v.toAssocArray()["t"].isDateTime());
+}
+
+// --- Parser: unescapeDoubleQuoted error paths ---
+
+TEST_F(YamlTest, InvalidHexInXEscape)
+{
+    bool threw = false;
+    try { Yaml::loads("\"\\xZZ\""); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, InvalidHexInUEscape)
+{
+    bool threw = false;
+    try { Yaml::loads("\"\\uZZZZ\""); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, InvalidHexInU8Escape)
+{
+    bool threw = false;
+    try { Yaml::loads("\"\\UZZZZZZZZ\""); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+// --- Parser: "inf"/"nan" without leading dot ---
+
+TEST_F(YamlTest, InfWithoutDot)
+{
+    Variant v = Yaml::loads("x: inf");
+    EXPECT_TRUE(std::isinf(v.toAssocArray()["x"].toDouble()));
+}
+
+TEST_F(YamlTest, NanWithoutDot)
+{
+    Variant v = Yaml::loads("x: nan");
+    EXPECT_TRUE(std::isnan(v.toAssocArray()["x"].toDouble()));
+}
+
+TEST_F(YamlTest, NegativeInfWithoutDot)
+{
+    Variant v = Yaml::loads("x: -inf");
+    double d = v.toAssocArray()["x"].toDouble();
+    EXPECT_TRUE(std::isinf(d) && d < 0);
+}
+
+// --- Parser: comment inside multi-line flow value ---
+
+TEST_F(YamlTest, FlowValueWithComment)
+{
+    Variant v = Yaml::loads("a: [1,\n# a comment\n 2]");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr.size(), 1);
+    const Variant& val = arr["a"];
+    EXPECT_TRUE(val.isVariantArray());
+    EXPECT_EQ(val.toVariantArray().size(), 2);
+}
+
+// --- Parser: !!binary in sequence and block scalar binary ---
+
+TEST_F(YamlTest, BinaryInNestedMapping)
+{
+    Variant v = Yaml::loads("outer:\n  inner: !!binary SGVsbG8=\n");
+    EXPECT_TRUE(v.isAssocArray());
+    const Variant& outer = v.toAssocArray()["outer"];
+    EXPECT_TRUE(outer.isAssocArray());
+    EXPECT_TRUE(outer.toAssocArray()["inner"].isByteArray());
+}
+
+TEST_F(YamlTest, BinaryEmptyValue)
+{
+    Variant v = Yaml::loads("x: !!binary\n");
+    EXPECT_TRUE(v.isAssocArray());
+    const Variant& val = v.toAssocArray()["x"];
+    EXPECT_TRUE(val.isByteArray());
+    EXPECT_EQ(val.toByteArray().size(), 0);
+}
+
+// --- Parser: unsupported tag throws exception ---
+
+TEST_F(YamlTest, UnsupportedTagThrows)
+{
+    bool threw = false;
+    try { Yaml::loads("x: !!str hello"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, UnknownCustomTagThrows)
+{
+    bool threw = false;
+    try { Yaml::loads("x: !!custom:something value"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+// --- Parser: comment inside quoted string value ---
+
+TEST_F(YamlTest, CommentInsideDoubleQuotedString)
+{
+    Variant v = Yaml::loads("a: \"hello # world\"");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), String("hello # world"));
+}
+
+// --- Parser: trailing whitespace in value (readLine trim) ---
+
+TEST_F(YamlTest, TrailingWhitespaceInValue)
+{
+    Variant v = Yaml::loads("a: hello   \nb: 42\n");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr["a"].toString(), String("hello"));
+    EXPECT_EQ(arr["b"].toInt64(), 42);
+}
+
+// --- Parser: tab in indentation is rejected (readLine) ---
+
+TEST_F(YamlTest, TabInIndentationThrows)
+{
+    bool threw = false;
+    try { Yaml::loads("a:\n\t- 1\n"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+// ============================================================================
+// Block scalars (| and >)
+// ============================================================================
+
+TEST_F(YamlTest, BlockScalarLiteralWithFollowingKey)
+{
+    Variant v = Yaml::loads("a: |\n  hello\n  world\nb: 42\n");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), String("hello\nworld\n"));
+    EXPECT_EQ(v.toAssocArray()["b"].toInt64(), 42);
+}
+
+TEST_F(YamlTest, BlockScalarFoldedWithFollowingKey)
+{
+    Variant v = Yaml::loads("a: >\n  hello\n  world\nb: 42\n");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), String("hello world\n"));
+}
+
+TEST_F(YamlTest, BlockScalarFoldedEmptyLineWithKey)
+{
+    Variant v = Yaml::loads("a: >\n  para1\n\n  para2\nb: 42\n");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), String("para1\npara2\n"));
+}
+
+TEST_F(YamlTest, BlockScalarWithCommentAfter)
+{
+    Variant v = Yaml::loads("a: |\n  hello\n# comment\nb: 42\n");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), String("hello\n"));
+    EXPECT_EQ(v.toAssocArray()["b"].toInt64(), 42);
+}
+
+TEST_F(YamlTest, BlockScalarWithBlankLineAfter)
+{
+    Variant v = Yaml::loads("a: |\n  hello\n\nb: 42\n");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), String("hello\n"));
+    EXPECT_EQ(v.toAssocArray()["b"].toInt64(), 42);
+}
+
+TEST_F(YamlTest, BlockScalarWithTabAfterThrows)
+{
+    bool threw = false;
+    try { Yaml::loads("a: |\n  hello\n\tb: 42\n"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, BlockScalarSingleLine)
+{
+    Variant v = Yaml::loads("a: |\n  just one line\nb: 1\n");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), String("just one line\n"));
+}
+
+// ============================================================================
+// Writer: escape sequences (\b, \f, \r)
+// ============================================================================
+
+TEST_F(YamlTest, DumpsStringWithBackspaceAndFormFeed)
+{
+    Variant v(String("a\bb\fc"));
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "\"a\\bb\\fc\"\n");
+}
+
+TEST_F(YamlTest, DumpsStringWithCarriageReturn)
+{
+    Variant v(String("a\rb"));
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "\"a\\rb\"\n");
+}
+
+// ============================================================================
+// Writer: special scalar values (NaN, Inf, integer double, bool, null)
+// ============================================================================
+
+TEST_F(YamlTest, DumpsNanDouble)
+{
+    Variant v(NAN);
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "null\n");
+}
+
+TEST_F(YamlTest, DumpsInfDouble)
+{
+    Variant v(std::numeric_limits<double>::infinity());
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "null\n");
+}
+
+TEST_F(YamlTest, DumpsNegativeInfDouble)
+{
+    Variant v(-std::numeric_limits<double>::infinity());
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "null\n");
+}
+
+TEST_F(YamlTest, DumpsIntegerValuedDouble)
+{
+    Variant v(42.0);
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "42.0\n");
+}
+
+TEST_F(YamlTest, DumpsNonIntegerDouble)
+{
+    Variant v(3.14);
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "3.14\n");
+}
+
+TEST_F(YamlTest, DumpsBoolTrue)
+{
+    Variant v(true);
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "true\n");
+}
+
+TEST_F(YamlTest, DumpsBoolFalse)
+{
+    Variant v(false);
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "false\n");
+}
+
+TEST_F(YamlTest, DumpsNullVariant)
+{
+    Variant v(std::nullptr_t{});
+    String out = Yaml::dumps(v);
+    EXPECT_EQ(out, "null\n");
+}
+
+// ============================================================================
+// Writer: flow style with nested structures
+// ============================================================================
+
+TEST_F(YamlTest, DumpsFlowEmptyArrayInMapping)
+{
+    AssocArray arr;
+    VariantArray emptyArr;
+    arr.set("a", Variant(emptyArr));
+    String out = Yaml::dumps(arr, -1);
+    EXPECT_EQ(out, "{\"a\":[]}");
+}
+
+TEST_F(YamlTest, DumpsFlowEmptyDictInMapping)
+{
+    AssocArray inner;
+    AssocArray outer;
+    outer.set("a", Variant(inner));
+    String out = Yaml::dumps(outer, -1);
+    EXPECT_EQ(out, "{\"a\":{}}");
+}
+
+TEST_F(YamlTest, DumpsFlowNestedArray)
+{
+    VariantArray inner;
+    inner.add(Variant(2));
+    inner.add(Variant(3));
+    VariantArray outer;
+    outer.add(Variant(1));
+    outer.add(Variant(inner));
+    String out = Yaml::dumps(outer, -1);
+    EXPECT_EQ(out, "[1,[2,3]]");
+}
+
+TEST_F(YamlTest, DumpsFlowByteArray)
+{
+    const char data[] = "Hi";
+    Variant v(ByteArray(data, 2));
+    String out = Yaml::dumps(v, -1);
+    // Base64 of "Hi" is "SGk="
+    EXPECT_EQ(out, "!!binary \"SGk=\"");
+}
+
+// ============================================================================
+// Writer: block style with nested empty containers and byte arrays in sequences
+// ============================================================================
+
+TEST_F(YamlTest, DumpsBlockEmptyArrayInMapping)
+{
+    AssocArray arr;
+    VariantArray emptyArr;
+    arr.set("a", Variant(emptyArr));
+    String out = Yaml::dumps(arr, 2);
+    EXPECT_EQ(out, "\"a\": []\n");
+}
+
+TEST_F(YamlTest, DumpsBlockEmptyDictInMapping)
+{
+    AssocArray inner;
+    AssocArray outer;
+    outer.set("a", Variant(inner));
+    String out = Yaml::dumps(outer, 2);
+    EXPECT_EQ(out, "\"a\": {}\n");
+}
+
+TEST_F(YamlTest, DumpsBlockByteArrayInSequence)
+{
+    const char data[] = "Hello";
+    VariantArray arr;
+    arr.add(Variant(ByteArray(data, 5)));
+    String out = Yaml::dumps(arr, 2);
+    EXPECT_NE(out.find("- !!binary |"), String::npos);
+    EXPECT_NE(out.find("SGVsbG8="), String::npos);
+}
+
+// ============================================================================
+// Writer: writeBase64Lines with data > 76 base64 chars (line wrapping)
+// ============================================================================
+
+TEST_F(YamlTest, DumpsBlockByteArrayLongData)
+{
+    // 60 bytes → 80 base64 chars (> 76, triggers line wrap)
+    ByteArray ba(60);
+    for (int i = 0; i < 60; ++i) ba[i] = static_cast<unsigned char>(i);
+    AssocArray arr;
+    arr.set("data", Variant(ba));
+    String out = Yaml::dumps(arr, 2);
+    EXPECT_NE(out.find("!!binary |"), String::npos);
+    // Should have at least two lines of base64 content
+    size_t firstNl = out.find("\n", out.find("!!binary |") + 10);
+    size_t secondNl = out.find("\n", firstNl + 1);
+    EXPECT_NE(firstNl, String::npos);
+    EXPECT_NE(secondNl, String::npos);
+}
+
+// ============================================================================
+// Writer: dump(FileObject&) Variant overload
+// ============================================================================
+
+TEST_F(YamlTest, dumpVariantFileObject)
+{
+    Variant v(42);
+    MemFile file;
+    Yaml::dump(file, v);
+    file.seek(0);
+    ByteArray ba = file.load();
+    String content(reinterpret_cast<const char*>(ba.ptr()), ba.size());
+    EXPECT_EQ(content, "42\n");
+}
+
+TEST_F(YamlTest, dumpVariantFileObjectFlow)
+{
+    Variant v(42);
+    MemFile file;
+    Yaml::dump(file, v, -1);
+    file.seek(0);
+    ByteArray ba = file.load();
+    String content(reinterpret_cast<const char*>(ba.ptr()), ba.size());
+    EXPECT_EQ(content, "42");
+}
+
+// ============================================================================
+// Parser: \u escape sequences (2-byte, 3-byte UTF-8, surrogate pairs)
+// ============================================================================
+
+TEST_F(YamlTest, UEscapeTwoByteUtf8)
+{
+    // é = U+00E9 → 2-byte UTF-8: 0xC3 0xA9
+    Variant v = Yaml::loads("\"\\u00e9\"");
+    EXPECT_TRUE(v.isString());
+    String s = v.toString();
+    EXPECT_EQ(s.size(), 2);
+    EXPECT_EQ(static_cast<unsigned char>(s[0]), 0xC3);
+    EXPECT_EQ(static_cast<unsigned char>(s[1]), 0xA9);
+}
+
+TEST_F(YamlTest, UEscapeThreeByteUtf8)
+{
+    // 中 = U+4E2D → 3-byte UTF-8: 0xE4 0xB8 0xAD
+    Variant v = Yaml::loads("\"\\u4e2d\"");
+    EXPECT_TRUE(v.isString());
+    String s = v.toString();
+    EXPECT_EQ(s.size(), 3);
+    EXPECT_EQ(static_cast<unsigned char>(s[0]), 0xE4);
+    EXPECT_EQ(static_cast<unsigned char>(s[1]), 0xB8);
+    EXPECT_EQ(static_cast<unsigned char>(s[2]), 0xAD);
+}
+
+TEST_F(YamlTest, UEscapeFourByteUtf8)
+{
+    // 😀 = U+1F600 → 4-byte UTF-8: 0xF0 0x9F 0x98 0x80
+    Variant v = Yaml::loads("\"\\U0001F600\"");
+    EXPECT_TRUE(v.isString());
+    String s = v.toString();
+    EXPECT_EQ(s.size(), 4);
+    EXPECT_EQ(static_cast<unsigned char>(s[0]), 0xF0);
+    EXPECT_EQ(static_cast<unsigned char>(s[1]), 0x9F);
+    EXPECT_EQ(static_cast<unsigned char>(s[2]), 0x98);
+    EXPECT_EQ(static_cast<unsigned char>(s[3]), 0x80);
+}
+
+TEST_F(YamlTest, UEscapeSurrogatePair)
+{
+    // 😀 = U+1F600 as surrogate pair: D83D DE00
+    Variant v = Yaml::loads("\"\\ud83d\\ude00\"");
+    EXPECT_TRUE(v.isString());
+    String s = v.toString();
+    EXPECT_EQ(s.size(), 4);
+    EXPECT_EQ(static_cast<unsigned char>(s[0]), 0xF0);
+}
+
+TEST_F(YamlTest, UEscapeLoneHighSurrogateThrows)
+{
+    bool threw = false;
+    try { Yaml::loads("\"\\ud800\""); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, UEscapeLoneLowSurrogateThrows)
+{
+    bool threw = false;
+    try { Yaml::loads("\"\\ude00\""); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, UEscapeInvalidLowSurrogateThrows)
+{
+    // High surrogate followed by non-surrogate
+    bool threw = false;
+    try { Yaml::loads("\"\\ud800\\u0041\""); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+// ============================================================================
+// Parser: unescapeDoubleQuoted additional escapes (\b, \f, /, \0, \a, \v, \e)
+// ============================================================================
+
+TEST_F(YamlTest, UnescapeBackspaceAndFormFeed)
+{
+    Variant v = Yaml::loads("\"a\\bb\\fc\"");
+    EXPECT_TRUE(v.isString());
+    String s = v.toString();
+    EXPECT_EQ(s[1], '\b');
+    EXPECT_EQ(s[3], '\f');
+}
+
+TEST_F(YamlTest, UnescapeForwardSlash)
+{
+    Variant v = Yaml::loads("\"a\\/b\"");
+    EXPECT_TRUE(v.isString());
+    EXPECT_EQ(v.toString(), String("a/b"));
+}
+
+TEST_F(YamlTest, UnescapeNullChar)
+{
+    Variant v = Yaml::loads("\"a\\0b\"");
+    EXPECT_TRUE(v.isString());
+    String s = v.toString();
+    EXPECT_EQ(s[1], '\0');
+}
+
+TEST_F(YamlTest, UnescapeAlertVerticalTabEscape)
+{
+    Variant v = Yaml::loads("\"a\\ab\\vb\\eb\"");
+    EXPECT_TRUE(v.isString());
+    String s = v.toString();
+    EXPECT_EQ(s[1], '\a');
+    EXPECT_EQ(s[3], '\v');
+    EXPECT_EQ(s[5], 0x1B);
+}
+
+// ============================================================================
+// Parser: plain keys in flow mappings
+// ============================================================================
+
+TEST_F(YamlTest, FlowPlainKey)
+{
+    Variant v = Yaml::loads("{a: 1}");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr.size(), 1);
+    EXPECT_EQ(arr["a"].toInt64(), 1);
+}
+
+TEST_F(YamlTest, FlowPlainKeyMultiple)
+{
+    Variant v = Yaml::loads("{a: 1, b: 2, c: 3}");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr.size(), 3);
+    EXPECT_EQ(arr["a"].toInt64(), 1);
+    EXPECT_EQ(arr["b"].toInt64(), 2);
+    EXPECT_EQ(arr["c"].toInt64(), 3);
+}
+
+// ============================================================================
+// Parser: root-level !!binary and !! tags (parseBlock)
+// ============================================================================
+
+TEST_F(YamlTest, RootBinaryTag)
+{
+    Variant v = Yaml::loads("!!binary SGVsbG8=\n");
+    EXPECT_TRUE(v.isByteArray());
+    String s(reinterpret_cast<const char*>(v.toByteArray().ptr()), v.toByteArray().size());
+    EXPECT_EQ(s, String("Hello"));
+}
+
+TEST_F(YamlTest, RootBinaryTagEmpty)
+{
+    Variant v = Yaml::loads("!!binary\n");
+    EXPECT_TRUE(v.isByteArray());
+    EXPECT_EQ(v.toByteArray().size(), 0);
+}
+
+TEST_F(YamlTest, RootUnknownTagThrows)
+{
+    bool threw = false;
+    try { Yaml::loads("!!custom value\n"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+// ============================================================================
+// Parser: single-quoted key in block mapping (unquoteKey)
+// ============================================================================
+
+TEST_F(YamlTest, BlockSingleQuotedKey)
+{
+    Variant v = Yaml::loads("'my key': value\n");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr.size(), 1);
+    EXPECT_EQ(arr["my key"].toString(), String("value"));
+}
+
+TEST_F(YamlTest, BlockSingleQuotedKeyWithEscape)
+{
+    Variant v = Yaml::loads("'it''s': value\n");
+    EXPECT_TRUE(v.isAssocArray());
+    const AssocArray& arr = v.toAssocArray();
+    EXPECT_EQ(arr.size(), 1);
+    EXPECT_EQ(arr["it's"].toString(), String("value"));
+}
+
+// ============================================================================
+// Parser: empty flow containers as values
+// ============================================================================
+
+TEST_F(YamlTest, FlowEmptyArrayAsValue)
+{
+    Variant v = Yaml::loads("a: []");
+    EXPECT_TRUE(v.isAssocArray());
+    const Variant& val = v.toAssocArray()["a"];
+    EXPECT_TRUE(val.isVariantArray());
+    EXPECT_EQ(val.toVariantArray().size(), 0);
+}
+
+TEST_F(YamlTest, FlowEmptyDictAsValue)
+{
+    Variant v = Yaml::loads("a: {}");
+    EXPECT_TRUE(v.isAssocArray());
+    const Variant& val = v.toAssocArray()["a"];
+    EXPECT_TRUE(val.isAssocArray());
+    EXPECT_EQ(val.toAssocArray().size(), 0);
+}
+
+// ============================================================================
+// Parser: single-quoted string in block scalar value
+// ============================================================================
+
+TEST_F(YamlTest, BlockSingleQuotedStringValue)
+{
+    Variant v = Yaml::loads("a: 'hello world'\n");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), String("hello world"));
+}
+
+TEST_F(YamlTest, BlockSingleQuotedStringWithEscape)
+{
+    Variant v = Yaml::loads("a: 'it''s fine'\n");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), String("it's fine"));
+}
+
+// ============================================================================
+// Writer: flow style root scalar (no trailing newline)
+// ============================================================================
+
+TEST_F(YamlTest, DumpsFlowRootScalar)
+{
+    Variant v(42);
+    String out = Yaml::dumps(v, -1);
+    EXPECT_EQ(out, "42");
+}
+
+TEST_F(YamlTest, DumpsFlowRootString)
+{
+    Variant v(String("hello"));
+    String out = Yaml::dumps(v, -1);
+    EXPECT_EQ(out, "\"hello\"");
+}
+
+// ============================================================================
+// Escape-Sequenzen (Zusatzabdeckung)
+// ============================================================================
+
+TEST_F(YamlTest, DoubleQuotedEscCR) {
+    Variant v = Yaml::loads("\"a\\rb\"");
+    EXPECT_EQ(v.toString(), "a\rb");
+}
+
+TEST_F(YamlTest, DoubleQuotedEscBackslash) {
+    Variant v = Yaml::loads("\"a\\\\b\"");
+    EXPECT_EQ(v.toString(), "a\\b");
+}
+
+TEST_F(YamlTest, DoubleQuotedInvalidEscape) {
+    bool threw = false;
+    try { Yaml::loads("\"a\\qb\""); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, DoubleQuotedLoneSurrogateViaUEscape) {
+    bool threw = false;
+    try { Yaml::loads("\"\\U0000D800\""); }
+    catch (const pplib::CharacterEncodingException&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, DoubleQuotedInvalidSurrogatePairHex) {
+    bool threw = false;
+    try { Yaml::loads("\"\\uD800\\uZZ41\""); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, SingleQuotedUnterminated) {
+    bool threw = false;
+    try { Yaml::loads("'abc"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+// ============================================================================
+// Flow-Style: Comments und Fehlerpfade
+// ============================================================================
+
+TEST_F(YamlTest, FlowWithComment) {
+    Variant v = Yaml::loads("{a: 1, # comment\nb: 2}");
+    const AssocArray& d = v.toAssocArray();
+    EXPECT_EQ(d.size(), 2);
+    EXPECT_EQ(d["a"].toInt(), 1);
+    EXPECT_EQ(d["b"].toInt(), 2);
+}
+
+TEST_F(YamlTest, FlowSeqBadSeparator) {
+    // Quoted value stops at closing quote; 'b' is unexpected after it
+    bool threw = false;
+    try { Yaml::loads("[\"a\" b]"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, FlowMappingMissingColon) {
+    bool threw = false;
+    try { Yaml::loads("{a 1}"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, FlowMappingBadSeparator) {
+    // Quoted value stops at closing quote; 'b' is unexpected after it
+    bool threw = false;
+    try { Yaml::loads("{a: \"x\" b}"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, FlowMappingMultiCharPlainKey) {
+    Variant v = Yaml::loads("{hello: 1, world: 2}");
+    const AssocArray& d = v.toAssocArray();
+    EXPECT_EQ(d.size(), 2);
+    EXPECT_EQ(d["hello"].toInt(), 1);
+    EXPECT_EQ(d["world"].toInt(), 2);
+}
+
+TEST_F(YamlTest, FlowQuotedStringValue) {
+    Variant v = Yaml::loads("{a: \"hello\"}");
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), "hello");
+}
+
+TEST_F(YamlTest, FlowDoubleQuotedValueWithEscape) {
+    Variant v = Yaml::loads(R"({a: "he\"llo"})");
+    EXPECT_EQ(v.toAssocArray()["a"].toString(), "he\"llo");
+}
+
+TEST_F(YamlTest, FlowQuotedSeqItem) {
+    Variant v = Yaml::loads("[\"world\", 'x']");
+    const VariantArray& arr = v.toVariantArray();
+    EXPECT_EQ(arr.size(), 2);
+    EXPECT_EQ(arr[0].toString(), "world");
+    EXPECT_EQ(arr[1].toString(), "x");
+}
+
+// ============================================================================
+// !!binary in verschiedenen Kontexten
+// ============================================================================
+
+TEST_F(YamlTest, BlockBinaryAtRoot) {
+    Variant v = Yaml::loads("!!binary SGk=");
+    const ByteArray& ba = v.toByteArray();
+    EXPECT_EQ(ba.size(), 2);
+    EXPECT_EQ(static_cast<unsigned char>(ba[0]), 'H');
+    EXPECT_EQ(static_cast<unsigned char>(ba[1]), 'i');
+}
+
+TEST_F(YamlTest, SequenceBinaryItem) {
+    Variant v = Yaml::loads("- !!binary SGk=\n- 2");
+    const VariantArray& arr = v.toVariantArray();
+    EXPECT_EQ(arr.size(), 2);
+    const ByteArray& ba = arr[0].toByteArray();
+    EXPECT_EQ(ba.size(), 2);
+    EXPECT_EQ(static_cast<unsigned char>(ba[0]), 'H');
+    EXPECT_EQ(arr[1].toInt(), 2);
+}
+
+TEST_F(YamlTest, SequenceFlowItem) {
+    Variant v = Yaml::loads("- [1, 2]\n- 3");
+    const VariantArray& arr = v.toVariantArray();
+    EXPECT_EQ(arr.size(), 2);
+    const VariantArray& nested = arr[0].toVariantArray();
+    EXPECT_EQ(nested.size(), 2);
+    EXPECT_EQ(nested[0].toInt(), 1);
+    EXPECT_EQ(nested[1].toInt(), 2);
+    EXPECT_EQ(arr[1].toInt(), 3);
+}
+
+// ============================================================================
+// Mapping- und Sequence-Fehlerpfade
+// ============================================================================
+
+TEST_F(YamlTest, MappingInvalidLine) {
+    bool threw = false;
+    try { Yaml::loads("a: 1\nb\nc: 2"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, MappingUnexpectedIndent) {
+    bool threw = false;
+    try { Yaml::loads("a: 1\n  b: 2"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, SequenceUnexpectedIndent) {
+    bool threw = false;
+    try { Yaml::loads("- 1\n  - 2"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, SequenceEndNonDash) {
+    // Root sequence ends when a non-dash line appears at same indent
+    Variant v = Yaml::loads("- 1\n- 2\nkey: value");
+    const VariantArray& arr = v.toVariantArray();
+    EXPECT_EQ(arr.size(), 2);
+    EXPECT_EQ(arr[0].toInt(), 1);
+    EXPECT_EQ(arr[1].toInt(), 2);
+}
+
+TEST_F(YamlTest, SequenceExtraSpacesAfterDash) {
+    Variant v = Yaml::loads("-   1\n- 2");
+    const VariantArray& arr = v.toVariantArray();
+    EXPECT_EQ(arr.size(), 2);
+    EXPECT_EQ(arr[0].toInt(), 1);
+    EXPECT_EQ(arr[1].toInt(), 2);
+}
+
+TEST_F(YamlTest, SequenceEmptyItemNestedBlock) {
+    Variant v = Yaml::loads("-\n  a: 1\n- 2");
+    const VariantArray& arr = v.toVariantArray();
+    EXPECT_EQ(arr.size(), 2);
+    const AssocArray& d = arr[0].toAssocArray();
+    EXPECT_EQ(d["a"].toInt(), 1);
+    EXPECT_EQ(arr[1].toInt(), 2);
+}
+
+// ============================================================================
+// load/loads Overloads für AssocArray und VariantArray (FileObject)
+// ============================================================================
+
+TEST_F(YamlTest, LoadAssocArrayFromMemFile) {
+    MemFile mf;
+    mf.puts("a: 1\nb: two");
+    mf.seek(0);
+
+    AssocArray arr;
+    Yaml::load(arr, mf);
+    EXPECT_EQ(arr.size(), 2);
+    EXPECT_EQ(arr["a"].toInt(), 1);
+    EXPECT_EQ(arr["b"].toString(), "two");
+}
+
+TEST_F(YamlTest, LoadsAssocArrayWrongType) {
+    AssocArray arr;
+    bool threw = false;
+    try { Yaml::loads(arr, "42"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+TEST_F(YamlTest, LoadVariantArrayFromMemFile) {
+    MemFile mf;
+    mf.puts("- 1\n- two");
+    mf.seek(0);
+
+    VariantArray arr;
+    Yaml::load(arr, mf);
+    EXPECT_EQ(arr.size(), 2);
+    EXPECT_EQ(arr[0].toInt(), 1);
+    EXPECT_EQ(arr[1].toString(), "two");
+}
+
+TEST_F(YamlTest, LoadsVariantArrayWrongType) {
+    VariantArray arr;
+    bool threw = false;
+    try { Yaml::loads(arr, "a: 1"); }
+    catch (const pplib::Exception&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+// ============================================================================
+// Writer: Escape und Fehlerpfade
+// ============================================================================
+
+TEST_F(YamlTest, WriterEscapeDoubleQuote) {
+    AssocArray arr;
+    arr.set("k", String("he\"llo"));
+    String out = Yaml::dumps(arr);
+    EXPECT_NE(out.find("\\\""), String::npos);
+}
+
+TEST_F(YamlTest, WriterUnsupportedType) {
+    AssocArray arr;
+    arr.set("x", Variant());  // TYPE_UNKNOWN → nicht serialisierbar
+    bool threw = false;
+    try { Yaml::dumps(arr); }
+    catch (const pplib::UnsupportedDataTypeException&) { threw = true; }
+    EXPECT_TRUE(threw);
+}
+
+// ============================================================================
+// Writer: Verschachtelte Arrays/Dicts in Sequenzen (Block-Mode)
+// ============================================================================
+
+TEST_F(YamlTest, WriteSequenceNestedEmptyArray) {
+    VariantArray arr;
+    arr.add(Variant(std::nullptr_t{}));  // null
+    arr.add(VariantArray{});             // leeres Array
+    String out = Yaml::dumps(arr);
+    EXPECT_NE(out.find(" []"), String::npos);
+}
+
+TEST_F(YamlTest, WriteSequenceNestedEmptyDict) {
+    VariantArray arr;
+    arr.add(AssocArray{});  // leeres Dict
+    String out = Yaml::dumps(arr);
+    EXPECT_NE(out.find(" {}"), String::npos);
+}
+
+TEST_F(YamlTest, WriteSequenceNestedNonEmptyArray) {
+    VariantArray inner;
+    inner.add(Variant(1));
+    inner.add(Variant(2));
+    VariantArray arr;
+    arr.add(inner);  // nicht-leeres Array
+    String out = Yaml::dumps(arr);
+    EXPECT_GT(out.size(), 0u);
+}
+
+TEST_F(YamlTest, WriteSequenceNestedNonEmptyDict) {
+    AssocArray inner;
+    inner.set("k", 1);
+    VariantArray arr;
+    arr.add(inner);  // nicht-leeres Dict
+    String out = Yaml::dumps(arr);
+    EXPECT_GT(out.size(), 0u);
 }

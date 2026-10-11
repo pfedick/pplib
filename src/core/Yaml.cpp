@@ -69,7 +69,7 @@ struct ParserState
 {
     Line pendingLine;
     bool hasPendingLine = false;
-    String pendingRaw;   // rohe Zeile (inkl. Einrückung), z. B. aus parseBlockScalar
+    String pendingRaw; // rohe Zeile (inkl. Einrückung), z. B. aus parseBlockScalar
     bool hasPendingRaw = false;
 };
 
@@ -95,7 +95,8 @@ static bool readLine(ParserState& state, pplib::FileObject& file, Line& out)
         state.pendingRaw.clear();
         // Einrückung zählen und Inhalt extrahieren
         size_t i = 0;
-        while (i < raw.size() && raw[i] == ' ') i++;
+        while (i < raw.size() && raw[i] == ' ')
+            i++;
         if (i < raw.size() && raw[i] == '\t') {
             throw pplib::UnexpectedCharacterException("Tab in YAML indentation");
         }
@@ -122,10 +123,12 @@ static bool readLine(ParserState& state, pplib::FileObject& file, Line& out)
         while (!content.isEmpty() && isYamlSpace(static_cast<unsigned char>(content[content.size() - 1]))) {
             content = content.substr(0, content.size() - 1);
         }
-        if (content.isEmpty()) return false; // leere/Comment-Zeile wird übersprungen
-        out.indent = static_cast<int>(i);
-        out.text = std::move(content);
-        return true;
+        if (!content.isEmpty()) {
+            out.indent = static_cast<int>(i);
+            out.text = std::move(content);
+            return true;
+        }
+        // Leere/Comment-Zeile: weiter mit normalem Lesen fortfahren
     }
     while (!file.eof()) {
         String raw;
@@ -613,8 +616,8 @@ static pplib::Variant parseFlow(pplib::FileObject& file, int c)
                 c = ch;
             }
             if (c != ':') {
-                throw pplib::UnexpectedCharacterException("Expected ':' after flow key >>%s<< at position %lld, got >>%c<<",
-                                                          key.c_str(), file.tell(), c);
+                throw pplib::UnexpectedCharacterException("Expected ':' after flow key >>%s<< at position %lld, got >>%c<<", key.c_str(),
+                                                          file.tell(), c);
             }
             skipFlowWs(file);
             c = file.fgetc();
@@ -1176,7 +1179,10 @@ static void writeScalar(pplib::FileObject& file, const pplib::Variant& v)
             // Typ-Identität erhalten: ganzzahlige Doubles als "1.0" schreiben
             bool hasDotOrExp = false;
             for (const char* p = buf; *p; ++p) {
-                if (*p == '.' || *p == 'e' || *p == 'E') { hasDotOrExp = true; break; }
+                if (*p == '.' || *p == 'e' || *p == 'E') {
+                    hasDotOrExp = true;
+                    break;
+                }
             }
             if (!hasDotOrExp) {
                 file.puts(buf);
@@ -1390,13 +1396,7 @@ void Yaml::dumps(pplib::String& yaml, const pplib::Variant& data, int indent)
     pplib::MemFile file(nullptr, 0, true);
     Yaml::dump(file, data, indent);
     size_t size = file.tell();
-    ByteArray ba;
-    unsigned char* str = static_cast<unsigned char*>(ba.malloc(size + 1));
-    if (!str) throw OutOfMemoryException();
-    file.rewind();
-    file.fread(str, size, 1);
-    str[size] = 0;
-    yaml.set(reinterpret_cast<const char*>(str), size);
+    yaml.set(file.map(0, size), size);
 }
 
 pplib::String Yaml::dumps(const pplib::Variant& data, int indent)
@@ -1421,13 +1421,7 @@ void Yaml::dumps(pplib::String& yaml, const pplib::AssocArray& data, int indent)
     pplib::MemFile file(nullptr, 0, true);
     Yaml::dump(file, data, indent);
     size_t size = file.tell();
-    ByteArray ba;
-    unsigned char* str = static_cast<unsigned char*>(ba.malloc(size + 1));
-    if (!str) throw OutOfMemoryException();
-    file.rewind();
-    file.fread(str, size, 1);
-    str[size] = 0;
-    yaml.set(reinterpret_cast<const char*>(str), size);
+    yaml.set(file.map(0, size), size);
 }
 
 pplib::String Yaml::dumps(const pplib::AssocArray& data, int indent)
@@ -1452,13 +1446,7 @@ void Yaml::dumps(pplib::String& yaml, const pplib::VariantArray& data, int inden
     pplib::MemFile file(nullptr, 0, true);
     Yaml::dump(file, data, indent);
     size_t size = file.tell();
-    ByteArray ba;
-    unsigned char* str = static_cast<unsigned char*>(ba.malloc(size + 1));
-    if (!str) throw OutOfMemoryException();
-    file.rewind();
-    file.fread(str, size, 1);
-    str[size] = 0;
-    yaml.set(reinterpret_cast<const char*>(str), size);
+    yaml.set(file.map(0, size), size);
 }
 
 pplib::String Yaml::dumps(const pplib::VariantArray& data, int indent)
