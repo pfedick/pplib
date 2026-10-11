@@ -216,6 +216,21 @@ ByteArray FileObject::load()
     return ba;
 }
 
+String FileObject::loads()
+{
+    ByteArray ba;
+    load(ba);
+    return String((const char*)ba.ptr(), ba.size());
+}
+
+size_t FileObject::loads(String& target)
+{
+    ByteArray ba;
+    size_t n = load(ba);
+    target.set((const char*)ba.ptr(), ba.size());
+    return n;
+}
+
 size_t FileObject::load(ByteArray& object)
 {
     if (!isOpen()) throw FileNotOpenException();

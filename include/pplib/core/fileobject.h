@@ -359,6 +359,14 @@ public:
      */
     ByteArray load();
 
+    /** @brief Den kompletten Inhalt der Datei als String laden
+     *
+     * Mit dieser Funktion wird der komplette Inhalt der geöffneten Datei in den
+     * Hauptspeicher geladen und als String zurückgegeben.
+     * @return String mit dem Inhalt der Datei
+     */
+    String loads();
+
     /** @brief Den kompletten Inhalt der Datei in ein Objekt laden
      *
      * Mit dieser Funktion wird der komplette Inhalt der geöffneten Datei in das
@@ -367,6 +375,15 @@ public:
      * @return Anzahl der tatsächlich in das Zielobjekt geladenen Bytes
      */
     size_t load(ByteArray& target);
+
+    /** @brief Den kompletten Inhalt der Datei in einen String laden
+     *
+     * Mit dieser Funktion wird der komplette Inhalt der geöffneten Datei in den
+     * Hauptspeicher geladen und in den angegebenen String \p target geschrieben.
+     * @param[out] target Der String, in den der Inhalt der Datei geladen wird
+     * @return Anzahl der tatsächlich in den String geladenen Bytes
+     */
+    size_t loads(String& target);
 
     /** @brief MD5-Hash der Datei berechnen
      *
