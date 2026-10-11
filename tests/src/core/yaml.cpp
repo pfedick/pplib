@@ -150,7 +150,8 @@ TEST_F(YamlTest, LoadAndDumpTest2FileObjectRoundTrip)
     EXPECT_EQ(root["boolean_true"], parsed["boolean_true"]);
     EXPECT_EQ(root["boolean_false"], parsed["boolean_false"]);
     EXPECT_FLOAT_EQ(root["float"].toFloat(), parsed["float"].toFloat());
-    EXPECT_DOUBLE_EQ(3.14159265358979, parsed["double"].toDouble());
+    EXPECT_DOUBLE_EQ(3.141592653589793, parsed["double"].toDouble());
+    EXPECT_EQ(root["double"], parsed["double"]);
     EXPECT_EQ(root["null_value"], parsed["null_value"]);
     EXPECT_EQ(root["integer_array"], parsed["integer_array"]);
     EXPECT_EQ(root["string_array"], parsed["string_array"]);
@@ -160,7 +161,6 @@ TEST_F(YamlTest, LoadAndDumpTest2FileObjectRoundTrip)
     EXPECT_EQ(root["timestamp"], parsed["timestamp"]);
     EXPECT_EQ(root["time"], parsed["time"]);
 
-    parsed["double"] = root["double"];
     parsed["datetime"] = root["datetime"];
     parsed["timestamp"] = root["timestamp"];
     EXPECT_EQ(root, parsed);
@@ -375,6 +375,11 @@ TEST_F(YamlTest, UnicodeEscapesAndSurrogatePairs)
     EXPECT_TRUE(threw);
 
     threw = false;
+    try { (void)Yaml::loads("s: \"\\uD800abc\""); } // Einsames High-Surrogate gefolgt von Text
+    catch (const pplib::CharacterEncodingException&) { threw = true; }
+    EXPECT_TRUE(threw);
+
+    threw = false;
     try { (void)Yaml::loads("s: \"\\uDC00\""); } // Einsames Low-Surrogate
     catch (const pplib::CharacterEncodingException&) { threw = true; }
     EXPECT_TRUE(threw);
@@ -385,12 +390,27 @@ TEST_F(YamlTest, UnicodeEscapesAndSurrogatePairs)
     EXPECT_TRUE(threw);
 
     threw = false;
+    try { (void)Yaml::loads("s: \"\\uD800\\uDC0Z\""); } // Ungültiges Hex im Low-Surrogate
+    catch (const pplib::InvalidEscapeSequenceException&) { threw = true; }
+    EXPECT_TRUE(threw);
+
+    threw = false;
+    try { (void)Yaml::loads("s: \"\\u000Z\""); } // Ungültiges Hex in \u
+    catch (const pplib::InvalidEscapeSequenceException&) { threw = true; }
+    EXPECT_TRUE(threw);
+
+    threw = false;
+    try { (void)Yaml::loads("s: \"\\U0000000Z\""); } // Ungültiges Hex in \U
+    catch (const pplib::InvalidEscapeSequenceException&) { threw = true; }
+    EXPECT_TRUE(threw);
+
+    threw = false;
     try { (void)Yaml::loads("s: \"\\U00110000\""); } // Codepoint > 0x10FFFF
     catch (const pplib::CharacterEncodingException&) { threw = true; }
     EXPECT_TRUE(threw);
 
     threw = false;
-    try { (void)Yaml::loads("s: \"\\xZZ\""); } // Ungültiges Hex
+    try { (void)Yaml::loads("s: \"\\xZZ\""); } // Ungültiges Hex in \x
     catch (const pplib::InvalidEscapeSequenceException&) { threw = true; }
     EXPECT_TRUE(threw);
 }
@@ -413,6 +433,14 @@ TEST_F(YamlTest, BlockMappings)
     EXPECT_EQ(30, m["age"].toInt());
     EXPECT_TRUE(m["active"].toBool());
     EXPECT_EQ(String("Patrick's Library"), m["title"].toString());
+
+    // Single-quoted key
+    Variant vQuotedKey = Yaml::loads("'single_quoted_key': 123");
+    EXPECT_EQ(123, vQuotedKey.toAssocArray()["single_quoted_key"].toInt());
+
+    // Leeres !!binary in Mapping
+    Variant vEmptyBin = Yaml::loads("b: !!binary\n");
+    EXPECT_TRUE(vEmptyBin.toAssocArray()["b"].isByteArray());
 }
 
 TEST_F(YamlTest, BlockSequences)
@@ -430,6 +458,14 @@ TEST_F(YamlTest, BlockSequences)
     EXPECT_EQ(String("item2"), arr[1].toString());
     EXPECT_EQ(String("extra spaces"), arr[2].toString());
     EXPECT_EQ(String("value"), arr[3].toAssocArray()["nested_key"].toString());
+
+    // Sequenz beendet durch Key auf gleicher Einrückung
+    Variant vSeqEnd = Yaml::loads("- 1\n- 2\nkey: value");
+    EXPECT_EQ(2u, vSeqEnd.toVariantArray().size());
+
+    // Block-Skalar in Sequenz
+    Variant vSeqScalar = Yaml::loads("- |\n  hello\n- 2\n");
+    EXPECT_EQ(String("hello\n"), vSeqScalar.toVariantArray()[0].toString());
 }
 
 TEST_F(YamlTest, CompactMappingsInSequence)
@@ -550,6 +586,11 @@ TEST_F(YamlTest, FlowSequences)
     Variant v5 = Yaml::loads("['it''s', 'fine']");
     ASSERT_EQ(2u, v5.toVariantArray().size());
     EXPECT_EQ(String("it's"), v5.toVariantArray()[0].toString());
+
+    // Escaped Quote in Flow-Skalar
+    Variant v6 = Yaml::loads("[\"escaped \\\" quote\"]");
+    ASSERT_EQ(1u, v6.toVariantArray().size());
+    EXPECT_EQ(String("escaped \" quote"), v6.toVariantArray()[0].toString());
 }
 
 TEST_F(YamlTest, FlowMappings)
@@ -590,6 +631,16 @@ TEST_F(YamlTest, FlowErrors)
     try { (void)Yaml::loads("{key}"); } // Fehlender Doppelpunkt
     catch (const pplib::Exception&) { threw = true; }
     EXPECT_TRUE(threw);
+
+    threw = false;
+    try { (void)Yaml::loads("[\"a\" \"b\"]"); } // Fehlendes Komma in Flow-Sequenz
+    catch (const pplib::UnexpectedCharacterException&) { threw = true; }
+    EXPECT_TRUE(threw);
+
+    threw = false;
+    try { (void)Yaml::loads("{\"a\": [1] \"b\": 2}"); } // Fehlendes Komma in Flow-Mapping
+    catch (const pplib::UnexpectedCharacterException&) { threw = true; }
+    EXPECT_TRUE(threw);
 }
 
 // ============================================================================
@@ -612,6 +663,12 @@ TEST_F(YamlTest, BinaryTagHandling)
     Variant v3 = Yaml::loads("!!binary SGk=");
     EXPECT_TRUE(v3.isByteArray());
     EXPECT_EQ(String("Hi"), v3.toByteArray().toString());
+
+    // Root-Level Custom Tag wirft UnsupportedDataTypeException
+    bool threwTag = false;
+    try { (void)Yaml::loads("!!str hello"); }
+    catch (const pplib::UnsupportedDataTypeException&) { threwTag = true; }
+    EXPECT_TRUE(threwTag);
 
     // Root-Level !!binary |
     Variant v4 = Yaml::loads("!!binary |\n  SGk=\n");
@@ -692,6 +749,18 @@ TEST_F(YamlTest, DumpScalarTypes)
     EXPECT_EQ(String(".inf\n"), Yaml::dumps(Variant(std::numeric_limits<double>::infinity())));
     EXPECT_EQ(String("-.inf\n"), Yaml::dumps(Variant(-std::numeric_limits<double>::infinity())));
 
+    // Verlustfreier Roundtrip von 17-stelligen IEEE-754 Doubles
+    double precise = 1.2345678901234567;
+    String outPrecise = Yaml::dumps(Variant(precise));
+    Variant backPrecise = Yaml::loads(outPrecise);
+    EXPECT_EQ(precise, backPrecise.toDouble());
+
+    // Strings mit Anführungszeichen und Control-Chars
+    Variant vQuote(String("He said \"hello\"\x01"));
+    String outQuote = Yaml::dumps(vQuote);
+    EXPECT_NE(outQuote.find("\\\""), String::npos);
+    EXPECT_NE(outQuote.find("\\u0001"), String::npos);
+
     // Booleans & Null
     EXPECT_EQ(String("true\n"), Yaml::dumps(Variant(true)));
     EXPECT_EQ(String("false\n"), Yaml::dumps(Variant(false)));
@@ -710,13 +779,36 @@ TEST_F(YamlTest, DumpCollectionsBlockAndFlow)
     EXPECT_EQ(String("{}"), Yaml::dumps(Variant(AssocArray{}), 0));
     EXPECT_EQ(String("[]"), Yaml::dumps(Variant(VariantArray{}), 0));
 
+    // FileObject Dumps für leere Mappings / Sequenzen
+    MemFile mfEmpty;
+    AssocArray emptyMap;
+    Yaml::dump(mfEmpty, emptyMap, 2);
+    Yaml::dump(mfEmpty, emptyMap, 0);
+    VariantArray emptyArr;
+    Yaml::dump(mfEmpty, emptyArr, 2);
+
     // Verschachteltes Mapping
     AssocArray d;
     d.set("a", 1);
     d.set("sub", AssocArray{});
+    d.set("empty_arr", VariantArray{});
     String outMap = Yaml::dumps(d, 2);
     EXPECT_NE(outMap.find("\"a\": 1"), String::npos);
     EXPECT_NE(outMap.find("\"sub\": {}"), String::npos);
+    EXPECT_NE(outMap.find(" []"), String::npos);
+
+    // Sequenz mit verschachtelten leeren und gefüllten Arrays / Mappings / Binärdaten
+    VariantArray seq;
+    ByteArray ba;
+    ba.append("hi", 2);
+    seq.add(Variant(ba));
+    seq.add(Variant(VariantArray{}));
+    VariantArray innerV;
+    innerV.add(Variant(1));
+    seq.add(Variant(innerV));
+    seq.add(Variant(AssocArray{}));
+    String outSeq = Yaml::dumps(seq, 2);
+    EXPECT_FALSE(outSeq.isEmpty());
 
     // Mappings in Sequenzen bei indent != 2 (Konsistente Einrückung!)
     VariantArray arr;

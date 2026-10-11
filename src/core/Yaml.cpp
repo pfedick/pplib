@@ -1285,23 +1285,22 @@ static void writeScalar(pplib::FileObject& file, const pplib::Variant& v)
             file.puts(d < 0 ? "-.inf" : ".inf");
         } else {
             char buf[64];
-            std::snprintf(buf, sizeof(buf), "%.15g", d);
-            for (char* p = buf; *p; ++p)
-                if (*p == ',') *p = '.';
+            auto [ptr, ec] = std::to_chars(buf, buf + sizeof(buf) - 3, d);
+            *ptr = '\0';
             // Typ-Identität erhalten: ganzzahlige Doubles als "1.0" schreiben
             bool hasDotOrExp = false;
-            for (const char* p = buf; *p; ++p) {
+            for (const char* p = buf; p < ptr; ++p) {
                 if (*p == '.' || *p == 'e' || *p == 'E') {
                     hasDotOrExp = true;
                     break;
                 }
             }
             if (!hasDotOrExp) {
-                file.puts(buf);
-                file.puts(".0");
-            } else {
-                file.puts(buf);
+                *ptr++ = '.';
+                *ptr++ = '0';
+                *ptr = '\0';
             }
+            file.puts(buf);
         }
         return;
     }
