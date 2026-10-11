@@ -602,6 +602,13 @@ double Variant::toDouble() const
     return *static_cast<double*>(value);
 }
 
+float Variant::toFloat() const
+{
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_DOUBLE) throw TypeConversionException();
+    return static_cast<float>(*static_cast<double*>(value));
+}
+
 bool Variant::operator==(const Variant& other) const
 {
     if (t != other.t) return false;

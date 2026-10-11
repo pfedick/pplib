@@ -1196,6 +1196,8 @@ public:
 
     double toDouble() const;
 
+    float toFloat() const;
+
     /** @brief Typkonvertierung zu: String
      *
      * Der Aufruf dieser Funktion liefert eine Referenz des gespeicherten Strings zurück, sofern der Variant diesen Datentyp enthält.
