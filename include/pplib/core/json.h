@@ -58,33 +58,153 @@ namespace pplib
 class Json
 {
 public:
+    Json() = delete; // Verhindert die Instanziierung der Json-Klasse.
+
     // --- Parsen (Basis auf Variant) ---
+
+    /** @brief Lädt JSON-Daten aus einem String in ein Variant-Objekt.
+     *  @param data Das Variant-Objekt, in das die JSON-Daten geladen werden.
+     *  @param json Der JSON-String, der geladen werden soll.
+     */
     static void loads(pplib::Variant& data, const pplib::String& json);
+
+    /** @brief Lädt JSON-Daten aus einer Datei in ein Variant-Objekt.
+     *  @param data Das Variant-Objekt, in das die JSON-Daten geladen werden.
+     *  @param file Das FileObject, aus dem die JSON-Daten geladen werden.
+     */
     static void load(pplib::Variant& data, pplib::FileObject& file);
+
+    /** @brief Lädt JSON-Daten aus einem String und gibt das Ergebnis als Variant-Objekt zurück.
+     *  @param json Der JSON-String, der geladen werden soll.
+     *  @return Das Variant-Objekt, das die geladenen JSON-Daten enthält. Je nach Struktur der
+     * JSON-Daten kann es sich dabei um ein AssocArray, ein VariantArray oder einen Skalar handeln.
+     */
     static pplib::Variant loads(const pplib::String& json);
+
+    /** @brief Lädt JSON-Daten aus einer Datei und gibt das Ergebnis als Variant-Objekt zurück.
+     *  @param file Das FileObject, aus dem die JSON-Daten geladen werden.
+     *  @return Das Variant-Objekt, das die geladenen JSON-Daten enthält. Je nach Struktur der
+     * JSON-Daten kann es sich dabei um ein AssocArray, ein VariantArray oder einen Skalar handeln.
+     */
     static pplib::Variant load(pplib::FileObject& file);
 
     // --- Parsen (Komfort für AssocArray und VariantArray) ---
+
+    /** @brief Lädt JSON-Daten aus einem String in ein AssocArray-Objekt.
+     *  @param data Das AssocArray-Objekt, in das die JSON-Daten geladen werden.
+     *  @param json Der JSON-String, der geladen werden soll.
+     */
     static void loads(pplib::AssocArray& data, const pplib::String& json);
+
+    /** @brief Lädt JSON-Daten aus einer Datei in ein AssocArray-Objekt.
+     *  @param data Das AssocArray-Objekt, in das die JSON-Daten geladen werden.
+     *  @param file Das FileObject, aus dem die JSON-Daten geladen werden.
+     */
     static void load(pplib::AssocArray& data, pplib::FileObject& file);
+
+    /** @brief Lädt JSON-Daten aus einem String in ein VariantArray-Objekt.
+     *  @param data Das VariantArray-Objekt, in das die JSON-Daten geladen werden.
+     *  @param json Der JSON-String, der geladen werden soll.
+     */
     static void loads(pplib::VariantArray& data, const pplib::String& json);
+
+    /** @brief Lädt JSON-Daten aus einer Datei in ein VariantArray-Objekt.
+     *  @param data Das VariantArray-Objekt, in das die JSON-Daten geladen werden.
+     *  @param file Das FileObject, aus dem die JSON-Daten geladen werden.
+     */
     static void load(pplib::VariantArray& data, pplib::FileObject& file);
 
     // --- Serialisieren (Basis auf Variant) ---
+
+    /** @brief Serialisiert ein Variant-Objekt in einen JSON-String.
+     *  @param json Der String, in den die JSON-Daten geschrieben werden.
+     *  @param data Das Variant-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
+     *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
+     *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     */
     static void dumps(pplib::String& json, const pplib::Variant& data, int indent = -1);
+
+    /** @brief Serialisiert ein Variant-Objekt in eine JSON-Datei.
+     *  @param file Das FileObject, in das die JSON-Daten geschrieben werden.
+     *  @param data Das Variant-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
+     *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
+     *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     */
     static void dump(pplib::FileObject& file, const pplib::Variant& data, int indent = -1);
+
+    /** @brief Serialisiert ein Variant-Objekt in einen JSON-String und gibt das Ergebnis zurück.
+     *  @param data Das Variant-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
+     *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
+     *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     *  @return Der JSON-String, der das serialisierte Variant-Objekt enthält.
+     */
     static pplib::String dumps(const pplib::Variant& data, int indent = -1);
 
     // --- Serialisieren (Komfort für AssocArray und VariantArray) ---
+
+    /** @brief Serialisiert ein AssocArray-Objekt in einen JSON-String.
+     *  @param json Der String, in den die JSON-Daten geschrieben werden.
+     *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
+     *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
+     *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     */
     static void dumps(pplib::String& json, const pplib::AssocArray& data, int indent = -1);
+
+    /** @brief Serialisiert ein AssocArray-Objekt in eine JSON-Datei.
+     *  @param file Das FileObject, in das die JSON-Daten geschrieben werden.
+     *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
+     *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
+     *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     */
     static void dump(pplib::FileObject& file, const pplib::AssocArray& data, int indent = -1);
+
+    /** @brief Serialisiert ein AssocArray-Objekt in einen JSON-String und gibt das Ergebnis zurück.
+     *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
+     *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
+     *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     *  @return Der JSON-String, der das serialisierte AssocArray-Objekt enthält.
+     */
     static pplib::String dumps(const pplib::AssocArray& data, int indent = -1);
 
+    /** @brief Serialisiert ein VariantArray-Objekt in einen JSON-String.
+     *  @param json Der String, in den die JSON-Daten geschrieben werden.
+     *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
+     *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
+     *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     */
     static void dumps(pplib::String& json, const pplib::VariantArray& data, int indent = -1);
+
+    /** @brief Serialisiert ein VariantArray-Objekt in eine JSON-Datei.
+     *  @param file Das FileObject, in das die JSON-Daten geschrieben werden.
+     *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
+     *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
+     *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     */
     static void dump(pplib::FileObject& file, const pplib::VariantArray& data, int indent = -1);
+
+    /** @brief Serialisiert ein VariantArray-Objekt in einen JSON-String und gibt das Ergebnis zurück.
+     *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
+     *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
+     *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     *  @return Der JSON-String, der das serialisierte VariantArray-Objekt enthält.
+     */
     static pplib::String dumps(const pplib::VariantArray& data, int indent = -1);
 
     // --- Pretty-Print ---
+    /** @brief Formatiert einen JSON-String mit Einrückungen für eine bessere Lesbarkeit.
+     *  @param json Der JSON-String, der formatiert werden soll.
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "4".
+     *  @return Der formatierte JSON-String mit Einrückungen.
+     */
     static pplib::String pp(const pplib::String& json, int indent = 4);
 };
 

@@ -63,30 +63,121 @@ namespace pplib
 class Yaml
 {
 public:
+    Yaml() = delete; // Prevent instantiation of this static class
+
     // --- Parsen (Basis auf Variant) ---
+
+    /** @brief Lädt YAML-Daten aus einem String in ein Variant-Objekt.
+     *  @param data Das Variant-Objekt, in das die YAML-Daten geladen werden.
+     *  @param yaml Der YAML-String, der geparst werden soll.
+     */
     static void loads(pplib::Variant& data, const pplib::String& yaml);
+
+    /** @brief Lädt YAML-Daten aus einer Datei in ein Variant-Objekt.
+     *  @param data Das Variant-Objekt, in das die YAML-Daten geladen werden.
+     *  @param file Das FileObject, aus dem die YAML-Daten gelesen werden.
+     */
     static void load(pplib::Variant& data, pplib::FileObject& file);
+
+    /** @brief Lädt YAML-Daten aus einem String in ein Variant-Objekt und gibt das Ergebnis zurück.
+     *  @param yaml Der YAML-String, der geparst werden soll.
+     *  @return Das Variant-Objekt, das die geladenen YAML-Daten enthält.
+     */
     static pplib::Variant loads(const pplib::String& yaml);
+
+    /** @brief Lädt YAML-Daten aus einer Datei in ein Variant-Objekt und gibt das Ergebnis zurück.
+     *  @param file Das FileObject, aus dem die YAML-Daten gelesen werden.
+     *  @return Das Variant-Objekt, das die geladenen YAML-Daten enthält.
+     */
     static pplib::Variant load(pplib::FileObject& file);
 
     // --- Parsen (Komfort für AssocArray und VariantArray) ---
+    /** @brief Lädt YAML-Daten aus einem String in ein AssocArray-Objekt.
+     *  @param data Das AssocArray-Objekt, in das die YAML-Daten geladen werden.
+     *  @param yaml Der YAML-String, der geparst werden soll.
+     */
     static void loads(pplib::AssocArray& data, const pplib::String& yaml);
+
+    /** @brief Lädt YAML-Daten aus einer Datei in ein AssocArray-Objekt.
+     *  @param data Das AssocArray-Objekt, in das die YAML-Daten geladen werden.
+     *  @param file Das FileObject, aus dem die YAML-Daten gelesen werden.
+     */
     static void load(pplib::AssocArray& data, pplib::FileObject& file);
+
+    /** @brief Lädt YAML-Daten aus einem String in ein VariantArray-Objekt.
+     *  @param data Das VariantArray-Objekt, in das die YAML-Daten geladen werden.
+     *  @param yaml Der YAML-String, der geparst werden soll.
+     */
     static void loads(pplib::VariantArray& data, const pplib::String& yaml);
+
+    /** @brief Lädt YAML-Daten aus einer Datei in ein VariantArray-Objekt.
+     *  @param data Das VariantArray-Objekt, in das die YAML-Daten geladen werden.
+     *  @param file Das FileObject, aus dem die YAML-Daten gelesen werden.
+     */
     static void load(pplib::VariantArray& data, pplib::FileObject& file);
 
     // --- Serialisieren (Basis auf Variant) ---
+    /** @brief Serialisiert ein Variant-Objekt in einen YAML-String.
+     *  @param yaml Der String, in den die YAML-Daten geschrieben werden.
+     *  @param data Das Variant-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     */
     static void dumps(pplib::String& yaml, const pplib::Variant& data, int indent = -1);
+
+    /** @brief Serialisiert ein Variant-Objekt in eine YAML-Datei.
+     *  @param file Das FileObject, in das die YAML-Daten geschrieben werden.
+     *  @param data Das Variant-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     */
     static void dump(pplib::FileObject& file, const pplib::Variant& data, int indent = -1);
+
+    /** @brief Serialisiert ein Variant-Objekt in einen YAML-String und gibt das Ergebnis zurück.
+     *  @param data Das Variant-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @return Der YAML-String, der die serialisierten Daten enthält.
+     */
     static pplib::String dumps(const pplib::Variant& data, int indent = -1);
 
     // --- Serialisieren (Komfort für AssocArray und VariantArray) ---
+    /** @brief Serialisiert ein AssocArray-Objekt in einen YAML-String.
+     *  @param yaml Der String, in den die YAML-Daten geschrieben werden.
+     *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     */
     static void dumps(pplib::String& yaml, const pplib::AssocArray& data, int indent = -1);
+
+    /** @brief Serialisiert ein AssocArray-Objekt in eine YAML-Datei.
+     *  @param file Das FileObject, in das die YAML-Daten geschrieben werden.
+     *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     */
     static void dump(pplib::FileObject& file, const pplib::AssocArray& data, int indent = -1);
+    /** @brief Serialisiert ein AssocArray-Objekt in einen YAML-String und gibt das Ergebnis zurück.
+     *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @return Der YAML-String, der die serialisierten Daten enthält.
+     */
     static pplib::String dumps(const pplib::AssocArray& data, int indent = -1);
 
+    /** @brief Serialisiert ein VariantArray-Objekt in einen YAML-String.
+     *  @param yaml Der String, in den die YAML-Daten geschrieben werden.
+     *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     */
     static void dumps(pplib::String& yaml, const pplib::VariantArray& data, int indent = -1);
+
+    /** @brief Serialisiert ein VariantArray-Objekt in eine YAML-Datei.
+     *  @param file Das FileObject, in das die YAML-Daten geschrieben werden.
+     *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     */
     static void dump(pplib::FileObject& file, const pplib::VariantArray& data, int indent = -1);
+
+    /** @brief Serialisiert ein VariantArray-Objekt in einen YAML-String und gibt das Ergebnis zurück.
+     *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
+     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @return Der YAML-String, der die serialisierten Daten enthält.
+     */
     static pplib::String dumps(const pplib::VariantArray& data, int indent = -1);
 };
 
