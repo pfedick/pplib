@@ -1292,21 +1292,21 @@ TEST_F(YamlTest, DumpsNanDouble)
 {
     Variant v(NAN);
     String out = Yaml::dumps(v);
-    EXPECT_EQ(out, "null\n");
+    EXPECT_EQ(out, ".nan\n");
 }
 
 TEST_F(YamlTest, DumpsInfDouble)
 {
     Variant v(std::numeric_limits<double>::infinity());
     String out = Yaml::dumps(v);
-    EXPECT_EQ(out, "null\n");
+    EXPECT_EQ(out, ".inf\n");
 }
 
 TEST_F(YamlTest, DumpsNegativeInfDouble)
 {
     Variant v(-std::numeric_limits<double>::infinity());
     String out = Yaml::dumps(v);
-    EXPECT_EQ(out, "null\n");
+    EXPECT_EQ(out, "-.inf\n");
 }
 
 TEST_F(YamlTest, DumpsIntegerValuedDouble)
@@ -1997,3 +1997,219 @@ TEST_F(YamlTest, WriteSequenceNestedNonEmptyDict) {
     String out = Yaml::dumps(arr);
     EXPECT_GT(out.size(), 0u);
 }
+
+// ============================================================================
+// Review 2 Fixes & Regressionstests
+// ============================================================================
+
+TEST_F(YamlTest, SurrogatePairFollowedByCharacters)
+{
+    // Bug 1: \uD83D\uDE00Hello darf nicht die nachfolgenden Zeichen verschlucken
+    Variant v = Yaml::loads("emoji: \"\\uD83D\\uDE00Hello\"");
+    EXPECT_TRUE(v.isAssocArray());
+    String text = v.toAssocArray()["emoji"].toString();
+    EXPECT_TRUE(text.endsWith("Hello"));
+    EXPECT_EQ(text.size(), 9u); // 4 Bytes UTF-8 + 5 Bytes "Hello"
+}
+
+TEST_F(YamlTest, SequenceOfMappingsIndentationNonDefault)
+{
+    // Bug 2: dump und loads von Mappings in Sequenzen bei indent != 2
+    VariantArray arr;
+    AssocArray d1, d2;
+    d1.set("name", "Alice");
+    d1.set("age", 30);
+    d2.set("name", "Bob");
+    d2.set("age", 25);
+    arr.add(d1);
+    arr.add(d2);
+
+    for (int ind : {2, 3, 4}) {
+        String yaml = Yaml::dumps(arr, ind);
+        Variant loaded = Yaml::loads(yaml);
+        EXPECT_TRUE(loaded.isVariantArray());
+        const VariantArray& res = loaded.toVariantArray();
+        ASSERT_EQ(res.size(), 2u);
+        EXPECT_EQ(res[0].toAssocArray()["name"].toString(), "Alice");
+        EXPECT_EQ(res[0].toAssocArray()["age"].toInt(), 30);
+        EXPECT_EQ(res[1].toAssocArray()["name"].toString(), "Bob");
+        EXPECT_EQ(res[1].toAssocArray()["age"].toInt(), 25);
+    }
+}
+
+TEST_F(YamlTest, MultiLineFlowCollections)
+{
+    // Bug 3: Flow-Collections mit Zeilenumbrüchen
+    const char* flowSeq = "[\n  1,\n  2,\n  3\n]";
+    Variant v1 = Yaml::loads(flowSeq);
+    EXPECT_TRUE(v1.isVariantArray());
+    EXPECT_EQ(v1.toVariantArray().size(), 3u);
+    EXPECT_EQ(v1.toVariantArray()[0].toInt(), 1);
+    EXPECT_EQ(v1.toVariantArray()[1].toInt(), 2);
+    EXPECT_EQ(v1.toVariantArray()[2].toInt(), 3);
+
+    const char* flowMap = "{\n  a: 10,\n  b: 20\n}";
+    Variant v2 = Yaml::loads(flowMap);
+    EXPECT_TRUE(v2.isAssocArray());
+    EXPECT_EQ(v2.toAssocArray()["a"].toInt(), 10);
+    EXPECT_EQ(v2.toAssocArray()["b"].toInt(), 20);
+}
+
+TEST_F(YamlTest, FlowMappingKeyWithEscapes)
+{
+    // Bug 4: Escaped Quotes in Flow-Mapping-Keys
+    Variant v1 = Yaml::loads("{\"key\\\"name\": 42}");
+    EXPECT_TRUE(v1.isAssocArray());
+    EXPECT_EQ(v1.toAssocArray()["key\"name"].toInt(), 42);
+
+    Variant v2 = Yaml::loads("{'key''name': 99}");
+    EXPECT_TRUE(v2.isAssocArray());
+    EXPECT_EQ(v2.toAssocArray()["key'name"].toInt(), 99);
+}
+
+TEST_F(YamlTest, InvalidDateTimeFallbackToString)
+{
+    // Bug 5: Ungültige Datums-/Zeitwerte werfen keine Exception, sondern parsen als String
+    Variant v1 = Yaml::loads("code: 2026-99-99");
+    EXPECT_TRUE(v1.toAssocArray()["code"].isString());
+    EXPECT_EQ(v1.toAssocArray()["code"].toString(), "2026-99-99");
+
+    Variant v2 = Yaml::loads("ratio: 12:75");
+    EXPECT_TRUE(v2.toAssocArray()["ratio"].isString());
+    EXPECT_EQ(v2.toAssocArray()["ratio"].toString(), "12:75");
+}
+
+TEST_F(YamlTest, PositiveSignNumbers)
+{
+    // Bug 6: Positives Vorzeichen '+'
+    Variant v1 = Yaml::loads("a: +42\nb: +3.14\nc: +0x10");
+    const AssocArray& m = v1.toAssocArray();
+    EXPECT_EQ(m["a"].toInt64(), 42);
+    EXPECT_DOUBLE_EQ(m["b"].toDouble(), 3.14);
+    EXPECT_EQ(m["c"].toInt64(), 16);
+}
+
+TEST_F(YamlTest, HyphenAndPlusAsScalar)
+{
+    // Bug 7: '-' und '+' als eigenständige Skalare werden nicht zu 0
+    Variant v1 = Yaml::loads("key: -");
+    EXPECT_TRUE(v1.toAssocArray()["key"].isString());
+    EXPECT_EQ(v1.toAssocArray()["key"].toString(), "-");
+
+    Variant v2 = Yaml::loads("key: +");
+    EXPECT_TRUE(v2.toAssocArray()["key"].isString());
+    EXPECT_EQ(v2.toAssocArray()["key"].toString(), "+");
+}
+
+TEST_F(YamlTest, InvalidHexOctalLiterals)
+{
+    // Bug 8: 0xxyz und 0o99 sind Strings, nicht 0
+    Variant v1 = Yaml::loads("a: 0xxyz\nb: 0o99");
+    const AssocArray& m = v1.toAssocArray();
+    EXPECT_TRUE(m["a"].isString());
+    EXPECT_EQ(m["a"].toString(), "0xxyz");
+    EXPECT_TRUE(m["b"].isString());
+    EXPECT_EQ(m["b"].toString(), "0o99");
+}
+
+TEST_F(YamlTest, NanAndInfRoundTrip)
+{
+    // Bug 9: .nan und .inf Roundtrip
+    Variant vNan = Yaml::loads(".nan");
+    EXPECT_TRUE(std::isnan(vNan.toDouble()));
+    String outNan = Yaml::dumps(vNan);
+    EXPECT_EQ(outNan, ".nan\n");
+
+    Variant vInf = Yaml::loads(".inf");
+    EXPECT_TRUE(std::isinf(vInf.toDouble()));
+    EXPECT_GT(vInf.toDouble(), 0);
+    String outInf = Yaml::dumps(vInf);
+    EXPECT_EQ(outInf, ".inf\n");
+
+    Variant vNegInf = Yaml::loads("-.inf");
+    EXPECT_TRUE(std::isinf(vNegInf.toDouble()));
+    EXPECT_LT(vNegInf.toDouble(), 0);
+    String outNegInf = Yaml::dumps(vNegInf);
+    EXPECT_EQ(outNegInf, "-.inf\n");
+}
+
+TEST_F(YamlTest, EmptyFileAndCommentOnly)
+{
+    // Bug 10: Leere Dokumente und reine Kommentare liefern null
+    Variant v1 = Yaml::loads("");
+    EXPECT_TRUE(v1.isNull());
+
+    Variant v2 = Yaml::loads("   \n# Nur ein Kommentar\n   # Noch einer\n");
+    EXPECT_TRUE(v2.isNull());
+}
+
+TEST_F(YamlTest, DocumentBoundaryMarkers)
+{
+    // Bug 11: '---' und '...' Dokumentgrenzen
+    Variant v1 = Yaml::loads("---\nname: Patrick\nage: 40\n...\n");
+    EXPECT_TRUE(v1.isAssocArray());
+    EXPECT_EQ(v1.toAssocArray()["name"].toString(), "Patrick");
+    EXPECT_EQ(v1.toAssocArray()["age"].toInt(), 40);
+
+    Variant v2 = Yaml::loads("---\n- apple\n- banana\n...\n");
+    EXPECT_TRUE(v2.isVariantArray());
+    EXPECT_EQ(v2.toVariantArray().size(), 2u);
+}
+
+TEST_F(YamlTest, BlockScalarRelativeIndent)
+{
+    // Bug 12: Interne relative Einrückung in Block-Skalaren bleibt erhalten
+    const char* yaml =
+        "code: |\n"
+        "  line 1\n"
+        "    indented line 2\n"
+        "  line 3\n";
+    Variant v = Yaml::loads(yaml);
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["code"].toString(), "line 1\n  indented line 2\nline 3\n");
+}
+
+TEST_F(YamlTest, StringWithApostropheAndComment)
+{
+    // Bug 13: Apostroph im Plain-String verhindert nicht das Abschneiden des Kommentars
+    Variant v = Yaml::loads("title: Patrick's Programming Library # Das ist ein Kommentar");
+    EXPECT_TRUE(v.isAssocArray());
+    EXPECT_EQ(v.toAssocArray()["title"].toString(), "Patrick's Programming Library");
+}
+
+TEST_F(YamlTest, BinaryEmptyContentReturnsByteArray)
+{
+    // Bug 14: Tag !!binary "" liefert ByteArray, nicht ByteArrayPtr
+    Variant v = Yaml::loads("data: !!binary \"\"");
+    EXPECT_TRUE(v.toAssocArray()["data"].isByteArray());
+    EXPECT_EQ(v.toAssocArray()["data"].toByteArray().size(), 0u);
+}
+
+TEST_F(YamlTest, ArrayStringSerialization)
+{
+    // Bug 17: Serialisieren von pplib::Array (String-Array)
+    Array arr;
+    arr.add("apple");
+    arr.add("banana");
+    arr.add("cherry");
+    Variant v(arr);
+
+    String yaml = Yaml::dumps(v, 2);
+    Variant back = Yaml::loads(yaml);
+    EXPECT_TRUE(back.isVariantArray());
+    const VariantArray& varr = back.toVariantArray();
+    ASSERT_EQ(varr.size(), 3u);
+    EXPECT_EQ(varr[0].toString(), "apple");
+    EXPECT_EQ(varr[1].toString(), "banana");
+    EXPECT_EQ(varr[2].toString(), "cherry");
+
+    // Auch innerhalb von AssocArray
+    AssocArray dict;
+    dict.set("fruits", arr);
+    String dictYaml = Yaml::dumps(dict, 2);
+    Variant backDict = Yaml::loads(dictYaml);
+    EXPECT_EQ(backDict.toAssocArray()["fruits/0"].toString(), "apple");
+    EXPECT_EQ(backDict.toAssocArray()["fruits/1"].toString(), "banana");
+    EXPECT_EQ(backDict.toAssocArray()["fruits/2"].toString(), "cherry");
+}
+

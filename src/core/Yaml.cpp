@@ -41,6 +41,8 @@
 #include <pplib/types/datetime.h>
 #include <pplib/types/date.h>
 #include <pplib/types/time.h>
+#include <charconv>
+#include <pplib/types/array.h>
 #include <cctype>
 #include <cmath>
 #include <cstdio>
@@ -79,6 +81,63 @@ static void pushLine(ParserState& state, const Line& line)
     state.hasPendingLine = true;
 }
 
+static bool processRawLine(const String& raw, Line& out, int64_t filePos = -1)
+{
+    // Einrückung zählen (nur Leerzeichen erlaubt)
+    size_t i = 0;
+    while (i < raw.size() && raw[i] == ' ')
+        i++;
+    if (i < raw.size() && raw[i] == '\t') {
+        if (filePos >= 0) {
+            throw pplib::UnexpectedCharacterException("Tab in YAML indentation at position %lld", (long long)filePos);
+        }
+        throw pplib::UnexpectedCharacterException("Tab in YAML indentation");
+    }
+
+    // Kommentar abschneiden: '#' am Zeilenanfang oder nach Leerzeichen,
+    // außer innerhalb von echten Anführungszeichen
+    String content;
+    char quote = 0;
+    for (size_t p = i; p < raw.size(); ++p) {
+        char ch = raw[p];
+        if (quote != 0) {
+            if (quote == '"' && ch == '\\' && p + 1 < raw.size()) {
+                content.append(ch);
+                ++p;
+                content.append(raw[p]);
+                continue;
+            }
+            if (quote == '\'' && ch == '\'') {
+                if (p + 1 < raw.size() && raw[p + 1] == '\'') {
+                    content.append('\'');
+                    content.append('\'');
+                    ++p;
+                    continue;
+                }
+                quote = 0;
+            } else if (ch == quote) {
+                quote = 0;
+            }
+        } else if ((ch == '"' || ch == '\'') && (p == i || isYamlSpace(static_cast<unsigned char>(raw[p - 1])) || raw[p - 1] == ':' || raw[p - 1] == '-' || raw[p - 1] == ',' || raw[p - 1] == '[' || raw[p - 1] == '{')) {
+            quote = ch;
+        } else if (ch == '#' && (p == i || isYamlSpace(static_cast<unsigned char>(raw[p - 1])))) {
+            break;
+        }
+        content.append(ch);
+    }
+
+    // trailing Whitespace entfernen
+    while (!content.isEmpty() && isYamlSpace(static_cast<unsigned char>(content[content.size() - 1]))) {
+        content = content.substr(0, content.size() - 1);
+    }
+
+    if (content.isEmpty()) return false; // leere Zeile oder reine Kommentarzeile
+
+    out.indent = static_cast<int>(i);
+    out.text = std::move(content);
+    return true;
+}
+
 // Liest die nächste nicht-leere Zeile (leere Zeilen und Vollzeilen-Kommentare werden
 // übersprungen). Gibt false bei EOF zurück. Tabs in der Einrückung sind ein Fehler.
 static bool readLine(ParserState& state, pplib::FileObject& file, Line& out)
@@ -93,42 +152,9 @@ static bool readLine(ParserState& state, pplib::FileObject& file, Line& out)
         state.hasPendingRaw = false;
         String raw = state.pendingRaw;
         state.pendingRaw.clear();
-        // Einrückung zählen und Inhalt extrahieren
-        size_t i = 0;
-        while (i < raw.size() && raw[i] == ' ')
-            i++;
-        if (i < raw.size() && raw[i] == '\t') {
-            throw pplib::UnexpectedCharacterException("Tab in YAML indentation");
-        }
-        // Kommentar abschneiden
-        String content;
-        char quote = 0;
-        for (size_t p = i; p < raw.size(); ++p) {
-            char ch = raw[p];
-            if (quote != 0) {
-                if (quote == '"' && ch == '\\' && p + 1 < raw.size()) {
-                    content.append(ch);
-                    ++p;
-                    content.append(raw[p]);
-                    continue;
-                }
-                if (ch == quote) quote = 0;
-            } else if (ch == '"' || ch == '\'') {
-                quote = ch;
-            } else if (ch == '#' && (p == i || isYamlSpace(static_cast<unsigned char>(raw[p - 1])))) {
-                break;
-            }
-            content.append(ch);
-        }
-        while (!content.isEmpty() && isYamlSpace(static_cast<unsigned char>(content[content.size() - 1]))) {
-            content = content.substr(0, content.size() - 1);
-        }
-        if (!content.isEmpty()) {
-            out.indent = static_cast<int>(i);
-            out.text = std::move(content);
+        if (processRawLine(raw, out)) {
             return true;
         }
-        // Leere/Comment-Zeile: weiter mit normalem Lesen fortfahren
     }
     while (!file.eof()) {
         String raw;
@@ -143,57 +169,19 @@ static bool readLine(ParserState& state, pplib::FileObject& file, Line& out)
             raw = raw.substr(0, raw.size() - 1);
         }
 
-        // Einrückung zählen (nur Leerzeichen erlaubt)
-        size_t i = 0;
-        while (i < raw.size() && raw[i] == ' ')
-            i++;
-        if (i < raw.size() && raw[i] == '\t') {
-            throw pplib::UnexpectedCharacterException("Tab in YAML indentation at position %lld", file.tell());
+        if (processRawLine(raw, out, file.tell())) {
+            return true;
         }
-
-        // Kommentar abschneiden: '#' am Zeilenanfang oder nach Leerzeichen,
-        // außer innerhalb von Anführungszeichen
-        String content;
-        char quote = 0;
-        for (size_t p = i; p < raw.size(); ++p) {
-            char ch = raw[p];
-            if (quote != 0) {
-                if (quote == '"' && ch == '\\' && p + 1 < raw.size()) {
-                    content.append(ch);
-                    ++p;
-                    content.append(raw[p]);
-                    continue;
-                }
-                if (ch == quote) quote = 0;
-            } else if (ch == '"' || ch == '\'') {
-                quote = ch;
-            } else if (ch == '#' && (p == i || isYamlSpace(static_cast<unsigned char>(raw[p - 1])))) {
-                break;
-            }
-            content.append(ch);
-        }
-
-        // trailing Whitespace entfernen
-        while (!content.isEmpty() && isYamlSpace(static_cast<unsigned char>(content[content.size() - 1]))) {
-            content = content.substr(0, content.size() - 1);
-        }
-
-        if (content.isEmpty()) continue; // leere Zeile oder reine Kommentarzeile
-
-        out.indent = static_cast<int>(i);
-        out.text = std::move(content);
-        return true;
     }
     return false;
 }
-
 // ============================================================================
 // Skalar-Parsing
 // ============================================================================
 
 static bool allDigits(const String& s, size_t start, size_t len)
 {
-    if (start + len > s.size()) return false;
+    if (len == 0 || start + len > s.size()) return false;
     for (size_t i = 0; i < len; ++i) {
         if (!isdigit(static_cast<unsigned char>(s[start + i]))) return false;
     }
@@ -263,6 +251,9 @@ static void appendUtf8(pplib::String& str, uint32_t codePoint)
 {
     if (codePoint >= 0xD800 && codePoint <= 0xDFFF) {
         throw pplib::CharacterEncodingException("Lone surrogate 0x%04X in YAML string", codePoint);
+    }
+    if (codePoint > 0x10FFFF) {
+        throw pplib::CharacterEncodingException("Code point 0x%08X out of range in YAML string", codePoint);
     }
     if (codePoint < 0x80) {
         str.append(static_cast<char>(codePoint));
@@ -338,6 +329,9 @@ static pplib::String unescapeDoubleQuoted(const String& s)
         case 'e':
             str.append('\x1b');
             break;
+        case ' ':
+            str.append(' ');
+            break;
         case 'x': {
             if (i + 2 >= s.size()) throw pplib::UnexpectedEndOfDataException();
             char hex[3] = {s[i + 1], s[i + 2], 0};
@@ -346,7 +340,7 @@ static pplib::String unescapeDoubleQuoted(const String& s)
                     throw pplib::InvalidEscapeSequenceException("Invalid hex digit in \\x escape sequence: >>%c<<", hex[k]);
                 }
             }
-            str.append(static_cast<char>(static_cast<uint8_t>(strtoul(hex, nullptr, 16))));
+            appendUtf8(str, static_cast<uint32_t>(strtoul(hex, nullptr, 16)));
             i += 2;
             break;
         }
@@ -395,9 +389,10 @@ static pplib::String unescapeDoubleQuoted(const String& s)
                 }
             } else if (cp >= 0xDC00 && cp <= 0xDFFF) {
                 throw pplib::CharacterEncodingException("Lone low surrogate 0x%04X", cp);
+            } else {
+                i += 4;
             }
             appendUtf8(str, cp);
-            i += 4;
             break;
         }
         default:
@@ -411,7 +406,7 @@ static pplib::String unescapeDoubleQuoted(const String& s)
 // Padet/trimmt den Sekundenbruchteil eines ISO-8601-Timestamps auf 6 Stellen (Mikrosekunden).
 static pplib::String padUsec(const String& s)
 {
-    size_t p = s.find(".");
+    ssize_t p = s.find(".");
     if (p == String::npos) return s;
     size_t d = p + 1;
     while (d < s.size() && isdigit(static_cast<unsigned char>(s[d])))
@@ -428,6 +423,8 @@ static pplib::String padUsec(const String& s)
 
 static pplib::Variant parseScalar(const String& s)
 {
+    if (s.isEmpty()) return pplib::Variant(nullptr);
+
     // zitierte Strings bleiben immer Strings
     if (!s.isEmpty() && s[0] == '"' && !(s.size() >= 2 && s.endsWith("\""))) {
         throw pplib::UnexpectedEndOfDataException("Unterminated double-quoted string in YAML scalar");
@@ -453,31 +450,60 @@ static pplib::Variant parseScalar(const String& s)
         return pplib::Variant(out);
     }
 
-    // null
-    if (s == "~" || s == "null") return pplib::Variant(nullptr);
+    // null (YAML 1.2: ~, null, Null, NULL)
+    if (s == "~" || s == "null" || s == "Null" || s == "NULL") return pplib::Variant(nullptr);
 
-    // Booleans (YAML 1.1: true/True/TRUE, false/False/FALSE)
+    // Booleans (YAML 1.1 / 1.2: true/True/TRUE, false/False/FALSE)
     if (s == "true" || s == "True" || s == "TRUE") return pplib::Variant(true);
     if (s == "false" || s == "False" || s == "FALSE") return pplib::Variant(false);
 
     // Zahlen
     String t = s;
     bool neg = false;
-    size_t start = 0;
     if (!t.isEmpty() && (t[0] == '-' || t[0] == '+')) {
         neg = (t[0] == '-');
-        start = 1;
+        t = t.substr(1);
     }
-    if (neg) t = t.substr(1);
 
-    // hex / oktal
+    // hex / oktal / binär
     if (t.size() > 2 && t.startsWith("0x")) {
-        return pplib::Variant(neg ? -static_cast<int64_t>(strtoll(t.c_str(), nullptr, 16))
-                                  : static_cast<int64_t>(strtoll(t.c_str(), nullptr, 16)));
+        bool allHex = true;
+        for (size_t j = 2; j < t.size(); ++j) {
+            if (!isxdigit(static_cast<unsigned char>(t[j]))) {
+                allHex = false;
+                break;
+            }
+        }
+        if (allHex) {
+            return pplib::Variant(neg ? -static_cast<int64_t>(strtoll(t.c_str(), nullptr, 16))
+                                      : static_cast<int64_t>(strtoll(t.c_str(), nullptr, 16)));
+        }
     }
     if (t.size() > 2 && t.startsWith("0o")) {
-        return pplib::Variant(neg ? -static_cast<int64_t>(strtoll(t.substr(2).c_str(), nullptr, 8))
-                                  : static_cast<int64_t>(strtoll(t.substr(2).c_str(), nullptr, 8)));
+        bool allOct = true;
+        for (size_t j = 2; j < t.size(); ++j) {
+            if (t[j] < '0' || t[j] > '7') {
+                allOct = false;
+                break;
+            }
+        }
+        if (allOct) {
+            return pplib::Variant(neg ? -static_cast<int64_t>(strtoll(t.substr(2).c_str(), nullptr, 8))
+                                      : static_cast<int64_t>(strtoll(t.substr(2).c_str(), nullptr, 8)));
+        }
+    }
+    if (t.size() > 2 && t.startsWith("0b")) {
+        bool allBin = true;
+        for (size_t j = 2; j < t.size(); ++j) {
+            if (t[j] != '0' && t[j] != '1') {
+                allBin = false;
+                break;
+            }
+        }
+        if (allBin) {
+            return pplib::Variant(neg ? -static_cast<int64_t>(strtoll(t.substr(2).c_str(), nullptr, 2))
+                                      : static_cast<int64_t>(strtoll(t.substr(2).c_str(), nullptr, 2)));
+        }
     }
 
     // .inf / -.inf / .nan
@@ -505,28 +531,46 @@ static pplib::Variant parseScalar(const String& s)
     }
     bool validFloat = (hasDot || hasExp) && pos == t.size() && digitCount > 0;
     if (validFloat) {
+        double val = 0.0;
+        auto res = std::from_chars(s.c_str(), s.c_str() + s.size(), val);
+        if (res.ec == std::errc()) {
+            return pplib::Variant(val);
+        }
         return pplib::Variant(s.toDouble());
     }
-    if (allDigits(t, 0, t.size())) {
+    if (!t.isEmpty() && allDigits(t, 0, t.size())) {
         int64_t v = static_cast<int64_t>(strtoll(s.c_str(), nullptr, 10));
         return pplib::Variant(v);
     }
 
     // ISO-8601: Datum+Zeit -> DateTime, Datum -> Date, Zeit -> Time
+    // Fällt bei ungültigen Werten sauber auf String zurück
     if (isIsoDateTime(s)) {
-        pplib::DateTime dt;
-        dt.set(padUsec(s));
-        return pplib::Variant(dt);
+        try {
+            pplib::DateTime dt;
+            dt.set(padUsec(s));
+            return pplib::Variant(dt);
+        } catch (const pplib::Exception&) {
+            // Ungültige Datum/Zeit-Komponenten: Fallback auf String
+        }
     }
     if (isIsoDate(s)) {
-        pplib::Date d;
-        d.set(s);
-        return pplib::Variant(d);
+        try {
+            pplib::Date d;
+            d.set(s);
+            return pplib::Variant(d);
+        } catch (const pplib::Exception&) {
+            // Ungültige Datums-Komponenten: Fallback auf String
+        }
     }
     if (isIsoTime(s)) {
-        pplib::Time tm;
-        tm.set(padUsec(s));
-        return pplib::Variant(tm);
+        try {
+            pplib::Time tm;
+            tm.set(padUsec(s));
+            return pplib::Variant(tm);
+        } catch (const pplib::Exception&) {
+            // Ungültige Zeit-Komponenten: Fallback auf String
+        }
     }
 
     // sonst: String
@@ -541,7 +585,7 @@ static void skipFlowWs(pplib::FileObject& file)
 {
     int c;
     while ((c = file.fgetc()) != EOF) {
-        if (isYamlSpace(c)) continue;
+        if (isYamlSpace(c) || c == '\n' || c == '\r') continue;
         if (c == '#') {
             // Kommentar bis Zeilenende
             do {
@@ -593,14 +637,29 @@ static pplib::Variant parseFlow(pplib::FileObject& file, int c)
             pplib::String key;
             int ch = 0;
             if (c == '"' || c == '\'') {
-                size_t pos = 0;
                 while (true) {
                     ch = file.fgetc();
                     if (ch == EOF) throw pplib::UnexpectedEndOfDataException();
+                    if (c == '"' && ch == '\\') {
+                        int n = file.fgetc();
+                        if (n == EOF) throw pplib::UnexpectedEndOfDataException();
+                        key.append(static_cast<char>(ch));
+                        key.append(static_cast<char>(n));
+                        continue;
+                    }
+                    if (c == '\'' && ch == '\'') {
+                        int n = file.fgetc();
+                        if (n == '\'') {
+                            key.append('\'');
+                            continue;
+                        }
+                        if (n != EOF) file.seek(-1, pplib::File::SEEKCUR);
+                        break;
+                    }
                     if (ch == c) break;
                     key.append(static_cast<char>(ch));
                 }
-                key = (c == '"') ? unescapeDoubleQuoted(key) : key.replace("''", "'");
+                key = (c == '"') ? unescapeDoubleQuoted(key) : key;
                 skipFlowWs(file);
                 c = file.fgetc();
             } else {
@@ -646,6 +705,15 @@ static pplib::Variant parseFlow(pplib::FileObject& file, int c)
                 raw.append(static_cast<char>(n));
                 continue;
             }
+            if (c == '\'' && ch == '\'') {
+                int n = file.fgetc();
+                if (n == '\'') {
+                    raw.append('\'');
+                    continue;
+                }
+                if (n != EOF) file.seek(-1, pplib::File::SEEKCUR);
+                break;
+            }
             if (ch == c) break;
         }
     } else {
@@ -656,6 +724,13 @@ static pplib::Variant parseFlow(pplib::FileObject& file, int c)
             if (ch == ',' || ch == ']' || ch == '}') {
                 file.seek(-1, pplib::File::SEEKCUR);
                 break;
+            }
+            if (ch == '#') {
+                while (ch != EOF && ch != '\n') {
+                    ch = file.fgetc();
+                }
+                if (ch == EOF) throw pplib::UnexpectedEndOfDataException();
+                continue;
             }
             raw.append(static_cast<char>(ch));
         }
@@ -672,6 +747,7 @@ static pplib::Variant parseFlow(pplib::FileObject& file, int c)
 static pplib::Variant decodeBinary(const String& content)
 {
     String b64;
+    b64.reserve(content.size());
     for (size_t i = 0; i < content.size(); ++i) {
         char ch = content[i];
         if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r') continue;
@@ -690,7 +766,7 @@ static pplib::Variant parseTaggedValue(const String& tag, const String& rest)
         if (r.size() >= 2 && ((r[0] == '"' && r[r.size() - 1] == '"') || (r[0] == '\'' && r[r.size() - 1] == '\''))) {
             r = r.substr(1, r.size() - 2);
         }
-        if (r.isEmpty()) return pplib::Variant(pplib::ByteArrayPtr());
+        if (r.isEmpty()) return pplib::Variant(pplib::ByteArray());
         char first = r[0];
         if (first == '|' || first == '>') {
             // wird vom Block-Parser übergeben: hier nur als Fallback behandelt
@@ -734,21 +810,36 @@ static String parseBlockScalar(ParserState& state, pplib::FileObject& file, char
 {
     String result;
     bool first = true;
+    int contentIndent = -1;
     while (true) {
         String raw;
         if (!readRawLine(state, file, raw)) break; // EOF
         size_t i = 0;
         while (i < raw.size() && raw[i] == ' ')
             i++;
-        // Leere/Whitespace-Zeilen gehören zum Skalar; nur eine nicht-leere
-        // Zeile mit geringerer Einrückung beendet ihn.
-        if (i < raw.size() && i <= static_cast<size_t>(parentIndent)) {
-            // Pushback der beendenden Zeile für den nächsten Parser
+        // Leere Zeilen gehören zum Skalar
+        if (i == raw.size()) {
+            if (!first) {
+                result += "\n";
+            }
+            continue;
+        }
+        // Nicht-leere Zeile mit Einrückung <= parentIndent beendet den Skalar
+        if (i <= static_cast<size_t>(parentIndent)) {
             state.pendingRaw = std::move(raw);
             state.hasPendingRaw = true;
             break;
         }
-        String content = raw.substr(i);
+        // contentIndent anhand der ersten Zeile festlegen
+        if (contentIndent < 0) {
+            contentIndent = static_cast<int>(i);
+        }
+        if (static_cast<int>(i) < contentIndent) {
+            state.pendingRaw = std::move(raw);
+            state.hasPendingRaw = true;
+            break;
+        }
+        String content = raw.substr(contentIndent);
         if (!first) {
             if (style == '|' || content.isEmpty()) {
                 result += "\n";
@@ -789,6 +880,8 @@ static bool peekLine(ParserState& state, pplib::FileObject& file, Line& out)
 // stehen oder von einem Leerzeichen gefolgt werden (außerhalb von Quotes).
 static bool splitKeyValue(const String& text, String& key, String& rest)
 {
+    key.clear();
+    rest.clear();
     char quote = 0;
     for (size_t i = 0; i < text.size(); ++i) {
         char ch = text[i];
@@ -797,10 +890,18 @@ static bool splitKeyValue(const String& text, String& key, String& rest)
                 ++i; // escaped char, skip
                 continue;
             }
+            if (quote == '\'' && ch == '\'') {
+                if (i + 1 < text.size() && text[i + 1] == '\'') {
+                    ++i;
+                    continue;
+                }
+                quote = 0;
+                continue;
+            }
             if (ch == quote) quote = 0;
-        } else if (ch == '"' || ch == '\'') {
+        } else if ((ch == '"' || ch == '\'') && (i == 0 || isYamlSpace(static_cast<unsigned char>(text[i - 1])) || text[i - 1] == '[' || text[i - 1] == '{')) {
             quote = ch;
-        } else if (ch == ':' && (i + 1 == text.size() || text[i + 1] == ' ')) {
+        } else if (ch == ':' && (i + 1 == text.size() || isYamlSpace(static_cast<unsigned char>(text[i + 1])))) {
             key = text.substr(0, i).trimmed();
             if (i + 1 < text.size()) rest = text.substr(i + 1).trimmed();
             return true;
@@ -877,6 +978,11 @@ static pplib::Variant parseBlock(ParserState& state, pplib::FileObject& file)
 {
     Line line;
     if (!readLine(state, file, line)) throw pplib::UnexpectedEndOfDataException();
+    if (line.text == "---") {
+        if (!readLine(state, file, line)) {
+            return pplib::Variant(nullptr);
+        }
+    }
     const String& t = line.text;
     if (t == "-" || t.startsWith("- ")) return parseSequence(state, file, line);
     if (t[0] == '{' || t[0] == '[') return parseFlowValue(state, file, t);
@@ -945,6 +1051,7 @@ static pplib::Variant parseMapping(ParserState& state, pplib::FileObject& file, 
         dict.set(key, std::move(val));
 
         if (!readLine(state, file, line)) break;
+        if (line.text == "...") break;
         if (line.indent < indent) {
             pushLine(state, line);
             break;
@@ -1018,6 +1125,7 @@ static pplib::Variant parseSequence(ParserState& state, pplib::FileObject& file,
         arr.append(std::move(val));
 
         if (!readLine(state, file, line)) break;
+        if (line.text == "...") break;
         if (line.indent < indent) {
             pushLine(state, line);
             break;
@@ -1035,11 +1143,13 @@ static pplib::Variant parseSequence(ParserState& state, pplib::FileObject& file,
 
 void Yaml::load(pplib::Variant& data, pplib::FileObject& file)
 {
-    if (file.eof()) {
+    ParserState state;
+    Line firstLine;
+    if (!readLine(state, file, firstLine)) {
         data = pplib::Variant(nullptr);
         return;
     }
-    ParserState state;
+    pushLine(state, firstLine);
     data = parseBlock(state, file);
 }
 
@@ -1169,8 +1279,10 @@ static void writeScalar(pplib::FileObject& file, const pplib::Variant& v)
     }
     if (v.isDouble()) {
         double d = v.toDouble();
-        if (std::isnan(d) || std::isinf(d)) {
-            file.puts("null");
+        if (std::isnan(d)) {
+            file.puts(".nan");
+        } else if (std::isinf(d)) {
+            file.puts(d < 0 ? "-.inf" : ".inf");
         } else {
             char buf[64];
             std::snprintf(buf, sizeof(buf), "%.15g", d);
@@ -1223,6 +1335,20 @@ static void writeScalar(pplib::FileObject& file, const pplib::Variant& v)
 
 static void writeVariantFlow(pplib::FileObject& file, const pplib::Variant& v);
 
+static void writeStringArrayFlow(pplib::FileObject& file, const pplib::Array& arr)
+{
+    file.puts("[");
+    bool first = true;
+    for (size_t i = 0; i < arr.size(); ++i) {
+        if (!first) file.puts(",");
+        first = false;
+        file.puts("\"");
+        file.puts(escapeString(arr[i]));
+        file.puts("\"");
+    }
+    file.puts("]");
+}
+
 static void writeDictFlow(pplib::FileObject& file, const pplib::AssocArray& dict)
 {
     file.puts("{");
@@ -1254,6 +1380,8 @@ static void writeVariantFlow(pplib::FileObject& file, const pplib::Variant& v)
         writeDictFlow(file, v.toAssocArray());
     } else if (v.isVariantArray()) {
         writeArrayFlow(file, v.toVariantArray());
+    } else if (v.isArray()) {
+        writeStringArrayFlow(file, v.toArray());
     } else {
         writeScalar(file, v);
     }
@@ -1281,6 +1409,20 @@ static void writeVariant(pplib::FileObject& file, const pplib::Variant& v, int i
             return;
         }
         writeSequenceBlock(file, v.toVariantArray(), indent, 0);
+    } else if (v.isArray()) {
+        const pplib::Array& a = v.toArray();
+        if (a.size() == 0) {
+            file.puts("[]");
+            return;
+        }
+        bool first = true;
+        for (size_t i = 0; i < a.size(); ++i) {
+            if (!first) file.puts("\n");
+            first = false;
+            file.puts("- \"");
+            file.puts(escapeString(a[i]));
+            file.puts("\"");
+        }
     } else {
         writeScalar(file, v);
     }
@@ -1295,11 +1437,15 @@ static void writeSpaces(pplib::FileObject& file, int n)
 // Base64 in 76 Zeichen langen Zeilen unterhalb eines "!!binary |" schreiben
 static void writeBase64Lines(pplib::FileObject& file, const pplib::String& b64, int col)
 {
-    for (size_t off = 0; off < b64.size(); off += 76) {
-        size_t len = std::min<size_t>(76, b64.size() - off);
+    const char* p = b64.c_str();
+    size_t remaining = b64.size();
+    while (remaining > 0) {
+        size_t len = std::min<size_t>(76, remaining);
         file.puts("\n");
         writeSpaces(file, col);
-        file.puts(b64.substr(off, len));
+        file.write(p, len);
+        p += len;
+        remaining -= len;
     }
 }
 
@@ -1326,6 +1472,19 @@ static void writeDictBlock(pplib::FileObject& file, const pplib::AssocArray& dic
             file.puts("\n");
             writeSpaces(file, col + indent);
             writeSequenceBlock(file, a, indent, col + indent);
+        } else if (v.isArray()) {
+            const pplib::Array& a = v.toArray();
+            if (a.size() == 0) {
+                file.puts(" []");
+                continue;
+            }
+            for (size_t j = 0; j < a.size(); ++j) {
+                file.puts("\n");
+                writeSpaces(file, col + indent);
+                file.puts("- \"");
+                file.puts(escapeString(a[j]));
+                file.puts("\"");
+            }
         } else if (v.isAssocArray()) {
             const pplib::AssocArray& d = v.toAssocArray();
             if (d.size() == 0) {
@@ -1363,7 +1522,25 @@ static void writeSequenceBlock(pplib::FileObject& file, const pplib::VariantArra
                 continue;
             }
             file.puts(" ");
-            writeSequenceBlock(file, a, indent, col + indent);
+            writeSequenceBlock(file, a, indent, col + 2);
+        } else if (v.isArray()) {
+            const pplib::Array& a = v.toArray();
+            if (a.size() == 0) {
+                file.puts(" []");
+                continue;
+            }
+            file.puts(" ");
+            bool firstInner = true;
+            for (size_t j = 0; j < a.size(); ++j) {
+                if (!firstInner) {
+                    file.puts("\n");
+                    writeSpaces(file, col + 2);
+                }
+                firstInner = false;
+                file.puts("- \"");
+                file.puts(escapeString(a[j]));
+                file.puts("\"");
+            }
         } else if (v.isAssocArray()) {
             const pplib::AssocArray& d = v.toAssocArray();
             if (d.size() == 0) {
@@ -1371,7 +1548,7 @@ static void writeSequenceBlock(pplib::FileObject& file, const pplib::VariantArra
                 continue;
             }
             file.puts(" ");
-            writeDictBlock(file, d, indent, col + indent);
+            writeDictBlock(file, d, indent, col + 2);
         } else {
             file.puts(" ");
             writeScalar(file, v);
@@ -1410,7 +1587,13 @@ void Yaml::dump(pplib::FileObject& file, const pplib::AssocArray& data, int inde
 {
     file.rewind();
     file.truncate(0);
-    writeVariant(file, pplib::Variant(data), indent);
+    if (indent < 1) {
+        writeDictFlow(file, data);
+    } else if (data.size() == 0) {
+        file.puts("{}");
+    } else {
+        writeDictBlock(file, data, indent, 0);
+    }
     if (indent > 0) {
         file.fputc('\n');
     }
@@ -1435,7 +1618,13 @@ void Yaml::dump(pplib::FileObject& file, const pplib::VariantArray& data, int in
 {
     file.rewind();
     file.truncate(0);
-    writeVariant(file, pplib::Variant(data), indent);
+    if (indent < 1) {
+        writeArrayFlow(file, data);
+    } else if (data.size() == 0) {
+        file.puts("[]");
+    } else {
+        writeSequenceBlock(file, data, indent, 0);
+    }
     if (indent > 0) {
         file.fputc('\n');
     }
