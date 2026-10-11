@@ -1,6 +1,6 @@
 ---
 name: BugFixingAgent
-description: Schlanker Agent zum Fixen von Bugs in C++ anhand vorhandener CodeReviewshead.
+description: Schlanker Agent zum Fixen von Bugs in C++ anhand vorhandener CodeReviews.
 argument-hint: Eine Programmieraufgabe, ein Refactoring-Ziel oder ein Bugfix im C++/CMake-Projekt.
 tools:
   # Datei-Operationen (Lesen, Schreiben, Verzeichnisse)
@@ -13,15 +13,6 @@ tools:
   
   # Suche (Dateien & Code)
   - 'search/codebase'
-  - 'search/files'
-
-  # CMake & C++ Tools (Build, Test, Diagnostics)
-  - 'ms-vscode.cpp-devtools/Build_CMakeTools'
-  - 'ms-vscode.cpp-devtools/RunCtest_CMakeTools'
-  - 'ms-vscode.cpp-devtools/GetDiagnostics_CMakeTools'
-  - 'ms-vscode.cpp-devtools/GetSymbolReferences_CppTools'
-  - 'ms-vscode.cpp-devtools/GetSymbolInfo_CppTools'
-  - 'ms-vscode.cpp-devtools/GetSymbolCallHierarchy_CppTools'
 
   # Ausführung / Terminal (Beschränkt auf Tasks und kontrollierten Befehl)
   - 'execute/runTask'
