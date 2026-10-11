@@ -807,11 +807,14 @@ AssocArray& AssocArray::operator+=(const AssocArray& other)
 
 bool AssocArray::operator==(const AssocArray& other) const
 {
-    ByteArray b1, b2;
-    exportBinary(b1);
-    other.exportBinary(b2);
-    if (b1 == b2) return true;
-    return false;
+    // Wir gehen itterativ durch die Schlüssel und vergleichen die Werte
+    if (Tree.size() != other.Tree.size()) return false;
+    for (const auto& [key, value] : Tree) {
+        auto it = other.Tree.find(key);
+        if (it == other.Tree.end()) return false;
+        if (*value != *it->second) return false;
+    }
+    return true;
 }
 
 bool AssocArray::operator!=(const AssocArray& other) const
