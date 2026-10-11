@@ -981,6 +981,16 @@ public:
      */
     operator String() const;
 
+    /** @brief Vergleichsoperator
+     *
+     * Diese Funktion vergleicht das aktuelle DateTime-Objekt mit einem anderen DateTime-Objekt.
+     * @param[in] other Das zu vergleichende DateTime-Objekt.
+     * @return Liefert einen negativen Wert zurück, wenn das aktuelle Objekt kleiner ist,
+     *         0, wenn die Objekte gleich sind,
+     *         und einen positiven Wert, wenn das aktuelle Objekt größer ist.
+     * @note Beim Vergleich werden nur die Datums- und Zeitinformationen, sowie der Offset der Zeitzone berücksichtigt,
+     *         nicht jedoch der Name der Zeitzone!
+     */
     int compare(const DateTime& other) const noexcept;
 
     inline bool operator<(const DateTime& other) const noexcept

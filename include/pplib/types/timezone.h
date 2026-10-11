@@ -228,6 +228,8 @@ public:
      *
      * @param other Andere Zeitzone
      * @return true, wenn die Zeitzonen gleich sind, sonst false
+     * @note Beim Vergleich werden nur die Offsets in Minuten berücksichtigt, nicht jedoch
+     * der Name der Zeitzone.
      */
     inline bool operator==(const TimeZone& other) const noexcept
     {
@@ -238,6 +240,8 @@ public:
      *
      * @param other Andere Zeitzone
      * @return true, wenn die Zeitzonen ungleich sind, sonst false
+     * @note Beim Vergleich werden nur die Offsets in Minuten berücksichtigt, nicht jedoch
+     * der Name der Zeitzone.
      */
     inline bool operator!=(const TimeZone& other) const noexcept
     {
@@ -248,6 +252,8 @@ public:
      *
      * @param other Andere Zeitzone
      * @return true, wenn diese Zeitzone kleiner ist als die andere, sonst false
+     * @note Beim Vergleich werden nur die Offsets in Minuten berücksichtigt, nicht jedoch
+     * der Name der Zeitzone.
      */
     inline bool operator<(const TimeZone& other) const noexcept
     {
@@ -258,6 +264,8 @@ public:
      *
      * @param other Andere Zeitzone
      * @return true, wenn diese Zeitzone kleiner oder gleich der anderen ist, sonst false
+     * @note Beim Vergleich werden nur die Offsets in Minuten berücksichtigt, nicht jedoch
+     * der Name der Zeitzone.
      */
     inline bool operator<=(const TimeZone& other) const noexcept
     {
@@ -268,6 +276,8 @@ public:
      *
      * @param other Andere Zeitzone
      * @return true, wenn diese Zeitzone größer ist als die andere, sonst false
+     * @note Beim Vergleich werden nur die Offsets in Minuten berücksichtigt, nicht jedoch
+     * der Name der Zeitzone.
      */
     inline bool operator>(const TimeZone& other) const noexcept
     {
@@ -278,6 +288,8 @@ public:
      *
      * @param other Andere Zeitzone
      * @return true, wenn diese Zeitzone größer oder gleich der anderen ist, sonst false
+     * @note Beim Vergleich werden nur die Offsets in Minuten berücksichtigt, nicht jedoch
+     * der Name der Zeitzone.
      */
     inline bool operator>=(const TimeZone& other) const noexcept
     {
