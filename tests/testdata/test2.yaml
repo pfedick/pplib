@@ -1,0 +1,48 @@
+integer: 12345
+string: "hello world"
+boolean_true: true
+boolean_false: false
+null_value: null
+float: 3.14159
+multiline_string: |
+  This is a
+  multiline string
+  example.
+double: 3.141592653589793
+integer_array:
+  - 1
+  - 2
+  - 3
+string_array:
+  - "red"
+  - "green"
+  - "blue"
+object:
+  key1: value1
+  key2: value2
+  key3: value3
+  sub_array_with_objects:
+    - sub_key1: sub_value1
+      sub_key2: sub_value2
+    - sub_key3: sub_value3
+      sub_key4: sub_value4
+  sub_array:
+    - "item1"
+    - null
+    - "item3"
+    - sub_object:
+        sub_key1: sub_value1
+        sub_key2: sub_value2
+users:
+  - name: "Alice"
+    age: 30
+    email: "alice@example.com"
+  - name: "Bob"
+    age: 25
+    email: "bob@example.com"
+date: 2024-06-05
+datetime: 2024-06-05T12:34:56Z
+timestamp: 2024-06-05T12:34:56.789Z
+time: 12:34:56
+binary: !!binary "SGVsbG8gd29ybGQ="
+long_binary: !!binary "SGVsbG8gd29ybGQgd29ybGQgd29ybGQgd29ybGQgd29ybGQgd29ybGQgd29ybGQgd29ybGQ="

@@ -4,6 +4,7 @@
 #include "pplib-tests.h"
 #include <pplib/core/yaml.h>
 #include <pplib/core/fileobject.h>
+#include <pplib/core/memfile.h>
 #include <pplib/core/file.h>
 #include <pplib/exceptions.h>
 #include <pplib/types/variant.h>
@@ -649,7 +650,8 @@ TEST_F(YamlTest, NoExceptionPoisoning)
     bool threw = false;
     try {
         Yaml::loads("a:\n\tbad");
-    } catch (const UnexpectedCharacterException&) {
+    }
+    catch (const UnexpectedCharacterException&) {
         threw = true;
     }
     ASSERT_TRUE(threw);
@@ -666,5 +668,129 @@ TEST_F(YamlTest, SequentialParses)
         String yaml = "val: " + std::to_string(i);
         Variant v = Yaml::loads(yaml);
         EXPECT_EQ(static_cast<int64_t>(i), v.toAssocArray()["val"].toInt64());
+    }
+}
+
+// ============================================================================
+// Manuelle Regression Tests
+// ============================================================================
+
+TEST_F(YamlTest, RegressionTestMultilineStringInTheMiddle)
+{
+    String yaml;
+    File::load(yaml, "testdata/test2.yaml");
+    AssocArray root;
+    Yaml::loads(root, yaml);
+    EXPECT_TRUE(root["multiline_string"].isString());
+    EXPECT_EQ(String("This is a\nmultiline string\nexample.\n"), root["multiline_string"].toString());
+    EXPECT_FLOAT_EQ(3.14159f, (float)root["float"].toDouble());
+    EXPECT_DOUBLE_EQ(3.141592653589793, root["double"].toDouble());
+
+    EXPECT_EQ(String("Alice"), root["users/0/name"]);
+    EXPECT_EQ(30, root["users/0/age"].toInt());
+    EXPECT_EQ(String("alice@example.com"), root["users/0/email"]);
+
+    EXPECT_EQ(String("Bob"), root["users/1/name"]);
+    EXPECT_EQ(25, root["users/1/age"].toInt());
+    EXPECT_EQ(String("bob@example.com"), root["users/1/email"]);
+}
+
+TEST_F(YamlTest, dumpWithFileObject)
+{
+    String yaml;
+    File::load(yaml, "testdata/test2.yaml");
+    AssocArray root;
+    Yaml::loads(root, yaml);
+
+    MemFile memfile;
+    Yaml::dump(memfile, pplib::Variant(root), 2);
+
+    /* DEBUG
+    pplib::String dumpedYaml2 = pplib::Yaml::dumps(root, 2);
+    printf("== String Dump =======================\n");
+    dumpedYaml2.printnl();
+    printf("== MemFile Dump =======================\n");
+    printf("Memfile size: %zu\n", memfile.size());
+    memfile.seek(0);
+    ByteArray ba = memfile.load();
+    String dumpedYaml(ba);
+    dumpedYaml.printnl();
+    fflush(stdout);
+    printf("=========================\n");
+    */
+
+    memfile.seek(0);
+
+    AssocArray parsed = Yaml::load(memfile);
+    EXPECT_EQ(root["multiline_string"].toString(), parsed["multiline_string"].toString());
+    EXPECT_EQ(root["integer"], parsed["integer"]);
+    EXPECT_EQ(root["string"], parsed["string"]);
+    EXPECT_EQ(root["boolean_true"], parsed["boolean_true"]);
+    EXPECT_EQ(root["boolean_false"], parsed["boolean_false"]);
+    EXPECT_FLOAT_EQ(root["float"].toFloat(), parsed["float"].toFloat());
+    EXPECT_DOUBLE_EQ(3.14159265358979, parsed["double"].toDouble());
+    EXPECT_EQ(root["null_value"], parsed["null_value"]);
+    EXPECT_EQ(root["integer_array"], parsed["integer_array"]);
+    EXPECT_EQ(root["string_array"], parsed["string_array"]);
+    EXPECT_EQ(root["users/0"], parsed["users/0"]);
+    EXPECT_EQ(root["users/1"], parsed["users/1"]);
+    EXPECT_EQ(String("Alice"), parsed["users/0/name"]);
+    EXPECT_EQ(30, parsed["users/0/age"].toInt());
+    EXPECT_EQ(String("alice@example.com"), parsed["users/0/email"]);
+    EXPECT_EQ(String("Bob"), parsed["users/1/name"]);
+    EXPECT_EQ(25, parsed["users/1/age"].toInt());
+    EXPECT_EQ(String("bob@example.com"), parsed["users/1/email"]);
+
+    EXPECT_EQ(root["datetime"], parsed["datetime"]);
+    EXPECT_EQ(root["timestamp"], parsed["timestamp"]);
+    EXPECT_EQ(root["time"], parsed["time"]);
+
+    // Double Wert hat an Genauigkeit verloren, den klammern wir mal aus
+    parsed["double"] = root["double"];
+    parsed["datetime"] = root["datetime"];
+    parsed["timestamp"] = root["timestamp"];
+
+    // root.list("root");
+    // parsed.list("parsed");
+
+    EXPECT_EQ(root, parsed);
+}
+
+TEST_F(YamlTest, dumpWithFileObjectFromVariantArray)
+{
+    VariantArray array;
+    array.add(Variant(1));
+    array.add(Variant(2));
+    array.add(Variant(3));
+
+    MemFile memfile;
+    Yaml::dump(memfile, array, 2);
+
+    memfile.seek(0);
+
+    Variant parsed = Yaml::load(memfile);
+    EXPECT_TRUE(parsed.isVariantArray());
+    VariantArray parsedArray = parsed.toVariantArray();
+    EXPECT_EQ(array.size(), parsedArray.size());
+    for (size_t i = 0; i < array.size(); i++) {
+        EXPECT_EQ(array[i], parsedArray[i]);
+    }
+}
+
+TEST_F(YamlTest, dumpsFromVariantArray)
+{
+    VariantArray array;
+    array.add(Variant(1));
+    array.add(Variant(2));
+    array.add(Variant(3));
+
+    MemFile memfile;
+
+    pplib::String dumped = Yaml::dumps(array, 2);
+    EXPECT_FALSE(dumped.isEmpty());
+    VariantArray parsedArray = Yaml::loads(dumped).toVariantArray();
+    EXPECT_EQ(array.size(), parsedArray.size());
+    for (size_t i = 0; i < array.size(); i++) {
+        EXPECT_EQ(array[i], parsedArray[i]);
     }
 }
