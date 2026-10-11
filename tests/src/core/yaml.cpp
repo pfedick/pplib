@@ -111,7 +111,7 @@ TEST_F(YamlTest, DumpsCompact)
     AssocArray d;
     d.set("a", 1);
     d.set("b", String("x"));
-    String out = Yaml::dumps(d);
+    String out = Yaml::dumps(d, 0);
     EXPECT_EQ(String("{\"a\":1,\"b\":\"x\"}"), out);
 }
 

@@ -120,65 +120,74 @@ public:
     /** @brief Serialisiert ein Variant-Objekt in einen YAML-String.
      *  @param yaml Der String, in den die YAML-Daten geschrieben werden.
      *  @param data Das Variant-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
+     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
      */
-    static void dumps(pplib::String& yaml, const pplib::Variant& data, int indent = -1);
+    static void dumps(pplib::String& yaml, const pplib::Variant& data, int indent = 2);
 
     /** @brief Serialisiert ein Variant-Objekt in eine YAML-Datei.
      *  @param file Das FileObject, in das die YAML-Daten geschrieben werden.
      *  @param data Das Variant-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
+     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
      */
-    static void dump(pplib::FileObject& file, const pplib::Variant& data, int indent = -1);
+    static void dump(pplib::FileObject& file, const pplib::Variant& data, int indent = 2);
 
     /** @brief Serialisiert ein Variant-Objekt in einen YAML-String und gibt das Ergebnis zurück.
      *  @param data Das Variant-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
+     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
      *  @return Der YAML-String, der die serialisierten Daten enthält.
      */
-    static pplib::String dumps(const pplib::Variant& data, int indent = -1);
+    static pplib::String dumps(const pplib::Variant& data, int indent = 2);
 
     // --- Serialisieren (Komfort für AssocArray und VariantArray) ---
     /** @brief Serialisiert ein AssocArray-Objekt in einen YAML-String.
      *  @param yaml Der String, in den die YAML-Daten geschrieben werden.
      *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
+     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
      */
-    static void dumps(pplib::String& yaml, const pplib::AssocArray& data, int indent = -1);
+    static void dumps(pplib::String& yaml, const pplib::AssocArray& data, int indent = 2);
 
     /** @brief Serialisiert ein AssocArray-Objekt in eine YAML-Datei.
      *  @param file Das FileObject, in das die YAML-Daten geschrieben werden.
      *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
+     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
      */
-    static void dump(pplib::FileObject& file, const pplib::AssocArray& data, int indent = -1);
+    static void dump(pplib::FileObject& file, const pplib::AssocArray& data, int indent = 2);
     /** @brief Serialisiert ein AssocArray-Objekt in einen YAML-String und gibt das Ergebnis zurück.
      *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
+     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
      *  @return Der YAML-String, der die serialisierten Daten enthält.
      */
-    static pplib::String dumps(const pplib::AssocArray& data, int indent = -1);
+    static pplib::String dumps(const pplib::AssocArray& data, int indent = 2);
 
     /** @brief Serialisiert ein VariantArray-Objekt in einen YAML-String.
      *  @param yaml Der String, in den die YAML-Daten geschrieben werden.
      *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
+     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
      */
-    static void dumps(pplib::String& yaml, const pplib::VariantArray& data, int indent = -1);
+    static void dumps(pplib::String& yaml, const pplib::VariantArray& data, int indent = 2);
 
     /** @brief Serialisiert ein VariantArray-Objekt in eine YAML-Datei.
      *  @param file Das FileObject, in das die YAML-Daten geschrieben werden.
      *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
+     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
      */
-    static void dump(pplib::FileObject& file, const pplib::VariantArray& data, int indent = -1);
+    static void dump(pplib::FileObject& file, const pplib::VariantArray& data, int indent = 2);
 
     /** @brief Serialisiert ein VariantArray-Objekt in einen YAML-String und gibt das Ergebnis zurück.
      *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten.
+     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
+     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
      *  @return Der YAML-String, der die serialisierten Daten enthält.
      */
-    static pplib::String dumps(const pplib::VariantArray& data, int indent = -1);
+    static pplib::String dumps(const pplib::VariantArray& data, int indent = 2);
 };
 
 } // namespace pplib
