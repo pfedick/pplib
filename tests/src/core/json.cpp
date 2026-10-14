@@ -777,4 +777,148 @@ TEST_F(JsonTest, APIOverloadsAndSerializers)
     EXPECT_THROW(pplib::Json::dumps(unk), pplib::UnsupportedDataTypeException);
 }
 
+class NonSeekableStreamMock : public pplib::FileObject
+{
+private:
+    std::string data;
+    size_t pos = 0;
+
+public:
+    explicit NonSeekableStreamMock(std::string d) : data(std::move(d)) {}
+
+    bool isOpen() const override { return true; }
+    bool eof() const override { return pos >= data.size(); }
+    uint64_t size() const override { return data.size(); }
+    uint64_t tell() override { return pos; }
+
+    uint64_t seek(int64_t, SeekOrigin) override
+    {
+        throw pplib::IllegalOperationOnPipeException();
+    }
+    void seek(uint64_t) override
+    {
+        throw pplib::IllegalOperationOnPipeException();
+    }
+    void rewind() override
+    {
+        throw pplib::IllegalOperationOnPipeException();
+    }
+
+    size_t fread(void* ptr, size_t size, size_t nmemb) override
+    {
+        if (size == 0 || nmemb == 0) return 0;
+        if (pos >= data.size()) throw pplib::EndOfFileException();
+        size_t available = (data.size() - pos) / size;
+        size_t by = (nmemb < available) ? nmemb : available;
+        if (by == 0) throw pplib::EndOfFileException();
+        memcpy(ptr, data.data() + pos, by * size);
+        pos += by * size;
+        return by;
+    }
+};
+
+TEST_F(JsonTest, ParseFloatWithGermanLocale)
+{
+    const char* locales[] = {"German", "de_DE.UTF-8", "de-DE", "de_DE", "German_Germany.1252"};
+    char* prev = nullptr;
+    for (const char* loc : locales) {
+        prev = setlocale(LC_NUMERIC, loc);
+        if (prev) break;
+    }
+    if (prev) {
+        // Unter deutscher Locale würde atof("17.999") 17.0 liefern.
+        // Json::loads muss unabhängig von der Locale stets 17.999 parsen.
+        pplib::Variant v = pplib::Json::loads("{\"value\": 17.999}");
+        ASSERT_TRUE(v.isAssocArray());
+        EXPECT_DOUBLE_EQ(17.999, v.toAssocArray().get("value").toDouble());
+        setlocale(LC_NUMERIC, "C");
+    }
+}
+
+TEST_F(JsonTest, InvalidNumberFormatsRFC8259)
+{
+    // Multiple decimal points
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1.2.3.4}"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("1.2.3"), pplib::UnexpectedCharacterException);
+
+    // Trailing decimal point without digits
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1.}"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("1."), pplib::UnexpectedCharacterException);
+
+    // Incomplete exponents
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1e}"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1e+}"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1e-}"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("1e"), pplib::UnexpectedCharacterException);
+
+    // Leading zeros
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 0123}"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("0123"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("-0123"), pplib::UnexpectedCharacterException);
+
+    // Plus sign in number
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1+2}"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Json::loads("+1"), pplib::UnexpectedCharacterException);
+}
+
+TEST_F(JsonTest, UnescapedControlCharactersInStringThrow)
+{
+    // Raw unescaped newline (ASCII 10) inside string
+    EXPECT_THROW(pplib::Json::loads("{\"text\": \"line1\nline2\"}"), pplib::UnexpectedCharacterException);
+
+    // Raw unescaped tab (ASCII 9) inside string
+    EXPECT_THROW(pplib::Json::loads("{\"text\": \"tab\tinside\"}"), pplib::UnexpectedCharacterException);
+
+    // Raw unescaped carriage return (ASCII 13) inside string
+    EXPECT_THROW(pplib::Json::loads("{\"text\": \"cr\rinside\"}"), pplib::UnexpectedCharacterException);
+}
+
+TEST_F(JsonTest, BlockCommentsParsing)
+{
+    pplib::String json = "/* header comment */\n"
+                         "{\n"
+                         "    /* key comment */ \"key\": /* value comment */ 42\n"
+                         "} /* footer comment */";
+    pplib::Variant v = pplib::Json::loads(json);
+    ASSERT_TRUE(v.isAssocArray());
+    EXPECT_EQ(42, v.toAssocArray().getInt("key"));
+
+    // Unclosed block comment throws
+    EXPECT_THROW(pplib::Json::loads("/* unclosed comment"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Json::loads("{\"a\": 1} /* unclosed"), pplib::UnexpectedEndOfDataException);
+}
+
+TEST_F(JsonTest, NestingDepthLimitThrows)
+{
+    // Generate deeply nested array exceeding 128 levels
+    std::string deep;
+    for (int i = 0; i < 140; ++i) deep += "[";
+    for (int i = 0; i < 140; ++i) deep += "]";
+    EXPECT_THROW(pplib::Json::loads(pplib::String(deep)), pplib::UnexpectedCharacterException);
+}
+
+TEST_F(JsonTest, DoublePrecisionRoundtrip)
+{
+    // 17-digit precision
+    double d1 = 0.30000000000000004;
+    double d2 = 1.2345678901234567;
+    pplib::String s1 = pplib::Json::dumps(pplib::Variant(d1));
+    pplib::String s2 = pplib::Json::dumps(pplib::Variant(d2));
+
+    pplib::Variant r1 = pplib::Json::loads(s1);
+    pplib::Variant r2 = pplib::Json::loads(s2);
+
+    EXPECT_EQ(d1, r1.toDouble());
+    EXPECT_EQ(d2, r2.toDouble());
+}
+
+TEST_F(JsonTest, NonSeekableStreamLoading)
+{
+    NonSeekableStreamMock mock("{\"test\": 123, \"array\": [1, 2, 3]}");
+    pplib::Variant v;
+    ASSERT_NO_THROW(pplib::Json::load(v, mock));
+    ASSERT_TRUE(v.isAssocArray());
+    EXPECT_EQ(123, v.toAssocArray().getInt("test"));
+}
+
 } // namespace

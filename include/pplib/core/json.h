@@ -46,7 +46,13 @@ namespace pplib
  * Pretty-Printen von JSON-Strings bereit.
  *
  * Die Json-Klasse unterstützt sowohl Objekte als auch Arrays und Skalare auf Root-Ebene
- * sowie beliebig tief verschachtelte Strukturen.
+ * sowie beliebig tief verschachtelte Strukturen (bis zu einem Schachtelungslimit von 128 Ebenen).
+ *
+ * @note Unterstützt werden einzeilige (`//`) und mehrzeilige (`/* ... * /`) Kommentare.
+ *
+ * @note Da AssocArray als hierarchischer Baum organisiert ist, werden Schrägstriche (`/`)
+ * in Objektschlüsseln als Pfadtrenner interpretiert. Leere Objektschlüssel (`""`) werden
+ * automatisch als `"_empty_"` gemappt, da AssocArray keine leeren Schlüssel zulässt.
  *
  * @note ByteArray und ByteArrayPtr werden als Base64-codierte Strings exportiert. Beim Import
  * werden diese allerdings nicht wieder zu ByteArray oder ByteArrayPtr konvertiert, sondern
@@ -65,12 +71,20 @@ public:
     /** @brief Lädt JSON-Daten aus einem String in ein Variant-Objekt.
      *  @param data Das Variant-Objekt, in das die JSON-Daten geladen werden.
      *  @param json Der JSON-String, der geladen werden soll.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der JSON-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
      */
     static void loads(pplib::Variant& data, const pplib::String& json);
 
     /** @brief Lädt JSON-Daten aus einer Datei in ein Variant-Objekt.
      *  @param data Das Variant-Objekt, in das die JSON-Daten geladen werden.
      *  @param file Das FileObject, aus dem die JSON-Daten geladen werden.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der JSON-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
      */
     static void load(pplib::Variant& data, pplib::FileObject& file);
 
@@ -78,6 +92,10 @@ public:
      *  @param json Der JSON-String, der geladen werden soll.
      *  @return Das Variant-Objekt, das die geladenen JSON-Daten enthält. Je nach Struktur der
      * JSON-Daten kann es sich dabei um ein AssocArray, ein VariantArray oder einen Skalar handeln.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der JSON-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
      */
     static pplib::Variant loads(const pplib::String& json);
 
@@ -85,6 +103,10 @@ public:
      *  @param file Das FileObject, aus dem die JSON-Daten geladen werden.
      *  @return Das Variant-Objekt, das die geladenen JSON-Daten enthält. Je nach Struktur der
      * JSON-Daten kann es sich dabei um ein AssocArray, ein VariantArray oder einen Skalar handeln.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der JSON-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
      */
     static pplib::Variant load(pplib::FileObject& file);
 
@@ -93,24 +115,44 @@ public:
     /** @brief Lädt JSON-Daten aus einem String in ein AssocArray-Objekt.
      *  @param data Das AssocArray-Objekt, in das die JSON-Daten geladen werden.
      *  @param json Der JSON-String, der geladen werden soll.
+     *  @throw pplib::TypeConversionException Wenn der JSON-Wurzeltyp kein AssocArray (JSON-Objekt) ist.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der JSON-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
      */
     static void loads(pplib::AssocArray& data, const pplib::String& json);
 
     /** @brief Lädt JSON-Daten aus einer Datei in ein AssocArray-Objekt.
      *  @param data Das AssocArray-Objekt, in das die JSON-Daten geladen werden.
      *  @param file Das FileObject, aus dem die JSON-Daten geladen werden.
+     *  @throw pplib::TypeConversionException Wenn der JSON-Wurzeltyp kein AssocArray (JSON-Objekt) ist.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der JSON-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
      */
     static void load(pplib::AssocArray& data, pplib::FileObject& file);
 
     /** @brief Lädt JSON-Daten aus einem String in ein VariantArray-Objekt.
      *  @param data Das VariantArray-Objekt, in das die JSON-Daten geladen werden.
      *  @param json Der JSON-String, der geladen werden soll.
+     *  @throw pplib::TypeConversionException Wenn der JSON-Wurzeltyp kein VariantArray (JSON-Array) ist.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der JSON-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
      */
     static void loads(pplib::VariantArray& data, const pplib::String& json);
 
     /** @brief Lädt JSON-Daten aus einer Datei in ein VariantArray-Objekt.
      *  @param data Das VariantArray-Objekt, in das die JSON-Daten geladen werden.
      *  @param file Das FileObject, aus dem die JSON-Daten geladen werden.
+     *  @throw pplib::TypeConversionException Wenn der JSON-Wurzeltyp kein VariantArray (JSON-Array) ist.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der JSON-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
      */
     static void load(pplib::VariantArray& data, pplib::FileObject& file);
 
@@ -122,6 +164,8 @@ public:
      *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
      *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
      *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach JSON serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dumps(pplib::String& json, const pplib::Variant& data, int indent = -1);
 
@@ -131,6 +175,8 @@ public:
      *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
      *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
      *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach JSON serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dump(pplib::FileObject& file, const pplib::Variant& data, int indent = -1);
 
@@ -140,6 +186,8 @@ public:
      *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
      *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
      *  @return Der JSON-String, der das serialisierte Variant-Objekt enthält.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach JSON serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static pplib::String dumps(const pplib::Variant& data, int indent = -1);
 
@@ -151,6 +199,8 @@ public:
      *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
      *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
      *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach JSON serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dumps(pplib::String& json, const pplib::AssocArray& data, int indent = -1);
 
@@ -160,6 +210,8 @@ public:
      *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
      *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
      *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach JSON serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dump(pplib::FileObject& file, const pplib::AssocArray& data, int indent = -1);
 
@@ -169,6 +221,8 @@ public:
      *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
      *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
      *  @return Der JSON-String, der das serialisierte AssocArray-Objekt enthält.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach JSON serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static pplib::String dumps(const pplib::AssocArray& data, int indent = -1);
 
@@ -178,6 +232,8 @@ public:
      *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
      *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
      *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach JSON serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dumps(pplib::String& json, const pplib::VariantArray& data, int indent = -1);
 
@@ -187,6 +243,8 @@ public:
      *  @param indent Die Einrückungsebene für die JSON-Daten. Der Default ist "-1" und bewirkt,
      *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
      *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach JSON serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dump(pplib::FileObject& file, const pplib::VariantArray& data, int indent = -1);
 
@@ -196,6 +254,8 @@ public:
      *  dass die JSON-Daten ohne zusätzliche Einrückung, Zeilenumbrüche und Leerzeichen ausgegeben werden.
      *  Mit "0" wird nicht eingerückt, aber Zeilenumbrüche und Leerzeichen werden hinzugefügt.
      *  @return Der JSON-String, der das serialisierte VariantArray-Objekt enthält.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach JSON serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static pplib::String dumps(const pplib::VariantArray& data, int indent = -1);
 
@@ -204,6 +264,10 @@ public:
      *  @param json Der JSON-String, der formatiert werden soll.
      *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "4".
      *  @return Der formatierte JSON-String mit Einrückungen.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der JSON-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
      */
     static pplib::String pp(const pplib::String& json, int indent = 4);
 };
