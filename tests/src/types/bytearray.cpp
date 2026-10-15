@@ -954,7 +954,23 @@ TEST(ByteArrayTest, fromBase64)
 
 TEST(ByteArrayTest, fromBase64WithInvalidString)
 {
-    ASSERT_THROW({ pplib::ByteArray b2 = pplib::ByteArray::fromBase64(".GVsbG8gV29ybGQ"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::ByteArray::fromBase64(".GVsbG8gV29ybGQ"); }, pplib::IllegalArgumentException);
+
+    ASSERT_THROW({ pplib::ByteArray b2 = pplib::ByteArray::fromBase64("A=B="); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::ByteArray b2 = pplib::ByteArray::fromBase64("QUJDRA==QUJDRA=="); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::ByteArray b2 = pplib::ByteArray::fromBase64("QUJDRA==XXXX"); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::ByteArray b2 = pplib::ByteArray::fromBase64("QU=DR==="); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::ByteArray b2 = pplib::ByteArray::fromBase64("===="); }, pplib::IllegalArgumentException);
+    ASSERT_THROW({ pplib::ByteArray b2 = pplib::ByteArray::fromBase64("A==="); }, pplib::IllegalArgumentException);
+}
+
+TEST(ByteArrayTest, fromBase64WithDifferentPadding)
+{
+    EXPECT_EQ(pplib::ByteArray::fromBase64("QQ=="), pplib::ByteArray("A", 1)) << "QQ==";
+    EXPECT_EQ(pplib::ByteArray::fromBase64("QUI="), pplib::ByteArray("AB", 2)) << "QUI=";
+    EXPECT_EQ(pplib::ByteArray::fromBase64("QUJD"), pplib::ByteArray("ABC", 3)) << "QUJD";
+    EXPECT_EQ(pplib::ByteArray::fromBase64("QUJDRA=="), pplib::ByteArray("ABCD", 4)) << "QUJDRA==";
+    EXPECT_EQ(pplib::ByteArray::fromBase64("QUJDREU="), pplib::ByteArray("ABCDE", 5)) << "QUJDREU=";
 }
 
 TEST(ByteArrayTest, ostream)

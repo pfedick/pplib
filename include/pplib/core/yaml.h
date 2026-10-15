@@ -12,7 +12,7 @@
  *       this list of conditions and the following disclaimer.
  *    2. Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
- *       documentation or other materials provided with the distribution.
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -44,185 +44,232 @@ namespace pplib
  * Die Yaml-Klasse stellt statische Methoden zum Laden und Speichern von YAML-Daten
  * in und aus pplib::Variant-Objekten (sowie AssocArray und VariantArray) bereit.
  *
- * Unterstützt wird ein YAML-Untermenge: Block-Mappings, Block-Sequenzen, Flow-Style
- * ({...} und [...]), Plain-, einfach- und doppelzierte Skalare, Block-Skalare (| und >)
- * sowie Kommentare (#). Anker/Aliase und mehrere Dokumente werden nicht unterstützt.
+ * Die Yaml-Klasse unterstützt Mappings und Sequenzen sowie Skalare auf Root-Ebene
+ * sowie beliebig tief verschachtelte Strukturen (bis zu einem Schachtelungslimit von 128 Ebenen).
  *
- * @note Im Gegensatz zu Json konvertiert Yaml ISO-8601-Zeiträume beim Import in die
- * passenden Typen: Datum+Zeit wird zu DateTime, ein reines Datum zu Date und eine
- * reine Zeit zu Time. Beim Export werden diese Typen wieder als ISO-8601 geschrieben.
+ * @note Unterstützt werden Block-Mappings, Block-Sequenzen, Flow-Sammlungen (`[...]`, `{...}`),
+ * einfache und doppelt quotierte Strings, Block-Scalars (`|`, `>`) sowie Kommentare (`#`).
  *
- * @note ByteArray und ByteArrayPtr werden über den Tag !!binary als Base64 exportiert
- * und beim Import von !!binary-Werten (Base64) wieder in ByteArray konvertiert.
+ * @note Da AssocArray als hierarchischer Baum organisiert ist, werden Schrägstriche (`/`)
+ * in Objektschlüsseln als Pfadtrenner interpretiert. Leere Objektschlüssel (`""`) werden
+ * automatisch als `"_empty_"` gemappt, da AssocArray keine leeren Schlüssel zulässt.
  *
- * @note Strings bleiben beim Export immer Strings: Sie werden doppelzitiert geschrieben,
- * damit sie auch dann als String zurückgelesen werden, wenn ihr Inhalt wie eine Zahl
- * oder ein Datum aussieht. Nur echte DateTime-, Integer-, Double- und Boolean-Werte
- * werden unziert exportiert.
+ * @note Im Unterschied zu JSON werden binäre und Zeit-Daten verlustfrei round-trip-fähig
+ * exportiert und importiert: ByteArray und ByteArrayPtr werden mit dem Tag `!!binary` als
+ * Base64-String exportiert und beim Import wieder zu ByteArray. Base64 bis 76 Zeichen wird
+ * einzeilig geschrieben, längere Werte als gefalteter Block-Scalar (`!!binary |-`) mit
+ * Umbruch nach 76 Zeichen pro Zeile. Beim Import ist Padding (`=`) nur am Ende des
+ * Base64-Stroms zulässig; Padding mitten im Strom führt zu `TypeConversionException`.
+ * DateTime und Date werden
+ * mit dem Tag `!!timestamp` als ISO-8601-String exportiert und beim Import wieder zu
+ * DateTime bzw. Date. Time, TimeDelta und TimeZone werden mit den pplib-eigenen Tags
+ * `!Time`, `!TimeDelta` und `!TimeZone` exportiert und entsprechend importiert.
+ *
+ * @note Auch ohne Tags werden YAML-Typen erkannt: `null`/`~`, `true`/`false`, Ganzzahlen
+ * (dezimal, `0x`-Hexadezimal, `0o`-Oktal), Fließkommazahlen (inkl. `.inf` und `.nan`) sowie
+ * Datums- (`YYYY-MM-DD`), Datumszeit- (`YYYY-MM-DDTHH:MM:SS...`) und Zeitangaben (`HH:MM:SS`).
+ *
+ * @note Anker (`&name`) und Aliase (`*name`) werden unterstützt. Unbekannte Tags werden
+ * ignoriert; der Wert wird wie ohne Tag behandelt.
+ *
+ * @note Nicht unterstützt werden Merge-Keys (`<<:`), Multiple Documents (ein Stream enthält
+ * genau ein Dokument) und Knoten-Farben.
+ *
+ * @note Nachkommastellen von Sekunden werden pplib-konform als Mikrosekunden interpretiert:
+ * `12:34:56.789` bedeutet 789 Mikrosekunden, nicht 0,789 Sekunden.
+ *
+ * @note Alle load()- und loads()-Varianten können folgende Ausnahmen werfen:
+ * `pplib::UnexpectedEndOfDataException`, `pplib::UnexpectedCharacterException`,
+ * `pplib::InvalidEscapeSequenceException`, `pplib::TypeConversionException`,
+ * `pplib::ItemNotFoundException` (unbekannter Alias), `pplib::CharacterEncodingException`
+ * und `pplib::OverflowException` (Verschachtelungstiefe überschritten).
  */
 class Yaml
 {
 public:
-    Yaml() = delete; // Prevent instantiation of this static class
+    Yaml() = delete; // Verhindert die Instanziierung der Yaml-Klasse.
 
     // --- Parsen (Basis auf Variant) ---
 
     /** @brief Lädt YAML-Daten aus einem String in ein Variant-Objekt.
      *  @param data Das Variant-Objekt, in das die YAML-Daten geladen werden.
-     *  @param yaml Der YAML-String, der geparst werden soll.
-     *  @throw pplib::UnexpectedCharacterException Bei unerwarteten Zeichen oder fehlerhafter Einrückung.
+     *  @param yaml Der YAML-String, der geladen werden soll.
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
-     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::UnsupportedDataTypeException Bei nicht unterstützten YAML-Tags.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::TypeConversionException Bei ungültigen Datums-, Zeit-, Base64- oder Zahlenwerten.
      */
     static void loads(pplib::Variant& data, const pplib::String& yaml);
 
     /** @brief Lädt YAML-Daten aus einer Datei in ein Variant-Objekt.
      *  @param data Das Variant-Objekt, in das die YAML-Daten geladen werden.
-     *  @param file Das FileObject, aus dem die YAML-Daten gelesen werden.
-     *  @throw pplib::UnexpectedCharacterException Bei unerwarteten Zeichen oder fehlerhafter Einrückung.
+     *  @param file Das FileObject, aus dem die YAML-Daten geladen werden.
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
-     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::UnsupportedDataTypeException Bei nicht unterstützten YAML-Tags.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::TypeConversionException Bei ungültigen Datums-, Zeit-, Base64- oder Zahlenwerten.
      */
     static void load(pplib::Variant& data, pplib::FileObject& file);
 
-    /** @brief Lädt YAML-Daten aus einem String in ein Variant-Objekt und gibt das Ergebnis zurück.
-     *  @param yaml Der YAML-String, der geparst werden soll.
-     *  @return Das Variant-Objekt, das die geladenen YAML-Daten enthält.
-     *  @throw pplib::UnexpectedCharacterException Bei unerwarteten Zeichen oder fehlerhafter Einrückung.
+    /** @brief Lädt YAML-Daten aus einem String und gibt das Ergebnis als Variant-Objekt zurück.
+     *  @param yaml Der YAML-String, der geladen werden soll.
+     *  @return Das Variant-Objekt, das die geladenen YAML-Daten enthält. Je nach Struktur der
+     * YAML-Daten kann es sich dabei um ein AssocArray, ein VariantArray oder einen Skalar handeln.
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
-     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::UnsupportedDataTypeException Bei nicht unterstützten YAML-Tags.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::TypeConversionException Bei ungültigen Datums-, Zeit-, Base64- oder Zahlenwerten.
      */
-    [[nodiscard]] static pplib::Variant loads(const pplib::String& yaml);
+    static pplib::Variant loads(const pplib::String& yaml);
 
-    /** @brief Lädt YAML-Daten aus einer Datei in ein Variant-Objekt und gibt das Ergebnis zurück.
-     *  @param file Das FileObject, aus dem die YAML-Daten gelesen werden.
-     *  @return Das Variant-Objekt, das die geladenen YAML-Daten enthält.
-     *  @throw pplib::UnexpectedCharacterException Bei unerwarteten Zeichen oder fehlerhafter Einrückung.
-     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
-     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+    /** @brief Lädt YAML-Daten aus einer Datei und gibt das Ergebnis als Variant-Objekt zurück.
+     *  @param file Das FileObject, aus dem die YAML-Daten geladen werden.
+     *  @return Das Variant-Objekt, das die geladenen YAML-Daten enthält. Je nach Struktur der
+     * YAML-Daten kann es sich dabei um ein AssocArray, ein VariantArray oder einen Skalar handeln.
+     *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitiges Ende der YAML-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::UnsupportedDataTypeException Bei nicht unterstützten YAML-Tags.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::TypeConversionException Bei ungültigen Datums-, Zeit-, Base64- oder Zahlenwerten.
      */
-    [[nodiscard]] static pplib::Variant load(pplib::FileObject& file);
+    static pplib::Variant load(pplib::FileObject& file);
 
     // --- Parsen (Komfort für AssocArray und VariantArray) ---
+
     /** @brief Lädt YAML-Daten aus einem String in ein AssocArray-Objekt.
      *  @param data Das AssocArray-Objekt, in das die YAML-Daten geladen werden.
-     *  @param yaml Der YAML-String, der geparst werden soll.
-     *  @throw pplib::TypeConversionException Wenn das Wurzelelement kein AssocArray ist.
-     *  @throw pplib::UnexpectedCharacterException Bei unerwarteten Zeichen oder fehlerhafter Einrückung.
+     *  @param yaml Der YAML-String, der geladen werden soll.
+     *  @throw pplib::TypeConversionException Wenn der YAML-Wurzeltyp kein AssocArray (Mapping) ist.
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
      */
     static void loads(pplib::AssocArray& data, const pplib::String& yaml);
 
     /** @brief Lädt YAML-Daten aus einer Datei in ein AssocArray-Objekt.
      *  @param data Das AssocArray-Objekt, in das die YAML-Daten geladen werden.
-     *  @param file Das FileObject, aus dem die YAML-Daten gelesen werden.
-     *  @throw pplib::TypeConversionException Wenn das Wurzelelement kein AssocArray ist.
-     *  @throw pplib::UnexpectedCharacterException Bei unerwarteten Zeichen oder fehlerhafter Einrückung.
+     *  @param file Das FileObject, aus dem die YAML-Daten geladen werden.
+     *  @throw pplib::TypeConversionException Wenn der YAML-Wurzeltyp kein AssocArray (Mapping) ist.
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
      */
     static void load(pplib::AssocArray& data, pplib::FileObject& file);
 
     /** @brief Lädt YAML-Daten aus einem String in ein VariantArray-Objekt.
      *  @param data Das VariantArray-Objekt, in das die YAML-Daten geladen werden.
-     *  @param yaml Der YAML-String, der geparst werden soll.
-     *  @throw pplib::TypeConversionException Wenn das Wurzelelement kein VariantArray ist.
-     *  @throw pplib::UnexpectedCharacterException Bei unerwarteten Zeichen oder fehlerhafter Einrückung.
+     *  @param yaml Der YAML-String, der geladen werden soll.
+     *  @throw pplib::TypeConversionException Wenn der YAML-Wurzeltyp kein VariantArray (Sequenz) ist.
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
      */
     static void loads(pplib::VariantArray& data, const pplib::String& yaml);
 
     /** @brief Lädt YAML-Daten aus einer Datei in ein VariantArray-Objekt.
      *  @param data Das VariantArray-Objekt, in das die YAML-Daten geladen werden.
-     *  @param file Das FileObject, aus dem die YAML-Daten gelesen werden.
-     *  @throw pplib::TypeConversionException Wenn das Wurzelelement kein VariantArray ist.
-     *  @throw pplib::UnexpectedCharacterException Bei unerwarteten Zeichen oder fehlerhafter Einrückung.
+     *  @param file Das FileObject, aus dem die YAML-Daten geladen werden.
+     *  @throw pplib::TypeConversionException Wenn der YAML-Wurzeltyp kein VariantArray (Sequenz) ist.
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
+     *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
+     *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
      */
     static void load(pplib::VariantArray& data, pplib::FileObject& file);
 
     // --- Serialisieren (Basis auf Variant) ---
+
     /** @brief Serialisiert ein Variant-Objekt in einen YAML-String.
      *  @param yaml Der String, in den die YAML-Daten geschrieben werden.
      *  @param data Das Variant-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
-     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
-     *  @throw pplib::UnsupportedDataTypeException Wenn ein enthaltener Datentyp nicht serialisiert werden kann.
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "2".
+     *  Da YAML zeilenbasiert ist, wird immer mit Zeilenumbrüchen und Einrückung gearbeitet.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach YAML serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dumps(pplib::String& yaml, const pplib::Variant& data, int indent = 2);
 
     /** @brief Serialisiert ein Variant-Objekt in eine YAML-Datei.
      *  @param file Das FileObject, in das die YAML-Daten geschrieben werden.
      *  @param data Das Variant-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
-     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
-     *  @throw pplib::UnsupportedDataTypeException Wenn ein enthaltener Datentyp nicht serialisiert werden kann.
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "2".
+     *  Da YAML zeilenbasiert ist, wird immer mit Zeilenumbrüchen und Einrückung gearbeitet.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach YAML serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dump(pplib::FileObject& file, const pplib::Variant& data, int indent = 2);
 
     /** @brief Serialisiert ein Variant-Objekt in einen YAML-String und gibt das Ergebnis zurück.
      *  @param data Das Variant-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
-     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
-     *  @return Der YAML-String, der die serialisierten Daten enthält.
-     *  @throw pplib::UnsupportedDataTypeException Wenn ein enthaltener Datentyp nicht serialisiert werden kann.
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "2".
+     *  Da YAML zeilenbasiert ist, wird immer mit Zeilenumbrüchen und Einrückung gearbeitet.
+     *  @return Der YAML-String, der das serialisierte Variant-Objekt enthält.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach YAML serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
-    [[nodiscard]] static pplib::String dumps(const pplib::Variant& data, int indent = 2);
+    static pplib::String dumps(const pplib::Variant& data, int indent = 2);
 
     // --- Serialisieren (Komfort für AssocArray und VariantArray) ---
+
     /** @brief Serialisiert ein AssocArray-Objekt in einen YAML-String.
      *  @param yaml Der String, in den die YAML-Daten geschrieben werden.
      *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
-     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "2".
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach YAML serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dumps(pplib::String& yaml, const pplib::AssocArray& data, int indent = 2);
 
     /** @brief Serialisiert ein AssocArray-Objekt in eine YAML-Datei.
      *  @param file Das FileObject, in das die YAML-Daten geschrieben werden.
      *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
-     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "2".
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach YAML serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dump(pplib::FileObject& file, const pplib::AssocArray& data, int indent = 2);
+
     /** @brief Serialisiert ein AssocArray-Objekt in einen YAML-String und gibt das Ergebnis zurück.
      *  @param data Das AssocArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
-     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
-     *  @return Der YAML-String, der die serialisierten Daten enthält.
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "2".
+     *  @return Der YAML-String, der das serialisierte AssocArray-Objekt enthält.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach YAML serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
-    [[nodiscard]] static pplib::String dumps(const pplib::AssocArray& data, int indent = 2);
+    static pplib::String dumps(const pplib::AssocArray& data, int indent = 2);
 
     /** @brief Serialisiert ein VariantArray-Objekt in einen YAML-String.
      *  @param yaml Der String, in den die YAML-Daten geschrieben werden.
      *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
-     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "2".
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach YAML serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dumps(pplib::String& yaml, const pplib::VariantArray& data, int indent = 2);
 
     /** @brief Serialisiert ein VariantArray-Objekt in eine YAML-Datei.
      *  @param file Das FileObject, in das die YAML-Daten geschrieben werden.
      *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
-     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "2".
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach YAML serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
     static void dump(pplib::FileObject& file, const pplib::VariantArray& data, int indent = 2);
 
     /** @brief Serialisiert ein VariantArray-Objekt in einen YAML-String und gibt das Ergebnis zurück.
      *  @param data Das VariantArray-Objekt, das serialisiert werden soll.
-     *  @param indent Die Einrückungsebene für die YAML-Daten. Der Default ist "2".
-     * Bei Werten kleiner 1 wird Flow-Style verwendet (JSON-ähnlich).
-     *  @return Der YAML-String, der die serialisierten Daten enthält.
+     *  @param indent Die Anzahl der Leerzeichen für jede Einrückungsebene. Der Default ist "2".
+     *  @return Der YAML-String, der das serialisierte VariantArray-Objekt enthält.
+     *  @throw pplib::UnsupportedDataTypeException Wenn ein Variant-Typ nicht nach YAML serialisiert werden kann.
+     *  @throw pplib::OverflowException Wenn die Schachtelungstiefe das Limit überschreitet.
      */
-    [[nodiscard]] static pplib::String dumps(const pplib::VariantArray& data, int indent = 2);
+    static pplib::String dumps(const pplib::VariantArray& data, int indent = 2);
 };
 
 } // namespace pplib

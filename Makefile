@@ -90,7 +90,7 @@ clean:
 	-rm -rf build
 	-rm -rf coverage coverage_html
 	-rm -rf coverage.xml tests/testresult_*.xml compile_commands.json
-	-rm -rf documentation
+	-rm -rf documentation tests/tmp
 	-cd tests; make clean
 
 doku: html
