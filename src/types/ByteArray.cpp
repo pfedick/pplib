@@ -404,11 +404,12 @@ ByteArray ByteArray::fromBase64(const String& base64)
     } else if (chars >= 1 && base64[chars - 1] == '=') {
         padding = 1;
     }
-    size_t bytes = (chars * 3) / 4 - padding;
+    size_t payload = chars - padding;         // echte Base64-Zeichen
+    size_t bytes = (chars * 3) / 4 - padding; // unveraendert, bleibt korrekt
     unsigned char* t = (unsigned char*)result.malloc(bytes);
     size_t source = 0, target = 0;
     unsigned char value = 0;
-    for (; source < chars; source++) {
+    for (; source < payload; source++) { // vorher: source < chars
         wchar_t c = base64[source];
         if (c >= 'A' && c <= 'Z')
             value = c - 'A';
@@ -421,7 +422,7 @@ ByteArray ByteArray::fromBase64(const String& base64)
         else if (c == '/')
             value = 63;
         else if (c == '=')
-            break; // Padding erreicht
+            throw IllegalArgumentException("invalid padding position"); // vorher: break
         else {
             throw IllegalArgumentException("invalid chars in input string");
         }
