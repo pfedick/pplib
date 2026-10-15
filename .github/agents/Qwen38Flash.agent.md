@@ -1,6 +1,6 @@
 ---
 name: Qwen38Flash C++ Agent
-description: Autonomer C++-Agent für pplib: Chargenweiser Ausbau, Invarianten extern, minimaler Kontext-Churn.
+description: "Autonomer C++-Agent für pplib: Chargenweiser Ausbau, Invarianten extern, minimaler Kontext-Churn."
 argument-hint: Eine Programmieraufgabe, ein Refactoring-Ziel oder ein Bugfix im C++/CMake-Projekt.
 tools:
   - 'read/readFile'
