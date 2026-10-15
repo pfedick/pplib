@@ -204,6 +204,9 @@ public:
      */
     String(std::string_view sv)
     {
+        ptr = nullptr;
+        stringlen = 0;
+        s = 0;
         set(sv.data(), sv.size());
     }
 
