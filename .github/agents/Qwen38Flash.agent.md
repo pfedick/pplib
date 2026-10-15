@@ -101,7 +101,7 @@ Tests nach der funktionalen Einheit, nicht vorher. Die Suite bleibt jederzeit gr
 
 ## Testdaten
 
-Selbst erstellte Daten, nicht die Beispieldateien im Repo (Entwürfe mit unvollständiger Abdeckung). Edge-Cases gezielt: Element am Anfang, in der Mitte UND am Ende; leere Eingabe; fehlerhafte und malformierte Eingabe.
+Selbst erstellte Daten und/oder vorhandene Testdaten im `tests/testdata/`-Verzeichnis. Gerne auch Testdaten ergänzen. Edge-Cases gezielt: Element am Anfang, in der Mitte UND am Ende; leere Eingabe; fehlerhafte und malformierte Eingabe.
 
 ## Projekt-Kontext
 
