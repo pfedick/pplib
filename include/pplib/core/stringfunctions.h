@@ -41,8 +41,30 @@
 namespace pplib
 {
 
-String ToBase64(const ByteArrayPtr& bin);
-ByteArray FromBase64(const String& str);
+/** @brief Speicherbereich als Base64 in einen String exportieren
+ *
+ * Der Speicherbereich in \p bin wird im Base64-Format als String
+ * exportiert.
+ *
+ * @param bin Der Speicherbereich, der in Base64 konvertiert werden soll.
+ * @return Inhalt des Speicherbereichs als Base64-String.
+ */
+inline String ToBase64(const ByteArrayPtr& bin)
+{
+    return bin.toBase64(); // ByteArrayPtr::toBase64, bytearrayptr.h:305
+}
+
+/** @brief Base64-kodierten String in einen Speicherbereich zurückkonvertieren
+ *
+ * Der Base64-kodierte String \p str wird in einen Speicherbereich zurückkonvertiert.
+ *
+ * @param str Der Base64-kodierte String
+ * @return Der dekodierte Speicherbereich als ByteArray
+ */
+inline ByteArray FromBase64(const String& str)
+{
+    return ByteArray::fromBase64(str); // bytearray.h:366
+}
 
 /**@brief Entfernt Backslashes aus einem String
  * @relates String

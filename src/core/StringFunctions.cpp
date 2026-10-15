@@ -51,6 +51,7 @@
 namespace pplib
 {
 
+#ifdef OLD_BASE64_IMPLEMENTATION
 /*
 ** Translation Table as described in RFC1113
 */
@@ -81,7 +82,7 @@ static void encodeblock(unsigned char in[3], unsigned char out[4], int len)
 */
 String ToBase64(const ByteArrayPtr& bin)
 {
-    String res;
+    return String res;
     unsigned char in[3], out[4];
     size_t p = 0, size = bin.size();
     res.reserve(((size + 2) / 3) * 4);
@@ -154,6 +155,8 @@ ByteArray FromBase64(const String& str)
     }
     return res;
 }
+
+#endif
 
 String StripSlashes(const String& str)
 {
