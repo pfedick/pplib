@@ -56,7 +56,11 @@ namespace pplib
  *
  * @note Im Unterschied zu JSON werden binäre und Zeit-Daten verlustfrei round-trip-fähig
  * exportiert und importiert: ByteArray und ByteArrayPtr werden mit dem Tag `!!binary` als
- * Base64-String exportiert und beim Import wieder zu ByteArray. DateTime und Date werden
+ * Base64-String exportiert und beim Import wieder zu ByteArray. Base64 bis 76 Zeichen wird
+ * einzeilig geschrieben, längere Werte als gefalteter Block-Scalar (`!!binary |-`) mit
+ * Umbruch nach 76 Zeichen pro Zeile. Beim Import ist Padding (`=`) nur am Ende des
+ * Base64-Stroms zulässig; Padding mitten im Strom führt zu `TypeConversionException`.
+ * DateTime und Date werden
  * mit dem Tag `!!timestamp` als ISO-8601-String exportiert und beim Import wieder zu
  * DateTime bzw. Date. Time, TimeDelta und TimeZone werden mit den pplib-eigenen Tags
  * `!Time`, `!TimeDelta` und `!TimeZone` exportiert und entsprechend importiert.

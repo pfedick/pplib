@@ -76,6 +76,7 @@ Einzelne Tests: erst `make build_tests`, dann
 - C++20, Namespace `pplib`, Stil an die vorhandene Datei angepasst.
 - Bibliothekscode hat keine statischen oder globalen mutablen Zustände. Bei Bedarf Mutexes, Locks oder atomare Operationen. Kein geteilter Zustand ohne Kontextobjekt des Aufrufers.
 - Header schlank halten; keine unnötigen Includes.
+- Interner Code nutzt `pplib::String` und `std::string_view` (kein `std::string`, vermeide Heap-Allokationen durch Substrings).
 
 ## Tests
 
@@ -100,8 +101,17 @@ Tests nach der funktionalen Einheit, nicht vorher. Die Suite bleibt jederzeit gr
 - Bei Codereviews: ein Punkt pro Durchlauf. Beheben, Tests anpassen, Suite laufen lassen, Punkt als erledigt markieren, dann der nächste.
 
 ## Testdaten
+- Verwende vorhandene Testdaten unter `tests/testdata/` in Unit-Tests
+- Reichen die Testdaten für Corner-Cases nicht aus, sind sie im Unit-Test 
+  durch Inline-Strings oder zusätzliche Testdateien zu ergänzen.
 
-Selbst erstellte Daten und/oder vorhandene Testdaten im `tests/testdata/`-Verzeichnis. Gerne auch Testdaten ergänzen. Edge-Cases gezielt: Element am Anfang, in der Mitte UND am Ende; leere Eingabe; fehlerhafte und malformierte Eingabe.
+## Coverage-Grenzwerte
+Ein Modul gilt erst als fertig, wenn gcovr meldet:
+- Lines >= 90 % (besser 95 %)
+- Branches >= 80 %
+Defensiver, über öffentliche APIs unerreichbarer Code ist im Bericht 
+explizit aufzulisten und muss nicht krampfhaft erzwungen werden.
+
 
 ## Projekt-Kontext
 

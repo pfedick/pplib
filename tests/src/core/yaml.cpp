@@ -362,13 +362,18 @@ TEST_F(YamlTest, Tags)
 
 TEST_F(YamlTest, PplibTags)
 {
-    pplib::Variant v = pplib::Yaml::loads("t: !Time 12:34:56\nd: !TimeDelta 1:02:03:04.000005\nz: !TimeZone +01:00\n");
+    pplib::Variant v = pplib::Yaml::loads("t: !Time 12:34:56\nd: !TimeDelta 1:02:03:04.000005\nz: !TimeZone +01:00\n"
+                                          "z2: !TimeZone +0130\nz3: !TimeZone -0030\n");
     const pplib::AssocArray& d = v.toAssocArray();
     ASSERT_TRUE(d.get("t").isTime());
     EXPECT_EQ((int64_t)12, d.get("t").toTime().hour());
     ASSERT_TRUE(d.get("d").isTimeDelta());
     EXPECT_EQ(pplib::String("1:02:03:04.000005"), d.get("d").toTimeDelta().toString());
     ASSERT_TRUE(d.get("z").isTimeZone());
+    EXPECT_EQ(60, d.get("z").toTimeZone().offsetMinutes());
+    // HHMM ohne Trennzeichen
+    EXPECT_EQ(90, d.get("z2").toTimeZone().offsetMinutes());
+    EXPECT_EQ(-30, d.get("z3").toTimeZone().offsetMinutes());
 }
 
 TEST_F(YamlTest, AnchorsAndAliases)
@@ -415,6 +420,7 @@ INSTANTIATE_TEST_SUITE_P(
         ErrorCase{"seq: [1, 2\n"}, ErrorCase{"map: {a: 1\n"}, ErrorCase{"a: \"unterminated\n"},
         ErrorCase{"a: 'unterminated\n"}, ErrorCase{"a: \"bad \\x escape\"\n"}, ErrorCase{"a: !!int notanumber\n"},
         ErrorCase{"a: !!bool maybe\n"}, ErrorCase{"a: !!binary ###not-base64###\n"}, ErrorCase{"a: *undefined\n"},
+        ErrorCase{"a: !TimeZone 123\n"}, ErrorCase{"a: !TimeZone abcd\n"}, ErrorCase{"a: !TimeZone 30\n"},
         ErrorCase{""}, ErrorCase{"   \n#\n"}, ErrorCase{"key: value\n  \tnext: [1,\n"},
         // ':' an Wertposition in einer Flow-Sequenz: führte früher zu einer Endlosschleife
         ErrorCase{"key: [1, 2\nb: 3\n"}, ErrorCase{"key: [a: b]\n"}, ErrorCase{"key: [1,\nb: 3]\n"},
@@ -988,6 +994,17 @@ TEST_F(YamlTest, LineContinuationEscapeInDoubleQuotes)
     EXPECT_EQ(pplib::String("x y"), v.toAssocArray().get("b").toString());
 }
 
+TEST_F(YamlTest, QuotedContinuationLineStartingWithHashKeepsFoldingSpace)
+{
+    // Ein '#' am Zeilenanfang innerhalb eines doppeltquotierten Mehrzeilen-Strings
+    // ist Inhalt, kein Kommentar: das Faltungs-Leerzeichen muss bleiben
+    pplib::Variant v = pplib::Yaml::loads("a: \"Abschnitt 1\n# Ueberschrift\"\n");
+    EXPECT_EQ(pplib::String("Abschnitt 1 # Ueberschrift"), v.toAssocArray().get("a").toString());
+
+    pplib::Variant v2 = pplib::Yaml::loads("a: \"abc\\\n#xyz\"\n");
+    EXPECT_EQ(pplib::String("abc#xyz"), v2.toAssocArray().get("a").toString());
+}
+
 TEST_F(YamlTest, PlainScalarContinuationOverBlankAndCommentLines)
 {
     pplib::Variant v = pplib::Yaml::loads("a: first\n\n  second\nb: 2\n");
@@ -1479,6 +1496,24 @@ TEST_F(YamlTest, DumpNestedCollectionsInsideSequenceEntries)
     EXPECT_EQ((size_t)3, back.toAssocArray().get("list").toVariantArray().size());
 }
 
+TEST_F(YamlTest, DumpEmptyClassicArrayAndMultilineStringsAsSequenceElements)
+{
+    // Leeres klassisches Array und mehrzeilige Strings als direktes Sequenz-Element
+    pplib::VariantArray seq;
+    seq.add(pplib::Variant(pplib::Array()));
+    seq.add(pplib::Variant(pplib::String("line1\nline2")));
+    seq.add(pplib::Variant(pplib::String("a\n\nb")));
+    pplib::String yaml = pplib::Yaml::dumps(pplib::Variant(seq), 2);
+    EXPECT_EQ(pplib::String("- []\n- |-\n  line1\n  line2\n- |-\n  a\n\n  b\n"), yaml);
+
+    pplib::Variant back = pplib::Yaml::loads(yaml);
+    ASSERT_TRUE(back.isVariantArray());
+    EXPECT_EQ((size_t)3, back.toVariantArray().size());
+    EXPECT_EQ((size_t)0, back.toVariantArray()[0].toVariantArray().size());
+    EXPECT_EQ(pplib::String("line1\nline2"), back.toVariantArray()[1].toString());
+    EXPECT_EQ(pplib::String("a\n\nb"), back.toVariantArray()[2].toString());
+}
+
 TEST_F(YamlTest, DumpDeleteCharacterStaysVisible)
 {
     // DEL (0x7f) darf in einem mehrzeiligen String nicht verlorengehen
@@ -1487,6 +1522,182 @@ TEST_F(YamlTest, DumpDeleteCharacterStaysVisible)
     pplib::String yaml = pplib::Yaml::dumps(data);
     EXPECT_EQ((size_t)14, yaml.length());
     EXPECT_EQ(pplib::String("del: \"a\\n" "b\x7f" "c\"\n"), yaml);
+}
+
+// ============================================================================
+// Writer: Base64-Block-Scalaren für ByteArray
+// ============================================================================
+
+static pplib::ByteArray makeByteArrayForSize(size_t n)
+{
+    unsigned char* raw = new unsigned char[n > 0 ? n : 1];
+    for (size_t i = 0; i < n; i++) raw[i] = static_cast<unsigned char>(i * 7 + 3);
+    pplib::ByteArray ba(raw, n);
+    delete[] raw;
+    return ba;
+}
+
+// Breite der breitesten Fortsetzungszeile (alle Zeilen außer der ersten)
+static size_t widestContinuationLine(const pplib::String& s)
+{
+    size_t widest = 0;
+    size_t len = 0;
+    bool first = true;
+    for (size_t i = 0; i <= s.size(); i++) {
+        if (i == s.size() || s.c_str()[i] == '\n') {
+            if (!first && len > widest) widest = len;
+            first = false;
+            len = 0;
+        } else {
+            len++;
+        }
+    }
+    return widest;
+}
+
+static size_t countLines(const pplib::String& s)
+{
+    size_t lines = 0;
+    for (size_t i = 0; i < s.size(); i++)
+        if (s.c_str()[i] == '\n') lines++;
+    return lines;
+}
+
+static void expectSameBytes(const pplib::ByteArray& a, const pplib::ByteArray& b, size_t n)
+{
+    ASSERT_EQ(n, b.size());
+    EXPECT_EQ(0, memcmp(b.ptr(), a.ptr(), n));
+}
+
+TEST_F(YamlTest, DumpByteArrayStaysInlineUpToColumnWidth)
+{
+    pplib::AssocArray data;
+    data.set("bin", pplib::Variant(makeByteArrayForSize(3)));
+    EXPECT_EQ(pplib::String("bin: !!binary AwoR\n"), pplib::Yaml::dumps(data));
+
+    // 57 Bytes -> Base64 ist exakt 76 Zeichen lang und passt noch in eine Zeile
+    data.set("bin", pplib::Variant(makeByteArrayForSize(57)));
+    EXPECT_EQ(pplib::String("bin: !!binary AwoRGB8mLTQ7QklQV15lbHN6gYiPlp2kq7K5wMfO1dzj6vH4/wYNFBsiKTA3PkVMU1phaG92fYSL\n"),
+              pplib::Yaml::dumps(data));
+}
+
+TEST_F(YamlTest, DumpByteArrayFoldsBase64IntoBlockScalar)
+{
+    // 58 Bytes -> Base64 ist 80 Zeichen lang und muss nach 76 Zeichen umbrochen werden
+    pplib::ByteArray ba = makeByteArrayForSize(58);
+    pplib::AssocArray data;
+    data.set("bin", pplib::Variant(ba));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("bin: !!binary |-\n"
+                            "  AwoRGB8mLTQ7QklQV15lbHN6gYiPlp2kq7K5wMfO1dzj6vH4/wYNFBsiKTA3PkVMU1phaG92fYSL\n"
+                            "  kg==\n"),
+              yaml);
+
+    pplib::Variant back = pplib::Yaml::loads(yaml);
+    ASSERT_TRUE(back.toAssocArray().get("bin").isByteArray());
+    expectSameBytes(ba, back.toAssocArray().get("bin").toByteArray(), 58);
+}
+
+TEST_F(YamlTest, DumpByteArrayRoundTripOverSizeMatrix)
+{
+    for (size_t n : {size_t(58), size_t(76), size_t(77), size_t(114), size_t(152), size_t(300), size_t(1000)}) {
+        SCOPED_TRACE(std::to_string(n));
+        pplib::ByteArray ba = makeByteArrayForSize(n);
+        pplib::AssocArray data;
+        data.set("bin", pplib::Variant(ba));
+        pplib::String yaml = pplib::Yaml::dumps(data);
+
+        const size_t b64len = ba.toBase64().size();
+        EXPECT_EQ(pplib::String("bin: !!binary |-\n"), yaml.substr(0, 17));
+        // Jede volle Fortsetzungszeile besteht aus Einrückung + 76 Zeichen
+        EXPECT_TRUE(widestContinuationLine(yaml) <= 76 + 2);
+        EXPECT_EQ((size_t)(1 + (b64len + 75) / 76), countLines(yaml));
+
+        pplib::Variant back = pplib::Yaml::loads(yaml);
+        ASSERT_TRUE(back.toAssocArray().get("bin").isByteArray());
+        expectSameBytes(ba, back.toAssocArray().get("bin").toByteArray(), n);
+    }
+}
+
+TEST_F(YamlTest, DumpByteArrayFoldedInNestedPositions)
+{
+    const size_t n = 300;
+    pplib::ByteArray ba = makeByteArrayForSize(n);
+
+    // ByteArray direkt als Dokument
+    {
+        pplib::Variant back = pplib::Yaml::loads(pplib::Yaml::dumps(pplib::Variant(ba), 4));
+        ASSERT_TRUE(back.isByteArray());
+        expectSameBytes(ba, back.toByteArray(), n);
+    }
+
+    // ByteArray als Sequenz-Eintrag
+    {
+        pplib::VariantArray seq;
+        seq.add(pplib::Variant(ba));
+        pplib::Variant back = pplib::Yaml::loads(pplib::Yaml::dumps(pplib::Variant(seq), 4));
+        ASSERT_TRUE(back.isVariantArray());
+        expectSameBytes(ba, back.toVariantArray()[0].toByteArray(), n);
+    }
+
+    // ByteArray in einem Mapping, das selbst Sequenz-Eintrag ist: die
+    // Blockfortsetzung muss tiefer als der Key einrücken
+    {
+        pplib::AssocArray dict;
+        dict.set("bin", pplib::Variant(ba));
+        pplib::VariantArray outer;
+        outer.add(pplib::Variant(dict));
+        pplib::String yaml = pplib::Yaml::dumps(pplib::Variant(outer), 4);
+        EXPECT_EQ((size_t)82, widestContinuationLine(yaml));
+        pplib::Variant back = pplib::Yaml::loads(yaml);
+        ASSERT_TRUE(back.isVariantArray());
+        ASSERT_TRUE(back.toVariantArray()[0].isAssocArray());
+        expectSameBytes(ba, back.toVariantArray()[0].toAssocArray().get("bin").toByteArray(), n);
+    }
+
+    // ByteArray in einer Sequenz unter einem Key, indent variiert
+    {
+        for (int indent : {2, 1, 4}) {
+            SCOPED_TRACE(std::string("indent=") + std::to_string(indent));
+            pplib::VariantArray inner;
+            inner.add(pplib::Variant(ba));
+            pplib::AssocArray data;
+            data.set("arr", pplib::Variant(inner));
+            pplib::Variant back = pplib::Yaml::loads(pplib::Yaml::dumps(pplib::Variant(data), indent));
+            ASSERT_TRUE(back.toAssocArray().get("arr").isVariantArray());
+            expectSameBytes(ba, back.toAssocArray().get("arr").toVariantArray()[0].toByteArray(), n);
+        }
+    }
+}
+
+TEST_F(YamlTest, LoadFoldedBase64BlockScalarForms)
+{
+    // Block-Scalar über mehrere Zeilen, in Mapping- und Sequenz-Position.
+    // Padding darf nur am Ende des (zusammenhängenden) Base64-Stroms stehen.
+    pplib::Variant v = pplib::Yaml::loads("a: !!binary |-\n  QUJDREFC\n  Q0Q=\n");
+    pplib::ByteArray a = v.toAssocArray().get("a").toByteArray();
+    ASSERT_EQ((size_t)8, a.size());
+    EXPECT_EQ(0, memcmp(a.ptr(), "ABCDABCD", 8));
+
+    v = pplib::Yaml::loads("- k: !!binary |-\n    QUJD\n    REVG\n");
+    ASSERT_TRUE(v.isVariantArray());
+    pplib::ByteArray b = v.toVariantArray()[0].toAssocArray().get("k").toByteArray();
+    ASSERT_EQ((size_t)6, b.size());
+    EXPECT_EQ(0, memcmp(b.ptr(), "ABCDEF", 6));
+
+    v = pplib::Yaml::loads("c: !binary >-\n  QUJD\n  RA==\n");
+    pplib::ByteArray c = v.toAssocArray().get("c").toByteArray();
+    ASSERT_EQ((size_t)4, c.size());
+    EXPECT_EQ(0, memcmp(c.ptr(), "ABCD", 4));
+}
+
+TEST_F(YamlTest, LoadBase64WithPaddingInsideStreamIsRejected)
+{
+    // Padding in der Mitte ist kein gültiger Base64-Stream. ByteArray::fromBase64
+    // würde daraus stillschweigend Initialisierungsmüll erzeugen, daher lehnt
+    // der Parser solche Werte ab.
+    EXPECT_THROW(pplib::Yaml::loads("a: !!binary QUJDRA==QUJDRA==\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !!binary |-\n  QUJDRA==\n  QUJDRA==\n"), pplib::TypeConversionException);
 }
 
 } // namespace

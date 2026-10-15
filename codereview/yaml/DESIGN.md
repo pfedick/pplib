@@ -48,6 +48,11 @@ Default-Indent ist 2 (YAML-Konvention), nicht -1: YAML braucht Zeilenumbrüche;
   typaufgelöst (robust gegenüber Fremd-YAML). Kurzformen ohne `!` (`!str`,
   `!int`, `!float`, `!bool`, `!null`, `!binary`, `!timestamp`) werden ebenfalls
   akzeptiert.
+- `!!binary`/`!binary`: Leerraum (inkl. Zeilenumbrüche aus Block-Scalar-Faltung)
+  wird vor der Base64-Dekodierung entfernt. Padding (`=`) ist nur am Ende des
+  Stroms erlaubt; Padding mitten im Strom => `TypeConversionException`
+  (`ByteArray::fromBase64` bricht am ersten `=` und würde sonst uninitialisierte
+  Bytes liefern).
 - Fortsetzung plain-quotierter Skalars über mehrere Zeilen endet, sobald die
   nächste Zeile wie ein Sequenz-/Mapping-Eintrag aussieht (`- ...` oder
   `key: ...`); solch eine Zeile wird nicht in den Skalar gezogen.
@@ -117,6 +122,9 @@ Alle Funktionen stateless bis auf lokale Objekte => beliebig parallel aufrufbar.
   - ByteArray/ByteArrayPtr => `!!binary ` + Base64 (wird beim Parsen wieder zu
     ByteArray => verlustfreier Round-Trip). Leere Base64 => `!!binary ""`
     (ein leeres unquotiertes `!!binary` ist ungültig und wirft beim Parsen).
+    Base64 bis 76 Zeichen (BASE64_LINE_WIDTH) inline auf einer Zeile; längere
+    Werte als gefalteter Block-Scalar `|-` mit Umbruch nach jeweils 76 Zeichen
+    (76 % 4 == 0, dadurch bleibt der aneinandergereihte Base64-Strom gültig).
   - DateTime => `!!timestamp <ISO8601withUsec>`; Date => `!!timestamp <YYYY-MM-DD>`
     (Date bleibt beim Lesen Date, DateTime bleibt DateTime – Round-Trip)
   - Time => `!Time <HH:MM:SS[.usec]>`, TimeDelta => `!TimeDelta <toString()>`,
@@ -127,6 +135,11 @@ Alle Funktionen stateless bis auf lokale Objekte => beliebig parallel aufrufbar.
   Indent-Leerzeichen vorangestellt (Round-Trip ohne Sinneseinbuße). Sonst
   Rückfall auf doppeltquotiert mit `\n`-Escapes.
 - Verschachtelte Werte unter Schlüsseln: Blockstil; leere Sammlungen inline.
+- Block-Scalar-Inhalte (auch `!!binary`-Faltung) erhalten einen eigenen
+  Inhalts-Indent: `keyColumn + (indent > 1 ? indent : 2)`. Der Parser verlangt,
+  dass Block-Scalar-Inhalte mindestens zwei Spalten tiefer stehen als das
+  Mutter-Indikator (`|`, `>` oder `- key:`), deshalb wird `keyColumn` durch
+  `writeMapEntry`/`writeValueForKey` durchgereicht.
 
 ## Offene Punkte
 
@@ -136,5 +149,9 @@ Alle Funktionen stateless bis auf lokale Objekte => beliebig parallel aufrufbar.
   aufgelöst, nicht als Referenz (keine zirkulären Strukturen möglich).
 - `!!seq`/`!!map`-Tags auf dem Wert eines Schlüssels werden verworfen; die
   folgende Blockstruktur bestimmt den Typ.
+- Verschachtelte Sammlungen direkt als Sequenzelement (`-` in eigener Zeile)
+  werden bei `indent == 0` geschrieben, aber vom Parser nicht mehr akzeptiert
+  (`UnexpectedCharacterException`). Ab `indent >= 1` ist der Round-Trip korrekt.
+  Bestehende Einschränkung des Writers, unabhängig von der Base64-Faltung.
 - (alle übrigen Punkte auf "pplib-Pragmatismus" entschieden: unbekannte Tags
   ignorieren, keine Merge-Keys, Depth-Limit 128)

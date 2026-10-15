@@ -103,27 +103,29 @@ private:
 
     bool readLineRaw(YamlLine& out)
     {
-        pplib::String s;
-        s.reserve(128);
-        int c;
-        bool any = false;
-        while ((c = getChar()) != EOF) {
-            any = true;
-            if (c == '\n') break;
-            if (c == '\r') {
-                int c2 = getChar();
-                if (c2 != '\n' && c2 != EOF) {
-                    // einsames \r: Zeilenende, c2 gehört zur nächsten Zeile
-                    if (bufPos > 0) bufPos--;
-                }
-                break;
+    // Die Zeile wird direkt in out.text aufgebaut. pplib::String besitzt
+    // keinen Move-Ctor: ein temporärer String würde pro Zeile
+    // zusätzlich kopieren und ein zweites Heap-Objekt belegen.
+    out.text.clear();
+    out.text.reserve(128);
+    int c = EOF;
+    bool any = false;
+    while ((c = getChar()) != EOF) {
+        any = true;
+        if (c == '\n') break;
+        if (c == '\r') {
+            int c2 = getChar();
+            if (c2 != '\n' && c2 != EOF) {
+                // einsames \r: Zeilenende, c2 gehört zur nächsten Zeile
+                if (bufPos > 0) bufPos--;
             }
-            s.append(static_cast<char>(c));
+            break;
         }
-        if (c == EOF && !any) return false;
-        out.text = std::move(s);
-        out.number = ++lineNo;
-        return true;
+        out.text.append(static_cast<char>(c));
+    }
+    if (c == EOF && !any) return false;
+    out.number = ++lineNo;
+    return true;
     }
 
 public:
@@ -788,8 +790,10 @@ pplib::Variant YamlParser::parseQuoted(std::string_view content, size_t& p, char
         p = empty ? peek.text.size() : first;
         if (empty) {
             str.append("\n"); // echte Leerzeile => harter Umbruch
-        } else if (peek.text[first] != '#') {
-            if (!escapedNewline) str.append(" "); // Faltung; "\" am Zeilenende entfernt den Umbruch
+        } else if (!escapedNewline) {
+            // Faltung; "\" am Zeilenende entfernt den Umbruch. Ein '#' ist hier
+            // reiner Inhalt (kein Kommentar) und bekommt das Faltungs-Leerzeichen.
+            str.append(" ");
         }
         escapedNewline = false;
         continue;
@@ -1407,6 +1411,13 @@ pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_vie
             // ein '#' als Kommentar beginnt und damit der Wert verdeckt).
             if (b64.isEmpty() && !quoted)
                 throw pplib::TypeConversionException("Empty !!binary value at line %d", line.number);
+            // Padding ('=') darf nur am Ende des gesamten Base64-Stroms stehen.
+            // Padding in der Mitte wäre kein gültiger Stream; ByteArray::fromBase64
+            // würde daraus stillschweigend Datenmüll erzeugen.
+            for (size_t i = 0; i + 2 < b64.size(); i++) {
+                if (b64[i] == '=')
+                    throw pplib::TypeConversionException("Invalid Base64 padding in !!binary value at line %d", line.number);
+            }
             return pplib::Variant(pplib::ByteArray::fromBase64(b64));
         }
         if (tag == "!!timestamp" || tag == "!timestamp") {
@@ -1533,14 +1544,18 @@ pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_vie
 static void writeDict(pplib::FileObject& file, const pplib::AssocArray& data, int indent, int level, int depth);
 static void writeArray(pplib::FileObject& file, const pplib::VariantArray& data, int indent, int level, int depth);
 static void writeClassicArray(pplib::FileObject& file, const pplib::Array& data, int indent, int level, int depth);
-static void writeValueForKey(pplib::FileObject& file, const pplib::Variant& value, int indent, int level, int depth);
+static void writeValueForKey(pplib::FileObject& file, const pplib::Variant& value, int indent, int level, int keyColumn, int depth);
 
-static void writeIndent(pplib::FileObject& file, int indent, int level)
+static void writeSpaces(pplib::FileObject& file, int count)
 {
-    file.fputc('\n');
-    for (int i = 0; i < level * indent; ++i) {
-        file.fputc(' ');
-    }
+    for (int i = 0; i < count; ++i) file.fputc(' ');
+}
+
+// Breite einer Blockfortsetzung: mindestens eine Spalte tiefer als der
+// einleitende Key bzw. '-'-Indicator, üblicherweise die Eingliederungsbreite.
+static int blockContentIndent(int column, int indent)
+{
+    return column + (indent > 1 ? indent : 2);
 }
 
 static void writeQuotedString(pplib::FileObject& file, const char* p, size_t len)
@@ -1776,7 +1791,7 @@ static bool useBlockScalar(const pplib::String& s)
     return true;
 }
 
-static void writeBlockScalar(pplib::FileObject& file, const pplib::String& s, int indent, int level)
+static void writeBlockScalar(pplib::FileObject& file, const pplib::String& s, int contentIndent)
 {
     file.fputs("|-");
     const char* p = s.c_str();
@@ -1784,15 +1799,43 @@ static void writeBlockScalar(pplib::FileObject& file, const pplib::String& s, in
     size_t lineStart = 0;
     for (size_t i = 0; i <= n; i++) {
         if (i == n || p[i] == '\n') {
+            file.fputc('\n');
             // Leere Zeilen bekommen kein Leerzeichen-Indent, aber ihren Umbruch
-            if (i > lineStart) writeIndent(file, indent, level); else file.fputc('\n');
+            if (i > lineStart) writeSpaces(file, contentIndent);
             file.fwrite(p + lineStart, 1, i - lineStart);
             lineStart = i + 1;
         }
     }
 }
 
-static void writeScalar(pplib::FileObject& file, const pplib::Variant& value)
+// Base64 wird nach YAML-Konvention (RFC 2045) in Zeilen mit maximal 76 Zeichen
+// als literal block scalar ausgegeben; kürzere Werte bleiben inline auf einer Zeile.
+static constexpr size_t BASE64_LINE_WIDTH = 76;
+
+static void writeBinaryScalar(pplib::FileObject& file, const pplib::ByteArrayPtr& ba, int contentIndent)
+{
+    pplib::String str = ba.toBase64();
+    file.fputs("!!binary ");
+    // Ein leeres !!binary ist ungültig (Parser wirft), daher quoted schreiben
+    if (str.isEmpty()) {
+        file.fputs("\"\"");
+        return;
+    }
+    if (str.size() <= BASE64_LINE_WIDTH) {
+        file.fwrite(str.c_str(), 1, str.size());
+        return;
+    }
+    file.fputs("|-");
+    for (size_t off = 0; off < str.size(); off += BASE64_LINE_WIDTH) {
+        size_t len = str.size() - off;
+        if (len > BASE64_LINE_WIDTH) len = BASE64_LINE_WIDTH;
+        file.fputc('\n');
+        writeSpaces(file, contentIndent);
+        file.fwrite(str.c_str() + off, 1, len);
+    }
+}
+
+static void writeScalar(pplib::FileObject& file, const pplib::Variant& value, int contentIndent)
 {
     if (value.isString()) {
         const pplib::String& s = value.toString();
@@ -1847,15 +1890,7 @@ static void writeScalar(pplib::FileObject& file, const pplib::Variant& value)
     } else if (value.isNull()) {
         file.fputs("null");
     } else if (value.isByteArrayPtr() || value.isByteArray()) {
-        const pplib::ByteArrayPtr& ba = value.toByteArrayPtr();
-        pplib::String str = ba.toBase64();
-        file.fputs("!!binary ");
-        // Ein leeres !!binary ist ungültig (Parser wirft), daher quoted schreiben
-        if (str.isEmpty()) {
-            file.fputs("\"\"");
-        } else {
-            file.fwrite(str.c_str(), 1, str.size());
-        }
+        writeBinaryScalar(file, value.toByteArrayPtr(), contentIndent);
     } else if (value.isDateTime()) {
         pplib::String str = value.toDateTime().getISO8601withUsec();
         file.fputs("!!timestamp ");
@@ -1881,11 +1916,6 @@ static void writeScalar(pplib::FileObject& file, const pplib::Variant& value)
     }
 }
 
-static void writeSpaces(pplib::FileObject& file, int count)
-{
-    for (int i = 0; i < count; ++i) file.fputc(' ');
-}
-
 static bool useBlockScalarValue(const pplib::Variant& value)
 {
     return value.isString() && useBlockScalar(value.toString());
@@ -1893,8 +1923,9 @@ static bool useBlockScalarValue(const pplib::Variant& value)
 
 // Schreibt den Wert eines Mapping-Eintrags direkt nach dem ':'. Sammlungen
 // beginnen auf der nächsten Zeile; Sequenzen bleiben dabei auf der gleichen
-// Einrückung wie der Key (YAML-Sequenz-Style).
-static void writeValueForKey(pplib::FileObject& file, const pplib::Variant& value, int indent, int level, int depth)
+// Einrückung wie der Key (YAML-Sequenz-Style). keyColumn ist die Spalte des
+// Keys, die die Einrückung von Block-Fortsetzungen bestimmt.
+static void writeValueForKey(pplib::FileObject& file, const pplib::Variant& value, int indent, int level, int keyColumn, int depth)
 {
     if (value.isAssocArray()) {
         const pplib::AssocArray& dict = value.toAssocArray();
@@ -1922,22 +1953,23 @@ static void writeValueForKey(pplib::FileObject& file, const pplib::Variant& valu
         }
     } else {
         file.fputc(' ');
-        writeScalar(file, value);
+        writeScalar(file, value, blockContentIndent(keyColumn, indent));
     }
 }
 
 // Ein Mapping-Eintrag an der aktuellen Position (ohne vorangehenden Umbruch
-// und ohne Einrückung).
+// und ohne Einrückung). keyColumn ist die Spalte, in der der Key steht; daraus
+// folgt die Einrückung eines Block-Scalar-Werts.
 static void writeMapEntry(pplib::FileObject& file, const pplib::String& key, const pplib::Variant& value,
-                          int indent, int level, int depth)
+                          int indent, int level, int keyColumn, int depth)
 {
     writeKey(file, key);
     file.fputs(":");
     if (useBlockScalarValue(value)) {
         file.fputc(' ');
-        writeBlockScalar(file, value.toString(), indent, level + 1);
+        writeBlockScalar(file, value.toString(), blockContentIndent(keyColumn, indent));
     } else {
-        writeValueForKey(file, value, indent, level, depth);
+        writeValueForKey(file, value, indent, level, keyColumn, depth);
     }
 }
 
@@ -1964,7 +1996,7 @@ static void writeDict(pplib::FileObject& file, const pplib::AssocArray& data, in
         if (!first) file.fputc('\n');
         first = false;
         writeSpaces(file, level * indent);
-        writeMapEntry(file, (*it).first, *(*it).second, indent, level, depth);
+        writeMapEntry(file, (*it).first, *(*it).second, indent, level, level * indent, depth);
     }
 }
 
@@ -1993,7 +2025,7 @@ static void writeArray(pplib::FileObject& file, const pplib::VariantArray& data,
                         file.fputc(' ');
                     }
                     first = false;
-                    writeMapEntry(file, (*it).first, *(*it).second, indent, level, depth + 1);
+                    writeMapEntry(file, (*it).first, *(*it).second, indent, level, contColumn, depth + 1);
                 }
             } else {
                 // Nicht inlinefaehig: Mapping beginnt in der naechsten Zeile
@@ -2011,10 +2043,10 @@ static void writeArray(pplib::FileObject& file, const pplib::VariantArray& data,
             }
         } else if (useBlockScalarValue(v)) {
             file.fputc(' ');
-            writeBlockScalar(file, v.toString(), indent, level + 1);
+            writeBlockScalar(file, v.toString(), blockContentIndent(level * indent, indent));
         } else {
             file.fputc(' ');
-            writeScalar(file, v);
+            writeScalar(file, v, blockContentIndent(level * indent, indent));
         }
     }
 }
@@ -2124,7 +2156,7 @@ void Yaml::dump(pplib::FileObject& file, const pplib::Variant& data, int indent)
         if (arr.size() > 0) writeClassicArray(file, arr, indent, 0, 0);
         else file.fputs("[]");
     } else {
-        writeScalar(file, data);
+        writeScalar(file, data, blockContentIndent(0, indent));
     }
     file.fputc('\n');
 }
