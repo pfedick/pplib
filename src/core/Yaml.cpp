@@ -67,8 +67,8 @@ static constexpr int MAX_YAML_DEPTH = 128;
 
 struct YamlLine
 {
-    std::string text; // Rohe Zeile ohne \n / \r
-    int number = 0;   // 1-basierte Zeilnummer für Fehlermeldungen
+    pplib::String text; // Rohe Zeile ohne \n / \r
+    int number = 0;     // 1-basierte Zeilennummer für Fehlermeldungen
 };
 
 class YamlLineReader
@@ -103,7 +103,8 @@ private:
 
     bool readLineRaw(YamlLine& out)
     {
-        std::string s;
+        pplib::String s;
+        s.reserve(128);
         int c;
         bool any = false;
         while ((c = getChar()) != EOF) {
@@ -117,7 +118,7 @@ private:
                 }
                 break;
             }
-            s.push_back(static_cast<char>(c));
+            s.append(static_cast<char>(c));
         }
         if (c == EOF && !any) return false;
         out.text = std::move(s);
@@ -159,7 +160,7 @@ public:
 
 struct YamlCtx
 {
-    std::map<std::string, pplib::Variant> anchors;
+    std::map<pplib::String, pplib::Variant> anchors;
 };
 
 // ============================================================================
@@ -168,24 +169,53 @@ struct YamlCtx
 
 static bool isBlankOrComment(const YamlLine& line)
 {
-    for (char c : line.text) {
+    std::string_view text = line.text;
+    for (char c : text) {
         if (c == '#') return true;
         if (c != ' ' && c != '\t') return false;
     }
     return true;
 }
 
+// Position des ersten inhaltlichen Zeichens (Whitespace übersprungen),
+// std::string_view::npos wenn die Zeile nur aus Whitespace besteht.
+static size_t firstContentPos(std::string_view text)
+{
+    size_t p = 0;
+    while (p < text.size() && (text[p] == ' ' || text[p] == '\t')) p++;
+    return (p == text.size()) ? std::string_view::npos : p;
+}
+
+static bool isWhitespaceOnly(std::string_view text)
+{
+    return firstContentPos(text) == std::string_view::npos;
+}
+
 static int indentOf(const YamlLine& line)
 {
     int n = 0;
-    while (n < (int)line.text.size() && line.text[n] == ' ')
+    std::string_view text = line.text;
+    while (n < (int)text.size() && text[n] == ' ')
         n++;
     return n;
 }
 
+// YAML erlaubt Tabs nicht als Einrückung (DESIGN.md).
+static void checkIndentTabs(const YamlLine& line)
+{
+    std::string_view text = line.text;
+    for (size_t i = 0; i < text.size(); i++) {
+        if (text[i] == ' ') continue;
+        if (text[i] == '\t')
+            throw pplib::UnexpectedCharacterException("Tabs are not allowed in YAML indentation at line %d", line.number);
+        break;
+    }
+}
+
 static bool isDocMarker(const YamlLine& line, const char* marker)
 {
-    if (line.text.compare(0, strlen(marker), marker) != 0) return false;
+    std::string_view text = line.text;
+    if (text.compare(0, strlen(marker), marker) != 0) return false;
     size_t p = strlen(marker);
     while (p < line.text.size() && (line.text[p] == ' ' || line.text[p] == '\t'))
         p++;
@@ -198,24 +228,24 @@ static bool isDocMarker(const YamlLine& line, const char* marker)
 
 // Findet einen Mapping-Trenner ": " bzw. ":" am Zeilenende (nicht in
 // Quotes, Flows, Kommentaren). Liefert die Position des ':' oder npos.
-static size_t scanMapColon(const std::string& text, size_t p)
+static size_t scanMapColon(std::string_view text, size_t p)
 {
     size_t len = text.size();
     while (p < len) {
         char c = text[p];
         if (c == '#' && (p == 0 || text[p - 1] == ' ' || text[p - 1] == '\t'))
-            return std::string::npos;
+            return std::string_view::npos;
         if (c == '"' || c == '\'') {
             p++;
             while (p < len && text[p] != c) {
                 if (text[p] == '\\' && c == '"') p++;
                 p++;
             }
-            if (p >= len) return std::string::npos;
+            if (p >= len) return std::string_view::npos;
             p++;
             continue;
         }
-        if (c == '[' || c == '{' || c == ']' || c == '}') return std::string::npos;
+        if (c == '[' || c == '{' || c == ']' || c == '}') return std::string_view::npos;
         if (c == ':') {
             if (p + 1 >= len || text[p + 1] == ' ' || text[p + 1] == '\t') return p;
             p++;
@@ -223,22 +253,22 @@ static size_t scanMapColon(const std::string& text, size_t p)
         }
         p++;
     }
-    return std::string::npos;
+    return std::string_view::npos;
 }
 
 // Eine Zeile sieht aus wie ein Mapping (Key: Value oder Key:), wenn sie
 // nach optionalem '- '-Präfix einen Mapping-Trenner enthält.
-static bool looksLikeMappingAt(const std::string& text, size_t p)
+static bool looksLikeMappingAt(std::string_view text, size_t p)
 {
     while (p < text.size() && (text[p] == ' ' || text[p] == '\t')) p++;
     if (p >= text.size()) return false;
     char c = text[p];
-    if (c == '"' || c == '\'' || c == '[' || c == '{' || c == '|' || c == '>' || c == '#' || c == '&')
+    if (c == '[' || c == '{' || c == '|' || c == '>' || c == '#' || c == '&' || c == '*' || c == '!')
         return false;
-    return scanMapColon(text, p) != std::string::npos;
+    return scanMapColon(text, p) != std::string_view::npos;
 }
 
-static bool looksLikeMappingLine(const std::string& text)
+static bool looksLikeMappingLine(std::string_view text)
 {
     size_t p = 0;
     while (p < text.size() && text[p] == ' ') p++;
@@ -246,6 +276,14 @@ static bool looksLikeMappingLine(const std::string& text)
         p += 2;
     }
     return looksLikeMappingAt(text, p);
+}
+
+// Zeile beginnt mit einem Block-Sequenz-Indikator ('- ' oder '-' am Zeilenende).
+static bool looksLikeSequenceLine(std::string_view text)
+{
+    size_t p = firstContentPos(text);
+    if (p == std::string_view::npos) return false;
+    return text[p] == '-' && (p + 1 == text.size() || text[p + 1] == ' ' || text[p + 1] == '\t');
 }
 
 struct YamlParser
@@ -256,7 +294,6 @@ struct YamlParser
     size_t pos = 0;
     bool hasLine = false;
 
-    bool fetchLine();
     int curChar() const;
     void advance();
     void skipSpaces();
@@ -268,29 +305,19 @@ struct YamlParser
     pplib::Variant parseInlineMapping(int indent, int depth);
     void parseMappingEntry(pplib::AssocArray& dict, int indent, int depth);
     pplib::Variant parseSequence(int indent, int depth);
+    pplib::Variant parseSequenceFrom(int indent, int depth, bool midline);
     pplib::Variant parseValueAfterIndicator(int col, int parentIndent, int depth);
-    pplib::Variant parseQuoted(const std::string& content, size_t& p, char quote, int parentIndent, bool inFlow);
-    pplib::Variant parsePlainScalar(std::string& content, size_t& p, int parentIndent, bool inFlow);
+    pplib::Variant parseQuoted(std::string_view content, size_t& p, char quote, int parentIndent, bool inFlow);
+    pplib::Variant parsePlainScalar(std::string_view content, size_t& p, int parentIndent, bool inFlow);
     pplib::Variant parseBlockScalar(char style, char chomp, int parentIndent);
     pplib::Variant parseFlow(char open, int depth);
     pplib::Variant parseFlowInner(bool inSeq, int depth);
-    pplib::Variant resolveScalar(const std::string& raw, const std::string& tag, bool quoted);
+    pplib::Variant resolveScalar(std::string_view raw, std::string_view tag, bool quoted);
 };
 
 // ============================================================================
 // YamlParser: zeilenorientierte Basisfunktionen
 // ============================================================================
-
-bool YamlParser::fetchLine()
-{
-    if (!reader.readLine(line)) {
-        hasLine = false;
-        return false;
-    }
-    pos = 0;
-    hasLine = true;
-    return true;
-}
 
 int YamlParser::curChar() const
 {
@@ -364,40 +391,21 @@ pplib::Variant YamlParser::parseDocument()
     }
     (void)hadDocStart;
 
+    checkIndentTabs(first);
     int ind = indentOf(first);
-    if (ind > 0 && first.text.compare(ind, 2, "- ") != 0 && first.text.compare(ind, 1, "-") != 0) {
-        // Root-Wert mit Einrückung: wie ein Block auf dieser Ebene behandeln
-    }
 
     pplib::Variant result;
-    const std::string& t = first.text;
+    std::string_view t = first.text;
     // Einzelner Skalar auf Root-Ebene (inkl. Flow und Quoted), wenn die Zeile
     // weder Mapping noch Sequenz ist:
     bool isSeqLine = (static_cast<size_t>(ind) < t.size() && t[ind] == '-' &&
                       (ind + 1 == t.size() || t[ind + 1] == ' ' || t[ind + 1] == '\t'));
     bool isMapLine = false;
     if (!isSeqLine) {
-        // Key: -Konstruktion in der ersten Zeile suchen
-        size_t p = ind;
-        if (p < t.size() && (t[p] == '"' || t[p] == '\'')) {
-            char q = t[p];
-            p++;
-            while (p < t.size() && t[p] != q) {
-                if (q == '"' && t[p] == '\\') p++;
-                p++;
-            }
-            if (p < t.size()) p++;
-            while (p < t.size() && (t[p] == ' ' || t[p] == '\t')) p++;
-            isMapLine = (p < t.size() && t[p] == ':');
-        } else {
-            for (size_t i = p; i < t.size(); i++) {
-                if (t[i] == ':' && (i + 1 == t.size() || t[i + 1] == ' ' || t[i + 1] == '\t')) {
-                    isMapLine = true;
-                    break;
-                }
-                if (t[i] == '#' && i > p && (t[i - 1] == ' ' || t[i - 1] == '\t')) break;
-            }
-        }
+        size_t p = firstContentPos(t);
+        // Flow-Collection auf Root-Ebene ({a: 1} bzw. [1, 2])
+        bool isFlowLine = (p < t.size() && (t[p] == '[' || t[p] == '{'));
+        isMapLine = !isFlowLine && looksLikeMappingAt(t, p);
     }
 
     if (isSeqLine) {
@@ -420,9 +428,10 @@ pplib::Variant YamlParser::parseBlock(int indent, int depth)
 {
     YamlLine peek;
     if (!skipBlanksAndComments(peek)) throw pplib::UnexpectedEndOfDataException();
+    checkIndentTabs(peek);
     int ind = indentOf(peek);
     if (ind < indent) throw pplib::UnexpectedEndOfDataException();
-    const std::string& t = peek.text;
+    std::string_view t = peek.text;
     if (static_cast<size_t>(ind) < t.size() && t[ind] == '-' &&
         (ind + 1 == t.size() || t[ind + 1] == ' ' || t[ind + 1] == '\t')) {
         return parseSequence(ind, depth);
@@ -440,6 +449,7 @@ pplib::Variant YamlParser::parseMapping(int indent, int depth)
     while (true) {
         YamlLine peek;
         if (!skipBlanksAndComments(peek)) break;
+        checkIndentTabs(peek);
         int ind = indentOf(peek);
         if (ind < indent) break; // Ende dieses Blocks; Elternzeile gehört dem Aufrufer
         if (ind > indent) {
@@ -465,7 +475,7 @@ pplib::Variant YamlParser::parseMapping(int indent, int depth)
 // gesetzt, pos zeigt auf den Key-Start) und fügt es dem dict hinzu.
 void YamlParser::parseMappingEntry(pplib::AssocArray& dict, int indent, int depth)
 {
-    const std::string& text = line.text;
+    std::string_view text = line.text;
 
     if (pos >= text.size()) {
         throw pplib::UnexpectedCharacterException("Expected key at line %d", line.number);
@@ -491,27 +501,15 @@ void YamlParser::parseMappingEntry(pplib::AssocArray& dict, int indent, int dept
         }
         advance();
     } else {
-        size_t start = pos;
-        size_t end = std::string::npos;
-        for (size_t i = pos; i < text.size(); i++) {
-            char c = text[i];
-            if (c == '#' && i > start && (text[i - 1] == ' ' || text[i - 1] == '\t')) {
-                end = i;
-                break;
-            }
-            if (c == ':' && (i + 1 == text.size() || text[i + 1] == ' ' || text[i + 1] == '\t')) {
-                end = i;
-                pos = i + 1;
-                break;
-            }
-        }
-        if (end == std::string::npos) {
+        size_t colon = scanMapColon(text, pos);
+        if (colon == std::string_view::npos) {
             throw pplib::UnexpectedCharacterException("Expected ':' after key at line %d", line.number);
         }
-        std::string raw = text.substr(start, end - start);
-        while (!raw.empty() && (raw.back() == ' ' || raw.back() == '\t')) raw.pop_back();
-        key = pplib::String(raw.c_str());
+        std::string_view raw = text.substr(pos, colon - pos);
+        while (!raw.empty() && (raw.back() == ' ' || raw.back() == '\t')) raw.remove_suffix(1);
+        key = pplib::String(raw);
         if (key.isEmpty()) key = "_empty_";
+        pos = colon + 1;
     }
 
     // --- Value lesen ---
@@ -540,32 +538,51 @@ pplib::Variant YamlParser::parseInlineMapping(int indent, int depth)
 
 pplib::Variant YamlParser::parseSequence(int indent, int depth)
 {
+    return parseSequenceFrom(indent, depth, false);
+}
+
+// midline == true: der erste Eintrag beginnt mitten in der bereits gelesenen Zeile 'line'
+// an der Position 'pos' (z. B. "- - 1" -> verschachtelte Sequenz). Die Zeile ist vom Reader
+// schon verbraucht, 'indent' ist die Spalte des ersten '-'.
+pplib::Variant YamlParser::parseSequenceFrom(int indent, int depth, bool midline)
+{
     if (depth > MAX_YAML_DEPTH) {
         throw pplib::OverflowException("YAML nesting depth exceeded maximum limit (%d)", MAX_YAML_DEPTH);
     }
     pplib::VariantArray arr;
+    bool first = midline;
 
     while (true) {
         YamlLine peek;
-        if (!skipBlanksAndComments(peek)) break;
-        int ind = indentOf(peek);
-        if (ind < indent) break;
-        if (ind > indent) {
-            throw pplib::UnexpectedCharacterException("Unexpected indentation at line %d", peek.number);
+        if (first) {
+            peek = line;
+        } else if (!skipBlanksAndComments(peek)) {
+            break;
+        }
+        checkIndentTabs(peek);
+        int ind = indent;
+        if (!first) {
+            ind = indentOf(peek);
+            if (ind < indent) break;
+            if (ind > indent) {
+                throw pplib::UnexpectedCharacterException("Unexpected indentation at line %d", peek.number);
+            }
         }
         if (isDocMarker(peek, "---")) {
             throw pplib::UnexpectedCharacterException("Multiple documents are not supported at line %d", peek.number);
         }
         if (isDocMarker(peek, "...")) break;
-        const std::string& t = peek.text;
-        if (!(static_cast<size_t>(ind) < t.size() && t[ind] == '-' &&
-              (ind + 1 == t.size() || t[ind + 1] == ' ' || t[ind + 1] == '\t'))) {
+        std::string_view t = peek.text;
+        size_t dash = first ? pos : static_cast<size_t>(ind);
+        if (!(dash < t.size() && t[dash] == '-' &&
+              (dash + 1 == t.size() || t[dash + 1] == ' ' || t[dash + 1] == '\t'))) {
             break; // kein Sequenzeintrag mehr; Zeile gehört dem Aufrufer
         }
-        reader.readLine(peek);
+        if (!first) reader.readLine(peek);
         line = peek;
         hasLine = true;
-        pos = ind + 1; // hinter dem '-'
+        pos = dash + 1; // hinter dem '-'
+        first = false;
         skipSpaces();
 
         // "- key: value" -> Mapping, das auf der Sequenzzeile beginnt
@@ -574,7 +591,14 @@ pplib::Variant YamlParser::parseSequence(int indent, int depth)
             continue;
         }
 
-        pplib::Variant val = parseValueAfterIndicator(ind, indent, depth + 1);
+        // "- - ..." -> verschachtelte Sequenz, die auf derselben Zeile beginnt
+        if (pos < line.text.size() && line.text[pos] == '-' &&
+            (pos + 1 == line.text.size() || line.text[pos + 1] == ' ' || line.text[pos + 1] == '\t')) {
+            arr.add(parseSequenceFrom(static_cast<int>(pos), depth + 1, true));
+            continue;
+        }
+
+        pplib::Variant val = parseValueAfterIndicator(static_cast<int>(dash), indent, depth + 1);
         arr.add(std::move(val));
     }
 
@@ -619,15 +643,17 @@ static void appendUtf8(pplib::String& str, uint32_t codePoint)
 // Liest einen quotierten Skalar (single oder double) ab content[p].
 // p zeigt beim Aufruf auf den öffnenden Quote und wird nach dem schließenden
 // Quote zurückgegeben. Mehrzeilige Fortsetzung wird mit Leerzeichen gefaltet.
-pplib::Variant YamlParser::parseQuoted(const std::string& content, size_t& p, char quote, int parentIndent, bool inFlow)
+pplib::Variant YamlParser::parseQuoted(std::string_view content, size_t& p, char quote, int parentIndent, bool inFlow)
 {
     (void)content;
     p++; // öffnendes Quote überspringen
     pplib::String str;
+    str.reserve(64);
     bool closed = false;
+    bool escapedNewline = false; // "\" am Zeilenende: Umbruch wird nicht gefaltet
 
     while (true) {
-        std::string& text = line.text;
+        std::string_view text = line.text;
         while (p < text.size()) {
             char c = text[p];
             if (c == quote) {
@@ -642,7 +668,10 @@ pplib::Variant YamlParser::parseQuoted(const std::string& content, size_t& p, ch
             }
             if (quote == '"' && c == '\\') {
                 p++;
-                if (p >= text.size()) break; // Fortsetzung am Zeilenende
+                if (p >= text.size()) {
+                    escapedNewline = true; // Fortsetzung am Zeilenende nach Escape
+                    break;
+                }
                 char e = text[p++];
                 switch (e) {
                 case '0':
@@ -701,6 +730,23 @@ pplib::Variant YamlParser::parseQuoted(const std::string& content, size_t& p, ch
                         }
                         cp = (cp << 4) | static_cast<uint32_t>(isdigit(h) ? h - '0' : (tolower(h) - 'a' + 10));
                     }
+                    // UTF-16 Surrogatpaare (\uD800..\"uDBFF \uDC00..\uDFFF) zu einem Codepunkt zusammenführen
+                    if (e == 'u' && cp >= 0xD800 && cp <= 0xDBFF && p + 5 < text.size() && text[p] == '\\' && text[p + 1] == 'u') {
+                        uint32_t lo = 0;
+                        bool ok = true;
+                        for (int i = 0; i < 4; i++) {
+                            char h = text[p + 2 + i];
+                            if (!isxdigit(static_cast<unsigned char>(h))) {
+                                ok = false;
+                                break;
+                            }
+                            lo = (lo << 4) | static_cast<uint32_t>(isdigit(h) ? h - '0' : (tolower(h) - 'a' + 10));
+                        }
+                        if (ok && lo >= 0xDC00 && lo <= 0xDFFF) {
+                            p += 6;
+                            cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
+                        }
+                    }
                     appendUtf8(str, cp);
                     break;
                 }
@@ -728,34 +774,39 @@ pplib::Variant YamlParser::parseQuoted(const std::string& content, size_t& p, ch
 
         // Zeile zu Ende ohne Schluss-Quote: Lookahead auf Fortsetzungszeile prüfen
         YamlLine peek;
-        if (!reader.peekLine(peek)) throw pplib::UnexpectedEndOfDataException("Unterbrechener String vor Zeilenende in Zeile %d", line.number);
+        if (!reader.peekLine(peek)) throw pplib::UnexpectedEndOfDataException("Unterminated string at line %d", line.number);
         int bindent = indentOf(peek);
-        bool blank = isBlankOrComment(peek);
-        if (!inFlow && parentIndent >= 0 && (blank || bindent > parentIndent)) {
-            reader.readLine(peek);
-            line = peek;
-            p = peek.text.find_first_not_of(" \t");
-            if (p == std::string::npos) p = peek.text.size();
-            // Zeilenfortsetzung: eine Leerzeile => harter Umbruch, sonst Faltung
-            if (blank && peek.text.find_first_not_of(" \t") == std::string::npos) {
-                str.append("\n");
-            } else if (!blank) {
-                str.append(" ");
-            }
-            continue;
+        bool blankish = isBlankOrComment(peek);
+        bool deeper = parentIndent < 0 ? bindent > 0 : bindent > parentIndent;
+        if (!inFlow && parentIndent >= 0 && !blankish && !deeper) {
+            throw pplib::UnexpectedEndOfDataException("Unterminated string at line %d", line.number);
         }
-        throw pplib::UnexpectedEndOfDataException("Unterbrechener String vor Zeilenende in Zeile %d", line.number);
+        reader.readLine(peek);
+        line = peek;
+        size_t first = firstContentPos(peek.text);
+        bool empty = (first == std::string_view::npos);
+        p = empty ? peek.text.size() : first;
+        if (empty) {
+            str.append("\n"); // echte Leerzeile => harter Umbruch
+        } else if (peek.text[first] != '#') {
+            if (!escapedNewline) str.append(" "); // Faltung; "\" am Zeilenende entfernt den Umbruch
+        }
+        escapedNewline = false;
+        continue;
     }
     return pplib::Variant(str);
 }
 
 // Liest einen plain Skalar ab content[p] bis Zeilenende (Block) oder bis
 // Flow-Delimiter (inFlow). Mehrzeilige Fortsetzung wird gefaltet.
-pplib::Variant YamlParser::parsePlainScalar(std::string& content, size_t& p, int parentIndent, bool inFlow)
+pplib::Variant YamlParser::parsePlainScalar(std::string_view content, size_t& p, int parentIndent, bool inFlow)
 {
-    std::string raw;
+    (void)content;
+    pplib::String raw;
+    raw.reserve(64);
+    const pplib::String spaces(" \t");
     while (true) {
-        std::string& text = line.text;
+        std::string_view text = line.text;
         while (p < text.size()) {
             char c = text[p];
             if (inFlow) {
@@ -767,56 +818,50 @@ pplib::Variant YamlParser::parsePlainScalar(std::string& content, size_t& p, int
             } else {
                 if (c == '#' && p > 0 && (text[p - 1] == ' ' || text[p - 1] == '\t')) break;
             }
-            raw.push_back(c);
+            raw.append(c);
             p++;
         }
-        while (!raw.empty() && (raw.back() == ' ' || raw.back() == '\t')) raw.pop_back();
+        raw.trimRight(spaces);
         if (inFlow) break;
 
         // Fortsetzung?
         YamlLine peek;
         if (!reader.peekLine(peek)) break;
-        bool blank = peek.text.find_first_not_of(" \t") == std::string::npos;
-        bool commentOnly = false;
-        if (!blank) {
-            size_t q = peek.text.find_first_not_of(" \t");
-            commentOnly = (peek.text[q] == '#');
-        }
+        size_t first = firstContentPos(peek.text);
+        bool blank = (first == std::string_view::npos);
+        bool commentOnly = (!blank && peek.text[first] == '#');
         int bindent = indentOf(peek);
         if (blank || commentOnly) {
-            // Leere Kommentarzeile können noch zur Fortsetzung gehören; wir schauen
-            // erst nach Konsum der Leerzeile, ob eine echte Fortsetzungszeile folgt.
-            YamlLine peek2;
-            if (!reader.peekLine(peek2)) break; // consumable check below
-            bool stop = true;
-            if (!isBlankOrComment(peek2)) {
-                int b2 = indentOf(peek2);
-                if ((parentIndent < 0 ? b2 > 0 : b2 > parentIndent) && !looksLikeMappingLine(peek2.text)) stop = false;
+            // Leer- und Kommentarzeilen koennen noch zur Fortsetzung gehoeren.
+            // peekLine liefert stets dieselbe Zeile, daher erst consumen und
+            // danach die naechste Inhaltszeile beurteilen.
+            size_t hardBreaks = 0;
+            YamlLine skip;
+            do {
+                reader.readLine(skip);
+                hardBreaks++; // echte Leerzeile wie Kommentarzeile wirken als Umbruch
+            } while (reader.peekLine(skip) && isBlankOrComment(skip));
+            if (!reader.peekLine(peek)) break;
+            int b2 = indentOf(peek);
+            if ((parentIndent < 0 ? b2 > 0 : b2 > parentIndent) && !looksLikeMappingLine(peek.text) && !looksLikeSequenceLine(peek.text)) {
+                reader.readLine(peek); // Fortsetzungszeile konsumieren
+                for (size_t i = 0; i < hardBreaks; i++) raw.append('\n');
+                line = peek;
+                p = firstContentPos(peek.text);
+                continue;
             }
-            if (stop) break;
-            // Leer-/Kommentarzeile(n) consumen und Faltung mit hartem Umbruch
-            while (true) {
-                reader.readLine(peek);
-                if (peek.text.find_first_not_of(" \t") == std::string::npos) {
-                    raw.push_back('\n');
-                }
-                if (isBlankOrComment(peek)) continue;
-                break;
-            }
-            line = peek;
-            p = peek.text.find_first_not_of(" \t");
-            continue;
+            break; // konsumierte Leer-/Kommentarzeilen hoeren den Skalar auf
         }
-        if ((parentIndent < 0 ? bindent > 0 : bindent > parentIndent) && !looksLikeMappingLine(peek.text)) {
+        if ((parentIndent < 0 ? bindent > 0 : bindent > parentIndent) && !looksLikeMappingLine(peek.text) && !looksLikeSequenceLine(peek.text)) {
             reader.readLine(peek);
-            raw.push_back(' ');
+            raw.append(' ');
             line = peek;
-            p = peek.text.find_first_not_of(" \t");
+            p = firstContentPos(peek.text);
             continue;
         }
         break;
     }
-    return pplib::Variant(pplib::String(raw.c_str()));
+    return pplib::Variant(raw);
 }
 
 // Liest einen Block-Skalar (| oder >) deren Header auf der aktuellen Zeile
@@ -824,16 +869,16 @@ pplib::Variant YamlParser::parsePlainScalar(std::string& content, size_t& p, int
 // des Blocks, in dem der Wert steht.
 pplib::Variant YamlParser::parseBlockScalar(char style, char chomp, int parentIndent)
 {
-    std::vector<std::string> content;
+    std::vector<pplib::String> content;
     int blockIndent = -1;
 
     while (true) {
         YamlLine peek;
         if (!reader.peekLine(peek)) break;
-        bool blank = peek.text.find_first_not_of(" \t") == std::string::npos;
+        bool blank = isWhitespaceOnly(peek.text);
         if (blank) {
             reader.readLine(peek);
-            content.push_back("");
+            content.push_back(pplib::String());
             continue;
         }
         int ind = indentOf(peek);
@@ -851,16 +896,16 @@ pplib::Variant YamlParser::parseBlockScalar(char style, char chomp, int parentIn
     if (chomp == '+') {
         YamlLine peek;
         while (reader.peekLine(peek)) {
-            bool blank = peek.text.find_first_not_of(" \t") == std::string::npos;
+            bool blank = isWhitespaceOnly(peek.text);
             if (!blank) break;
             reader.readLine(peek);
-            content.push_back("");
+            content.push_back(pplib::String());
         }
     }
 
     // Trailing leere Zeilen zählen
     size_t trailingBlanks = 0;
-    while (!content.empty() && content.back().empty()) {
+    while (!content.empty() && content.back().isEmpty()) {
         content.pop_back();
         trailingBlanks++;
     }
@@ -871,7 +916,7 @@ pplib::Variant YamlParser::parseBlockScalar(char style, char chomp, int parentIn
     if (style == '|') {
         for (size_t i = 0; i < content.size(); i++) {
             if (i > 0) body.append("\n");
-            body.append(content[i].c_str());
+            body.append(content[i]);
         }
     } else {
         // gefaltet: aufeinanderfolgende nicht-leere Zeilen werden mit Leerzeichen
@@ -880,9 +925,9 @@ pplib::Variant YamlParser::parseBlockScalar(char style, char chomp, int parentIn
         bool needSpace = false;
         bool needNewline = false;
         for (size_t i = 0; i < content.size(); i++) {
-            const std::string& ln = content[i];
-            bool moreIndent = !ln.empty() && (ln[0] == ' ' || ln[0] == '\t');
-            if (ln.empty()) {
+            const pplib::String& ln = content[i];
+            bool moreIndent = !ln.isEmpty() && (ln[0] == ' ' || ln[0] == '\t');
+            if (ln.isEmpty()) {
                 needSpace = false;
                 needNewline = true;
                 continue;
@@ -894,7 +939,7 @@ pplib::Variant YamlParser::parseBlockScalar(char style, char chomp, int parentIn
             } else if (needSpace && !moreIndent) {
                 body.append(" ");
             }
-            body.append(ln.c_str());
+            body.append(ln);
             if (moreIndent) {
                 body.append("\n");
                 needSpace = false;
@@ -929,28 +974,29 @@ pplib::Variant YamlParser::parseValueAfterIndicator(int col, int parentIndent, i
     skipSpaces();
 
     // Tag und/oder Anchor vor dem eigentlichen Wert
-    std::string tag;
-    std::string anchor;
+    pplib::String tag;
+    pplib::String anchor;
     while (hasLine && pos < line.text.size() && (line.text[pos] == '!' || line.text[pos] == '&')) {
         if (line.text[pos] == '!') {
             size_t start = pos;
             while (pos < line.text.size() && line.text[pos] != ' ' && line.text[pos] != '\t') pos++;
-            tag = line.text.substr(start, pos - start);
+            tag = line.text.mid(start, pos - start);
             skipSpaces();
         } else {
             pos++;
             size_t start = pos;
             while (pos < line.text.size() && line.text[pos] != ' ' && line.text[pos] != '\t') pos++;
-            anchor = line.text.substr(start, pos - start);
-            if (anchor.empty()) throw pplib::UnexpectedCharacterException("Empty anchor name at line %d", line.number);
+            anchor = line.text.mid(start, pos - start);
+            if (anchor.isEmpty()) throw pplib::UnexpectedCharacterException("Empty anchor name at line %d", line.number);
             skipSpaces();
         }
     }
 
     pplib::Variant value;
 
-    if (!hasLine || pos >= line.text.size()) {
-        // Kein Wert auf dieser Zeile: Block auf nächster Zeile suchen
+    // Kein Wert mehr auf dieser Zeile (Zeilenende oder nur ein Kommentar):
+    // Block auf der nächsten Zeile suchen
+    if (!hasLine || pos >= line.text.size() || line.text[pos] == '#') {
         YamlLine peek;
         if (reader.peekLine(peek)) {
             if (isDocMarker(peek, "---")) {
@@ -960,8 +1006,10 @@ pplib::Variant YamlParser::parseValueAfterIndicator(int col, int parentIndent, i
             int bindent = indentOf(peek);
             bool deeper = parentIndent < 0 ? bindent > 0 : bindent > parentIndent;
             // Sequenzeinträge direkt unter dem Key sind auf gleicher Ebene erlaubt
-            bool seqSibling = parentIndent >= 0 && bindent == parentIndent && peek.text.compare(bindent, 1, "-") == 0 &&
-                              (bindent + 1 == peek.text.size() || peek.text[bindent + 1] == ' ' || peek.text[bindent + 1] == '\t');
+            bool seqSibling = parentIndent >= 0 && bindent == parentIndent &&
+                              static_cast<size_t>(bindent) < peek.text.size() && peek.text[bindent] == '-' &&
+                              (bindent + 1 == static_cast<int>(peek.text.size()) || peek.text[bindent + 1] == ' ' ||
+                               peek.text[bindent + 1] == '\t');
             if (!blank && (deeper || seqSibling)) {
                 value = parseBlock(bindent, depth);
             } else {
@@ -969,21 +1017,23 @@ pplib::Variant YamlParser::parseValueAfterIndicator(int col, int parentIndent, i
             }
         } else {
             value = resolveScalar("", tag, false);
-        }    } else {
+        }
+    } else {
         char c = line.text[pos];
         if (c == '*') {
             // Alias
             pos++;
             size_t start = pos;
             while (pos < line.text.size() && line.text[pos] != ' ' && line.text[pos] != '\t') pos++;
-            std::string name = line.text.substr(start, pos - start);
+            pplib::String name = line.text.mid(start, pos - start);
             auto it = ctx.anchors.find(name);
             if (it == ctx.anchors.end()) {
                 throw pplib::ItemNotFoundException("Unknown YAML alias '*%s' at line %d", name.c_str(), line.number);
             }
             value = it->second; // tiefe Kopie durch Variant-Kopie
         } else if (c == '"' || c == '\'') {
-            value = parseQuoted(line.text, pos, c, parentIndent, false);
+            pplib::Variant qv = parseQuoted(line.text, pos, c, parentIndent, false);
+            value = resolveScalar(qv.toString(), tag, true);
         } else if (c == '[' || c == '{') {
             value = parseFlow(c, depth);
         } else if (c == '|' || c == '>') {
@@ -994,10 +1044,10 @@ pplib::Variant YamlParser::parseValueAfterIndicator(int col, int parentIndent, i
                 chomp = line.text[pos++];
             }
             pplib::Variant bs = parseBlockScalar(style, chomp, col);
-            value = resolveScalar(std::string(bs.toString().c_str(), bs.toString().size()), tag, true);
+            value = resolveScalar(bs.toString(), tag, true);
         } else {
             pplib::Variant raw = parsePlainScalar(line.text, pos, parentIndent, false);
-            value = resolveScalar(std::string(raw.toString().c_str(), raw.toString().size()), tag, false);
+            value = resolveScalar(raw.toString(), tag, false);
         }
         // Rest der Zeile: nur Kommentare erlaubt
         skipSpaces();
@@ -1006,7 +1056,7 @@ pplib::Variant YamlParser::parseValueAfterIndicator(int col, int parentIndent, i
         }
     }
 
-    if (!anchor.empty()) ctx.anchors[anchor] = value;
+    if (!anchor.isEmpty()) ctx.anchors[anchor] = value;
     return value;
 }
 
@@ -1028,7 +1078,7 @@ pplib::Variant YamlParser::parseFlow(char open, int depth)
             if (pos >= line.text.size()) {
                 // Flow endet nicht in der Zeile: auf nächste Zeile umsteigen
                 YamlLine peek;
-                if (!reader.peekLine(peek)) throw pplib::UnexpectedEndOfDataException("Unterbrechener Flow in Zeile %d", line.number);
+                if (!reader.peekLine(peek)) throw pplib::UnexpectedEndOfDataException("Unterminated flow collection at line %d", line.number);
                 reader.readLine(peek);
                 line = peek;
                 pos = 0;
@@ -1047,7 +1097,18 @@ pplib::Variant YamlParser::parseFlow(char open, int depth)
                 pos++;
                 continue;
             }
-            arr.add(parseFlowInner(true, depth + 1));
+            // Ein ':' an Wertposition in einer Flow-Sequenz ist fehlerhaft. Ohne
+            // diese Prüfung würde der Skalar-Parser nichts konsumieren und die
+            // Schleife endlos laufen.
+            if (c == ':') {
+                throw pplib::UnexpectedCharacterException("Unexpected ':' in flow sequence at line %d", line.number);
+            }
+            size_t before = pos;
+            pplib::Variant item = parseFlowInner(true, depth + 1);
+            if (pos == before) {
+                throw pplib::UnexpectedCharacterException("Unexpected character '%c' in flow sequence at line %d", c, line.number);
+            }
+            arr.add(std::move(item));
         }
         return pplib::Variant(arr);
     }
@@ -1057,7 +1118,7 @@ pplib::Variant YamlParser::parseFlow(char open, int depth)
         if (!hasLine) throw pplib::UnexpectedEndOfDataException();
         if (pos >= line.text.size()) {
             YamlLine peek;
-            if (!reader.peekLine(peek)) throw pplib::UnexpectedEndOfDataException("Unterbrechener Flow in Zeile %d", line.number);
+            if (!reader.peekLine(peek)) throw pplib::UnexpectedEndOfDataException("Unterminated flow collection at line %d", line.number);
             reader.readLine(peek);
             line = peek;
             pos = 0;
@@ -1081,14 +1142,14 @@ pplib::Variant YamlParser::parseFlow(char open, int depth)
         if (c == '"' || c == '\'') {
             key = parseQuoted(line.text, pos, c, -1, true).toString();
         } else if (c == '[' || c == '{') {
-            key = parseFlow(c, depth).toString();
+            throw pplib::UnexpectedCharacterException("Complex mapping keys are not supported at line %d", line.number);
         } else {
             pplib::Variant kv = parsePlainScalar(line.text, pos, -1, true);
             key = kv.toString();
             key.trim();
         }
         skipSpaces();
-        if (!hasLine || pos >= line.text.size()) throw pplib::UnexpectedEndOfDataException("Unterbrechener Flow in Zeile %d", line.number);
+        if (!hasLine || pos >= line.text.size()) throw pplib::UnexpectedEndOfDataException("Unterminated flow collection at line %d", line.number);
         if (line.text[pos] != ':') throw pplib::UnexpectedCharacterException("Expected ':' after key at line %d", line.number);
         pos++;
         pplib::Variant val = parseFlowInner(false, depth + 1);
@@ -1105,7 +1166,7 @@ pplib::Variant YamlParser::parseFlowInner(bool inSeq, int depth)
     if (!hasLine) throw pplib::UnexpectedEndOfDataException();
     while (pos >= line.text.size()) {
         YamlLine peek;
-        if (!reader.peekLine(peek)) throw pplib::UnexpectedEndOfDataException("Unterbrechener Flow in Zeile %d", line.number);
+        if (!reader.peekLine(peek)) throw pplib::UnexpectedEndOfDataException("Unterminated flow collection at line %d", line.number);
         reader.readLine(peek);
         line = peek;
         pos = 0;
@@ -1114,8 +1175,8 @@ pplib::Variant YamlParser::parseFlowInner(bool inSeq, int depth)
     char c = line.text[pos];
 
     // Tag/Anchor innerhalb des Flow
-    std::string tag;
-    std::string anchor;
+    pplib::String tag;
+    pplib::String anchor;
     while (pos < line.text.size() && (line.text[pos] == '!' || line.text[pos] == '&')) {
         if (line.text[pos] == '!') {
             size_t start = pos;
@@ -1123,7 +1184,7 @@ pplib::Variant YamlParser::parseFlowInner(bool inSeq, int depth)
                    line.text[pos] != ']' && line.text[pos] != '}') {
                 pos++;
             }
-            tag = line.text.substr(start, pos - start);
+            tag = line.text.mid(start, pos - start);
             skipSpaces();
         } else {
             pos++;
@@ -1132,7 +1193,7 @@ pplib::Variant YamlParser::parseFlowInner(bool inSeq, int depth)
                    line.text[pos] != ']' && line.text[pos] != '}') {
                 pos++;
             }
-            anchor = line.text.substr(start, pos - start);
+            anchor = line.text.mid(start, pos - start);
             skipSpaces();
         }
         if (pos >= line.text.size()) break;
@@ -1147,21 +1208,22 @@ pplib::Variant YamlParser::parseFlowInner(bool inSeq, int depth)
                line.text[pos] != ']' && line.text[pos] != '}') {
             pos++;
         }
-        std::string name = line.text.substr(start, pos - start);
+        pplib::String name = line.text.mid(start, pos - start);
         auto it = ctx.anchors.find(name);
         if (it == ctx.anchors.end()) {
             throw pplib::ItemNotFoundException("Unknown YAML alias '*%s' at line %d", name.c_str(), line.number);
         }
         value = it->second;
     } else if (c == '"' || c == '\'') {
-        value = parseQuoted(line.text, pos, c, -1, true);
+        pplib::Variant qv = parseQuoted(line.text, pos, c, -1, true);
+        value = resolveScalar(qv.toString(), tag, true);
     } else if (c == '[' || c == '{') {
         value = parseFlow(c, depth);
     } else {
         pplib::Variant raw = parsePlainScalar(line.text, pos, -1, true);
-        value = resolveScalar(std::string(raw.toString().c_str(), raw.toString().size()), tag, false);
+        value = resolveScalar(raw.toString(), tag, false);
     }
-    if (!anchor.empty()) ctx.anchors[anchor] = value;
+    if (!anchor.isEmpty()) ctx.anchors[anchor] = value;
     return value;
 }
 
@@ -1169,7 +1231,7 @@ pplib::Variant YamlParser::parseFlowInner(bool inSeq, int depth)
 // Scalar-Resolution: Tag und Typauflösung
 // ============================================================================
 
-static bool allDigits(const std::string& s, size_t from, size_t to)
+static bool allDigits(std::string_view s, size_t from, size_t to)
 {
     if (from >= to) return false;
     for (size_t i = from; i < to; i++)
@@ -1177,12 +1239,20 @@ static bool allDigits(const std::string& s, size_t from, size_t to)
     return true;
 }
 
+// Wandelt eine (per allDigits geprüfte) Ziffernfolge in einen int um.
+static int digitsToInt(std::string_view s)
+{
+    int v = 0;
+    for (char c : s) v = v * 10 + (c - '0');
+    return v;
+}
+
 // Parsen von YAML-Integers (dezimal, 0x, 0o, 0b, Unterstriche, Vorzeichen).
-static bool yamlParseInt(const std::string& s, int64_t& result)
+// Zahlen außerhalb des int64-Bereichs ergeben false (es wird nicht geworfen):
+// der Wert bleibt ein String (z. B. IBAN oder Kartennummern).
+static bool yamlParseInt(std::string_view s, int64_t& result)
 {
     if (s.empty()) return false;
-    std::string t;
-    t.reserve(s.size());
     size_t i = 0;
     bool negative = false;
     if (s[0] == '+' || s[0] == '-') {
@@ -1204,36 +1274,47 @@ static bool yamlParseInt(const std::string& s, int64_t& result)
             i += 2;
         }
     }
+    if (i >= s.size()) return false;
+
+    const uint64_t maxAbs = negative ? 9223372036854775808ULL : 9223372036854775807ULL;
+    uint64_t v = 0;
+    bool anyDigit = false;
+    bool afterUnderscore = false;
     for (; i < s.size(); i++) {
         char c = s[i];
         if (c == '_') {
-            if (i + 1 >= s.size() || s[i + 1] == '_') return false;
+            // Unterstriche müssen von Ziffern eingeschlossen sein
+            if (!anyDigit || afterUnderscore) return false;
+            afterUnderscore = true;
             continue;
         }
+        int d;
         if (c >= '0' && c <= '9')
-            t.push_back(c);
+            d = c - '0';
         else if (c >= 'a' && c <= 'f')
-            t.push_back(c);
+            d = c - 'a' + 10;
         else if (c >= 'A' && c <= 'F')
-            t.push_back(c);
+            d = c - 'A' + 10;
         else
             return false;
+        if (d >= radix) return false;
+        if (v > (maxAbs - static_cast<uint64_t>(d)) / static_cast<uint64_t>(radix)) return false; // außerhalb int64
+        v = v * static_cast<uint64_t>(radix) + static_cast<uint64_t>(d);
+        anyDigit = true;
+        afterUnderscore = false;
     }
-    if (t.empty()) return false;
-    int64_t v = 0;
-    auto res = std::from_chars(t.data(), t.data() + t.size(), v, radix);
-    if (res.ec != std::errc() || res.ptr != t.data() + t.size()) {
-        if (res.ec == std::errc::result_out_of_range) {
-            throw pplib::OverflowException("YAML integer %s exceeds int64 range", s.c_str());
-        }
-        return false;
+    if (!anyDigit || afterUnderscore) return false;
+
+    if (negative) {
+        result = (v == 9223372036854775808ULL) ? std::numeric_limits<int64_t>::min() : -static_cast<int64_t>(v);
+    } else {
+        result = static_cast<int64_t>(v);
     }
-    result = negative ? -v : v;
     return true;
 }
 
 // Parsen von YAML-Floats (inkl. .inf/.nan, E-Notation).
-static bool yamlParseFloat(const std::string& s, double& result)
+static bool yamlParseFloat(std::string_view s, double& result)
 {
     if (s.empty()) return false;
     bool negative = false;
@@ -1242,7 +1323,7 @@ static bool yamlParseFloat(const std::string& s, double& result)
         negative = (s[0] == '-');
         i = 1;
     }
-    std::string rest = s.substr(i);
+    std::string_view rest = s.substr(i);
     if (rest == ".inf" || rest == ".Inf" || rest == ".INF") {
         result = negative ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
         return true;
@@ -1252,12 +1333,18 @@ static bool yamlParseFloat(const std::string& s, double& result)
         return true;
     }
     if (rest.empty()) return false;
-    // Unterstriche entfernen (YAML 1.1 erlaubt sie in Floats)
+    // Unterstriche sind nur als Trenner zwischen Ziffern erlaubt (YAML 1.1).
+    // "_123", "123_" oder "1__2" sind keine Zahlen und bleiben Strings.
+    for (size_t j = 0; j < rest.size(); j++) {
+        if (rest[j] != '_') continue;
+        if (j == 0 || j + 1 >= rest.size()) return false;
+        if (!std::isdigit(static_cast<unsigned char>(rest[j - 1])) || !std::isdigit(static_cast<unsigned char>(rest[j + 1]))) return false;
+    }
     std::string cleaned;
     cleaned.reserve(rest.size());
-    for (size_t j = 0; j < rest.size(); j++) {
-        if (rest[j] == '_') continue;
-        cleaned.push_back(rest[j]);
+    for (char c : rest) {
+        if (c == '_') continue;
+        cleaned.push_back(c);
     }
     double v = 0;
     auto res = std::from_chars(cleaned.data(), cleaned.data() + cleaned.size(), v);
@@ -1266,115 +1353,120 @@ static bool yamlParseFloat(const std::string& s, double& result)
     return true;
 }
 
-static bool isBoolTrue(const std::string& s)
+static bool isBoolTrue(std::string_view s)
 {
     return s == "true" || s == "True" || s == "TRUE";
 }
-static bool isBoolFalse(const std::string& s)
+static bool isBoolFalse(std::string_view s)
 {
     return s == "false" || s == "False" || s == "FALSE";
 }
 
-pplib::Variant YamlParser::resolveScalar(const std::string& rawIn, const std::string& tag, bool quoted)
+pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_view tag, bool quoted)
 {
-    std::string raw = rawIn;
-    // führende/abschließende Leerzeichen abschneiden
-    size_t b = raw.find_first_not_of(" \t");
-    if (b == std::string::npos) {
-        raw.clear();
+    // Führende/abschließende Leerzeichen sind nur bei unquotierten Sklaren
+    // bedeutungslos; in Quotes (und Blocksklaren) sind sie Teil des Werts.
+    std::string_view raw;
+    if (quoted) {
+        raw = rawIn;
     } else {
-        size_t e = raw.find_last_not_of(" \t");
-        raw = raw.substr(b, e - b + 1);
+        size_t b = firstContentPos(rawIn);
+        raw = (b == std::string_view::npos)
+            ? std::string_view()
+            : rawIn.substr(b, rawIn.find_last_not_of(" \t") - b + 1);
     }
 
-    auto asString = [&](const std::string& s) { return pplib::Variant(pplib::String(s.c_str())); };
+    auto asString = [&](std::string_view s) { return pplib::Variant(pplib::String(s)); };
 
     // --- explizite Tags ---
     if (!tag.empty()) {
         if (tag == "!!str" || tag == "!str") return asString(raw);
         if (tag == "!!int" || tag == "!int") {
             int64_t v;
-            if (!yamlParseInt(raw, v)) throw pplib::TypeConversionException("Invalid !!int value '%s'", raw.c_str());
+            if (!yamlParseInt(raw, v)) throw pplib::TypeConversionException("Invalid !!int value '%s'", pplib::String(raw).c_str());
             return pplib::Variant(v);
         }
         if (tag == "!!float" || tag == "!float") {
             double v;
-            if (!yamlParseFloat(raw, v)) throw pplib::TypeConversionException("Invalid !!float value '%s'", raw.c_str());
+            if (!yamlParseFloat(raw, v)) throw pplib::TypeConversionException("Invalid !!float value '%s'", pplib::String(raw).c_str());
             return pplib::Variant(v);
         }
         if (tag == "!!bool" || tag == "!bool") {
             if (isBoolTrue(raw)) return pplib::Variant(true);
             if (isBoolFalse(raw)) return pplib::Variant(false);
-            throw pplib::TypeConversionException("Invalid !!bool value '%s'", raw.c_str());
+            throw pplib::TypeConversionException("Invalid !!bool value '%s'", pplib::String(raw).c_str());
         }
         if (tag == "!!null" || tag == "!null") return pplib::Variant(nullptr);
         if (tag == "!!binary" || tag == "!binary") {
-            std::string b64;
+            pplib::String b64;
             b64.reserve(raw.size());
             for (char c : raw) {
-                if (c != ' ' && c != '\t' && c != '\n') b64.push_back(c);
+                if (c != ' ' && c != '\t' && c != '\n') b64.append(c);
             }
             // Ein leerer unquotierter !!binary-Wert ist ein Fehler (z.B. wenn
             // ein '#' als Kommentar beginnt und damit der Wert verdeckt).
-            if (b64.empty() && !quoted)
+            if (b64.isEmpty() && !quoted)
                 throw pplib::TypeConversionException("Empty !!binary value at line %d", line.number);
-            return pplib::Variant(pplib::ByteArray::fromBase64(pplib::String(b64.c_str())));
+            return pplib::Variant(pplib::ByteArray::fromBase64(b64));
         }
         if (tag == "!!timestamp" || tag == "!timestamp") {
+            const char* bad = "Invalid !!timestamp value '%s'";
             if (raw.size() == 10 && raw[4] == '-' && raw[7] == '-' && allDigits(raw, 0, 4) && allDigits(raw, 5, 7) && allDigits(raw, 8, 10)) {
                 try {
-                    return pplib::Variant(pplib::Date(std::stoi(raw.substr(0, 4)), std::stoi(raw.substr(5, 2)), std::stoi(raw.substr(8, 2))));
+                    return pplib::Variant(pplib::Date(digitsToInt(raw.substr(0, 4)), digitsToInt(raw.substr(5, 2)), digitsToInt(raw.substr(8, 2))));
                 } catch (const std::exception&) {
-                    throw pplib::TypeConversionException("Invalid !!timestamp value '%s'", raw.c_str());
+                    throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
                 }
             }
             if (raw.size() > 10 && raw[4] == '-' && raw[7] == '-' && allDigits(raw, 0, 4) && allDigits(raw, 5, 7) && allDigits(raw, 8, 10) &&
-                (raw[10] == 'T' || raw[10] == 't')) {
+                (raw[10] == 'T' || raw[10] == 't' || raw[10] == ' ')) {
                 try {
-                    return pplib::Variant(pplib::DateTime(raw.c_str()));
+                    return pplib::Variant(pplib::DateTime(pplib::String(raw)));
                 } catch (const std::exception&) {
-                    throw pplib::TypeConversionException("Invalid !!timestamp value '%s'", raw.c_str());
+                    throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
                 }
             }
-            throw pplib::TypeConversionException("Invalid !!timestamp value '%s'", raw.c_str());
+            throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
         }
         if (tag == "!Time") {
             try {
-                return pplib::Variant(pplib::Time(raw.c_str()));
+                return pplib::Variant(pplib::Time(pplib::String(raw)));
             } catch (const std::exception&) {
-                throw pplib::TypeConversionException("Invalid !Time value '%s'", raw.c_str());
+                throw pplib::TypeConversionException("Invalid !Time value '%s'", pplib::String(raw).c_str());
             }
         }
         if (tag == "!TimeDelta") {
             try {
-                return pplib::Variant(pplib::TimeDelta(raw.c_str()));
+                return pplib::Variant(pplib::TimeDelta(pplib::String(raw)));
             } catch (const std::exception&) {
-                throw pplib::TypeConversionException("Invalid !TimeDelta value '%s'", raw.c_str());
+                throw pplib::TypeConversionException("Invalid !TimeDelta value '%s'", pplib::String(raw).c_str());
             }
         }
         if (tag == "!TimeZone") {
             // Format: [[±]HH:]MM  bzw. [[±]HHMM]  (pplib TimeZone toString: "HH:MM")
+            const char* bad = "Invalid !TimeZone value '%s'";
             try {
-                std::string tz = raw;
-                bool negative = false;
                 size_t i = 0;
-                if (!tz.empty() && (tz[0] == '+' || tz[0] == '-')) {
-                    negative = (tz[0] == '-');
+                bool negative = false;
+                if (!raw.empty() && (raw[0] == '+' || raw[0] == '-')) {
+                    negative = (raw[0] == '-');
                     i = 1;
                 }
-                std::string body = tz.substr(i);
+                std::string_view body = raw.substr(i);
                 int hours = 0, minutes = 0;
                 size_t colon = body.find(':');
-                if (colon != std::string::npos) {
-                    hours = std::stoi(body.substr(0, colon));
-                    minutes = std::stoi(body.substr(colon + 1));
-                } else if (body.size() == 4) {
-                    hours = std::stoi(body.substr(0, 2));
-                    minutes = std::stoi(body.substr(2, 2));
-                } else if (body.size() == 2) {
-                    hours = std::stoi(body);
+                if (colon != std::string_view::npos) {
+                    if (!allDigits(body, 0, colon) || !allDigits(body, colon + 1, body.size()))
+                        throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
+                    hours = digitsToInt(body.substr(0, colon));
+                    minutes = digitsToInt(body.substr(colon + 1));
+                } else if (body.size() == 4 || body.size() == 2) {
+                    if (!allDigits(body, 0, body.size()))
+                        throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
+                    hours = digitsToInt(body.substr(0, 2));
+                    minutes = (body.size() == 4) ? digitsToInt(body.substr(2, 2)) : 0;
                 } else {
-                    throw pplib::TypeConversionException("Invalid !TimeZone value '%s'", raw.c_str());
+                    throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
                 }
                 int offset = hours * 60 + minutes;
                 if (negative) offset = -offset;
@@ -1382,7 +1474,7 @@ pplib::Variant YamlParser::resolveScalar(const std::string& rawIn, const std::st
             } catch (const pplib::Exception&) {
                 throw;
             } catch (const std::exception&) {
-                throw pplib::TypeConversionException("Invalid !TimeZone value '%s'", raw.c_str());
+                throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
             }
         }
         if (tag == "!!seq" || tag == "!seq" || tag == "!!map" || tag == "!map") {
@@ -1402,16 +1494,16 @@ pplib::Variant YamlParser::resolveScalar(const std::string& rawIn, const std::st
     // Date: YYYY-MM-DD
     if (raw.size() == 10 && raw[4] == '-' && raw[7] == '-' && allDigits(raw, 0, 4) && allDigits(raw, 5, 7) && allDigits(raw, 8, 10)) {
         try {
-            return pplib::Variant(pplib::Date(std::stoi(raw.substr(0, 4)), std::stoi(raw.substr(5, 2)), std::stoi(raw.substr(8, 2))));
+            return pplib::Variant(pplib::Date(digitsToInt(raw.substr(0, 4)), digitsToInt(raw.substr(5, 2)), digitsToInt(raw.substr(8, 2))));
         } catch (const std::exception&) {
             return asString(raw); // kein gültiges Datum -> String
         }
     }
-    // DateTime: YYYY-MM-DDT...
+    // DateTime: YYYY-MM-DDT... oder YYYY-MM-DD HH:MM:SS
     if (raw.size() > 10 && raw[4] == '-' && raw[7] == '-' && allDigits(raw, 0, 4) && allDigits(raw, 5, 7) && allDigits(raw, 8, 10) &&
-        (raw[10] == 'T' || raw[10] == 't')) {
+        (raw[10] == 'T' || raw[10] == 't' || raw[10] == ' ')) {
         try {
-            return pplib::Variant(pplib::DateTime(raw.c_str()));
+            return pplib::Variant(pplib::DateTime(pplib::String(raw)));
         } catch (const std::exception&) {
             return asString(raw);
         }
@@ -1420,7 +1512,7 @@ pplib::Variant YamlParser::resolveScalar(const std::string& rawIn, const std::st
     if (raw.size() >= 5 && allDigits(raw, 0, 2) && raw[2] == ':' && allDigits(raw, 3, 5) &&
         (raw.size() == 5 || raw[5] == '.' || raw[5] == ':')) {
         try {
-            return pplib::Variant(pplib::Time(raw.c_str()));
+            return pplib::Variant(pplib::Time(pplib::String(raw)));
         } catch (const std::exception&) {
             return asString(raw);
         }
@@ -1441,7 +1533,6 @@ pplib::Variant YamlParser::resolveScalar(const std::string& rawIn, const std::st
 static void writeDict(pplib::FileObject& file, const pplib::AssocArray& data, int indent, int level, int depth);
 static void writeArray(pplib::FileObject& file, const pplib::VariantArray& data, int indent, int level, int depth);
 static void writeClassicArray(pplib::FileObject& file, const pplib::Array& data, int indent, int level, int depth);
-static void writeValue(pplib::FileObject& file, const pplib::Variant& value, int indent, int level, int depth);
 static void writeValueForKey(pplib::FileObject& file, const pplib::Variant& value, int indent, int level, int depth);
 
 static void writeIndent(pplib::FileObject& file, int indent, int level)
@@ -1493,24 +1584,97 @@ static void writeQuotedString(pplib::FileObject& file, const char* p, size_t len
     file.fputc('"');
 }
 
-// Spiegelt die Typauflösung des Parsers für unquotierte Skalare: ergibt sich
-// beim Lesen wieder ein String, ist plain sicher.
-static bool resolvesToString(const std::string& raw)
+// Lexikalische Spiegelbilder der numerischen Literal-Erkennung des Parsers:
+// geprüft wird nur die Form, nie der Wert. Ein String bleibt ein String und
+// wird quotiert, wenn er beim Lesen als Zahl auflaufen würde (z.B. IBAN).
+static bool looksLikeIntLiteral(std::string_view s)
 {
-    if (raw.empty() || raw == "~" || raw == "null" || raw == "Null" || raw == "NULL") return false;
-    if (isBoolTrue(raw) || isBoolFalse(raw)) return false;
+    if (s.empty()) return false;
+    size_t i = 0;
+    if (s[0] == '+' || s[0] == '-') i = 1;
+    if (i >= s.size()) return false;
+    int radix = 10;
+    if (s[i] == '0' && i + 1 < s.size()) {
+        char c = s[i + 1];
+        if (c == 'x' || c == 'X') { radix = 16; i += 2; }
+        else if (c == 'o' || c == 'O') { radix = 8; i += 2; }
+        else if (c == 'b' || c == 'B') { radix = 2; i += 2; }
+    }
+    if (i >= s.size()) return false;
+    bool anyDigit = false;
+    bool afterUnderscore = false;
+    for (; i < s.size(); i++) {
+        char c = s[i];
+        if (c == '_') {
+            if (!anyDigit || afterUnderscore) return false;
+            afterUnderscore = true;
+            continue;
+        }
+        int d;
+        if (c >= '0' && c <= '9') d = c - '0';
+        else if (c >= 'a' && c <= 'f') d = c - 'a' + 10;
+        else if (c >= 'A' && c <= 'F') d = c - 'A' + 10;
+        else return false;
+        if (d >= radix) return false;
+        anyDigit = true;
+        afterUnderscore = false;
+    }
+    return anyDigit && !afterUnderscore;
+}
+
+static bool looksLikeFloatLiteral(std::string_view s)
+{
+    if (s.empty()) return false;
+    size_t i = 0;
+    if (s[0] == '+' || s[0] == '-') i = 1;
+    std::string_view rest = s.substr(i);
+    if (rest == ".inf" || rest == ".Inf" || rest == ".INF") return true;
+    if (rest == ".nan" || rest == ".NaN" || rest == ".NAN") return true;
+    if (rest.empty()) return false;
+    size_t j = 0;
+    bool anyDigit = false;
+    while (j < rest.size() && (rest[j] == '_' || isdigit(static_cast<unsigned char>(rest[j])))) {
+        if (rest[j] != '_') anyDigit = true;
+        j++;
+    }
+    if (j < rest.size() && rest[j] == '.') {
+        j++;
+        while (j < rest.size() && (rest[j] == '_' || isdigit(static_cast<unsigned char>(rest[j])))) {
+            if (rest[j] != '_') anyDigit = true;
+            j++;
+        }
+    }
+    if (!anyDigit) return false;
+    if (j < rest.size() && (rest[j] == 'e' || rest[j] == 'E')) {
+        j++;
+        if (j < rest.size() && (rest[j] == '+' || rest[j] == '-')) j++;
+        bool expDigit = false;
+        while (j < rest.size() && isdigit(static_cast<unsigned char>(rest[j]))) { expDigit = true; j++; }
+        if (!expDigit) return false;
+    }
+    return j == rest.size();
+}
+
+// Ergäbe ein unquotierter Skalar beim Lesen etwas anderes als einen String,
+// muss der Writer quotieren.
+static bool resolvesToNonString(std::string_view raw)
+{
+    if (raw.empty() || raw == "~" || raw == "null" || raw == "Null" || raw == "NULL") return true;
+    if (isBoolTrue(raw) || isBoolFalse(raw)) return true;
     if (raw.size() >= 5 && allDigits(raw, 0, 2) && raw[2] == ':' && allDigits(raw, 3, 5) &&
         (raw.size() == 5 || raw[5] == '.' || raw[5] == ':')) {
-        return false; // HH:MM(:SS...) wird zu Time
+        return true; // HH:MM(:SS...) wird zu Time
     }
-    if (raw.size() >= 10 && raw[4] == '-' && raw[7] == '-' && allDigits(raw, 0, 4) && allDigits(raw, 5, 7) && allDigits(raw, 8, 10)) {
-        return false; // Date/DateTime-Format
+    if (raw.size() == 10 && raw[4] == '-' && raw[7] == '-' && allDigits(raw, 0, 4) && allDigits(raw, 5, 7) && allDigits(raw, 8, 10)) {
+        return true; // Date-Format
     }
-    int64_t iv;
-    if (yamlParseInt(raw, iv)) return false;
-    double dv;
-    if (yamlParseFloat(raw, dv)) return false;
-    return true;
+    if (raw.size() > 10 && raw[4] == '-' && raw[7] == '-' && allDigits(raw, 0, 4) && allDigits(raw, 5, 7) && allDigits(raw, 8, 10) &&
+        (raw[10] == 'T' || raw[10] == 't' || raw[10] == ' ')) {
+        return true; // DateTime-Format
+    }
+    if (looksLikeIntLiteral(raw)) return true;
+    if (looksLikeFloatLiteral(raw)) return true;
+    return false;
 }
 
 // Strukturelle Sicherheit eines unquotierten Skalaren: erlaubte Zeichen,
@@ -1541,8 +1705,9 @@ static bool isPlainStructural(const pplib::String& s)
     case '%':
     case '@':
     case '`':
-        if (n == 1 || p[1] == ' ' || p[1] == '\t') return false;
-        break;
+        // Reservierte Indikatoren am Anfang werden immer quotiert, damit der
+        // Wert beim Lesen wieder als String ankommt.
+        return false;
     default:
         break;
     }
@@ -1568,7 +1733,8 @@ static bool isPlainSafeKey(const pplib::String& s)
 static bool isPlainSafeValue(const pplib::String& s)
 {
     if (!isPlainStructural(s)) return false;
-    return resolvesToString(std::string(s.c_str(), s.size()));
+    std::string_view raw = s;
+    return !resolvesToNonString(raw);
 }
 
 static void writeKey(pplib::FileObject& file, const pplib::String& key)
@@ -1589,6 +1755,13 @@ static bool useBlockScalar(const pplib::String& s)
     if (s.endsWith("\n")) return false;
     const char* p = s.c_str();
     size_t n = s.size();
+    // Control-Zeichen (außer Zeilenumbruch) sind in block scalars nicht sicher
+    // darstellbar -> quoted scalar.
+    for (size_t i = 0; i < n; i++) {
+        unsigned char c = static_cast<unsigned char>(p[i]);
+        if (c < 32 && c != '\n') return false;
+        if (c == 127) return false;
+    }
     size_t lineStart = 0;
     for (size_t i = 0; i <= n; i++) {
         if (i == n || p[i] == '\n') {
@@ -1611,7 +1784,8 @@ static void writeBlockScalar(pplib::FileObject& file, const pplib::String& s, in
     size_t lineStart = 0;
     for (size_t i = 0; i <= n; i++) {
         if (i == n || p[i] == '\n') {
-            writeIndent(file, indent, level);
+            // Leere Zeilen bekommen kein Leerzeichen-Indent, aber ihren Umbruch
+            if (i > lineStart) writeIndent(file, indent, level); else file.fputc('\n');
             file.fwrite(p + lineStart, 1, i - lineStart);
             lineStart = i + 1;
         }
@@ -1648,7 +1822,18 @@ static void writeScalar(pplib::FileObject& file, const pplib::Variant& value)
             char buf[64];
             auto [p, ec] = std::to_chars(buf, buf + sizeof(buf), d);
             if (ec == std::errc()) {
-                file.fwrite(buf, 1, p - buf);
+                size_t len = static_cast<size_t>(p - buf);
+                // Ganzzahlige Doubles bekommen ".0", damit sie beim Lesen wieder
+                // ein Double und kein Integer werden.
+                bool integral = true;
+                for (size_t i = 0; i < len; i++) {
+                    if (buf[i] == '.' || buf[i] == 'e' || buf[i] == 'E') { integral = false; break; }
+                }
+                if (integral) {
+                    buf[len++] = '.';
+                    buf[len++] = '0';
+                }
+                file.fwrite(buf, 1, len);
             } else {
                 snprintf(buf, sizeof(buf), "%.17g", d);
                 for (char* cp = buf; *cp; ++cp) {
@@ -1792,30 +1977,33 @@ static void writeArray(pplib::FileObject& file, const pplib::VariantArray& data,
     for (size_t i = 0; i < data.size(); ++i) {
         if (i > 0) file.fputc('\n');
         writeSpaces(file, level * indent);
-        file.fputs("- ");
+        file.fputc('-');
         const pplib::Variant& v = data[i];
         if (v.isAssocArray()) {
             const pplib::AssocArray& dict = v.toAssocArray();
             if (dict.size() == 0) {
-                file.fputs("{}");
+                file.fputs(" {}");
             } else if (isInlineableDict(dict)) {
                 bool first = true;
                 for (auto it = dict.begin(); it != dict.end(); ++it) {
                     if (!first) {
                         file.fputc('\n');
                         writeSpaces(file, contColumn);
+                    } else {
+                        file.fputc(' ');
                     }
                     first = false;
                     writeMapEntry(file, (*it).first, *(*it).second, indent, level, depth + 1);
                 }
             } else {
+                // Nicht inlinefaehig: Mapping beginnt in der naechsten Zeile
                 file.fputc('\n');
                 writeDict(file, dict, indent, level + 1, depth + 1);
             }
         } else if (v.isVariantArray() || v.isArray()) {
             const bool empty = (v.isVariantArray() && v.toVariantArray().size() == 0) || (v.isArray() && v.toArray().size() == 0);
             if (empty) {
-                file.fputs("[]");
+                file.fputs(" []");
             } else {
                 file.fputc('\n');
                 if (v.isVariantArray()) writeArray(file, v.toVariantArray(), indent, level + 1, depth + 1);
@@ -1825,6 +2013,7 @@ static void writeArray(pplib::FileObject& file, const pplib::VariantArray& data,
             file.fputc(' ');
             writeBlockScalar(file, v.toString(), indent, level + 1);
         } else {
+            file.fputc(' ');
             writeScalar(file, v);
         }
     }
@@ -1845,19 +2034,6 @@ static void writeClassicArray(pplib::FileObject& file, const pplib::Array& data,
         } else {
             writeQuotedString(file, s.c_str(), s.size());
         }
-    }
-}
-
-static void writeValue(pplib::FileObject& file, const pplib::Variant& value, int indent, int level, int depth)
-{
-    if (value.isAssocArray()) {
-        writeDict(file, value.toAssocArray(), indent, level, depth);
-    } else if (value.isVariantArray()) {
-        writeArray(file, value.toVariantArray(), indent, level, depth);
-    } else if (value.isArray()) {
-        writeClassicArray(file, value.toArray(), indent, level, depth);
-    } else {
-        writeScalar(file, value);
     }
 }
 
@@ -1936,11 +2112,17 @@ void Yaml::loads(pplib::VariantArray& data, const pplib::String& yaml)
 void Yaml::dump(pplib::FileObject& file, const pplib::Variant& data, int indent)
 {
     if (data.isAssocArray()) {
-        if (data.toAssocArray().size() > 0) writeDict(file, data.toAssocArray(), indent, 0, 0);
+        const pplib::AssocArray& dict = data.toAssocArray();
+        if (dict.size() > 0) writeDict(file, dict, indent, 0, 0);
+        else file.fputs("{}");
     } else if (data.isVariantArray()) {
-        if (data.toVariantArray().size() > 0) writeArray(file, data.toVariantArray(), indent, 0, 0);
+        const pplib::VariantArray& arr = data.toVariantArray();
+        if (arr.size() > 0) writeArray(file, arr, indent, 0, 0);
+        else file.fputs("[]");
     } else if (data.isArray()) {
-        if (data.toArray().size() > 0) writeClassicArray(file, data.toArray(), indent, 0, 0);
+        const pplib::Array& arr = data.toArray();
+        if (arr.size() > 0) writeClassicArray(file, arr, indent, 0, 0);
+        else file.fputs("[]");
     } else {
         writeScalar(file, data);
     }

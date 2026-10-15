@@ -70,6 +70,15 @@ namespace pplib
  *
  * @note Nicht unterstützt werden Merge-Keys (`<<:`), Multiple Documents (ein Stream enthält
  * genau ein Dokument) und Knoten-Farben.
+ *
+ * @note Nachkommastellen von Sekunden werden pplib-konform als Mikrosekunden interpretiert:
+ * `12:34:56.789` bedeutet 789 Mikrosekunden, nicht 0,789 Sekunden.
+ *
+ * @note Alle load()- und loads()-Varianten können folgende Ausnahmen werfen:
+ * `pplib::UnexpectedEndOfDataException`, `pplib::UnexpectedCharacterException`,
+ * `pplib::InvalidEscapeSequenceException`, `pplib::TypeConversionException`,
+ * `pplib::ItemNotFoundException` (unbekannter Alias), `pplib::CharacterEncodingException`
+ * und `pplib::OverflowException` (Verschachtelungstiefe überschritten).
  */
 class Yaml
 {
@@ -84,7 +93,8 @@ public:
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
      *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::IllegalArgumentException Bei ungültigen Datums-, Zeit- oder Base64-Werten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::TypeConversionException Bei ungültigen Datums-, Zeit-, Base64- oder Zahlenwerten.
      */
     static void loads(pplib::Variant& data, const pplib::String& yaml);
 
@@ -94,7 +104,8 @@ public:
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
      *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::IllegalArgumentException Bei ungültigen Datums-, Zeit- oder Base64-Werten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::TypeConversionException Bei ungültigen Datums-, Zeit-, Base64- oder Zahlenwerten.
      */
     static void load(pplib::Variant& data, pplib::FileObject& file);
 
@@ -105,7 +116,8 @@ public:
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
      *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::IllegalArgumentException Bei ungültigen Datums-, Zeit- oder Base64-Werten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::TypeConversionException Bei ungültigen Datums-, Zeit-, Base64- oder Zahlenwerten.
      */
     static pplib::Variant loads(const pplib::String& yaml);
 
@@ -116,7 +128,8 @@ public:
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitiges Ende der YAML-Daten.
      *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::IllegalArgumentException Bei ungültigen Datums-, Zeit- oder Base64-Werten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
+     *  @throw pplib::TypeConversionException Bei ungültigen Datums-, Zeit-, Base64- oder Zahlenwerten.
      */
     static pplib::Variant load(pplib::FileObject& file);
 
@@ -129,7 +142,7 @@ public:
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
      *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::IllegalArgumentException Bei ungültigen Datums-, Zeit- oder Base64-Werten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
      */
     static void loads(pplib::AssocArray& data, const pplib::String& yaml);
 
@@ -140,7 +153,7 @@ public:
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
      *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::IllegalArgumentException Bei ungültigen Datums-, Zeit- oder Base64-Werten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
      */
     static void load(pplib::AssocArray& data, pplib::FileObject& file);
 
@@ -151,7 +164,7 @@ public:
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
      *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::IllegalArgumentException Bei ungültigen Datums-, Zeit- oder Base64-Werten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
      */
     static void loads(pplib::VariantArray& data, const pplib::String& yaml);
 
@@ -162,7 +175,7 @@ public:
      *  @throw pplib::UnexpectedEndOfDataException Bei vorzeitigem Ende der YAML-Daten.
      *  @throw pplib::UnexpectedCharacterException Bei ungültigen Zeichen oder Syntaxfehlern.
      *  @throw pplib::CharacterEncodingException Bei ungültigen Unicode-Codepoints oder Surrogaten.
-     *  @throw pplib::IllegalArgumentException Bei ungültigen Datums-, Zeit- oder Base64-Werten.
+     *  @throw pplib::InvalidEscapeSequenceException Bei fehlerhaften Escape-Sequenzen in Strings.
      */
     static void load(pplib::VariantArray& data, pplib::FileObject& file);
 

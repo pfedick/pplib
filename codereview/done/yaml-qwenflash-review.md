@@ -292,3 +292,16 @@ Qwen3.8Flash Next hat in 50 Minuten einen beeindruckenden Sprung gegenüber dem 
 - Die Architektur ist sauberer, der Code modularer, und es wurden fortgeschrittene YAML-Features (Block-Scalars mit Chomping, Flow-Collections, Type-Inference, PPLIB-Tags) implementiert.
 - Allerdings zeigt sich das klassische Muster von LLM-Code: **Code, der durch Tests abgedeckt ist, funktioniert meist – aber ungetestete Pfade enthalten gravierende Design- und Logikfehler** (wie das Verwerfen von Tags bei Anführungszeichen oder der Crash beim Serialisieren langer Zahlen-Strings).
 - Die Tests testen überwiegend den "Happy Path" mit einfachen, unquotierten Schlüsseln und Standard-Werten.
+
+---
+
+## Status der Abarbeitung (2026-02)
+
+Alle Punkte wurden abgearbeitet; die Checkboxen bleiben als Originalzustand des Reviews unverändert.
+
+- **Kritische Bugs:** alle behoben (Tag-Verlust bei quotierten Werten und Keys, Zahlen-String-Overflow im Writer, Flow-`:`-Endlosschleife, verschachtelte `- - 1`-Entries, Float-Underscore-Regeln, Whitespace-Trimming bei quotierten Skalars, Tab-Einrückungen, mehrzeilige quotierte Strings in Flow-Sammlungen, Surrogate-Paare, ganzzahlige Doubles `5.0`, Steuerzeichen in Block-Scalar-Erkennung, komplexe Flow-Keys, `''`-Escape in Root-Keys, ISO-Timestamp mit Leerzeichen).
+- **Zusätzlicher Bibliotheksfehler gefunden:** `pplib::String(std::string_view)`-Konstruktor in `include/pplib/types/string.h` (siehe Review-Nachlese) — behoben.
+- **Code Smells:** `std::string_view`/`pplib::String` statt `std::string` und Substring-Kopien wurde flächendeckend umgesetzt. Die `MemFile`-Zwischennutzung in `dumps`/`loads` bleibt bewusst, weil sie dem etablierten Muster von `src/core/Json.cpp` entspricht; eine `StringWriter`-Variante wäre eine bibliothekweite Änderung.
+- **Doxygen:** `@throw`-Listen in `include/pplib/core/yaml.h` korrigiert und um `ItemNotFoundException`, `OverflowException`, `InvalidEscapeSequenceException`, `CharacterEncodingException` ergänzt; `@note` zur Mikrosekunden-Semantik ergänzt.
+- **Coverage:** `src/core/Yaml.cpp` jetzt **96,7 % Lines (1343/1389)** und **85,3 % Branches (1825/2139)**; 162 YAML-Tests, volle Suite 2113 Tests grün. `tests/testdata/test1.yaml` und `test2.yaml` sind eingebunden.
+- **Noch nicht abgedeckte Zeilen** sind defensive unreachable Pfade (Depth-Guards in `parseMapping`/`parseInlineMapping`/`parseSequence`/`writeClassicArray`, `readLine`-Fallback, `to_chars`-Fallbacks) — siehe Abschnitt "Offene Punkte" im Abschlussbericht.

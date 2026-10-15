@@ -45,7 +45,12 @@ Default-Indent ist 2 (YAML-Konvention), nicht -1: YAML braucht Zeilenumbrüche;
   ByteArray), `!!timestamp` (=> Date oder DateTime), `!!seq`, `!!map`,
   pplib-eigene: `!Time`, `!TimeDelta`, `!TimeZone`
 - Unbekannte Tags (z. B. `!Foo`) werden ignoriert und der Wert wird normal
-  typaufgelöst (robust gegenüber Fremd-YAML).
+  typaufgelöst (robust gegenüber Fremd-YAML). Kurzformen ohne `!` (`!str`,
+  `!int`, `!float`, `!bool`, `!null`, `!binary`, `!timestamp`) werden ebenfalls
+  akzeptiert.
+- Fortsetzung plain-quotierter Skalars über mehrere Zeilen endet, sobald die
+  nächste Zeile wie ein Sequenz-/Mapping-Eintrag aussieht (`- ...` oder
+  `key: ...`); solch eine Zeile wird nicht in den Skalar gezogen.
 - Scalar-Typauflösung ohne Tag (YAML-1.1-Kern):
   - `null`, `~`, leer => Variant(nullptr)
   - `true/True/TRUE/false/False/FALSE` => bool
@@ -117,6 +122,10 @@ Alle Funktionen stateless bis auf lokale Objekte => beliebig parallel aufrufbar.
   - Time => `!Time <HH:MM:SS[.usec]>`, TimeDelta => `!TimeDelta <toString()>`,
     TimeZone => `!TimeZone <toString()>`
 - Keys: wie Strings behandelt (quotiert bei Bedarf).
+- Mehrzeilige Strings: Block-Scalar `|-` wenn jede Zeile ohne führendes oder
+  abschließendes Leerzeichen/Tab/Steuerzeichen auskommt; Leeren Zeilen wird kein
+  Indent-Leerzeichen vorangestellt (Round-Trip ohne Sinneseinbuße). Sonst
+  Rückfall auf doppeltquotiert mit `\n`-Escapes.
 - Verschachtelte Werte unter Schlüsseln: Blockstil; leere Sammlungen inline.
 
 ## Offene Punkte

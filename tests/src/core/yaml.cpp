@@ -34,14 +34,17 @@
 #include <cmath>
 #include <limits>
 #include <pplib/core/yaml.h>
+#include <pplib/core/file.h>
 #include <pplib/core/memfile.h>
 #include <pplib/exceptions.h>
+#include <pplib/types/array.h>
 #include <pplib/types/bytearray.h>
 #include <pplib/types/date.h>
 #include <pplib/types/datetime.h>
 #include <pplib/types/time.h>
 #include <pplib/types/timedelta.h>
 #include <pplib/types/timezone.h>
+#include <pplib/types/widestring.h>
 #include <gtest/gtest.h>
 #include "pplib-tests.h"
 
@@ -190,7 +193,40 @@ INSTANTIATE_TEST_SUITE_P(
                       ScalarCase{"hello world", pplib::Variant::TYPE_STRING},
                       ScalarCase{"12.34.56", pplib::Variant::TYPE_STRING},
                       ScalarCase{"2021-13-45", pplib::Variant::TYPE_STRING}, // kein gültiges Datum
-                      ScalarCase{"1.5.2", pplib::Variant::TYPE_STRING}));
+                      ScalarCase{"2021-02-30", pplib::Variant::TYPE_STRING}, // existierender Tag
+                      ScalarCase{"2021-01-02T", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"1.5.2", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"yes", pplib::Variant::TYPE_STRING},   // YAML 1.2 core: kein Boolean
+                      ScalarCase{"on", pplib::Variant::TYPE_STRING},
+                      // Datums- und Zeitformen
+                      ScalarCase{"2024-06-05T12:34:56Z", pplib::Variant::TYPE_DATETIME},
+                      ScalarCase{"2024-06-05 12:34:56", pplib::Variant::TYPE_DATETIME},
+                      ScalarCase{"2024-06-05T12:34:56.789Z", pplib::Variant::TYPE_DATETIME},
+                      ScalarCase{"12:34:56.789", pplib::Variant::TYPE_TIME},
+                      // numerische Grenzen: int64 reicht, danach Double ( Präzisionsverlust)
+                      ScalarCase{"9223372036854775807", pplib::Variant::TYPE_INT64},
+                      ScalarCase{"-9223372036854775808", pplib::Variant::TYPE_INT64},
+                      ScalarCase{"9223372036854775808", pplib::Variant::TYPE_DOUBLE},
+                      ScalarCase{"-9223372036854775809", pplib::Variant::TYPE_DOUBLE},
+                      ScalarCase{"99999999999999999999999999", pplib::Variant::TYPE_DOUBLE},
+                      ScalarCase{"4111111111111111", pplib::Variant::TYPE_INT64},
+                      ScalarCase{"DE89370400560556190100", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"007", pplib::Variant::TYPE_INT64},
+                      ScalarCase{"-0", pplib::Variant::TYPE_INT64},
+                      ScalarCase{"0b101", pplib::Variant::TYPE_INT64},
+                      ScalarCase{"1_000_000", pplib::Variant::TYPE_INT64},
+                      ScalarCase{"1_000.5", pplib::Variant::TYPE_DOUBLE},
+                      ScalarCase{"1.0", pplib::Variant::TYPE_DOUBLE},
+                      ScalarCase{"1.5e-3", pplib::Variant::TYPE_DOUBLE},
+                      // undekorierte / fehlerhafte Zahlen bleiben Strings
+                      ScalarCase{"_123", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"123_", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"1__2", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"0x_FF", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"0x", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"1e", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"1e+", pplib::Variant::TYPE_STRING},
+                      ScalarCase{"-", pplib::Variant::TYPE_STRING}));
 
 TEST_F(YamlTest, ScalarValues)
 {
@@ -379,7 +415,10 @@ INSTANTIATE_TEST_SUITE_P(
         ErrorCase{"seq: [1, 2\n"}, ErrorCase{"map: {a: 1\n"}, ErrorCase{"a: \"unterminated\n"},
         ErrorCase{"a: 'unterminated\n"}, ErrorCase{"a: \"bad \\x escape\"\n"}, ErrorCase{"a: !!int notanumber\n"},
         ErrorCase{"a: !!bool maybe\n"}, ErrorCase{"a: !!binary ###not-base64###\n"}, ErrorCase{"a: *undefined\n"},
-        ErrorCase{""}, ErrorCase{"   \n#\n"}, ErrorCase{"key: value\n  \tnext: [1,\n"}));
+        ErrorCase{""}, ErrorCase{"   \n#\n"}, ErrorCase{"key: value\n  \tnext: [1,\n"},
+        // ':' an Wertposition in einer Flow-Sequenz: führte früher zu einer Endlosschleife
+        ErrorCase{"key: [1, 2\nb: 3\n"}, ErrorCase{"key: [a: b]\n"}, ErrorCase{"key: [1,\nb: 3]\n"},
+        ErrorCase{"key: {a: [1,\nb: 2]}\n"}));
 
 TEST_F(YamlErrorTest, WrongRootType)
 {
@@ -577,6 +616,877 @@ TEST_F(YamlTest, WriterDepthLimit)
         nested = pplib::Variant(outer);
     }
     EXPECT_THROW(pplib::Yaml::dumps(nested), pplib::OverflowException);
+}
+
+// ============================================================================
+// Testdaten-Dateien aus tests/testdata
+// ============================================================================
+
+TEST_F(YamlTest, Test1FileScalarTypes)
+{
+    pplib::File file("testdata/test1.yaml");
+    pplib::Variant v = pplib::Yaml::load(file);
+    ASSERT_TRUE(v.isAssocArray());
+    const pplib::AssocArray& d = v.toAssocArray();
+    EXPECT_EQ((size_t)18, d.size());
+    EXPECT_EQ((int64_t)12345, d.get("integer").toInt64());
+    EXPECT_EQ(pplib::String("hello world"), d.getString("string"));
+    EXPECT_TRUE(d.get("boolean_true").toBool());
+    EXPECT_FALSE(d.get("boolean_false").toBool());
+    EXPECT_TRUE(d.get("null_value").isNull());
+    EXPECT_DOUBLE_EQ(3.14159, d.get("float").toDouble());
+    EXPECT_DOUBLE_EQ(3.141592653589793, d.get("double").toDouble());
+}
+
+TEST_F(YamlTest, Test1FileBinaryTemporalAndBlockScalar)
+{
+    pplib::File file("testdata/test1.yaml");
+    pplib::Variant v = pplib::Yaml::load(file);
+    const pplib::AssocArray& d = v.toAssocArray();
+
+    pplib::ByteArray bin = d.get("binary").toByteArray();
+    EXPECT_EQ((size_t)11, bin.size());
+    EXPECT_EQ(0, memcmp(bin.ptr(), "Hello world", 11));
+
+    pplib::ByteArray longBin = d.get("long_binary").toByteArray();
+    EXPECT_EQ((size_t)53, longBin.size());
+    EXPECT_EQ(0, memcmp(longBin.ptr(), "Hello world world world world world world world world", 53));
+
+    EXPECT_EQ((int64_t)2024, d.get("date").toDate().year());
+    EXPECT_EQ(pplib::String("2024-06-05"), d.get("date").toDate().toString());
+    EXPECT_EQ(pplib::String("2024-06-05"), d.get("datetime").toDateTime().getDate());
+    EXPECT_EQ(pplib::String("12:34:56"), d.get("datetime").toDateTime().getTime());
+    EXPECT_EQ((int64_t)34, d.get("time").toTime().minute());
+    EXPECT_EQ(pplib::String("12:34:56.000000"), d.get("time").toTime().toString());
+
+    EXPECT_EQ(pplib::String("This is a\nmultiline string\nexample.\n"), d.getString("multiline_string"));
+}
+
+TEST_F(YamlTest, Test1FileNestedCollections)
+{
+    pplib::File file("testdata/test1.yaml");
+    pplib::Variant v = pplib::Yaml::load(file);
+    const pplib::AssocArray& d = v.toAssocArray();
+
+    EXPECT_EQ((size_t)3, d.get("integer_array").toVariantArray().size());
+    EXPECT_EQ((int64_t)1, d.get("integer_array").toVariantArray()[0].toInt64());
+    EXPECT_EQ(pplib::String("blue"), d.get("string_array").toVariantArray()[2].toString());
+
+    const pplib::AssocArray& obj = d.get("object").toAssocArray();
+    EXPECT_EQ((size_t)5, obj.size());
+    EXPECT_EQ(pplib::String("value2"), obj.getString("key2"));
+
+    const pplib::VariantArray& withObjects = obj.get("sub_array_with_objects").toVariantArray();
+    EXPECT_EQ((size_t)2, withObjects.size());
+    EXPECT_EQ(pplib::String("sub_value2"), withObjects[0].toAssocArray().getString("sub_key2"));
+    EXPECT_EQ(pplib::String("sub_value4"), withObjects[1].toAssocArray().getString("sub_key4"));
+
+    const pplib::VariantArray& sub = obj.get("sub_array").toVariantArray();
+    EXPECT_EQ((size_t)4, sub.size());
+    EXPECT_EQ(pplib::String("item1"), sub[0].toString());
+    EXPECT_TRUE(sub[1].isNull());
+    ASSERT_TRUE(sub[3].isAssocArray());
+    EXPECT_EQ(pplib::String("sub_value1"),
+              sub[3].toAssocArray().get("sub_object").toAssocArray().getString("sub_key1"));
+
+    const pplib::VariantArray& users = d.get("users").toVariantArray();
+    EXPECT_EQ((size_t)2, users.size());
+    EXPECT_EQ(pplib::String("alice@example.com"), users[0].toAssocArray().getString("email"));
+    EXPECT_EQ((int64_t)25, users[1].toAssocArray().get("age").toInt64());
+}
+
+TEST_F(YamlTest, Test2FileRoundTripAndTypedOverloads)
+{
+    pplib::File file("testdata/test2.yaml");
+    pplib::Variant v = pplib::Yaml::load(file);
+    ASSERT_TRUE(v.isAssocArray());
+    EXPECT_EQ((size_t)18, v.toAssocArray().size());
+
+    // Dump -> Load -> Dump: unveränderte Ausgabe
+    pplib::String first = pplib::Yaml::dumps(v);
+    pplib::Variant again = pplib::Yaml::loads(first);
+    EXPECT_EQ(first, pplib::Yaml::dumps(again));
+
+    // Load direkt in ein AssocArray
+    pplib::File file2("testdata/test2.yaml");
+    pplib::AssocArray obj;
+    pplib::Yaml::load(obj, file2);
+    EXPECT_EQ((size_t)18, obj.size());
+
+    // Root passt nicht zum Zieltyp
+    pplib::File file3("testdata/test2.yaml");
+    pplib::VariantArray arr;
+    EXPECT_THROW(pplib::Yaml::load(arr, file3), pplib::TypeConversionException);
+}
+
+// ============================================================================
+// Parser: weitere Grenzfälle
+// ============================================================================
+
+TEST_F(YamlTest, NestedBlockSequences)
+{
+    // "- - 1" ist eine verschachtelte Sequenz, kein String
+    pplib::Variant v = pplib::Yaml::loads("list:\n  - - 1\n    - 2\n  - - x\n");
+    const pplib::VariantArray& list = v.toAssocArray().get("list").toVariantArray();
+    ASSERT_EQ((size_t)2, list.size());
+    ASSERT_TRUE(list[0].isVariantArray());
+    EXPECT_EQ((size_t)2, list[0].toVariantArray().size());
+    EXPECT_EQ((int64_t)2, list[0].toVariantArray()[1].toInt64());
+    ASSERT_TRUE(list[1].isVariantArray());
+    EXPECT_EQ(pplib::String("x"), list[1].toVariantArray()[0].toString());
+}
+
+TEST_F(YamlTest, EmptyValuesAndComments)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: # Kommentar\nb:\nc: ''\n");
+    const pplib::AssocArray& d = v.toAssocArray();
+    EXPECT_EQ((size_t)3, d.size());
+    EXPECT_TRUE(d.get("a").isNull());
+    EXPECT_TRUE(d.get("b").isNull());
+    EXPECT_EQ(pplib::Variant::TYPE_STRING, d.get("c").type());
+    EXPECT_EQ(pplib::String(""), d.getString("c"));
+}
+
+TEST_F(YamlTest, QuotedKeys)
+{
+    pplib::Variant v = pplib::Yaml::loads("\"quoted key\": 1\n'single key': 2\n\"a: b\": 3\n");
+    const pplib::AssocArray& d = v.toAssocArray();
+    EXPECT_EQ((size_t)3, d.size());
+    EXPECT_EQ((int64_t)1, d.get("quoted key").toInt64());
+    EXPECT_EQ((int64_t)2, d.get("single key").toInt64());
+    EXPECT_EQ((int64_t)3, d.get("a: b").toInt64());
+
+    pplib::Variant seq = pplib::Yaml::loads("- \"3\": x\n");
+    EXPECT_EQ((size_t)1, seq.toVariantArray().size());
+    EXPECT_EQ(pplib::String("x"), seq.toVariantArray()[0].toAssocArray().getString("3"));
+}
+
+TEST_F(YamlTest, FlowAnchorsTagsAndMultilineQuoted)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: &x [1, 2]\nb: *x\nc: [!!str 42, \"first\n  second\"]\n");
+    const pplib::AssocArray& d = v.toAssocArray();
+    EXPECT_EQ((size_t)2, d.get("b").toVariantArray().size());
+    EXPECT_EQ((int64_t)2, d.get("b").toVariantArray()[1].toInt64());
+    EXPECT_EQ(pplib::Variant::TYPE_STRING, d.get("c").toVariantArray()[0].type());
+    EXPECT_EQ(pplib::String("42"), d.get("c").toVariantArray()[0].toString());
+    EXPECT_EQ(pplib::String("first second"), d.get("c").toVariantArray()[1].toString());
+}
+
+TEST_F(YamlTest, RootFlowContainers)
+{
+    EXPECT_EQ(pplib::Variant::TYPE_ASSOCARRAY, pplib::Yaml::loads("{}\n").type());
+    EXPECT_EQ(pplib::Variant::TYPE_VARIANTARRAY, pplib::Yaml::loads("[]\n").type());
+    pplib::AssocArray obj;
+    pplib::Yaml::loads(obj, "{}\n");
+    EXPECT_EQ((size_t)0, obj.size());
+    pplib::VariantArray arr;
+    pplib::Yaml::loads(arr, "[]\n");
+    EXPECT_EQ((size_t)0, arr.size());
+}
+
+TEST_F(YamlTest, QuotedNulByte)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: \"x\\0y\"\n");
+    pplib::String s = v.toAssocArray().getString("a");
+    EXPECT_EQ((size_t)3, s.length());
+    EXPECT_EQ(0, memcmp(s.getPtr(), "x\0y", 3));
+}
+
+TEST_F(YamlTest, EscapeMatrix)
+{
+    pplib::Variant v = pplib::Yaml::loads(
+        "a: \"AB\\u00E9\\U0001F600\\x1B\\N\\_\\xA0\\u2028\\u2029\\a\\b\\v\\f\\r\\/\\\\\\\"\\t\"\n");
+    // '\_' ist laut YAML 1.1 das Escape für U+00A0 (No-Break-Space), nicht für '_'
+    EXPECT_EQ(pplib::String("AB" "\xC3\xA9" "\xF0\x9F\x98\x80" "\x1B" "\xC2\x85" "\xC2\xA0" "\xC2\xA0"
+                            "\xE2\x80\xA8" "\xE2\x80\xA9" "\x07\x08\x0B\x0C\x0D" "/\\\"\t"),
+              v.toAssocArray().getString("a"));
+}
+
+TEST_F(YamlTest, QuotedWhitespaceIsPartOfValue)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: \" x \"\nb: \"y\\t\"\nc: ' z '\nd: \"x\\t\"\ne: 1 \n");
+    ASSERT_TRUE(v.isAssocArray());
+    pplib::AssocArray& d = v.toAssocArray();
+    EXPECT_EQ(pplib::String(" x "), d.getString("a"));
+    EXPECT_EQ(pplib::String("y\t"), d.getString("b"));
+    EXPECT_EQ(pplib::String(" z "), d.getString("c"));
+    EXPECT_EQ(pplib::String("x\t"), d.getString("d"));
+    EXPECT_EQ(1, d.getInt64t("e"));
+}
+
+TEST_F(YamlTest, FractionalSecondsAreMicroseconds)
+{
+    // pplib interpretiert die Nachkommastellen als Mikrosekunden (Bibliotheks-Konvention),
+    // nicht als Sekundenanteil: ".789" sind 789 us, ".789000" sind 789000 us.
+    pplib::Variant v = pplib::Yaml::loads("a: 2024-06-05T12:34:56.789Z\nb: 12:34:56.789\n");
+    EXPECT_EQ(pplib::String("2024-06-05T12:34:56.000789+00:00"),
+              v.toAssocArray().get("a").toDateTime().getISO8601withUsec());
+    EXPECT_EQ(pplib::String("12:34:56.000789"), v.toAssocArray().get("b").toTime().toString());
+}
+
+TEST_F(YamlErrorTest, SpecificExceptionTypes)
+{
+    EXPECT_THROW(pplib::Yaml::loads("a: \"x\\qy\"\n"), pplib::InvalidEscapeSequenceException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"\\uD800\"\n"), pplib::CharacterEncodingException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"\\U00110000\"\n"), pplib::CharacterEncodingException);
+    EXPECT_THROW(pplib::Yaml::loads("key: 1\n\tnext: 2\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: {[1, 2]: x}\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !!timestamp 2021-13-45T00:00:00\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !Time 99:99:99\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !TimeZone abc\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !!binary\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::dumps(pplib::Variant()), pplib::UnsupportedDataTypeException);
+}
+
+// ============================================================================
+// Writer: weitere Grenzfälle
+// ============================================================================
+
+TEST_F(YamlTest, DumpOversizedNumericStringsStayStrings)
+{
+    // "Ein String bleibt ein String": auch überlange Ziffernfolgen werden nicht interpretiert
+    pplib::AssocArray data;
+    data.set("big", pplib::Variant(pplib::String("99999999999999999999999999")));
+    data.set("hex", pplib::Variant(pplib::String("0x1F")));
+    data.set("iban", pplib::Variant(pplib::String("DE89370400560556190100")));
+    data.set("oct", pplib::Variant(pplib::String("017")));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("big: \"99999999999999999999999999\"\nhex: \"0x1F\"\n"
+                            "iban: DE89370400560556190100\noct: \"017\"\n"),
+              yaml);
+
+    pplib::Variant back = pplib::Yaml::loads(yaml);
+    const pplib::AssocArray& d = back.toAssocArray();
+    EXPECT_EQ(pplib::Variant::TYPE_STRING, d.get("big").type());
+    EXPECT_EQ(pplib::Variant::TYPE_STRING, d.get("hex").type());
+    EXPECT_EQ(pplib::Variant::TYPE_STRING, d.get("iban").type());
+    EXPECT_EQ(pplib::Variant::TYPE_STRING, d.get("oct").type());
+}
+
+TEST_F(YamlTest, DumpReservedIndicatorPrefixesQuoted)
+{
+    pplib::AssocArray data;
+    data.set("alias", pplib::Variant(pplib::String("*ref")));
+    data.set("anchor", pplib::Variant(pplib::String("&a")));
+    data.set("at", pplib::Variant(pplib::String("@user")));
+    data.set("colon", pplib::Variant(pplib::String("a: b")));
+    data.set("dash", pplib::Variant(pplib::String("-5x")));
+    data.set("flow", pplib::Variant(pplib::String("[x]")));
+    data.set("hash", pplib::Variant(pplib::String("x #y")));
+    data.set("tag", pplib::Variant(pplib::String("!tag")));
+    EXPECT_EQ(pplib::String("alias: \"*ref\"\nanchor: \"&a\"\nat: \"@user\"\ncolon: \"a: b\"\n"
+                            "dash: \"-5x\"\nflow: \"[x]\"\nhash: \"x #y\"\ntag: \"!tag\"\n"),
+              pplib::Yaml::dumps(data));
+}
+
+TEST_F(YamlTest, DumpIntegralDoublesAndExponentials)
+{
+    pplib::AssocArray data;
+    data.set("a", pplib::Variant(5.0));
+    data.set("b", pplib::Variant(1e20));
+    data.set("c", pplib::Variant(-0.5));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("a: 5.0\nb: 1e+20\nc: -0.5\n"), yaml);
+    EXPECT_DOUBLE_EQ(1e20, pplib::Yaml::loads(yaml).toAssocArray().get("b").toDouble());
+}
+
+TEST_F(YamlTest, DumpControlCharsInMultilineUseQuoted)
+{
+    pplib::AssocArray data;
+    data.set("key", pplib::Variant(pplib::String("line1\nline2\x01" "tail")));
+    EXPECT_EQ(pplib::String("key: \"line1\\nline2\\u0001tail\"\n"), pplib::Yaml::dumps(data));
+}
+
+TEST_F(YamlTest, DumpEmptyByteArrayAndWideString)
+{
+    pplib::AssocArray data;
+    data.set("emptybin", pplib::Variant(pplib::ByteArray()));
+    data.set("wide", pplib::Variant(pplib::WideString(L"wide")));
+    EXPECT_EQ(pplib::String("emptybin: !!binary \"\"\nwide: \"wide\"\n"), pplib::Yaml::dumps(data));
+}
+
+TEST_F(YamlTest, DumpClassicArray)
+{
+    pplib::Array arr;
+    arr.add(pplib::String("x"));
+    arr.add(pplib::String("42"));
+    EXPECT_EQ(pplib::String("- x\n- \"42\"\n"), pplib::Yaml::dumps(pplib::Variant(arr)));
+}
+
+TEST_F(YamlTest, DumpNestedSequencesAndEmptyDictsInSequence)
+{
+    pplib::VariantArray inner;
+    inner.add(pplib::Variant((int64_t)1));
+    inner.add(pplib::Variant((int64_t)2));
+    pplib::VariantArray sub;
+    sub.add(pplib::Variant((int64_t)1));
+    pplib::AssocArray subDict;
+    subDict.set("sub", pplib::Variant(sub));
+
+    pplib::VariantArray list;
+    list.add(pplib::Variant(inner));
+    list.add(pplib::Variant(pplib::AssocArray()));
+    list.add(pplib::Variant(subDict));
+    pplib::AssocArray data;
+    data.set("list", pplib::Variant(list));
+
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("list:\n-\n  - 1\n  - 2\n- {}\n-\n  sub:\n  - 1\n"), yaml);
+
+    pplib::Variant back = pplib::Yaml::loads(yaml);
+    const pplib::VariantArray& backList = back.toAssocArray().get("list").toVariantArray();
+    EXPECT_EQ((size_t)3, backList.size());
+    EXPECT_EQ((size_t)2, backList[0].toVariantArray().size());
+    EXPECT_EQ((size_t)0, backList[1].toAssocArray().size());
+    EXPECT_EQ((size_t)1, backList[2].toAssocArray().get("sub").toVariantArray().size());
+}
+
+TEST_F(YamlTest, DumpOverloadsToFileAndVariantArray)
+{
+    pplib::VariantArray arr;
+    arr.add(pplib::Variant((int64_t)1));
+    arr.add(pplib::Variant(pplib::String("z")));
+
+    pplib::String yaml;
+    pplib::Yaml::dumps(yaml, arr);
+    EXPECT_EQ(pplib::String("- 1\n- z\n"), yaml);
+    EXPECT_EQ(pplib::String("- 1\n- z\n"), pplib::Yaml::dumps(arr));
+
+    pplib::MemFile out;
+    pplib::Yaml::dump(out, arr);
+    size_t size = out.tell();
+    pplib::MemFile in(const_cast<char*>(reinterpret_cast<const char*>(out.map(0, size))), size, false);
+    pplib::VariantArray back;
+    pplib::Yaml::load(back, in);
+    EXPECT_EQ((size_t)2, back.size());
+    EXPECT_EQ(pplib::String("z"), back[1].toString());
+
+    pplib::AssocArray inner;
+    inner.set("k", pplib::Variant((int64_t)1));
+    pplib::AssocArray data;
+    data.set("o", pplib::Variant(inner));
+    EXPECT_EQ(pplib::String("o:\n    k: 1\n"), pplib::Yaml::dumps(data, 4));
+}
+
+// ============================================================================
+// Parser: Zeilen- und Skalar-Grenzfälle
+// ============================================================================
+
+TEST_F(YamlTest, CarriageReturnOnlyLineEndings)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: 1\rb: 2\r");
+    ASSERT_TRUE(v.isAssocArray());
+    EXPECT_EQ((int64_t)1, v.toAssocArray().get("a").toInt64());
+    EXPECT_EQ((int64_t)2, v.toAssocArray().get("b").toInt64());
+}
+
+TEST_F(YamlTest, LineContinuationEscapeInDoubleQuotes)
+{
+    // '\' am Zeilenende verbindet die Fortsetzung ohne Leerzeichen
+    pplib::Variant v = pplib::Yaml::loads("a: \"abc\\\n   def\"\nb: \"x\n   y\"\n");
+    EXPECT_EQ(pplib::String("abcdef"), v.toAssocArray().get("a").toString());
+    EXPECT_EQ(pplib::String("x y"), v.toAssocArray().get("b").toString());
+}
+
+TEST_F(YamlTest, PlainScalarContinuationOverBlankAndCommentLines)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: first\n\n  second\nb: 2\n");
+    EXPECT_EQ(pplib::String("first\nsecond"), v.toAssocArray().get("a").toString());
+    EXPECT_EQ((int64_t)2, v.toAssocArray().get("b").toInt64());
+
+    v = pplib::Yaml::loads("c: one\n# Kommentar\n  two\n\n  three\n");
+    EXPECT_EQ(pplib::String("one\ntwo\nthree"), v.toAssocArray().get("c").toString());
+
+    // Leerzeile beendet den Skalar, wenn keine tiefer eingerückte Fortsetzung folgt
+    v = pplib::Yaml::loads("a: first\n\nb: 2\n");
+    EXPECT_EQ(pplib::String("first"), v.toAssocArray().get("a").toString());
+
+    v = pplib::Yaml::loads("a: first\n\n\n");
+    EXPECT_EQ(pplib::String("first"), v.toAssocArray().get("a").toString());
+}
+
+TEST_F(YamlTest, BlockScalarBlankLinesAndChomping)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: |\n  l1\n\n  l2\n");
+    EXPECT_EQ(pplib::String("l1\n\nl2\n"), v.toAssocArray().get("a").toString());
+
+    v = pplib::Yaml::loads("a: |-\n  l1\n\n  l2\n");
+    EXPECT_EQ(pplib::String("l1\n\nl2"), v.toAssocArray().get("a").toString());
+
+    v = pplib::Yaml::loads("a: >\n  f1\n\n  f2\n");
+    EXPECT_EQ(pplib::String("f1\nf2\n"), v.toAssocArray().get("a").toString());
+
+    v = pplib::Yaml::loads("a: >-\n  f1\n\n  f2\n");
+    EXPECT_EQ(pplib::String("f1\nf2"), v.toAssocArray().get("a").toString());
+
+    v = pplib::Yaml::loads("a: >+\n  f1\n\n  f2\n\n");
+    EXPECT_EQ(pplib::String("f1\nf2\n\n"), v.toAssocArray().get("a").toString());
+
+    // Writer: Block-Skalar-Werte werden als |- geschrieben und lesen sich identisch zurück
+    pplib::AssocArray data;
+    data.set("block", pplib::Variant(pplib::String("a\nb")));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("block: |-\n  a\n  b\n"), yaml);
+    EXPECT_EQ(pplib::String("a\nb"), pplib::Yaml::loads(yaml).toAssocArray().get("block").toString());
+}
+
+TEST_F(YamlTest, FlowCollectionsMultilineAndComment)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: [1, # c\n  2]\n");
+    EXPECT_EQ((size_t)2, v.toAssocArray().get("a").toVariantArray().size());
+
+    v = pplib::Yaml::loads("a: {x: 1,\n  y: 2}\n");
+    EXPECT_EQ((int64_t)1, v.toAssocArray().get("a").toAssocArray().get("x").toInt64());
+    EXPECT_EQ((int64_t)2, v.toAssocArray().get("a").toAssocArray().get("y").toInt64());
+
+    v = pplib::Yaml::loads("a: [1,\n\n2]\n");
+    EXPECT_EQ((size_t)2, v.toAssocArray().get("a").toVariantArray().size());
+
+    v = pplib::Yaml::loads("a: [\n]\nb: {\n}\nc: [1,2,]\nd: {x: 1,}\n");
+    EXPECT_EQ((size_t)0, v.toAssocArray().get("a").toVariantArray().size());
+    EXPECT_EQ((size_t)0, v.toAssocArray().get("b").toAssocArray().size());
+    EXPECT_EQ((size_t)2, v.toAssocArray().get("c").toVariantArray().size());
+    EXPECT_EQ((int64_t)1, v.toAssocArray().get("d").toAssocArray().get("x").toInt64());
+}
+
+TEST_F(YamlTest, FlowAnchorsAliasesAndQuotedKeys)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: [&x 1, *x]\n");
+    pplib::VariantArray arr = v.toAssocArray().get("a").toVariantArray();
+    EXPECT_EQ((size_t)2, arr.size());
+    EXPECT_EQ((int64_t)1, arr[0].toInt64());
+    EXPECT_EQ((int64_t)1, arr[1].toInt64());
+
+    v = pplib::Yaml::loads("a: {\"k 1\": v}\n");
+    EXPECT_EQ(pplib::String("v"), v.toAssocArray().get("a").toAssocArray().get("k 1").toString());
+
+    // escaptes Anführungszeichen im Schlüssel
+    v = pplib::Yaml::loads("\"a\\\"b\": 1\n");
+    EXPECT_EQ((int64_t)1, v.toAssocArray().get("a\"b").toInt64());
+
+    EXPECT_THROW(pplib::Yaml::loads("a: [*nope]\n"), pplib::ItemNotFoundException);
+}
+
+TEST_F(YamlTest, NamedEscapesAndSurrogates)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: \"\\e\\L\\P\"\n");
+    pplib::String s = v.toAssocArray().get("a").toString();
+    EXPECT_EQ((size_t)7, s.length());
+    EXPECT_EQ((unsigned char)0x1B, (unsigned char)s[0]);
+    EXPECT_EQ(0, memcmp(s.getPtr() + 1, "\xe2\x80\xa8\xe2\x80\xa9", 6));
+
+    v = pplib::Yaml::loads("a: \"\\uD83D\\uDE00\"\n");
+    s = v.toAssocArray().get("a").toString();
+    EXPECT_EQ((size_t)4, s.length());
+    EXPECT_EQ((unsigned char)0xF0, (unsigned char)s[0]);
+    EXPECT_EQ((unsigned char)0x9F, (unsigned char)s[1]);
+    EXPECT_EQ((unsigned char)0x98, (unsigned char)s[2]);
+    EXPECT_EQ((unsigned char)0x80, (unsigned char)s[3]);
+}
+
+TEST_F(YamlTest, TaggedNullCollectionsAndUntaggedInvalidTime)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: !!seq\nb: !!map\nc: !!seq x\nd: !!map y\ne: 12:99:00\n");
+    EXPECT_TRUE(v.toAssocArray().get("a").isNull());
+    EXPECT_TRUE(v.toAssocArray().get("b").isNull());
+    EXPECT_EQ(pplib::String("x"), v.toAssocArray().get("c").toString());
+    EXPECT_EQ(pplib::String("y"), v.toAssocArray().get("d").toString());
+    EXPECT_EQ(pplib::String("12:99:00"), v.toAssocArray().get("e").toString());
+}
+
+TEST_F(YamlTest, DocumentMarkersAndComments)
+{
+    pplib::Variant v = pplib::Yaml::loads("a: 1\n...\n");
+    EXPECT_EQ((int64_t)1, v.toAssocArray().get("a").toInt64());
+
+    v = pplib::Yaml::loads("---\na: 2\n...\n");
+    EXPECT_EQ((int64_t)2, v.toAssocArray().get("a").toInt64());
+
+    v = pplib::Yaml::loads("# Kommentar\na: 1\n");
+    EXPECT_EQ((int64_t)1, v.toAssocArray().get("a").toInt64());
+
+    // '#' beendet die Schlüssel-Erkennung: Zeile ist ein Skalar, kein Mapping
+    v = pplib::Yaml::loads("a #b: 1\n");
+    EXPECT_TRUE(v.isString());
+    EXPECT_EQ(pplib::String("a"), v.toString());
+
+    v = pplib::Yaml::loads("- a #b: 1\n");
+    ASSERT_TRUE(v.isVariantArray());
+    EXPECT_EQ(pplib::String("a"), v.toVariantArray()[0].toString());
+
+    // Tabulator direkt nach '-' ist als Sequenz-Eintrag erlaubt
+    v = pplib::Yaml::loads("a:\n  -\tb\n");
+    EXPECT_EQ((size_t)1, v.toAssocArray().get("a").toVariantArray().size());
+    EXPECT_EQ(pplib::String("b"), v.toAssocArray().get("a").toVariantArray()[0].toString());
+}
+
+TEST_F(YamlErrorTest, DocumentTerminationErrors)
+{
+    EXPECT_THROW(pplib::Yaml::loads("---\n...\nfoo\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: 1\n...\nb: 2\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: 1\n...\n...\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: 1\n---\nb: 2\n"), pplib::Exception);
+    EXPECT_THROW(pplib::Yaml::loads("a:\n---\n"), pplib::Exception);
+    EXPECT_THROW(pplib::Yaml::loads("a:\n  - 1\n---\n"), pplib::Exception);
+    EXPECT_THROW(pplib::Yaml::loads("# nur ein Kommentar\n"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Yaml::loads("---\n"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Yaml::loads("---"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Yaml::loads("a: 1\n...\n---\nb: 2\n"), pplib::UnexpectedCharacterException);
+}
+
+TEST_F(YamlErrorTest, IndentationAndKeyErrors)
+{
+    EXPECT_THROW(pplib::Yaml::loads("a: 1\n  bad: 2\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: 1\n b: 2\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a:\n  b: 1\n c: 2\n"), pplib::UnexpectedCharacterException);
+    // eine Sequenzzeile mit zu großer Einrückung darf nicht stillschweigend zu
+    // einem einzigen Skalar-Wert '1 - 2' verschmolzen werden
+    EXPECT_THROW(pplib::Yaml::loads("a:\n  - 1\n   - 2\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a:\n  - 1\n   b: 2\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("\"key\" x\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: 1\n- 2\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"a\\\"b\": 1\n"), pplib::UnexpectedCharacterException);
+}
+
+TEST_F(YamlErrorTest, FlowAndQuotedValueErrors)
+{
+    EXPECT_THROW(pplib::Yaml::loads("a: [x:]\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: [}]\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: [1\n"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Yaml::loads("a: {x: 1\n"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Yaml::loads("a: [1, # x: 2]\n"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"x\" y\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: [1] [2]\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"abc\n"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"x\n\ny\"\n"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"x\\\n"), pplib::UnexpectedEndOfDataException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"abc\\\ndef\"\n"), pplib::UnexpectedEndOfDataException);
+}
+
+TEST_F(YamlErrorTest, EscapeAndControlCharErrors)
+{
+    EXPECT_THROW(pplib::Yaml::loads("a: \"\\x4\"\n"), pplib::InvalidEscapeSequenceException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"x\x01y\"\n"), pplib::UnexpectedCharacterException);
+    EXPECT_THROW(pplib::Yaml::loads("a: \"\x1b\"\n"), pplib::UnexpectedCharacterException);
+}
+
+TEST_F(YamlErrorTest, TagTypeConversionErrors)
+{
+    EXPECT_THROW(pplib::Yaml::loads("a: !!timestamp notadate\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !!timestamp 2024-13-45\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !!timestamp 2024-06-05T99:00\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !TimeDelta xyz\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !TimeZone +99999\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !TimeZone ab:cd\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !TimeZone +99:00\n"), pplib::IllegalArgumentException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !timestamp 12:34:56\n"), pplib::TypeConversionException);
+    EXPECT_THROW(pplib::Yaml::loads("a: !timestamp 1.5\n"), pplib::TypeConversionException);
+}
+
+TEST_F(YamlErrorTest, NestingDepthLimitSequenceAndFlow)
+{
+    std::string seq;
+    for (int i = 0; i < 130; i++) seq += std::string(i + 1, ' ') + "-\n";
+    EXPECT_THROW(pplib::Yaml::loads(pplib::String(seq.c_str(), seq.size())), pplib::OverflowException);
+
+    std::string flow(130, '[');
+    EXPECT_THROW(pplib::Yaml::loads(pplib::String(flow.c_str(), flow.size())), pplib::OverflowException);
+
+    std::string map;
+    for (int i = 0; i < 130; i++) map += std::string(i, ' ') + "k" + std::to_string(i) + ":\n";
+    EXPECT_THROW(pplib::Yaml::loads(pplib::String(map.c_str(), map.size())), pplib::OverflowException);
+
+    EXPECT_THROW(pplib::Yaml::loads("a: {[1, 2]: x}\n"), pplib::UnexpectedCharacterException);
+}
+
+// ============================================================================
+// Writer: Root-Typen, Escapes und Schlüssel
+// ============================================================================
+
+TEST_F(YamlTest, DumpRootScalarsAndEmptyCollections)
+{
+    EXPECT_EQ(pplib::String("-9223372036854775808\n"),
+              pplib::Yaml::dumps(pplib::Variant(std::numeric_limits<int64_t>::min())));
+    EXPECT_EQ(pplib::String("0.1\n"), pplib::Yaml::dumps(pplib::Variant(0.1)));
+    EXPECT_EQ(pplib::String("5.0\n"), pplib::Yaml::dumps(pplib::Variant(5.0)));
+    EXPECT_EQ(pplib::String("true\n"), pplib::Yaml::dumps(pplib::Variant(true)));
+    EXPECT_EQ(pplib::String("{}\n"), pplib::Yaml::dumps(pplib::Variant(pplib::AssocArray())));
+    EXPECT_EQ(pplib::String("[]\n"), pplib::Yaml::dumps(pplib::Variant(pplib::VariantArray())));
+    EXPECT_EQ(pplib::String("[]\n"), pplib::Yaml::dumps(pplib::Variant(pplib::Array())));
+    EXPECT_EQ(pplib::String("!!timestamp 2024-06-05\n"),
+              pplib::Yaml::dumps(pplib::Variant(pplib::Date(2024, 6, 5))));
+}
+
+TEST_F(YamlTest, DumpControlCharacterEscapes)
+{
+    pplib::AssocArray data;
+    data.set("bs", pplib::Variant(pplib::String("a\bb")));
+    data.set("ff", pplib::Variant(pplib::String("a\fb")));
+    data.set("cr", pplib::Variant(pplib::String("a\rb")));
+    data.set("nul", pplib::Variant(pplib::String("a\0b", 3)));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("bs: \"a\\bb\"\ncr: \"a\\rb\"\nff: \"a\\fb\"\nnul: \"a\\u0000b\"\n"), yaml);
+
+    pplib::Variant back = pplib::Yaml::loads(yaml);
+    EXPECT_EQ((size_t)3, back.toAssocArray().get("bs").toString().length());
+    EXPECT_EQ(0, memcmp(back.toAssocArray().get("bs").toString().getPtr(), "a\bb", 3));
+    EXPECT_EQ(0, memcmp(back.toAssocArray().get("cr").toString().getPtr(), "a\rb", 3));
+    EXPECT_EQ(0, memcmp(back.toAssocArray().get("nul").toString().getPtr(), "a\0b", 3));
+}
+
+TEST_F(YamlTest, DumpNumericLookingStringsStayStrings)
+{
+    static const char* quoted[] = {"2024-06-05", "1_2",  "1_",      "1__2",    "_1",     "1.",
+                                   "1._5",        ".5",   "1e5",     "1.2e3",   "1.e5",   "0x1F",
+                                   "+5",          "-5",   "true",    "null",    "~",      "- x",
+                                   "a: b",        "12:99:00", "",    " ",       "#c",     "x #c",
+                                   "[a]",         "{a}",  "*a",      "&a",      "!",      "|",
+                                   "%x",          "@x",   ":x",      "x:",      "'x",     "2024-06-05t12:34:56",
+                                   "2024-06-05T12:34", "True",  "TRUE",  "False", "FALSE", "Null",
+                                   "NULL",        ".inf", ".Inf",    ".INF",    ".nan",   ".NaN",
+                                   ".NAN",        "1E5",  "1e+5",    "1e-5",    "123_",   "0X1F",
+                                   "0o17",        "0O17", "0b101",   "0B101",   "-0x1F",  "1_2.5",
+                                   "12:34",       "12:34.5", "2024-06-05 12:34:56", "a\"b",
+                                   "123456789012345678901234567890"};
+    for (const char* value : quoted) {
+        pplib::AssocArray data;
+        data.set("k", pplib::Variant(pplib::String(value)));
+        pplib::String yaml = pplib::Yaml::dumps(data);
+        // der Wert steht in Anführungszeichen: 'k: "..."'
+        EXPECT_EQ((char)'"', yaml[3]) << value;
+        pplib::Variant back = pplib::Yaml::loads(yaml);
+        EXPECT_EQ(pplib::Variant::TYPE_STRING, back.toAssocArray().get("k").type()) << value;
+        EXPECT_EQ(pplib::String(value), back.toAssocArray().get("k").toString()) << value;
+    }
+
+    // diese Werte sind eindeutig und bleiben unquotiert
+    static const char* plain[] = {"x y", "yes", "no", "on", "off", "Y",
+                                  "0.1.2", "1,5", "x#c", ".e5", "1:2", "a-b-c",
+                                  "1.2.3", "http://x", "ab:cd", "a\\b", "\\a"};
+    for (const char* value : plain) {
+        pplib::AssocArray data;
+        data.set("k", pplib::Variant(pplib::String(value)));
+        pplib::String yaml = pplib::Yaml::dumps(data);
+        EXPECT_EQ(pplib::String().setf("k: %s\n", value), yaml) << value;
+        pplib::Variant back = pplib::Yaml::loads(yaml);
+        EXPECT_EQ(pplib::Variant::TYPE_STRING, back.toAssocArray().get("k").type()) << value;
+        EXPECT_EQ(pplib::String(value), back.toAssocArray().get("k").toString()) << value;
+    }
+}
+
+TEST_F(YamlTest, DumpMultiLineStringsStayQuoted)
+{
+    // mehrzeilige Strings sind nur als Wert eines Schlüssels als Block-Skalar darstellbar
+    EXPECT_EQ(pplib::String("\"a\\nb\"\n"), pplib::Yaml::dumps(pplib::Variant(pplib::String("a\nb"))));
+
+    pplib::AssocArray data;
+    data.set("s1", pplib::Variant(pplib::String("a\nb\n")));
+    data.set("s2", pplib::Variant(pplib::String("\na")));
+    data.set("s3", pplib::Variant(pplib::String("a \nb")));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("s1: \"a\\nb\\n\"\ns2: \"\\na\"\ns3: \"a \\nb\"\n"), yaml);
+    EXPECT_EQ(pplib::String("a\nb\n"), pplib::Yaml::loads(yaml).toAssocArray().get("s1").toString());
+}
+
+TEST_F(YamlTest, DumpMapKeyNeedingQuotes)
+{
+    pplib::AssocArray data;
+    data.set("k:", pplib::Variant(pplib::String("v")));
+    data.set("a b", pplib::Variant((int64_t)1));
+    data.set("1", pplib::Variant(pplib::String("x")));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("1: x\na b: 1\n\"k:\": v\n"), yaml);
+
+    pplib::Variant back = pplib::Yaml::loads(yaml);
+    EXPECT_EQ((size_t)3, back.toAssocArray().size());
+    EXPECT_EQ(pplib::String("v"), back.toAssocArray().get("k:").toString());
+}
+
+TEST_F(YamlTest, DumpCollectionsAsValues)
+{
+    pplib::AssocArray data;
+    data.set("a", pplib::Variant(pplib::VariantArray()));
+    data.set("b", pplib::Variant(pplib::AssocArray()));
+    pplib::Array classic;
+    classic.add(pplib::String("x"));
+    data.set("c", pplib::Variant(classic));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("a: []\nb: {}\nc:\n- x\n"), yaml);
+
+    pplib::Variant back = pplib::Yaml::loads(yaml);
+    EXPECT_EQ((size_t)0, back.toAssocArray().get("a").toVariantArray().size());
+    EXPECT_EQ((size_t)0, back.toAssocArray().get("b").toAssocArray().size());
+    EXPECT_EQ(pplib::String("x"), back.toAssocArray().get("c").toVariantArray()[0].toString());
+}
+
+TEST_F(YamlTest, DumpClassicArrayInsideVariantArray)
+{
+    pplib::Array classic;
+    classic.add(pplib::String("x"));
+    classic.add(pplib::String("42"));
+    pplib::VariantArray list;
+    pplib::Variant value(classic);
+    list.add(value);
+    EXPECT_EQ(pplib::String("-\n  - x\n  - \"42\"\n"), pplib::Yaml::dumps(pplib::Variant(list)));
+}
+
+TEST_F(YamlTest, WriterDepthLimitVariantArray)
+{
+    pplib::VariantArray cur;
+    for (int i = 0; i < 130; i++) {
+        pplib::VariantArray inner;
+        pplib::Variant var(cur);
+        inner.add(var);
+        cur = inner;
+    }
+    EXPECT_THROW(pplib::Yaml::dumps(pplib::Variant(cur)), pplib::OverflowException);
+}
+
+TEST_F(YamlTest, TypedOverloadsStringOutAndAssocArray)
+{
+    pplib::AssocArray data;
+    data.set("k", pplib::Variant((int64_t)1));
+    pplib::String yaml;
+    pplib::Yaml::dumps(yaml, data);
+    EXPECT_EQ(pplib::String("k: 1\n"), yaml);
+
+    pplib::VariantArray list;
+    pplib::Variant one((int64_t)7);
+    list.add(one);
+    pplib::String yaml2;
+    pplib::Yaml::dumps(yaml2, list);
+    EXPECT_EQ(pplib::String("- 7\n"), yaml2);
+
+    pplib::MemFile out;
+    pplib::Yaml::dump(out, data);
+    size_t size = out.tell();
+    pplib::MemFile in(const_cast<char*>(reinterpret_cast<const char*>(out.map(0, size))), size, false);
+    pplib::Variant v;
+    pplib::Yaml::load(v, in);
+    EXPECT_EQ((int64_t)1, v.toAssocArray().get("k").toInt64());
+}
+
+TEST_F(YamlTest, ShortTagForms)
+{
+    pplib::Variant v = pplib::Yaml::loads(
+        "s: !str 123\n"
+        "i: !int 42\n"
+        "f: !float 1.5\n"
+        "b: !bool True\n"
+        "n: !null ~\n"
+        "e: !null\n"
+        "bin: !binary \"aGVsbG8=\"\n"
+        "bin2: !binary aGVsbG8=\n"
+        "d: !timestamp 2024-06-05\n"
+        "dt1: !timestamp 2024-06-05t12:34:56\n"
+        "dt2: !timestamp 2024-06-05 12:34:56\n"
+        "empty: !str\n"
+        "unknown: !unknown x\n");
+    EXPECT_EQ(pplib::String("123"), v.toAssocArray().get("s").toString());
+    EXPECT_EQ((int64_t)42, v.toAssocArray().get("i").toInt64());
+    EXPECT_EQ(1.5, v.toAssocArray().get("f").toDouble());
+    EXPECT_TRUE(v.toAssocArray().get("b").toBool());
+    EXPECT_TRUE(v.toAssocArray().get("n").isNull());
+    EXPECT_TRUE(v.toAssocArray().get("e").isNull());
+    EXPECT_EQ((size_t)5, v.toAssocArray().get("bin").toByteArray().size());
+    EXPECT_EQ(0, memcmp(v.toAssocArray().get("bin2").toByteArray().ptr(), "hello", 5));
+    EXPECT_EQ(pplib::String("2024-06-05"), v.toAssocArray().get("d").toDate().toString());
+    EXPECT_TRUE(v.toAssocArray().get("dt1").isDateTime());
+    EXPECT_TRUE(v.toAssocArray().get("dt2").isDateTime());
+    EXPECT_EQ(pplib::String(""), v.toAssocArray().get("empty").toString());
+    EXPECT_EQ(pplib::String("x"), v.toAssocArray().get("unknown").toString());
+
+    // base64 darf über mehrere Zeilen (quoted oder block scalar) verteilt sein
+    EXPECT_EQ((size_t)5, pplib::Yaml::loads("a: !binary \"aGVs\n  bG8=\"\n").toAssocArray().get("a").toByteArray().size());
+    EXPECT_EQ((size_t)5, pplib::Yaml::loads("a: !binary |\n  aGVs\n  bG8=\n").toAssocArray().get("a").toByteArray().size());
+}
+
+TEST_F(YamlTest, DumpBlockScalarEmptyLineAndQuotedFallbacks)
+{
+    // Leerzeile im Block-Skalar bleibt leer (kein Leerzeichen-Indent)
+    pplib::AssocArray data;
+    data.set("block", pplib::Variant(pplib::String("a\n\nb")));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("block: |-\n  a\n\n  b\n"), yaml);
+    EXPECT_EQ(pplib::String("a\n\nb"), pplib::Yaml::loads(yaml).toAssocArray().get("block").toString());
+
+    // Zeilen mit leading/trailing Whitespace oder Tabs gehen nur quotiert verlustfrei
+    pplib::AssocArray lossy;
+    lossy.set("lead", pplib::Variant(pplib::String("a\n b")));
+    lossy.set("tab", pplib::Variant(pplib::String("a\tb\nc")));
+    lossy.set("trail", pplib::Variant(pplib::String("a\nb\t")));
+    lossy.set("sp", pplib::Variant(pplib::String("a \nb\n")));
+    lossy.set("deep", pplib::Variant(pplib::String("a\n  b\nc")));
+    pplib::String out = pplib::Yaml::dumps(lossy);
+    EXPECT_EQ(pplib::String("deep: \"a\\n  b\\nc\"\nlead: \"a\\n b\"\n"
+                            "sp: \"a \\nb\\n\"\ntab: \"a\\tb\\nc\"\ntrail: \"a\\nb\\t\"\n"),
+              out);
+    EXPECT_EQ(pplib::String("a\n b"), pplib::Yaml::loads(out).toAssocArray().get("lead").toString());
+    EXPECT_EQ(pplib::String("a\tb\nc"), pplib::Yaml::loads(out).toAssocArray().get("tab").toString());
+    EXPECT_EQ(pplib::String("a\nb\t"), pplib::Yaml::loads(out).toAssocArray().get("trail").toString());
+}
+
+TEST_F(YamlErrorTest, TypedOverloadsEmptyInput)
+{
+    pplib::Variant v;
+    EXPECT_THROW(pplib::Yaml::loads(v, pplib::String("")), pplib::UnexpectedEndOfDataException);
+    pplib::AssocArray obj;
+    EXPECT_THROW(pplib::Yaml::loads(obj, pplib::String("")), pplib::UnexpectedEndOfDataException);
+    pplib::VariantArray arr;
+    EXPECT_THROW(pplib::Yaml::loads(arr, pplib::String("")), pplib::UnexpectedEndOfDataException);
+}
+
+TEST_F(YamlTest, LoadVariantFromFileReturnValueOverload)
+{
+    char buf[] = "k: 1\n";
+    pplib::MemFile in(buf, sizeof(buf) - 1, false);
+    pplib::Variant v = pplib::Yaml::load(in);
+    EXPECT_EQ((int64_t)1, v.toAssocArray().get("k").toInt64());
+}
+
+TEST_F(YamlTest, DumpNestedCollectionsInsideSequenceEntries)
+{
+    // Ein Sequenz-Eintrag, dessen Mapping nicht-leere Sammlungen enthält, kann
+    // nicht inline ("- key: value") geschrieben werden
+    pplib::Array classic;
+    classic.add(pplib::String("x"));
+    pplib::AssocArray withClassic;
+    withClassic.set("k", pplib::Variant(classic));
+
+    pplib::AssocArray innerDict;
+    innerDict.set("b", pplib::Variant((int64_t)1));
+    pplib::AssocArray withDict;
+    withDict.set("j", pplib::Variant(innerDict));
+
+    pplib::VariantArray innerArray;
+    innerArray.add(pplib::Variant((int64_t)1));
+    pplib::AssocArray withArray;
+    withArray.set("m", pplib::Variant(innerArray));
+
+    pplib::VariantArray list;
+    list.add(pplib::Variant(withClassic));
+    list.add(pplib::Variant(withDict));
+    list.add(pplib::Variant(withArray));
+
+    pplib::AssocArray data;
+    data.set("list", pplib::Variant(list));
+    data.set("emptyClassic", pplib::Variant(pplib::Array()));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ(pplib::String("emptyClassic: []\nlist:\n-\n  k:\n  - x\n-\n  j:\n    b: 1\n-\n  m:\n  - 1\n"), yaml);
+
+    pplib::Variant back = pplib::Yaml::loads(yaml);
+    EXPECT_EQ((size_t)0, back.toAssocArray().get("emptyClassic").toVariantArray().size());
+    EXPECT_EQ((size_t)3, back.toAssocArray().get("list").toVariantArray().size());
+}
+
+TEST_F(YamlTest, DumpDeleteCharacterStaysVisible)
+{
+    // DEL (0x7f) darf in einem mehrzeiligen String nicht verlorengehen
+    pplib::AssocArray data;
+    data.set("del", pplib::Variant(pplib::String("a\nb\x7f" "c")));
+    pplib::String yaml = pplib::Yaml::dumps(data);
+    EXPECT_EQ((size_t)14, yaml.length());
+    EXPECT_EQ(pplib::String("del: \"a\\n" "b\x7f" "c\"\n"), yaml);
 }
 
 } // namespace
