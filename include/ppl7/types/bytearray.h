@@ -332,6 +332,17 @@ public:
      */
     ByteArray& operator=(const ByteArrayPtr& other);
 
+    /** @brief Speicherreferenz von einem anderen ByteArray-Objekt übernehmen
+     *
+     * Mit diesem Operator wird der Speicherbereich eines anderen ByteArray-Objekts kopiert.
+     * Er ist identisch zur Funktion ByteArray::copy.
+     *
+     * @param[in] other Referenz auf ein anderes ByteArray-Objekt.
+     * @return Referenz auf das Objekt
+     * @exception OutOfMemoryException Speicher konnte nicht allokiert werden
+     */
+    ByteArray& operator=(const ByteArray& other);
+
     /**@brief Move-Operator
      *
      * Mit diesem Operator wird der Speicherbereich eines anderen ByteArray-Objekts übernommen.
