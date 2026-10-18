@@ -1200,6 +1200,12 @@ String::operator std::wstring() const
     return std::wstring(ws.c_str(), ws.size());
 }
 
+WideString String::toWideString() const
+{
+    if (stringlen == 0) return WideString();
+    return WideString(ptr, stringlen);
+}
+
 int String::toInt() const
 {
     int64_t v = toInt64();

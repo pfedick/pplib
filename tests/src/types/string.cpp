@@ -2079,6 +2079,12 @@ TEST(StringTest, ToDouble_182566142_346214893456)
     EXPECT_EQ(((float)182566142.346214893456), ((float)s1.toDouble())) << "Unexpected Result";
 }
 
+TEST(StringTest, ToWideString)
+{
+    pplib::String s1("Hällo Wörld!");
+    EXPECT_EQ(pplib::WideString(L"Hällo Wörld!"), s1.toWideString()) << "Unexpected Result";
+}
+
 TEST(StringTest, OperatorCharPositionPositiv)
 {
     pplib::String s1("Hello World!");
