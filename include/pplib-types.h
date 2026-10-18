@@ -29,12 +29,5 @@
 
 #ifndef PPLIB_TYPES_H_
 #define PPLIB_TYPES_H_
-#include <pplib/types/variant.h>
-#include <pplib/types/bytearrayptr.h>
-#include <pplib/types/bytearray.h>
-#include <pplib/types/string.h>
-#include <pplib/types/widestring.h>
-#include <pplib/types/array.h>
-#include <pplib/types/assocarray.h>
-#include <pplib/types/datetime.h>
+#include <pplib/types.h>
 #endif /* PPLIB_TYPES_H_ */
