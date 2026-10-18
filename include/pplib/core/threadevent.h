@@ -64,8 +64,9 @@ public:
      * @param initialState Der anfängliche Zustand des Ereignisses (gesetzt oder nicht gesetzt) (Default: false)
      */
     explicit ThreadEvent(bool autoReset = true, bool initialState = false)
-        : auto_reset(autoReset),
-          signaled(initialState)
+        : signaled(initialState),
+          auto_reset(autoReset)
+
     {
     }
 
