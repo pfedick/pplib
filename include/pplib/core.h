@@ -32,7 +32,7 @@
 
 #include <pplib/version.h>
 #include <pplib/types.h>
-#include <pplib-baseexception.h>
+#include <pplib/core/baseexception.h>
 #include <pplib-exceptions.h>
 #include <pplib/core/functions.h>
 #include <pplib/core/stringfunctions.h>
