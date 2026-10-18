@@ -58,8 +58,26 @@ endif()
 
 # Paket-Konfigurationsvariablen initialisieren
 set(PPLIB_PC_LIBS "")
+set(PPLIB_PC_REQUIRES_PRIVATE "")
 set(PPLIB_PC_LIBS_PRIVATE "")
 set(PPLIB_INSTALL_TARGETS "")
+
+# Helper-Makro: Registriert gefundene Bibliotheken dynamisch für pkg-config
+# Falls das Paket via pkg-config verfügbar ist -> Requires.private
+# Andernfalls werden die von CMake ermittelten Linker-Flags -> Libs.private genutzt
+macro(pplib_register_pc_dependency pkg_name fallback_libs)
+    set(_found_pc OFF)
+    if(PKG_CONFIG_FOUND)
+        pkg_check_modules(_PKG_${pkg_name} QUIET ${pkg_name})
+        if(_PKG_${pkg_name}_FOUND)
+            list(APPEND PPLIB_PC_REQUIRES_PRIVATE "${pkg_name}")
+            set(_found_pc ON)
+        endif()
+    endif()
+    if(NOT _found_pc AND NOT "${fallback_libs}" STREQUAL "")
+        list(APPEND PPLIB_PC_LIBS_PRIVATE ${fallback_libs})
+    endif()
+endmacro()
 
 # Syslog
 check_include_file("syslog.h" HAVE_SYSLOG_H)
@@ -160,6 +178,7 @@ if(PPLIB_ENABLE_CORE)
         set(HAVE_ZLIB 1)
         target_link_libraries(pplib_core PRIVATE ZLIB::ZLIB)
         target_compile_definitions(pplib_core PRIVATE HAVE_ZLIB=1 HAVE_LIBZ=1)
+        pplib_register_pc_dependency(zlib "${ZLIB_LIBRARIES}")
     endif()
 
     find_package(BZip2 QUIET)
@@ -167,6 +186,7 @@ if(PPLIB_ENABLE_CORE)
         set(HAVE_BZIP2 1)
         target_link_libraries(pplib_core PRIVATE BZip2::BZip2)
         target_compile_definitions(pplib_core PRIVATE HAVE_BZIP2=1)
+        pplib_register_pc_dependency(bzip2 "${BZIP2_LIBRARIES}")
     endif()
 
     find_package(Iconv QUIET)
@@ -174,6 +194,9 @@ if(PPLIB_ENABLE_CORE)
         set(HAVE_ICONV 1)
         target_link_libraries(pplib_core PRIVATE Iconv::Iconv)
         target_compile_definitions(pplib_core PRIVATE HAVE_ICONV=1)
+        if(NOT Iconv_IS_BUILT_IN AND Iconv_LIBRARIES)
+            list(APPEND PPLIB_PC_LIBS_PRIVATE "${Iconv_LIBRARIES}")
+        endif()
         set(CMAKE_REQUIRED_INCLUDES ${Iconv_INCLUDE_DIRS})
         set(CMAKE_REQUIRED_LIBRARIES Iconv::Iconv)
         check_include_file("localcharset.h" HAVE_LOCALCHARSET_H)
@@ -192,6 +215,7 @@ if(PPLIB_ENABLE_CORE)
             set(HAVE_PCRE2_BITS_8 1)
             target_include_directories(pplib_core PRIVATE ${PCRE2_8_INCLUDE_DIRS})
             target_link_libraries(pplib_core PRIVATE ${PCRE2_8_LIBRARIES})
+            list(APPEND PPLIB_PC_REQUIRES_PRIVATE "libpcre2-8")
         endif()
 
         pkg_check_modules(PCRE2_16 QUIET libpcre2-16)
@@ -201,6 +225,7 @@ if(PPLIB_ENABLE_CORE)
             set(HAVE_PCRE2_BITS_16 1)
             target_include_directories(pplib_core PRIVATE ${PCRE2_16_INCLUDE_DIRS})
             target_link_libraries(pplib_core PRIVATE ${PCRE2_16_LIBRARIES})
+            list(APPEND PPLIB_PC_REQUIRES_PRIVATE "libpcre2-16")
         endif()
 
         pkg_check_modules(PCRE2_32 QUIET libpcre2-32)
@@ -210,12 +235,16 @@ if(PPLIB_ENABLE_CORE)
             set(HAVE_PCRE2_BITS_32 1)
             target_include_directories(pplib_core PRIVATE ${PCRE2_32_INCLUDE_DIRS})
             target_link_libraries(pplib_core PRIVATE ${PCRE2_32_LIBRARIES})
+            list(APPEND PPLIB_PC_REQUIRES_PRIVATE "libpcre2-32")
         endif()
     endif()
 
 
     find_package(Threads REQUIRED)
     target_link_libraries(pplib_core PUBLIC Threads::Threads)
+    if(CMAKE_THREAD_LIBS_INIT)
+        list(APPEND PPLIB_PC_LIBS_PRIVATE "${CMAKE_THREAD_LIBS_INIT}")
+    endif()
 endif()
 
 # ==============================================================================
@@ -227,6 +256,9 @@ if(PPLIB_ENABLE_CRYPTO)
     add_library(pplib_crypto STATIC ${CRYPTO_SOURCES})
     add_library(pplib::crypto ALIAS pplib_crypto)
 
+    list(APPEND PPLIB_PC_LIBS "-lpplib_crypto")
+    list(APPEND PPLIB_INSTALL_TARGETS pplib_crypto)
+
     target_include_directories(pplib_crypto PUBLIC ${PPLIB_INCLUDE_DIRS})
     target_link_libraries(pplib_crypto PUBLIC pplib_core)
 
@@ -236,6 +268,7 @@ if(PPLIB_ENABLE_CRYPTO)
             set(HAVE_OPENSSL 1)
             target_link_libraries(pplib_crypto PRIVATE OpenSSL::Crypto)
             target_compile_definitions(pplib_crypto PRIVATE HAVE_OPENSSL=1)
+            pplib_register_pc_dependency(libcrypto "${OPENSSL_CRYPTO_LIBRARY}")
 
             set(CMAKE_REQUIRED_INCLUDES ${OPENSSL_INCLUDE_DIR})
             set(CMAKE_REQUIRED_LIBRARIES OpenSSL::Crypto)
@@ -285,6 +318,9 @@ if(PPLIB_ENABLE_GRAFIX)
     add_library(pplib_grafix STATIC ${GFX_SOURCES} ${ASM_SOURCES})
     add_library(pplib::grafix ALIAS pplib_grafix)
 
+    list(APPEND PPLIB_PC_LIBS "-lpplib_grafix")
+    list(APPEND PPLIB_INSTALL_TARGETS pplib_grafix)
+
     target_include_directories(pplib_grafix PUBLIC ${PPLIB_INCLUDE_DIRS})
     target_link_libraries(pplib_grafix PUBLIC pplib_core)
 
@@ -300,6 +336,7 @@ if(PPLIB_ENABLE_GRAFIX)
             set(HAVE_JPEG 1)
             target_link_libraries(pplib_grafix PRIVATE JPEG::JPEG)
             target_compile_definitions(pplib_grafix PRIVATE HAVE_JPEG=1)
+            pplib_register_pc_dependency(libjpeg "${JPEG_LIBRARIES}")
         endif()
     endif()
 
@@ -309,6 +346,7 @@ if(PPLIB_ENABLE_GRAFIX)
             set(HAVE_PNG 1)
             target_link_libraries(pplib_grafix PRIVATE PNG::PNG)
             target_compile_definitions(pplib_grafix PRIVATE HAVE_PNG=1)
+            pplib_register_pc_dependency(libpng "${PNG_LIBRARIES}")
         endif()
     endif()
 
@@ -318,6 +356,7 @@ if(PPLIB_ENABLE_GRAFIX)
             set(HAVE_TIFF 1)
             target_link_libraries(pplib_grafix PRIVATE TIFF::TIFF)
             target_compile_definitions(pplib_grafix PRIVATE HAVE_TIFF=1)
+            pplib_register_pc_dependency(libtiff-4 "${TIFF_LIBRARIES}")
         endif()
     endif()
 
@@ -327,6 +366,7 @@ if(PPLIB_ENABLE_GRAFIX)
             set(HAVE_FREETYPE2 1)
             target_link_libraries(pplib_grafix PRIVATE Freetype::Freetype)
             target_compile_definitions(pplib_grafix PRIVATE HAVE_FREETYPE2=1)
+            pplib_register_pc_dependency(freetype2 "${FREETYPE_LIBRARIES}")
         endif()
     endif()
 endif()
@@ -340,6 +380,9 @@ if(PPLIB_ENABLE_INTERNET)
     add_library(pplib_internet STATIC ${INET_SOURCES})
     add_library(pplib::internet ALIAS pplib_internet)
 
+    list(APPEND PPLIB_PC_LIBS "-lpplib_internet")
+    list(APPEND PPLIB_INSTALL_TARGETS pplib_internet)
+
     target_include_directories(pplib_internet PUBLIC ${PPLIB_INCLUDE_DIRS})
     target_link_libraries(pplib_internet PUBLIC pplib_core)
 
@@ -349,6 +392,7 @@ if(PPLIB_ENABLE_INTERNET)
             set(HAVE_LIBCURL 1)
             target_link_libraries(pplib_internet PRIVATE CURL::libcurl)
             target_compile_definitions(pplib_internet PRIVATE HAVE_CURL=1)
+            pplib_register_pc_dependency(libcurl "${CURL_LIBRARIES}")
         endif()
     endif()
 
@@ -358,6 +402,7 @@ if(PPLIB_ENABLE_INTERNET)
             set(HAVE_OPENSSL 1)
             target_link_libraries(pplib_internet PRIVATE OpenSSL::SSL OpenSSL::Crypto)
             target_compile_definitions(pplib_internet PRIVATE HAVE_OPENSSL=1)
+            pplib_register_pc_dependency(openssl "${OPENSSL_LIBRARIES}")
         endif()
     endif()
 
@@ -368,6 +413,7 @@ if(PPLIB_ENABLE_INTERNET)
             target_include_directories(pplib_internet PRIVATE ${MICROHTTPD_INCLUDE_DIRS})
             target_link_libraries(pplib_internet PRIVATE ${MICROHTTPD_LIBRARIES})
             target_compile_definitions(pplib_internet PRIVATE HAVE_LIBMICROHTTPD=1)
+            list(APPEND PPLIB_PC_REQUIRES_PRIVATE "libmicrohttpd")
         endif()
     endif()
 endif()
@@ -380,6 +426,9 @@ if(PPLIB_ENABLE_DATABASE)
 
     add_library(pplib_database STATIC ${DB_SOURCES})
     add_library(pplib::db ALIAS pplib_database)
+
+    list(APPEND PPLIB_PC_LIBS "-lpplib_database")
+    list(APPEND PPLIB_INSTALL_TARGETS pplib_database)
 
     target_include_directories(pplib_database PUBLIC ${PPLIB_INCLUDE_DIRS})
     target_link_libraries(pplib_database PUBLIC pplib_core)
@@ -395,6 +444,7 @@ if(PPLIB_ENABLE_DATABASE)
                 target_link_libraries(pplib_database PRIVATE ${SQLite3_LIBRARIES})
             endif()
             target_compile_definitions(pplib_database PRIVATE HAVE_SQLITE3=1)
+            pplib_register_pc_dependency(sqlite3 "${SQLite3_LIBRARIES}")
         endif()
     endif()
     
@@ -405,6 +455,7 @@ if(PPLIB_ENABLE_DATABASE)
             target_include_directories(pplib_database PRIVATE ${MYSQL_INCLUDE_DIRS})
             target_link_libraries(pplib_database PRIVATE ${MYSQL_LIBRARIES})
             target_compile_definitions(pplib_database PRIVATE HAVE_MYSQL=1)
+            list(APPEND PPLIB_PC_REQUIRES_PRIVATE "mysqlclient")
         endif()
     endif()
 
@@ -415,6 +466,7 @@ if(PPLIB_ENABLE_DATABASE)
             target_include_directories(pplib_database PRIVATE ${POSTGRES_INCLUDE_DIRS})
             target_link_libraries(pplib_database PRIVATE ${POSTGRES_LIBRARIES})
             target_compile_definitions(pplib_database PRIVATE HAVE_POSTGRESQL=1)
+            list(APPEND PPLIB_PC_REQUIRES_PRIVATE "libpq")
         endif()
     endif()
 endif()
@@ -428,6 +480,9 @@ if(PPLIB_ENABLE_AUDIO)
     add_library(pplib_audio STATIC ${AUDIO_SOURCES})
     add_library(pplib::audio ALIAS pplib_audio)
 
+    list(APPEND PPLIB_PC_LIBS "-lpplib_audio")
+    list(APPEND PPLIB_INSTALL_TARGETS pplib_audio)
+
     target_include_directories(pplib_audio PUBLIC ${PPLIB_INCLUDE_DIRS})
     target_link_libraries(pplib_audio PUBLIC pplib_core)
 
@@ -439,6 +494,7 @@ if(PPLIB_ENABLE_AUDIO)
                 target_include_directories(pplib_audio PRIVATE ${MPG123_INCLUDE_DIRS})
                 target_link_libraries(pplib_audio PRIVATE ${MPG123_LIBRARIES})
                 target_compile_definitions(pplib_audio PRIVATE HAVE_MPG123=1)
+                list(APPEND PPLIB_PC_REQUIRES_PRIVATE "libmpg123")
             endif()
         endif()
 
@@ -449,6 +505,7 @@ if(PPLIB_ENABLE_AUDIO)
                 target_include_directories(pplib_audio PRIVATE ${VORBIS_INCLUDE_DIRS})
                 target_link_libraries(pplib_audio PRIVATE ${VORBIS_LIBRARIES})
                 target_compile_definitions(pplib_audio PRIVATE HAVE_VORBIS=1)
+                list(APPEND PPLIB_PC_REQUIRES_PRIVATE "vorbis vorbisfile")
             endif()
         endif()
         if(PPLIB_WITH_LAME)
@@ -458,6 +515,7 @@ if(PPLIB_ENABLE_AUDIO)
                 target_include_directories(pplib_audio PRIVATE ${LAME_INCLUDE_DIRS})
                 target_link_libraries(pplib_audio PRIVATE ${LAME_LIBRARIES})
                 target_compile_definitions(pplib_audio PRIVATE HAVE_LAME=1)
+                list(APPEND PPLIB_PC_REQUIRES_PRIVATE "lame")
             endif()
         endif()
     endif()
@@ -530,11 +588,20 @@ endif()
 configure_file(include/config_pplib.h.in include/config_pplib.h)
 
 # ==============================================================================
-# Rendern des pkg-config-Files
+# Installation & Paket-Export (pkg-config & CMake)
 # ==============================================================================
 if(NOT PPLIB_ENABLE_PICO)
+    # Deduplizieren
+    if(PPLIB_PC_REQUIRES_PRIVATE)
+        list(REMOVE_DUPLICATES PPLIB_PC_REQUIRES_PRIVATE)
+    endif()
+    if(PPLIB_PC_LIBS_PRIVATE)
+        list(REMOVE_DUPLICATES PPLIB_PC_LIBS_PRIVATE)
+    endif()
+
     # Listen in Leerzeichen-getrennte Strings für pkg-config umwandeln
     string(JOIN " " PPLIB_PC_LIBS_STR ${PPLIB_PC_LIBS})
+    string(JOIN " " PPLIB_PC_REQUIRES_PRIVATE_STR ${PPLIB_PC_REQUIRES_PRIVATE})
     string(JOIN " " PPLIB_PC_LIBS_PRIVATE_STR ${PPLIB_PC_LIBS_PRIVATE})
 
     # .pc Datei im Build-Verzeichnis erzeugen
@@ -544,10 +611,37 @@ if(NOT PPLIB_ENABLE_PICO)
         @ONLY
     )
 
-    # Bibliotheken installieren
+    # Bibliotheken installieren & für CMake exportieren
     install(TARGETS ${PPLIB_INSTALL_TARGETS}
+        EXPORT pplib8Targets
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+
+    # Exportierte CMake-Targets installieren
+    install(EXPORT pplib8Targets
+        FILE pplib8Targets.cmake
+        NAMESPACE pplib::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pplib8
+    )
+
+    # CMake Package Config generieren & installieren
+    include(CMakePackageConfigHelpers)
+    configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/pplib8Config.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/pplib8Config.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pplib8
+    )
+    write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/pplib8ConfigVersion.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion
+    )
+    install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/pplib8Config.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/pplib8ConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pplib8
     )
 
     # Header installieren
