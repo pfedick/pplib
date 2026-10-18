@@ -1,9 +1,22 @@
 cmake_minimum_required(VERSION 3.20)
 
 # GoogleTest (im Unterordner) einbinden
+include(FetchContent)
+
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/releases/download/v1.18.0/googletest-1.18.0.tar.gz
+    URL_HASH SHA256=6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+# Verhindert unter Windows Konflikte mit der C-Runtime
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-add_subdirectory(googletest-1.18.0 EXCLUDE_FROM_ALL)
+#add_subdirectory(googletest EXCLUDE_FROM_ALL)
 
 # Gemeinsame Test-Ressourcen/Klassen (main.cpp, textsnippets.cpp, wordlist.cpp)
 add_library(pplib_test_common STATIC
