@@ -47,7 +47,8 @@ namespace pplib
  * exportiert.
  *
  * @param bin Der Speicherbereich, der in Base64 konvertiert werden soll.
- * @return Inhalt des Speicherbereichs als Base64-String.
+ * @return Inhalt des Speicherbereichs als Base64-String (RFC 4648, Standardalphabet,
+ *         "="-Padding, ohne Zeilenumbrüche).
  */
 inline String ToBase64(const ByteArrayPtr& bin)
 {

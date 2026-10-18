@@ -295,12 +295,13 @@ public:
      */
     String toHex() const;
 
-    /**@brief Speicherbereich als Base64 in einen String exportieren
+    /** @brief Speicherbereich als Base64 in einen String exportieren
      *
      * Der referenzierte Speicherbereich wird im Base64-Format als String
      * exportiert.
      *
-     * @return Inhalt des Speicherbereichs als Base64-String.
+     * @return Inhalt des Speicherbereichs als Base64-String (RFC 4648, Standardalphabet,
+     *         "="-Padding, ohne Zeilenumbrüche).
      */
     String toBase64() const;
 

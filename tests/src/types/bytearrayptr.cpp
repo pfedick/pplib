@@ -348,6 +348,16 @@ TEST(ByteArrayPtrTest, toBase64)
     EXPECT_EQ(pplib::String("DQ43QoH/QgBMFxI="), b2.toBase64());
 }
 
+TEST(ByteArrayPtrTest, toBase64InvalidStatesDontCrash)
+{
+    pplib::ByteArrayPtr empty;
+    ASSERT_EQ(pplib::String(""), empty.toBase64());
+    empty.use(binarydata, 0);
+    ASSERT_EQ(pplib::String(""), empty.toBase64());
+    empty.use(NULL, 10);
+    ASSERT_EQ(pplib::String(""), empty.toBase64());
+}
+
 static const char* teststring = "Hello World";
 
 TEST(ByteArrayPtrTest, md5)
