@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef PPLIB_TYPES_H_
-#define PPLIB_TYPES_H_
+#ifndef PPLIB_INCLUDE_TYPES_H_
+#define PPLIB_INCLUDE_TYPES_H_
 #include <pplib/types.h>
-#endif /* PPLIB_TYPES_H_ */
+#endif /* PPLIB_INCLUDE_TYPES_H_ */

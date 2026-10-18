@@ -27,9 +27,9 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef PPLIB_EXCEPTIONS_H_
-#define PPLIB_EXCEPTIONS_H_
+#ifndef PPLIB_INCLUDE_EXCEPTIONS_H_
+#define PPLIB_INCLUDE_EXCEPTIONS_H_
 
 #include <pplib/exceptions.h>
 
-#endif /* PPLIB_EXCEPTIONS_H_ */
+#endif /* PPLIB_INCLUDE_EXCEPTIONS_H_ */
