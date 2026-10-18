@@ -784,12 +784,27 @@ private:
     size_t pos = 0;
 
 public:
-    explicit NonSeekableStreamMock(std::string d) : data(std::move(d)) {}
+    explicit NonSeekableStreamMock(std::string d)
+        : data(std::move(d))
+    {
+    }
 
-    bool isOpen() const override { return true; }
-    bool eof() const override { return pos >= data.size(); }
-    uint64_t size() const override { return data.size(); }
-    uint64_t tell() override { return pos; }
+    bool isOpen() const override
+    {
+        return true;
+    }
+    bool eof() const override
+    {
+        return pos >= data.size();
+    }
+    uint64_t size() const override
+    {
+        return data.size();
+    }
+    uint64_t tell() override
+    {
+        return pos;
+    }
 
     uint64_t seek(int64_t, SeekOrigin) override
     {
@@ -892,8 +907,10 @@ TEST_F(JsonTest, NestingDepthLimitThrows)
 {
     // Generate deeply nested array exceeding 128 levels
     std::string deep;
-    for (int i = 0; i < 140; ++i) deep += "[";
-    for (int i = 0; i < 140; ++i) deep += "]";
+    for (int i = 0; i < 140; ++i)
+        deep += "[";
+    for (int i = 0; i < 140; ++i)
+        deep += "]";
     EXPECT_THROW(pplib::Json::loads(pplib::String(deep)), pplib::UnexpectedCharacterException);
 }
 
