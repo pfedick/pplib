@@ -1,0 +1,14 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: pplib8
+Description: Patrick's Programming Library
+Version: @PROJECT_VERSION@
+URL: https://github.com/pfedick/pplib
+Libs: -L${libdir} @PPLIB_PC_LIBS_STR@
+Requires.private: @PPLIB_PC_REQUIRES_PRIVATE_STR@
+Libs.private: @PPLIB_PC_LIBS_PRIVATE_STR@
+Cflags: -I${includedir}
+

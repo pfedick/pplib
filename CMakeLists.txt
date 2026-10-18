@@ -22,7 +22,12 @@ option(PPLIB_ENABLE_INTERNET "Build Internet module" ON)
 option(PPLIB_ENABLE_DATABASE "Build Database module" ON)
 option(PPLIB_ENABLE_PICO     "Build Pico module" OFF)
 
-option(PPLIB_BUILD_TESTS     "Build Unit Tests" ON)
+# Unit Tests: Nur im Hauptprojektverzeichnis standardmäßig aktivieren
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    option(PPLIB_BUILD_TESTS "Build Unit Tests" ON)
+else()
+    option(PPLIB_BUILD_TESTS "Build Unit Tests" OFF)
+endif()
 option(PPLIB_ENABLE_COVERAGE "Enable Code Coverage" OFF)
 
 
@@ -50,6 +55,11 @@ if(PPLIB_ENABLE_COVERAGE)
         add_link_options(--coverage)
     endif()
 endif()
+
+# Paket-Konfigurationsvariablen initialisieren
+set(PPLIB_PC_LIBS "")
+set(PPLIB_PC_LIBS_PRIVATE "")
+set(PPLIB_INSTALL_TARGETS "")
 
 # Syslog
 check_include_file("syslog.h" HAVE_SYSLOG_H)
@@ -108,6 +118,9 @@ if(PPLIB_ENABLE_CORE)
 
     add_library(pplib_core STATIC ${CORE_SOURCES})
     add_library(pplib::core ALIAS pplib_core)
+
+    list(APPEND PPLIB_PC_LIBS "-lpplib_core")
+    list(APPEND PPLIB_INSTALL_TARGETS pplib_core)
 
     target_include_directories(pplib_core PUBLIC ${PPLIB_INCLUDE_DIRS})
     target_compile_definitions(pplib_core PUBLIC PPLIBLIB=1 HAVE_CONFIG_H=1)
@@ -516,6 +529,38 @@ endif()
 # das landet in ${CMAKE_CURRENT_BINARY_DIR}/include
 configure_file(include/config_pplib.h.in include/config_pplib.h)
 
+# ==============================================================================
+# Rendern des pkg-config-Files
+# ==============================================================================
+if(NOT PPLIB_ENABLE_PICO)
+    # Listen in Leerzeichen-getrennte Strings für pkg-config umwandeln
+    string(JOIN " " PPLIB_PC_LIBS_STR ${PPLIB_PC_LIBS})
+    string(JOIN " " PPLIB_PC_LIBS_PRIVATE_STR ${PPLIB_PC_LIBS_PRIVATE})
+
+    # .pc Datei im Build-Verzeichnis erzeugen
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/pplib8.pc.in
+        ${CMAKE_CURRENT_BINARY_DIR}/pplib8.pc
+        @ONLY
+    )
+
+    # Bibliotheken installieren
+    install(TARGETS ${PPLIB_INSTALL_TARGETS}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+
+    # Header installieren
+    install(DIRECTORY include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING PATTERN "*.h"
+    )
+
+    # pkg-config-Datei installieren
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pplib8.pc
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
+    )
+endif()
 
 # ==============================================================================
 # Feature & Dependency Summary
