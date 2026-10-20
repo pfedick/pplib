@@ -427,8 +427,10 @@ TEST_F(ID3TagTest, Mp3RetagWithPicture)
     Tags.save();
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged3.mp3", d);
-    ASSERT_EQ((size_t)125064, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("1e78e5bd961d9db33d5bc1924e58f082"), pplib::File::md5Hash("tmp/test_tagged3.mp3"));
+    // mpg.end ist inklusiv, daher wird exakt ein Byte weniger kopiert als vor der
+    // Korrektur des Off-by-one-Fehlers in IdentMPEG
+    ASSERT_EQ((size_t)125063, d.Size) << "Tagged File has unexpected size";
+    ASSERT_EQ(pplib::String("0f9d9b5e62a65ffb52b005395e29cee0"), pplib::File::md5Hash("tmp/test_tagged3.mp3"));
 }
 
 TEST_F(ID3TagTest, FindUserDefinedText)
@@ -497,8 +499,10 @@ TEST_F(ID3TagTest, Mp3RemovePicture)
 
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged5.mp3", d);
-    ASSERT_EQ((size_t)97073, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("05d0f69f9a2c1b55c9d5a3bd517adda6"), pplib::File::md5Hash("tmp/test_tagged5.mp3"));
+    // Ohne Cover bleibt nur der ID3v2-Tag-Rumpf + Audiodaten + ID3v1: die Datei
+    // ist damit genauso gross wie test_192cbr_tagged.mp3
+    ASSERT_EQ((size_t)97072, d.Size) << "Tagged File has unexpected size";
+    ASSERT_EQ(pplib::String("0148f9031e2e7c3b5aa3280d8c833719"), pplib::File::md5Hash("tmp/test_tagged5.mp3"));
 }
 
 TEST_F(ID3TagTest, Mp3RemoveAllTags)
@@ -510,8 +514,10 @@ TEST_F(ID3TagTest, Mp3RemoveAllTags)
     Tags.save();
     pplib::DirEntry d;
     pplib::File::statFile("tmp/test_tagged6.mp3", d);
-    ASSERT_EQ((size_t)95921, d.Size) << "Tagged File has unexpected size";
-    ASSERT_EQ(pplib::String("692bf339243cee92f1c639b10ffde45e"), pplib::File::md5Hash("tmp/test_tagged6.mp3"));
+    // Nach dem Entfernen aller Tags muessen exakt die Audiodaten uebrig bleiben:
+    // die Datei ist dann byte-identisch zu test_192cbr.mp3
+    ASSERT_EQ((size_t)95920, d.Size) << "Tagged File has unexpected size";
+    ASSERT_EQ(pplib::String("0abbdd3ce267358a0b3bf3f0a015e74e"), pplib::File::md5Hash("tmp/test_tagged6.mp3"));
 }
 
 TEST_F(ID3TagTest, Mp3NoTagsAndNoChange)
@@ -1234,9 +1240,11 @@ TEST_F(ID3TagTest, ExceptionsAndErrorHandling)
     pplib::ID3Tag tag;
     EXPECT_THROW(tag.save(), pplib::FilenameNotSetException);
 
-    // Unsupported audio format (size >= 1024 so IdentMPEG doesn't overflow map)
+    // Unsupported audio format. Die Datei ist bewusst kleiner als 1024 Bytes:
+    // IdentMPEG darf bei kurzen Dateien keine OverflowException mehr aus losem
+    // map()-Aufrufen werfen
     pplib::ByteArray dummy;
-    dummy.calloc(2048);
+    dummy.calloc(100);
     pplib::File::save(dummy.ptr(), dummy.size(), "tmp/invalid_format.bin");
     EXPECT_THROW(tag.load("tmp/invalid_format.bin"), pplib::UnsupportedAudioFormatException);
 

@@ -610,8 +610,11 @@ public:
      * @param[in] position Die gewünschte Startposition innerhalb der Datei
      * @param[in] size Die Anzahl Bytes, die gemapped werden sollen.
      * @param[in] prot Zugriffsmodus für das Mapping. Standardmäßig wird nur Lesezugriff gewährt.
-     * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
-     * in dem sich die Datei befindet, im Fehlerfall wird eine Exception geworfen.
+     * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück.
+     * Wird ein Bereich außerhalb der Datei verlangt (@p position oder @p size größer als die
+     * Dateigröße), wird eine OverflowException geworfen. Für eine leere Datei oder eine
+     * Mapping-Größe von 0 gibt die Funktion dagegen nullptr zurück; ein Aufrufer muss den
+     * Pointer also zusätzlich auf nullptr prüfen.
      */
     virtual char* map(uint64_t position, size_t size, MapProtection prot = MapProtection::READ);
 

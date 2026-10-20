@@ -1116,12 +1116,13 @@ void ID3Tag::saveMP3()
                 rest -= bytes;
             }
         }
-        // Am Ende noch den v1-Tag reinschreiben
+        // Am Ende noch den v1-Tag reinschreiben. Das Tag beginnt direkt nach dem
+        // letzten Byte der Audiodaten (mpg.end ist inklusiv).
         if (tagV1.size() > 0) {
-            o.write(tagV1.ptr(), tagV1.size(), mpg.end);
-        } else if (mpg.end < o.size()) {
+            o.write(tagV1.ptr(), tagV1.size(), mpg.end + 1);
+        } else if (mpg.end + 1 < o.size()) {
             // Wenn kein v1-Tag mehr gewünscht ist, aber einer da war, Datei kürzen
-            o.truncate(mpg.end);
+            o.truncate(mpg.end + 1);
         }
         o.close();
     } else {
