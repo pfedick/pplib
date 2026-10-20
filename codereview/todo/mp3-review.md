@@ -1,73 +1,104 @@
-# Mp3 Review – Befunde
+# MP3 Review – Befunde
 
-Review vom 2026-09-01, Scope: `include/pplib/audio/mp3.h` + `src/audio/Mp3.cpp` (331 Zeilen).
-Verifiziert: `File::map(position, size)` (`src/core/File.cpp:636-656`, verwendet über `FileObject&`) prüft `position + bytes <= mysize` und wirft bei Verletzung `pplib::OverflowException` – kein `NULL`-Return, kein stillschweigend verkürzter Bereich. `File::read()` liest nicht weniger als angefordert, sondern wirft `EndOfFileException`/errno-Exception, wenn nicht genug Daten vorhanden sind. Beide Eigenschaften sind für die folgenden Befunde relevant.
-
-* Review done by: Claude Sonnet 5
+Review vom 2026-10-20, Scope: `src/audio/Mp3.cpp` (332 Zeilen), `include/pplib/audio/mp3.h` (73 Zeilen).
+Öffentliche API: `pplib::IdentMPEG()`, `pplib::GetMP3Frame()`, `PPL_MPEG_HEADER`
+Review done by: Qwen3.8-Flash-Next
 
 ## Bugs (kritisch)
 
-- [ ] **`IdentMPEG()`: ungeprüftes `file.map(0, 1024)` wirft bei jeder Datei < 1024 Byte** (`Mp3.cpp:87`)
+- [ ] **`IdentMPEG` crasht/throwt bei kleinen Dateien** (`src/audio/Mp3.cpp:87`)
+  `file.map(0, 1024)` wird ohne Größenprüfung und ohne Exception-Handling aufgerufen.
+  `File::map` (src/core/File.cpp:750) verhält sich so:
+  - Leere Datei (`mysize == 0`): Rückgabe `nullptr` → anschließendes `buffer[0]` (Zeile 97) ist ein Nullpointer-Dereference → Crash.
+  - Datei zwischen 1 und 1023 Bytes: Bedingung `bytes <= mysize - position` verletzt → `OverflowException` wird geworfen und ist nicht gefangen → IdentMPEG terminiert mit Exception statt `false`.
+  Reproduktion: `IdentMPEG` auf eine 500-Byte- oder 0-Byte-Datei aufrufen (z. B. über `AudioInfo::IdentAudioFile`).
+  Behebung:
   ```cpp
-  mpg->filesize = file.size();
-  // Beginnt die Datei mit einem ID3-Tag?
-  buffer = (unsigned char*)file.map(0, 1024);   // <-- kein Try/Catch, keine Prüfung der Dateigröße
+  uint64_t maplen = file.size();
+  if (maplen > 1024) maplen = 1024;
+  if (maplen < 10) return false;
+  buffer = (unsigned char*)file.map(0, (size_t)maplen);
+  if (!buffer) return false;
   ```
-  Anders als der Rest der Funktion (die für den eigentlichen MPEG-Sync-Scan `FindNextHeader()` mit sauberem Try/Catch um `file.map()` verwendet) ist dieser allererste Aufruf komplett ungeschützt und verlangt implizit mindestens 1024 Byte Dateigröße. Für jede kleinere – z.B. abgeschnittene, sehr kurze oder absichtlich winzige – Datei wirft `File::map()` eine `OverflowException`, die weder hier noch im Aufrufer `ID3Tag::identAudioFormat()` (`ID3Tag.cpp:400-412`, ebenfalls ohne Try/Catch) abgefangen wird. Ein `ID3Tag::load()` (nicht `tryLoad()`) für eine z.B. 200 Byte kleine Audiodatei bricht dadurch mit einer für den Aufrufer unerwarteten/undokumentierten I/O-Exception ab, statt sauber `AF_UNKNOWN` zu liefern.
-  Fix: Mapping-Größe an die tatsächliche Dateigröße anpassen: `size_t n = std::min<uint64_t>(1024, mpg->filesize); if (n < 10) return false; buffer = (unsigned char*)file.map(0, n);` (und alle folgenden Indexzugriffe `buffer[0..9]` entsprechend gegen `n` absichern statt sie als garantiert vorhanden anzunehmen).
 
-- [ ] **`IdentMPEG()`: `mpg->end - 127` / `mpg->end - 128` unterläuft für Dateien < 128 Byte** (`Mp3.cpp:118-126`)
+- [ ] **Falsche Framesize-Formel in `IdentMPEG`: Padding im Nenner** (`src/audio/Mp3.cpp:132`, `:134`)
   ```cpp
-  mpg->end = file.size() - 1;
-  buffer = (unsigned char*)file.map(mpg->end - 127, 127);   // <-- uint64_t-Unterlauf, falls file.size() < 128
-  if (buffer[0] == 'T' && buffer[1] == 'A' && buffer[2] == 'G') {
-      mpg->end = mpg->end - 127;
-  }
-  buffer = (unsigned char*)file.map(mpg->end - 128, 128);    // <-- dasselbe Muster nochmal
+  mpg->framesize = 144 * mpg->bitrate * 1000 / (mpg->frequency + mpg->padding);
   ```
-  `mpg->end` ist `uint64_t`. Ist die Datei kleiner als 128 Byte (z.B. eine gezielt winzige, aber mit einem gültig aussehenden 4-Byte-MPEG-Sync versehene Testdatei von z.B. 100 Byte – `FindNextHeader()` verlangt für einen Treffer nur `filesize - pos >= 16`, ist also mit sehr kleinen Dateien vereinbar), unterläuft `mpg->end - 127` zu einer Zahl nahe `UINT64_MAX`. Diese wird ungeprüft an `file.map()` weitergereicht. Da `File::map()`s eigene Bounds-Prüfung `position + bytes <= mysize` additionsbasiert ist, könnte der ohnehin schon gewaltige `position`-Wert plus `127`/`128` bei bestimmten Werten sogar unbemerkt zurück in den gültigen Bereich "wrappen" und die Prüfung fälschlich bestehen lassen; in der Praxis wird der anschließende reale `mmap()`/`pread()`-Syscall mit einem derart astronomischen Offset aber scheitern (typischerweise `EINVAL`/`EOVERFLOW`, da `off_t` vorzeichenbehaftet ist und dieses Bitmuster negativ ist) und eine I/O-Exception auslösen. Speicherkorruption ist damit unwahrscheinlich, aber die Funktion verlässt sich dabei komplett auf zufälliges Verhalten der darunterliegenden Schicht statt selbst korrekt zu prüfen – ein einfacher, gezielt kleiner Dateiausschnitt reicht, um diesen Pfad zu erreichen und eine für `IdentMPEG()`/`ID3Tag::load()` uncatchte Exception zu erzeugen.
-  Fix: Vor beiden Aufrufen `if (mpg->end < 128) { /* kein Platz für ID3v1-Tag, überspringen */ }` prüfen.
-
-## Bugs (mittel)
-
-- [ ] **`GetMP3Frame()`: unbedingter Debug-`hexDump()` auf jedes gelesene Frame** (`Mp3.cpp:166`)
+  Das Padding-Bit gehört zum Ergebnis, nicht zum Divisor. Richtig (so auch korrekt in `FindNextHeader`, Zeile 235/237):
   ```cpp
-  void GetMP3Frame(FileObject& file, PPL_MPEG_HEADER& mpg, ByteArray& buffer)
-  {
-      int64_t pos = file.tell();
-      pos = FindNextHeader(file, pos, &mpg);
-      if (pos < 0) { ... }
-      file.read(buffer, mpg.framesize);
-      buffer.hexDump();     // <-- offensichtlicher Debug-Leftover, unbedingt bei jedem Aufruf aktiv
-      file.seek(pos + mpg.framesize);
-  }
+  mpg->framesize = 144 * mpg->bitrate * 1000 / mpg->frequency + mpg->padding;
   ```
-  Für jedes einzelne per `GetMP3Frame()` gelesene MPEG-Frame wird der komplette Frame-Inhalt auf `stdout` gedumpt – bei einem normal langen MP3 (tausende Frames) massives Log-/Konsolen-Rauschen und spürbarer Performance-Verlust in Produktionscode. Sieht nach vergessenem Debug-Code aus (kein `#ifdef ID3DEBUG` wie sonst im Audio-Code üblich).
-  Fix: Entfernen oder hinter `#ifdef ID3DEBUG` (wie im Rest des Audio-Moduls üblich) verstecken.
+  Auswirkung: Bei gepaddeten Frames (häufig bei 44,1 kHz/128 kbit) ist `framesize` um 1 Byte zu klein → `frames` und damit die CBR-Längenschätzung driften über die Dateilänge an.
 
-- [ ] **`IdentMPEG()`: `mpg->size` kann durch Clamp einen unsinnigen, aber "gültig aussehenden" Wert annehmen, wenn ID3v1-Tag-Erkennung und MPEG-Start-Suche widersprüchliche Positionen liefern** (`Mp3.cpp:128-129`)
+- [ ] **Debug-Rest `buffer.hexDump()` in `GetMP3Frame`** (`src/audio/Mp3.cpp:166`)
+  Jeder gelesene MP3-Frame wird als Hexdump auf die Konsole ausgegeben. In einer Bibliotheksfunktion inakzeptabel (Datenleak auf stdout, massiver Performance-Schaden beim Frame-für-Frame-Lesen). Zeile entfernen.
+
+## Bugs (mittel / Warnungen)
+
+- [ ] **Unsigned-Underflow bei ID3v1-TAG-Suche** (`src/audio/Mp3.cpp:119`, `:123`)
+  `file.map(mpg->end - 127, 127)`: `mpg->end` ist `uint64_t`. Für Dateien zwischen ca. 16 und 127 Bytes (FindNextHeader akzeptiert ab 16 Bytes) unterläuft `end - 127` → riesige Position → `OverflowException` in `File::map`. Absicherung: Ausführen der TAG-Prüfung nur, wenn `mpg->end >= 128`.
+
+- [ ] **`GetMP3Frame`: unbehandelte `EndOfFileException`** (`src/audio/Mp3.cpp:165`)
+  `file.read(buffer, mpg.framesize)` wirft laut Doku (include/pplib/core/fileobject.h:217) eine Exception bei Dateiende. Bei abgeschnittenen Dateien (letzter Frame unvollständig) crasht der Aufrufer. Besser: verbleibende Bytes prüfen (`file.size() - pos`) oder try/catch mit `buffer.clear()`.
+
+- [ ] **`GetMP3Frame` setzt vorinitialisiertes `mpg.end`/`mpg.filesize` voraus (undokumentiert)** (`src/audio/Mp3.cpp:160`, via `FindNextHeader` `:216-218`)
+  `FindNextHeader` berechnet `mpg->size = mpg->end - mpg->start + 1`. Übergibt der Caller ein frisch mit 0 initialisiertes Struct (nahe liegend, z. B. nach dem Fehlerpfad in `GetMP3Frame` selbst, der `memset` ausführt), unterläuft `0 - pos + 1`, wird dann auf `mpg->filesize == 0` geklemmt → `size`, `frames`, `mslength`, `samples` sind alle 0. Entweder in `GetMP3Frame` selbst `mpg.end = file.size()-1; mpg.filesize = file.size();` setzen, oder die Vorbedingung in der Header-Doku klar benennen.
+
+- [ ] **`CheckVBR`: `memcpy` überschreibt erkanntes VBR-Flag** (`src/audio/Mp3.cpp:310`)
+  Im Ast „Layer/Version-Wechsel“ wird das komplette Struct per `memcpy(mpg, &m, ...)` zurückkopiert, inkl. `m.vbr` (von `FindNextHeader` immer auf `false` gesetzt). Ein zuvor gesetztes `mpg->vbr = true` geht dabei verloren; bleiben die folgenden Frames konstant, wird die Datei fälschlich als CBR klassifiziert. Behebung: Flag sichern und nach dem memcpy wiederherstellen, oder nur die benötigten Felder kopieren.
+
+- [ ] **`CheckVBR`: Samples/Frame für MPEG-2/2.5 falsch** (`src/audio/Mp3.cpp:320-323`)
+  MPEG-2 und MPEG-2.5 Layer III haben 576 Samples pro Frame, nicht 1152. Für VBR-MP3s mit `version != 1` ist die berechnete Länge (`samples`, `mslength`, `length`) damit um Faktor 2 zu groß. Zudem ist der Ast `layer == 1 → 384` toter Code, da `FindNextHeader` Layer I grundsätzlich verwirft (`layer >= 2 && layer <= 3`).
   ```cpp
-  mpg->size = mpg->end - mpg->start + 1;
-  if (mpg->size > mpg->filesize) mpg->size = mpg->filesize;
+  int spf = (mpg->version == 1) ? 1152 : 576;
+  mpg->samples = frames * spf;
   ```
-  Liegt der von `FindNextHeader()` gefundene Sync sehr nah am Dateiende und wird danach zusätzlich ein (mutmaßliches) ID3v1-`"TAG"` erkannt, kann `mpg->end` unter `mpg->start` fallen. `mpg->end - mpg->start + 1` unterläuft dann (beide `uint64_t`) zu einer riesigen Zahl, die der nachfolgende Clamp zwar auf `mpg->filesize` begrenzt (kein Speicherfehler), das Ergebnis (`mpg->size == mpg->filesize`) ist dann aber inhaltlich falsch und propagiert in `mpg->frames`, `mpg->length`, `mpg->samples` etc. als stille Fehlinformation statt eines erkennbaren Fehlers.
-  Fix: Nach der Subtraktion explizit `if (mpg->end < mpg->start) { mpg->size = 0; ... }` statt sich auf den nachträglichen Clamp zu verlassen.
 
-## Design
+- [ ] **`FindNextHeader`: Off-by-one am Dateiende** (`src/audio/Mp3.cpp:192`)
+  `while (pos + p + 4 < filesize)` prüft einen Header exakt in den letzten 4 Bytes (`pos+p+4 == filesize`) nie. Zusätzlich verwirft `if (mapsize < 16) return -1;` (Zeile 180 und 253) jeden Header in den letzten 4–15 Bytes. Korrekt wäre `<= filesize` und eine Mindest-Mapsize von 4. Praktische Auswirkung gering, aber nicht korrekt.
 
-- [ ] **Inkonsistente Integer-Typen in `PPL_MPEG_HEADER`** (`mp3.h:39-64`)
-  `start`, `end`, `size`, `filesize`, `mslength`, `length`, `samples` sind `uint64_t`, aber `frames`, `framesize`, `bitrate` etc. sind `int`. Für sehr lange bzw. sehr große Audiodateien (z.B. mehrstündige Streaming-Mitschnitte im Multi-GB-Bereich mit kleiner Framegröße) kann `mpg->frames = mpg->size / mpg->framesize` (`Mp3.cpp:136`) den Wertebereich von `int` überschreiten und umschlagen. Passt zur allgemeinen Modernisierungs-Agenda aus `REFACTORING.md` – kein akuter Parsing-Bug bei normalen MP3-Dateien, aber ein Konsistenz-/Zukunftssicherheits-Punkt.
+- [ ] **ID3v2-Erkennung unvollständig** (`src/audio/Mp3.cpp:97-98`)
+  Die Bedingung prüft `buffer[3] < 0xff && buffer[4] < 0xff`, aber nicht, dass in Byte 3 die Versionsbits != 0 sind (reservierter Wert), und Byte 5 (Flags) fehlt ganz. Fehlalarme („ID3“ in Binärdaten, z. B. in eingebetteten Cover-Bildern) werden nicht sicher ausgeschlossen. Empfehlung: mindestens `(buffer[3] & 0xE0) != 0` ergänzen.
 
-- [ ] **`IdentMPEG()` akzeptiert MPEG Layer II, obwohl die Funktion "MP3" (=Layer III) heißt** (`Mp3.cpp:211`)
-  ```cpp
-  if (mpg->version > 0 && mpg->layer >= 2 && mpg->layer <= 3 && ...)
-  ```
-  `mpg->layer == 2` entspricht Layer II, nicht Layer III ("MP3"). Vermutlich historisch/bewusst so belassen (Kompatibilität zu älteren MPEG-Audio-Dateien), aber inkonsistent zum Funktionsnamen – falls beabsichtigt, wäre ein Kommentar hilfreich, falls nicht, sollte die Bedingung auf `mpg->layer == 3` verengt werden.
+## Code Smells & Modernisierung (C++20, REFACTORING.md)
 
-## Verifiziert OK (kein Handlungsbedarf)
+- [ ] **`setMapReadAhead(1 MB)` ohne Rücksetzung** (`src/audio/Mp3.cpp:288`)
+  `CheckVBR` verändert dauerhaften Zustand des übergebenen `FileObject` (1-MB-Read-Ahead bleibt danach aktiv). Vorher Wert sichern und am Ende wiederherstellen, oder Verhalten dokumentieren.
 
-- Tabellen-Indizierung in `FindNextHeader()` ist korrekt gegen Out-of-Bounds abgesichert: `mpg->bitrate_index` wird gegen `0` und `15` geprüft (gültiger Bereich 1-14, passt zur dritten Dimension von `MP3Bitrates[3][3][15]`), `mpg->frequency_index` gegen `3` geprüft (gültiger Bereich 0-2, passt zu `s_freq[3][4]`), `mpg->version` ist nach dem `MPEGVersion[]`-Lookup und der `version>0`-Prüfung auf 1-3 begrenzt (Index `version-1` ∈ {0,1,2}, passt zur ersten Dimension beider Tabellen).
-- `FindNextHeader()`s Scan-/Remap-Logik hält den Lesezugriff `buffer+p` korrekt innerhalb des zuletzt gemappten Bereichs (`mapsize`); der Remap erfolgt immer, bevor `p` über `mapsize-4` hinausläuft, kein Off-by-one beim Buffer-Wechsel.
-- `FindNextHeader()`/`CheckVBR()` terminieren immer nach endlich vielen Schritten, da jeder Fehlschlag von `FindNextHeader()` (Datei-Ende erreicht) mit `-1` sauber propagiert und die jeweilige `while`-Schleife verlässt – kein Endlosschleifen-Risiko wie im ID3Tag-Pendant (AIFF/WAVE-Chunk-Walk, siehe `id3tag-review.md`).
-- Big-Endian- (`PeekN32`, AIFF) vs. Little-Endian-Zugriffe (`Peek32`, WAVE/RIFF) sind konsistent zum jeweiligen Dateiformat gewählt (relevant für `ID3Tag.cpp`, aber mitgeprüft, da `Mp3.cpp`/`ID3Tag.cpp` denselben `FileObject`-Zugriffspfad nutzen).
-- Division durch `mpg->framesize`/`mpg->bitrate`/`mpg->frequency`/`frames` ist an allen Stellen durch vorherige `>0`-Prüfungen abgesichert (`Mp3.cpp:131-141`, `239-244`, `319-327`).
+- [ ] **Tote Zuweisung** (`src/audio/Mp3.cpp:315`)
+  `pos = 0;` direkt vor dem `if (mpg->vbr == true)`-Block wird nie gelesen. Entfernen.
+
+- [ ] **`memset` auf Struct → Wertinitialisierung** (`src/audio/Mp3.cpp:79`, `:163`, `:272`)
+  C++20-Idiom: `*mpg = {};` bzw. `m = {};` statt `memset`.
+
+- [ ] **Makros und nicht-constexpr Tabellen** (`src/audio/Mp3.cpp:43-49`, `:56`, `:60`, `:66`)
+  `#define MPG_MD_*` → `enum` oder `constexpr int`. `MPEGVersion`, `MP3Bitrates`, `s_freq` → `static constexpr` (liegt dann in `.rodata`, compileroptimierbar).
+
+- [ ] **C-Style-Cast** (`src/audio/Mp3.cpp:327`)
+  `(uint32_t)(avgbitrate / frames)` → `static_cast<int>(...)`; das Struct-Feld `bitrate` ist `int`.
+
+- [ ] **Operatorpräzedenz ohne Klammern** (`src/audio/Mp3.cpp:207`)
+  `MPEGVersion[(header[1] >> 3 & 0x3)]` funktioniert wegen `>>` vor `&`, ist aber leicht falsch zu lesen → `(header[1] >> 3) & 0x3`.
+
+- [ ] **VBR-Heuristik bricht nach 50 Frames ab** (`src/audio/Mp3.cpp:300`)
+  Beginnt eine VBR-Datei mit >50 Frames identischer Bitrate, wird sie als CBR klassifiziert. Bewusste Performance-Entscheidung — sollte zumindest als Kommentar/Doku festgehalten sein.
+
+## Dokumentation & Doxygen
+
+- [ ] **`IdentMPEG` und `GetMP3Frame` ohne Doxygen im Header** (`include/pplib/audio/mp3.h:67`, `:69`)
+  Beide öffentlichen Funktionen haben im Header keinerlei Doku → kein IntelliSense-Popup. Parameter, Rückgabewert, Exception-Verhalten (`map`-Exceptions) und die Vorbedingung von `GetMP3Frame` (`mpg.end`/`mpg.filesize` pflegen) dokumentieren.
+
+- [ ] **`!\ingroup PPLGroupSound` wirkt nicht** (`src/audio/Mp3.cpp:71-72`)
+  Der Doxygen-Kommentar steht *nach* der Signatur von `IdentMPEG` und wird nicht als Member-Doku erkannt. In den Header vor die Deklaration ziehen.
+
+- [ ] **Struct-Felder ohne Einheiten-Doku** (`include/pplib/audio/mp3.h:40-63`)
+  Nur `mslength`/`length` haben Zeilenkommentare. Einheiten sind essentiell: `bitrate` in kbit/s, `frequency` in Hz, `framesize` in Bytes, `version`-Werte (1=MPEG-1, 2=MPEG-2, 3=MPEG-2.5), `mode`/`mode_ext`-Bedeutung. Als `//!<`-Member-Doku nachtragen.
+
+## Befunde in Drittdateien
+
+- [ ] **`AudioInfo` fängt keine Exceptions von `IdentMPEG`** (`src/audio/AudioInfo.cpp:235`, `:258`)
+  `IdentAudioFile` ruft `IdentMPEG` ohne try/catch auf; der `OverflowException`-Pfad aus Befund 1 (Dateien < 1024 Bytes) schlägt bis zum Endanwender durch. Nach Fix in `IdentMPEG` erledigt sich das, defensiv wäre ein Catch trotzdem sinnvoll.
+
+- [ ] **`File::map`-Vertrag inkonsistent** (`src/core/File.cpp:750-770`)
+  Die Header-Doku (include/pplib/core/file.h:616) sagt „im Fehlerfall wird eine Exception geworfen“, tatsächlich liefert `map` bei `mysize == 0` aber `nullptr`. Aufrufer wie `IdentMPEG` werden dadurch zu Nullpointer-Checks verleitet; Vertrag vereinheitlichen (immer Exception, oder Doku anpassen).

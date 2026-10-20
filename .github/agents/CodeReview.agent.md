@@ -33,7 +33,7 @@ Verwende folgendes Schema, damit die Punkte direkt vom BugFixingAgent oder manue
 
 Review vom YYYY-MM-DD, Scope: `<Dateien>` (<Zeilenzahl>).
 Öffentliche API: `<Klassen/Funktionen>`
-Review done by: `<Name des Reviewers>`
+Review done by: `<Name des Reviewers oder Name des LLM>`
 
 ## Bugs (kritisch)
 - [ ] **<Titel>** (`<Datei>:<Zeile>`)
