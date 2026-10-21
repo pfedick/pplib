@@ -74,7 +74,7 @@ coverage:
 	ln -sf build/coverage/compile_commands.json compile_commands.json
 	cd tests && ../build/coverage/tests/test_all$(EXE)
 	mkdir -p coverage_html
-	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --xml-pretty -o coverage.xml --exclude 'tests/.*'
+	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --xml-pretty -o coverage.xml --exclude 'tests/.*' --exclude 'build/coverage/_deps'
 	@echo "Report: coverage_html/index.html"
 
 wip:
@@ -83,7 +83,7 @@ wip:
 	ln -sf build/coverage/compile_commands.json compile_commands.json
 	-cd tests && ../build/coverage/tests/test_all$(EXE) --gtest_filter=Mp3*
 	mkdir -p coverage_html
-	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --xml-pretty -o coverage.xml --exclude 'tests/.*'
+	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --xml-pretty -o coverage.xml --exclude 'tests/.*' --exclude 'build/coverage/_deps'
 
 clean:
 	-rm -rf build
