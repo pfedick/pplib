@@ -134,12 +134,12 @@ private:
     char* MapBase;
     uint64_t LastMapStart;
     uint64_t LastMapSize;
-    MapProtection LastMapProtection;
-    uint64_t ReadAhead;
     uint64_t mysize;
     uint64_t pos;
-    bool isPopen;
+    size_t ReadAhead;
     int exitCode;
+    MapProtection LastMapProtection;
+    bool isPopen;
 
     void munmap(void* addr, size_t len);
     void* mmap(uint64_t position, size_t size, MapProtection prot);
@@ -238,7 +238,7 @@ public:
      *
      * Schließt die Datei und gibt alle Ressourcen frei.
      */
-    virtual ~File();
+    ~File() override;
 
     /** @brief Datei öffnen
      *
@@ -320,20 +320,20 @@ public:
      *
      * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
      */
-    virtual void close();
+    void close() override;
 
     /** @brief Datei an den Anfang zurücksetzen
      *
      * Diese Funktion setzt den Dateizeiger auf den Anfang der Datei zurück.
      */
-    virtual void rewind();
+    void rewind() override;
 
     /** @brief Datei an eine bestimmte Position setzen
      *
      * Diese Funktion setzt den Dateizeiger auf die angegebene Position.
      * @param[in] position Die Position, auf die der Dateizeiger gesetzt werden soll.
      */
-    virtual void seek(uint64_t position);
+    void seek(uint64_t position) override;
 
     /** @brief Datei relativ zur aktuellen Position setzen
      *
@@ -342,28 +342,28 @@ public:
      * @param[in] origin Die Referenzposition für den Offset.
      * @return Die neue Position des Dateizeigers.
      */
-    virtual uint64_t seek(int64_t offset, SeekOrigin origin);
+    uint64_t seek(int64_t offset, SeekOrigin origin) override;
 
     /** @brief Aktuelle Position des Dateizeigers abfragen
      *
      * Diese Funktion gibt die aktuelle Position des Dateizeigers zurück.
      * @return Die aktuelle Position des Dateizeigers.
      */
-    virtual uint64_t tell();
+    uint64_t tell() override;
 
     /** @brief Größe der Datei abfragen
      *
      * Diese Funktion gibt die Größe der Datei zurück.
      * @return Die Größe der Datei in Bytes.
      */
-    virtual uint64_t size() const;
+    uint64_t size() const override;
 
     /** @brief Prüfen, ob die Datei geöffnet ist
      *
      * Diese Funktion prüft, ob die Datei aktuell geöffnet ist.
      * @return Liefert @c true zurück, wenn die Datei geöffnet ist, sonst @c false.
      */
-    virtual bool isOpen() const;
+    bool isOpen() const override;
 
     /** @brief Lesen eines Datenstroms
      *
@@ -382,7 +382,7 @@ public:
      * @exception EndOfFileException: Wird geworfen, wenn das Dateiende erreicht wurde
      * @exception IllegalArgumentException Wird geworfen, wenn ungültige Argumente an die Funktion übergeben werden.
      */
-    virtual size_t fread(void* ptr, size_t size, size_t nmemb);
+    size_t fread(void* ptr, size_t size, size_t nmemb) override;
 
     /** @brief Schreiben eines Datenstroms
      *
@@ -396,7 +396,7 @@ public:
      * @return %fwrite gibt die Anzahl der erfolgreich geschriebenen Elemente zurück
      * (nicht die Anzahl der Zeichen). Wenn ein Fehler auftritt, wird eine Exception geworfen.
      */
-    virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb);
+    size_t fwrite(const void* ptr, size_t size, size_t nmemb) override;
 
     /** @brief String lesen
      *
@@ -412,7 +412,7 @@ public:
      * @return Bei Erfolg wird @p buffer zurückgegeben, bei Dateiende wird NULL
      * zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
      */
-    virtual char* fgets(char* buffer, size_t num);
+    char* fgets(char* buffer, size_t num) override;
 
     /** @brief Wide-Character String lesen
      *
@@ -433,7 +433,7 @@ public:
      * verfügbar. In diesem Fall wird eine @exception UnimplementedVirtualFunctionException
      * geworfen.
      */
-    virtual wchar_t* fgetws(wchar_t* buffer, size_t num = 1024);
+    wchar_t* fgetws(wchar_t* buffer, size_t num = 1024) override;
 
     /** @brief String schreiben
      *
@@ -442,7 +442,7 @@ public:
      * @param str Pointer auf den zu schreibenden String
      * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      */
-    virtual void fputs(const char* str);
+    void fputs(const char* str) override;
 
     /** @brief Wide-Character String schreiben
      *
@@ -454,7 +454,7 @@ public:
      * @note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
      * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
      */
-    virtual void fputws(const wchar_t* str);
+    void fputws(const wchar_t* str) override;
 
     /** @brief Zeichen schreiben
      *
@@ -463,7 +463,7 @@ public:
      * @param c Zu schreibendes Zeichen
      * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      */
-    virtual void fputc(int c);
+    void fputc(int c) override;
 
     /** @brief Zeichen lesen
      *
@@ -472,7 +472,7 @@ public:
      * @return Bei Erfolg wird der Wert des gelesenen Zeichens zurückgegeben, im
      * Fehlerfall wird eine Exception geworfen.
      */
-    virtual int fgetc();
+    int fgetc() override;
 
     /** @brief Wide-Character Zeichen schreiben
      *
@@ -483,7 +483,7 @@ public:
      * @note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
      * verfügbar.
      */
-    virtual void fputwc(wchar_t c);
+    void fputwc(wchar_t c) override;
 
     /** @brief Wide-Character Zeichen lesen
      *
@@ -495,7 +495,7 @@ public:
      * @note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
      * verfügbar.
      */
-    virtual wchar_t fgetwc();
+    wchar_t fgetwc() override;
 
     /** @brief Prüfen, ob Dateiende erreicht ist
      *
@@ -503,7 +503,7 @@ public:
      * @return Liefert @c true zurück, wenn das Dateiende erreicht wurde, sonst @c false
      * Falls die Datei nicht geöffnet war, wird ebenfalls @c true zurückgegeben.
      */
-    virtual bool eof() const;
+    bool eof() const override;
 
     /** @brief Filenummer der Datei
      *
@@ -512,7 +512,7 @@ public:
      * @return Liefert die Filenummer zurück oder wirft eine Exception,
      * wenn die Datei nicht geöffnet war.
      */
-    virtual int getFileNo() const;
+    int getFileNo() const override;
 
     /** @brief Gepufferte Daten schreiben
      *
@@ -524,7 +524,7 @@ public:
      * die Funktion FileObject::sync verwenden.
      * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
      */
-    virtual void flush();
+    void flush() override;
 
     /** @brief Dateiänderungen sofort auf die Platte schreiben
      *
@@ -539,7 +539,7 @@ public:
      * Die Funktion kehrt erst zurück, wenn alle Daten vollständig geschrieben wurden und liefert dann true (1)
      * zurück. Können die Daten nicht geschrieben werden, wird eine Exception geworfen.
      */
-    virtual void sync();
+    void sync() override;
 
     /** @brief Datei abschneiden
      *
@@ -553,7 +553,7 @@ public:
      *
      * @param length Position, an der die Datei abgeschnitten werden soll.
      */
-    virtual void truncate(uint64_t length);
+    void truncate(uint64_t length) override;
 
     /** @brief Datei zum Lesen sperren
      *
@@ -565,7 +565,7 @@ public:
      *
      * @see Siehe auch File::LockExclusive und File::Unlock
      */
-    virtual void lockShared(bool block = true);
+    void lockShared(bool block = true) override;
 
     /** @brief Datei exklusiv sperren
      *
@@ -577,7 +577,7 @@ public:
      *
      * @see Siehe auch File::LockShared und File::Unlock
      */
-    virtual void lockExclusive(bool block = true);
+    void lockExclusive(bool block = true) override;
 
     /** @brief Dateisperre aufheben
      *
@@ -587,17 +587,39 @@ public:
      *
      * @see Siehe auch File::lockShared und File::lockExclusive
      */
-    virtual void unlock();
+    void unlock() override;
 
-    /** @brief Minimalgröße des Speicherblocks bei Zugriffen mit FileObject::Map
+    /** @brief Größe des Mapping-Fensters bei FileObject::map()
      *
-     * Falls mit Map viele aufeinanderfolgende kleine Speicherblöcke gemapped werden,
-     * ist es sinnvoll größere Blöcke zu laden, die dann bereits im Cache bzw. Hauptspeicher
-     * liegen, wenn sie gebraucht werden. Mit dieser Funktion kann bestimmt werden, wie
-     * viele Daten im Voraus gemapped werden sollen.
-     * @param bytes Anzahl Bytes, die im Voraus gemapped werden sollen.
+     * map() merkt sich das letzte Mapping. Liegt eine angeforderte Region ganz
+     * im letzten Fenster, entfaellt das munmap/mmap-Paar. ReadAhead vergroessert
+     * dieses Fenster und verhindert so bei sequentiellem Zugriff in kleinen
+     * Schritten einen Syscall-Paar pro Aufruf.
+     *
+     * mmap() lädt durch das groessere Fenster nichts im Voraus; es wird nur der
+     * Bereich ausgeweitet, den der Kernel bei sequentiellem Zugriff spekulativ
+     * vorladen darf. Echtes Prefetch erreicht man mit posix_fadvise(WILLNEED)
+     * oder madvise(MADV_WILLNEED), nicht mit dieser Einstellung.
+     *
+     * Default ist 0 (kein Aufschlag). Fuer einmalige Kleineinstiege (Header
+     * identifizieren) ist ein Aufschlag ein Nachteil: es wird mehr geladen,
+     * als benutzt wird.
+     * @param bytes Mindestgroesse des Mapping-Fensters in Bytes.
      */
-    virtual void setMapReadAhead(size_t bytes);
+    void setMapWindowSize(size_t bytes) noexcept override
+    {
+        ReadAhead = bytes;
+    }
+
+    /** @brief Größe des Mapping-Fensters abfragen
+     *
+     * Liefert die aktuelle Größe des Mapping-Fensters zurück, wie sie mit setMapWindowSize festgelegt wurde.
+     * @return Größe des Mapping-Fensters in Bytes.
+     */
+    size_t getMapWindowSize() const noexcept override
+    {
+        return ReadAhead;
+    }
 
     /** @brief Datei in den Speicher mappen
      *
@@ -607,23 +629,55 @@ public:
      *
      * Je nach Protection-Modus @p prot kann der gemappte Speicher nur gelesen oder auch beschrieben werden.
      *
+     * Der Rückgabewert ist im Erfolgsfall immer ein gültiger Pointer auf @p position. Ein nullptr
+     * wird niemals zurückgegeben; sämtliche Fehler werden als Exception gemeldet.
+     *
+     * @attention Es existiert genau ein Mapping pro Dateiobjekt. Jeder folgende Aufruf von
+     *            map() oder unmap() hebt ein bestehendes Mapping auf. Alle zuvor von map()
+     *            zurückgegebenen Pointer sind danach ungültig und dürfen nicht mehr gelesen
+     *            werden - ein Zugriff führt nicht zu einer Exception, sondern zu falschen Daten
+     *            oder zu einem Absturz.
+     * @attention Geschriebene Daten des Stdio-Puffers werden vor dem Mapping nicht automatisch
+     *            geschrieben. Bei Bedarf erst flush() aufrufen.
+     *
      * @param[in] position Die gewünschte Startposition innerhalb der Datei
-     * @param[in] size Die Anzahl Bytes, die gemapped werden sollen.
+     * @param[in] size Die Anzahl Bytes, die gemapped werden sollen. Muss größer 0 sein.
      * @param[in] prot Zugriffsmodus für das Mapping. Standardmäßig wird nur Lesezugriff gewährt.
-     * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück.
-     * Wird ein Bereich außerhalb der Datei verlangt (@p position oder @p size größer als die
-     * Dateigröße), wird eine OverflowException geworfen. Für eine leere Datei oder eine
-     * Mapping-Größe von 0 gibt die Funktion dagegen nullptr zurück; ein Aufrufer muss den
-     * Pointer also zusätzlich auf nullptr prüfen.
+     * @return Pointer auf den gemappten Speicherbereich, niemals nullptr.
+     * @exception pplib::FileNotOpenException Die Datei ist nicht geöffnet.
+     * @exception pplib::IllegalArgumentException @p size ist 0, oder @p prot ist MapProtection::NONE.
+     * @exception pplib::OutOfBoundsException @p position oder @p position+@p size liegen hinter dem Dateiende.
+     * @exception pplib::ReadOnlyException @p prot ist READWRITE, die Datei ist aber schreibgeschützt
+     *            (MemFile) bzw. pplib::PermissionDeniedException bei File.
+     * @exception pplib::OutOfMemoryException Das Betriebssystem konnte kein Mapping anlegen.
+     *
+     * @see Siehe auch FileObject::mapAtMost für das Einlesen von Dateiköpfen unbekannter Länge
      */
-    virtual char* map(uint64_t position, size_t size, MapProtection prot = MapProtection::READ);
+    char* map(uint64_t position, size_t size, MapProtection prot = MapProtection::READ) override;
+
+    /** @brief Datei in den Hauptspeicher mappen, maximal bis zu einer bestimmten Größe
+     *
+     * Diese Funktion versucht, einen Speicherbereich der Datei ab der angegebenen Position
+     * bis zu einer maximalen Größe zu mappen. Im Gegensatz zu map() wird hier nicht garantiert,
+     * dass die gesamte angeforderte Größe gemappt wird.
+     *
+     * @param[in] position Die gewünschte Startposition innerhalb der Datei
+     * @param[in] max_size Die maximale Anzahl Bytes, die gemapped werden sollen. Kann auch 0 sein.
+     * @param[in] prot Zugriffsmodus für das Mapping. Standardmäßig wird nur Lesezugriff gewährt.
+     * @return ByteArrayPtr auf den gemappten Speicherbereich, kann leer sein, wenn kein Mapping möglich ist.
+     * @exception pplib::FileNotOpenException Die Datei ist nicht geöffnet.
+     * @exception pplib::IllegalArgumentException @p prot ist MapProtection::NONE.
+     * @exception pplib::ReadOnlyException @p prot ist READWRITE, die Datei ist aber schreibgeschützt
+     *            (MemFile) bzw. pplib::PermissionDeniedException bei File.
+     */
+    ByteArrayPtr mapAtMost(uint64_t position, size_t max_size, MapProtection prot = MapProtection::READ) override;
 
     /** @brief Mapping aufheben
      *
-     * Ein mit map oder mapRW eingerichtetes Mapping einer Datei in den Hauptspeicher
+     * Ein mit map eingerichtetes Mapping einer Datei in den Hauptspeicher
      * wird wieder aufgehoben.
      */
-    virtual void unmap();
+    void unmap() override;
 
     using FileObject::load;
     using FileObject::map;

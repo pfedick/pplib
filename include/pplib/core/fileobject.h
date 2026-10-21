@@ -597,33 +597,86 @@ public:
      *
      * Je nach Protection-Modus @p prot kann der gemappte Speicher nur gelesen oder auch beschrieben werden.
      *
+     * Der Rückgabewert ist im Erfolgsfall immer ein gültiger Pointer auf @p position. Ein nullptr
+     * wird niemals zurückgegeben; sämtliche Fehler werden als Exception gemeldet.
+     *
+     * @attention Es existiert genau ein Mapping pro Dateiobjekt. Jeder folgende Aufruf von
+     *            map() oder unmap() hebt ein bestehendes Mapping auf. Alle zuvor von map()
+     *            zurückgegebenen Pointer sind danach ungültig und dürfen nicht mehr gelesen
+     *            werden - ein Zugriff führt nicht zu einer Exception, sondern zu falschen Daten
+     *            oder zu einem Absturz.
+     * @attention Geschriebene Daten des Stdio-Puffers werden vor dem Mapping nicht automatisch
+     *            geschrieben. Bei Bedarf erst flush() aufrufen.
+     *
      * @param[in] position Die gewünschte Startposition innerhalb der Datei
-     * @param[in] size Die Anzahl Bytes, die gemapped werden sollen.
+     * @param[in] size Die Anzahl Bytes, die gemapped werden sollen. Muss größer 0 sein.
      * @param[in] prot Zugriffsmodus für das Mapping. Standardmäßig wird nur Lesezugriff gewährt.
-     * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück.
-     * Wird ein Bereich außerhalb der Datei verlangt (@p position oder @p size größer als die
-     * Dateigröße), wird eine OverflowException geworfen. Für eine leere Datei oder eine
-     * Mapping-Größe von 0 gibt die Funktion dagegen nullptr zurück; ein Aufrufer muss den
-     * Pointer also zusätzlich auf nullptr prüfen.
+     * @return Pointer auf den gemappten Speicherbereich, niemals nullptr.
+     * @exception pplib::FileNotOpenException Die Datei ist nicht geöffnet.
+     * @exception pplib::IllegalArgumentException @p size ist 0, oder @p prot ist MapProtection::NONE.
+     * @exception pplib::OutOfBoundsException @p position oder @p position+@p size liegen hinter dem Dateiende.
+     * @exception pplib::ReadOnlyException @p prot ist READWRITE, die Datei ist aber schreibgeschützt
+     *            (MemFile) bzw. pplib::PermissionDeniedException bei File.
+     * @exception pplib::OutOfMemoryException Das Betriebssystem konnte kein Mapping anlegen.
+     *
+     * @see Siehe auch FileObject::mapAtMost für das Einlesen von Dateiköpfen unbekannter Länge
      */
     virtual char* map(uint64_t position, size_t size, MapProtection prot = MapProtection::READ);
 
+    /** @brief Datei in den Hauptspeicher mappen, maximal bis zu einer bestimmten Größe
+     *
+     * Diese Funktion versucht, einen Speicherbereich der Datei ab der angegebenen Position
+     * bis zu einer maximalen Größe zu mappen. Im Gegensatz zu map() wird hier nicht garantiert,
+     * dass die gesamte angeforderte Größe gemappt wird.
+     *
+     * @param[in] position Die gewünschte Startposition innerhalb der Datei
+     * @param[in] max_size Die maximale Anzahl Bytes, die gemapped werden sollen. Kann auch 0 sein.
+     * @param[in] prot Zugriffsmodus für das Mapping. Standardmäßig wird nur Lesezugriff gewährt.
+     * @return ByteArrayPtr auf den gemappten Speicherbereich, kann leer sein, wenn kein Mapping möglich ist.
+     * @exception pplib::FileNotOpenException Die Datei ist nicht geöffnet.
+     * @exception pplib::IllegalArgumentException @p prot ist MapProtection::NONE.
+     * @exception pplib::ReadOnlyException @p prot ist READWRITE, die Datei ist aber schreibgeschützt
+     *            (MemFile) bzw. pplib::PermissionDeniedException bei File.
+     */
+    virtual ByteArrayPtr mapAtMost(uint64_t position, size_t size, MapProtection prot = MapProtection::READ);
+
     /** @brief Mapping aufheben
      *
-     * Ein mit map oder mapRW eingerichtetes Mapping einer Datei in den Hauptspeicher
+     * Ein mit map eingerichtetes Mapping einer Datei in den Hauptspeicher
      * wird wieder aufgehoben.
      */
     virtual void unmap();
 
-    /** @brief Minimalgröße des Speicherblocks bei Zugriffen mit FileObject::Map
+    /** @brief Größe des Mapping-Fensters bei FileObject::map()
      *
-     * Falls mit Map viele aufeinanderfolgende kleine Speicherblöcke gemapped werden,
-     * ist es sinnvoll größere Blöcke zu laden, die dann bereits im Cache bzw. Hauptspeicher
-     * liegen, wenn sie gebraucht werden. Mit dieser Funktion kann bestimmt werden, wie
-     * viele Daten im Voraus gemapped werden sollen.
-     * @param bytes Anzahl Bytes, die im Voraus gemapped werden sollen.
+     * map() merkt sich das letzte Mapping. Liegt eine angeforderte Region ganz
+     * im letzten Fenster, entfaellt das munmap/mmap-Paar. ReadAhead vergroessert
+     * dieses Fenster und verhindert so bei sequentiellem Zugriff in kleinen
+     * Schritten einen Syscall-Paar pro Aufruf.
+     *
+     * mmap() lädt durch das groessere Fenster nichts im Voraus; es wird nur der
+     * Bereich ausgeweitet, den der Kernel bei sequentiellem Zugriff spekulativ
+     * vorladen darf. Echtes Prefetch erreicht man mit posix_fadvise(WILLNEED)
+     * oder madvise(MADV_WILLNEED), nicht mit dieser Einstellung.
+     *
+     * Default ist 0 (kein Aufschlag). Fuer einmalige Kleineinstiege (Header
+     * identifizieren) ist ein Aufschlag ein Nachteil: es wird mehr geladen,
+     * als benutzt wird.
+     * @param bytes Mindestgroesse des Mapping-Fensters in Bytes.
      */
-    virtual void setMapReadAhead(size_t bytes);
+    virtual void setMapWindowSize(size_t bytes) noexcept
+    {
+    }
+
+    /** @brief Größe des Mapping-Fensters abfragen
+     *
+     * Liefert die aktuelle Größe des Mapping-Fensters zurück, wie sie mit setMapWindowSize festgelegt wurde.
+     * @return Größe des Mapping-Fensters in Bytes.
+     */
+    virtual size_t getMapWindowSize() const noexcept
+    {
+        return 0;
+    }
 
     /** @brief Filenummer der Datei
      *

@@ -74,10 +74,14 @@ size_t refSamplesPerFrame(int mpegVersion)
 int versionBits(int mpegVersion)
 {
     switch (mpegVersion) {
-        case 3: return 0;
-        case 2: return 2;
-        case 1: return 3;
-        default: return 1; // reserviert
+    case 3:
+        return 0;
+    case 2:
+        return 2;
+    case 1:
+        return 3;
+    default:
+        return 1; // reserviert
     }
 }
 
@@ -102,15 +106,19 @@ int bitrateIndex(const FrameParams& p)
 int frequencyBits(const FrameParams& p)
 {
     switch (p.frequency) {
-        case 44100:
-        case 22050:
-        case 11025: return 0;
-        case 48000:
-        case 24000:
-        case 8000: return 1;
-        case 32000:
-        case 16000: return 2;
-        default: return 3; // reserviert
+    case 44100:
+    case 22050:
+    case 11025:
+        return 0;
+    case 48000:
+    case 24000:
+    case 8000:
+        return 1;
+    case 32000:
+    case 16000:
+        return 2;
+    default:
+        return 3; // reserviert
     }
 }
 
@@ -166,25 +174,13 @@ FrameParams mpeg25Frame()
     return FrameParams{3, 3, 8, 8000, 0};
 }
 
-//!\brief FileObject, dessen setMapReadAhead() eine Exception wirft
-/*! IdentMPEG() muss damit umgehen koennen, weil nicht jede FileObject-
- *  Subklasse Read-Ahead unterstuetzt. */
-class NoReadAheadMemFile : public pplib::MemFile
-{
-public:
-    void setMapReadAhead(size_t) override
-    {
-        throw pplib::UnimplementedVirtualFunctionException("no read ahead");
-    }
-};
-
-//!rief FileObject, dessen map() eine Exception wirft
+//! @brief FileObject, dessen map() eine Exception wirft
 class ThrowingMapMemFile : public pplib::MemFile
 {
 public:
     char* map(uint64_t, size_t, pplib::FileObject::MapProtection) override
     {
-        throw pplib::OverflowException("mappen fehlgeschlagen");
+        throw pplib::OutOfBoundsException("mappen fehlgeschlagen");
     }
 };
 
@@ -284,19 +280,16 @@ TEST_P(Mp3IdentMpegRealFile, IdentMpegFillsHeader)
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    Mp3Testdata, Mp3IdentMpegRealFile,
+    Mp3Testdata,
+    Mp3IdentMpegRealFile,
     ::testing::Values(
         // datei, start, end, size, filesize, ver, layer, bitrate, freq, framesize, frames, vbr, samples, ms
-        RealFileCase{"testdata/audio/test_192cbr.mp3", 0, 95919, 95920, 95920, 1, 3, 192, 44100, 626, 153, false,
+        RealFileCase{"testdata/audio/test_192cbr.mp3", 0, 95919, 95920, 95920, 1, 3, 192, 44100, 626, 153, false, 176223, 3996},
+        RealFileCase{"testdata/audio/test_192cbr_tagged.mp3", 1024, 96943, 95920, 97072, 1, 3, 192, 44100, 626, 153, false, 176223, 3996},
+        RealFileCase{"testdata/audio/test_192cbr_taggedWithCover.mp3", 29025, 124944, 95920, 125073, 1, 3, 192, 44100, 626, 153, false,
                      176223, 3996},
-        RealFileCase{"testdata/audio/test_192cbr_tagged.mp3", 1024, 96943, 95920, 97072, 1, 3, 192, 44100, 626, 153,
-                     false, 176223, 3996},
-        RealFileCase{"testdata/audio/test_192cbr_taggedWithCover.mp3", 29025, 124944, 95920, 125073, 1, 3, 192, 44100,
-                     626, 153, false, 176223, 3996},
-        RealFileCase{"testdata/audio/test_192vbr.mp3", 0, 87900, 87901, 87901, 1, 3, 176, 44100, 417, 153, true,
-                     176256, 3996},
-        RealFileCase{"testdata/audio/test_320cbr.mp3", 0, 159867, 159868, 159868, 1, 3, 320, 44100, 1044, 153, false,
-                     176223, 3996}));
+        RealFileCase{"testdata/audio/test_192vbr.mp3", 0, 87900, 87901, 87901, 1, 3, 176, 44100, 417, 153, true, 176256, 3996},
+        RealFileCase{"testdata/audio/test_320cbr.mp3", 0, 159867, 159868, 159868, 1, 3, 320, 44100, 1044, 153, false, 176223, 3996}));
 
 // --------------------------------------------------------------------------------------
 // IdentMPEG() lehnt Nicht-MP3-Daten ab, ohne Exceptions zu werfen
@@ -388,21 +381,6 @@ TEST_F(Mp3FunctionsTest, IdentMpegIsRepeatable)
     EXPECT_EQ(first.frames, second.frames);
 }
 
-TEST_F(Mp3FunctionsTest, IdentMpegToleratesUnsupportedReadAhead)
-{
-    pplib::ByteArray data;
-    for (int i = 0; i < 5; i++) {
-        appendFrame(data, FrameParams{1, 3, 192, 44100, 0});
-    }
-    NoReadAheadMemFile mf;
-    mf.open(data.ptr(), data.size(), false);
-    PPL_MPEG_HEADER mpg;
-    ASSERT_NO_THROW({ ASSERT_TRUE(pplib::IdentMPEG(mf, &mpg)); });
-    EXPECT_EQ(0u, mpg.start);
-    EXPECT_EQ(5, mpg.frames);
-    mf.close();
-}
-
 // --------------------------------------------------------------------------------------
 // IdentMPEG(): ID3v2-Tag vor den Audiodaten
 // --------------------------------------------------------------------------------------
@@ -442,27 +420,27 @@ TEST_P(Mp3IdentMpegId3v2, TagSizeAcceptedOrRejected)
     EXPECT_EQ(c.expectedStart, mpg.start);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    Mp3Id3v2, Mp3IdentMpegId3v2,
-    ::testing::Values(
-        // gueltiger ID3v2.3-Tag, Groesse synchsafe (636 = 0x27C -> 0x04<<7|0x7C)
-        Id3v2Case{3, 0x00, {0x00, 0x00, 0x04, 0x7C}, 636, 646},
-        // ID3v2.4 mit Extended-Header-Flag (Bit 6)
-        Id3v2Case{4, 0x40, {0x00, 0x00, 0x04, 0x7C}, 636, 646},
-        // ID3v2.3 mit gesetztem Reserve-Bit in Byte 5 (vom Reader der Bibliothek akzeptiert)
-        Id3v2Case{3, 0x00, {0x00, 0x00, 0x04, 0x7C}, 636, 646},
-        // ID3v2.2: Groesse in 3 Byte, Byte 9 wird ignoriert
-        Id3v2Case{2, 0x00, {0x00, 0x02, 0x7C, 0xFF}, 636, 646},
-        // Version 5 ist ungueltig -> Frame im Tag-Body wird gefunden
-        Id3v2Case{5, 0x00, {0x00, 0x00, 0x04, 0x7C}, 636, 10},
-        // unsaubere synchsafe-Codierung (Byte >= 0x80)
-        Id3v2Case{3, 0x00, {0x00, 0x00, 0x84, 0x7C}, 636, 10},
-        // Flag-Bit 0x10 ist in ID3v2.4 nicht definiert
-        Id3v2Case{4, 0x10, {0x00, 0x00, 0x04, 0x7C}, 636, 10},
-        // ID3v2.2 kennt keine Flag-Bits
-        Id3v2Case{2, 0x80, {0x00, 0x02, 0x7C, 0xFF}, 636, 10},
-        // deklarierte Tag-Groesse liegt hinter dem Dateiende
-        Id3v2Case{3, 0x00, {0x7F, 0x7F, 0x7F, 0x7F}, 636, 10}));
+INSTANTIATE_TEST_SUITE_P(Mp3Id3v2,
+                         Mp3IdentMpegId3v2,
+                         ::testing::Values(
+                             // gueltiger ID3v2.3-Tag, Groesse synchsafe (636 = 0x27C -> 0x04<<7|0x7C)
+                             Id3v2Case{3, 0x00, {0x00, 0x00, 0x04, 0x7C}, 636, 646},
+                             // ID3v2.4 mit Extended-Header-Flag (Bit 6)
+                             Id3v2Case{4, 0x40, {0x00, 0x00, 0x04, 0x7C}, 636, 646},
+                             // ID3v2.3 mit gesetztem Reserve-Bit in Byte 5 (vom Reader der Bibliothek akzeptiert)
+                             Id3v2Case{3, 0x00, {0x00, 0x00, 0x04, 0x7C}, 636, 646},
+                             // ID3v2.2: Groesse in 3 Byte, Byte 9 wird ignoriert
+                             Id3v2Case{2, 0x00, {0x00, 0x02, 0x7C, 0xFF}, 636, 646},
+                             // Version 5 ist ungueltig -> Frame im Tag-Body wird gefunden
+                             Id3v2Case{5, 0x00, {0x00, 0x00, 0x04, 0x7C}, 636, 10},
+                             // unsaubere synchsafe-Codierung (Byte >= 0x80)
+                             Id3v2Case{3, 0x00, {0x00, 0x00, 0x84, 0x7C}, 636, 10},
+                             // Flag-Bit 0x10 ist in ID3v2.4 nicht definiert
+                             Id3v2Case{4, 0x10, {0x00, 0x00, 0x04, 0x7C}, 636, 10},
+                             // ID3v2.2 kennt keine Flag-Bits
+                             Id3v2Case{2, 0x80, {0x00, 0x02, 0x7C, 0xFF}, 636, 10},
+                             // deklarierte Tag-Groesse liegt hinter dem Dateiende
+                             Id3v2Case{3, 0x00, {0x7F, 0x7F, 0x7F, 0x7F}, 636, 10}));
 
 // --------------------------------------------------------------------------------------
 // IdentMPEG(): ID3v1-Tag am Dateiende
@@ -535,13 +513,16 @@ TEST_P(Mp3IdentMpegFrameSize, FrameSizeMatchesStandard)
     EXPECT_EQ((size_t)4 * (size_t)c.expectedFrameSize, mpg.size);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    Mp3FrameSize, Mp3IdentMpegFrameSize,
-    ::testing::Values(FrameSizeCase{{1, 3, 192, 44100, 0}, 626}, FrameSizeCase{{1, 3, 192, 44100, 1}, 627},
-                      FrameSizeCase{{1, 3, 128, 44100, 0}, 417}, FrameSizeCase{{1, 3, 128, 44100, 1}, 418},
-                      FrameSizeCase{{2, 3, 32, 22050, 0}, 208}, FrameSizeCase{{2, 3, 40, 22050, 1}, 262},
-                      FrameSizeCase{{1, 2, 192, 44100, 0}, 626},
-                      FrameSizeCase{{2, 2, 128, 22050, 1}, 836}));
+INSTANTIATE_TEST_SUITE_P(Mp3FrameSize,
+                         Mp3IdentMpegFrameSize,
+                         ::testing::Values(FrameSizeCase{{1, 3, 192, 44100, 0}, 626},
+                                           FrameSizeCase{{1, 3, 192, 44100, 1}, 627},
+                                           FrameSizeCase{{1, 3, 128, 44100, 0}, 417},
+                                           FrameSizeCase{{1, 3, 128, 44100, 1}, 418},
+                                           FrameSizeCase{{2, 3, 32, 22050, 0}, 208},
+                                           FrameSizeCase{{2, 3, 40, 22050, 1}, 262},
+                                           FrameSizeCase{{1, 2, 192, 44100, 0}, 626},
+                                           FrameSizeCase{{2, 2, 128, 22050, 1}, 836}));
 
 // --------------------------------------------------------------------------------------
 // IdentMPEG(): ungueltige Header-Felder werden verworfen
@@ -563,16 +544,15 @@ TEST_P(Mp3IdentMpegInvalidHeader, InvalidHeaderIsNotMp3)
     mf.close();
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    Mp3Invalid, Mp3IdentMpegInvalidHeader,
-    ::testing::Values(
-        std::array<uint8_t, 4>{0xFF, 0xFB, 0x00, 0xC0}, // Bitrate-Index 0
-        std::array<uint8_t, 4>{0xFF, 0xFB, 0xF0, 0xC0}, // Bitrate-Index 15
-        std::array<uint8_t, 4>{0xFF, 0xFB, 0xBC, 0xC0}, // Frequenz-Index 3 (reserviert)
-        std::array<uint8_t, 4>{0xFF, 0xF9, 0xB0, 0xC0}, // reservierte Versionskennung
-        std::array<uint8_t, 4>{0xFF, 0xF8, 0xB0, 0xC0}, // Layer-Kennung 0 (reserviert)
-        std::array<uint8_t, 4>{0xFF, 0x1F, 0xB0, 0xC0}  // unvollstaendiges Sync-Wort
-        ));
+INSTANTIATE_TEST_SUITE_P(Mp3Invalid,
+                         Mp3IdentMpegInvalidHeader,
+                         ::testing::Values(std::array<uint8_t, 4>{0xFF, 0xFB, 0x00, 0xC0}, // Bitrate-Index 0
+                                           std::array<uint8_t, 4>{0xFF, 0xFB, 0xF0, 0xC0}, // Bitrate-Index 15
+                                           std::array<uint8_t, 4>{0xFF, 0xFB, 0xBC, 0xC0}, // Frequenz-Index 3 (reserviert)
+                                           std::array<uint8_t, 4>{0xFF, 0xF9, 0xB0, 0xC0}, // reservierte Versionskennung
+                                           std::array<uint8_t, 4>{0xFF, 0xF8, 0xB0, 0xC0}, // Layer-Kennung 0 (reserviert)
+                                           std::array<uint8_t, 4>{0xFF, 0x1F, 0xB0, 0xC0}  // unvollstaendiges Sync-Wort
+                                           ));
 
 TEST_F(Mp3FunctionsTest, IdentMpegFindsHeaderAtEndOfFile)
 {
@@ -665,13 +645,13 @@ TEST_P(Mp3CheckVbr, VbrDetectionAndSampleCount)
     EXPECT_EQ((c.bitrateA + c.bitrateB) / 2, mpg.bitrate);
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    Mp3Vbr, Mp3CheckVbr,
-    ::testing::Values(VbrCase{1, 128, 192, 44100, 6, true},   // MPEG-1, 1152 Samples/Frame
-                      VbrCase{2, 32, 40, 22050, 6, true},     // MPEG-2, 576 Samples/Frame
-                      VbrCase{3, 8, 16, 8000, 6, true},       // MPEG-2.5, 576 Samples/Frame
-                      VbrCase{1, 192, 192, 44100, 6, false},  // konstante Bitrate
-                      VbrCase{2, 40, 40, 22050, 60, false})); // lange CBR-Datei (Suchabbruch)
+INSTANTIATE_TEST_SUITE_P(Mp3Vbr,
+                         Mp3CheckVbr,
+                         ::testing::Values(VbrCase{1, 128, 192, 44100, 6, true},   // MPEG-1, 1152 Samples/Frame
+                                           VbrCase{2, 32, 40, 22050, 6, true},     // MPEG-2, 576 Samples/Frame
+                                           VbrCase{3, 8, 16, 8000, 6, true},       // MPEG-2.5, 576 Samples/Frame
+                                           VbrCase{1, 192, 192, 44100, 6, false},  // konstante Bitrate
+                                           VbrCase{2, 40, 40, 22050, 60, false})); // lange CBR-Datei (Suchabbruch)
 
 // --------------------------------------------------------------------------------------
 // GetMP3Frame()
@@ -710,11 +690,13 @@ TEST_P(Mp3GetFrameRealFile, IteratesAllFramesOfAudioData)
     EXPECT_EQ(audioSize, total) << "Die Frames decken nicht exakt die Audiodaten ab";
 }
 
-INSTANTIATE_TEST_SUITE_P(
-    Mp3RealFrames, Mp3GetFrameRealFile,
-    ::testing::Values("testdata/audio/test_192cbr.mp3", "testdata/audio/test_192cbr_tagged.mp3",
-                      "testdata/audio/test_192cbr_taggedWithCover.mp3", "testdata/audio/test_192vbr.mp3",
-                      "testdata/audio/test_320cbr.mp3"));
+INSTANTIATE_TEST_SUITE_P(Mp3RealFrames,
+                         Mp3GetFrameRealFile,
+                         ::testing::Values("testdata/audio/test_192cbr.mp3",
+                                           "testdata/audio/test_192cbr_tagged.mp3",
+                                           "testdata/audio/test_192cbr_taggedWithCover.mp3",
+                                           "testdata/audio/test_192vbr.mp3",
+                                           "testdata/audio/test_320cbr.mp3"));
 
 TEST_F(Mp3FunctionsTest, GetFrameSkipsGarbageBeforeFrame)
 {
@@ -833,7 +815,6 @@ TEST_F(Mp3FunctionsTest, GetFrameAtEndOfAudioDataYieldsNothing)
     EXPECT_EQ(mpg.end - 1, mf.tell());
     mf.close();
 }
-
 
 TEST_F(Mp3FunctionsTest, IdentMpegSurvivesFailingMap)
 {

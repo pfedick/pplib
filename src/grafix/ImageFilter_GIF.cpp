@@ -414,7 +414,6 @@ bool ImageFilter_GIF::ident(FileObject& file, IMAGE& img) noexcept
         const char* address = file.map(0, 256);
         const char* lsdb;
         char b;
-        if (address == NULL) return 0;
 
         if (strncmp(address, "GIF", 3) != 0) { // GIF ?
             return 0;

@@ -44,8 +44,8 @@
 #include <cinttypes>
 #define MP3DEBUG_PRINT(...) printf(__VA_ARGS__)
 #else
-#define MP3DEBUG_PRINT(...) \
-    do {                    \
+#define MP3DEBUG_PRINT(...)                                                                                                                \
+    do {                                                                                                                                   \
     } while (0)
 #endif
 
@@ -85,8 +85,7 @@ constexpr std::array<std::array<std::array<int, 15>, 3>, 3> MP3Bitrates{
        {0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160}}}}};
 
 // Abtastraten in Hz, indexiert als [version - 1][frequency_index]
-constexpr std::array<std::array<int, 4>, 3> MPEGFrequencies{
-    {{44100, 48000, 32000, 0}, {22050, 24000, 16000, 0}, {11025, 8000, 8000, 0}}};
+constexpr std::array<std::array<int, 4>, 3> MPEGFrequencies{{{44100, 48000, 32000, 0}, {22050, 24000, 16000, 0}, {11025, 8000, 8000, 0}}};
 
 //!\brief Samples pro Frame. Layer I (384) wird von FindNextHeader nicht erkannt.
 constexpr int samplesPerFrame(int version)
@@ -195,10 +194,10 @@ bool IdentMPEG(FileObject& file, PPL_MPEG_HEADER* mpg)
 
     CheckVBR(file, mpg);
 
-    MP3DEBUG_PRINT("   MPEG-Kennung bei %" PRIu64 ": MPEG %d, Layer %d, %" PRId32 " kbit/s, %d Hz\n", mpg->start, mpg->version,
-                   mpg->layer, mpg->bitrate, mpg->frequency);
-    MP3DEBUG_PRINT("   Framesize %d, Frames %" PRId32 ", %" PRIu64 " ms, %" PRIu64 " Samples, vbr=%d\n", mpg->framesize,
-                   mpg->frames, mpg->mslength, mpg->samples, mpg->vbr ? 1 : 0);
+    MP3DEBUG_PRINT("   MPEG-Kennung bei %" PRIu64 ": MPEG %d, Layer %d, %" PRId32 " kbit/s, %d Hz\n", mpg->start, mpg->version, mpg->layer,
+                   mpg->bitrate, mpg->frequency);
+    MP3DEBUG_PRINT("   Framesize %d, Frames %" PRId32 ", %" PRIu64 " ms, %" PRIu64 " Samples, vbr=%d\n", mpg->framesize, mpg->frames,
+                   mpg->mslength, mpg->samples, mpg->vbr ? 1 : 0);
     return true;
 }
 
@@ -285,8 +284,7 @@ static int64_t FindNextHeader(FileObject& file, int64_t pos, PPL_MPEG_HEADER* mp
             h.bitrate_index = (header[2] >> 4) & 0x0F;
             h.frequency_index = (header[2] >> 2) & 0x3;
             // 0 und 15 sind als Bitrate-Index nicht erlaubt, 3 als Frequenz-Index nicht erlaubt
-            if (h.version == 0 || h.layer < 2 || h.layer > 3 || h.bitrate_index == 0 || h.bitrate_index == 15 ||
-                h.frequency_index == 3)
+            if (h.version == 0 || h.layer < 2 || h.layer > 3 || h.bitrate_index == 0 || h.bitrate_index == 15 || h.frequency_index == 3)
                 continue;
 
             h.start = searchpos + p;
@@ -321,6 +319,21 @@ static int64_t FindNextHeader(FileObject& file, int64_t pos, PPL_MPEG_HEADER* mp
     return -1;
 }
 
+struct WindowGuard
+{
+    FileObject& f;
+    size_t old;
+    WindowGuard(FileObject& f)
+        : f(f),
+          old(f.getMapWindowSize())
+    {
+    }
+    ~WindowGuard()
+    {
+        f.setMapWindowSize(old);
+    }
+};
+
 /** @brief Prüfen, ob die Datei eine variable Bitrate besitzt
  *
  * Dazu werden die Bitraten der folgenden Frames verglichen. Bei langen Dateien
@@ -339,12 +352,8 @@ static void CheckVBR(FileObject& file, PPL_MPEG_HEADER* mpg)
     int lastbitrate = mpg->bitrate;
     mpg->vbr = false;
 
-    try {
-        file.setMapReadAhead(1024 * 1024); // 1 MB Read-Cache
-    }
-    catch (const UnimplementedVirtualFunctionException&) {
-        // Nicht alle FileObject-Subklassen unterstuetzen Read-Ahead
-    }
+    WindowGuard guard(file); // Sorgt dafür, dass die ursprüngliche Map-Window-Größe wiederhergestellt wird, wenn der Guard zerstört wird.
+    file.setMapWindowSize(1024 * 1024); // 1 MB Read-Cache, wirft nie eine Exception
 
     int64_t pos = FindNextHeader(file, (int64_t)mpg->start, &m);
     if (pos < 0) return;

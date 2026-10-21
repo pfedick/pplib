@@ -105,7 +105,13 @@ init_source(j_decompress_ptr cinfo)
     SOURCE_MGR* src = (SOURCE_MGR*)cinfo->src;
     FileObject* file = src->file;
     nbytes = PREREAD;
-    src->pub.next_input_byte = (uint8_t*)file->map(0, PREREAD);
+    if (file->size() == 0) {
+        ERREXIT(cinfo, JERR_INPUT_EMPTY);
+        src->pub.next_input_byte = (uint8_t*)EOI_Marker;
+        nbytes = 2;
+    } else {
+        src->pub.next_input_byte = (uint8_t*)file->map(0, PREREAD);
+    }
     if (!src->pub.next_input_byte) {
         ERREXIT(cinfo, JERR_INPUT_EMPTY);
         src->pub.next_input_byte = (uint8_t*)EOI_Marker;
@@ -130,7 +136,13 @@ fill_input_buffer(j_decompress_ptr cinfo)
         if (nbytes > READBUFFER) nbytes = READBUFFER;
     }
 
-    src->pub.next_input_byte = (uint8_t*)file->map(src->pos, nbytes);
+    if (nbytes == 0) {
+        ERREXIT(cinfo, JERR_INPUT_EMPTY);
+        src->pub.next_input_byte = (uint8_t*)EOI_Marker;
+        nbytes = 2;
+    } else {
+        src->pub.next_input_byte = (uint8_t*)file->map(src->pos, nbytes);
+    }
     if (!src->pub.next_input_byte) {
         ERREXIT(cinfo, JERR_INPUT_EMPTY);
         src->pub.next_input_byte = (uint8_t*)EOI_Marker;
@@ -337,9 +349,6 @@ bool ImageFilter_JPEG::ident(FileObject& file, IMAGE& img) noexcept
     try {
         bool ret = false;
         const char* address = file.map(0, 256);
-        if (address == NULL) {
-            return false;
-        }
 
         if (Peek8(address) != 0xff || Peek8(address + 1) != 0xd8 || Peek8(address + 2) != 0xff) {
             return false;

@@ -187,9 +187,9 @@ TEST_F(MemFileTest, MapAndMapRW)
     ASSERT_EQ('0', *ptr);
 
     // Out of bounds map
-    ASSERT_THROW(f.map(5, 6), pplib::OverflowException);
-    ASSERT_THROW(f.map(11, 1), pplib::OverflowException);
-    ASSERT_THROW(f.map(UINT64_MAX - 5, 10), pplib::OverflowException);
+    ASSERT_THROW(f.map(5, 6), pplib::OutOfBoundsException);
+    ASSERT_THROW(f.map(11, 1), pplib::OutOfBoundsException);
+    ASSERT_THROW(f.map(UINT64_MAX - 5, 10), pplib::OutOfBoundsException);
 
     // mapRW on read-only throws ReadOnlyException
     ASSERT_THROW(f.map(0, 5, pplib::FileObject::MapProtection::READWRITE), pplib::ReadOnlyException);
@@ -505,7 +505,7 @@ TEST_F(MemFileTest, UnsupportedAndNoOpOperations)
     EXPECT_NO_THROW(f.unmap());
     EXPECT_NO_THROW(f.flush());
     EXPECT_NO_THROW(f.sync());
-    EXPECT_NO_THROW(f.setMapReadAhead(4096));
+    EXPECT_NO_THROW(f.setMapWindowSize(4096));
 }
 
 TEST_F(MemFileTest, ReadOnlyEnforcement)

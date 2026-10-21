@@ -551,9 +551,21 @@ TEST_F(FileObjectTest, DefaultVirtualFunctionsThrow)
     EXPECT_THROW(fo.lockShared(), pplib::UnimplementedVirtualFunctionException);
     EXPECT_THROW(fo.lockExclusive(), pplib::UnimplementedVirtualFunctionException);
     EXPECT_THROW(fo.unlock(), pplib::UnimplementedVirtualFunctionException);
-    EXPECT_THROW(fo.setMapReadAhead(0), pplib::UnimplementedVirtualFunctionException);
     EXPECT_THROW(fo.map(0, 0), pplib::UnimplementedVirtualFunctionException);
     EXPECT_THROW(fo.unmap(), pplib::UnimplementedVirtualFunctionException);
+}
+
+TEST_F(FileObjectTest, setMapWindowSizeDoesNotThrow)
+{
+    pplib::FileObject fo;
+    EXPECT_NO_THROW(fo.setMapWindowSize(1024));
+}
+
+TEST_F(FileObjectTest, getMapWindowSizeDoesNotThrow)
+{
+    pplib::FileObject fo;
+    EXPECT_NO_THROW(fo.getMapWindowSize());
+    EXPECT_EQ(0, fo.getMapWindowSize());
 }
 
 } // namespace

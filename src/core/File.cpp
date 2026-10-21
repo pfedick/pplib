@@ -741,16 +741,10 @@ void File::unlock()
 #endif
 }
 
-// TODO: macht der ReadAhead überhaupt Sinn?
-void File::setMapReadAhead(size_t bytes)
-{
-    ReadAhead = bytes;
-}
-
 char* File::map(uint64_t position, size_t bytes, MapProtection prot)
 {
     if (ff == NULL) throw FileNotOpenException();
-    if (bytes == 0 || mysize == 0) return nullptr;
+    if (prot == MapProtection::NONE || bytes == 0) throw IllegalArgumentException();
     if (position <= mysize && bytes <= mysize - position) {
         if (MapBase != NULL) {
             if (LastMapProtection == prot) { // Schon als read/write gemapped?
@@ -766,7 +760,17 @@ char* File::map(uint64_t position, size_t bytes, MapProtection prot)
         }
         return (char*)this->mmap(position, bytes, prot);
     }
-    throw OverflowException();
+    throw OutOfBoundsException();
+}
+
+ByteArrayPtr File::mapAtMost(uint64_t position, size_t max_size, MapProtection prot)
+{
+    if (ff == NULL) throw FileNotOpenException();
+    if (prot == MapProtection::NONE) throw IllegalArgumentException();
+    if (position >= mysize || max_size == 0) return ByteArrayPtr();
+    uint64_t rest = mysize - position;
+    size_t n = (rest > max_size) ? max_size : static_cast<size_t>(rest);
+    return ByteArrayPtr(this->map(position, n, prot), n);
 }
 
 void File::unmap()

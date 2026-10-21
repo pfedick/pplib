@@ -2204,7 +2204,10 @@ void Yaml::dumps(pplib::String& yaml, const pplib::Variant& data, int indent)
     pplib::MemFile file;
     Yaml::dump(file, data, indent);
     size_t size = file.tell();
-    yaml.set(reinterpret_cast<const char*>(file.map(0, size)), size);
+    if (size == 0)
+        yaml.clear();
+    else
+        yaml.set(reinterpret_cast<const char*>(file.map(0, size)), size);
 }
 
 pplib::String Yaml::dumps(const pplib::Variant& data, int indent)

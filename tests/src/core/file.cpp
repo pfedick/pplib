@@ -1034,7 +1034,7 @@ TEST_F(FileTest, setMapReadAhead)
 {
     // Kann man nicht wirklich testen
     pplib::File f;
-    ASSERT_NO_THROW(f.setMapReadAhead(1024));
+    ASSERT_NO_THROW(f.setMapWindowSize(1024));
 }
 
 TEST_F(FileTest, map)
@@ -1082,7 +1082,7 @@ TEST_F(FileTest, map_walk_through_file_and_compare_1024Byte_mitReadAhead)
     pplib::File f2("testdata/dirwalk/testfile.txt");
     const size_t chunk_size = 1024;
     pplib::ByteArray buffer;
-    f2.setMapReadAhead(100 * 1024);
+    f2.setMapWindowSize(100 * 1024);
     for (uint64_t offset = 0; offset < f1.size(); offset += chunk_size) {
         size_t bytes_to_read = chunk_size;
         if (offset + bytes_to_read > f1.size()) {
@@ -1134,7 +1134,7 @@ TEST_F(FileTest, map_walk_through_file_and_compare_128KByte_mitReadAhead)
     pplib::File f2("testdata/dirwalk/testfile.txt");
     const size_t chunk_size = 1024 * 128;
     pplib::ByteArray buffer;
-    f2.setMapReadAhead(10 * 1024 * 1024);
+    f2.setMapWindowSize(10 * 1024 * 1024);
     for (uint64_t offset = 0; offset < f1.size(); offset += chunk_size) {
         size_t bytes_to_read = chunk_size;
         if (offset + bytes_to_read > f1.size()) {
@@ -1194,6 +1194,25 @@ TEST_F(FileTest, mapRW_walk_through_file_and_compare_1024Byte)
         ASSERT_EQ(b1, bytes_to_read);
         ASSERT_EQ(buffer, random_bytes);
     }
+}
+
+TEST_F(FileTest, mapThrows)
+{
+    pplib::File ff;
+    ASSERT_THROW(ff.map(0, 10), pplib::FileNotOpenException);
+    ff.open("testdata/dirwalk/LICENSE.TXT", pplib::File::FileMode::READ);
+    ASSERT_THROW(ff.map(0, 10, pplib::FileObject::MapProtection::NONE), pplib::IllegalArgumentException);
+    ASSERT_THROW(ff.map(0, 0), pplib::IllegalArgumentException);
+    ASSERT_THROW(ff.map(1000000, 10), pplib::OutOfBoundsException);
+}
+
+TEST_F(FileTest, mapAtLimit)
+{
+    pplib::File ff("testdata/dirwalk/LICENSE.TXT", pplib::File::FileMode::READ);
+    size_t file_size = ff.size();
+    ASSERT_NO_THROW(ff.map(file_size - 10, 10));
+    ASSERT_NO_THROW(ff.map(0, file_size));
+    ASSERT_THROW(ff.map(file_size - 5, 10), pplib::OutOfBoundsException);
 }
 
 } // namespace

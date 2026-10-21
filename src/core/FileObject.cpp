@@ -204,9 +204,12 @@ void FileObject::putws(const WideString& str)
 {
     return fputws((const wchar_t*)str);
 }
+
 ByteArrayPtr FileObject::map()
 {
-    return ByteArrayPtr(map(0, (size_t)size()), (size_t)size());
+    size_t n = (size_t)size();
+    if (n == 0) return ByteArrayPtr(); // nichts zu mappen, kein Fehler
+    return ByteArrayPtr(map(0, n), n);
 }
 
 ByteArray FileObject::load()
@@ -411,12 +414,12 @@ void FileObject::unlock()
     throw UnimplementedVirtualFunctionException();
 }
 
-void FileObject::setMapReadAhead(size_t bytes)
+char* FileObject::map(uint64_t position, size_t size, MapProtection prot)
 {
     throw UnimplementedVirtualFunctionException();
 }
 
-char* FileObject::map(uint64_t position, size_t size, MapProtection prot)
+ByteArrayPtr FileObject::mapAtMost(uint64_t position, size_t max_size, MapProtection prot)
 {
     throw UnimplementedVirtualFunctionException();
 }

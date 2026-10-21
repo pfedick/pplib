@@ -360,18 +360,24 @@ char* MemFile::adr(size_t adresse)
     return (MemBase + adresse);
 }
 
-void MemFile::setMapReadAhead(size_t bytes)
-{
-}
-
 char* MemFile::map(uint64_t position, size_t size, MapProtection prot)
 {
     if (!isOpen()) throw FileNotOpenException();
+    if (prot == MapProtection::NONE || size == 0) throw IllegalArgumentException();
     if (prot == MapProtection::READWRITE && readonly) throw ReadOnlyException();
-    if (position > mysize || size > mysize - position) {
-        throw OverflowException();
-    }
+    if (position > mysize || size > mysize - position) throw OutOfBoundsException();
     return (MemBase + position);
+}
+
+ByteArrayPtr MemFile::mapAtMost(uint64_t position, size_t max_size, MapProtection prot)
+{
+    if (!isOpen()) throw FileNotOpenException();
+    if (prot == MapProtection::NONE) throw IllegalArgumentException();
+    if (prot == MapProtection::READWRITE && readonly) throw ReadOnlyException();
+    if (position >= mysize || max_size == 0) return ByteArrayPtr();
+    uint64_t rest = mysize - position;
+    size_t n = (rest > max_size) ? max_size : static_cast<size_t>(rest);
+    return ByteArrayPtr(MemBase + position, n);
 }
 
 void MemFile::unmap()

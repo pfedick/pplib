@@ -663,13 +663,8 @@ void PFPFile::load(const String& file)
 
 void PFPFile::load(FileObject& ff)
 {
-    const char* p;
-    try {
-        p = ff.map(0, 24);
-    }
-    catch (OverflowException&) {
-        throw InvalidFormatException();
-    }
+    if (ff.size() < 24) throw InvalidFormatException();
+    const char* p = ff.map(0, 24);
     if (memcmp(p, "PFP-File", 8) != 0) throw InvalidFormatException();
     if (Peek8(p + 8) != 3) throw InvalidFormatException();
 

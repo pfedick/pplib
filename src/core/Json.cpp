@@ -809,7 +809,10 @@ void Json::dumps(pplib::String& json, const pplib::Variant& data, int indent)
     pplib::MemFile file;
     Json::dump(file, data, indent);
     size_t size = file.tell();
-    json.set(reinterpret_cast<const char*>(file.map(0, size)), size);
+    if (size == 0)
+        json.clear();
+    else
+        json.set(reinterpret_cast<const char*>(file.map(0, size)), size);
 }
 
 pplib::String Json::dumps(const pplib::Variant& data, int indent)
