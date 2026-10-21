@@ -9,6 +9,9 @@ tools:
   - 'edit/editFiles'
   - 'execute/runTask'
   - 'execute/runInTerminal'
+  - 'search'
+  - 'web'
+
 ---
 
 # Qwen38Flash – C++ Specialist
