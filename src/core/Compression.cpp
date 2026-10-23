@@ -429,16 +429,17 @@ void Compression::uncompressTo(ByteArray& out, const void* ptr, size_t size)
 
     if (prefix_ == Prefix::NONE) {
         size_t bsize = (size > 0 ? size * 4 : 64);
+        size_t buffersize = bsize;
         while (true) {
-            out.malloc(bsize);
-            size_t dstlen = bsize;
+            out.malloc(buffersize);
+            size_t dstlen = buffersize;
             try {
                 uncompress(out.ptr(), &dstlen, ptr, size);
                 out.truncate(dstlen);
                 return;
             }
             catch (const BufferTooSmallException&) {
-                bsize = std::max(bsize * 2, dstlen + 1024);
+                buffersize += bsize;
             }
         }
     } else if (prefix_ == Prefix::V1) {
