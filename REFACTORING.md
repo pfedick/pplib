@@ -96,16 +96,6 @@ gestartet werden (wip = work in progress).
 - Audio überarbeiten
 - Internet überarbeiten
 - Database überarbeiten (oder in separates Projekt auslagern?)
-- JSON-Parser: AssocArray unterstützt nicht alle Datentypen nativ. Die Frage ist, ob wir die in AssocArray ergänzen sollten. Siehe auch Kapitel "AssocArray" weiter unten.
-- YAML-Parser/Writer ergänzen? Könnte beim parsen von Konfigurationsdateien hilfreich sein.
-
-### AssocArray
-Ein VariantArray könnte hilfreich sein, dann müssten wir das nicht mit dem Counter im AssocArray simulieren. Ferner werde die Frage, ob wir weitere Datentypen ergänzen sollten, um zum Beispiel JSON vollständig abzubilden. Es fehlen noch:
-- Null-Werte
-- Boolean
-- Arrays
-- Integer
-- Float
 
 ### Codereviews
 Ich habe mittels KI eine Reihe von Klassen auf Fehler prüfen lassen. Die Ergebnisse der Reviews sind im Order "codereview/todo" zu finden. Diese müssen Schritt für Schritt geprüft, bewertet und abgearbeitet werden.
@@ -143,6 +133,10 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - Funktionen reviewn, überarbeiten, Dokumentieren, Tests erstellen
 - Fonts überarbeitet: es gibt neue Methoden mit denen die Fonts auf bereits vorhandenen Daten im Speicher arbeiten können, ohne neu allokieren zu müssen. Ferner können die Hints beim Laden deaktiviert werden, um zum Beispiel auf dem Pico RAM zu sparen. Gilt auch für FreeType.
 - Signale-Klasse entfernt und durch ShutdownHandler-Funktionen ersetzt
+- JSON-Parser: Alle Datentypen werden jetzt nativ unterstützt, auch Integer, Float, Boolean und Null-Werte. Ferner können JSON-Objekte und Arrays direkt geparst werden. Neuer Datentyp Variant Array dafür eingeführt.
+- YAML-Parser/Writer ergänzt
+- Compression unterstützt Brotli und Zstandard
+
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft
@@ -155,6 +149,8 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - Neu: Date, Time, TimeZone, TimeDelta
 - Neu: VariantArray. Eine Array, welches Variants als Value verwendet wird. Jedes Element der Liste kann ein beliebiger Variant-Typ sein, einschließlich weiterer VariantArrays oder AssocArrays.
 - Variant-Klasse kennt jetzt auch Integer-Werte (64-Bit), Double, Boolean und einen NULL-Wert.
+
+
 
 ### Drawable
 Die Implementierung der DRAWABLE_FUNCTIONS muss überarbeitet werden. Sie erstreckt sich über mehrere Dateien und unterstützt eigentlich nur ein 32-Bit-Format. Es wäre besser, wenn wir pro Format eine Datei mit der vollständigen Implementierung hätten. Die Verwendung von Assembler verkompliziert das ganze zusätzlich und ist für so simple-Methoden wie PutPixel eigentlich nicht notwendig.
