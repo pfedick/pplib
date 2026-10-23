@@ -740,24 +740,4 @@ void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level le
     out = CompressBZip2(in, level);
 }
 
-ByteArray CompressZstd(const ByteArrayPtr& in, Compression::Level level)
-{
-    return Compress(in, Compression::Algorithm::ZSTD, level);
-}
-
-void CompressZstd(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
-{
-    out = CompressZstd(in, level);
-}
-
-ByteArray CompressBrotli(const ByteArrayPtr& in, Compression::Level level)
-{
-    return Compress(in, Compression::Algorithm::BROTLI, level);
-}
-
-void CompressBrotli(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
-{
-    out = CompressBrotli(in, level);
-}
-
 } // namespace pplib

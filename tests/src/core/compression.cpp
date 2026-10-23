@@ -1015,33 +1015,6 @@ TEST(CompressionTest, LowLevelBufferTooSmallZstdBrotli)
     }
 }
 
-TEST(CompressionTest, StandaloneZstdBrotli)
-{
-    pplib::ByteArray original = createSampleData(1024);
-
-    if (algoAvailable(pplib::Compression::Algorithm::ZSTD)) {
-        pplib::ByteArray cz = pplib::CompressZstd(original);
-        pplib::ByteArray uz = pplib::Uncompress(cz);
-        ASSERT_EQ(uz.size(), original.size());
-        EXPECT_EQ(memcmp(uz.ptr(), original.ptr(), original.size()), 0);
-
-        pplib::ByteArray out;
-        pplib::CompressZstd(out, original);
-        EXPECT_EQ(out.size(), cz.size());
-    }
-
-    if (algoAvailable(pplib::Compression::Algorithm::BROTLI)) {
-        pplib::ByteArray cb = pplib::CompressBrotli(original);
-        pplib::ByteArray ub = pplib::Uncompress(cb);
-        ASSERT_EQ(ub.size(), original.size());
-        EXPECT_EQ(memcmp(ub.ptr(), original.ptr(), original.size()), 0);
-
-        pplib::ByteArray out;
-        pplib::CompressBrotli(out, original, pplib::Compression::Level::Fast);
-        EXPECT_GT(out.size(), 0u);
-    }
-}
-
 TEST(CompressionTest, EmptyDataZstdBrotli)
 {
     pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::ZSTD, pplib::Compression::Algorithm::BROTLI};
@@ -1076,7 +1049,8 @@ TEST(CompressionTest, InitRejectsOutOfRangeValues)
 {
     pplib::Compression comp;
     EXPECT_THROW(comp.init(static_cast<pplib::Compression::Algorithm>(99)), pplib::IllegalArgumentException);
-    EXPECT_THROW(comp.init(pplib::Compression::Algorithm::ZLIB, static_cast<pplib::Compression::Level>(99)), pplib::IllegalArgumentException);
+    EXPECT_THROW(comp.init(pplib::Compression::Algorithm::ZLIB, static_cast<pplib::Compression::Level>(99)),
+                 pplib::IllegalArgumentException);
 }
 
 } // namespace

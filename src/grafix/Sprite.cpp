@@ -129,7 +129,7 @@ Pixel.
 </li>
 </ul>
 
-Die Pixel-Daten werden mit der Funktion pplib::CCompression::CompressZlib komprimiert. Sie beginnen daher
+Die Pixel-Daten werden mit der Funktion pplib::CompressZlib komprimiert. Sie beginnen daher
 mit einem 9-Byte langen Header, gefolgt von den eigentlichen Zlib-komprimierten Daten:
 \code
 Byte 0:  Komprimierunsart, ist immer 1 für Zlib       1 Byte
