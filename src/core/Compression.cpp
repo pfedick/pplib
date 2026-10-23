@@ -57,10 +57,8 @@ static size_t maxCompressedBound(size_t size)
 }
 
 Compression::Compression(Algorithm method, Level level)
-    : algorithm_(method),
-      level_(level),
-      prefix_(Prefix::None)
 {
+    init(method, level);
 }
 
 void Compression::setPrefix(Prefix prefix)
@@ -95,8 +93,25 @@ void Compression::init(Algorithm method, Level level)
         throw UnsupportedFeatureException("Bzip2");
     }
 #endif
-
+    switch (method) {
+    case Algorithm::NONE:
+    case Algorithm::ZLIB:
+    case Algorithm::BZIP2:
+        break;
+    default:
+        throw IllegalArgumentException("Unsupported compression algorithm");
+    }
     algorithm_ = method;
+
+    switch (level) {
+    case Level::Fast:
+    case Level::Normal:
+    case Level::High:
+    case Level::Default:
+        break;
+    default:
+        throw IllegalArgumentException("Unsupported compression level");
+    }
     level_ = level;
 }
 
@@ -267,7 +282,7 @@ void Compression::compress(void* dst, size_t* dstlen, const void* src, size_t si
         doBzip2(dst, dstlen, src, size);
         return;
     default:
-        throw UnsupportedFeatureException();
+        throw IllegalArgumentException("Unsupported compression algorithm");
     }
 }
 
@@ -280,7 +295,7 @@ void Compression::compressTo(ByteArray& out, const void* ptr, size_t size)
 {
     if (size > MAX_DATA_SIZE) throw IllegalArgumentException("Datenmenge überschreitet Compression::MAX_DATA_SIZE");
 
-    if (prefix_ == Prefix::None) {
+    if (prefix_ == Prefix::NONE) {
         size_t maxbound = maxCompressedBound(size);
         out.malloc(maxbound);
         size_t dstlen = maxbound;
@@ -399,7 +414,7 @@ void Compression::uncompress(void* dst, size_t* dstlen, const void* src, size_t 
         unBzip2(dst, dstlen, src, srclen);
         return;
     default:
-        throw UnsupportedFeatureException();
+        throw IllegalArgumentException("Unsupported compression algorithm");
     }
 }
 
@@ -412,7 +427,7 @@ void Compression::uncompressTo(ByteArray& out, const void* ptr, size_t size)
 {
     if (size > MAX_DATA_SIZE) throw IllegalArgumentException("Datenmenge überschreitet Compression::MAX_DATA_SIZE");
 
-    if (prefix_ == Prefix::None) {
+    if (prefix_ == Prefix::NONE) {
         size_t bsize = (size > 0 ? size * 4 : 64);
         while (true) {
             out.malloc(bsize);

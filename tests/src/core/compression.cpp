@@ -66,7 +66,7 @@ TEST(CompressionTest, DefaultConstructorAndProperties)
     pplib::Compression comp;
     EXPECT_EQ(comp.algorithm(), pplib::Compression::Algorithm::ZLIB);
     EXPECT_EQ(comp.level(), pplib::Compression::Level::Default);
-    EXPECT_EQ(comp.prefix(), pplib::Compression::Prefix::None);
+    EXPECT_EQ(comp.prefix(), pplib::Compression::Prefix::NONE);
 
     comp.init(pplib::Compression::Algorithm::BZIP2, pplib::Compression::Level::High);
     EXPECT_EQ(comp.algorithm(), pplib::Compression::Algorithm::BZIP2);
@@ -84,7 +84,7 @@ TEST(CompressionTest, ParameterizedConstructor)
     pplib::Compression comp(pplib::Compression::Algorithm::NONE, pplib::Compression::Level::Fast);
     EXPECT_EQ(comp.algorithm(), pplib::Compression::Algorithm::NONE);
     EXPECT_EQ(comp.level(), pplib::Compression::Level::Fast);
-    EXPECT_EQ(comp.prefix(), pplib::Compression::Prefix::None);
+    EXPECT_EQ(comp.prefix(), pplib::Compression::Prefix::NONE);
 }
 
 TEST(CompressionTest, CopyAndMoveSemantics)
@@ -122,7 +122,7 @@ TEST(CompressionTest, CopyAndMoveSemantics)
 TEST(CompressionTest, RoundtripNoneNoPrefix)
 {
     pplib::Compression comp(pplib::Compression::Algorithm::NONE);
-    comp.setPrefix(pplib::Compression::Prefix::None);
+    comp.setPrefix(pplib::Compression::Prefix::NONE);
 
     pplib::ByteArray original = createSampleData(256);
     pplib::ByteArray compressed = comp.compress(original);
@@ -137,7 +137,7 @@ TEST(CompressionTest, RoundtripNoneNoPrefix)
 TEST(CompressionTest, RoundtripZlibNoPrefix)
 {
     pplib::Compression comp(pplib::Compression::Algorithm::ZLIB);
-    comp.setPrefix(pplib::Compression::Prefix::None);
+    comp.setPrefix(pplib::Compression::Prefix::NONE);
 
     pplib::ByteArray original = createSampleData(4096);
     pplib::ByteArray compressed = comp.compress(original);
@@ -151,8 +151,8 @@ TEST(CompressionTest, RoundtripZlibNoPrefix)
 TEST(CompressionTest, RoundtripZlibAllLevels)
 {
     pplib::ByteArray original = createSampleData(2048);
-    pplib::Compression::Level levels[] = {pplib::Compression::Level::Fast, pplib::Compression::Level::Normal, pplib::Compression::Level::High,
-                                          pplib::Compression::Level::Default};
+    pplib::Compression::Level levels[] = {pplib::Compression::Level::Fast, pplib::Compression::Level::Normal,
+                                          pplib::Compression::Level::High, pplib::Compression::Level::Default};
 
     for (auto lvl : levels) {
         pplib::Compression comp(pplib::Compression::Algorithm::ZLIB, lvl);
@@ -166,7 +166,7 @@ TEST(CompressionTest, RoundtripZlibAllLevels)
 TEST(CompressionTest, RoundtripBzip2NoPrefix)
 {
     pplib::Compression comp(pplib::Compression::Algorithm::BZIP2);
-    comp.setPrefix(pplib::Compression::Prefix::None);
+    comp.setPrefix(pplib::Compression::Prefix::NONE);
 
     pplib::ByteArray original = createSampleData(4096);
     pplib::ByteArray compressed = comp.compress(original);
@@ -180,8 +180,8 @@ TEST(CompressionTest, RoundtripBzip2NoPrefix)
 TEST(CompressionTest, RoundtripBzip2AllLevels)
 {
     pplib::ByteArray original = createSampleData(2048);
-    pplib::Compression::Level levels[] = {pplib::Compression::Level::Fast, pplib::Compression::Level::Normal, pplib::Compression::Level::High,
-                                          pplib::Compression::Level::Default};
+    pplib::Compression::Level levels[] = {pplib::Compression::Level::Fast, pplib::Compression::Level::Normal,
+                                          pplib::Compression::Level::High, pplib::Compression::Level::Default};
 
     for (auto lvl : levels) {
         pplib::Compression comp(pplib::Compression::Algorithm::BZIP2, lvl);
@@ -261,7 +261,7 @@ TEST(CompressionTest, LargeBufferExponentialGrowth)
     pplib::ByteArray largeData = createSampleData(65536);
 
     pplib::Compression comp(pplib::Compression::Algorithm::ZLIB);
-    comp.setPrefix(pplib::Compression::Prefix::None);
+    comp.setPrefix(pplib::Compression::Prefix::NONE);
     pplib::ByteArray compressed = comp.compress(largeData);
 
     pplib::ByteArray decompressed = comp.uncompress(compressed);
@@ -271,7 +271,8 @@ TEST(CompressionTest, LargeBufferExponentialGrowth)
 
 TEST(CompressionTest, PrefixV1Roundtrip)
 {
-    pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::NONE, pplib::Compression::Algorithm::ZLIB, pplib::Compression::Algorithm::BZIP2};
+    pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::NONE, pplib::Compression::Algorithm::ZLIB,
+                                             pplib::Compression::Algorithm::BZIP2};
 
     pplib::ByteArray original = createSampleData(512);
 
@@ -414,8 +415,9 @@ TEST(CompressionTest, LowLevelBufferTooSmallException)
     pplib::Compression compBz(pplib::Compression::Algorithm::BZIP2);
     pplib::ByteArray compressedBz = compBz.compress(original);
     tinyLen = 2;
-    EXPECT_THROW(compBz.uncompress(dstBuffer.data(), &tinyLen, compressedBz.ptr(), compressedBz.size(), pplib::Compression::Algorithm::BZIP2),
-                 pplib::BufferTooSmallException);
+    EXPECT_THROW(
+        compBz.uncompress(dstBuffer.data(), &tinyLen, compressedBz.ptr(), compressedBz.size(), pplib::Compression::Algorithm::BZIP2),
+        pplib::BufferTooSmallException);
 }
 
 TEST(CompressionTest, IllegalArgumentExceptions)
@@ -481,15 +483,15 @@ TEST(CompressionTest, CorruptedDataExceptions)
     }
 }
 
-TEST(CompressionTest, UnsupportedFeatureException)
+TEST(CompressionTest, IllegalArgumentException)
 {
     pplib::Compression comp;
     char dst[64];
     size_t dstlen = sizeof(dst);
     const char src[] = "test";
 
-    EXPECT_THROW(comp.compress(dst, &dstlen, src, 4, (pplib::Compression::Algorithm)999), pplib::UnsupportedFeatureException);
-    EXPECT_THROW(comp.uncompress(dst, &dstlen, src, 4, (pplib::Compression::Algorithm)999), pplib::UnsupportedFeatureException);
+    EXPECT_THROW(comp.compress(dst, &dstlen, src, 4, (pplib::Compression::Algorithm)999), pplib::IllegalArgumentException);
+    EXPECT_THROW(comp.uncompress(dst, &dstlen, src, 4, (pplib::Compression::Algorithm)999), pplib::IllegalArgumentException);
 }
 
 TEST(CompressionTest, StandaloneFunctions)
@@ -597,7 +599,8 @@ TEST(CompressionTest, BufferTooSmallReportsWrittenBytes)
     try {
         comp.compress(dst.data(), &dstlen, original.ptr(), original.size());
         FAIL() << "Expected BufferTooSmallException";
-    } catch (const pplib::BufferTooSmallException&) {
+    }
+    catch (const pplib::BufferTooSmallException&) {
         EXPECT_EQ(dstlen, 100);
     }
 
@@ -607,7 +610,8 @@ TEST(CompressionTest, BufferTooSmallReportsWrittenBytes)
     try {
         copy.compress(dst.data(), &dstlen, original.ptr(), original.size());
         FAIL() << "Expected BufferTooSmallException";
-    } catch (const pplib::BufferTooSmallException&) {
+    }
+    catch (const pplib::BufferTooSmallException&) {
         EXPECT_EQ(dstlen, 5000);
     }
 }
@@ -637,9 +641,7 @@ TEST(CompressionTest, PrefixV1HugeLengthField)
     pplib::Compression comp;
     comp.setPrefix(pplib::Compression::Prefix::V1);
 
-    char data[10] = {1, 5, 0, 0, 0,
-                     static_cast<char>(0xFF), static_cast<char>(0xFF),
-                     static_cast<char>(0xFF), static_cast<char>(0xFF), 0};
+    char data[10] = {1, 5, 0, 0, 0, static_cast<char>(0xFF), static_cast<char>(0xFF), static_cast<char>(0xFF), static_cast<char>(0xFF), 0};
     EXPECT_THROW(comp.uncompress(data, 10), pplib::CorruptedDataException);
 }
 

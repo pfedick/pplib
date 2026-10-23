@@ -113,12 +113,12 @@ public:
      */
     enum class Algorithm
     {
-        /**@brief Compression::Algorithm Compression::Algorithm::NONE
+        /** @brief Compression::Algorithm Compression::Algorithm::NONE
          * Keine Komprimierung. Bei Verwendung dieser Methode werden die Daten einfach nur unverändert kopiert.
          */
         NONE = 0,
 
-        /**@brief Compression::Algorithm Compression::Algorithm::ZLIB
+        /** @brief Compression::Algorithm Compression::Algorithm::ZLIB
          * Zlib ist eine freie Programmbibliothek von Jean-Loup Gailly und Mark Adler (http://www.zlib.net/).
          * Sie verwendet wie gzip den Deflate-Algorithmus um den Datenstrom blockweise zu komprimieren.
          * Die ausgegebenen Blöcke werden durch Adler-32-Prüfsummen geschützt.
@@ -127,7 +127,7 @@ public:
          */
         ZLIB,
 
-        /**@brief Compression::Algorithm Compression::Algorithm::BZIP2
+        /** @brief Compression::Algorithm Compression::Algorithm::BZIP2
          * bzip2 ist ein frei verfügbares Komprimierungsprogramm zur verlustfreien Kompression
          * von Dateien, entwickelt von Julian Seward. Es ist frei von jeglichen patentierten
          * Algorithmen und wird unter einer BSD-ähnlichen Lizenz vertrieben.
@@ -136,7 +136,7 @@ public:
          */
         BZIP2,
 
-        /**@brief Compression::Algorithm Compression::Algorithm::Unknown
+        /** @brief Compression::Algorithm Compression::Algorithm::Unknown
          * Kein echter Algorithmus, sondern ein Platzhalter als Defaultargument der Low-Level-Funktionen.
          * Bei Unknown wird die in der Instanz eingestellte Methode verwendet (siehe Compression::init).
          * Als Algorithmus sind nur die Werte 0..2 (NONE, ZLIB, BZIP2) zulässig; unbekannte Werte
@@ -174,7 +174,7 @@ public:
          * kümmern, dass die Information über Größe der komprimierten und
          * unkomprimierten Daten erhalten bleibt.
          */
-        None = 0,
+        NONE = 0,
 
         /** @brief Version 1 Prefix voranstellen
          *
@@ -204,7 +204,7 @@ public:
 private:
     Algorithm algorithm_{Algorithm::ZLIB};
     Level level_{Level::Default};
-    Prefix prefix_{Prefix::None};
+    Prefix prefix_{Prefix::NONE};
 
     void doNone(void* dst, size_t* dstlen, const void* src, size_t size);
     void doZlib(void* dst, size_t* dstlen, const void* src, size_t size);
@@ -243,6 +243,8 @@ public:
      *
      * @param method Komprimierungsmethode (siehe Compression::Algorithm)
      * @param level Komprimierungslevel (siehe Compression::Level)
+     * @exception IllegalArgumentException Ungültige Komprimierungsmethode oder -level
+     * @exception UnsupportedFeatureException Gewählte Komprimierungsmethode wird nicht unterstützt
      */
     Compression(Algorithm method, Level level = Level::Default);
 
@@ -262,6 +264,7 @@ public:
      * @param method Komprimierungsmethode (siehe Compression::Algorithm)
      * @param level Komprimierungslevel (siehe Compression::Level)
      * @exception UnsupportedFeatureException Gewählte Komprimierungsmethode wird nicht unterstützt
+     * @exception IllegalArgumentException Ungültige Komprimierungsmethode oder -level
      */
     void init(Algorithm method, Level level = Level::Default);
 
