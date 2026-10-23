@@ -174,10 +174,9 @@ if(PPLIB_ENABLE_CORE)
 
     find_package(ZLIB QUIET)
     if(ZLIB_FOUND)
-        set(HAVE_LIBZ 1)
         set(HAVE_ZLIB 1)
         target_link_libraries(pplib_core PRIVATE ZLIB::ZLIB)
-        target_compile_definitions(pplib_core PRIVATE HAVE_ZLIB=1 HAVE_LIBZ=1)
+        target_compile_definitions(pplib_core PRIVATE HAVE_ZLIB=1)
         pplib_register_pc_dependency(zlib "${ZLIB_LIBRARIES}")
     endif()
 

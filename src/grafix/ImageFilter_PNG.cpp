@@ -37,7 +37,7 @@
 
 #include <config_pplib.h>
 
-#ifdef HAVE_LIBZ
+#ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
 

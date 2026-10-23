@@ -2542,7 +2542,7 @@ PREDEFINED             = HAVE_JPEG=1 \
                          HAVE_SDL=1 \
                          HAVE_DX9=1 \
                          HAVE_ICONV=1 \
-                         HAVE_LIBZ=1 \
+                         HAVE_ZLIB=1 \
                          HAVE_BZIP2=1 \
                          HAVE_LIBCURL=1 \
                          HAVE_LIBMAD=1 \
