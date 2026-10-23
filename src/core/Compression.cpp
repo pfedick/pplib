@@ -487,7 +487,7 @@ void Compression::compressTo(ByteArray& out, const void* ptr, size_t size)
         char* prefix = (char*)out.malloc(maxbound + 9);
         size_t dstlen = maxbound;
         compress(prefix + 9, &dstlen, ptr, size);
-        if (dstlen > 0xFFFFFFFFULL) throw CompressionFailedException("komprimierte Datenmenge überschreitet V1-Längenfeld");
+        if (dstlen > 0xFFFFFFFFULL) throw CompressionFailedException("komprimierte Datenmenge überschreitet V2-Längenfeld");
 
         int b_unc = 4;
         int b_comp = 4;
