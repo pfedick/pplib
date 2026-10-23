@@ -111,32 +111,39 @@ public:
      *
      * Die Klasse unterstützt folgende Komprimierungsmethoden:
      */
-    enum Algorithm
+    enum class Algorithm
     {
-        /**@brief Compression::Algorithm Compression::Algo_NONE
+        /**@brief Compression::Algorithm Compression::Algorithm::NONE
          * Keine Komprimierung. Bei Verwendung dieser Methode werden die Daten einfach nur unverändert kopiert.
          */
-        Algo_NONE = 0,
+        NONE = 0,
 
-        /**@brief Compression::Algorithm Compression::Algo_ZLIB
+        /**@brief Compression::Algorithm Compression::Algorithm::ZLIB
          * Zlib ist eine freie Programmbibliothek von Jean-Loup Gailly und Mark Adler (http://www.zlib.net/).
          * Sie verwendet wie gzip den Deflate-Algorithmus um den Datenstrom blockweise zu komprimieren.
          * Die ausgegebenen Blöcke werden durch Adler-32-Prüfsummen geschützt.
          * Das Format ist in den RFC 1950, RFC 1951 und RFC 1952 definiert und gilt quasi als defakto
          * Standard im Unix- und Netzwerkbereich.
          */
-        Algo_ZLIB,
+        ZLIB,
 
-        /**@brief Compression::Algorithm Compression::Algo_BZIP2
+        /**@brief Compression::Algorithm Compression::Algorithm::BZIP2
          * bzip2 ist ein frei verfügbares Komprimierungsprogramm zur verlustfreien Kompression
          * von Dateien, entwickelt von Julian Seward. Es ist frei von jeglichen patentierten
          * Algorithmen und wird unter einer BSD-ähnlichen Lizenz vertrieben.
          * Die Kompression mit bzip2 ist oft effizienter, aber meist erheblich langsamer als
          * die Kompression mit Zlib.
          */
-        Algo_BZIP2,
+        BZIP2,
 
-        Unknown = 256 ///< Wird als Defaulteinstellung beim Dekomprimieren verwendet (nutzt die eingestellte Methode der Instanz).
+        /**@brief Compression::Algorithm Compression::Algorithm::Unknown
+         * Kein echter Algorithmus, sondern ein Platzhalter als Defaultargument der Low-Level-Funktionen.
+         * Bei Unknown wird die in der Instanz eingestellte Methode verwendet (siehe Compression::init).
+         * Als Algorithmus sind nur die Werte 0..2 (NONE, ZLIB, BZIP2) zulässig; unbekannte Werte
+         * führen zu UnsupportedFeatureException, im Prefix kodierte unbekannte Werte zu
+         * CorruptedDataException.
+         */
+        Unknown = 256
     };
 
     /** @enum Level
@@ -145,12 +152,12 @@ public:
      * Es werden verschiedene Einstellungen unterstützt, die Einfluß auf die Kompressionsrate
      * aber auch Speicherverbrauch und Geschwindigkeit haben:
      */
-    enum Level
+    enum class Level
     {
-        Level_Fast = 0, ///< Schnellste Kompression, geringste Kompressionsrate
-        Level_Normal,   ///< Normale Kompression, ausgewogenes Verhältnis zwischen Geschwindigkeit und Kompressionsrate
-        Level_Default,  ///< Standardkompression, wird verwendet, wenn keine spezifische Einstellung gewählt wurde
-        Level_High      ///< Höchste Kompression, langsamste Geschwindigkeit
+        Fast = 0, ///< Schnellste Kompression, geringste Kompressionsrate
+        Normal,   ///< Normale Kompression, ausgewogenes Verhältnis zwischen Geschwindigkeit und Kompressionsrate
+        Default,  ///< Standardkompression, wird verwendet, wenn keine spezifische Einstellung gewählt wurde
+        High      ///< Höchste Kompression, langsamste Geschwindigkeit
     };
 
     /** @enum Prefix
@@ -159,7 +166,7 @@ public:
      * Verwendung eines Prefix, der den komprimierten Daten vorangestellt wird.
      * Siehe dazu auch \ref Compression_Prefix
      */
-    enum Prefix
+    enum class Prefix
     {
         /** @brief Kein Prefix voranstellen
          *
@@ -167,25 +174,37 @@ public:
          * kümmern, dass die Information über Größe der komprimierten und
          * unkomprimierten Daten erhalten bleibt.
          */
-        Prefix_None = 0,
+        None = 0,
 
         /** @brief Version 1 Prefix voranstellen
          *
          * Es wird ein 9-Byte langer Version 1 Prefix vorangestellt.
          */
-        Prefix_V1,
+        V1,
 
         /** @brief Version 2 Prefix voranstellen
          *
          * Es wird ein Version 2 Prefix mit variabler Länge vorangestellt.
          */
-        Prefix_V2,
+        V2,
     };
 
+public:
+    /** @brief Obergrenze für die zu verarbeitende Datenmenge in Byte
+     *
+     * Das eigene Prefix-Format hält die unkomprimierte Datenlänge in 32 Bit, und die
+     * eingesetzten Bibliotheken arbeiten ebenfalls nur mit 32-Bit-Längen: zlib mit
+     * @c uLong/@c uLongf (auf 64-Bit-Windows 32 Bit), bzip2 mit @c unsigned int.
+     * Größere Puffer würden stillschweigend trunciert oder von bzip2 mit
+     * @c BZ_PARAM_ERROR abgelehnt. Alle Ein- und Ausgabegrößen sind daher auf
+     * 4 GiB - 1 Byte begrenzt.
+     */
+    static constexpr size_t MAX_DATA_SIZE = 4294967295ULL;
+
 private:
-    Algorithm algorithm_{Algo_ZLIB};
-    Level level_{Level_Default};
-    Prefix prefix_{Prefix_None};
+    Algorithm algorithm_{Algorithm::ZLIB};
+    Level level_{Level::Default};
+    Prefix prefix_{Prefix::None};
 
     void doNone(void* dst, size_t* dstlen, const void* src, size_t size);
     void doZlib(void* dst, size_t* dstlen, const void* src, size_t size);
@@ -194,6 +213,20 @@ private:
     void unNone(void* dst, size_t* dstlen, const void* src, size_t srclen);
     void unZlib(void* dst, size_t* dstlen, const void* src, size_t srclen);
     void unBzip2(void* dst, size_t* dstlen, const void* src, size_t srclen);
+
+    /** @brief Komprimiert @p size Byte ab @p ptr und legt das Ergebnis in @p out ab
+     *
+     * Arbeitet direkt in den Ausgabepuffer von @p out, dadurch wird kein Zwischenpuffer
+     * und keine Kopie benötigt. Tritt eine Exception auf, ist der Inhalt von @p out undefiniert.
+     */
+    void compressTo(ByteArray& out, const void* ptr, size_t size);
+
+    /** @brief Dekomprimiert @p size Byte ab @p ptr und legt das Ergebnis in @p out ab
+     *
+     * Arbeitet direkt in den Ausgabepuffer von @p out, dadurch wird keine Kopie benötigt.
+     * Tritt eine Exception auf, ist der Inhalt von @p out undefiniert.
+     */
+    void uncompressTo(ByteArray& out, const void* ptr, size_t size);
 
 public:
     /** @brief Konstruktor der Klasse
@@ -211,7 +244,7 @@ public:
      * @param method Komprimierungsmethode (siehe Compression::Algorithm)
      * @param level Komprimierungslevel (siehe Compression::Level)
      */
-    Compression(Algorithm method, Level level = Level_Default);
+    Compression(Algorithm method, Level level = Level::Default);
 
     /** @brief Destruktor der Klasse */
     ~Compression() = default;
@@ -230,21 +263,12 @@ public:
      * @param level Komprimierungslevel (siehe Compression::Level)
      * @exception UnsupportedFeatureException Gewählte Komprimierungsmethode wird nicht unterstützt
      */
-    void init(Algorithm method, Level level = Level_Default);
-
-    /** @brief Verwendung eines Prefix beim Komprimieren
-     *
-     * Durch Aufruf dieser Funktion kann festgelegt werden, ob beim Komprimieren
-     * den komprimierten Daten ein Prefix vorangestellt wird.
-     *
-     * @param prefix Der gewünschte Prefix (siehe Compression::Prefix)
-     * @see \ref Compression_Prefix
-     */
-    void usePrefix(Prefix prefix);
+    void init(Algorithm method, Level level = Level::Default);
 
     /** @brief Prefix-Einstellung festlegen
      *
-     * Synonym zu usePrefix().
+     * Durch Aufruf dieser Funktion kann festgelegt werden, ob beim Komprimieren
+     * den komprimierten Daten ein Prefix vorangestellt wird.
      *
      * @param prefix Der gewünschte Prefix (siehe Compression::Prefix)
      * @see \ref Compression_Prefix
@@ -284,27 +308,31 @@ public:
      * @param[in] size Länge des zu komprimierenden Speicherbereichs
      * @param[in] a Zu verwendender Algorithmus (Default: eingestellter Algorithmus der Instanz)
      * @exception IllegalArgumentException Einer der übergebenen Parameter (@p dst oder @p dstlen) zeigt auf NULL, oder @p src ist NULL bei
-     * size > 0
+     * size > 0. Ebenso, wenn @p size oder @p *dstlen größer als Compression::MAX_DATA_SIZE sind.
      * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception BufferTooSmallException Der Puffer @p dst ist zu klein, um die komprimierten Daten aufzunehmen.
-     * Der Parameter @p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
+     * @p dstlen enthält in diesem Fall die Anzahl der bereits in @p dst geschriebenen Bytes; beim
+     * Algorithmus Compression::Algorithm::NONE ist das die Anzahl der tatsächlich benötigten Bytes.
      * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
      */
-    void compress(void* dst, size_t* dstlen, const void* src, size_t size, Algorithm a = Unknown);
+    void compress(void* dst, size_t* dstlen, const void* src, size_t size, Algorithm a = Algorithm::Unknown);
 
     /** @brief Komprimierung eines Speicherbereiches in ein neues ByteArray-Objekt
      *
      * Mit dieser Version der Compress-Funktion wird der durch @p in referenzierte
      * Speicher komprimiert und das Ergebnis als neues ByteArray-Objekt zurückgegeben.
      *
-     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::setPrefix).
      *
      * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten
      * @return Neues ByteArray mit den komprimierten Daten
      * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+     * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+     * praktisch nicht erreichbar)
+     * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
      */
     ByteArray compress(const ByteArrayPtr& in);
 
@@ -313,7 +341,7 @@ public:
      * Mit dieser Version der Compress-Funktion wird ein Speicherbereich @p ptr mit einer Länge
      * von @p size Bytes komprimiert und das Ergebnis als neues ByteArray-Objekt zurückgegeben.
      *
-     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::setPrefix).
      *
      * @param[in] ptr Pointer auf den Speicherbereich, der komprimiert werden soll
      * @param[in] size Länge des zu komprimierenden Speicherbereichs
@@ -321,6 +349,9 @@ public:
      * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+     * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+     * praktisch nicht erreichbar)
+     * @exception IllegalArgumentException @p size überschreitet Compression::MAX_DATA_SIZE
      */
     ByteArray compress(const void* ptr, size_t size);
 
@@ -329,13 +360,16 @@ public:
      * Mit dieser Version der Compress-Funktion wird der durch @p in referenzierte
      * Speicher komprimiert und das Ergebnis im ByteArray-Objekt @p out gespeichert.
      *
-     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::setPrefix).
      *
      * @param[out] out ByteArray-Objekt, in dem die komprimierten Daten gespeichert werden sollen
      * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten
      * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+     * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+     * praktisch nicht erreichbar)
+     * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
      */
     void compress(ByteArray& out, const ByteArrayPtr& in);
 
@@ -344,7 +378,7 @@ public:
      * Mit dieser Version der Compress-Funktion wird ein Speicherbereich @p ptr mit einer Länge
      * von @p size Bytes komprimiert und das Ergebnis im ByteArray-Objekt @p out gespeichert.
      *
-     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::setPrefix).
      *
      * @param[out] out ByteArray-Objekt, in dem die komprimierten Daten gespeichert werden sollen
      * @param[in] ptr Pointer auf den Speicherbereich, der komprimiert werden soll
@@ -352,6 +386,9 @@ public:
      * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+     * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+     * praktisch nicht erreichbar)
+     * @exception IllegalArgumentException @p size überschreitet Compression::MAX_DATA_SIZE
      */
     void compress(ByteArray& out, const void* ptr, size_t size);
 
@@ -373,23 +410,24 @@ public:
      * @param[in] srclen Länge der komprimierten Daten
      * @param[in] a Zu verwendender Algorithmus (Default: eingestellter Algorithmus der Instanz)
      * @exception IllegalArgumentException Einer der übergebenen Parameter (@p dst oder @p dstlen) zeigt auf NULL, oder @p src ist NULL bei
-     * srclen > 0
+     * srclen > 0. Ebenso, wenn @p srclen oder @p *dstlen größer als Compression::MAX_DATA_SIZE sind.
      * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception BufferTooSmallException Der Puffer @p dst ist zu klein, um die dekomprimierten Daten aufzunehmen.
-     * Der Parameter @p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
+     * @p dstlen enthält in diesem Fall die Anzahl der bereits in @p dst geschriebenen Bytes; beim
+     * Algorithmus Compression::Algorithm::NONE ist das die Anzahl der tatsächlich benötigten Bytes.
      * @exception CorruptedDataException Die zu dekomprimierenden Daten sind korrupt, unvollständig oder nicht mit dem erwarteten
      * Algorithmus komprimiert.
      * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
      */
-    void uncompress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a = Unknown);
+    void uncompress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a = Algorithm::Unknown);
 
     /** @brief Dekomprimierung eines Speicherbereichs in ein neues ByteArray-Objekt
      *
      * Mit dieser Version der Uncompress-Funktion wird der im ByteArrayPtr-Objekt @p in referenzierte
      * Speicherbereich dekomprimiert und das Ergebnis als neues ByteArray-Objekt zurückgegeben.
      *
-     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::setPrefix).
      *
      * @param[in] in ByteArrayPtr-Objekt, das auf die komprimierten Daten zeigt
      * @return Neues ByteArray mit den entpackten Daten
@@ -397,6 +435,7 @@ public:
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception CorruptedDataException Die zu dekomprimierenden Daten sind korrupt oder unvollständig
      * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
+     * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
      */
     ByteArray uncompress(const ByteArrayPtr& in);
 
@@ -405,7 +444,7 @@ public:
      * Mit dieser Version der Uncompress-Funktion wird der durch @p ptr angegebene
      * Speicherbereich mit einer Länge von @p size Bytes dekomprimiert und das Ergebnis als neues ByteArray-Objekt zurückgegeben.
      *
-     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::setPrefix).
      *
      * @param[in] ptr Pointer auf den Beginn des zu entpackenden Speicherbereichs
      * @param[in] size Größe des komprimierten Speicherbereichs
@@ -414,6 +453,7 @@ public:
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception CorruptedDataException Die zu dekomprimierenden Daten sind korrupt oder unvollständig
      * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
+     * @exception IllegalArgumentException @p size überschreitet Compression::MAX_DATA_SIZE
      */
     ByteArray uncompress(const void* ptr, size_t size);
 
@@ -422,7 +462,7 @@ public:
      * Mit dieser Version der Uncompress-Funktion werden die im ByteArrayPtr-Objekt @p in referenzierten
      * Daten dekomprimiert und das Ergebnis im ByteArray-Objekt @p out gespeichert.
      *
-     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::setPrefix).
      *
      * @param[out] out ByteArray-Objekt, in dem die entpackten Daten gespeichert werden sollen
      * @param[in] in ByteArrayPtr-Objekt, das auf die komprimierten Daten zeigt
@@ -430,6 +470,7 @@ public:
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception CorruptedDataException Die zu dekomprimierenden Daten sind korrupt oder unvollständig
      * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
+     * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
      */
     void uncompress(ByteArray& out, const ByteArrayPtr& in);
 
@@ -439,7 +480,7 @@ public:
      * Speicherbereich mit einer Länge von @p size Bytes dekomprimiert und die entpackten
      * Daten im ByteArray-Objekt @p out gespeichert.
      *
-     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+     * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::setPrefix).
      *
      * @param[out] out ByteArray-Objekt, in dem die entpackten Daten gespeichert werden sollen
      * @param[in] ptr Pointer auf den Beginn des zu entpackenden Speicherbereichs
@@ -448,6 +489,7 @@ public:
      * @exception OutOfMemoryException Nicht genug Speicher verfügbar
      * @exception CorruptedDataException Die zu dekomprimierenden Daten sind korrupt oder unvollständig
      * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
+     * @exception IllegalArgumentException @p size überschreitet Compression::MAX_DATA_SIZE
      */
     void uncompress(ByteArray& out, const void* ptr, size_t size);
 };
@@ -468,9 +510,16 @@ public:
  * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
  * @return Neues ByteArray mit den komprimierten Daten
  *
+ * @exception UnsupportedFeatureException Die gewünschte Komprimierungsmethode wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
  * @see Compression
  */
-ByteArray Compress(const ByteArrayPtr& in, Compression::Algorithm method, Compression::Level level = Compression::Level_Default);
+ByteArray Compress(const ByteArrayPtr& in, Compression::Algorithm method, Compression::Level level = Compression::Level::Default);
 
 /** @ingroup PPLIB_COMPRESSION
  * @brief Speicherbereich komprimieren
@@ -488,9 +537,19 @@ ByteArray Compress(const ByteArrayPtr& in, Compression::Algorithm method, Compre
  * @param[in] method Die gewünschte Komprimierungsmethode (siehe Compression::Algorithm)
  * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
  *
+ * @exception UnsupportedFeatureException Die gewünschte Komprimierungsmethode wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
  * @see Compression
  */
-void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm method, Compression::Level level = Compression::Level_Default);
+void Compress(ByteArray& out,
+              const ByteArrayPtr& in,
+              Compression::Algorithm method,
+              Compression::Level level = Compression::Level::Default);
 
 /** @ingroup PPLIB_COMPRESSION
  * @brief Daten dekomprimieren
@@ -506,6 +565,12 @@ void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm met
  *
  * @param[in] in ByteArrayPtr-Objekt, das die komprimierten Daten enthält
  * @return Neues ByteArray mit den entpackten Daten
+ *
+ * @exception UnsupportedFeatureException Die im Prefix angegebene Komprimierungsmethode wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CorruptedDataException Die Daten beginnen nicht mit einem Version 2 Prefix oder sind korrupt
+ * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
  *
  * @see Compression
  */
@@ -526,6 +591,12 @@ ByteArray Uncompress(const ByteArrayPtr& in);
  * @param[out] out ByteArray-Objekt, in dem die entpackten Daten gespeichert werden sollen
  * @param[in] in ByteArrayPtr-Objekt, das die komprimierten Daten enthält
  *
+ * @exception UnsupportedFeatureException Die im Prefix angegebene Komprimierungsmethode wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CorruptedDataException Die Daten beginnen nicht mit einem Version 2 Prefix oder sind korrupt
+ * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
+ *
  * @see Compression
  */
 void Uncompress(ByteArray& out, const ByteArrayPtr& in);
@@ -545,9 +616,16 @@ void Uncompress(ByteArray& out, const ByteArrayPtr& in);
  * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
  * @return Neues ByteArray mit den komprimierten Daten
  *
+ * @exception UnsupportedFeatureException Zlib-Komprimierung ist in diesem Build nicht verfügbar
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
  * @see Compression
  */
-ByteArray CompressZlib(const ByteArrayPtr& in, Compression::Level level = Compression::Level_Default);
+ByteArray CompressZlib(const ByteArrayPtr& in, Compression::Level level = Compression::Level::Default);
 
 /** @ingroup PPLIB_COMPRESSION
  * @brief Daten mit ZLib komprimieren
@@ -564,9 +642,16 @@ ByteArray CompressZlib(const ByteArrayPtr& in, Compression::Level level = Compre
  * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten
  * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
  *
+ * @exception UnsupportedFeatureException Zlib-Komprimierung ist in diesem Build nicht verfügbar
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
  * @see Compression
  */
-void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level level = Compression::Level_Default);
+void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level level = Compression::Level::Default);
 
 /** @ingroup PPLIB_COMPRESSION
  * @brief Daten mit BZip2 komprimieren
@@ -583,9 +668,16 @@ void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level lev
  * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
  * @return Neues ByteArray mit den komprimierten Daten
  *
+ * @exception UnsupportedFeatureException Bzip2-Komprimierung ist in diesem Build nicht verfügbar
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
  * @see Compression
  */
-ByteArray CompressBZip2(const ByteArrayPtr& in, Compression::Level level = Compression::Level_Default);
+ByteArray CompressBZip2(const ByteArrayPtr& in, Compression::Level level = Compression::Level::Default);
 
 /** @ingroup PPLIB_COMPRESSION
  * @brief Daten mit BZip2 komprimieren
@@ -602,9 +694,16 @@ ByteArray CompressBZip2(const ByteArrayPtr& in, Compression::Level level = Compr
  * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten
  * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
  *
+ * @exception UnsupportedFeatureException Bzip2-Komprimierung ist in diesem Build nicht verfügbar
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
  * @see Compression
  */
-void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level = Compression::Level_Default);
+void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level = Compression::Level::Default);
 
 } // namespace pplib
 

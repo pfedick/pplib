@@ -8,6 +8,30 @@ Alle Tests laufen aktuell fehlerfrei (`test_core --gtest_filter='CompressionTest
 Verifiziert gegen: `Poke8/16/24/32`, `Peek8/16/24/32` (`src/core/Functions.cpp`, little-endian, symmetrisch), `ByteArray::malloc` (allociert size+4, schreibt 4 abschließende NULs; `malloc(0)` liefert nicht-NULL), `ByteArray::truncate` (schreibt 4 NULs nach), Exceptions aus `include/pplib/exceptions.h`.
 Empirisch verifiziert mit zlib/bzip2-Direkttests: `uncompress` bei abgeschnittenem Input → `Z_DATA_ERROR` (Wachstumsschleife terminiert, **kein** Endlosloop); bei zu kleinem Output-Puffer → `Z_BUF_ERROR` mit `destLen` = bereits geschriebene Bytes (nicht benötigte Größe); bzip2-Bound `size + size/100 + 600` war für alle getesteten Muster (random, alternierend, inkrementierend, Primstride) ausreichend.
 
+## Umsetzung (2026-10-23, PPL8-Major-Update)
+
+Alle Funde umgesetzt außer den unter **Nicht umgesetzt** aufgeführten.
+Tests: 36 `CompressionTest`-Tests grün; `test_core` 2010 Tests (1 vorbestehender Skip), `test_crypto` 54/54.
+Coverage `src/core/Compression.cpp`: Lines 100 %, Branches 93,9 %.
+
+**Behoben / umgesetzt**
+
+- *dstlen-Contract:* Doku korrigiert – `dstlen` enthält bei der Exception die bereits geschriebenen Bytes, nur bei `Algorithm::NONE` die tatsächlich benötigte Größe. Code bleibt unverändert, dstlen wird jetzt getestet.
+- *Stille 32-Bit-Trunkierung / Win64-LLP64:* neue öffentliche Konstante `Compression::MAX_DATA_SIZE` (4 GiB − 1). Low-Level-`compress()`/`uncompress()` und alle ByteArray-Pfade prüfen Quell- und Ziellänge gegen diesen Wert und werfen `IllegalArgumentException`. bzip2-Casts `(int)` → `(unsigned int)`, damit entfällt die harte 2-GiB-Grenze.
+- *V1-Decode:* reservierte Bits (`flag & 0xF8`) und unbekannte Algo-Bits (3–7) → `CorruptedDataException`. Zusätzlich Überlauf-Fix in den Größenprüfungen (`size_comp > size - 9` bzw. `size - bytes`); vorher lief die Prüfung bei 32 Bit über.
+- *Undokumentierte `BufferTooSmallException`:* in allen `compress()`-Überladungen und freien `Compress*`-Funktionen dokumentiert (defensiv, die Bound ist garantiert).
+- *Doppel-Puffer im Prefix-Pfad:* neue private Helfer `compressTo()`/`uncompressTo()` komprimieren direkt in das Ergebnis-`ByteArray` – kein `std::vector workbuf`, kein `memcpy`. Out-Parameter-Overloads rufen die Helfer statt `out = compress(in)` und vermeiden so die Deep-Copy.
+- *Code Smells / Doku:* `usePrefix()` gestrichen, `HAVE_LIBZ` → `HAVE_ZLIB`, Parametername `srclen` → `size`, C-Casts → `static_cast`, `Unknown = 256` vollständig dokumentiert, `@exception`-Blöcke der freien Funktionen ergänzt.
+- *Unscoped Enums:* `enum class Algorithm` / `Level` / `Prefix` mit neuen Namen (`NONE`, `ZLIB`, `BZIP2`, `Unknown`; `Fast`, `Normal`, `Default`, `High`; `None`, `V1`, `V2`) ohne `using enum`; alle Verwender angepasst (`PFPFile`, `Resource`, `Sprite`, `SocketMessage`). Die serialisierten Werte (u. a. `PFPFile` Offset 16) bleiben erhalten.
+- *Tests:* dstlen-Wert nach `BufferTooSmallException`, abgeschnittener Stream ohne Prefix, leere Daten mit BZIP2 und mit V1, V2-3-Byte-Felder und 4-Byte-Felder (inkl. Roundtrip > 16 MiB), Sollwert des V1-Felds „Bytes komprimiert", Low-Level-Override und `Unknown`-Default, V2 mit NONE/BZIP2, mit V1 komprimierte und mit V2 gelesene Daten, freies `Uncompress()` mit korruptem Header, MAX_DATA_SIZE-Grenzen, Out-Parameter ersetzt alten Pufferinhalt.
+
+**Nicht umgesetzt (bewusst)**
+
+- DoS-Grenze für `size_unc` aus dem Header: bleibt unverändert (Bestandsentscheidung; Obergrenze ist `MAX_DATA_SIZE`).
+- `init()` validiert weiterhin nicht – der bestehende Test erwartet, dass ein ungültiger Algorithmus erst beim Komprimieren als `UnsupportedFeatureException` erscheint. Offene Frage, ob hier auf `IllegalArgumentException` umgestellt werden soll.
+- Retry-Schleife im Komprimierpfad, Streaming-API, `[[nodiscard]]`, `std::span`: abgelehnt.
+- Doku zu `ByteArray::malloc(0)` in `include/pplib/types/bytearray.h`: außerhalb des Scopes (nur Klasse `Compression`).
+
 ## Bugs (kritisch)
 
 Keine.

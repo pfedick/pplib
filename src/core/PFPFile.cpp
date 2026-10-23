@@ -178,7 +178,7 @@ PFPFile::PFPFile()
 {
     id = "UNKN";
     mainversion = subversion = 0;
-    comp = Compression::Algo_NONE;
+    comp = Compression::Algorithm::NONE;
 }
 
 PFPFile::~PFPFile()
@@ -193,7 +193,7 @@ void PFPFile::clear()
     dataPtr.use(nullptr, 0);
     id = "UNKN";
     mainversion = subversion = 0;
-    comp = Compression::Algo_NONE;
+    comp = Compression::Algorithm::NONE;
 }
 
 void PFPFile::setVersion(int main, int sub)
@@ -215,7 +215,7 @@ void PFPFile::setId(const String& id)
 
 void PFPFile::setCompression(Compression::Algorithm type)
 {
-    if (type != Compression::Algo_NONE && type != Compression::Algo_ZLIB && type != Compression::Algo_BZIP2) {
+    if (type != Compression::Algorithm::NONE && type != Compression::Algorithm::ZLIB && type != Compression::Algorithm::BZIP2) {
         throw UnknownCompressionMethodException();
     }
     comp = type;
@@ -334,7 +334,7 @@ void PFPFile::save(const String& filename)
         Poke8((p + 10 + i), (unsigned int)id[i]);
     Poke8(p + 15, mainversion);
     Poke8(p + 14, subversion);
-    Poke8(p + 16, comp);
+    Poke8(p + 16, static_cast<uint8_t>(comp));
     Poke8(p + 17, 0);
     Poke8(p + 18, 0);
     Poke8(p + 19, 0);
@@ -377,16 +377,16 @@ void PFPFile::save(const String& filename)
     size_t savesize = pp - hsize;
     // Komprimierung?
     ByteArray compressedData;
-    if (comp) {
+    if (comp != Compression::Algorithm::NONE) {
         Compression c;
-        c.init(comp, Compression::Level_High);
+        c.init(comp, Compression::Level::High);
         compressedData = c.compress(ByteArrayPtr(p + hsize, savesize));
         savesize = compressedData.size();
     }
 
     ff.open(filename, File::FileMode::WRITE);
     ff.write(p, hsize);
-    if (comp) {
+    if (comp != Compression::Algorithm::NONE) {
         char t[8];
         Poke32(t, (uint32_t)(pp - hsize));
         Poke32(t + 4, (uint32_t)savesize);
@@ -503,13 +503,13 @@ void PFPFile::list() const
     printf("PFP-File Version 3 ============================================\n");
     printf("ID: %s, Version: %i.%i, Komprimierung: ", (const char*)id, mainversion, subversion);
     switch (comp) {
-    case 0:
+    case Compression::Algorithm::NONE:
         printf("keine\n");
         break;
-    case 1:
+    case Compression::Algorithm::ZLIB:
         printf("Zlib\n");
         break;
-    case 2:
+    case Compression::Algorithm::BZIP2:
         printf("Bzip2\n");
         break;
     default:
@@ -558,7 +558,7 @@ bool PFPFile::ident(FileObject& ff)
         id.set(p + 10, 4);
         mainversion = Peek8(p + 15);
         subversion = Peek8(p + 14);
-        comp = (Compression::Algorithm)Peek8(p + 16);
+        comp = static_cast<Compression::Algorithm>(Peek8(p + 16));
         return true;
     }
     catch (...) {
@@ -577,7 +577,7 @@ bool PFPFile::ident(const ByteArrayPtr& buffer) noexcept
         id.set(p + 10, 4);
         mainversion = Peek8(p + 15);
         subversion = Peek8(p + 14);
-        comp = (Compression::Algorithm)Peek8(p + 16);
+        comp = static_cast<Compression::Algorithm>(Peek8(p + 16));
         return true;
     }
     catch (...) {
@@ -602,9 +602,9 @@ void PFPFile::useMemory(const ByteArrayPtr& data)
     id.set(p + 10, 4);
     mainversion = Peek8(p + 15);
     subversion = Peek8(p + 14);
-    comp = (Compression::Algorithm)Peek8(p + 16);
+    comp = static_cast<Compression::Algorithm>(Peek8(p + 16));
 
-    if (comp) {
+    if (comp != Compression::Algorithm::NONE) {
         // Mindestens 8 Bytes für den Komprimierungsheader erforderlich
         if (data.size() - hsize < 8) throw InvalidFormatException();
 

@@ -423,10 +423,10 @@ static int compress(FileObject& ff, char** buffer, size_t* size, int* type)
     char* buf = (char*)malloc(size_c);
     if (!buf) throw OutOfMemoryException();
     // Zuerst Zlib
-    comp.init(Compression::Algo_ZLIB, Compression::Level_High);
+    comp.init(Compression::Algorithm::ZLIB, Compression::Level::High);
     comp.compress(buf, &size_zlib, source, size_u);
     // Dann Bzip2
-    comp.init(Compression::Algo_BZIP2, Compression::Level_High);
+    comp.init(Compression::Algorithm::BZIP2, Compression::Level::High);
     comp.compress(buf, &size_bz2, source, size_u);
     // Was war kleiner?
     if (size_u <= size_bz2 && size_u <= size_zlib) {
@@ -446,7 +446,7 @@ static int compress(FileObject& ff, char** buffer, size_t* size, int* type)
         return 1;
     }
     size_zlib = size_c;
-    comp.init(Compression::Algo_ZLIB, Compression::Level_High);
+    comp.init(Compression::Algorithm::ZLIB, Compression::Level::High);
     comp.compress(buf, &size_zlib, source, size_u);
     printf("Using zlib: %u Bytes von %u Bytes (bzip2: %u Bytes)\n", (uint32_t)size_zlib, (uint32_t)size_u, (uint32_t)size_bz2);
     *buffer = buf;

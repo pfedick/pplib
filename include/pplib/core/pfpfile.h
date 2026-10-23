@@ -375,9 +375,9 @@ public:
      * soll.
      *
      * @param type Ein Wert, der die Art der Kompression angibt. Mögliche Werte sind:
-     * - Compression::Algo_NONE - Keine Komprimierung
-     * - Compression::Algo_ZLIB - Komprimierung mit Zlib
-     * - Compression::Algo_BZIP2 - Komprimierung mit Bzip2
+     * - Compression::Algorithm::NONE - Keine Komprimierung
+     * - Compression::Algorithm::ZLIB - Komprimierung mit Zlib
+     * - Compression::Algorithm::BZIP2 - Komprimierung mit Bzip2
      *
      * @exception UnknownCompressionMethodException Wird geworfen, wenn \p type einen ungültigen Wert enthält.
      */

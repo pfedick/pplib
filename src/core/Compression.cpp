@@ -28,12 +28,11 @@
  *******************************************************************************/
 #include <string.h>
 #include <algorithm>
-#include <vector>
 #include <pplib/core/compression.h>
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
 
-#if defined(HAVE_ZLIB) || defined(HAVE_LIBZ)
+#ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
 
@@ -47,7 +46,10 @@ namespace pplib
 static size_t maxCompressedBound(size_t size)
 {
     size_t bound = size + (size / 100) + 600;
-#if defined(HAVE_ZLIB) || defined(HAVE_LIBZ)
+    // LCOV_EXCL_START
+    if (bound < size) throw OutOfMemoryException(); // Überlauf: Puffer passt niemals
+    // LCOV_EXCL_STOP
+#ifdef HAVE_ZLIB
     size_t zbound = (size_t)::compressBound((uLong)size);
     if (zbound > bound) bound = zbound;
 #endif
@@ -57,13 +59,8 @@ static size_t maxCompressedBound(size_t size)
 Compression::Compression(Algorithm method, Level level)
     : algorithm_(method),
       level_(level),
-      prefix_(Prefix_None)
+      prefix_(Prefix::None)
 {
-}
-
-void Compression::usePrefix(Prefix prefix)
-{
-    prefix_ = prefix;
 }
 
 void Compression::setPrefix(Prefix prefix)
@@ -88,13 +85,13 @@ Compression::Level Compression::level() const noexcept
 
 void Compression::init(Algorithm method, Level level)
 {
-#if !defined(HAVE_ZLIB) && !defined(HAVE_LIBZ)
-    if (method == Algo_ZLIB) {
+#ifndef HAVE_ZLIB
+    if (method == Algorithm::ZLIB) {
         throw UnsupportedFeatureException("Zlib");
     }
 #endif
 #ifndef HAVE_BZIP2
-    if (method == Algo_BZIP2) {
+    if (method == Algorithm::BZIP2) {
         throw UnsupportedFeatureException("Bzip2");
     }
 #endif
@@ -117,20 +114,20 @@ void Compression::doNone(void* dst, size_t* dstlen, const void* src, size_t size
 
 void Compression::doZlib(void* dst, size_t* dstlen, const void* src, size_t size)
 {
-#if !defined(HAVE_ZLIB) && !defined(HAVE_LIBZ)
+#ifndef HAVE_ZLIB
     throw UnsupportedFeatureException("Zlib");
 #else
     const void* safe_src = (src != nullptr) ? src : "";
     uLongf dstlen_zlib = (uLongf)*dstlen;
     int zcomplevel;
     switch (level_) {
-    case Level_Fast:
+    case Level::Fast:
         zcomplevel = Z_BEST_SPEED;
         break;
-    case Level_Normal:
+    case Level::Normal:
         zcomplevel = 5;
         break;
-    case Level_High:
+    case Level::High:
         zcomplevel = Z_BEST_COMPRESSION;
         break;
     default:
@@ -162,13 +159,13 @@ void Compression::doBzip2(void* dst, size_t* dstlen, const void* src, size_t siz
     const void* safe_src = (src != nullptr) ? src : "";
     int zcomplevel;
     switch (level_) {
-    case Level_Fast:
+    case Level::Fast:
         zcomplevel = 1;
         break;
-    case Level_Normal:
+    case Level::Normal:
         zcomplevel = 5;
         break;
-    case Level_High:
+    case Level::High:
         zcomplevel = 9;
         break;
     default:
@@ -176,7 +173,7 @@ void Compression::doBzip2(void* dst, size_t* dstlen, const void* src, size_t siz
         break;
     }
     unsigned int bz_dstlen = (unsigned int)*dstlen;
-    int ret = BZ2_bzBuffToBuffCompress((char*)dst, &bz_dstlen, (char*)safe_src, (int)size, zcomplevel, 0, 30);
+    int ret = BZ2_bzBuffToBuffCompress((char*)dst, &bz_dstlen, (char*)safe_src, (unsigned int)size, zcomplevel, 0, 30);
     *dstlen = (size_t)bz_dstlen;
     if (ret == BZ_OK) {
         return;
@@ -205,7 +202,7 @@ void Compression::unNone(void* dst, size_t* dstlen, const void* src, size_t srcl
 
 void Compression::unZlib(void* dst, size_t* dstlen, const void* src, size_t srclen)
 {
-#if !defined(HAVE_ZLIB) && !defined(HAVE_LIBZ)
+#ifndef HAVE_ZLIB
     throw UnsupportedFeatureException("Zlib");
 #else
     const void* safe_src = (src != nullptr) ? src : "";
@@ -234,7 +231,7 @@ void Compression::unBzip2(void* dst, size_t* dstlen, const void* src, size_t src
 #else
     const void* safe_src = (src != nullptr) ? src : "";
     unsigned int bz_dstlen = (unsigned int)*dstlen;
-    int ret = BZ2_bzBuffToBuffDecompress((char*)dst, &bz_dstlen, (char*)safe_src, (int)srclen, 0, 0);
+    int ret = BZ2_bzBuffToBuffDecompress((char*)dst, &bz_dstlen, (char*)safe_src, (unsigned int)srclen, 0, 0);
     *dstlen = (size_t)bz_dstlen;
     if (ret == BZ_OK) {
         return;
@@ -251,20 +248,23 @@ void Compression::unBzip2(void* dst, size_t* dstlen, const void* src, size_t src
 #endif
 }
 
-void Compression::compress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a)
+void Compression::compress(void* dst, size_t* dstlen, const void* src, size_t size, Algorithm a)
 {
     if (!dst || !dstlen) throw IllegalArgumentException();
-    if (!src && srclen > 0) throw IllegalArgumentException();
-    if (a == Unknown) a = algorithm_;
+    if (!src && size > 0) throw IllegalArgumentException();
+    if (size > MAX_DATA_SIZE || *dstlen > MAX_DATA_SIZE) {
+        throw IllegalArgumentException("Datenmenge überschreitet Compression::MAX_DATA_SIZE");
+    }
+    if (a == Algorithm::Unknown) a = algorithm_;
     switch (a) {
-    case Algo_NONE:
-        doNone(dst, dstlen, src, srclen);
+    case Algorithm::NONE:
+        doNone(dst, dstlen, src, size);
         return;
-    case Algo_ZLIB:
-        doZlib(dst, dstlen, src, srclen);
+    case Algorithm::ZLIB:
+        doZlib(dst, dstlen, src, size);
         return;
-    case Algo_BZIP2:
-        doBzip2(dst, dstlen, src, srclen);
+    case Algorithm::BZIP2:
+        doBzip2(dst, dstlen, src, size);
         return;
     default:
         throw UnsupportedFeatureException();
@@ -276,39 +276,42 @@ ByteArray Compression::compress(const void* ptr, size_t size)
     return compress(ByteArrayPtr(ptr, size));
 }
 
-ByteArray Compression::compress(const ByteArrayPtr& in)
+void Compression::compressTo(ByteArray& out, const void* ptr, size_t size)
 {
-    const void* ptr = in.ptr();
-    size_t size = in.size();
+    if (size > MAX_DATA_SIZE) throw IllegalArgumentException("Datenmenge überschreitet Compression::MAX_DATA_SIZE");
 
-    if (prefix_ == Prefix_None) {
+    if (prefix_ == Prefix::None) {
         size_t maxbound = maxCompressedBound(size);
-        ByteArray out;
         out.malloc(maxbound);
         size_t dstlen = maxbound;
         compress(out.ptr(), &dstlen, ptr, size);
         out.truncate(dstlen);
-        return out;
+        return;
     }
 
     size_t maxbound = maxCompressedBound(size);
-    std::vector<uint8_t> workbuf(maxbound);
-    size_t dstlen = maxbound;
-    compress(workbuf.data(), &dstlen, ptr, size);
 
-    if (prefix_ == Prefix_V1) {
-        ByteArray out;
-        char* prefix = (char*)out.malloc(dstlen + 9);
-        Poke8(prefix, (algorithm_ & 7));
+    if (prefix_ == Prefix::V1) {
+        // Komprimierung erfolgt direkt in den Ausgabepuffer: kein Zwischenpuffer, kein memcpy
+        char* prefix = (char*)out.malloc(maxbound + 9);
+        Poke8(prefix, static_cast<uint8_t>(static_cast<unsigned>(algorithm_) & 7));
+        size_t dstlen = maxbound;
+        compress(prefix + 9, &dstlen, ptr, size);
         Poke32(prefix + 1, (uint32_t)size);
         Poke32(prefix + 5, (uint32_t)dstlen);
-        if (dstlen > 0) {
-            memcpy(prefix + 9, workbuf.data(), dstlen);
-        }
-        return out;
-    } else if (prefix_ == Prefix_V2) {
-        int b_unc = 4, b_comp = 4;
-        int flag = (algorithm_ & 7) | 8; // Version 2 bit
+        out.truncate(dstlen + 9);
+        return;
+    }
+
+    if (prefix_ == Prefix::V2) {
+        // Der V2-Header ist maximal 9 Byte lang; die Daten stehen zunächst hinter dem Maximal-Header
+        char* prefix = (char*)out.malloc(maxbound + 9);
+        size_t dstlen = maxbound;
+        compress(prefix + 9, &dstlen, ptr, size);
+
+        int b_unc = 4;
+        int b_comp = 4;
+        int flag = (static_cast<unsigned>(algorithm_) & 7) | 8; // Version 2 bit
 
         if (size <= 0xff)
             b_unc = 1;
@@ -328,8 +331,6 @@ ByteArray Compression::compress(const ByteArrayPtr& in)
         flag |= ((b_unc - 1) << 4);
         flag |= ((b_comp - 1) << 6);
 
-        ByteArray out;
-        char* prefix = (char*)out.malloc(dstlen + bytes);
         Poke8(prefix, flag);
 
         char* p_unc = prefix + 1;
@@ -352,39 +353,48 @@ ByteArray Compression::compress(const ByteArrayPtr& in)
         else
             Poke32(p_comp, (uint32_t)dstlen);
 
-        if (dstlen > 0) {
-            memcpy(prefix + bytes, workbuf.data(), dstlen);
-        }
-        return out;
+        if (bytes < 9) memmove(prefix + bytes, prefix + 9, dstlen);
+        out.truncate(dstlen + bytes);
+        return;
     }
     // LCOV_EXCL_START
     throw UnknownException();
     // LCOV_EXCL_STOP
 }
 
+ByteArray Compression::compress(const ByteArrayPtr& in)
+{
+    ByteArray out;
+    compressTo(out, in.ptr(), in.size());
+    return out;
+}
+
 void Compression::compress(ByteArray& out, const ByteArrayPtr& in)
 {
-    out = compress(in);
+    compressTo(out, in.ptr(), in.size());
 }
 
 void Compression::compress(ByteArray& out, const void* ptr, size_t size)
 {
-    out = compress(ByteArrayPtr(ptr, size));
+    compressTo(out, ptr, size);
 }
 
 void Compression::uncompress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a)
 {
     if (!dst || !dstlen) throw IllegalArgumentException();
     if (!src && srclen > 0) throw IllegalArgumentException();
-    if (a == Unknown) a = algorithm_;
+    if (srclen > MAX_DATA_SIZE || *dstlen > MAX_DATA_SIZE) {
+        throw IllegalArgumentException("Datenmenge überschreitet Compression::MAX_DATA_SIZE");
+    }
+    if (a == Algorithm::Unknown) a = algorithm_;
     switch (a) {
-    case Algo_NONE:
+    case Algorithm::NONE:
         unNone(dst, dstlen, src, srclen);
         return;
-    case Algo_ZLIB:
+    case Algorithm::ZLIB:
         unZlib(dst, dstlen, src, srclen);
         return;
-    case Algo_BZIP2:
+    case Algorithm::BZIP2:
         unBzip2(dst, dstlen, src, srclen);
         return;
     default:
@@ -397,47 +407,49 @@ ByteArray Compression::uncompress(const void* ptr, size_t size)
     return uncompress(ByteArrayPtr(ptr, size));
 }
 
-ByteArray Compression::uncompress(const ByteArrayPtr& in)
+void Compression::uncompressTo(ByteArray& out, const void* ptr, size_t size)
 {
-    const void* ptr = in.ptr();
-    size_t size = in.size();
+    if (size > MAX_DATA_SIZE) throw IllegalArgumentException("Datenmenge überschreitet Compression::MAX_DATA_SIZE");
 
-    if (prefix_ == Prefix_None) {
+    if (prefix_ == Prefix::None) {
         size_t bsize = (size > 0 ? size * 4 : 64);
         while (true) {
-            ByteArray out;
             out.malloc(bsize);
             size_t dstlen = bsize;
             try {
                 uncompress(out.ptr(), &dstlen, ptr, size);
                 out.truncate(dstlen);
-                return out;
+                return;
             }
             catch (const BufferTooSmallException&) {
                 bsize = std::max(bsize * 2, dstlen + 1024);
             }
         }
-    } else if (prefix_ == Prefix_V1) {
+    } else if (prefix_ == Prefix::V1) {
         if (size < 9) throw CorruptedDataException("data too small for V1 prefix");
         const char* buffer = (const char*)ptr;
         int flag = Peek8(buffer);
+        if (flag & 0xF8) throw CorruptedDataException("reserved bits in V1 prefix set");
+        unsigned algo = static_cast<unsigned>(flag & 7);
+        if (algo > static_cast<unsigned>(Algorithm::BZIP2)) throw CorruptedDataException("unknown algorithm in V1 prefix");
         size_t size_unc = Peek32(buffer + 1);
         size_t size_comp = Peek32(buffer + 5);
-        if (size < 9 + size_comp) throw CorruptedDataException("truncated V1 data");
-        ByteArray out;
+        if (size_comp > size - 9) throw CorruptedDataException("truncated V1 data");
         out.malloc(size_unc);
         size_t dstlen = size_unc;
-        uncompress(out.ptr(), &dstlen, buffer + 9, size_comp, (Algorithm)(flag & 7));
+        uncompress(out.ptr(), &dstlen, buffer + 9, size_comp, static_cast<Algorithm>(algo));
         out.truncate(dstlen);
-        return out;
-    } else if (prefix_ == Prefix_V2) {
+        return;
+    } else if (prefix_ == Prefix::V2) {
         if (size < 1) throw CorruptedDataException("empty V2 data");
         const char* buffer = (const char*)ptr;
         int flag = Peek8(buffer);
-        Algorithm a = (Algorithm)(flag & 7);
         if ((flag & 8) == 0) {
             throw CorruptedDataException("wrong flag: bit 3 not set");
         }
+        unsigned algo = static_cast<unsigned>(flag & 7);
+        if (algo > static_cast<unsigned>(Algorithm::BZIP2)) throw CorruptedDataException("unknown algorithm in V2 prefix");
+        Algorithm a = static_cast<Algorithm>(algo);
         int b_unc = ((flag >> 4) & 3) + 1;
         int b_comp = ((flag >> 6) & 3) + 1;
         size_t bytes = 1 + b_unc + b_comp;
@@ -465,36 +477,42 @@ ByteArray Compression::uncompress(const ByteArrayPtr& in)
         else
             size_comp = Peek32(p_comp);
 
-        if (size < bytes + size_comp) {
+        if (size_comp > size - bytes) {
             throw CorruptedDataException("truncated V2 data");
         }
 
-        ByteArray out;
         out.malloc(size_unc);
         size_t dstlen = size_unc;
         uncompress(out.ptr(), &dstlen, buffer + bytes, size_comp, a);
         out.truncate(dstlen);
-        return out;
+        return;
     }
     // LCOV_EXCL_START
     throw DecompressionFailedException();
     // LCOV_EXCL_STOP
 }
 
+ByteArray Compression::uncompress(const ByteArrayPtr& in)
+{
+    ByteArray out;
+    uncompressTo(out, in.ptr(), in.size());
+    return out;
+}
+
 void Compression::uncompress(ByteArray& out, const ByteArrayPtr& in)
 {
-    out = uncompress(in);
+    uncompressTo(out, in.ptr(), in.size());
 }
 
 void Compression::uncompress(ByteArray& out, const void* ptr, size_t size)
 {
-    out = uncompress(ByteArrayPtr(ptr, size));
+    uncompressTo(out, ptr, size);
 }
 
 ByteArray Compress(const ByteArrayPtr& in, Compression::Algorithm method, Compression::Level level)
 {
     Compression comp(method, level);
-    comp.setPrefix(Compression::Prefix_V2);
+    comp.setPrefix(Compression::Prefix::V2);
     return comp.compress(in);
 }
 
@@ -506,7 +524,7 @@ void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm met
 ByteArray Uncompress(const ByteArrayPtr& in)
 {
     Compression comp;
-    comp.setPrefix(Compression::Prefix_V2);
+    comp.setPrefix(Compression::Prefix::V2);
     return comp.uncompress(in);
 }
 
@@ -517,7 +535,7 @@ void Uncompress(ByteArray& out, const ByteArrayPtr& in)
 
 ByteArray CompressZlib(const ByteArrayPtr& in, Compression::Level level)
 {
-    return Compress(in, Compression::Algo_ZLIB, level);
+    return Compress(in, Compression::Algorithm::ZLIB, level);
 }
 
 void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
@@ -527,7 +545,7 @@ void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level lev
 
 ByteArray CompressBZip2(const ByteArrayPtr& in, Compression::Level level)
 {
-    return Compress(in, Compression::Algo_BZIP2, level);
+    return Compress(in, Compression::Algorithm::BZIP2, level);
 }
 
 void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)

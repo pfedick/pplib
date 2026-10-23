@@ -260,7 +260,7 @@ void Sprite::loadTexture(PFPChunk* chunk)
  */
 {
     Compression Comp;
-    Comp.usePrefix(Compression::Prefix_V2);
+    Comp.setPrefix(Compression::Prefix::V2);
     char* buffer = (char*)chunk->data();
     // Textur anlegen
     SpriteTexture tex;

@@ -249,9 +249,9 @@ size_t TCPSocket::write(const SocketMessage& msg)
  * \copydoc PPLSocketMessage
  */
 {
-    Compression comp(Compression::Algo_ZLIB, Compression::Level_High);
+    Compression comp(Compression::Algorithm::ZLIB, Compression::Level::High);
     ByteArray compressed;
-    comp.usePrefix(Compression::Prefix_V1);
+    comp.setPrefix(Compression::Prefix::V1);
     const void* msg_payload = msg.payload.ptr();
     size_t msg_size = msg.payload.size();
     bool is_compressed = false;
@@ -295,9 +295,9 @@ bool TCPSocket::waitForMessage(SocketMessage& msg, int timeout_seconds, Thread* 
  * \copydoc PPLSocketMessage
  */
 {
-    Compression comp(Compression::Algo_ZLIB, Compression::Level_High);
+    Compression comp(Compression::Algorithm::ZLIB, Compression::Level::High);
     ByteArray uncompressed;
-    comp.usePrefix(Compression::Prefix_V1);
+    comp.setPrefix(Compression::Prefix::V1);
     uint64_t tt = GetTime() + timeout_seconds;
     char msgbuffer[28];
     void* buffer = NULL;

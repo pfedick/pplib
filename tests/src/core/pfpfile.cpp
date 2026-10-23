@@ -313,7 +313,7 @@ TEST_F(PFPFileTest, DefaultState)
     EXPECT_EQ(pplib::String("UNKN"), file.getID());
     EXPECT_EQ(0, file.getMainVersion());
     EXPECT_EQ(0, file.getSubVersion());
-    EXPECT_EQ(pplib::Compression::Algo_NONE, file.getCompression());
+    EXPECT_EQ(pplib::Compression::Algorithm::NONE, file.getCompression());
     EXPECT_EQ(pplib::String(), file.getName());
     EXPECT_EQ(pplib::String(), file.getAuthor());
     EXPECT_EQ(pplib::String(), file.getDescription());
@@ -377,14 +377,14 @@ TEST_F(PFPFileTest, SetCompressionAndGetCompression)
 {
     pplib::PFPFile file;
 
-    file.setCompression(pplib::Compression::Algo_NONE);
-    EXPECT_EQ(pplib::Compression::Algo_NONE, file.getCompression());
+    file.setCompression(pplib::Compression::Algorithm::NONE);
+    EXPECT_EQ(pplib::Compression::Algorithm::NONE, file.getCompression());
 
-    file.setCompression(pplib::Compression::Algo_ZLIB);
-    EXPECT_EQ(pplib::Compression::Algo_ZLIB, file.getCompression());
+    file.setCompression(pplib::Compression::Algorithm::ZLIB);
+    EXPECT_EQ(pplib::Compression::Algorithm::ZLIB, file.getCompression());
 
-    file.setCompression(pplib::Compression::Algo_BZIP2);
-    EXPECT_EQ(pplib::Compression::Algo_BZIP2, file.getCompression());
+    file.setCompression(pplib::Compression::Algorithm::BZIP2);
+    EXPECT_EQ(pplib::Compression::Algorithm::BZIP2, file.getCompression());
 
     // Invalid compression algorithm
     EXPECT_THROW(file.setCompression((pplib::Compression::Algorithm)99), pplib::UnknownCompressionMethodException);
@@ -501,7 +501,7 @@ TEST_F(PFPFileTest, Clear)
     pplib::PFPFile file;
     file.setId("TEST");
     file.setVersion(2, 5);
-    file.setCompression(pplib::Compression::Algo_ZLIB);
+    file.setCompression(pplib::Compression::Algorithm::ZLIB);
     file.setName("Something");
     file.addChunk(pplib::PFPChunk("DATA", pplib::ByteArray("abc", 3)));
 
@@ -510,7 +510,7 @@ TEST_F(PFPFileTest, Clear)
     EXPECT_EQ(pplib::String("UNKN"), file.getID());
     EXPECT_EQ(0, file.getMainVersion());
     EXPECT_EQ(0, file.getSubVersion());
-    EXPECT_EQ(pplib::Compression::Algo_NONE, file.getCompression());
+    EXPECT_EQ(pplib::Compression::Algorithm::NONE, file.getCompression());
     EXPECT_EQ(pplib::String(), file.getName());
     EXPECT_EQ(file.begin(), file.end());
 }
@@ -606,7 +606,7 @@ TEST_F(PFPFileTest, SaveAndLoadUncompressed)
         pplib::PFPFile file;
         file.setId("DEMO");
         file.setVersion(1, 2);
-        file.setCompression(pplib::Compression::Algo_NONE);
+        file.setCompression(pplib::Compression::Algorithm::NONE);
         file.setName("Demo File");
         file.setAuthor("Patrick");
         file.setDescription("A test file without compression");
@@ -627,7 +627,7 @@ TEST_F(PFPFileTest, SaveAndLoadUncompressed)
         EXPECT_EQ(pplib::String("DEMO"), identFile.getID());
         EXPECT_EQ(1, identFile.getMainVersion());
         EXPECT_EQ(2, identFile.getSubVersion());
-        EXPECT_EQ(pplib::Compression::Algo_NONE, identFile.getCompression());
+        EXPECT_EQ(pplib::Compression::Algorithm::NONE, identFile.getCompression());
 
         pplib::File ff(filename, pplib::File::FileMode::READ);
         EXPECT_TRUE(identFile.ident(ff));
@@ -645,7 +645,7 @@ TEST_F(PFPFileTest, SaveAndLoadUncompressed)
         EXPECT_EQ(pplib::String("DEMO"), file.getID());
         EXPECT_EQ(1, file.getMainVersion());
         EXPECT_EQ(2, file.getSubVersion());
-        EXPECT_EQ(pplib::Compression::Algo_NONE, file.getCompression());
+        EXPECT_EQ(pplib::Compression::Algorithm::NONE, file.getCompression());
         EXPECT_EQ(pplib::String("Demo File"), file.getName());
         EXPECT_EQ(pplib::String("Patrick"), file.getAuthor());
         EXPECT_EQ(pplib::String("A test file without compression"), file.getDescription());
@@ -675,7 +675,7 @@ TEST_F(PFPFileTest, SaveAndLoadZlib)
         pplib::PFPFile file;
         file.setId("ZLIB");
         file.setVersion(3, 0);
-        file.setCompression(pplib::Compression::Algo_ZLIB);
+        file.setCompression(pplib::Compression::Algorithm::ZLIB);
         file.setName("Compressed Zlib");
         file.setAuthor("Author Z");
 
@@ -696,7 +696,7 @@ TEST_F(PFPFileTest, SaveAndLoadZlib)
     EXPECT_EQ(pplib::String("ZLIB"), file.getID());
     EXPECT_EQ(3, file.getMainVersion());
     EXPECT_EQ(0, file.getSubVersion());
-    EXPECT_EQ(pplib::Compression::Algo_ZLIB, file.getCompression());
+    EXPECT_EQ(pplib::Compression::Algorithm::ZLIB, file.getCompression());
     EXPECT_EQ(pplib::String("Compressed Zlib"), file.getName());
     EXPECT_EQ(pplib::String("Author Z"), file.getAuthor());
 
@@ -713,7 +713,7 @@ TEST_F(PFPFileTest, SaveAndLoadBzip2)
         pplib::PFPFile file;
         file.setId("BZ2_");
         file.setVersion(4, 1);
-        file.setCompression(pplib::Compression::Algo_BZIP2);
+        file.setCompression(pplib::Compression::Algorithm::BZIP2);
         file.setName("Compressed Bzip2");
         file.setDescription("Testing Bzip2 compression in PFPFile");
 
@@ -733,7 +733,7 @@ TEST_F(PFPFileTest, SaveAndLoadBzip2)
     EXPECT_EQ(pplib::String("BZ2_"), file.getID());
     EXPECT_EQ(4, file.getMainVersion());
     EXPECT_EQ(1, file.getSubVersion());
-    EXPECT_EQ(pplib::Compression::Algo_BZIP2, file.getCompression());
+    EXPECT_EQ(pplib::Compression::Algorithm::BZIP2, file.getCompression());
     EXPECT_EQ(pplib::String("Compressed Bzip2"), file.getName());
     EXPECT_EQ(pplib::String("Testing Bzip2 compression in PFPFile"), file.getDescription());
 
@@ -862,7 +862,7 @@ TEST_F(PFPFileTest, UseMemoryInvalidFormats)
     char compTrunc[28] = "PFP-File";
     compTrunc[8] = 3;
     compTrunc[9] = 24;
-    compTrunc[16] = (char)pplib::Compression::Algo_ZLIB;
+    compTrunc[16] = (char)pplib::Compression::Algorithm::ZLIB;
     EXPECT_THROW(file.useMemory(pplib::ByteArrayPtr(compTrunc, 28)), pplib::InvalidFormatException);
 
     // Test load(FileObject&) exceptions
@@ -944,7 +944,7 @@ TEST_F(PFPFileTest, LoadRealWorldFontFile)
     EXPECT_EQ(pplib::String("FONT"), file.getID());
     EXPECT_EQ(6, file.getMainVersion());
     EXPECT_EQ(0, file.getSubVersion());
-    EXPECT_EQ(pplib::Compression::Algo_ZLIB, file.getCompression());
+    EXPECT_EQ(pplib::Compression::Algorithm::ZLIB, file.getCompression());
 
     ASSERT_NO_THROW(file.load(path));
 
@@ -1002,7 +1002,7 @@ TEST_F(PFPFileTest, ListFunctionality)
 
     // Zlib file
     pplib::PFPFile zlibFile;
-    zlibFile.setCompression(pplib::Compression::Algo_ZLIB);
+    zlibFile.setCompression(pplib::Compression::Algorithm::ZLIB);
     testing::internal::CaptureStdout();
     zlibFile.list();
     std::string zlibOut = testing::internal::GetCapturedStdout();
@@ -1010,7 +1010,7 @@ TEST_F(PFPFileTest, ListFunctionality)
 
     // Bzip2 file
     pplib::PFPFile bzFile;
-    bzFile.setCompression(pplib::Compression::Algo_BZIP2);
+    bzFile.setCompression(pplib::Compression::Algorithm::BZIP2);
     testing::internal::CaptureStdout();
     bzFile.list();
     std::string bzOut = testing::internal::GetCapturedStdout();
