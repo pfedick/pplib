@@ -300,7 +300,8 @@ void Compression::doBrotli(void* dst, size_t* dstlen, const void* src, size_t si
     if (brotli_bound > 0 && *dstlen < brotli_bound) throw BufferTooSmallException();
 
     size_t encoded = *dstlen;
-    if (::BrotliEncoderCompress(quality, BROTLI_DEFAULT_WINDOW, BROTLI_MODE_GENERIC, size, (const uint8_t*)safe_src, &encoded, (uint8_t*)dst)) {
+    if (::BrotliEncoderCompress(quality, BROTLI_DEFAULT_WINDOW, BROTLI_MODE_GENERIC, size, (const uint8_t*)safe_src, &encoded,
+                                (uint8_t*)dst)) {
         *dstlen = encoded;
         return;
     }
@@ -474,7 +475,7 @@ void Compression::compressTo(ByteArray& out, const void* ptr, size_t size)
         Poke8(prefix, static_cast<uint8_t>(static_cast<unsigned>(algorithm_) & 7));
         size_t dstlen = maxbound;
         compress(prefix + 9, &dstlen, ptr, size);
-        if (dstlen > 0xFFFFFFFFULL) throw IllegalArgumentException("komprimierte Datenmenge überschreitet V1-Längenfeld");
+        if (dstlen > 0xFFFFFFFFULL) throw CompressionFailedException("komprimierte Datenmenge überschreitet V1-Längenfeld");
         Poke32(prefix + 1, (uint32_t)size);
         Poke32(prefix + 5, (uint32_t)dstlen);
         out.truncate(dstlen + 9);
@@ -486,6 +487,7 @@ void Compression::compressTo(ByteArray& out, const void* ptr, size_t size)
         char* prefix = (char*)out.malloc(maxbound + 9);
         size_t dstlen = maxbound;
         compress(prefix + 9, &dstlen, ptr, size);
+        if (dstlen > 0xFFFFFFFFULL) throw CompressionFailedException("komprimierte Datenmenge überschreitet V1-Längenfeld");
 
         int b_unc = 4;
         int b_comp = 4;
