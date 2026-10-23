@@ -49,6 +49,10 @@ Pro Charge: zusammengehörige Bodies + deren Tests. Ein Build, ein gefilterter T
 **Phase 4 — Abschluss.**
 Volle Suite des Moduls. Kurzer Bericht: Änderungen, offene Punkte, Abweichungen von `DESIGN.md`.
 
+## Codereviews abarbeiten
+
+Jeden Fund in der Review-Datei selbst abarbeiten — nie eine zusätzliche Zusammenfassungs-Sektion anlegen. Die Notiz gehört als eingerückter Absatz **an das Ende des jeweiligen Findings** (`**Umsetzung:** …`, max. 3 Sätze, mit konkreten Testnamen, Konstanten oder Dateiverweisen). Haken nur bei tatsächlich umgesetzten Funden; „bewusst nicht umgesetzt" ohne Haken mit Begründung stehen lassen.
+
 ## Fortschritt extern halten
 
 Fortschritt in der Session-DB (`todos`, `todo_deps`) oder `PROGRESS.md`. Nach jeder Charge höchstens 5 Zeilen Summary. Bei Wiederaufnahme: ZUERST Fortschritt lesen, nie bereits Geleistetes wiederholen.

@@ -297,6 +297,7 @@ void Compression::compressTo(ByteArray& out, const void* ptr, size_t size)
         Poke8(prefix, static_cast<uint8_t>(static_cast<unsigned>(algorithm_) & 7));
         size_t dstlen = maxbound;
         compress(prefix + 9, &dstlen, ptr, size);
+        if (dstlen > 0xFFFFFFFFULL) throw IllegalArgumentException("komprimierte Datenmenge überschreitet V1-Längenfeld");
         Poke32(prefix + 1, (uint32_t)size);
         Poke32(prefix + 5, (uint32_t)dstlen);
         out.truncate(dstlen + 9);
