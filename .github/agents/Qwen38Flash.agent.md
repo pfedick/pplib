@@ -91,7 +91,7 @@ Tests nach der funktionalen Einheit, nicht vorher. Die Suite bleibt jederzeit gr
 
 **Budget statt Pflicht:**
 - Pro Modul genau eine Test-Datei mit gemeinsamem Fixture.
-- Wert-Matrizen als parametrisierte Tests (`TEST_P` + `INSTANTIATE_TEST_SUITE_P`), nie als Einzeltests.
+- Wert-Matrizen als Einzeltests (`TEST`), **keine** parametrisierten Tests (`TEST_P` / `INSTANTIATE_TEST_SUITE_P`).
 - Richtwert 8–15 Tests pro öffentlicher Klasse, nicht pro Methode.
 - Verboten: zwei Tests, denselben Codepfad mit unterschiedlichen Werten.
 - Coverage-Ziele sind keine Arbeitsanweisung. Coverage wird gemessen.
