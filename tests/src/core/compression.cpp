@@ -630,7 +630,7 @@ TEST(CompressionTest, PrefixV1FlagValidation)
     EXPECT_THROW(comp.uncompress(reserved, 9), pplib::CorruptedDataException);
 
     // im Flag kodierter, nicht unterstuetzter Algorithmus
-    char unknown[9] = {3, 0, 0, 0, 0, 0, 0, 0, 0};
+    char unknown[9] = {7, 0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_THROW(comp.uncompress(unknown, 9), pplib::CorruptedDataException);
 }
 
@@ -833,6 +833,250 @@ TEST(CompressionTest, LowLevelAlgorithmOverride)
     outlen = out.size();
     comp.uncompress(out.data(), &outlen, dst.data(), dstlen);
     EXPECT_EQ(outlen, original.size());
+}
+
+// ---------------------------------------------------------------------------
+// Zstandard und Brotli
+// ---------------------------------------------------------------------------
+
+// Liefert true, wenn der Algorithmus in diesen Build eingekompiliert ist.
+static bool algoAvailable(pplib::Compression::Algorithm a)
+{
+    try {
+        pplib::Compression comp(a);
+        (void)comp;
+        return true;
+    }
+    catch (const pplib::UnsupportedFeatureException&) {
+        return false;
+    }
+}
+
+TEST(CompressionTest, RoundtripZstdNoPrefix)
+{
+    if (!algoAvailable(pplib::Compression::Algorithm::ZSTD)) GTEST_SKIP() << "Zstd nicht einkompiliert";
+    pplib::ByteArray original = createSampleData(4096);
+
+    pplib::Compression comp(pplib::Compression::Algorithm::ZSTD);
+    comp.setPrefix(pplib::Compression::Prefix::NONE);
+    pplib::ByteArray c = comp.compress(original);
+    EXPECT_LT(c.size(), original.size());
+
+    pplib::ByteArray u = comp.uncompress(c);
+    ASSERT_EQ(u.size(), original.size());
+    EXPECT_EQ(memcmp(u.ptr(), original.ptr(), original.size()), 0);
+}
+
+TEST(CompressionTest, RoundtripBrotliNoPrefix)
+{
+    if (!algoAvailable(pplib::Compression::Algorithm::BROTLI)) GTEST_SKIP() << "Brotli nicht einkompiliert";
+    pplib::ByteArray original = createSampleData(4096);
+
+    pplib::Compression comp(pplib::Compression::Algorithm::BROTLI);
+    comp.setPrefix(pplib::Compression::Prefix::NONE);
+    pplib::ByteArray c = comp.compress(original);
+    EXPECT_LT(c.size(), original.size());
+
+    pplib::ByteArray u = comp.uncompress(c);
+    ASSERT_EQ(u.size(), original.size());
+    EXPECT_EQ(memcmp(u.ptr(), original.ptr(), original.size()), 0);
+}
+
+TEST(CompressionTest, RoundtripZstdAllLevels)
+{
+    if (!algoAvailable(pplib::Compression::Algorithm::ZSTD)) GTEST_SKIP() << "Zstd nicht einkompiliert";
+    pplib::ByteArray original = createSampleData(3000);
+    pplib::Compression::Level levels[] = {pplib::Compression::Level::Fast, pplib::Compression::Level::Normal,
+                                          pplib::Compression::Level::Default, pplib::Compression::Level::High};
+    for (pplib::Compression::Level lvl : levels) {
+        pplib::Compression comp(pplib::Compression::Algorithm::ZSTD, lvl);
+        pplib::ByteArray u = comp.uncompress(comp.compress(original));
+        ASSERT_EQ(u.size(), original.size()) << "Level " << static_cast<int>(lvl);
+        EXPECT_EQ(memcmp(u.ptr(), original.ptr(), original.size()), 0);
+    }
+}
+
+TEST(CompressionTest, RoundtripBrotliAllLevels)
+{
+    if (!algoAvailable(pplib::Compression::Algorithm::BROTLI)) GTEST_SKIP() << "Brotli nicht einkompiliert";
+    pplib::ByteArray original = createSampleData(3000);
+    pplib::Compression::Level levels[] = {pplib::Compression::Level::Fast, pplib::Compression::Level::Normal,
+                                          pplib::Compression::Level::Default, pplib::Compression::Level::High};
+    for (pplib::Compression::Level lvl : levels) {
+        pplib::Compression comp(pplib::Compression::Algorithm::BROTLI, lvl);
+        pplib::ByteArray u = comp.uncompress(comp.compress(original));
+        ASSERT_EQ(u.size(), original.size()) << "Level " << static_cast<int>(lvl);
+        EXPECT_EQ(memcmp(u.ptr(), original.ptr(), original.size()), 0);
+    }
+}
+
+TEST(CompressionTest, PrefixV1RoundtripZstdBrotli)
+{
+    pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::ZSTD, pplib::Compression::Algorithm::BROTLI};
+    for (pplib::Compression::Algorithm a : algos) {
+        if (!algoAvailable(a)) GTEST_SKIP() << "Algorithmus nicht einkompiliert";
+        pplib::ByteArray original = createSampleData(1500);
+        pplib::Compression comp(a);
+        comp.setPrefix(pplib::Compression::Prefix::V1);
+
+        pplib::ByteArray c = comp.compress(original);
+        ASSERT_GE(c.size(), 9u);
+        // Das Flag im Prefix traegt die Algorithmusnummer
+        EXPECT_EQ(static_cast<unsigned>(static_cast<const unsigned char*>(c.ptr())[0]) & 7u, static_cast<unsigned>(a));
+
+        pplib::ByteArray u = comp.uncompress(c);
+        ASSERT_EQ(u.size(), original.size());
+        EXPECT_EQ(memcmp(u.ptr(), original.ptr(), original.size()), 0);
+    }
+}
+
+TEST(CompressionTest, PrefixV2RoundtripZstdBrotli)
+{
+    pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::ZSTD, pplib::Compression::Algorithm::BROTLI};
+    for (pplib::Compression::Algorithm a : algos) {
+        if (!algoAvailable(a)) GTEST_SKIP() << "Algorithmus nicht einkompiliert";
+        pplib::ByteArray original = createSampleData(1500);
+        pplib::Compression comp(a);
+        comp.setPrefix(pplib::Compression::Prefix::V2);
+
+        pplib::ByteArray c = comp.compress(original);
+        ASSERT_GE(c.size(), 1u);
+        EXPECT_EQ(static_cast<unsigned>(static_cast<const unsigned char*>(c.ptr())[0]) & 7u, static_cast<unsigned>(a));
+        EXPECT_NE(static_cast<unsigned>(static_cast<const unsigned char*>(c.ptr())[0]) & 8u, 0u);
+
+        pplib::ByteArray u = comp.uncompress(c);
+        ASSERT_EQ(u.size(), original.size());
+        EXPECT_EQ(memcmp(u.ptr(), original.ptr(), original.size()), 0);
+    }
+}
+
+TEST(CompressionTest, IncompressibleDataZstdBrotli)
+{
+    pplib::ByteArray randomData = createRandomData(2048);
+    pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::ZSTD, pplib::Compression::Algorithm::BROTLI};
+    for (pplib::Compression::Algorithm a : algos) {
+        if (!algoAvailable(a)) GTEST_SKIP() << "Algorithmus nicht einkompiliert";
+        pplib::Compression comp(a);
+        pplib::ByteArray c = comp.compress(randomData);
+        pplib::ByteArray u = comp.uncompress(c);
+        ASSERT_EQ(u.size(), randomData.size());
+        EXPECT_EQ(memcmp(u.ptr(), randomData.ptr(), randomData.size()), 0);
+    }
+}
+
+TEST(CompressionTest, BufferGrowthNoPrefixZstdBrotli)
+{
+    // Stark komprimierbare Daten: der Zielbuffer wird ohne Prefix erraten und waechst stueckweise
+    pplib::ByteArray largeData = createSampleData(65536);
+    pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::ZSTD, pplib::Compression::Algorithm::BROTLI};
+    for (pplib::Compression::Algorithm a : algos) {
+        if (!algoAvailable(a)) GTEST_SKIP() << "Algorithmus nicht einkompiliert";
+        pplib::Compression comp(a);
+        comp.setPrefix(pplib::Compression::Prefix::NONE);
+        pplib::ByteArray c = comp.compress(largeData);
+        pplib::ByteArray u = comp.uncompress(c);
+        ASSERT_EQ(u.size(), largeData.size());
+        EXPECT_EQ(memcmp(u.ptr(), largeData.ptr(), largeData.size()), 0);
+    }
+}
+
+TEST(CompressionTest, CorruptedDataZstdBrotli)
+{
+    pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::ZSTD, pplib::Compression::Algorithm::BROTLI};
+    for (pplib::Compression::Algorithm a : algos) {
+        if (!algoAvailable(a)) GTEST_SKIP() << "Algorithmus nicht einkompiliert";
+        pplib::Compression comp(a);
+        comp.setPrefix(pplib::Compression::Prefix::NONE);
+
+        const char garbage[] = "this is definitely not a compressed stream";
+        EXPECT_THROW(comp.uncompress(garbage, sizeof(garbage)), pplib::CorruptedDataException);
+
+        pplib::ByteArray c = comp.compress(createSampleData(4096));
+        EXPECT_THROW(comp.uncompress(c.ptr(), c.size() / 2), pplib::CorruptedDataException);
+    }
+}
+
+TEST(CompressionTest, LowLevelBufferTooSmallZstdBrotli)
+{
+    pplib::ByteArray original = createRandomData(5000);
+    pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::ZSTD, pplib::Compression::Algorithm::BROTLI};
+    for (pplib::Compression::Algorithm a : algos) {
+        if (!algoAvailable(a)) GTEST_SKIP() << "Algorithmus nicht einkompiliert";
+        pplib::Compression comp(a);
+        std::vector<char> dst(16);
+        size_t dstlen = dst.size();
+        EXPECT_THROW(comp.compress(dst.data(), &dstlen, original.ptr(), original.size()), pplib::BufferTooSmallException);
+
+        // Dekompression in einen zu kleinen Puffer
+        pplib::ByteArray c = comp.compress(original);
+        std::vector<char> out(8);
+        size_t outlen = out.size();
+        EXPECT_THROW(comp.uncompress(out.data(), &outlen, c.ptr(), c.size()), pplib::BufferTooSmallException);
+    }
+}
+
+TEST(CompressionTest, StandaloneZstdBrotli)
+{
+    pplib::ByteArray original = createSampleData(1024);
+
+    if (algoAvailable(pplib::Compression::Algorithm::ZSTD)) {
+        pplib::ByteArray cz = pplib::CompressZstd(original);
+        pplib::ByteArray uz = pplib::Uncompress(cz);
+        ASSERT_EQ(uz.size(), original.size());
+        EXPECT_EQ(memcmp(uz.ptr(), original.ptr(), original.size()), 0);
+
+        pplib::ByteArray out;
+        pplib::CompressZstd(out, original);
+        EXPECT_EQ(out.size(), cz.size());
+    }
+
+    if (algoAvailable(pplib::Compression::Algorithm::BROTLI)) {
+        pplib::ByteArray cb = pplib::CompressBrotli(original);
+        pplib::ByteArray ub = pplib::Uncompress(cb);
+        ASSERT_EQ(ub.size(), original.size());
+        EXPECT_EQ(memcmp(ub.ptr(), original.ptr(), original.size()), 0);
+
+        pplib::ByteArray out;
+        pplib::CompressBrotli(out, original, pplib::Compression::Level::Fast);
+        EXPECT_GT(out.size(), 0u);
+    }
+}
+
+TEST(CompressionTest, EmptyDataZstdBrotli)
+{
+    pplib::Compression::Algorithm algos[] = {pplib::Compression::Algorithm::ZSTD, pplib::Compression::Algorithm::BROTLI};
+    for (pplib::Compression::Algorithm a : algos) {
+        if (!algoAvailable(a)) GTEST_SKIP() << "Algorithmus nicht einkompiliert";
+        pplib::Compression comp(a);
+        pplib::ByteArray empty;
+        pplib::ByteArray c = comp.compress(empty);
+        pplib::ByteArray u = comp.uncompress(c);
+        EXPECT_EQ(u.size(), 0u);
+    }
+}
+
+TEST(CompressionTest, CrossAlgorithmRejectionZstdBrotli)
+{
+    // Ein Zstd-Frame darf nicht als Brotli-Stream gelesen werden und umgekehrt
+    if (!algoAvailable(pplib::Compression::Algorithm::ZSTD) || !algoAvailable(pplib::Compression::Algorithm::BROTLI))
+        GTEST_SKIP() << "Zstd oder Brotli nicht einkompiliert";
+
+    pplib::Compression z(pplib::Compression::Algorithm::ZSTD);
+    z.setPrefix(pplib::Compression::Prefix::NONE);
+    pplib::ByteArray cz = z.compress(createSampleData(2048));
+
+    pplib::Compression b(pplib::Compression::Algorithm::BROTLI);
+    b.setPrefix(pplib::Compression::Prefix::NONE);
+
+    EXPECT_THROW(b.uncompress(cz), pplib::CorruptedDataException);
+    EXPECT_THROW(z.uncompress(b.compress(createSampleData(2048))), pplib::CorruptedDataException);
+}
+
+TEST(CompressionTest, InitRejectsOutOfRangeValues)
+{
+    pplib::Compression comp;
+    EXPECT_THROW(comp.init(static_cast<pplib::Compression::Algorithm>(99)), pplib::IllegalArgumentException);
+    EXPECT_THROW(comp.init(pplib::Compression::Algorithm::ZLIB, static_cast<pplib::Compression::Level>(99)), pplib::IllegalArgumentException);
 }
 
 } // namespace

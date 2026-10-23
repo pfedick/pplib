@@ -83,6 +83,8 @@
 #cmakedefine __LITTLE_ENDIAN__ 1
 #cmakedefine HAVE_ZLIB 1
 #cmakedefine HAVE_BZIP2 1
+#cmakedefine HAVE_ZSTD 1
+#cmakedefine HAVE_BROTLI 1
 
 #cmakedefine HAVE_LIBCURL 1
 

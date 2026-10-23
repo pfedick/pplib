@@ -40,6 +40,15 @@
 #include <bzlib.h>
 #endif
 
+#ifdef HAVE_ZSTD
+#include <zstd.h>
+#endif
+
+#ifdef HAVE_BROTLI
+#include <brotli/encode.h>
+#include <brotli/decode.h>
+#endif
+
 namespace pplib
 {
 
@@ -52,6 +61,16 @@ static size_t maxCompressedBound(size_t size)
 #ifdef HAVE_ZLIB
     size_t zbound = (size_t)::compressBound((uLong)size);
     if (zbound > bound) bound = zbound;
+#endif
+#ifdef HAVE_ZSTD
+    size_t zdbound = (size_t)::ZSTD_compressBound((size_t)size);
+    if (zdbound > bound) bound = zdbound;
+#endif
+#ifdef HAVE_BROTLI
+    // Brotli kann im Worst Case deutlich expandieren; liefert die Funktion 0, ist die
+    // Größe nicht darstellbar und der generische Fallback bleibt maßgeblich.
+    size_t bbound = (size_t)::BrotliEncoderMaxCompressedSize(size);
+    if (bbound > bound) bound = bbound;
 #endif
     return bound;
 }
@@ -93,10 +112,22 @@ void Compression::init(Algorithm method, Level level)
         throw UnsupportedFeatureException("Bzip2");
     }
 #endif
+#ifndef HAVE_ZSTD
+    if (method == Algorithm::ZSTD) {
+        throw UnsupportedFeatureException("Zstd");
+    }
+#endif
+#ifndef HAVE_BROTLI
+    if (method == Algorithm::BROTLI) {
+        throw UnsupportedFeatureException("Brotli");
+    }
+#endif
     switch (method) {
     case Algorithm::NONE:
     case Algorithm::ZLIB:
     case Algorithm::BZIP2:
+    case Algorithm::ZSTD:
+    case Algorithm::BROTLI:
         break;
     default:
         throw IllegalArgumentException("Unsupported compression algorithm");
@@ -203,6 +234,82 @@ void Compression::doBzip2(void* dst, size_t* dstlen, const void* src, size_t siz
 #endif
 }
 
+void Compression::doZstd(void* dst, size_t* dstlen, const void* src, size_t size)
+{
+#ifndef HAVE_ZSTD
+    throw UnsupportedFeatureException("Zstd");
+#else
+    const void* safe_src = (src != nullptr) ? src : "";
+    int zcomplevel;
+    switch (level_) {
+    case Level::Fast:
+        zcomplevel = 1;
+        break;
+    case Level::Normal:
+        zcomplevel = 5;
+        break;
+    case Level::High:
+        zcomplevel = 19;
+        break;
+    default:
+        zcomplevel = ZSTD_CLEVEL_DEFAULT;
+        break;
+    }
+    size_t res = ::ZSTD_compress(dst, *dstlen, safe_src, size, zcomplevel);
+    if (!ZSTD_isError(res)) {
+        *dstlen = res;
+        return;
+    }
+    int code = ZSTD_getErrorCode(res);
+    if (code == ZSTD_error_dstSize_tooSmall) {
+        throw BufferTooSmallException();
+        // LCOV_EXCL_START
+    } else if (code == ZSTD_error_memory_allocation) {
+        throw OutOfMemoryException();
+    }
+    throw CompressionFailedException();
+    // LCOV_EXCL_STOP
+#endif
+}
+
+void Compression::doBrotli(void* dst, size_t* dstlen, const void* src, size_t size)
+{
+#ifndef HAVE_BROTLI
+    throw UnsupportedFeatureException("Brotli");
+#else
+    const void* safe_src = (src != nullptr) ? src : "";
+    int quality;
+    switch (level_) {
+    case Level::Fast:
+        quality = 1;
+        break;
+    case Level::Normal:
+        quality = 5;
+        break;
+    case Level::High:
+        quality = BROTLI_MAX_QUALITY;
+        break;
+    default:
+        quality = 6;
+        break;
+    }
+    // Brotli unterscheidet beim One-Shot-Compress nicht zwischen "Puffer zu klein" und
+    // echten Fehlern. Ist der Zielbuffer kleiner als von Brotli selbst kalkuliert, ist
+    // die Ursache eindeutig.
+    size_t brotli_bound = ::BrotliEncoderMaxCompressedSize(size);
+    if (brotli_bound > 0 && *dstlen < brotli_bound) throw BufferTooSmallException();
+
+    size_t encoded = *dstlen;
+    if (::BrotliEncoderCompress(quality, BROTLI_DEFAULT_WINDOW, BROTLI_MODE_GENERIC, size, (const uint8_t*)safe_src, &encoded, (uint8_t*)dst)) {
+        *dstlen = encoded;
+        return;
+    }
+    // LCOV_EXCL_START
+    throw CompressionFailedException();
+    // LCOV_EXCL_STOP
+#endif
+}
+
 void Compression::unNone(void* dst, size_t* dstlen, const void* src, size_t srclen)
 {
     if (*dstlen < srclen) {
@@ -263,6 +370,55 @@ void Compression::unBzip2(void* dst, size_t* dstlen, const void* src, size_t src
 #endif
 }
 
+void Compression::unZstd(void* dst, size_t* dstlen, const void* src, size_t srclen)
+{
+#ifndef HAVE_ZSTD
+    throw UnsupportedFeatureException("Zstd");
+#else
+    const void* safe_src = (src != nullptr) ? src : "";
+    size_t res = ::ZSTD_decompress(dst, *dstlen, safe_src, srclen);
+    if (!ZSTD_isError(res)) {
+        *dstlen = res;
+        return;
+    }
+    switch (ZSTD_getErrorCode(res)) {
+    case ZSTD_error_dstSize_tooSmall:
+        throw BufferTooSmallException();
+    case ZSTD_error_prefix_unknown:
+    case ZSTD_error_corruption_detected:
+    case ZSTD_error_checksum_wrong:
+    case ZSTD_error_srcSize_wrong:
+    case ZSTD_error_literals_headerWrong:
+        throw CorruptedDataException("Zstd-Datenstrom beschaedigt");
+        // LCOV_EXCL_START
+    case ZSTD_error_memory_allocation:
+        throw OutOfMemoryException();
+    default:
+        throw DecompressionFailedException();
+        // LCOV_EXCL_STOP
+    }
+#endif
+}
+
+void Compression::unBrotli(void* dst, size_t* dstlen, const void* src, size_t srclen)
+{
+#ifndef HAVE_BROTLI
+    throw UnsupportedFeatureException("Brotli");
+#else
+    const uint8_t* safe_src = (src != nullptr) ? (const uint8_t*)src : (const uint8_t*)"";
+    size_t decoded = *dstlen;
+    BrotliDecoderResult res = ::BrotliDecoderDecompress(srclen, safe_src, &decoded, (uint8_t*)dst);
+    if (res == BROTLI_DECODER_RESULT_SUCCESS) {
+        *dstlen = decoded;
+        return;
+    }
+    // Der One-Shot-Decoder meldet "Puffer zu klein" und Datenfehler gleich. Er schreibt
+    // vorher so viel wie moeglich in den Zielbuffer: ist er komplett gefuellt, war er zu klein.
+    if (decoded == *dstlen) throw BufferTooSmallException();
+    throw CorruptedDataException("Brotli-Datenstrom beschaedigt");
+#endif
+}
+
 void Compression::compress(void* dst, size_t* dstlen, const void* src, size_t size, Algorithm a)
 {
     if (!dst || !dstlen) throw IllegalArgumentException();
@@ -280,6 +436,12 @@ void Compression::compress(void* dst, size_t* dstlen, const void* src, size_t si
         return;
     case Algorithm::BZIP2:
         doBzip2(dst, dstlen, src, size);
+        return;
+    case Algorithm::ZSTD:
+        doZstd(dst, dstlen, src, size);
+        return;
+    case Algorithm::BROTLI:
+        doBrotli(dst, dstlen, src, size);
         return;
     default:
         throw IllegalArgumentException("Unsupported compression algorithm");
@@ -413,6 +575,12 @@ void Compression::uncompress(void* dst, size_t* dstlen, const void* src, size_t 
     case Algorithm::BZIP2:
         unBzip2(dst, dstlen, src, srclen);
         return;
+    case Algorithm::ZSTD:
+        unZstd(dst, dstlen, src, srclen);
+        return;
+    case Algorithm::BROTLI:
+        unBrotli(dst, dstlen, src, srclen);
+        return;
     default:
         throw IllegalArgumentException("Unsupported compression algorithm");
     }
@@ -448,7 +616,7 @@ void Compression::uncompressTo(ByteArray& out, const void* ptr, size_t size)
         int flag = Peek8(buffer);
         if (flag & 0xF8) throw CorruptedDataException("reserved bits in V1 prefix set");
         unsigned algo = static_cast<unsigned>(flag & 7);
-        if (algo > static_cast<unsigned>(Algorithm::BZIP2)) throw CorruptedDataException("unknown algorithm in V1 prefix");
+        if (algo > static_cast<unsigned>(Algorithm::BROTLI)) throw CorruptedDataException("unknown algorithm in V1 prefix");
         size_t size_unc = Peek32(buffer + 1);
         size_t size_comp = Peek32(buffer + 5);
         if (size_comp > size - 9) throw CorruptedDataException("truncated V1 data");
@@ -465,7 +633,7 @@ void Compression::uncompressTo(ByteArray& out, const void* ptr, size_t size)
             throw CorruptedDataException("wrong flag: bit 3 not set");
         }
         unsigned algo = static_cast<unsigned>(flag & 7);
-        if (algo > static_cast<unsigned>(Algorithm::BZIP2)) throw CorruptedDataException("unknown algorithm in V2 prefix");
+        if (algo > static_cast<unsigned>(Algorithm::BROTLI)) throw CorruptedDataException("unknown algorithm in V2 prefix");
         Algorithm a = static_cast<Algorithm>(algo);
         int b_unc = ((flag >> 4) & 3) + 1;
         int b_comp = ((flag >> 6) & 3) + 1;
@@ -568,6 +736,26 @@ ByteArray CompressBZip2(const ByteArrayPtr& in, Compression::Level level)
 void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
 {
     out = CompressBZip2(in, level);
+}
+
+ByteArray CompressZstd(const ByteArrayPtr& in, Compression::Level level)
+{
+    return Compress(in, Compression::Algorithm::ZSTD, level);
+}
+
+void CompressZstd(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
+{
+    out = CompressZstd(in, level);
+}
+
+ByteArray CompressBrotli(const ByteArrayPtr& in, Compression::Level level)
+{
+    return Compress(in, Compression::Algorithm::BROTLI, level);
+}
+
+void CompressBrotli(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
+{
+    out = CompressBrotli(in, level);
 }
 
 } // namespace pplib

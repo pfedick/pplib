@@ -40,10 +40,12 @@ namespace pplib
  * @ingroup PPLIB_COMPRESSION
  * @brief Komprimierung und Dekomprimierung von Daten
  *
- * Mit dieser Klasse können Daten komprimiert und dekomprimiert werden. Zur Zeit werden zwei
+ * Mit dieser Klasse können Daten komprimiert und dekomprimiert werden. Zur Zeit werden vier
  * verschiedene Komprimierungsmethoden unterstüzt:
  * - ZLib (siehe http://www.zlib.net/)
  * - BZip2 (siehe http://www.bzip.org/)
+ * - Zstandard (siehe https://github.com/facebook/zstd)
+ * - Brotli (siehe https://github.com/google/brotli)
  *
  * Um die gewünschte Methode auszuwählen, muss diese entweder im Konstruktor übergeben werden, oder durch
  * Aufruf von Compression::Init, was den Vorteil hat, das man hier auch gleich einen Fehlercode
@@ -71,6 +73,8 @@ Byte 0: Kompressions-Flag (siehe oben)
                   0=keine
                   1=Zlib
                   2=Bzip2
+                  3=Zstandard
+                  4=Brotli
         Bits 3-7: unbenutzt, müssen 0 sein
 Byte 1: Bytes Unkomprimiert (4 Byte)
 Byte 5: Bytes Komprimiert (4 Byte)
@@ -89,6 +93,8 @@ Byte 0: Kompression-Flag
                   0=keine
                   1=Zlib
                   2=Bzip2
+                  3=Zstandard
+                  4=Brotli
         Bit 3:    Headerversion
         Bits 4-5: Bytezahl Uncompressed Value
                   0=1 Byte, 1=2 Byte, 2=3 Byte, 3=4 Byte
@@ -136,11 +142,27 @@ public:
          */
         BZIP2,
 
+        /** @brief Compression::Algorithm Compression::Algorithm::ZSTD
+         * Zstandard (zstd) ist ein verlustfreier Komprimierungsalgorithmus von Yann Collet,
+         * entwickelt bei Meta und unter der BSD-Lizenz veröffentlicht (https://github.com/facebook/zstd).
+         * Er erreicht bei deutlich höherer Geschwindigkeit eine vergleichbare oder bessere
+         * Kompressionsrate als Zlib und ist damit der natürliche Nachfolger von Deflate.
+         */
+        ZSTD,
+
+        /** @brief Compression::Algorithm Compression::Algorithm::BROTLI
+         * Brotli ist ein verlustfreier Komprimierungsalgorithmus von Google, veröffentlicht unter
+         * der MIT-Lizenz (https://github.com/google/brotli). Er wurde ursprünglich für die
+         * Übertragung von Webinhalten entwickelt und erreicht meist die höchste Kompressionsrate
+         * aller von PPLIB unterstützten Methoden, benötigt dafür aber am längsten.
+         */
+        BROTLI,
+
         /** @brief Compression::Algorithm Compression::Algorithm::Unknown
          * Kein echter Algorithmus, sondern ein Platzhalter als Defaultargument der Low-Level-Funktionen.
          * Bei Unknown wird die in der Instanz eingestellte Methode verwendet (siehe Compression::init).
-         * Als Algorithmus sind nur die Werte 0..2 (NONE, ZLIB, BZIP2) zulässig; unbekannte Werte
-         * führen zu UnsupportedFeatureException, im Prefix kodierte unbekannte Werte zu
+         * Als Algorithmus sind nur die Werte 0..4 (NONE, ZLIB, BZIP2, ZSTD, BROTLI) zulässig; unbekannte
+         * Werte führen zu UnsupportedFeatureException, im Prefix kodierte unbekannte Werte zu
          * CorruptedDataException.
          */
         Unknown = 256
@@ -209,10 +231,14 @@ private:
     void doNone(void* dst, size_t* dstlen, const void* src, size_t size);
     void doZlib(void* dst, size_t* dstlen, const void* src, size_t size);
     void doBzip2(void* dst, size_t* dstlen, const void* src, size_t size);
+    void doZstd(void* dst, size_t* dstlen, const void* src, size_t size);
+    void doBrotli(void* dst, size_t* dstlen, const void* src, size_t size);
 
     void unNone(void* dst, size_t* dstlen, const void* src, size_t srclen);
     void unZlib(void* dst, size_t* dstlen, const void* src, size_t srclen);
     void unBzip2(void* dst, size_t* dstlen, const void* src, size_t srclen);
+    void unZstd(void* dst, size_t* dstlen, const void* src, size_t srclen);
+    void unBrotli(void* dst, size_t* dstlen, const void* src, size_t srclen);
 
     /** @brief Komprimiert @p size Byte ab @p ptr und legt das Ergebnis in @p out ab
      *
@@ -707,6 +733,110 @@ ByteArray CompressBZip2(const ByteArrayPtr& in, Compression::Level level = Compr
  * @see Compression
  */
 void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level = Compression::Level::Default);
+
+/** @ingroup PPLIB_COMPRESSION
+ * @brief Daten mit Zstandard komprimieren
+ *
+ * Mit dieser Funktion wird der durch @p in referenzierte Speicherbereich
+ * mit der Komprimierungsmethode Zstandard und dem Komprimierungslevel @p level komprimiert
+ * und das Ergebnis als neues ByteArray zurückgegeben.
+ *
+ * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
+ * \ref Compression_Prefix), sodass die komprimierten Daten durch Aufruf der Funktion
+ * Uncompress ohne Angabe der Kompressionsmethode wieder entpackt werden können.
+ *
+ * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten
+ * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
+ * @return Neues ByteArray mit den komprimierten Daten
+ *
+ * @exception UnsupportedFeatureException Zstandard-Komprimierung ist in diesem Build nicht verfügbar
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
+ * @see Compression
+ */
+ByteArray CompressZstd(const ByteArrayPtr& in, Compression::Level level = Compression::Level::Default);
+
+/** @ingroup PPLIB_COMPRESSION
+ * @brief Daten mit Zstandard komprimieren
+ *
+ * Mit dieser Funktion wird der durch @p in referenzierte Speicherbereich
+ * mit der Komprimierungsmethode Zstandard und dem Komprimierungslevel @p level komprimiert
+ * und das Ergebnis im ByteArray-Objekt @p out gespeichert.
+ *
+ * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
+ * \ref Compression_Prefix), sodass die komprimierten Daten durch Aufruf der Funktion
+ * Uncompress ohne Angabe der Kompressionsmethode wieder entpackt werden können.
+ *
+ * @param[out] out ByteArray-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten
+ * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
+ *
+ * @exception UnsupportedFeatureException Zstandard-Komprimierung ist in diesem Build nicht verfügbar
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
+ * @see Compression
+ */
+void CompressZstd(ByteArray& out, const ByteArrayPtr& in, Compression::Level level = Compression::Level::Default);
+
+/** @ingroup PPLIB_COMPRESSION
+ * @brief Daten mit Brotli komprimieren
+ *
+ * Mit dieser Funktion wird der durch @p in referenzierte Speicherbereich
+ * mit der Komprimierungsmethode Brotli und dem Komprimierungslevel @p level komprimiert
+ * und das Ergebnis als neues ByteArray zurückgegeben.
+ *
+ * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
+ * \ref Compression_Prefix), sodass die komprimierten Daten durch Aufruf der Funktion
+ * Uncompress ohne Angabe der Kompressionsmethode wieder entpackt werden können.
+ *
+ * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten
+ * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
+ * @return Neues ByteArray mit den komprimierten Daten
+ *
+ * @exception UnsupportedFeatureException Brotli-Komprimierung ist in diesem Build nicht verfügbar
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
+ * @see Compression
+ */
+ByteArray CompressBrotli(const ByteArrayPtr& in, Compression::Level level = Compression::Level::Default);
+
+/** @ingroup PPLIB_COMPRESSION
+ * @brief Daten mit Brotli komprimieren
+ *
+ * Mit dieser Funktion wird der durch @p in referenzierte Speicherbereich
+ * mit der Komprimierungsmethode Brotli und dem Komprimierungslevel @p level komprimiert
+ * und das Ergebnis im ByteArray-Objekt @p out gespeichert.
+ *
+ * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
+ * \ref Compression_Prefix), sodass die komprimierten Daten durch Aufruf der Funktion
+ * Uncompress ohne Angabe der Kompressionsmethode wieder entpackt werden können.
+ *
+ * @param[out] out ByteArray-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten
+ * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
+ *
+ * @exception UnsupportedFeatureException Brotli-Komprimierung ist in diesem Build nicht verfügbar
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception IllegalArgumentException Die Länge von @p in überschreitet Compression::MAX_DATA_SIZE
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ * @exception BufferTooSmallException Der Puffer reichte trotz der von maxCompressedBound() kalkulierten Obergrenze nicht aus (defensiv,
+ * praktisch nicht erreichbar)
+ *
+ * @see Compression
+ */
+void CompressBrotli(ByteArray& out, const ByteArrayPtr& in, Compression::Level level = Compression::Level::Default);
 
 } // namespace pplib
 
