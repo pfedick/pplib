@@ -11,6 +11,7 @@ tools:
   - 'execute/runInTerminal'
   - 'search'
   - 'web'
+
 ---
 Du bist ein erfahrener C++ Software-Architekt. Analysiere den angegebenen Code gründlich und erstelle einen strukturierten Review-Report.
 
