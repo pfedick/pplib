@@ -21,11 +21,11 @@ aus Assembler-Code für Windows. Seitdem wurde die Library mehrfach umstrukturie
 und besteht nun zum größten Teil aus plattform-unabhängigem C und C++-Code. Unterstützt werden
 folgende Systeme:
 
-- Linux (getestet unter Fedora 43, 64-Bit)
-- FreeBSD (Version 13.x in 64-Bit)
+- Linux (getestet unter Fedora 44 und Arch Linux)
+- FreeBSD (Version 14.x in 64-Bit)
 - Windows 10/11 (mit MinGW64)
 
-Als Compiler wird gcc oder clang benötigt, Version muss den C++17-Standard unterstützen.
+Als Compiler wird gcc oder clang benötigt, Version muss den C++20-Standard unterstützen.
 
 Die Library steht unter einer Open Source BSD-Lizenz und darf somit fast
 uneingeschränkt auch in kommerziellen oder "closed source" Programmen verwendet werden. Die

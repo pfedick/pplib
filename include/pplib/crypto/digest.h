@@ -42,6 +42,16 @@ class FileObject;
 class ByteArrayPtr;
 class ByteArray;
 
+/**
+ * @ingroup PPLIB_CRYPT
+ * @brief Kryptographische Hash-Funktionen
+ *
+ * Die Digest-Klasse stellt Funktionen zur Berechnung kryptographischer Hash-Werte bereit.
+ *
+ * @note Diese Klasse verwendet OpenSSL zur Berechnung kryptographischer Hash-Werte.
+ * Ist OpenSSL nicht verfügbar, werfen alle Funktionen UnsupportedFeatureException.
+ *
+ */
 class Digest
 {
 private:

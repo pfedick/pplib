@@ -42,6 +42,13 @@ PPLIBEXCEPTION(InvalidAlgorithmException, Exception);
 PPLIBEXCEPTION(NoAlgorithmSpecifiedException, Exception);
 PPLIBEXCEPTION(InvalidKeyLengthException, Exception);
 
+/**
+ * @ingroup PPLIB_CRYPT
+ * @brief Kryptographische Verschlüsselung und Entschlüsselung
+ *
+ * Die Crypt-Klasse stellt grundlegende Funktionen für die Verschlüsselung und Entschlüsselung bereit.
+ * Sie dient als Basisklasse für die Klassen Encrypt und Decrypt.
+ */
 class Crypt
 {
     friend class Encrypt;
@@ -88,6 +95,13 @@ public:
     void setKeyLength(int keylen);
 };
 
+/**
+ * @ingroup PPLIB_CRYPT
+ * @brief Verschlüsselungsklasse
+ *
+ * Die Encrypt-Klasse stellt Funktionen zur Verschlüsselung von Daten bereit.
+ * Sie erbt von der Crypt-Klasse.
+ */
 class Encrypt : public Crypt
 {
 public:
@@ -101,6 +115,13 @@ public:
     ByteArray encrypt(const ByteArrayPtr& in);
 };
 
+/**
+ * @ingroup PPLIB_CRYPT
+ * @brief Entschlüsselungsklasse
+ *
+ * Die Decrypt-Klasse stellt Funktionen zur Entschlüsselung von Daten bereit.
+ * Sie erbt von der Crypt-Klasse.
+ */
 class Decrypt : public Crypt
 {
 public:
