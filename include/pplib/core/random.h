@@ -43,8 +43,11 @@ namespace pplib
  *
  * Diese Klasse stellt Funktionen zum Erzeugen von pseudo-Zufallszahlen und Zufallsdaten
  * bereit. Alle Funktionen sind statisch und arbeiten thread-lokal.
+
  *
- * @attention Die Funktionen sind nicht geeignet um kryptographisch sichere Zufallszahlen zu erzeugen!
+ * @attention Die Funktionen in der Random-Klasse sind nicht geeignet um kryptographisch sichere
+ * Zufallszahlen zu erzeugen!
+ * @note Für kryptographisch sichere Zufallszahlen sollte stattdessen die Klasse Random::Secure verwendet werden.
  */
 class Random
 {
@@ -94,12 +97,15 @@ public:
     /**
      * @brief Zufallsdaten erzeugen
      *
-     * Mit dieser Funktion werden \p bytes Bytes an Zufallsdaten erzeugt und als
+     * Mit dieser Funktion werden \p bytes Bytes an pseudo-Zufallsdaten erzeugt und als
      * ByteArray Objekt zurückgegeben.
      *
      * @param[in] bytes Anzahl Bytes
      * @return Gibt ein ByteArray Objekt mit der gewünschten Anzahl Zufallsdaten
      * zurück
+     * @note Wenn kryptographisch sichere Zufallszahlen benötigt werden, sollte stattdessen
+     * Random::Secure::bytes() verwendet werden.
+     * @see Random::Secure::bytes()
      */
     static ByteArray bytes(size_t num_bytes);
 
@@ -112,6 +118,9 @@ public:
      * @param[in] buffer ByteArray Objekt, in dem die Zufallsdaten abgelegt werden
      * @param[in] num_bytes Anzahl Bytes
      * @return Referenz auf das ByteArray Objekt \p buffer
+     * @note Wenn kryptographisch sichere Zufallszahlen benötigt werden, sollte stattdessen
+     * Random::Secure::fill() verwendet werden.
+     * @see Random::Secure::fill()
      */
     static ByteArray& fill(ByteArray& buffer, size_t num_bytes);
 
@@ -121,11 +130,83 @@ public:
      *
      * @param[in] buffer ByteArray Objekt, in dem die Zufallsdaten abgelegt werden
      * @return Referenz auf das ByteArray Objekt \p buffer
+     * @note Wenn kryptographisch sichere Zufallszahlen benötigt werden, sollte stattdessen
+     * Random::Secure::fill() verwendet werden.
+     * @see Random::Secure::fill()
      */
     inline static ByteArray& fill(ByteArray& buffer)
     {
         return fill(buffer, buffer.size());
     }
+
+    /**
+     * @brief Kryptographisch sichere Zufallszahlen erzeugen
+     * @ingroup PPLGroupMath
+     * @ingroup PPLIB_CRYPT
+     *
+     * Diese Klasse stellt Funktionen zur Erzeugung kryptographisch sicherer Zufallszahlen bereit.
+     * Sie sind geeignet für die Erzeugung von Schlüsseln, Initialisierungsvektoren (IVs) und Nonces.
+     *
+     * @note Diese Klasse verwendet OpenSSL zur Erzeugung kryptographisch sicherer Zufallszahlen.
+     * Ist OpenSSL nicht verfügbar, werfen alle Funktionen UnsupportedFeatureException.
+     *
+     * @note Wenn keine kryptographisch sicheren Zufallszahlen benötigt werden, kann stattdessen die Random-Klasse verwendet werden,
+     * die pseudo-Zufallszahlen generiert.
+     * @see Random
+     */
+    class Secure
+    {
+    public:
+        /** @brief Kryptographisch sichere Zufallsdaten erzeugen
+         *
+         * Mit dieser Funktion werden \p num_bytes Bytes an kryptographisch sicheren Zufallsdaten (CSPRNG) erzeugt und als
+         * ByteArray Objekt zurückgegeben. Im Gegensatz zu pplib::Random::bytes() ist diese Funktion für Schlüssel,
+         * IVs und Nonces geeignet. Zur Erzeugung von kryptographisch sicheren Zufallszahlen wird OpenSSL verwendet.
+         *
+         * @param[in] num_bytes Anzahl Bytes
+         * @return Gibt ein ByteArray Objekt mit der gewünschten Anzahl kryptographisch sicherer Zufallsdaten
+         * @exception OperationFailedException Wenn die Erzeugung kryptographisch sicherer Zufallsdaten fehlschlägt
+         * @exception UnsupportedFeatureException Wenn OpenSSL nicht verfügbar ist
+         */
+        static ByteArray bytes(size_t num_bytes);
+
+        /** @brief Kryptographisch sichere Zufallsdaten erzeugen
+         *
+         * Mit dieser Funktion werden \p num_bytes Bytes an kryptographisch sicheren Zufallsdaten (CSPRNG) erzeugt und in das
+         * ByteArray \p buffer geschrieben.
+         *
+         * @param[in] buffer ByteArray Objekt, in dem die Zufallsdaten abgelegt werden
+         * @param[in] num_bytes Anzahl Bytes
+         * @return Referenz auf das ByteArray Objekt \p buffer
+         * @exception OperationFailedException Wenn die Erzeugung kryptographisch sicherer Zufallsdaten fehlschlägt
+         * @exception UnsupportedFeatureException Wenn OpenSSL nicht verfügbar ist
+         */
+        static ByteArray& fill(ByteArray& buffer, size_t num_bytes);
+
+        /** @brief Kryptographisch sichere Zufallsdaten erzeugen
+         *
+         * Mit dieser Funktion werden kryptographisch sichere Zufallsdaten in das ByteArray \p buffer geschrieben.
+         * Es wird die gesamte Größe des ByteArrays \p buffer verwendet.
+         *
+         * @param[in] buffer ByteArray Objekt, in dem die Zufallsdaten abgelegt werden
+         * @return Referenz auf das ByteArray Objekt \p buffer
+         * @exception OperationFailedException Wenn die Erzeugung kryptographisch sicherer Zufallsdaten fehlschlägt
+         * @exception UnsupportedFeatureException Wenn OpenSSL nicht verfügbar ist
+         */
+        static ByteArray& fill(ByteArray& buffer);
+
+        /** @brief Kryptographisch sichere Zufallszahlen erzeugen
+         *
+         * Mit dieser Funktion wird eine kryptographisch sichere Zufallszahl im Bereich von \p min bis \p max erzeugt.
+         *
+         * @param min Untere Grenze (inklusive)
+         * @param max Obere Grenze (inklusive)
+         * @return Zufallszahl im Bereich von \p min bis \p max
+         * @exception OperationFailedException Wenn die Erzeugung kryptographisch sicherer Zufallszahlen fehlschlägt
+         * @exception UnsupportedFeatureException Wenn OpenSSL nicht verfügbar ist
+         */
+        static size_t get(size_t min, size_t max);
+    };
 };
 
 /**
