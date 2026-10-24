@@ -244,6 +244,7 @@ void* ByteArray::malloc(size_t size)
     if (ptradr) {
         ptrsize = size;
     } else {
+        ptrsize = 0;
         throw OutOfMemoryException();
     }
     ((char*)ptradr)[ptrsize] = 0;
@@ -263,6 +264,7 @@ void* ByteArray::calloc(size_t size)
     if (ptradr) {
         ptrsize = size;
     } else {
+        ptrsize = 0;
         throw OutOfMemoryException();
     }
     return ptradr;
