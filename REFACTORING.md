@@ -13,8 +13,8 @@ Einige Klassen sind sehr gut dokumentiert und getestet, andere wiederum eher wen
 - weniger Exceptions
 - Code mit KI auf Fehler prüfen (Codereviews)
 - Testabdeckung erhöhen
-- Alle Tests gehen von UTF-8 als locale aus, auch unter Windows
-- pico-pplib integrieren (siehe eigenes Kapitel)?
+- Alle Tests gehen von UTF-8 als locale aus, auch unter Windows. Grundsätzlich kann die String-Klasse aber mit anderen Encodings umgehen
+- Unterstützung für den Raspberry Pico integrieren (pico-pplib)
 - C++20 als Standard
 - CMake statt autoconf/makefile ausprobieren
 - Klassen, die kaum benutzt wurden oder veraltet sind, überdenken und ggf. entfernen
@@ -33,19 +33,6 @@ Einige Klassen sind sehr gut dokumentiert und getestet, andere wiederum eher wen
 Das CMakeLists.txt ist inzwischen allerdings auch recht umfangreich geworden, weshalb ich mir nicht sicher bin, ob das eine gute Idee war. Eventuell hole ich Automake wieder zurück oder biete beides an.
 
  
-## pico-pplib
-Siehe: [https://](https://github.com/pfedick/pico-pplib)
-Quellcode liegt auch im aktuellen Ordner "pico-pplib" im Repository.
-
-"pico-pplib" ist eine Portierung von pplib auf den Raspberry Pico. Es enthält ein Subset von Klassen und Funktionen aus PPLIB und ist teilweise für Microcontroller optimiert, in dem Beispielsweise kleinere Datentypen verwendet werden, um RAM zu sparen.
-
-Im Grafik-Bereich enthält er teilweise Maßgeschneiderte Routinen zur Ausgabe auf kleinen OLED- oder TFT-Displays, die in der großen PPLIB fehlen.
-
-Der Code ist inzwischen auseinander gelaufen, so dass es schwierig ist, Änderungen in beiden Codebasen zu pflegen. Daher ist es sinnvoll, die pico-pplib-Version in PPLIB zu integrieren und eventuelle Unterschiede über "#ifdef"s zu steuern.
-
-Es ist nicht sinnvoll den kompletten Umfang der PPLIB auf dem Pico bereitzustellen, daher ist es wahrscheinlich sinnvoll im CMakefile.txt ein spezielles Pico-Target zu definieren, oder den Umfang auf andere Art zu steuern.
-
-In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPLIB nicht benötigt werden. Hierfür wäre ein eigenes Projekt sinnvoll, das die Hardware-spezifischen Klassen enthält und von PPLIB abhängig ist.
 
 ## Namespace: pplib
 
@@ -136,6 +123,7 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - JSON-Parser: Alle Datentypen werden jetzt nativ unterstützt, auch Integer, Float, Boolean und Null-Werte. Ferner können JSON-Objekte und Arrays direkt geparst werden. Neuer Datentyp Variant Array dafür eingeführt.
 - YAML-Parser/Writer ergänzt
 - Compression unterstützt Brotli und Zstandard
+- pico-pplib integriert und Unterschiede über "#ifdef"s gesteuert. Eigener Build-Target im CMakeFile für den Pico definiert. Hardware-spezifische Treiber wurden in einem eigenen Projekt untergebracht, das von PPLIB abhängig ist.
 
 
 ### Datenobjekte (Types)
@@ -177,19 +165,3 @@ Lösung:
 - kein EmptyString mehr, sondern immer ein String-Objekt, auch wenn es leer ist
 
 
-# Pico
-
-Im Raspberry-Pico werden die Pixel-Daten im 16-Bit-Format beim Zeichnen vertauscht, weshalb
-das Format R5G6B5 eigentlich ein Byte-Swapped-Format ist. Host ist Little-Endian, TFT ond OLED sind BigEndian.
-
-Es gibt aber Möglichkeiten den Tausch über die Hardware zu machen.
-
-Beim ST7789 den RAMCTL-Befehl (0xB0), der allerdings bei SPI oft nicht funktioniert. Eine Alternative wäre aber, mit #sym:spi_set_format  den SPI-Modus auf 16 Bit umzuschalten, wodurch der SPI-Controller wohl das höherwertige Byte zuerst schickt. Allerdings muss ich danach dann auch spi_write16_blocking statt spi_write_blocking verwenden, vermutlich größere Änderungen:
-
-// Für Befehle: 8-Bit-Modus
-spi_set_format(spi_default, 8, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-spi_write_blocking(spi_default, cmd, 1);
-
-// Für Pixeldaten: Wechsel auf 16-Bit-Modus
-spi_set_format(spi_default, 16, SPI_CPOL_0, SPI_CPHA_0, SPI_MSB_FIRST);
-spi_write16_blocking(spi_default, frame_buffer, buffer_size);
