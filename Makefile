@@ -101,5 +101,6 @@ html:
 	doxygen Doxyfile
 	cp docs/header-bg.png documentation/html
 	cp docs/pplib-icon-48x48.png documentation/html
+	echo "Documentation generated at documentation/html/index.html"
 
 .PHONY: all build_tests test coverage wip clean doku html

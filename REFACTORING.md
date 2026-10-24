@@ -83,6 +83,7 @@ gestartet werden (wip = work in progress).
 - Audio überarbeiten
 - Internet überarbeiten
 - Database überarbeiten (oder in separates Projekt auslagern?)
+- ByteArray: Die 4 Byte-Zusatz am Ende des Buffers entfernen?
 
 ### Codereviews
 Ich habe mittels KI eine Reihe von Klassen auf Fehler prüfen lassen. Die Ergebnisse der Reviews sind im Order "codereview/todo" zu finden. Diese müssen Schritt für Schritt geprüft, bewertet und abgearbeitet werden.
