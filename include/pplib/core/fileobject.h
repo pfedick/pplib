@@ -664,7 +664,7 @@ public:
      * als benutzt wird.
      * @param bytes Mindestgroesse des Mapping-Fensters in Bytes.
      */
-    virtual void setMapWindowSize(size_t bytes) noexcept
+    virtual void setMapWindowSize([[maybe_unused]] size_t bytes) noexcept
     {
     }
 

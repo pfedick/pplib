@@ -48,7 +48,7 @@ namespace pplib
  * Die Json-Klasse unterstützt sowohl Objekte als auch Arrays und Skalare auf Root-Ebene
  * sowie beliebig tief verschachtelte Strukturen (bis zu einem Schachtelungslimit von 128 Ebenen).
  *
- * @note Unterstützt werden einzeilige (`//`) und mehrzeilige (`/* ... * /`) Kommentare.
+ * @note Unterstützt werden einzeilige (`//`) und mehrzeilige (`/\* ... *\ /`) Kommentare.
  *
  * @note Da AssocArray als hierarchischer Baum organisiert ist, werden Schrägstriche (`/`)
  * in Objektschlüsseln als Pfadtrenner interpretiert. Leere Objektschlüssel (`""`) werden
