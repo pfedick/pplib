@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: pplib8-@PC_MODULE@
+Description: pplib8 module: @PC_MODULE@
+Version: @PROJECT_VERSION@
+URL: https://github.com/pfedick/pplib
+Requires: @PC_REQUIRES_STR@
+Libs: -L${libdir} -lpplib_@PC_MODULE@ @PC_LIBS_EXTRA_STR@
+Cflags: -I${includedir}
