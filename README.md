@@ -48,13 +48,20 @@ To install PPLib using CMake, follow these steps:
 To compile and install specific components of PPLib, you can use the `-D` option with CMake to enable or disable certain features. For example:
 
 ```bash
-# TODO: Describe how this works
 cmake -B build/release -DCMAKE_BUILD_TYPE=Release -DENABLE_COMPONENT_X=ON
 cmake --build build/release -j 
-cmake --install build/release
+cmake --install build/release # installs into /usr/local
 ```
 
 Available Componets are:
+- pplib::core
+- pplib::crypto
+- pplib::grafix
+- pplib::audio
+
+Not yet available components:
+- pplib::internet  # TODO: Das besser umbenennen in pplib::network
+- pplib::database
 
 ### Compile on Raspberry Pico
 TODO
@@ -76,7 +83,7 @@ To use PPLib as a submodule in another project, follow these steps:
 
     ```cmake
     add_subdirectory(external/pplib)
-    target_link_libraries(your_project PRIVATE pplib)
+    target_link_libraries(your_project PRIVATE pplib::core pplib::crypto ...)
     ```
 
 ### Use pkg-config in your CMake project
@@ -104,8 +111,6 @@ In your `configure.ac` file, you can use `PKG_CHECK_MODULES` to check for PPLib:
 
 ```m4
 PKG_CHECK_MODULES([PPLIB8], [pplib8])
-AC_SUBST([PPLIB8_CFLAGS])
-AC_SUBST([PPLIB8_LIBS])
 ```
 
 Then, in your `Makefile.am`, you can use the substituted variables:
