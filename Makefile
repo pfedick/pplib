@@ -28,7 +28,7 @@
 #
 ###############################################################################
 
-
+PREFIX ?= /usr/local
 
 ifeq ($(OS),Windows_NT)
     EXE = .exe
@@ -50,6 +50,17 @@ configure:
 	cmake -B build/release -DCMAKE_BUILD_TYPE=Release
 
 all:	release debug
+
+install:
+	cmake -B build/release -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(PREFIX)
+	cmake --build build/release -j
+	cmake --install build/release
+
+install_home:
+	cmake -B build/release -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$(HOME)
+	cmake --build build/release -j
+	cmake --install build/release
+
 
 build_tests:
 	cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug

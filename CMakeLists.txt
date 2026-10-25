@@ -631,6 +631,10 @@ if(NOT PPLIB_ENABLE_PICO)
         @ONLY
     )
 
+    # pkg-config helper-Skript erzeugen
+    configure_file(pplib8-config.in
+    ${CMAKE_CURRENT_BINARY_DIR}/pplib8-config @ONLY)
+
     # Bibliotheken installieren & für CMake exportieren
     install(TARGETS ${PPLIB_INSTALL_TARGETS}
         EXPORT pplib8Targets
@@ -674,6 +678,9 @@ if(NOT PPLIB_ENABLE_PICO)
     install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pplib8.pc
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig
     )
+
+    install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/pplib8-config
+    DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()
 
 # ==============================================================================

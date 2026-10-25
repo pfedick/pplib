@@ -59,9 +59,9 @@ Available Componets are:
 ### Compile on Raspberry Pico
 TODO
 
-### Use as a Submodule in another project
+## Usage
 
-TODO!
+### Use as git submodule in another project
 
 To use PPLib as a submodule in another project, follow these steps:
 
@@ -78,6 +78,42 @@ To use PPLib as a submodule in another project, follow these steps:
     add_subdirectory(external/pplib)
     target_link_libraries(your_project PRIVATE pplib)
     ```
+
+### Use pkg-config in your CMake project
+You can use the `pkg-config` tool to find the necessary compiler and linker flags for PPLib in your CMake project. For example:
+
+```cmake
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PPLIB8 REQUIRED pplib8)
+include_directories(${PPLIB8_INCLUDE_DIRS})
+link_directories(${PPLIB8_LIBRARY_DIRS})
+target_link_libraries(your_project ${PPLIB8_LIBRARIES})
+```
+
+### Use pkg-config in your Makefile
+
+To use PPLib with pkg-config in your Makefile, you can run the following commands to get the necessary compiler and linker flags:
+
+```make
+CXXFLAGS += $(shell pkg-config --cflags pplib8)
+LDFLAGS += $(shell pkg-config --libs pplib8)
+```
+
+### Use pkg-config in your Autotools project
+In your `configure.ac` file, you can use `PKG_CHECK_MODULES` to check for PPLib:
+
+```m4
+PKG_CHECK_MODULES([PPLIB8], [pplib8])
+AC_SUBST([PPLIB8_CFLAGS])
+AC_SUBST([PPLIB8_LIBS])
+```
+
+Then, in your `Makefile.am`, you can use the substituted variables:
+
+```make
+AM_CPPFLAGS += @PPLIB8_CFLAGS@
+LDADD += @PPLIB8_LIBS@
+```
 
    
 
