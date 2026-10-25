@@ -286,17 +286,6 @@ if(PPLIB_ENABLE_CORE)
         endif()
     endif()
 
-
-    # src/math/random.cpp: Random::Secure verwendet OpenSSL (RAND_bytes)
-    if(PPLIB_WITH_OPENSSL)
-        find_package(OpenSSL QUIET)
-        if(OpenSSL_FOUND)
-            set(HAVE_OPENSSL 1)
-            target_link_libraries(pplib_core PUBLIC OpenSSL::Crypto)
-            pplib_register_pc_dependency(PC_CORE_REQ PC_CORE_LIBS libcrypto "${OPENSSL_CRYPTO_LIBRARY}")
-        endif()
-    endif()
-
     find_package(Threads REQUIRED)
     target_link_libraries(pplib_core PUBLIC Threads::Threads)
     if(CMAKE_THREAD_LIBS_INIT)

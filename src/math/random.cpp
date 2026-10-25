@@ -34,10 +34,6 @@
 
 #include "config_pplib.h"
 
-#ifdef HAVE_OPENSSL
-#include <openssl/rand.h>
-#endif
-
 namespace pplib
 {
 
@@ -102,66 +98,5 @@ ByteArray& Random::fill(ByteArray& buffer, size_t bytes)
     return buffer;
 }
 
-static void randBytes(char* buf, size_t n)
-{
-    while (n > 0) {
-        int chunk = (n > 65536) ? 65536 : static_cast<int>(n);
-        if (RAND_bytes(reinterpret_cast<unsigned char*>(buf), chunk) != 1) {
-            throw OperationFailedException("RAND_bytes");
-        }
-        buf += chunk;
-        n -= chunk;
-    }
-}
-
-ByteArray Random::Secure::bytes(size_t num_bytes)
-{
-#ifdef HAVE_OPENSSL
-    ByteArray bin;
-    if (num_bytes == 0) return bin;
-    randBytes(static_cast<char*>(bin.malloc(num_bytes)), num_bytes);
-    return bin;
-#else
-    throw UnsupportedFeatureException("OpenSSL");
-#endif
-}
-
-ByteArray& Random::Secure::fill(ByteArray& buffer, size_t num_bytes)
-{
-#ifdef HAVE_OPENSSL
-    if (num_bytes == 0) {
-        buffer.clear();
-        return buffer;
-    }
-    if (num_bytes != buffer.size()) buffer.realloc(num_bytes);
-    randBytes(static_cast<char*>(buffer.ptr()), num_bytes);
-    return buffer;
-#else
-    throw UnsupportedFeatureException("OpenSSL");
-#endif
-}
-
-ByteArray& Random::Secure::fill(ByteArray& buffer)
-{
-    return fill(buffer, buffer.size());
-}
-
-size_t Random::Secure::get(size_t min, size_t max)
-{
-#ifdef HAVE_OPENSSL
-    if (min > max) std::swap(min, max);
-    if (min == max) return min;
-
-    size_t span = max - min + 1;                 // Bereichsgröße
-    size_t limit = SIZE_MAX - (SIZE_MAX % span); // Schwelle gegen Modulo-Bias
-    size_t v;
-    do {
-        randBytes(reinterpret_cast<char*>(&v), sizeof(v));
-    } while (v >= limit); // Rejection Sampling
-    return min + (v % span);
-#else
-    throw UnsupportedFeatureException("OpenSSL");
-#endif
-}
 
 } // namespace pplib
