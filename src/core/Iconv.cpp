@@ -40,6 +40,8 @@
 #include <bit>
 #include <cerrno>
 
+#include <strings.h>
+
 #ifdef HAVE_ICONV
 #include <iconv.h>
 #endif
@@ -410,12 +412,18 @@ String Iconv::getLocalCharset()
 #if defined(HAVE_LOCALCHARSET_H)
     const char* cs = locale_charset();
     if (cs && cs[0] != '\0') {
+        if (strcasecmp(cs, "CPUTF-8") == 0 || strcasecmp(cs, "CP65001") == 0) {
+            return String("UTF-8");
+        }
         return String(cs);
     }
     return String("US-ASCII");
 #elif defined(HAVE_NL_LANGINFO)
     const char* cs = nl_langinfo(CODESET);
     if (cs && cs[0] != '\0') {
+        if (strcasecmp(cs, "CPUTF-8") == 0 || strcasecmp(cs, "CP65001") == 0) {
+            return String("UTF-8");
+        }
         return String(cs);
     }
     return String("US-ASCII");
