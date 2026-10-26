@@ -52,9 +52,59 @@ Date& Date::set(int year, int month, int day)
     return *this;
 }
 
+static int parseMonthName(const String& str)
+{
+    String s = Trim(str);
+    s.lowerCase();
+    if (s.startsWith("jan")) return 1;
+    if (s.startsWith("feb")) return 2;
+    if (s.startsWith("mar") || s.startsWith("mär")) return 3;
+    if (s.startsWith("apr")) return 4;
+    if (s.startsWith("may") || s.startsWith("mai")) return 5;
+    if (s.startsWith("jun")) return 6;
+    if (s.startsWith("jul")) return 7;
+    if (s.startsWith("aug")) return 8;
+    if (s.startsWith("sep")) return 9;
+    if (s.startsWith("oct") || s.startsWith("okt")) return 10;
+    if (s.startsWith("nov")) return 11;
+    if (s.startsWith("dec") || s.startsWith("dez")) return 12;
+    return 0;
+}
+
 Date& Date::set(const String& date)
 {
     String d = Trim(date);
+    if (d.isEmpty()) {
+        throw IllegalArgumentException("Date::set: invalid date format ()");
+    }
+
+    // Textuelle Monatsformate (z. B. "Aug 07, 2026", "07 Aug 2026", "Oct 21, 2026")
+    std::vector<String> tokens;
+    const char* p = d.c_str();
+    while (*p) {
+        while (*p && (*p == ' ' || *p == '\t' || *p == ',')) p++;
+        if (!*p) break;
+        const char* start = p;
+        while (*p && *p != ' ' && *p != '\t' && *p != ',') p++;
+        tokens.push_back(String(start, p - start));
+    }
+    if (tokens.size() == 3) {
+        String t0 = tokens[0];
+        if (t0.endsWith(".")) t0.chopRight(1);
+        String t1 = tokens[1];
+        if (t1.endsWith(".")) t1.chopRight(1);
+        String t2 = tokens[2];
+        if (t2.endsWith(".")) t2.chopRight(1);
+
+        int m0 = parseMonthName(t0);
+        int m1 = parseMonthName(t1);
+        if (m0 > 0 && t1.isInteger() && t2.isInteger() && t2.length() == 4) {
+            return set(t2.toInt(), m0, t1.toInt());
+        } else if (m1 > 0 && t0.isInteger() && t2.isInteger() && t2.length() == 4) {
+            return set(t2.toInt(), m1, t0.toInt());
+        }
+    }
+
     d.replace("-", ".");
     Array a(d, ".");
     if (a.size() == 1 && a[0].length() == 8) {

@@ -177,6 +177,12 @@ TEST_F(DateTest, setWithDateString)
         ASSERT_EQ((uint8_t)1, d1.day()) << "Class has unexpected value";
     });
 
+    ASSERT_EQ(pplib::String("2026-08-07"), pplib::Date().set("Aug 07, 2026").toString());
+    ASSERT_EQ(pplib::String("2026-10-21"), pplib::Date().set("Oct 21, 2026").toString());
+    ASSERT_EQ(pplib::String("2026-03-01"), pplib::Date().set("Mar 01, 2026").toString());
+    ASSERT_EQ(pplib::String("2026-08-07"), pplib::Date().set("07 Aug 2026").toString());
+    ASSERT_EQ(pplib::String("2026-08-07"), pplib::Date().set("07. Aug 2026").toString());
+
     ASSERT_THROW(
         {
             pplib::Date d3;
