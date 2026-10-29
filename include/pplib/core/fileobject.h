@@ -642,44 +642,37 @@ public:
 
     /** @brief Geöffnete Datei speicherschonen lesen: nur wenn die Region vollständig in der Datei liegt
      *
-     * Diese Funktion prüft @p position und @p bytes zuerst gegen die aktuelle Dateigröße und
-     * ruft erst danach map() auf. Der Aufrufer erhält damit ohne eigene Grenzenrechnung einen
-     * Pointer auf einen garantiert vollständigen Bereich und muss nicht zwischen "Region zu kurz"
-     * und "echtem Fehler" unterscheiden.
+     * Parameterreihenfolge und Bedeutung entsprechen vollständig map(); der einzige
+     * Unterschied ist das Fehlermodell. Diese Funktion prüft @p position und @p size
+     * zuerst gegen die aktuelle Dateigröße und ruft erst danach map() auf. Der Aufrufer
+     * erhält damit ohne eigene Grenzenrechnung einen Pointer auf einen garantiert
+     * vollständigen Bereich.
      *
-     * Abgefangen wird dabei ausschließlich pplib::OutOfBoundsException, falls die
+     * Abgefangen wird dabei ausschließlich pplib::OutOfBoundsException, falls eine
      * Implementierung die Region erst beim Mappen ablehnt. Ein Fehler des Betriebssystems
-     * beim Mapping (z. B. pplib::OutOfMemoryException) wird dagegen geworfen: false bedeutet
-     * ausschließlich "Region liegt nicht vollständig in der Datei".
+     * beim Mapping (z. B. pplib::OutOfMemoryException) oder ein Schutzrechtsfehler
+     * wird dagegen geworfen: nullptr bedeutet ausschließlich
+     * "Region liegt nicht vollständig in der Datei" oder @p size ist 0.
      *
-     * @param[in]  position Die gewünschte Startposition innerhalb der Datei
-     * @param[in]  bytes    Die Anzahl Bytes. Muss größer 0 sein.
-     * @param[out] out      Pointer auf den gemappten Bereich. nullptr, wenn die Funktion false liefert.
-     * @return true = die Region liegt vollständig in der Datei, @p out wurde gesetzt.
+     * @attention Es gelten dieselben Mapping-Regeln wie bei map(): genau ein Mapping pro
+     *            Dateiobjekt, alle zuvor gelieferten Pointer sind danach ungültig.
+     * @attention Die Funktion ist nicht virtuell: abgeleitete Klassen passen map() und
+     *            size() an, die Reichweitenprüfung bleibt für alle Implementierungen gleich.
+     *
+     * @param[in] position Die gewünschte Startposition innerhalb der Datei
+     * @param[in] size Die Anzahl Bytes, die gemapped werden sollen. Muss größer 0 sein.
+     * @param[in] prot Zugriffsmodus für das Mapping. Standardmäßig wird nur Lesezugriff gewährt.
+     * @return Pointer auf den gemappten Speicherbereich, nullptr wenn die Region nicht
+     *         vollständig in der Datei liegt oder @p size 0 ist.
      * @exception pplib::FileNotOpenException Die Datei ist nicht geöffnet.
+     * @exception pplib::ReadOnlyException @p prot ist READWRITE, die Datei ist aber schreibgeschützt
+     *            (MemFile) bzw. pplib::PermissionDeniedException bei File.
+     * @exception pplib::OutOfMemoryException Das Betriebssystem konnte kein Mapping anlegen.
      *
+     * @see FileObject::map() für die Variante, die Grenzüberschreitungen als Exception meldet.
      * @see FileObject::mapAtMost für das Einlesen von Bereichsenden unbekannter Länge.
-     * @see FileObject::tryMap(uint64_t, size_t, PointerType&) für typisierte Zeiger.
      */
-    bool tryMap(const void*& out, uint64_t position, size_t bytes);
-
-    /** @brief Wie tryMap(const void*&, uint64_t, size_t), aber mit typisiertem Ergebniszeiger
-     *
-     * @tparam PointerType Zeigertyp des Ergebnisbereichs, z. B. const char* oder
-     *                     const unsigned char*. Der Typ muss aus const void* erzeugbar sein.
-     * @param[in]  position Die gewünschte Startposition innerhalb der Datei
-     * @param[in]  bytes    Die Anzahl Bytes. Muss größer 0 sein.
-     * @param[out] out      Pointer auf den gemappten Bereich. nullptr, wenn die Funktion false liefert.
-     * @return true = die Region liegt vollständig in der Datei, @p out wurde gesetzt.
-     */
-    template <typename PointerType>
-    bool tryMap(uint64_t position, size_t bytes, PointerType& out)
-    {
-        const void* ptr = nullptr;
-        const bool mapped = tryMap(ptr, position, bytes);
-        out = mapped ? static_cast<PointerType>(ptr) : nullptr;
-        return mapped;
-    }
+    char* tryMap(uint64_t position, size_t size, MapProtection prot = MapProtection::READ);
 
     /** @brief Mapping aufheben
      *

@@ -34,6 +34,7 @@
 #include <pplib/types/array.h>
 #include <pplib/exceptions.h>
 #include <pplib/core/file.h>
+#include <pplib/core/memfile.h>
 #include <pplib/core/functions.h>
 // #include <pplib/core/regex.h>
 #include <pplib/exceptions.h>
@@ -1215,31 +1216,48 @@ TEST_F(FileTest, mapAtLimit)
     ASSERT_THROW(ff.map(file_size - 5, 10), pplib::OutOfBoundsException);
 }
 
-TEST_F(FileTest, tryMapReturnsFalseForRegionBeyondEof)
+TEST_F(FileTest, tryMapReturnsNullptrForRegionBeyondEof)
 {
     pplib::File ff("testdata/dirwalk/LICENSE.TXT", pplib::File::FileMode::READ);
     const uint64_t file_size = ff.size();
-    const char* ptr = nullptr;
 
     // Vollstaendige Region: Mapping gelingt, tryMap ersetzt die Grenzenrechnung des Aufrufers
-    EXPECT_TRUE(ff.tryMap(0, 10, ptr));
+    const char* ptr = ff.tryMap(0, 10);
     EXPECT_NE(nullptr, ptr);
-    EXPECT_TRUE(ff.tryMap(file_size - 10, 10, ptr));
+    ptr = ff.tryMap(file_size - 10, 10);
     EXPECT_NE(nullptr, ptr);
 
-    // Region ueber das Dateiende hinaus: false statt Exception, out wird zurueckgesetzt
-    EXPECT_FALSE(ff.tryMap(file_size - 5, 10, ptr));
-    EXPECT_EQ(nullptr, ptr);
-    EXPECT_FALSE(ff.tryMap(file_size + 100, 10, ptr));
-    EXPECT_EQ(nullptr, ptr);
+    // Region ueber das Dateiende hinaus: nullptr statt Exception
+    EXPECT_EQ(nullptr, ff.tryMap(file_size - 5, 10));
+    EXPECT_EQ(nullptr, ff.tryMap(file_size + 100, 10));
 
     // 0 Bytes sind kein gueltiges Mapping
-    EXPECT_FALSE(ff.tryMap(0, 0, ptr));
-    EXPECT_EQ(nullptr, ptr);
+    EXPECT_EQ(nullptr, ff.tryMap(0, 0));
 
     // Nicht geoeffnete Datei bleibt eine Exception
     ff.close();
-    EXPECT_THROW(ff.tryMap(0, 10, ptr), pplib::FileNotOpenException);
+    EXPECT_THROW(ff.tryMap(0, 10), pplib::FileNotOpenException);
+}
+
+TEST_F(FileTest, tryMapHonoursProtectionParameter)
+{
+    const char data[] = "0123456789";
+    pplib::MemFile ro((void*)data, 10, false);
+
+    // READ auf schreibgeschuetztem Objekt ist erlaubt
+    ASSERT_NE(nullptr, ro.tryMap(0, 10));
+
+    // READWRITE auf schreibgeschuetztem Objekt: Region ist grenzengueltig,
+    // der Schutzrechtsfehler wird geworfen und nicht zu nullptr abgefangen
+    EXPECT_THROW(ro.tryMap(0, 5, pplib::FileObject::MapProtection::READWRITE), pplib::ReadOnlyException);
+
+    // READWRITE auf beschreibbarem Objekt gelingt und liefert einen schreibbaren Zeiger
+    pplib::MemFile rw;
+    rw.fwrite("0123456789", 1, 10);
+    char* wr = rw.tryMap(0, 10, pplib::FileObject::MapProtection::READWRITE);
+    ASSERT_NE(nullptr, wr);
+    wr[0] = 'X';
+    EXPECT_EQ('X', rw.map(0, 10)[0]);
 }
 
 } // namespace

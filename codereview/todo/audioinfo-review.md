@@ -39,9 +39,9 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   ```
   Zusätzlich sollte `size` gegen `file.size()` plausibilisiert werden, bevor `p += size + 8` gerechnet wird.
 
-  **Umsetzung:** Saemtliche Maps laufen ueber `FileObject::tryMap(pos, n, out)`
-  (include/pplib/core/fileobject.h:664, src/core/FileObject.cpp:427), das Position und
-  Laenge gegen `size()` prueft und nur `OutOfBoundsException` in `false` ueberfuehrt; der
+  **Umsetzung:** Saemtliche Maps laufen ueber `FileObject::tryMap(pos, n, prot)`, das den
+  gemappten Bereich zurueckgibt (include/pplib/core/fileobject.h:675, src/core/FileObject.cpp:427),
+  Position und Laenge gegen `size()` prueft und nur `OutOfBoundsException` in `nullptr` ueberfuehrt; der
   lokale Helfer `mapRegion()` ist entfallen. Der COMM-Chunk mit `0x7FFFFFFF` steht in
   `AiffCommChunkBeyondEof`, eine bis ans Dateiende reichende Chunkschleife in
   `AiffSampleOffsetAndChunkBeyondEof`.
@@ -360,8 +360,8 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   Der Vertrag ist exception-basiert: `File::map` wirft bei Bereichsüberschreitung `OverflowException` und liefert nur bei leerer Datei bzw. 0 Bytes `nullptr` (`File.cpp:753`, `:769`; Doku in `fileobject.h` ist inzwischen korrekt). Die in `AudioInfo.cpp` (und teils in `AudioDecoder_Ogg.cpp`) allgegenwärtigen `if (!buffer)`-Guards greifen daher nie — jeder kaputte Header wird zur Exception. Entweder alle Aufrufer auf den Exception-Pfad anpassen oder eine durchgehende `mapNoThrow`-Variante (Muster: `src/audio/Mp3.cpp:135`) in `FileObject` anbieten und dort die nullptr-Prüfung wieder verlässlich machen.
 
   **Umsetzung:** Fuer src/audio/AudioInfo.cpp ist der exception-basierte Vertrag erfuellt: Jedes
-  Mapping laeuft ausschliesslich durch `file.tryMap(pos, n, ptr)` inkl. Reichweitenpruefung
-  gegen `size()`; die `nullptr`-Guards sind entfallen. Ein lokaler Helfer `mapRegion()`
+  Mapping laeuft ausschliesslich durch `ptr = file.tryMap(pos, n)` inkl. Reichweitenpruefung
+  gegen `size()`; die `nullptr`-Guards pruefen den Rueckgabewert. Ein lokaler Helfer `mapRegion()`
   existiert nicht mehr. Belegt durch `EmptyAndTruncatedFiles`, `AiffCommChunkBeyondEof`,
   `WaveDataChunkBeyondEof` und `Wave8BitMono48kHzExtensibleFmt`.
 
@@ -369,12 +369,12 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   Sobald `AudioInfo.cpp` denselben Helfer braucht, sollte er als öffentliche Methode/Hilfsfunktion (z. B. `FileObject::mapNoThrow`) zentralisiert werden, statt ihn ein drittes Mal zu kopieren.
 
   **Umsetzung:** Zentralisiert als `FileObject::tryMap()`
-  (include/pplib/core/fileobject.h:664, Implementierung src/core/FileObject.cpp:427).
-  Die Reichweitenpruefung laeuft gegen `size()`, `mapNoThrow()` in src/audio/Mp3.cpp ist
-  ersatzlos weg, beide Mp3-Stellen und alle acht Maps in src/audio/AudioInfo.cpp nutzen
-  `tryMap()`. Geworfen bleiben Speicher-/Plattformfehler; nur
-  `OutOfBoundsException` und nicht gedeckte Regionen liefern false
-  (`FileTest.tryMapReturnsFalseForRegionBeyondEof`,
+  (include/pplib/core/fileobject.h:675, Implementierung src/core/FileObject.cpp:427),
+  Signatur wie `map()`, Rueckgabe `char*`. Die Reichweitenpruefung laeuft gegen `size()`,
+  `mapNoThrow()` in src/audio/Mp3.cpp ist ersatzlos weg, beide Mp3-Stellen und alle Maps in
+  src/audio/AudioInfo.cpp nutzen `tryMap()`. Geworfen bleiben Speicher-/Plattformfehler; nur
+  `OutOfBoundsException` und nicht gedeckte Regionen liefern `nullptr`
+  (`FileTest.tryMapReturnsNullptrForRegionBeyondEof`,
   `Mp3FunctionsTest.IdentMpegSurvivesFailingMap`).
 
 - [x] **`WAVEHEADER`-Nutzung in `decoder.h`** (`include/pplib/audio/decoder.h:190`)

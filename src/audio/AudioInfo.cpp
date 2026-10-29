@@ -69,10 +69,10 @@ constexpr AudioInfo::ChannelMode mpegModeTBL[4] = {
 bool isOggVorbis(FileObject& file, uint64_t fsize)
 {
     //Reicht wegen moeglicher Vorab-Seiten (Continuation Flag) etwas groesszugigig
-    //gepuffert; tryMap liefert false, wenn die Datei kuerzer ist.
+    //gepuffert; tryMap liefert nullptr, wenn die Datei kuerzer ist.
     const size_t probe = (fsize < 96) ? (size_t)fsize : 96;
-    const char* adr = nullptr;
-    if (!file.tryMap(0, probe, adr)) return false;
+    const char* adr = file.tryMap(0, probe);
+    if (adr == nullptr) return false;
     for (uint64_t p = 27; p + 6 <= probe; p++) {
         if (memcmp(adr + p, "vorbis", 6) == 0) return true;
     }
@@ -99,7 +99,6 @@ double readExtended80(const char* adr)
 bool IdentAIFF(FileObject& file, AudioInfo& info)
 {
     const uint64_t fsize = file.size();
-    const char* adr = nullptr;
 
     info.Format = AudioInfo::AudioFormat::AIFF;
     info.IsVBR = false;
@@ -120,7 +119,8 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
     uint64_t audioSize = 0;
 
     while (p + 8 <= fsize) {
-        if (!file.tryMap(p, 8, adr)) break;
+        const char* adr = file.tryMap(p, 8);
+        if (adr == nullptr) break;
         uint32_t size = PeekN32(adr + 4);
         uint64_t payload = p + 8;
         uint64_t next = payload + size;
@@ -181,7 +181,6 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
 bool IdentWave(FileObject& file, AudioInfo& info)
 {
     const uint64_t fsize = file.size();
-    const char* adr = nullptr;
 
     info.Format = AudioInfo::AudioFormat::WAVE;
     info.IsVBR = false;
@@ -198,7 +197,8 @@ bool IdentWave(FileObject& file, AudioInfo& info)
     //Chunk-Schleife: LIST-, fact- oder id3-Chunks zwischen fmt und data sind erlaubt
     uint64_t p = 12;
     while (p + 8 <= fsize) {
-        if (!file.tryMap(p, 8, adr)) break;
+        const char* adr = file.tryMap(p, 8);
+        if (adr == nullptr) break;
         size_t size = Peek32(adr + 4); // WAV ist Little Endian, hier kein PeekN32
         uint64_t payload = p + 8;
         uint64_t next = payload + size;
@@ -251,8 +251,6 @@ bool IdentWave(FileObject& file, AudioInfo& info)
 
 bool IdentMP3(FileObject& file, AudioInfo& info, PPL_MPEG_HEADER& mp3)
 {
-    const char* adr = nullptr;
-
     info.Format = AudioInfo::AudioFormat::MP3;
     info.IsVBR = mp3.vbr;
     info.FileSize = file.size();
@@ -272,7 +270,7 @@ bool IdentMP3(FileObject& file, AudioInfo& info, PPL_MPEG_HEADER& mp3)
     //MP3-Tags stehen immer am Dateianfang; ob einer vorliegt, steht in HaveID3v2Tag
     info.HaveID3v2Tag = false;
     info.ID3v2TagStart = 0;
-    if (file.tryMap(0, 10, adr)) {
+    if (const char* adr = file.tryMap(0, 10)) {
         if (strncmp(adr, "ID3", 3) == 0) {
             //ID3v2 ab Version 2.2 akzeptieren, jede Revision (Major >= 2)
             if (Peek8(adr + 3) >= 2) info.HaveID3v2Tag = true;
@@ -294,8 +292,8 @@ AudioInfo::AudioFormat DetectFormat(FileObject& file, PPL_MPEG_HEADER* mp3)
     //Dateien unter 24 Bytes ist das Muster schon per Definition ungueltig.
     if (fsize < 24) return AudioInfo::AudioFormat::UNKNOWN;
 
-    const char* adr = nullptr;
-    if (!file.tryMap(0, 24, adr)) return AudioInfo::AudioFormat::UNKNOWN;
+    const char* adr = file.tryMap(0, 24);
+    if (adr == nullptr) return AudioInfo::AudioFormat::UNKNOWN;
 
     // AIFF: FORM-Groesse (+8 Header) darf das Dateiende nicht ueberschreiten;
     // Padding/Trailing-Bytes am Dateiende sind damit toleriert. AIFF-C ist bewusst
