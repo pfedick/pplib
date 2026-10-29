@@ -37,6 +37,7 @@
 #include <pplib/core/functions.h>
 
 #include "pplib-tests.h"
+#include <ctime>
 
 namespace
 {

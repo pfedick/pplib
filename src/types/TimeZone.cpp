@@ -32,9 +32,8 @@
 #include "pplib/types/string.h"
 #include "pplib/types/array.h"
 #include "pplib/exceptions.h"
-#include "pplib/core/functions.h"
-#include <chrono>
-#include <atomic>
+#include <ctime>
+#include <pplib/core/stringfunctions.h>
 
 namespace pplib
 {
