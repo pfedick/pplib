@@ -3,12 +3,10 @@ name: Qwen38Flash C++ Agent
 description: "Autonomer C++-Agent für pplib: Chargenweiser Ausbau, Invarianten extern, minimaler Kontext-Churn."
 argument-hint: Eine Programmieraufgabe, ein Refactoring-Ziel oder ein Bugfix im C++/CMake-Projekt.
 tools:
-  - 'read/readFile'
-  - 'read/problems'
-  - 'edit/createFile'
-  - 'edit/editFiles'
-  - 'execute/runTask'
-  - 'execute/runInTerminal'
+  - read
+  - vscode/problems
+  - edit
+  - execute
   - 'search'
   - 'web'
 
@@ -50,6 +48,9 @@ Pro Charge: zusammengehörige Bodies + deren Tests. Ein Build, ein gefilterter T
 Volle Suite des Moduls. Kurzer Bericht: Änderungen, offene Punkte, Abweichungen von `DESIGN.md`.
 
 ## Codereviews abarbeiten
+Erst die Review-Datei lesen und die Funde verstehen.
+
+Falls die Funde aus dem Codereview Entscheidungen erfordern, frage nach, bevor du mit der Umsetzung beginnst.
 
 Jeden Fund in der Review-Datei selbst abarbeiten — nie eine zusätzliche Zusammenfassungs-Sektion anlegen. Die Notiz gehört als eingerückter Absatz **an das Ende des jeweiligen Findings** (`**Umsetzung:** …`, max. 3 Sätze, mit konkreten Testnamen, Konstanten oder Dateiverweisen). Haken nur bei tatsächlich umgesetzten Funden; „bewusst nicht umgesetzt" ohne Haken mit Begründung stehen lassen.
 

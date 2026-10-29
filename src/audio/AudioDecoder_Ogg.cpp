@@ -86,9 +86,10 @@ static void init_callback(ov_callbacks& callbacks)
     callbacks.tell_func = ppl_tell_func;
 }
 
-static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf)
+static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf, FileObject& file)
 {
     info.Format = AudioInfo::AudioFormat::OGG;
+    info.FileSize = (uint32_t)file.size();
     info.Channels = vf.vi->channels;
     info.Frequency = vf.vi->rate;
     info.IsVBR = true;
@@ -101,11 +102,17 @@ static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf)
     // info.Bitrate=ov_bitrate(&vf, -1);
     info.BitsPerSample = 16;
     info.AudioStart = vf.offset;
-    info.AudioEnd = vf.end;
-    info.AudioSize = vf.end - vf.offset;
+
+    // AudioEnd ist - wie bei WAV, MP3 und AIFF - die Position des letzten Datenbytes.
+    if (vf.end > vf.offset) {
+        info.AudioSize = vf.end - vf.offset;
+        info.AudioEnd = info.AudioStart + info.AudioSize - 1;
+    }
+
     info.BytesPerSample = info.BitsPerSample * info.Channels / 8;
     info.Samples = ov_pcm_total(&vf, -1);
-    info.Length = info.Samples * 1000 / info.Frequency;
+    if (info.Frequency > 0)
+        info.Length = (uint32_t)((uint64_t)info.Samples * 1000 / info.Frequency);
 }
 
 #endif
@@ -121,7 +128,7 @@ bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
     int res = ov_open_callbacks(&file, &vf, NULL, 0, callbacks);
     // pplib::PrintDebug("try read vobis file, result is: %d\n", res);
     if (res != 0) return false;
-    GetVorbisAudioInfo(info, vf);
+    GetVorbisAudioInfo(info, vf, file);
     ov_clear(&vf);
     return true;
 
@@ -170,7 +177,7 @@ void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
     int res = ov_open_callbacks(&file, &oggp->vf, NULL, 0, oggp->callbacks);
     if (res != 0) throw UnsupportedAudioFormatException();
     if (!info) {
-        GetVorbisAudioInfo(this->info, oggp->vf);
+        GetVorbisAudioInfo(this->info, oggp->vf, file);
     } else {
         this->info = *info;
     }

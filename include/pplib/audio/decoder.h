@@ -187,7 +187,6 @@ private:
     AudioInfo info;
     size_t position;
     size_t samplesize;
-    void readWaveHeader(FileObject& file, WAVEHEADER& header);
 
 public:
     AudioDecoder_Wave();
