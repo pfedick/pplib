@@ -568,7 +568,9 @@ TEST(StringTest, setCharWithPosition)
 TEST(StringTest, setSizeParameterWithCharptr)
 {
     size_t loremipsum_len = strlen(loremipsum);
-    pplib::ByteArray testdata(loremipsum, loremipsum_len);
+    // Das 0-Byte am Ende wird mit in den Block übernommen: ByteArray haengt keine
+    // Terminierung mehr an, die Nutzung als C-String erfordert den Terminator im Block.
+    pplib::ByteArray testdata(loremipsum, loremipsum_len + 1);
     pplib::String s1;
     // Test 1: whole string without size parameter
     s1.set((const char*)testdata.ptr());
@@ -591,7 +593,8 @@ TEST(StringTest, setSizeParameterWithCharptr)
 TEST(StringTest, setSizeParameterWithWcharptr)
 {
     size_t loremipsum_len = wcslen(loremipsum_wchar);
-    pplib::ByteArray testdata((const unsigned char*)loremipsum_wchar, loremipsum_len * sizeof(wchar_t));
+    // Terminator gehort mit in den Block, siehe Hinweis im Test davor.
+    pplib::ByteArray testdata((const unsigned char*)loremipsum_wchar, (loremipsum_len + 1) * sizeof(wchar_t));
     pplib::String s1;
     // Test 1: whole string without size parameter
     s1.set((const wchar_t*)testdata.ptr());

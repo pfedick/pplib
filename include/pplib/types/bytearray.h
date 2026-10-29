@@ -38,24 +38,19 @@ namespace pplib
 class String;
 class WideString;
 
-/**@class ByteArray
+/** @class ByteArray
  * @ingroup PPLGroupDataTypes
  * @brief Verwaltung eines einzelnen Speicherblocks
  *
  * Mit dieser Klasse kann ein einzelner Speicherblock verwaltet werden.
- * Dieser besteht immer aus einer Speicheraddresse und der Größe des
- * Speicherbereichs in Bytes. Die Klasse stellt sicher, dass am Ende des
- * allokierten Speicherbereichs immer 4 0-Bytes angehangen werden. Dadurch kann bei
- * Verwendung der Pointer-Operatoren der Speicher direkt als Eingabe für C-Strings verwendet werden.
- * Bei Verwendung der Funktion ByteArray::useadr ist dies nicht der Fall, da die Klasse in diesem
- * Fall den Speicherbereich nicht selbst allokiert.
+ * Dieser besteht aus einer Speicheraddresse und der Größe des Speicherbereichs in Bytes.
+ *
+ * Im Gegensatz zu ByteArrayPtr verwaltet diese Klasse den Speicherbereich selbst. Das heisst
+ * der verwaltete Speicher wird bei Veränderungen oder Beendigung der Klasse automatisch freigegeben.
  *
  * Der Speicherbereich kann mit ByteArray::set gesetzt werden und mit ByteArray::adr und ByteArray::size
  * ausgelesen werden. Außerdem kann mit dem Operator [] ein bestimmtes Byte aus dem
  * Speicherbereich ausgelesen oder verändert werden.
- *
- * Im Gegensatz zu ByteArrayPtr verwaltet diese Klasse den Speicherbereich selbst. Das heisst
- * der verwaltete Speicher wird bei Veränderungen oder Beendigung der Klasse automatisch freigegeben.
  *
  * Mit ByteArray::malloc oder ByteArray::calloc wird Speicher allokiert, mit ByteArray::free kann er
  * vorzeitig wieder freigegeben werden. Mit ByteArray::copy wird der Speicher eines anderen ByteArray-
@@ -63,9 +58,13 @@ class WideString;
  * oder ByteArray::prepend kann der Speicher eines anderen ByteArray- oder ByteArrayPtr-Objekts oder aus
  * einer angegebenen Speicheradresse an den bestehenden Speicherbereich an- oder davorgehangen werden.
  *
- * Mit ByteArray::useadr angegebener Speicherbereich wird nicht dupliziert,
- * wird aber fortan von der Klasse verwaltet, das heisst die Anwendung darf diesen nicht selbst
- * freigeben.
+ * Mit ByteArray::useadr angegebener Speicherbereich wird nicht dupliziert, sondern geht in die
+ * Verwaltung der Klasse über. Die Anwendung darf den Speicherbereich nicht selbst freigeben!
+ *
+ * @attention pplib Version vor Version 8 habe am Ende des Speicherbereichs nich 4 0-Bytes angehangen.
+ *            Ab Version 8 ist dies nicht mehr der Fall. Es wird nur soviel Speicher allokiert, wie
+ *            angefordert, ohne zusätzliche 0-Bytes anzuhängen. Dies muss bei der Verwendung
+ *            des Speicherblocks innerhalb von von C-Strings berücksichtigt werden.
  *
  * @see
  * - ByteArrayPtr
@@ -157,10 +156,6 @@ public:
      *
      * Falls die Klasse vor Aufruf bereits Speicher verwaltet hat, wird dieser zuerst freigegeben.
      *
-     * @attention
-     * Bei Verwendung dieser Funktion werden keine zusätzlichen 0-Byte am Ende des Speicherbereichs
-     * hinzugefügt. Fall das Objekt als Eingabe für eine C-String-Funktion verwendet werden soll, muss die
-     * Anwendung selbst dafür sorgen, dass am Ende ein 0-Byte vorhanden ist.
      */
     void useadr(void* adr, size_t size);
 
@@ -265,8 +260,7 @@ public:
     /**@brief Größe des Speicherbereichs setzen
      *
      * Mit dieser Funktion kann die logische Größe des Speicherbereichs der ByteArray-Klasse
-     * verkleinert werden. Es ist sichergestellt, dass am Ende des Speicherbereichs immer
-     * 4 0-Bytes vorhanden sind. Es findet keine Reallokierung des Speichers statt, sondern
+     * verkleinert werden. Es findet keine Reallokierung des Speichers statt, sondern
      * nur eine Anpassung der Größe. Überschüssiger Speicher wird nicht freigegeben.
      *
      * @param[in] size Neue Größe des Speicherbereichs in Bytes
@@ -325,7 +319,7 @@ public:
      *
      * Mit dieser Funktion wird der Speicherbereich der ByteArray-Klasse auf die Größe \p size Bytes
      * reallokiert. Es findet eine Reallokierung des Speichers statt, die vorhandenen Daten werden
-     * beibehalten. Es ist sichergestellt, dass am Ende des Speicherbereichs immer 4 0-Bytes angehangen werden.
+     * beibehalten. Die Adresse des Speicherbereichs kann sich dabei ändern.
      *
      * @param[in] size Neue Größe des Speicherbereichs in Bytes
      * @return Pointer auf den Beginn des Speicherbereichs

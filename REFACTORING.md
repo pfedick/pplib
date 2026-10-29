@@ -83,7 +83,6 @@ gestartet werden (wip = work in progress).
 - Audio überarbeiten
 - Internet überarbeiten
 - Database überarbeiten (oder in separates Projekt auslagern?)
-- ByteArray: Die 4 Byte-Zusatz am Ende des Buffers entfernen?
 
 ### Codereviews
 Ich habe mittels KI eine Reihe von Klassen auf Fehler prüfen lassen. Die Ergebnisse der Reviews sind im Order "codereview/todo" zu finden. Diese müssen Schritt für Schritt geprüft, bewertet und abgearbeitet werden.
@@ -133,6 +132,7 @@ Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB
 - YAML-Parser/Writer ergänzt
 - Compression unterstützt Brotli und Zstandard
 - pico-pplib integriert und Unterschiede über "#ifdef"s gesteuert. Eigener Build-Target im CMakeFile für den Pico definiert. Hardware-spezifische Treiber wurden in einem eigenen Projekt untergebracht, das von PPLIB abhängig ist.
+- ByteArray: Die 4 Byte-Zusatz am Ende des Buffers wurden entfernt. Der Speicher wird jetzt genau in der benötigten Größe alloziert. (Verhaltensänderung gegenüber ppl7)
 
 
 ### Datenobjekte (Types)

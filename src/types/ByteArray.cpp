@@ -38,7 +38,15 @@
 namespace pplib
 {
 
-constexpr size_t MAX_BYTEARRAY_SIZE = std::numeric_limits<size_t>::max() - 4;
+// Deckel für die Wachstumsrechnung in append()/prepend(): hält ptrsize + size überlaufsicher.
+constexpr size_t MAX_BYTEARRAY_SIZE = std::numeric_limits<size_t>::max();
+
+// Größe 0 wäre bei malloc()/realloc()/calloc() implementierungsdefiniert; ein Byte
+// hält den Pointer plattformunabhängig gültig.
+inline size_t alloc_size(size_t size)
+{
+    return size == 0 ? 1 : size;
+}
 
 ByteArray::ByteArray()
 {
@@ -111,9 +119,6 @@ void* ByteArray::copy(const void* adr, size_t size)
         ptradr = NULL;
         return ptradr;
     }
-    if (size > MAX_BYTEARRAY_SIZE) {
-        throw OutOfMemoryException();
-    }
     if (adr == ptradr && size == ptrsize) return ptradr;
     // Self-Copy Schutz: Zeigt adr in unseren eigenen Speicher?
     std::vector<char> temp_holder;
@@ -123,16 +128,12 @@ void* ByteArray::copy(const void* adr, size_t size)
     }
     ::free(ptradr);
     ptrsize = 0;
-    ptradr = ::malloc(size + 4);
+    ptradr = ::malloc(alloc_size(size));
     if (!ptradr) {
         throw OutOfMemoryException();
     }
     memcpy(ptradr, adr, size);
     ptrsize = size;
-    ((char*)ptradr)[ptrsize] = 0;
-    ((char*)ptradr)[ptrsize + 1] = 0;
-    ((char*)ptradr)[ptrsize + 2] = 0;
-    ((char*)ptradr)[ptrsize + 3] = 0;
     return ptradr;
 }
 
@@ -166,16 +167,12 @@ void* ByteArray::append(const void* adr, size_t size)
     }
 
     size_t newsize = ptrsize + size;
-    void* p = ::realloc(ptradr, newsize + 4);
+    void* p = ::realloc(ptradr, alloc_size(newsize));
     if (!p) throw OutOfMemoryException();
     ptradr = p;
     void* target = (char*)ptradr + ptrsize;
     memcpy(target, adr, size);
     ptrsize = newsize;
-    ((char*)ptradr)[ptrsize] = 0;
-    ((char*)ptradr)[ptrsize + 1] = 0;
-    ((char*)ptradr)[ptrsize + 2] = 0;
-    ((char*)ptradr)[ptrsize + 3] = 0;
     return ptradr;
 }
 
@@ -203,7 +200,7 @@ void* ByteArray::prepend(const void* adr, size_t size)
     }
 
     size_t newsize = ptrsize + size;
-    void* p = ::malloc(newsize + 4);
+    void* p = ::malloc(alloc_size(newsize));
     if (!p) throw OutOfMemoryException();
     memcpy(p, adr, size);
     void* target = (char*)p + size;
@@ -211,10 +208,6 @@ void* ByteArray::prepend(const void* adr, size_t size)
     ::free(ptradr);
     ptradr = p;
     ptrsize = newsize;
-    ((char*)ptradr)[ptrsize] = 0;
-    ((char*)ptradr)[ptrsize + 1] = 0;
-    ((char*)ptradr)[ptrsize + 2] = 0;
-    ((char*)ptradr)[ptrsize + 3] = 0;
 
     return ptradr;
 }
@@ -228,39 +221,25 @@ void ByteArray::truncate(size_t size)
 {
     if (size >= ptrsize) return;
     ptrsize = size;
-    ((char*)ptradr)[ptrsize] = 0;
-    ((char*)ptradr)[ptrsize + 1] = 0;
-    ((char*)ptradr)[ptrsize + 2] = 0;
-    ((char*)ptradr)[ptrsize + 3] = 0;
 }
 
 void* ByteArray::malloc(size_t size)
 {
-    if (size > MAX_BYTEARRAY_SIZE) {
-        throw OutOfMemoryException();
-    }
     ::free(ptradr);
-    ptradr = ::malloc(size + 4);
+    ptradr = ::malloc(alloc_size(size));
     if (ptradr) {
         ptrsize = size;
     } else {
         ptrsize = 0;
         throw OutOfMemoryException();
     }
-    ((char*)ptradr)[ptrsize] = 0;
-    ((char*)ptradr)[ptrsize + 1] = 0;
-    ((char*)ptradr)[ptrsize + 2] = 0;
-    ((char*)ptradr)[ptrsize + 3] = 0;
     return ptradr;
 }
 
 void* ByteArray::calloc(size_t size)
 {
     ::free(ptradr);
-    if (size > MAX_BYTEARRAY_SIZE) {
-        throw OutOfMemoryException();
-    }
-    ptradr = ::calloc(size + 4, 1);
+    ptradr = ::calloc(alloc_size(size), 1);
     if (ptradr) {
         ptrsize = size;
     } else {
@@ -279,18 +258,10 @@ void ByteArray::free()
 
 void* ByteArray::realloc(size_t size)
 {
-    if (size > MAX_BYTEARRAY_SIZE) {
-        throw OutOfMemoryException();
-    }
-
-    void* p = ::realloc(ptradr, size + 4);
+    void* p = ::realloc(ptradr, alloc_size(size));
     if (!p) throw OutOfMemoryException();
     ptradr = p;
     ptrsize = size;
-    ((char*)ptradr)[ptrsize] = 0;
-    ((char*)ptradr)[ptrsize + 1] = 0;
-    ((char*)ptradr)[ptrsize + 2] = 0;
-    ((char*)ptradr)[ptrsize + 3] = 0;
     return ptradr;
 }
 

@@ -70,7 +70,8 @@ TEST_F(FileObjectTest, ReadIntoByteArrayPreservesTargetWhenNotOpen)
 
     ASSERT_THROW(f.read(target, 50), pplib::FileNotOpenException);
     ASSERT_EQ(origSize, target.size());
-    ASSERT_STREQ("Original Content 12345", (const char*)target.ptr());
+    // ByteArray haengt am Ende kein 0-Byte mehr an, daher laengenbasierter Vergleich.
+    ASSERT_EQ(pplib::String("Original Content 12345"), pplib::String(target));
 }
 
 TEST_F(FileObjectTest, CopyFromSelfThrowsIllegalArgumentException)

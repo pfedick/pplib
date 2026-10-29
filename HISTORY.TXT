@@ -2,6 +2,12 @@
 PPLIB - HISTORY
 Version 8.0.0
   - namespace ist jetzt "pplib" ohne Versionsnummer
+  - ByteArray & ByteArrayPtr:
+    - ByteArray hängt am Ende des verwalteten Speicherblocks keine 4 0-Bytes mehr an.
+      Es wird genau die angeforderte Größe allokiert. Anwendungen, die den Speicherblock
+      als C-String verwenden, müssen die Terminierung selbst sicherstellen.
+    - FileObject::tryMap() ist eine einzelne Methode mit der Signatur von map() und gibt
+      bei fehlschlagendem Mapping nullptr zurück.
   
 
 Version 7.1.0 vom 07.08.2026 (Repo-Tag: REL_7_1_0)
