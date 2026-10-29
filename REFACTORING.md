@@ -102,6 +102,14 @@ Bereits erledigte Codereviews werden nach "codereview/done" verschoben.
 KI:
 Es fehlen AEAD-Modi (GCM, ChaCha20-Poly1305). Aktuell bietet Crypt::Mode nur ECB/CBC/CFB/OFB an — alles unauthentifizierte Modi. Das ist der eigentliche "veraltet vs. aktuell"-Punkt: Heute empfiehlt man praktisch immer AES-GCM oder ChaCha20-Poly1305 (Integrität + Vertraulichkeit in einem), nicht CBC/CFB/OFB ohne HMAC. Das würde aber eine API-Erweiterung brauchen (Tag setzen/holen via EVP_CTRL_AEAD_GET_TAG/SET_TAG, zusätzliche AAD-Methode), keine reine Bugfix-Änderung.
 
+### Audio-Decoder / -Encoder
+- Vorhandene Encoder wieder einbinden, gegebenenfalls API modernisieren und Code-Review durchführen
+- Unterstützung für moderne Audio-Codecs hinzufügen:
+  - Flac
+  - Beim Decoder vielleicht auch Opus?
+- Bestehende Decoder/Encoder auf aktuelle API und Fehlerbehandlung überprüfen
+- Tests für alle Audio-Decoder und -Encoder erstellen
+
 ## Erledigt
 - Umstellung von Autoconf auf CMake
 - Dir-Klasse komplett überarbeitet

@@ -21,6 +21,8 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   if (!adr) return false;
   ```
 
+  UPDATE: Verhalten von File::map hat sich seit diesem Review geändert! Es wirft nun konsequent immer `OutOfBoundsException` oder andere Exceptions, und gibt niemals `nullptr` zurück.
+
 - [ ] **`IdentAIFF`: Ergebnis von `file.map(p, 32)` und `file.map(p, 16)` ungeprüft** (`src/audio/AudioInfo.cpp:84`, `:115`)
   Beide `map`-Aufrufe werden sofort dereferenziert (`PeekN16(adr + 8)` bzw. `PeekN32(adr + 8)`). Ein kaputter AIFF-Chunk (z. B. COMM-Chunk-Size `0x7FFFFFFF`) lässt `p += size + 8` über das Dateiende laufen; die Schleifenbedingung `p + 8 < file.size()` prüft nur 8 Bytes, gemappt werden aber 32 bzw. 16 Bytes → `OverflowException`, oder (bei `filesize == 0`) `nullptr`-Deref.
   Verifiziert: AIFF-Kopf mit COMM-Size `0x7FFFFFFF` → `EXCEPTION: OverflowException`.
