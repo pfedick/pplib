@@ -424,6 +424,28 @@ ByteArrayPtr FileObject::mapAtMost(uint64_t position, size_t max_size, MapProtec
     throw UnimplementedVirtualFunctionException();
 }
 
+bool FileObject::tryMap(const void*& out, uint64_t position, size_t bytes)
+{
+    out = nullptr;
+    if (bytes == 0)
+        return false;
+
+    const uint64_t filesize = size();
+    if ((position > filesize) || (bytes > filesize - position))
+        return false;
+
+    try
+    {
+        out = map(position, bytes);
+    }
+    catch (const OutOfBoundsException&)
+    {
+        out = nullptr;
+        return false;
+    }
+    return true;
+}
+
 void FileObject::unmap()
 {
     throw UnimplementedVirtualFunctionException();

@@ -126,21 +126,6 @@ uint64_t getId3v2TagSize(const unsigned char* hdr)
     return ((uint64_t)hdr[6] << 21) + ((uint64_t)hdr[7] << 14) + ((uint64_t)hdr[8] << 7) + hdr[9] + 10;
 }
 
-/** @brief Datei in den Speicher mappen, ohne Exceptions zuzulassen
- *
- * @return Pointer auf das Mapping oder @c nullptr, wenn der Bereich nicht
- *         gemappt werden kann.
- */
-const char* mapNoThrow(FileObject& file, uint64_t position, size_t bytes)
-{
-    try {
-        return file.map(position, bytes);
-    }
-    catch (...) {
-        return nullptr;
-    }
-}
-
 } // namespace
 
 bool IdentMPEG(FileObject& file, PPL_MPEG_HEADER* mpg)
@@ -155,8 +140,8 @@ bool IdentMPEG(FileObject& file, PPL_MPEG_HEADER* mpg)
     // Beginnt die Datei mit einem ID3v2-Tag, beginnen die Audiodaten dahinter
     mpg->start = 0;
     if (mpg->filesize >= 10) {
-        const char* buffer = mapNoThrow(file, 0, 10);
-        if (buffer) {
+        const char* buffer = nullptr;
+        if (file.tryMap(0, 10, buffer)) {
             const uint64_t tagsize = getId3v2TagSize(reinterpret_cast<const unsigned char*>(buffer));
             if (tagsize > 10 && tagsize < mpg->filesize) mpg->start = tagsize;
         }
@@ -175,8 +160,8 @@ bool IdentMPEG(FileObject& file, PPL_MPEG_HEADER* mpg)
     mpg->end = mpg->filesize - 1;
     for (int i = 0; i < 2; i++) {
         if (mpg->end < 128) break;
-        const char* tail = mapNoThrow(file, mpg->end - 127, 127);
-        if (!tail) break;
+        const char* tail = nullptr;
+        if (!file.tryMap(mpg->end - 127, 127, tail)) break;
         if (tail[0] != 'T' || tail[1] != 'A' || tail[2] != 'G') break;
         mpg->end -= 128;
     }
@@ -269,8 +254,8 @@ static int64_t FindNextHeader(FileObject& file, int64_t pos, PPL_MPEG_HEADER* mp
     while (searchpos + 4 <= filesize) {
         uint64_t mapsize = filesize - searchpos;
         if (mapsize > SCAN_WINDOW) mapsize = SCAN_WINDOW;
-        const char* window = mapNoThrow(file, searchpos, (size_t)mapsize);
-        if (!window) return -1;
+        const char* window = nullptr;
+        if (!file.tryMap(searchpos, (size_t)mapsize, window)) return -1;
 
         for (uint64_t p = 0; p + 4 <= mapsize; p++) {
             const unsigned char* header = reinterpret_cast<const unsigned char*>(window) + p;

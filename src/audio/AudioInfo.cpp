@@ -50,19 +50,33 @@ bool fourcc(const char* adr, const char tag[4])
     return memcmp(adr, tag, 4) == 0;
 }
 
-/** @brief Mappt einen Bereich, wirft aber keine Bereichsausnahme ueber das Dateiende.
+//!\brief MPEG-Kanalmodus (2 Bit des Frame-Headers) auf ChannelMode abbilden
+constexpr AudioInfo::ChannelMode mpegModeTBL[4] = {
+    AudioInfo::ChannelMode::STEREO,        // 0
+    AudioInfo::ChannelMode::JOINT_STEREO,  // 1
+    AudioInfo::ChannelMode::DUAL_CHANNEL,  // 2
+    AudioInfo::ChannelMode::MONO           // 3
+};
+
+/** @brief Liegt ein Ogg-Stream mit Vorbis-Codec vor?
  *
- * FileObject::map() wirft OutOfBoundsException, wenn position+bytes hinter dem
- * Dateiende liegen. Deshalb pruefen wir die Region vor dem Mappen gegen file.size().
- * @return true = Bereich gemappt, \p out zeigt darauf; false = Bereich liegt teilweise
- *         oder komplett hinter dem Dateiende.
+ * Der Ogg-Container ist codec-neutral: "OggS" allein bedeutet nur, dass irgendein
+ * Stream in einem Ogg-Container vorliegt. Unterstuetzt ist hier ausschliesslich
+ * Vorbis, dessen ID-Packet mit der Signatur "vorbis" in der ersten Kopfseite
+ * hinter dem Seitenkopf (27 Bytes plus Segmentliste) steht. Opus, FLAC oder
+ * unbekannte Codecs liefern damit UNKNOWN.
  */
-bool mapRegion(FileObject& file, uint64_t position, size_t bytes, const char*& out)
+bool isOggVorbis(FileObject& file, uint64_t fsize)
 {
-    uint64_t fsize = file.size();
-    if (position > fsize || bytes > fsize - position) return false;
-    out = file.map(position, bytes);
-    return true;
+    //Reicht wegen moeglicher Vorab-Seiten (Continuation Flag) etwas groesszugigig
+    //gepuffert; tryMap liefert false, wenn die Datei kuerzer ist.
+    const size_t probe = (fsize < 96) ? (size_t)fsize : 96;
+    const char* adr = nullptr;
+    if (!file.tryMap(0, probe, adr)) return false;
+    for (uint64_t p = 27; p + 6 <= probe; p++) {
+        if (memcmp(adr + p, "vorbis", 6) == 0) return true;
+    }
+    return false;
 }
 
 /** @brief 80-Bit-IEEE-754-Extended (big endian, 10 Bytes) plattformneutral dekodieren.
@@ -87,9 +101,9 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
     const uint64_t fsize = file.size();
     const char* adr = nullptr;
 
-    info.Format = AudioInfo::AIFF;
+    info.Format = AudioInfo::AudioFormat::AIFF;
     info.IsVBR = false;
-    info.FileSize = (uint32_t)fsize; // Typverengung bekannt (Review: ABI-Thema, separat)
+    info.FileSize = fsize;
 
     //Die FORM-Huelle (Bytes 0..11) ist keine eigenstaendige Chunkstufe der inneren
     //Schleife: die Innerchunks beginnen fest bei 12, ihr Ende ergibt sich aus der
@@ -98,7 +112,7 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
 
     bool foundCOMM = false;
     bool foundSSND = false;
-    uint32_t samples = 0;
+    uint64_t samples = 0;
     uint64_t frequency = 0;
     uint16_t channels = 0;
     uint16_t bitdepth = 0;
@@ -106,7 +120,7 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
     uint64_t audioSize = 0;
 
     while (p + 8 <= fsize) {
-        if (!mapRegion(file, p, 8, adr)) break;
+        if (!file.tryMap(p, 8, adr)) break;
         uint32_t size = PeekN32(adr + 4);
         uint64_t payload = p + 8;
         uint64_t next = payload + size;
@@ -135,7 +149,7 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
             foundSSND = true;
         } else if (fourcc(adr, "ID3 ") || fourcc(adr, "id3 ")) {
             info.HaveID3v2Tag = true;
-            info.ID3v2TagStart = (uint32_t)(p + 8); // Anfang des ID3v2-Tags hinter dem Chunknamen
+            info.ID3v2TagStart = p + 8; // Anfang des ID3v2-Tags hinter dem Chunknamen
         }
 
         if (size & 1) next++; // Chunks werden an Word-Grenzen gepaddet
@@ -148,13 +162,12 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
 
     if (bitdepth < 8 || (bitdepth / 8) * channels == 0) return false; // 20-Bit u.a. tolerieren
     uint8_t bytesPerSample = (uint8_t)((bitdepth / 8) * channels);
-    if (bytesPerSample == 0) return false;
-    if ((uint64_t)samples * bytesPerSample > UINT32_MAX) return false; // 32-Bit-Felder reichen nicht
+    if (bytesPerSample == 0) return false; // bitdepth so gross, dass die Kuerzung auf 0 fiele
 
     info.Samples = samples;
     info.BitsPerSample = (uint8_t)bitdepth;
     info.Channels = (uint8_t)channels;
-    info.Mode = (channels == 1) ? AudioInfo::MONO : AudioInfo::STEREO;
+    info.Mode = (channels == 1) ? AudioInfo::ChannelMode::MONO : AudioInfo::ChannelMode::STEREO;
     info.Frequency = (uint32_t)frequency;
     info.BytesPerSample = bytesPerSample;
     info.AudioStart = audioStart;
@@ -170,9 +183,9 @@ bool IdentWave(FileObject& file, AudioInfo& info)
     const uint64_t fsize = file.size();
     const char* adr = nullptr;
 
-    info.Format = AudioInfo::WAVE;
+    info.Format = AudioInfo::AudioFormat::WAVE;
     info.IsVBR = false;
-    info.FileSize = (uint32_t)fsize; // Typverengung bekannt (Review: ABI-Thema, separat)
+    info.FileSize = fsize;
 
     bool foundFMT = false;
     bool foundDATA = false;
@@ -185,7 +198,7 @@ bool IdentWave(FileObject& file, AudioInfo& info)
     //Chunk-Schleife: LIST-, fact- oder id3-Chunks zwischen fmt und data sind erlaubt
     uint64_t p = 12;
     while (p + 8 <= fsize) {
-        if (!mapRegion(file, p, 8, adr)) break;
+        if (!file.tryMap(p, 8, adr)) break;
         size_t size = Peek32(adr + 4); // WAV ist Little Endian, hier kein PeekN32
         uint64_t payload = p + 8;
         uint64_t next = payload + size;
@@ -203,7 +216,7 @@ bool IdentWave(FileObject& file, AudioInfo& info)
             foundDATA = true;
         } else if (fourcc(adr, "id3 ") || fourcc(adr, "ID3 ")) {
             info.HaveID3v2Tag = true;
-            info.ID3v2TagStart = (uint32_t)(p + 8); // Anfang des ID3v2-Tags hinter dem Chunknamen
+            info.ID3v2TagStart = p + 8; // Anfang des ID3v2-Tags hinter dem Chunknamen
         }
 
         if (size & 1) next++; // Wort-Padding
@@ -217,20 +230,21 @@ bool IdentWave(FileObject& file, AudioInfo& info)
     if (frequency == 0) return false;
 
     uint8_t bytesPerSample = (uint8_t)((bitdepth / 8) * channels);
+    if (bytesPerSample == 0) return false; // bitdepth so gross, dass die Kuerzung auf 0 fiele
     uint64_t maxAudioSize = fsize - audioStart;
     uint64_t audioSize = (declaredDataSize > maxAudioSize) ? maxAudioSize : declaredDataSize;
     audioSize -= audioSize % bytesPerSample;
 
     info.Channels = (uint8_t)channels;
-    info.Mode = (channels == 1) ? AudioInfo::MONO : AudioInfo::STEREO;
+    info.Mode = (channels == 1) ? AudioInfo::ChannelMode::MONO : AudioInfo::ChannelMode::STEREO;
     info.Frequency = frequency;
     info.BitsPerSample = (uint8_t)bitdepth;
     info.BytesPerSample = bytesPerSample;
     info.AudioStart = audioStart;
     info.AudioSize = audioSize;
     if (audioSize > 0) info.AudioEnd = info.AudioStart + audioSize - 1;
-    info.Samples = (uint32_t)(audioSize / bytesPerSample);
-    if (info.Samples > 0) info.Length = (uint32_t)((uint64_t)info.Samples * 1000 / frequency);
+    info.Samples = audioSize / bytesPerSample;
+    if (info.Samples > 0) info.Length = (uint32_t)(info.Samples * 1000 / frequency);
     info.Bitrate = (uint16_t)((uint64_t)frequency * bytesPerSample * 8 / 1000);
     return true;
 }
@@ -239,39 +253,26 @@ bool IdentMP3(FileObject& file, AudioInfo& info, PPL_MPEG_HEADER& mp3)
 {
     const char* adr = nullptr;
 
-    info.Format = AudioInfo::MP3;
+    info.Format = AudioInfo::AudioFormat::MP3;
     info.IsVBR = mp3.vbr;
-    info.FileSize = (uint32_t)file.size(); // Typverengung bekannt (Review: ABI-Thema, separat)
+    info.FileSize = file.size();
     info.AudioStart = mp3.start;
     info.AudioEnd = mp3.end;
-    info.AudioSize = info.AudioEnd - info.AudioStart + 1;
+    info.AudioSize = (mp3.end >= mp3.start) ? (mp3.end - mp3.start + 1) : 0;
     info.Samples = mp3.samples;
-    info.Channels = mp3.stereo;
-    info.Bitrate = mp3.bitrate;
-    info.Frequency = mp3.frequency;
-    info.BytesPerSample = mp3.stereo * 2;
+    info.Channels = (uint8_t)mp3.stereo;
+    info.Bitrate = (uint16_t)mp3.bitrate;
+    info.Frequency = (uint32_t)mp3.frequency;
+    info.BytesPerSample = (uint8_t)(mp3.stereo * 2);
     info.BitsPerSample = 16;
-    info.Length = mp3.mslength;
-    switch (mp3.mode) {
-    case 0:
-        info.Mode = AudioInfo::STEREO;
-        break;
-    case 1:
-        info.Mode = AudioInfo::JOINT_STEREO;
-        break;
-    case 2:
-        info.Mode = AudioInfo::DUAL_CHANNEL;
-        break;
-    case 3:
-        info.Mode = AudioInfo::MONO;
-        break;
-    default:
-        return false;
-    }
+    info.Length = (uint32_t)mp3.mslength;
+    //mp3.mode kommt aus 2 Bits des Frame-Headers, liegt also immer in 0..3
+    info.Mode = mpegModeTBL[mp3.mode & 0x3];
 
+    //MP3-Tags stehen immer am Dateianfang; ob einer vorliegt, steht in HaveID3v2Tag
     info.HaveID3v2Tag = false;
     info.ID3v2TagStart = 0;
-    if (mapRegion(file, 0, 10, adr)) {
+    if (file.tryMap(0, 10, adr)) {
         if (strncmp(adr, "ID3", 3) == 0) {
             //ID3v2 ab Version 2.2 akzeptieren, jede Revision (Major >= 2)
             if (Peek8(adr + 3) >= 2) info.HaveID3v2Tag = true;
@@ -291,25 +292,32 @@ AudioInfo::AudioFormat DetectFormat(FileObject& file, PPL_MPEG_HEADER* mp3)
     const uint64_t fsize = file.size();
     //Mehrere harte 24-Byte-Zugriffe (RIFF/fmt, FORM/AIFF) folgen ungeprüft: bei
     //Dateien unter 24 Bytes ist das Muster schon per Definition ungueltig.
-    if (fsize < 24) return AudioInfo::UNKNOWN;
+    if (fsize < 24) return AudioInfo::AudioFormat::UNKNOWN;
 
     const char* adr = nullptr;
-    if (!mapRegion(file, 0, 24, adr)) return AudioInfo::UNKNOWN;
+    if (!file.tryMap(0, 24, adr)) return AudioInfo::AudioFormat::UNKNOWN;
 
     // AIFF: FORM-Groesse (+8 Header) darf das Dateiende nicht ueberschreiten;
-    // Padding/Trailing-Bytes am Dateiende sind damit toleriert
-    if (fourcc(adr, "FORM") && (uint64_t)PeekN32(adr + 4) + 8 <= fsize && fourcc(adr + 8, "AIFF")) return AudioInfo::AIFF;
+    // Padding/Trailing-Bytes am Dateiende sind damit toleriert. AIFF-C ist bewusst
+    // nicht eingeschlossen, es wird (noch) nicht dekodiert.
+    if (fourcc(adr, "FORM") && (uint64_t)PeekN32(adr + 4) + 8 <= fsize && fourcc(adr + 8, "AIFF"))
+        return AudioInfo::AudioFormat::AIFF;
 
     // RIFF / WAV (nur PCM, Format-Tag 1)
-    if (fourcc(adr, "RIFF") && fourcc(adr + 8, "WAVE") && fourcc(adr + 12, "fmt ") && Peek16(adr + 20) == 1) return AudioInfo::WAVE;
+    if (fourcc(adr, "RIFF") && fourcc(adr + 8, "WAVE") && fourcc(adr + 12, "fmt ") && Peek16(adr + 20) == 1)
+        return AudioInfo::AudioFormat::WAVE;
 
-    if (fourcc(adr, "OggS")) return AudioInfo::OGG;
+    // Ogg ist ein codec-neutraer Container: unterstuetzt ist hier ausschliesslich
+    // Vorbis, Opus/FLAC bleiben UNKNOWN. Die MPEG-Suche entfaellt in dem Fall,
+    // da sie in Ogg-Nutzdaten regelmaessig ein vorgetaeuschtes Frame-Sync-Wort findet.
+    if (fourcc(adr, "OggS"))
+        return isOggVorbis(file, fsize) ? AudioInfo::AudioFormat::OGG : AudioInfo::AudioFormat::UNKNOWN;
 
     PPL_MPEG_HEADER local;
     PPL_MPEG_HEADER* target = mp3 ? mp3 : &local;
-    if (IdentMPEG(file, target)) return AudioInfo::MP3;
+    if (IdentMPEG(file, target)) return AudioInfo::AudioFormat::MP3;
 
-    return AudioInfo::UNKNOWN;
+    return AudioInfo::AudioFormat::UNKNOWN;
 }
 
 } // namespace
@@ -318,23 +326,23 @@ bool IdentAudioFile(FileObject& file, AudioInfo& info)
 {
     PPL_MPEG_HEADER mp3;
     AudioInfo::AudioFormat format = DetectFormat(file, &mp3);
-    if (format == AudioInfo::UNKNOWN) return false;
+    if (format == AudioInfo::AudioFormat::UNKNOWN) return false;
 
     // info wird erst im Erfolgsfall veroeffentlicht, damit der Aufrufer bei false
     // kein teilbefuelltes Objekt vorfindet
     AudioInfo result;
     bool ok = false;
     switch (format) {
-    case AudioInfo::AIFF:
+    case AudioInfo::AudioFormat::AIFF:
         ok = IdentAIFF(file, result);
         break;
-    case AudioInfo::WAVE:
+    case AudioInfo::AudioFormat::WAVE:
         ok = IdentWave(file, result);
         break;
-    case AudioInfo::MP3:
+    case AudioInfo::AudioFormat::MP3:
         ok = IdentMP3(file, result, mp3);
         break;
-    case AudioInfo::OGG:
+    case AudioInfo::AudioFormat::OGG:
         ok = IdentOggVorbisAudioFile(file, result);
         break;
     default:

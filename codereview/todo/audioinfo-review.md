@@ -24,7 +24,7 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   UPDATE 2026-10-29: Verhalten von File::map hat sich seit diesem Review geändert! Es wirft nun konsequent immer `OutOfBoundsException` oder andere Exceptions, und gibt niemals `nullptr` zurück.
 
   **Umsetzung:** Es wird erst gemappt, nachdem die Groessen geprueft sind: `DetectFormat()` bricht
-  bei Dateien unter 24 Bytes mit UNKNOWN ab (src/audio/AudioInfo.cpp:294) und der
+  bei Dateien unter 24 Bytes mit UNKNOWN ab (src/audio/AudioInfo.cpp:295) und der
   MPEG-Zweig delegiert an `IdentMPEG()`, das selbst gueltige Header sucht. Tests
   `EmptyAndTruncatedFiles` und `NonAudioContentLeavesInfoUntouched` erwarten false
   statt einer Exception.
@@ -39,10 +39,11 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   ```
   Zusätzlich sollte `size` gegen `file.size()` plausibilisiert werden, bevor `p += size + 8` gerechnet wird.
 
-  **Umsetzung:** Saemtliche Maps laufen ueber den Helfer `mapRegion()` (src/audio/AudioInfo.cpp:60),
-  der Position und Laenge gegen die Dateigroesse prueft, bevor `File::map()`
-  aufgerufen wird. Der COMM-Chunk mit `0x7FFFFFFF` steht in `AiffCommChunkBeyondEof`,
-  eine bis ans Dateiende reichende Chunkschleife in
+  **Umsetzung:** Saemtliche Maps laufen ueber `FileObject::tryMap(pos, n, out)`
+  (include/pplib/core/fileobject.h:664, src/core/FileObject.cpp:427), das Position und
+  Laenge gegen `size()` prueft und nur `OutOfBoundsException` in `false` ueberfuehrt; der
+  lokale Helfer `mapRegion()` ist entfallen. Der COMM-Chunk mit `0x7FFFFFFF` steht in
+  `AiffCommChunkBeyondEof`, eine bis ans Dateiende reichende Chunkschleife in
   `AiffSampleOffsetAndChunkBeyondEof`.
 
 - [x] **`IdentWave`: `file.map(fmtchunklen + 20, 8)` wirft bei manipulierter `fmtchunklen`** (`src/audio/AudioInfo.cpp:154`)
@@ -51,9 +52,8 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   Behebung: `fmtchunklen` gegen `file.size()` validieren (z. B. `if (fmtchunklen > file.size()) return false;`) bzw. `mapNoThrow` nutzen.
 
   **Umsetzung:** Die `fmt`-Chunklaenge wird gegen das Dateiende validiert, bevor 16 Bytes gemappt
-  werden (`size < 16 || payload + 16 > fsize`, src/audio/AudioInfo.cpp:194 (`size <
-  16 || payload + 16 > fsize`)). Der Fall steht als `fmt`-Size `0x7FFFFFFF` in
-  `EmptyAndTruncatedFiles`.
+  werden (`size < 16 || payload + 16 > fsize`, src/audio/AudioInfo.cpp:207). Der Fall steht als
+  `fmt`-Size `0x7FFFFFFF` in `EmptyAndTruncatedFiles`.
 
 - [x] **AIFF-Sample-Rate-Parsing setzt 80-Bit-`long double` der Host-Plattform voraus** (`src/audio/AudioInfo.cpp:95–110`)
   Es werden 10 Bytes (`adr[16]..adr[25]`) über `char* f = (char*)&frequency` in ein `long double` geschrieben. Auf x86-64/Linux ist `long double` 80-Bit-Extended (16 Byte Speicher) — dort funktioniert es. Auf Windows, ARM (Raspberry Pi) und FreeBSD ist `long double` meist ein normales `double` (8 Byte): `f[8]`/`f[9]` schreiben dann außerhalb des Objekts (Stack-Schaden, UB), und die Frequenz wird ohnehin falsch interpretiert. Damit ist AIFF auf Nicht-x86-Plattformen kaputt — widerspricht direkt den Plattform-Zielen (Windows/FreeBSD/Pico) aus `REFACTORING.md`.
@@ -71,9 +71,8 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   ```
 
   **Umsetzung:** `readExtended80()` dekodiert IEEE-754-Extended aus 10 Bytes plattformneutral mit
-  `uint64_t` und `ldexp()` (src/audio/AudioInfo.cpp:74), ohne `long double` und ohne
-  Cast auf `char*`. `AiffFractionalSampleRate` prueft die Rundung von 44100,5 Hz auf
-  44101.
+  `uint64_t` und `ldexp()` (src/audio/AudioInfo.cpp:88), ohne `long double` und ohne Cast auf
+  `char*`. `AiffFractionalSampleRate` prueft die Rundung von 44100,5 Hz auf 44101.
 
 - [x] **AIFF: `AudioSize = size - 8` kann unterlaufen; `sample offset != 0` verwirft gültige Dateien** (`src/audio/AudioInfo.cpp:115–120`)
   `if (PeekN32(adr + 8) != 0) return false;` lehnt konforme AIFF-Dateien ab, die einen Sample-Offset ungleich 0 verwenden (z. B. Samples, die nicht an einer Wortgrenze beginnen). Gleichzeitig wird der gelesene Offset nie verwendet: `info.AudioStart = p + 16` ignoriert ihn, die Audiodaten beginnen real aber erst dahinter. Bei `size < 8` unterläuft `info.AudioSize = size - 8` auf ~4 GiB und `AudioEnd` wird Unsinn.
@@ -86,20 +85,19 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   ```
 
   **Umsetzung:** Der Sample-Offset wird akzeptiert und einberechnet (`dataStart = payload + 8 +
-  offset`, src/audio/AudioInfo.cpp:128) und `AudioSize` auf die bis zum Dateiende
+  offset`, src/audio/AudioInfo.cpp:140) und `AudioSize` auf die bis zum Dateiende
   vorhandenen Bytes begrenzt; `AiffSampleOffsetAndChunkBeyondEof` liefert AudioStart
   62 und AudioSize 8 statt rund 4 GiB.
 
-- [ ] **Typverengung: `uint64_t` → `uint32_t` bei Dateigröße und Audiodaten-Positionen** (`src/audio/AudioInfo.cpp:65`, `:135`, `:176–179`; `include/pplib/audio/audioinfo.h:81–84`)
+- [x] **Typverengung: `uint64_t` → `uint32_t` bei Dateigröße und Audiodaten-Positionen** (`src/audio/AudioInfo.cpp:65`, `:135`, `:176–179`; `include/pplib/audio/audioinfo.h:81–84`)
   `FileObject::size()` liefert `uint64_t`, `AudioInfo::FileSize` ist aber `uint32_t`; `PPL_MPEG_HEADER::start`/`end` sind `uint64_t`, `AudioStart`/`AudioEnd`/`AudioSize` sind `uint32_t`. Dateien > 4 GiB (lange WAV/AIFF-Aufnahmen, große MP3-Deals) werden stillschweigend abgeschnitten, `AudioEnd` kann vor `AudioStart` landen.
   Behebung: Felder in `AudioInfo` auf `uint64_t` umstellen (ABI-Bruch bewusst einplanen, PPLib8 ist ein Modernisierungszweig) oder zumindest mit expliziter Prüfung begrenzen.
 
-  **Bewusst nicht umgesetzt:** Die Felder bleiben 32 Bit; die Typverengung ist an allen betroffenen
-  Zuweisungen im Code vermerkt (src/audio/AudioInfo.cpp:92, :175, :244)
-  und die Klassen-Doku erklaert die Grenze
-  (include/pplib/audio/audioinfo.h:73: Dateien ueber 4 GiB derzeit
-  nicht unterstuetzt). Die Umstellung auf `uint64_t`waere ein ABI-Bruch
-  und bleibt deshalb ein Entscheidungspunkt .
+  **Umsetzung:** Die Groessenfelder sind auf `uint64_t` gestellt: `ID3v2TagStart`, `FileSize`,
+  `AudioStart`, `AudioEnd`, `AudioSize` und `Samples` (include/pplib/audio/audioinfo.h:93-108);
+  `Mode` traegt jetzt `ChannelMode::UNKNOWN` als Default. Saemtliche verengenden Casts und die
+  32-Bit-Hinweise im Code sind entfallen, `SizeFieldsAre64Bit` sichert die Feldtypen per
+  `static_assert`.
 
 ## Bugs (mittel / Warnungen)
 
@@ -108,32 +106,31 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   Behebung: bei `false` ein lokales `AudioInfo`-Objekt verwerfen und `info` nur im Erfolgsfall zuweisen, oder `info` am Ausgang zurücksetzen.
 
   **Umsetzung:** Beide Public-Overloads arbeiten auf einem lokalen `AudioInfo result` und weisen
-  `info = result` erst nach erfolgreichem Abschluss zu (src/audio/AudioInfo.cpp:325
-  und :344). `NonAudioContentLeavesInfoUntouched` fuellt `info` vorher mit einem
-  Sentinel und vergleicht nach dem Misserfolg alle 16 Felder.
+  `info = result` erst nach erfolgreichem Abschluss zu (src/audio/AudioInfo.cpp:325 und :352).
+  `NonAudioContentLeavesInfoUntouched` fuellt `info` vorher mit einem Sentinel und vergleicht nach
+  dem Misserfolg alle 16 Felder.
 
 - [x] **AIFF-Erkennung: `PeekN32(adr + 4) < file.size()` verwirft gültige Dateien** (`src/audio/AudioInfo.cpp:221`, `:244`)
   Das FORM-Chunk-Feld zählt die 4 Bytes nach sich selbst und liegt bei vielen Encodern exakt bei `filesize - 8`; mit Padding/Trailing-Bytes am Dateiende wird es größer als `file.size()` und die Datei als „kein AIFF“ abgelehnt. Sinnvoller wäre `<=` bzw. eine Toleranz.
 
   **Umsetzung:** Das FORM-Gate prueft jetzt `(uint64_t)PeekN32(adr + 4) + 8 <= fsize`
-  (src/audio/AudioInfo.cpp:301), Trailing-Padding am Dateiende wird also akzeptiert.
-  Ein FORM-Feld deutlich jenseits des Dateiende lehnt `AiffFormSizeBeyondEof`
-  weiterhin ab, `tags_at_eof.aiff` wird dagegen als AIFF erkannt.
+  (src/audio/AudioInfo.cpp:303), Trailing-Padding am Dateiende wird also akzeptiert. Ein FORM-Feld
+  deutlich jenseits des Dateiende lehnt `AiffFormSizeBeyondEof` weiterhin ab, `tags_at_eof.aiff`
+  wird dagegen als AIFF erkannt.
 
 - [x] **AIFF-Chunkschleife: `p += size + 8` mit `size == 0` und Schleifenbedingung zu eng** (`src/audio/AudioInfo.cpp:74`, `:76`, `:125`)
   Bei `size == 0` (legal bei Padding-Chunks) werden 8 Bytes auf einmal übersprungen, wodurch der nächste Chunkname aus Datenbytes gelesen wird. Ein Chunk, der exakt am Dateiende endet, wird von `p + 8 < file.size()` nicht mehr betrachtet (`<=` bzw. `p + 8 <= file.size()`). Zusätzlich sollte gegen Endlosschleifen/Überlauf bei `size == 0xFFFFFFFF` abgesichert werden.
 
   **Umsetzung:** Die Schleife lautet `while (p + 8 <= fsize)` mit Wort-Padding (`if (size & 1)
-  next++`) und Abbruch (`if (p >= next) break`), damit `size == 0` nicht endlos
-  laeuft (src/audio/AudioInfo.cpp:141-143, analog in `IdentWave()`)). Bei `size ==
-  0xFFFFFFFF` bricht der Lauf ab, weil die Payload-Reichweite nicht ausreicht
-  (`AiffCommChunkBeyondEof`).
+  next++`) und Abbruch (`if (p >= next) break`), damit `size == 0` nicht endlos laeuft
+  (src/audio/AudioInfo.cpp:155-156, analog `IdentWave()` :222-223)). Bei `size == 0xFFFFFFFF`
+  bricht der Lauf ab, weil die Payload-Reichweite nicht ausreicht (`AiffCommChunkBeyondEof`).
 
 - [x] **MP3: ID3v2-Erkennung zu streng** (`src/audio/AudioInfo.cpp:207–212`)
   Akzeptiert nur die Versionsbytes `(3,0)` und `(4,0)`. ID3v2.2 (`2,x`) sowie Revisionen ungleich 0 (z. B. 2.4.1) werden übersehen, obwohl `IdentMPEG` den Tag-Offset korrekt ermittelt hat. `info.ID3v2TagStart` bleibt bei MP3 immer 0, während AIFF dort den Chunk-Start einträgt — inkonsistente Semantik desselben Feldes.
 
   **Umsetzung:** ID3v2 wird ab Major-Version 2 und in jeder Revision akzeptiert (`Peek8(adr + 3) >=
-  2`, src/audio/AudioInfo.cpp:277); `ID3v2TagStart` traegt bei MP3 den Anfang des
+  2`, src/audio/AudioInfo.cpp:278); `ID3v2TagStart` traegt bei MP3 den Anfang des
   Tags ein (0), also dieselbe Semantik wie bei AIFF und WAV. Tests:
   `Mp3WithID3v2TagAtStart` und `IdentMp3CBR192WithID3`.
 
@@ -141,7 +138,7 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   WAV-Dateien können ID3-Chunks (`id3 `/`ID3 `) enthalten; `test_44kHz_tagged.wav` liegt bereits in `tests/testdata/audio/`, wird aber von keinem Test verwendet. Die Erkennung fehlt komplett.
 
   **Umsetzung:** WAV erkennt `id3 `- und `ID3 `-Chunks in der Chunkschleife und setzt
-  `HaveID3v2Tag`/`ID3v2TagStart` (src/audio/AudioInfo.cpp:204). Da
+  `HaveID3v2Tag`/`ID3v2TagStart` (src/audio/AudioInfo.cpp:217). Da
   `test_44kHz_tagged.wav` keinen ID3v2-Chunk besitzt (nur ein Tag am Dateiende), ist
   der Fall in `WaveId3ChunkBeforeData` nachgebaut; die Datei steht zusaetzlich in der
   Format-Matrix.
@@ -151,17 +148,20 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   Behebung: Chunkschleife wie in `IdentAIFF` (mit `RIFF`/`data`-Suche) und `AudioSize = min(AudioSize, file.size() - AudioStart)`.
 
   **Umsetzung:** `IdentWave()` arbeitet jetzt mit einer Chunkschleife ab Offset 12
-  (src/audio/AudioInfo.cpp:188ff), LIST- und id3-Chunks zwischen `fmt` und `data`
-  werden uebersprungen, und `AudioSize` wird auf `fsize - AudioStart` begrenzt.
-  Tests: `WaveListChunkBeforeData` (AudioStart 66) und `WaveDataChunkBeyondEof`.
+  (src/audio/AudioInfo.cpp:200ff), LIST- und id3-Chunks zwischen `fmt` und `data` werden
+  uebersprungen, die fmt-Kopffelder bleiben bei 16 Bytes (Gate `size < 16 || payload + 16 >
+  fsize`). `AudioSize` wird auf `fsize - audioStart` begrenzt; zusaetzlich wird `bytesPerSample ==
+  0` abgefangen, sonst fuehrte `audioSize % bytesPerSample` bei einem Bitdepth weit jenseits 16
+  Bit (z. B. 2048) zur Division durch 0. Tests: `WaveListChunkBeforeData` (AudioStart 66),
+  `WaveDataChunkBeyondEof`, `WaveAbsurdBitDepthIsRejected`.
 
 - [x] **Beide `IdentAudioFile`-Overloads duplizieren die Sniffing-Logik** (`src/audio/AudioInfo.cpp:216–236` und `:239–257`)
   Zweimal identische 20 Zeilen Magie-Check-Logik; Änderungen (z. B. neue Formate, korrigierter AIFF-Gate) müssen doppelt gepflegt werden. Format-Overload sollte auf die Info-Variante zurückgreifen oder ein gemeinsamer `DetectFormat(adr)`-Helfer verwendet werden.
 
   **Umsetzung:** Beide Overloads nutzen denselben internen Helfer `DetectFormat()`
-  (src/audio/AudioInfo.cpp:320 und :350); die doppelt gepflegten Sniffing-Zeilen sind
-  entfallen. `FormatOverloadMatchesInfoOverload` fahrt beide Varianten durch ein und
-  dieselbe Format-Matrix.
+  (src/audio/AudioInfo.cpp:290, Overloads :325 und :356); die doppelt gepflegten Sniffing-Zeilen
+  sind entfallen. `FormatOverloadMatchesInfoOverload` fahrt beide Varianten durch ein und dieselbe
+  Format-Matrix.
 
 ## Code Smells & Modernisierung (C++20, REFACTORING.md)
 
@@ -173,24 +173,23 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   src/audio/AudioInfo.cpp ist entfallen und durch `AudioInfo() = default;` ersetzt.
   `ConstructorDefaults` prueft ausdruecklich jedes einzelne Feld.
 
-- [ ] **Unscoped Enums** (`include/pplib/audio/audioinfo.h:61–75`)
+- [x] **Unscoped Enums** (`include/pplib/audio/audioinfo.h:61–75`)
   `AudioFormat` und `ChannelMode` sollten `enum class` sein; sonst landen `UNKNOWN`, `STEREO`, `MONO` … im Namensraum der Klasse bzw. des Übersetzungstranskriptors. Achtung: breche Änderung an der API, daher in einer eigenen Modernisierungsrunde einplanen.
 
-  **Bewusst nicht umgesetzt:** `AudioFormat` und `ChannelMode` bleiben unscoped, weil die Werte
-  1-Byte-struct-Felder belegen und `enum class` Quell- wie ABI-
-  Kompatibilitaet brechen wuerde. Die Umstellung bleibt ein
-  Entscheidungspunkt; die Werte selbst sind inzwischen voll
-  dokumentiert.
+  **Umsetzung:** `AudioFormat` und `ChannelMode` sind jetzt `enum class : uint8_t`
+  (include/pplib/audio/audioinfo.h:70-90), alle Nutzungstellen (src/audio/AudioInfo.cpp,
+  Mp3/Decoder, include/pplib/audio/encoder.h, tests/src/audio/audioinfo.cpp) arbeiten mit
+  qualifizierten Namen. Da der numerische MPEG-Mode-Wert nicht mehr mit `ChannelMode`
+  uebereinstimmt, bildet `mpegModeTBL` (src/audio/AudioInfo.cpp:54) das Feld explizit ab;
+  `Mp3ModeFieldSelectsChannelMode` prueft genau diese Zuordnung.
 
-- [ ] **`WAVEHEADER` gehört nicht in `audioinfo.h`** (`include/pplib/audio/audioinfo.h:42–54`)
+- [x] **`WAVEHEADER` gehört nicht in `audioinfo.h`** (`include/pplib/audio/audioinfo.h:42–54`)
   Die Struktur wird ausschließlich von `readWaveHeader` in `include/pplib/audio/decoder.h:190` verwendet. Sie sollte dorthin (oder in einen internen Header) wandern; öffentliche Header sollten nur die öffentliche API enthalten.
 
-  **Teilweise umgesetzt:** Die nie definierte private Deklaration `readWaveHeader(FileObject&,
-  WAVEHEADER&)` ist aus `AudioDecoder_Wave` in
-  include/pplib/audio/decoder.h entfernt, womit die Struktur dort nicht
-  mehr referenziert wird. Der Umzug von `WAVEHEADER` nach decoder.h
-  unterbleibt vorerst, weil der Typ oeffentlich aus `pplib` exportiert ist
-  (API-Aenderung, Entscheidungspunkt).
+  **Umsetzung:** `WAVEHEADER` ist aus `audioinfo.h` entfernt worden. Repo-weit gab es
+  keine Verwendung mehr (die zugehoerige `readWaveHeader()`-Deklaration war bereits
+  entfallen), damit ist auch der Umzug nach `decoder.h` gegenstandslos; ein
+  oeffentlich exportierter Typ, den niemand nutzt, ist die schlechtere Variante.
 
 - [x] **`UnsupportedAudioFormatException` wird deklariert, aber nie geworfen** (`include/pplib/audio/audioinfo.h:40`)
   `IdentAudioFile` liefert `false`/`UNKNOWN`. Wenn die API bei unbekanntem Format werfen soll, muss das implementiert und dokumentiert werden; wenn nicht, sollte die Exception-Klasse aus dem öffentlichen Header entfernt oder klar zugeordnet werden (Decodern).
@@ -237,15 +236,19 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   Der Header sagt nichts darüber, dass `IdentAudioFile` werfen kann (`FileNotOpenException` bei geschlossener Datei, `OverflowException` über `map`). Für Aufrufer ist das entscheidend — entweder Doku oder (besser im Sinne von `REFACTORING.md`: weniger Exceptions) die Exception-Pfade auf `false`/`UNKNOWN` umstellen.
 
   **Umsetzung:** Beide Deklarationen dokumentieren `@exception pplib::FileNotOpenException`
-  (audioinfo.h:151 und :165) sowie dass beschaedigte Header ausdruecklich keine
-  Exception erzeugen; Map-Ausnahmen sind nach dem Umbau auf `mapRegion()` nicht mehr
-  erreichbar. Die Doku der Exception-Klasse ordnet das Werfen den Decodern zu.
+  (audioinfo.h:122 und :133) und dass beschaedigte Header nur `false`/`UNKNOWN` liefern.
+  Interne Map-Ausnahmen sind aus der Doku wieder entfernt: sie sind ueber
+  `FileObject::tryMap()` abgefangen und gehoren nicht in die oeffentliche Schnittstelle.
+  Die Exception-Klasse selbst ist den Decodern zugeordnet.
 
 - [x] **Enum-Werte ohne Beschreibung** (`include/pplib/audio/audioinfo.h:61–75`)
   `AudioFormat`/`ChannelMode` brauchen `\brief`-Einträge inkl. Hinweis, dass `ChannelMode` die MPEG-Modi abbildet (nicht einfach „Mono/Stereo“).
 
   **Umsetzung:** Alle Werte beider Enums haben `//!<`-Beschreibungen, bei `ChannelMode` inklusive
-  dem Hinweis, dass `DUAL_CHANNEL` und `JOINT_STEREO` die MPEG-Modi widerspiegeln.
+  dem Hinweis, dass `DUAL_CHANNEL` und `JOINT_STEREO` die MPEG-Modi widerspiegeln. Dazu
+  gekommen ist `ChannelMode::UNKNOWN` als eigener Default (statt stillschweigend
+  `STEREO`) und der Hinweis bei `AudioFormat::OGG`, dass Opus/FLAC im Ogg-Container als
+  UNKNOWN gelten.
 
 - [x] **`WAVEHEADER`-Felder undokumentiert** (`include/pplib/audio/audioinfo.h:45–53`)
   Nur die Struktur selbst hat einen `\brief`; die Einheiten (`bytes` vs. `numSamples`, `bytespersecond`) bleiben unklar.
@@ -307,8 +310,9 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   `AiffWithTagsAtEndOfFile`), `test_48kHz.opus` (`OpusInOggContainerIsNotSupported`)
   und `cover.jpg` (UNKNOWN). Fehlende Formate werden synthetisch abgedeckt: 8-Bit-
   Mono-WAV bei 48 kHz mit 40-Byte-fmt-Chunk (`Wave8BitMono48kHzExtensibleFmt`),
-  20-Bit-Mono, LIST-Chunk und die vier MPEG-Modi. AIFF-C fehlt weiterhin, da es
-  dafuer keine Beispieldatei gibt.
+  20-Bit-Mono, LIST-Chunk und die vier MPEG-Modi. AIFF-C bleibt ungetestet, weil der
+  Codec nicht dekodiert wird und bewusst als UNKNOWN gilt; Gleiches gilt fuer Opus im
+  Ogg-Container (`OpusInOggContainerIsNotSupported`, `OggShorterThanCodecSignatureWindowIsUnknown`).
 
 - [x] **Unbenutzte Includes im Test** (`tests/src/audio/audioinfo.cpp`, Kopfzeilen)
   `memfile.h`, `iconv.h`, `string.h` werden nicht gebraucht (bzw. `memfile.h` sollte gebraucht werden, siehe negativer Test oben).
@@ -329,10 +333,17 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
 - [x] **Gewicht der Tests einseitig** (`tests/src/audio/audioinfo.cpp`)
   4 MP3-Tests, 2 AIFF, 1 WAV, 1 OGG, 1 Konstruktor. Der komplexeste Parser (`IdentAIFF` mit Chunkschleife) hat nur zwei Happy-Path-Tests; die fehleranfälligsten Codezeilen (Chunkschleife, `long double`, SSND-Offset) haben 0 % Abdeckung.
 
-  **Umsetzung:** Die Suite waechst von 9 auf 25 Tests: vier AIFF-Grenzfaelle, vier WAV-Faelle (LIST-
-  Chunk, id3-Chunk, 20 Bit, 8 Bit/48 kHz), zwei MP3-Faelle (Tag am Anfang, vier Modi)
-  und die Matrix ueber beide Overloads. Coverage von src/audio/AudioInfo.cpp: 98,1 %
-  Lines, 75,9 % Branches.
+  **Umsetzung:** Die Suite waechst von 9 auf 30 Tests: sieben AIFF-Grenzfaelle (COMM jenseits EOF,
+  FORM-Groesse, Sample-Offset, Fractional-Rate, Mono-Zuordnung, absurdes Bitdepth, Tag am
+  Dateiende), sechs WAV-Faelle (data jenseits EOF, LIST-Chunk, id3-Chunk, 20 Bit, 8 Bit/48 kHz
+  mit 40-Byte-fmt, absurdes Bitdepth), MP3 mit ID3v2-Block und Modus-Zuordnung, OGG-Faelle
+  fuer Opus und fuer ein zu kurzes Ogg-File, die Matrix ueber beide Overloads und die
+  64-Bit-Pruefung der Groessenfelder.
+  Coverage src/audio/AudioInfo.cpp: 99,0 % Lines / 78,4 % Branches; Mp3.cpp 97,2 % / 82,2 %;
+  FileObject.cpp 93,0 % / 86,7 %. Von den offenen Branch-Armen in AudioInfo.cpp sind 31
+  Exception-Kanten von map()/tryMap() (OOM-, FileNotOpen- und Unsupported-Pfade, die tryMap
+  bewusst nicht abfaengt); die Ubrigen sind Kurzschlussarme lang verketteter Bedingungen und
+  das unerreichbare `default:` im Format-Dispatch.
 
 ## Befunde in Drittdateien
 
@@ -349,27 +360,29 @@ Alle kritischen Befunde 1–4 wurden mit einem separaten Probeprogramm gegen die
   Der Vertrag ist exception-basiert: `File::map` wirft bei Bereichsüberschreitung `OverflowException` und liefert nur bei leerer Datei bzw. 0 Bytes `nullptr` (`File.cpp:753`, `:769`; Doku in `fileobject.h` ist inzwischen korrekt). Die in `AudioInfo.cpp` (und teils in `AudioDecoder_Ogg.cpp`) allgegenwärtigen `if (!buffer)`-Guards greifen daher nie — jeder kaputte Header wird zur Exception. Entweder alle Aufrufer auf den Exception-Pfad anpassen oder eine durchgehende `mapNoThrow`-Variante (Muster: `src/audio/Mp3.cpp:135`) in `FileObject` anbieten und dort die nullptr-Prüfung wieder verlässlich machen.
 
   **Umsetzung:** Fuer src/audio/AudioInfo.cpp ist der exception-basierte Vertrag erfuellt: Jedes
-  Mapping geht durch `mapRegion()` (src/audio/AudioInfo.cpp:60) mit vorheriger
-  Reichweitenpruefung, die `nullptr`-Guards sind ersatzlos entfallen. Belegt durch
-  `EmptyAndTruncatedFiles`, `AiffCommChunkBeyondEof`, `WaveDataChunkBeyondEof` und
-  `Wave8BitMono48kHzExtensibleFmt`.
+  Mapping laeuft ausschliesslich durch `file.tryMap(pos, n, ptr)` inkl. Reichweitenpruefung
+  gegen `size()`; die `nullptr`-Guards sind entfallen. Ein lokaler Helfer `mapRegion()`
+  existiert nicht mehr. Belegt durch `EmptyAndTruncatedFiles`, `AiffCommChunkBeyondEof`,
+  `WaveDataChunkBeyondEof` und `Wave8BitMono48kHzExtensibleFmt`.
 
-- [ ] **`mapNoThrow` ist statisch in `Mp3.cpp` dupliziert** (`src/audio/Mp3.cpp:135`)
+- [x] **`mapNoThrow` ist statisch in `Mp3.cpp` dupliziert** (`src/audio/Mp3.cpp:135`)
   Sobald `AudioInfo.cpp` denselben Helfer braucht, sollte er als öffentliche Methode/Hilfsfunktion (z. B. `FileObject::mapNoThrow`) zentralisiert werden, statt ihn ein drittes Mal zu kopieren.
 
-  **Bewusst nicht umgesetzt:** src/audio/AudioInfo.cpp nutzt den lokalen Helfer `mapRegion()`,
-  `mapNoThrow()` in src/audio/Mp3.cpp:134 bleibt unangetastet. Eine
-  gemeinsame Methode in `FileObject` (oder gleich `File::mapAtMost()`)
-  ware eine oeffentliche API-Erweiterung und bleibt wegen der
-  Speicherziele auf Mikrocontrollern eine Entscheidung.
+  **Umsetzung:** Zentralisiert als `FileObject::tryMap()`
+  (include/pplib/core/fileobject.h:664, Implementierung src/core/FileObject.cpp:427).
+  Die Reichweitenpruefung laeuft gegen `size()`, `mapNoThrow()` in src/audio/Mp3.cpp ist
+  ersatzlos weg, beide Mp3-Stellen und alle acht Maps in src/audio/AudioInfo.cpp nutzen
+  `tryMap()`. Geworfen bleiben Speicher-/Plattformfehler; nur
+  `OutOfBoundsException` und nicht gedeckte Regionen liefern false
+  (`FileTest.tryMapReturnsFalseForRegionBeyondEof`,
+  `Mp3FunctionsTest.IdentMpegSurvivesFailingMap`).
 
 - [x] **`WAVEHEADER`-Nutzung in `decoder.h`** (`include/pplib/audio/decoder.h:190`)
   `readWaveHeader` verwendet die in `audioinfo.h` definierte Struktur; bei Umzug der Struktur (siehe Smells) muss dieser Include-Pfad mitgezogen werden.
 
-  **Umsetzung:** Die Struktur bleibt in `audioinfo.h`; da die ungenutzte Deklaration
-  `readWaveHeader()` aus `AudioDecoder_Wave` (include/pplib/audio/decoder.h) entfernt
-  ist, referenziert decoder.h `WAVEHEADER` derzeit gar nicht, sodass sich der
-  Include-Pfad aktuell nicht stellt.
+  **Umsetzung:** `WAVEHEADER` ist aus `audioinfo.h` entfernt und wird von decoder.h nicht
+  referenziert: die ungenutzte `readWaveHeader()`-Deklaration aus `AudioDecoder_Wave`
+  war zuvor schon entfallen. Damit stellt sich der Include-Pfad nicht mehr.
 
 - [ ] **Verwandter offener Befund** (`codereview/todo/mp3-review.md:218–219`, `:235`)
   Bereits dort ist das ungesicherte `map(0, 24)` in `IdentAudioFile` dokumentiert. Empfehlung: Befund dort schließen und zentral in diesem Review abarbeiten, damit die Fixup-Arbeit nur einmal erfolgt.

@@ -64,7 +64,7 @@ void AudioDecoder_Aiff::open(FileObject& file, const AudioInfo* info)
     printf ("BitsPerSample: %d\n",this->info.BitsPerSample);
     printf ("BytesPerSample: %d\n",this->info.BytesPerSample);
     */
-    if (this->info.Format != AudioInfo::AIFF) throw UnsupportedAudioFormatException();
+    if (this->info.Format != AudioInfo::AudioFormat::AIFF) throw UnsupportedAudioFormatException();
     // if (this->info.Frequency!=44100) throw UnsupportedAudioFormatException("Frequency != 44100");
     // if (this->info.Bitrate!=1411) throw UnsupportedAudioFormatException("Bitrate != 1411");
     if (this->info.Channels != 2) throw UnsupportedAudioFormatException("Channels != 2");

@@ -104,7 +104,7 @@ public:
     void setCBR(int kbps = 320, int quality = 2);
     void setABR(int kbps = 192, int quality = 2);
     void setQuality(int quality = 2);
-    void setStereoMode(const AudioInfo::ChannelMode mode = AudioInfo::JOINT_STEREO);
+    void setStereoMode(const AudioInfo::ChannelMode mode = AudioInfo::ChannelMode::JOINT_STEREO);
     void setLowpassFreq(int freq = -1);  // -1=Disabled
     void setHighpassFreq(int freq = -1); // -1=Disabled
     void setProgressFunction(void (*ProgressFunc)(int progress, void* priv), void* priv);

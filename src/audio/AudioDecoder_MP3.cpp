@@ -105,7 +105,7 @@ void AudioDecoder_MP3::open(FileObject& file, const AudioInfo* info)
     } else {
         this->info = *info;
     }
-    if (this->info.Format != AudioInfo::MP3) throw UnsupportedAudioFormatException();
+    if (this->info.Format != AudioInfo::AudioFormat::MP3) throw UnsupportedAudioFormatException();
     position = 0;
     this->ff = &file;
     if (decoder) mpg123_delete((mpg123_handle*)decoder);

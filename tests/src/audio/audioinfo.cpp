@@ -31,6 +31,7 @@
 
 #include <cstdio>
 #include <string>
+#include <type_traits>
 
 #include <pplib/types/string.h>
 #include <pplib/core/dir.h>
@@ -42,6 +43,10 @@
 
 namespace
 {
+
+// Kurzalias der scoped Enums, damit die Erwartungen in den Tests lesbar bleiben
+using AF = pplib::AudioInfo::AudioFormat;
+using CM = pplib::AudioInfo::ChannelMode;
 
 class AudioInfoTest : public ::testing::Test
 {
@@ -76,21 +81,21 @@ TEST_F(AudioInfoTest, IdentMp3CBR192WithoutID3)
     OpenTestFile(file, "test_192cbr.mp3");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
-    EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
+    EXPECT_EQ(AF::MP3, info.Format);
     EXPECT_FALSE(info.HaveID3v2Tag);
-    EXPECT_EQ((uint32_t)0, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
     EXPECT_FALSE(info.IsVBR);
     EXPECT_EQ((uint16_t)192, info.Bitrate);
     EXPECT_EQ((uint8_t)2, info.Channels);
     EXPECT_EQ((uint8_t)16, info.BitsPerSample);
     EXPECT_EQ((uint8_t)4, info.BytesPerSample);
     EXPECT_EQ((uint32_t)44100, info.Frequency);
-    EXPECT_EQ((uint32_t)176223, info.Samples);
-    EXPECT_EQ(pplib::AudioInfo::JOINT_STEREO, info.Mode);
-    EXPECT_EQ((uint32_t)95920, info.FileSize) << "Unexpected filesize";
-    EXPECT_EQ((uint32_t)0, info.AudioStart) << "Unexpected audio start";
-    EXPECT_EQ((uint32_t)95919, info.AudioEnd) << "Unexpected audio end";
-    EXPECT_EQ((uint32_t)95920, info.AudioSize) << "Unexpected audio size";
+    EXPECT_EQ((uint64_t)176223, info.Samples);
+    EXPECT_EQ(CM::JOINT_STEREO, info.Mode);
+    EXPECT_EQ((uint64_t)95920, info.FileSize) << "Unexpected filesize";
+    EXPECT_EQ((uint64_t)0, info.AudioStart) << "Unexpected audio start";
+    EXPECT_EQ((uint64_t)95919, info.AudioEnd) << "Unexpected audio end";
+    EXPECT_EQ((uint64_t)95920, info.AudioSize) << "Unexpected audio size";
 
 }
 
@@ -100,16 +105,16 @@ TEST_F(AudioInfoTest, IdentMp3CBR320WithoutID3)
     OpenTestFile(file, "test_320cbr.mp3");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
-    EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
+    EXPECT_EQ(AF::MP3, info.Format);
     EXPECT_FALSE(info.HaveID3v2Tag);
-    EXPECT_EQ((uint32_t)0, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
     EXPECT_FALSE(info.IsVBR);
     EXPECT_EQ((uint16_t)320, info.Bitrate);
     EXPECT_EQ((uint8_t)2, info.Channels);
     EXPECT_EQ((uint8_t)16, info.BitsPerSample);
     EXPECT_EQ((uint8_t)4, info.BytesPerSample);
     EXPECT_EQ((uint32_t)44100, info.Frequency);
-    EXPECT_EQ((uint32_t)176223, info.Samples);
+    EXPECT_EQ((uint64_t)176223, info.Samples);
 }
 
 TEST_F(AudioInfoTest, IdentMp3VBR192WithoutID3)
@@ -118,16 +123,16 @@ TEST_F(AudioInfoTest, IdentMp3VBR192WithoutID3)
     OpenTestFile(file, "test_192vbr.mp3");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
-    EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
+    EXPECT_EQ(AF::MP3, info.Format);
     EXPECT_FALSE(info.HaveID3v2Tag);
-    EXPECT_EQ((uint32_t)0, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
     EXPECT_TRUE(info.IsVBR);
     EXPECT_EQ((uint16_t)176, info.Bitrate);
     EXPECT_EQ((uint8_t)2, info.Channels);
     EXPECT_EQ((uint8_t)16, info.BitsPerSample);
     EXPECT_EQ((uint8_t)4, info.BytesPerSample);
     EXPECT_EQ((uint32_t)44100, info.Frequency);
-    EXPECT_EQ((uint32_t)176256, info.Samples);
+    EXPECT_EQ((uint64_t)176256, info.Samples);
 }
 
 TEST_F(AudioInfoTest, IdentMp3CBR192WithID3)
@@ -136,16 +141,16 @@ TEST_F(AudioInfoTest, IdentMp3CBR192WithID3)
     OpenTestFile(file, "test_192cbr_tagged.mp3");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
-    EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
+    EXPECT_EQ(AF::MP3, info.Format);
     EXPECT_TRUE(info.HaveID3v2Tag);
-    EXPECT_EQ((uint32_t)0, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
     EXPECT_FALSE(info.IsVBR);
     EXPECT_EQ((uint16_t)192, info.Bitrate);
     EXPECT_EQ((uint8_t)2, info.Channels);
     EXPECT_EQ((uint8_t)16, info.BitsPerSample);
     EXPECT_EQ((uint8_t)4, info.BytesPerSample);
     EXPECT_EQ((uint32_t)44100, info.Frequency);
-    EXPECT_EQ((uint32_t)176223, info.Samples);
+    EXPECT_EQ((uint64_t)176223, info.Samples);
 }
 
 TEST_F(AudioInfoTest, IdentAiffWithoutID3)
@@ -154,21 +159,21 @@ TEST_F(AudioInfoTest, IdentAiffWithoutID3)
     OpenTestFile(file, "test_44kHz.aiff");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << "Audio format was not recognized";
-    EXPECT_EQ(pplib::AudioInfo::AIFF, info.Format) << "Wrong audio format detected";
+    EXPECT_EQ(AF::AIFF, info.Format) << "Wrong audio format detected";
     EXPECT_FALSE(info.HaveID3v2Tag) << "ID3-Tag detected, but there is none in the file";
-    EXPECT_EQ((uint32_t)0, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
     EXPECT_FALSE(info.IsVBR) << "VBR detected, but it shouldn't";
     EXPECT_EQ((uint16_t)1411, info.Bitrate) << "Unexpected Bitrate";
     EXPECT_EQ((uint8_t)2, info.Channels) << "Unexpected number of channels";
     EXPECT_EQ((uint8_t)16, info.BitsPerSample) << "Unexpected Bits per Sample";
     EXPECT_EQ((uint8_t)4, info.BytesPerSample) << "Unexpected bytes per sample";
     EXPECT_EQ((uint32_t)44100, info.Frequency) << "Unexpected frequency";
-    EXPECT_EQ((uint32_t)173695, info.Samples) << "Unexpected number of samples";
+    EXPECT_EQ((uint64_t)173695, info.Samples) << "Unexpected number of samples";
     EXPECT_EQ((uint32_t)3938, info.Length) << "Unexpected length";
-    EXPECT_EQ((uint32_t)694834, info.FileSize) << "Unexpected filesize";
-    EXPECT_EQ((uint32_t)54, info.AudioStart) << "Unexpected audio start";
-    EXPECT_EQ((uint32_t)694833, info.AudioEnd) << "Unexpected audio end";
-    EXPECT_EQ((uint32_t)694780, info.AudioSize) << "Unexpected audio size";
+    EXPECT_EQ((uint64_t)694834, info.FileSize) << "Unexpected filesize";
+    EXPECT_EQ((uint64_t)54, info.AudioStart) << "Unexpected audio start";
+    EXPECT_EQ((uint64_t)694833, info.AudioEnd) << "Unexpected audio end";
+    EXPECT_EQ((uint64_t)694780, info.AudioSize) << "Unexpected audio size";
 
 }
 
@@ -178,21 +183,21 @@ TEST_F(AudioInfoTest, IdentAiffWithID3)
     OpenTestFile(file, "test_44kHz_tagged.aiff");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << "Audio format was not recognized";
-    EXPECT_EQ(pplib::AudioInfo::AIFF, info.Format) << "Wrong audio format detected";
+    EXPECT_EQ(AF::AIFF, info.Format) << "Wrong audio format detected";
     EXPECT_TRUE(info.HaveID3v2Tag) << "ID3-Tag detected, but there is none in the file";
-    EXPECT_EQ((uint32_t)694842, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)694842, info.ID3v2TagStart);
     EXPECT_FALSE(info.IsVBR) << "VBR detected, but it shouldn't";
     EXPECT_EQ((uint16_t)1411, info.Bitrate) << "Unexpected Bitrate";
     EXPECT_EQ((uint8_t)2, info.Channels) << "Unexpected number of channels";
     EXPECT_EQ((uint8_t)16, info.BitsPerSample) << "Unexpected Bits per Sample";
     EXPECT_EQ((uint8_t)4, info.BytesPerSample) << "Unexpected bytes per sample";
     EXPECT_EQ((uint32_t)44100, info.Frequency) << "Unexpected frequency";
-    EXPECT_EQ((uint32_t)173695, info.Samples) << "Unexpected number of samples";
+    EXPECT_EQ((uint64_t)173695, info.Samples) << "Unexpected number of samples";
     EXPECT_EQ((uint32_t)3938, info.Length) << "Unexpected length";
-    EXPECT_EQ((uint32_t)695866, info.FileSize) << "Unexpected filesize";
-    EXPECT_EQ((uint32_t)54, info.AudioStart) << "Unexpected audio start";
-    EXPECT_EQ((uint32_t)694833, info.AudioEnd) << "Unexpected audio end";
-    EXPECT_EQ((uint32_t)694780, info.AudioSize) << "Unexpected audio size";
+    EXPECT_EQ((uint64_t)695866, info.FileSize) << "Unexpected filesize";
+    EXPECT_EQ((uint64_t)54, info.AudioStart) << "Unexpected audio start";
+    EXPECT_EQ((uint64_t)694833, info.AudioEnd) << "Unexpected audio end";
+    EXPECT_EQ((uint64_t)694780, info.AudioSize) << "Unexpected audio size";
 
 }
 
@@ -202,48 +207,48 @@ TEST_F(AudioInfoTest, IdentWaveWithoutID3)
     OpenTestFile(file, "test_44kHz.wav");
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << "Audio format was not recognized";
-    EXPECT_EQ(pplib::AudioInfo::WAVE, info.Format) << "Wrong audio format detected";
+    EXPECT_EQ(AF::WAVE, info.Format) << "Wrong audio format detected";
     EXPECT_FALSE(info.HaveID3v2Tag) << "ID3-Tag detected, but there is none in the file";
-    EXPECT_EQ((uint32_t)0, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
     EXPECT_FALSE(info.IsVBR) << "VBR detected, but it shouldn't";
     EXPECT_EQ((uint16_t)1411, info.Bitrate) << "Unexpected Bitrate";
     EXPECT_EQ((uint8_t)2, info.Channels) << "Unexpected number of channels";
     EXPECT_EQ((uint8_t)16, info.BitsPerSample) << "Unexpected Bits per Sample";
     EXPECT_EQ((uint8_t)4, info.BytesPerSample) << "Unexpected bytes per sample";
     EXPECT_EQ((uint32_t)44100, info.Frequency) << "Unexpected frequency";
-    EXPECT_EQ((uint32_t)173695, info.Samples) << "Unexpected number of samples";
+    EXPECT_EQ((uint64_t)173695, info.Samples) << "Unexpected number of samples";
     EXPECT_EQ((uint32_t)3938, info.Length) << "Unexpected length";
 
-    EXPECT_EQ((uint32_t)694824, info.FileSize) << "Unexpected filesize";
-    EXPECT_EQ((uint32_t)44, info.AudioStart) << "Unexpected audio start";
-    EXPECT_EQ((uint32_t)694824 - 44, info.AudioSize) << "Unexpected audio size";
-    EXPECT_EQ((uint32_t)694823, info.AudioEnd) << "Unexpected audio end";
+    EXPECT_EQ((uint64_t)694824, info.FileSize) << "Unexpected filesize";
+    EXPECT_EQ((uint64_t)44, info.AudioStart) << "Unexpected audio start";
+    EXPECT_EQ((uint64_t)694824 - 44, info.AudioSize) << "Unexpected audio size";
+    EXPECT_EQ((uint64_t)694823, info.AudioEnd) << "Unexpected audio end";
 }
 
 TEST_F(AudioInfoTest, IdentOggVorbis)
 {
     pplib::File file;
     OpenTestFile(file, "test_44kHz.wav");
-    ASSERT_NE(pplib::AudioInfo::OGG, pplib::IdentAudioFile(file));
+    ASSERT_NE(AF::OGG, pplib::IdentAudioFile(file));
     OpenTestFile(file, "test_44kHz.ogg");
-    ASSERT_EQ(pplib::AudioInfo::OGG, pplib::IdentAudioFile(file));
+    ASSERT_EQ(AF::OGG, pplib::IdentAudioFile(file));
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
-    EXPECT_EQ(pplib::AudioInfo::OGG, info.Format);
+    EXPECT_EQ(AF::OGG, info.Format);
     EXPECT_FALSE(info.HaveID3v2Tag);
-    EXPECT_EQ((uint32_t)0, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
     EXPECT_FALSE(info.IsVBR);
     EXPECT_EQ((uint16_t)192, info.Bitrate);
     EXPECT_EQ((uint8_t)2, info.Channels);
     EXPECT_EQ((uint8_t)16, info.BitsPerSample);
     EXPECT_EQ((uint8_t)4, info.BytesPerSample);
     EXPECT_EQ((uint32_t)44100, info.Frequency);
-    EXPECT_EQ((uint32_t)173695, info.Samples) << "Unexpected number of samples";
+    EXPECT_EQ((uint64_t)173695, info.Samples) << "Unexpected number of samples";
     EXPECT_EQ((uint32_t)3938, info.Length) << "Unexpected length";
-    EXPECT_EQ((uint32_t)90768, info.FileSize) << "Unexpected filesize";
-    EXPECT_EQ((uint32_t)8060, info.AudioStart) << "Unexpected audio start";
-    EXPECT_EQ((uint32_t)90767, info.AudioEnd) << "Unexpected audio end";
-    EXPECT_EQ((uint32_t)82708, info.AudioSize) << "Unexpected audio size";
+    EXPECT_EQ((uint64_t)90768, info.FileSize) << "Unexpected filesize";
+    EXPECT_EQ((uint64_t)8060, info.AudioStart) << "Unexpected audio start";
+    EXPECT_EQ((uint64_t)90767, info.AudioEnd) << "Unexpected audio end";
+    EXPECT_EQ((uint64_t)82708, info.AudioSize) << "Unexpected audio size";
 
 }
 
@@ -379,7 +384,7 @@ static std::vector<char> MakeWAVE(uint32_t fmtSize, uint32_t dataSize, size_t au
 static pplib::AudioInfo SentinelInfo()
 {
     pplib::AudioInfo info;
-    info.Format = pplib::AudioInfo::MP3;
+    info.Format = AF::MP3;
     info.HaveID3v2Tag = true;
     info.IsVBR = true;
     info.ID3v2TagStart = 0xDEAD;
@@ -394,7 +399,7 @@ static pplib::AudioInfo SentinelInfo()
     info.BitsPerSample = 8;
     info.BytesPerSample = 9;
     info.Channels = 10;
-    info.Mode = pplib::AudioInfo::JOINT_STEREO;
+    info.Mode = CM::JOINT_STEREO;
     return info;
 }
 
@@ -409,22 +414,35 @@ static bool SameInfo(const pplib::AudioInfo& a, const pplib::AudioInfo& b)
 TEST_F(AudioInfoTest, ConstructorDefaults)
 {
     pplib::AudioInfo info;
-    EXPECT_EQ(pplib::AudioInfo::UNKNOWN, info.Format);
+    EXPECT_EQ(AF::UNKNOWN, info.Format);
     EXPECT_FALSE(info.HaveID3v2Tag);
     EXPECT_FALSE(info.IsVBR);
-    EXPECT_EQ((uint32_t)0, info.ID3v2TagStart);
-    EXPECT_EQ((uint32_t)0, info.FileSize);
-    EXPECT_EQ((uint32_t)0, info.AudioStart);
-    EXPECT_EQ((uint32_t)0, info.AudioEnd);
-    EXPECT_EQ((uint32_t)0, info.AudioSize);
-    EXPECT_EQ((uint32_t)0, info.Samples);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)0, info.FileSize);
+    EXPECT_EQ((uint64_t)0, info.AudioStart);
+    EXPECT_EQ((uint64_t)0, info.AudioEnd);
+    EXPECT_EQ((uint64_t)0, info.AudioSize);
+    EXPECT_EQ((uint64_t)0, info.Samples);
     EXPECT_EQ((uint32_t)0, info.Length);
     EXPECT_EQ((uint32_t)0, info.Frequency);
     EXPECT_EQ((uint16_t)0, info.Bitrate);
     EXPECT_EQ((uint8_t)0, info.BitsPerSample);
     EXPECT_EQ((uint8_t)0, info.BytesPerSample);
     EXPECT_EQ((uint8_t)0, info.Channels);
-    EXPECT_EQ(pplib::AudioInfo::STEREO, info.Mode);
+    EXPECT_EQ(CM::UNKNOWN, info.Mode);
+}
+
+// Die Groessenfelder sind bewusst 64 Bit, damit Dateien über 4 GB und lange MP3s
+// korrekt beschrieben werden koennen. Der Test fuehrt zu keiner Laufzeitpruefung.
+TEST_F(AudioInfoTest, SizeFieldsAre64Bit)
+{
+    static_assert(std::is_same_v<decltype(pplib::AudioInfo::ID3v2TagStart), uint64_t>);
+    static_assert(std::is_same_v<decltype(pplib::AudioInfo::FileSize), uint64_t>);
+    static_assert(std::is_same_v<decltype(pplib::AudioInfo::AudioStart), uint64_t>);
+    static_assert(std::is_same_v<decltype(pplib::AudioInfo::AudioEnd), uint64_t>);
+    static_assert(std::is_same_v<decltype(pplib::AudioInfo::AudioSize), uint64_t>);
+    static_assert(std::is_same_v<decltype(pplib::AudioInfo::Samples), uint64_t>);
+    SUCCEED();
 }
 
 TEST_F(AudioInfoTest, FormatOverloadMatchesInfoOverload)
@@ -434,18 +452,18 @@ TEST_F(AudioInfoTest, FormatOverloadMatchesInfoOverload)
         pplib::AudioInfo::AudioFormat format;
         bool identifiable = true;
     } matrix[] = {
-        {"testdata/audio/test_192cbr.mp3", pplib::AudioInfo::MP3},
-        {"testdata/audio/test_44kHz.wav", pplib::AudioInfo::WAVE},
-        {"testdata/audio/test_44kHz.aiff", pplib::AudioInfo::AIFF},
-        {"testdata/audio/test_44kHz.ogg", pplib::AudioInfo::OGG},
-        {"testdata/audio/test_44kHz_tagged.wav", pplib::AudioInfo::WAVE},
-        {"testdata/audio/test_44kHz_tagged.aiff", pplib::AudioInfo::AIFF},
-        {"testdata/audio/test_192cbr_tagged.mp3", pplib::AudioInfo::MP3},
-        {"testdata/audio/test_192cbr_taggedWithCover.mp3", pplib::AudioInfo::MP3},
-        {"testdata/audio/tags_at_eof.aiff", pplib::AudioInfo::AIFF},
-        {"testdata/audio/cover.jpg", pplib::AudioInfo::UNKNOWN, false},
-        // Ogg-Container wird erkannt, aber der Vorbis-Decoder scheitert an Opus.
-        {"testdata/audio/test_48kHz.opus", pplib::AudioInfo::OGG, false},
+        {"testdata/audio/test_192cbr.mp3", AF::MP3},
+        {"testdata/audio/test_44kHz.wav", AF::WAVE},
+        {"testdata/audio/test_44kHz.aiff", AF::AIFF},
+        {"testdata/audio/test_44kHz.ogg", AF::OGG},
+        {"testdata/audio/test_44kHz_tagged.wav", AF::WAVE},
+        {"testdata/audio/test_44kHz_tagged.aiff", AF::AIFF},
+        {"testdata/audio/test_192cbr_tagged.mp3", AF::MP3},
+        {"testdata/audio/test_192cbr_taggedWithCover.mp3", AF::MP3},
+        {"testdata/audio/tags_at_eof.aiff", AF::AIFF},
+        {"testdata/audio/cover.jpg", AF::UNKNOWN, false},
+        // Der Ogg-Container ist codec-neutral; unterstuetzt ist nur Vorbis.
+        {"testdata/audio/test_48kHz.opus", AF::UNKNOWN, false},
     };
     for (Entry& entry : matrix) {
         pplib::File file;
@@ -455,7 +473,7 @@ TEST_F(AudioInfoTest, FormatOverloadMatchesInfoOverload)
         EXPECT_EQ(entry.format, pplib::IdentAudioFile(file)) << entry.path;
         if (!entry.identifiable) {
             ASSERT_FALSE(pplib::IdentAudioFile(file, info)) << entry.path;
-            EXPECT_EQ(pplib::AudioInfo::UNKNOWN, info.Format) << entry.path;
+            EXPECT_EQ(AF::UNKNOWN, info.Format) << entry.path;
         } else {
             ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << entry.path;
             EXPECT_EQ(entry.format, info.Format) << entry.path;
@@ -472,7 +490,7 @@ TEST_F(AudioInfoTest, NonAudioContentLeavesInfoUntouched)
     pplib::AudioInfo info = expected;
     ASSERT_FALSE(pplib::IdentAudioFile(file, info));
     EXPECT_TRUE(SameInfo(info, expected)) << "info darf bei Misserfolg nicht veraendert werden";
-    EXPECT_EQ(pplib::AudioInfo::UNKNOWN, pplib::IdentAudioFile(file));
+    EXPECT_EQ(AF::UNKNOWN, pplib::IdentAudioFile(file));
 }
 
 TEST_F(AudioInfoTest, EmptyAndTruncatedFiles)
@@ -483,7 +501,7 @@ TEST_F(AudioInfoTest, EmptyAndTruncatedFiles)
         pplib::AudioInfo info = SentinelInfo();
         ASSERT_FALSE(pplib::IdentAudioFile(fileEmpty, info));
     });
-    EXPECT_EQ(pplib::AudioInfo::UNKNOWN, pplib::IdentAudioFile(fileEmpty));
+    EXPECT_EQ(AF::UNKNOWN, pplib::IdentAudioFile(fileEmpty));
 
     // RIFF-Kopf angeschnitten: nur 20 Bytes, keine Ausnahme erwartet
     std::vector<char> wave = MakeWAVE(16, 8, 8);
@@ -503,6 +521,18 @@ TEST_F(AudioInfoTest, EmptyAndTruncatedFiles)
     });
 }
 
+TEST_F(AudioInfoTest, WaveAbsurdBitDepthIsRejected)
+{
+    // latenter Absturz: (bitdepth/8)*channels ist ungleich 0, die Kuerzung auf
+    // uint8_t liefert aber 0 -> audioSize % bytesPerSample waere eine Division durch 0
+    std::vector<char> wave = MakeWAVE(16, 16, 16, 1, 2048, 44100);
+    pplib::MemFile file(wave.data(), wave.size());
+    pplib::AudioInfo info = SentinelInfo();
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+    EXPECT_TRUE(SameInfo(info, SentinelInfo()));
+    EXPECT_EQ(AF::WAVE, pplib::IdentAudioFile(file));
+}
+
 TEST_F(AudioInfoTest, WaveDataChunkBeyondEof)
 {
     // data-Chunk kuendigt 1 MByte an, real folgen nur 8 Byte Audiodaten
@@ -510,9 +540,9 @@ TEST_F(AudioInfoTest, WaveDataChunkBeyondEof)
     pplib::MemFile file(wave.data(), wave.size());
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
-    EXPECT_EQ((uint32_t)(wave.size() - 44), info.AudioSize);
-    EXPECT_EQ((uint32_t)(wave.size() - 1), info.AudioEnd);
-    EXPECT_EQ((uint32_t)2, info.Samples); // 8 Byte / 4 Byte je Sample
+    EXPECT_EQ((uint64_t)(wave.size() - 44), info.AudioSize);
+    EXPECT_EQ((uint64_t)(wave.size() - 1), info.AudioEnd);
+    EXPECT_EQ((uint64_t)2, info.Samples); // 8 Byte / 4 Byte je Sample
 }
 
 TEST_F(AudioInfoTest, WaveListChunkBeforeData)
@@ -522,9 +552,9 @@ TEST_F(AudioInfoTest, WaveListChunkBeforeData)
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << "LIST-Chunk zwischen fmt und data muss uebersprungen werden";
     EXPECT_EQ((uint32_t)22050, info.Frequency);
-    EXPECT_EQ((uint32_t)66, info.AudioStart) << "Standard-44 plus 22 Byte LIST-Chunk";
-    EXPECT_EQ((uint32_t)8, info.AudioSize);
-    EXPECT_EQ((uint32_t)2, info.Samples);
+    EXPECT_EQ((uint64_t)66, info.AudioStart) << "Standard-44 plus 22 Byte LIST-Chunk";
+    EXPECT_EQ((uint64_t)8, info.AudioSize);
+    EXPECT_EQ((uint64_t)2, info.Samples);
 }
 
 TEST_F(AudioInfoTest, WaveId3ChunkBeforeData)
@@ -534,9 +564,9 @@ TEST_F(AudioInfoTest, WaveId3ChunkBeforeData)
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
     EXPECT_TRUE(info.HaveID3v2Tag);
-    EXPECT_EQ((uint32_t)44, info.ID3v2TagStart) << "Anfang des ID3v2-Tags im id3-Chunk erwartet";
-    EXPECT_EQ((uint32_t)62, info.AudioStart);
-    EXPECT_EQ((uint32_t)8, info.AudioSize);
+    EXPECT_EQ((uint64_t)44, info.ID3v2TagStart) << "Anfang des ID3v2-Tags im id3-Chunk erwartet";
+    EXPECT_EQ((uint64_t)62, info.AudioStart);
+    EXPECT_EQ((uint64_t)8, info.AudioSize);
 }
 
 TEST_F(AudioInfoTest, Wave20BitMono)
@@ -546,10 +576,10 @@ TEST_F(AudioInfoTest, Wave20BitMono)
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
     EXPECT_EQ((uint8_t)1, info.Channels);
-    EXPECT_EQ(pplib::AudioInfo::MONO, info.Mode);
+    EXPECT_EQ(CM::MONO, info.Mode);
     EXPECT_EQ((uint8_t)20, info.BitsPerSample);
     EXPECT_EQ((uint8_t)2, info.BytesPerSample);
-    EXPECT_EQ((uint32_t)6, info.Samples);
+    EXPECT_EQ((uint64_t)6, info.Samples);
 }
 
 TEST_F(AudioInfoTest, Wave8BitMono48kHzExtensibleFmt)
@@ -560,13 +590,13 @@ TEST_F(AudioInfoTest, Wave8BitMono48kHzExtensibleFmt)
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
     EXPECT_EQ((uint8_t)1, info.Channels);
-    EXPECT_EQ(pplib::AudioInfo::MONO, info.Mode);
+    EXPECT_EQ(CM::MONO, info.Mode);
     EXPECT_EQ((uint8_t)8, info.BitsPerSample);
     EXPECT_EQ((uint8_t)1, info.BytesPerSample);
     EXPECT_EQ((uint32_t)48000, info.Frequency);
-    EXPECT_EQ((uint32_t)12, info.Samples);
+    EXPECT_EQ((uint64_t)12, info.Samples);
     EXPECT_EQ((uint16_t)384, info.Bitrate);
-    EXPECT_EQ((uint32_t)68, info.AudioStart) << "40 Byte fmt-Payload statt 16";
+    EXPECT_EQ((uint64_t)68, info.AudioStart) << "40 Byte fmt-Payload statt 16";
 }
 
 TEST_F(AudioInfoTest, AiffSampleOffsetAndChunkBeyondEof)
@@ -576,11 +606,11 @@ TEST_F(AudioInfoTest, AiffSampleOffsetAndChunkBeyondEof)
     pplib::MemFile file(aiff.data(), aiff.size());
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
-    EXPECT_EQ((uint32_t)62, info.AudioStart) << "SSND-Kopf (8) plus deklariertes Sample-Offset (8)";
-    EXPECT_EQ((uint32_t)8, info.AudioSize) << "nur die bis zum Dateiende folgenden Bytes";
-    EXPECT_EQ((uint32_t)(aiff.size() - 1), info.AudioEnd);
-    EXPECT_EQ((uint32_t)aiff.size(), info.FileSize);
-    EXPECT_EQ((uint32_t)4, info.Samples) << "COMM deklariert 4 Samples";
+    EXPECT_EQ((uint64_t)62, info.AudioStart) << "SSND-Kopf (8) plus deklariertes Sample-Offset (8)";
+    EXPECT_EQ((uint64_t)8, info.AudioSize) << "nur die bis zum Dateiende folgenden Bytes";
+    EXPECT_EQ((uint64_t)(aiff.size() - 1), info.AudioEnd);
+    EXPECT_EQ((uint64_t)aiff.size(), info.FileSize);
+    EXPECT_EQ((uint64_t)4, info.Samples) << "COMM deklariert 4 Samples";
 }
 
 TEST_F(AudioInfoTest, AiffFractionalSampleRate)
@@ -594,6 +624,33 @@ TEST_F(AudioInfoTest, AiffFractionalSampleRate)
     EXPECT_EQ((uint16_t)1411, info.Bitrate);
 }
 
+TEST_F(AudioInfoTest, AiffMonoSetsMonoChannelMode)
+{
+    // Ein Kanal -> Mode MONO (bei MP3 wird die Zuordnung ueber die MPEG-Modi geprueft,
+    // für AIFF/WAV war der MONO-Zweig bisher ungetestet)
+    std::vector<char> aiff = MakeAIFF(18, 512, 0, 512, 1, 16, 44100, 0);
+    pplib::MemFile file(aiff.data(), aiff.size());
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ((uint8_t)1, info.Channels);
+    EXPECT_EQ(CM::MONO, info.Mode);
+    EXPECT_EQ((uint8_t)2, info.BytesPerSample);
+    EXPECT_EQ((uint16_t)705, info.Bitrate);
+}
+
+TEST_F(AudioInfoTest, AiffAbsurdBitDepthIsRejected)
+{
+    // bitdepth = 2048 ergibt (bitdepth/8)*channels = 256, was als uint8_t-Puffer
+    // auf 0 fiele. Die Rechnung muss abgefangen werden, statt mit BytesPerSample 0
+    // weiterzuarbeiten.
+    std::vector<char> aiff = MakeAIFF(18, 16, 0, 16, 1, 2048, 44100, 0);
+    pplib::MemFile file(aiff.data(), aiff.size());
+    pplib::AudioInfo info = SentinelInfo();
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+    EXPECT_TRUE(SameInfo(info, SentinelInfo()));
+    EXPECT_EQ(AF::AIFF, pplib::IdentAudioFile(file));
+}
+
 TEST_F(AudioInfoTest, AiffCommChunkBeyondEof)
 {
     std::vector<char> aiff = MakeAIFF(0x7FFFFFFF, 8, 0, 8);
@@ -603,7 +660,7 @@ TEST_F(AudioInfoTest, AiffCommChunkBeyondEof)
         ASSERT_FALSE(pplib::IdentAudioFile(file, info));
     });
     // Container ist erkennbar, die Auswertung der Kommponenten scheitert
-    EXPECT_EQ(pplib::AudioInfo::AIFF, pplib::IdentAudioFile(file));
+    EXPECT_EQ(AF::AIFF, pplib::IdentAudioFile(file));
 }
 
 TEST_F(AudioInfoTest, AiffFormSizeBeyondEof)
@@ -615,7 +672,7 @@ TEST_F(AudioInfoTest, AiffFormSizeBeyondEof)
     aiff[6] = (char)0xFF;
     aiff[7] = (char)0xFF;
     pplib::MemFile file(aiff.data(), aiff.size());
-    EXPECT_EQ(pplib::AudioInfo::UNKNOWN, pplib::IdentAudioFile(file));
+    EXPECT_EQ(AF::UNKNOWN, pplib::IdentAudioFile(file));
     pplib::AudioInfo info;
     ASSERT_FALSE(pplib::IdentAudioFile(file, info));
 }
@@ -647,22 +704,22 @@ TEST_F(AudioInfoTest, Mp3ModeFieldSelectsChannelMode)
         pplib::AudioInfo::ChannelMode expect;
         uint8_t channels;
     } modes[] = {
-        {(uint8_t)0, pplib::AudioInfo::STEREO, 2},
-        {(uint8_t)2, pplib::AudioInfo::DUAL_CHANNEL, 2},
-        {(uint8_t)3, pplib::AudioInfo::MONO, 1},
+        {(uint8_t)0, CM::STEREO, 2},
+        {(uint8_t)2, CM::DUAL_CHANNEL, 2},
+        {(uint8_t)3, CM::MONO, 1},
     };
     for (auto& m : modes) {
         std::vector<char> mp3 = MakeMP3(m.mode);
         pplib::MemFile file(mp3.data(), mp3.size());
         pplib::AudioInfo info = SentinelInfo();
         ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << "Mode-Feld " << (unsigned)m.mode;
-        EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
+        EXPECT_EQ(AF::MP3, info.Format);
         EXPECT_EQ(m.expect, info.Mode) << "Mode-Feld " << (unsigned)m.mode;
         EXPECT_EQ(m.channels, info.Channels);
-        EXPECT_EQ((uint32_t)mp3.size(), info.FileSize);
-        EXPECT_EQ((uint32_t)0, info.AudioStart);
-        EXPECT_EQ((uint32_t)mp3.size() - 1, info.AudioEnd);
-        EXPECT_EQ((uint32_t)mp3.size(), info.AudioSize);
+        EXPECT_EQ((uint64_t)mp3.size(), info.FileSize);
+        EXPECT_EQ((uint64_t)0, info.AudioStart);
+        EXPECT_EQ((uint64_t)mp3.size() - 1, info.AudioEnd);
+        EXPECT_EQ((uint64_t)mp3.size(), info.AudioSize);
         EXPECT_FALSE(info.IsVBR);
         file.close();
     }
@@ -675,16 +732,16 @@ TEST_F(AudioInfoTest, Mp3WithID3v2TagAtStart)
     ASSERT_TRUE(file.isOpen());
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
-    EXPECT_EQ(pplib::AudioInfo::MP3, info.Format);
+    EXPECT_EQ(AF::MP3, info.Format);
     EXPECT_TRUE(info.HaveID3v2Tag);
     // Das ID3v2-Tag steht am Dateianfang, die Audiodaten beginnen dahinter.
-    EXPECT_EQ((uint32_t)0, info.ID3v2TagStart);
-    EXPECT_EQ((uint32_t)97072, info.FileSize);
-    EXPECT_EQ((uint32_t)1024, info.AudioStart);
-    EXPECT_EQ((uint32_t)96943, info.AudioEnd);
-    EXPECT_EQ((uint32_t)95920, info.AudioSize);
-    EXPECT_EQ((uint32_t)176223, info.Samples);
-    EXPECT_EQ(pplib::AudioInfo::JOINT_STEREO, info.Mode);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)97072, info.FileSize);
+    EXPECT_EQ((uint64_t)1024, info.AudioStart);
+    EXPECT_EQ((uint64_t)96943, info.AudioEnd);
+    EXPECT_EQ((uint64_t)95920, info.AudioSize);
+    EXPECT_EQ((uint64_t)176223, info.Samples);
+    EXPECT_EQ(CM::JOINT_STEREO, info.Mode);
     file.close();
 }
 
@@ -695,27 +752,42 @@ TEST_F(AudioInfoTest, AiffWithTagsAtEndOfFile)
     ASSERT_TRUE(file.isOpen());
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
-    EXPECT_EQ(pplib::AudioInfo::AIFF, info.Format);
+    EXPECT_EQ(AF::AIFF, info.Format);
     EXPECT_TRUE(info.HaveID3v2Tag);
-    EXPECT_EQ((uint32_t)102204, info.FileSize);
-    EXPECT_EQ((uint32_t)90, info.AudioStart);
-    EXPECT_EQ((uint32_t)101933, info.AudioEnd);
-    EXPECT_EQ((uint32_t)101844, info.AudioSize);
-    EXPECT_EQ((uint32_t)101942, info.ID3v2TagStart);
+    EXPECT_EQ((uint64_t)102204, info.FileSize);
+    EXPECT_EQ((uint64_t)90, info.AudioStart);
+    EXPECT_EQ((uint64_t)101933, info.AudioEnd);
+    EXPECT_EQ((uint64_t)101844, info.AudioSize);
+    EXPECT_EQ((uint64_t)101942, info.ID3v2TagStart);
     EXPECT_EQ((uint8_t)2, info.Channels);
     EXPECT_EQ((uint32_t)44100, info.Frequency);
     file.close();
 }
 
+TEST_F(AudioInfoTest, OggShorterThanCodecSignatureWindowIsUnknown)
+{
+    // "OggS" allein ist kein Codec-Nachweis. Die Datei sei lang genug fuer die
+    // Headerpruefung (24 Bytes), aber kuerzer als das Signaturfenster: Die Schleife
+    // darf nicht ueber das Mapping hinaus lesen.
+    char buf[30] = {};
+    memcpy(buf, "OggS", 4);
+    pplib::MemFile mf;
+    ASSERT_NO_THROW(mf.open(buf, sizeof(buf), false));
+    EXPECT_EQ(AF::UNKNOWN, pplib::IdentAudioFile(mf));
+    pplib::AudioInfo info = SentinelInfo();
+    EXPECT_FALSE(pplib::IdentAudioFile(mf, info));
+    EXPECT_TRUE(SameInfo(info, SentinelInfo()));
+    mf.close();
+}
+
 TEST_F(AudioInfoTest, OpusInOggContainerIsNotSupported)
 {
-    // Der Ogg-Container wird erkannt, eine zugehoerige AudioInfo liefert pplib
-    // aber nicht: IdentOggVorbisAudioFile() kann keinen Opus-Stream oeffnen.
-    // Beide Overloads liefen deshalb unterschiedlich -> Entscheidung offen.
+    // Der Ogg-Container ist codec-neutral. Da nur Vorbis dekodiert wird, gilt
+    // ein Opus-Stream als unbekannt: beide Overloads liefere UNKNOWN bzw. false.
     pplib::File file;
     ASSERT_NO_THROW(file.open("testdata/audio/test_48kHz.opus"));
     ASSERT_TRUE(file.isOpen());
-    EXPECT_EQ(pplib::AudioInfo::OGG, pplib::IdentAudioFile(file));
+    EXPECT_EQ(AF::UNKNOWN, pplib::IdentAudioFile(file));
     pplib::AudioInfo expected = SentinelInfo();
     pplib::AudioInfo info = SentinelInfo();
     EXPECT_FALSE(pplib::IdentAudioFile(file, info));

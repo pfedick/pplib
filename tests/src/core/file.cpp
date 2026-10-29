@@ -1215,4 +1215,31 @@ TEST_F(FileTest, mapAtLimit)
     ASSERT_THROW(ff.map(file_size - 5, 10), pplib::OutOfBoundsException);
 }
 
+TEST_F(FileTest, tryMapReturnsFalseForRegionBeyondEof)
+{
+    pplib::File ff("testdata/dirwalk/LICENSE.TXT", pplib::File::FileMode::READ);
+    const uint64_t file_size = ff.size();
+    const char* ptr = nullptr;
+
+    // Vollstaendige Region: Mapping gelingt, tryMap ersetzt die Grenzenrechnung des Aufrufers
+    EXPECT_TRUE(ff.tryMap(0, 10, ptr));
+    EXPECT_NE(nullptr, ptr);
+    EXPECT_TRUE(ff.tryMap(file_size - 10, 10, ptr));
+    EXPECT_NE(nullptr, ptr);
+
+    // Region ueber das Dateiende hinaus: false statt Exception, out wird zurueckgesetzt
+    EXPECT_FALSE(ff.tryMap(file_size - 5, 10, ptr));
+    EXPECT_EQ(nullptr, ptr);
+    EXPECT_FALSE(ff.tryMap(file_size + 100, 10, ptr));
+    EXPECT_EQ(nullptr, ptr);
+
+    // 0 Bytes sind kein gueltiges Mapping
+    EXPECT_FALSE(ff.tryMap(0, 0, ptr));
+    EXPECT_EQ(nullptr, ptr);
+
+    // Nicht geoeffnete Datei bleibt eine Exception
+    ff.close();
+    EXPECT_THROW(ff.tryMap(0, 10, ptr), pplib::FileNotOpenException);
+}
+
 } // namespace
