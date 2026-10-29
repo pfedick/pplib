@@ -51,7 +51,10 @@ class String;
  * @ingroup PPLGroupDateTime
  * @brief Datenobjekt zum Speichern von Datum und Uhrzeit
  *
- * Dies ist eine Klasse zum Speichern von Datum und Uhrzeit. Mit den Funktionen
+ * Dies ist eine Klasse zum Speichern von Datum und Uhrzeit, inklusive Zeitzone.
+
+ *
+ * Mit den Funktionen
  * \ref DateTime::set(const String &datetime) "set", \ref DateTime::setDate "setDate"
  * und \ref DateTime::setTime "setTime" können Datum und/oder Uhrzeit gesetzt werden,
  * mit \ref DateTime::get "get", \ref DateTime::getDate "getDate",
@@ -1030,22 +1033,22 @@ public:
 
     DateTime operator+(const TimeDelta& td) const
     {
-        return DateTime::fromMicroseconds(toMicroseconds() + td.toMicroseconds());
+        return DateTime::fromMicroseconds(toMicroseconds() + td.toMicroseconds(), my_tz);
     }
 
     DateTime operator-(const TimeDelta& td) const
     {
-        return DateTime::fromMicroseconds(toMicroseconds() - td.toMicroseconds());
+        return DateTime::fromMicroseconds(toMicroseconds() - td.toMicroseconds(), my_tz);
     }
 
     DateTime& operator+=(const TimeDelta& td)
     {
-        return setMicroseconds(toMicroseconds() + td.toMicroseconds());
+        return setMicroseconds(toMicroseconds() + td.toMicroseconds(), my_tz);
     }
 
     DateTime& operator-=(const TimeDelta& td)
     {
-        return setMicroseconds(toMicroseconds() - td.toMicroseconds());
+        return setMicroseconds(toMicroseconds() - td.toMicroseconds(), my_tz);
     }
 };
 

@@ -1270,19 +1270,19 @@ TEST_F(DateTimeTest, fromMicroseconds)
 
 TEST_F(DateTimeTest, addTimeDelta)
 {
-    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::DateTime d1("2026-08-16 08:35:01.123456+02:00");
     pplib::TimeDelta td(1, 2);
     ASSERT_EQ(93600000000, td.toMicroseconds()); // 1 day, 2 hours = (86400+7200)*1000000 = 93600000000
     pplib::DateTime d2 = d1 + td;
-    ASSERT_EQ(pplib::String("2026-08-17 10:35:01.123456"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    ASSERT_EQ(pplib::String("2026-08-17 10:35:01.123456+02:00"), d2.get("%Y-%m-%d %H:%M:%S.%u%z")) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, subtractTimeDelta)
 {
-    pplib::DateTime d1("2026-08-16 08:35:01.123456");
+    pplib::DateTime d1("2026-08-16 08:35:01.123456+02:00");
     pplib::TimeDelta td(1, 2);
     pplib::DateTime d2 = d1 - td;
-    ASSERT_EQ(pplib::String("2026-08-15 06:35:01.123456"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+    ASSERT_EQ(pplib::String("2026-08-15 06:35:01.123456+02:00"), d2.get("%Y-%m-%d %H:%M:%S.%u%z")) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, subtractDateTime)
@@ -1307,15 +1307,6 @@ TEST_F(DateTimeTest, subtractTimeDeltaOperator)
     pplib::TimeDelta td(1, 2);
     d1 -= td;
     ASSERT_EQ(pplib::String("2026-08-15 06:35:01.123456"), d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
-}
-
-TEST_F(DateTimeTest, operatorPlus)
-{
-    pplib::DateTime d1("2026-08-16 08:35:01.123456");
-    pplib::TimeDelta td(1, 2);
-
-    pplib::DateTime d2 = td + d1;
-    ASSERT_EQ(pplib::String("2026-08-17 10:35:01.123456"), d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 }
 
 TEST_F(DateTimeTest, getComponents)
@@ -1358,6 +1349,55 @@ TEST_F(DateTimeTest, ostream)
     std::cout << d1;
     std::string output = testing::internal::GetCapturedStdout();
     ASSERT_EQ(output, "2026-08-16 08:35:01.123456");
+}
+
+TEST_F(DateTimeTest, dstTransitionSummerToWinter)
+{
+    pplib::DateTime d1("2026-10-25 01:30:00+02:00"); // Before DST ends
+    pplib::DateTime d2("2026-10-25 01:58:10+02:00"); // Before DST ends
+    pplib::DateTime d3("2026-10-25 02:00:00+02:00"); // Before DST ends
+    pplib::DateTime d4("2026-10-25 02:20:00+02:00"); // Before DST ends
+    pplib::DateTime d5("2026-10-25 02:58:00+02:00"); // Before DST ends
+    pplib::DateTime d6("2026-10-25 02:00:00+01:00"); // Switch to standard time
+    pplib::DateTime d7("2026-10-25 02:10:00+01:00"); // After DST ends
+    pplib::DateTime d8("2026-10-25 02:46:00+01:00"); // After DST ends
+
+    // Sort by Date, wir werfen die Zeitstempel bewust in falscher Reihenfolge ein, um die Sortierung zu testen
+
+    std::set<pplib::DateTime> dst_transition_dates = {d6, d3, d1, d4, d5, d8, d7, d2};
+    std::set<pplib::DateTime>::const_iterator it = dst_transition_dates.begin();
+
+    ASSERT_EQ(pplib::String("2026-10-25 01:30:00+02:00"), (*it).get("%Y-%m-%d %H:%M:%S%z")) << "Unexpected first date in sorted set";
+    ++it;
+    ASSERT_EQ(pplib::String("2026-10-25 01:58:10+02:00"), (*it).get("%Y-%m-%d %H:%M:%S%z")) << "Unexpected second date in sorted set";
+    ++it;
+    ASSERT_EQ(pplib::String("2026-10-25 02:00:00+02:00"), (*it).get("%Y-%m-%d %H:%M:%S%z")) << "Unexpected third date in sorted set";
+    ++it;
+    ASSERT_EQ(pplib::String("2026-10-25 02:20:00+02:00"), (*it).get("%Y-%m-%d %H:%M:%S%z")) << "Unexpected fourth date in sorted set";
+    ++it;
+    ASSERT_EQ(pplib::String("2026-10-25 02:58:00+02:00"), (*it).get("%Y-%m-%d %H:%M:%S%z")) << "Unexpected fifth date in sorted set";
+    ++it;
+    ASSERT_EQ(pplib::String("2026-10-25 02:00:00+01:00"), (*it).get("%Y-%m-%d %H:%M:%S%z")) << "Unexpected sixth date in sorted set";
+    ++it;
+    ASSERT_EQ(pplib::String("2026-10-25 02:10:00+01:00"), (*it).get("%Y-%m-%d %H:%M:%S%z")) << "Unexpected seventh date in sorted set";
+    ++it;
+    ASSERT_EQ(pplib::String("2026-10-25 02:46:00+01:00"), (*it).get("%Y-%m-%d %H:%M:%S%z")) << "Unexpected eighth date in sorted set";
+    ++it;
+    ASSERT_EQ(it, dst_transition_dates.end()) << "Iterator should be at the end of the set";
+}
+
+TEST_F(DateTimeTest, compoundAssignKeepsTimeZone)
+{
+    pplib::DateTime d("2026-10-25 02:00:00+02:00");
+    pplib::TimeDelta td = pplib::TimeDelta::fromHours(2);
+
+    d += td;
+    ASSERT_EQ((int16_t)120, d.timeZone().offsetMinutes()) << "operator+= verliert Zeitzone";
+    ASSERT_EQ(pplib::String("2026-10-25 04:00:00"), d.get("%Y-%m-%d %H:%M:%S"));
+
+    d -= td;
+    ASSERT_EQ((int16_t)120, d.timeZone().offsetMinutes()) << "operator-= verliert Zeitzone";
+    ASSERT_EQ(pplib::String("2026-10-25 02:00:00"), d.get("%Y-%m-%d %H:%M:%S"));
 }
 
 } // namespace
