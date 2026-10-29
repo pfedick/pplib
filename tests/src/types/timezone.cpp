@@ -40,10 +40,24 @@
 
 namespace
 {
-// The fixture for testing class Foo.
+
+#ifdef _WIN32
+#define PPLIB_TZ_SET(n, v) _putenv_s((n), (v))
+#define PPLIB_TZ_REFRESH() _tzset()
+#else
+#define PPLIB_TZ_SET(n, v) setenv((n), (v), 1)
+#define PPLIB_TZ_REFRESH() tzset()
+#endif
+
+// feste Sommerzeit-Regel, abhaengig von keiner tz-Datenbank
+constexpr const char* TEST_TZ = "CET-1CEST,M3.5.0/2,M10.5.0/3";
+
 class TimeZoneTest : public ::testing::Test
 {
 protected:
+    std::string prev_tz;
+    bool had_tz = false;
+
     TimeZoneTest()
     {
         if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
@@ -53,6 +67,22 @@ protected:
     }
     virtual ~TimeZoneTest()
     {
+    }
+    void SetUp() override
+    {
+        const char* cur = getenv("TZ");
+        if (cur != NULL) {
+            prev_tz = cur;
+            had_tz = true;
+        }
+        PPLIB_TZ_SET("TZ", TEST_TZ);
+        PPLIB_TZ_REFRESH();
+    }
+    void TearDown() override
+    {
+        // leerer Wert entfernt die Variable (auch unter MSVCRT)
+        PPLIB_TZ_SET("TZ", had_tz ? prev_tz.c_str() : "");
+        PPLIB_TZ_REFRESH();
     }
 };
 
@@ -153,18 +183,23 @@ TEST_F(TimeZoneTest, fromLocalTime)
 {
     pplib::TimeZone tz = pplib::TimeZone::fromLocalTime();
 
-    ASSERT_EQ(120, tz.offsetMinutes());
-    ASSERT_GE(tz.offsetMinutes(), 60);
-    ASSERT_LE(tz.offsetMinutes(), 120);
+    // mit TEST_TZ nur zwei Moeglichkeiten: +01:00 Winter, +02:00 Sommer
+    ASSERT_TRUE(tz.offsetMinutes() == 60 || tz.offsetMinutes() == 120) << "unerwarteter lokaler Offset: " << tz.offsetMinutes();
+
+    // Invariante: fromLocalTime() == fromEpoch(jetzt)
+    ASSERT_EQ(pplib::TimeZone::fromEpoch(std::time(nullptr)).offsetMinutes(), tz.offsetMinutes());
 }
 
-TEST_F(TimeZoneTest, fromEpoch)
+TEST_F(TimeZoneTest, fromEpochSummerTime)
 {
-    pplib::TimeZone tz = pplib::TimeZone::fromEpoch(1717588211);
+    // 2024-06-05 12:30:11 UTC
+    ASSERT_EQ((int16_t)120, pplib::TimeZone::fromEpoch(1717588211).offsetMinutes());
+}
 
-    ASSERT_EQ(120, tz.offsetMinutes());
-    ASSERT_GE(tz.offsetMinutes(), 60);
-    ASSERT_LE(tz.offsetMinutes(), 120);
+TEST_F(TimeZoneTest, fromEpochWinterTime)
+{
+    // 2025-01-01 00:00:00 UTC
+    ASSERT_EQ((int16_t)60, pplib::TimeZone::fromEpoch(1735689600).offsetMinutes());
 }
 
 TEST_F(TimeZoneTest, toString)

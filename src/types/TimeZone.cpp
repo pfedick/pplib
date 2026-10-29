@@ -39,11 +39,8 @@
 namespace pplib
 {
 
-int16_t get_local_utc_offset_minutes(time_t t = 0)
+static int16_t get_local_utc_offset_minutes(time_t t)
 {
-    if (t == 0) {
-        t = ::time(nullptr);
-    }
     struct tm local_tm, gm_tm;
 #ifdef _WIN32
     localtime_s(&local_tm, &t);
@@ -92,7 +89,7 @@ TimeZone& TimeZone::setOffset(int hours, int minutes)
 
 TimeZone TimeZone::fromLocalTime() noexcept
 {
-    return TimeZone(get_local_utc_offset_minutes());
+    return TimeZone(get_local_utc_offset_minutes(::time(nullptr)));
 }
 
 TimeZone TimeZone::fromEpoch(time_t t) noexcept
