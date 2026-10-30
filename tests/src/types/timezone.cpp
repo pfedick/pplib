@@ -42,16 +42,23 @@
 namespace
 {
 
-#ifdef _WIN32
-#define PPLIB_TZ_SET(n, v) _putenv_s((n), (v))
-#define PPLIB_TZ_REFRESH() _tzset()
-#else
-#define PPLIB_TZ_SET(n, v) setenv((n), (v), 1)
-#define PPLIB_TZ_REFRESH() tzset()
-#endif
-
 // feste Sommerzeit-Regel, abhaengig von keiner tz-Datenbank
 constexpr const char* TEST_TZ = "CET-1CEST,M3.5.0/2,M10.5.0/3";
+
+// TZ setzen; NULL entfernt die Variable (wichtig: TZ="" bedeutet unter glibc UTC)
+static void setTzEnv(const char* value)
+{
+#ifdef _WIN32
+    _putenv_s("TZ", value != NULL ? value : ""); // leerer Wert = entfernen
+    _tzset();
+#else
+    if (value != NULL)
+        setenv("TZ", value, 1);
+    else
+        unsetenv("TZ");
+    tzset();
+#endif
+}
 
 class TimeZoneTest : public ::testing::Test
 {
@@ -76,14 +83,11 @@ protected:
             prev_tz = cur;
             had_tz = true;
         }
-        PPLIB_TZ_SET("TZ", TEST_TZ);
-        PPLIB_TZ_REFRESH();
+        setTzEnv(TEST_TZ);
     }
     void TearDown() override
     {
-        // leerer Wert entfernt die Variable (auch unter MSVCRT)
-        PPLIB_TZ_SET("TZ", had_tz ? prev_tz.c_str() : "");
-        PPLIB_TZ_REFRESH();
+        setTzEnv(had_tz ? prev_tz.c_str() : NULL);
     }
 };
 
