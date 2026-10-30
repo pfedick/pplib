@@ -273,12 +273,14 @@ WideString& WideString::set(const char* str, size_t size)
         clear();
         return *this;
     }
-    reserve(inbytes);
     // Temp-Kopie anlegen, falls der Eingabe-String nicht nullterminiert ist
     String temp_str;
     if (size != (size_t)-1) {
         temp_str.set(str, inbytes);
         str = temp_str.c_str();
+    }
+    if (inbytes > s) {
+        reserve(inbytes);
     }
     size_t ret = ::mbstowcs(ptr, str, inbytes + 1);
     if (ret == (size_t)-1) {

@@ -420,8 +420,11 @@ TEST(WideStringTest, setConstCharWithSize)
     ASSERT_EQ(s2, s1) << "String has unexpected value";
     ASSERT_EQ((size_t)7, s1.size()) << "String has unexpected length";
 
-    // Size is bigger than the string length
-    s1.set((const char*)"äöü, a test string with unicode characters", 100);
+    // size ist größer als der Quelltext: es werden genau 100 Bytes gelesen, wofür der
+    // Aufrufer einen entsprechend großen Puffer bereitstellt. Der Rest des Puffers ist
+    // 0, und mbstowcs() bricht am ersten 0-Byte ab, daher bleibt es bei den 42 Zeichen.
+    char buf[128] = "äöü, a test string with unicode characters";
+    s1.set(buf, 100);
     ASSERT_EQ((size_t)42, s1.size()) << "String has unexpected length";
     ASSERT_EQ(pplib::WideString(L"äöü, a test string with unicode characters"), s1) << "String has unexpected value";
 }

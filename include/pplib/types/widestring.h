@@ -498,8 +498,8 @@ public:
      * @param str Referenz auf einen anderen String
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
-     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
-     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll. \p size wird auf die Zeichenanzahl
+     * von \p str begrenzt. Enthaltene 0-Werte
      * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
@@ -510,12 +510,15 @@ public:
      *
      * Mit dieser Funktion wird der Inhalt des Strings \p str übernommen.
      * @param str Referenz auf einen String
-     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
-     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
-     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
-     * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
+     * die exakte Anzahl an Bytes an, die übernommen werden soll. \p size wird auf die Bytesanzahl
+     * von \p str begrenzt.
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Bytes des UTF-8 kodierten String, nicht Zeichen!
+     * @attention
+     * Die Konvertierung erfolgt über ::mbstowcs, was an einem eingebetteten 0-Byte in \p str
+     * abbricht. Enthaltene 0-Bytes werden daher nicht übernommen.
      * @exception OutOfMemoryException
      */
     WideString& set(const String& str, size_t size = (size_t)-1);
@@ -528,8 +531,9 @@ public:
      * @param str Referenz auf ein Byte-Array
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
      * Ist der Wert nicht angegeben, wird das komplette ByteArray übernommen. Andernfalls gibt \p size
-     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
-     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll. \p size wird auf die Zeichenanzahl
+     * des ByteArrayPtr begrenzt (massgeblich ist die Bytesgröße dividiert durch die Größe von wchar_t).
+     * Enthaltene 0-Werte
      * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
@@ -540,12 +544,15 @@ public:
      *
      * Mit dieser Funktion wird der Inhalt des STL-Strings \p str übernommen.
      * @param str Referenz auf einen String der Standard Template Library (STL)
-     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
-     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
-     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
-     * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
+     * die exakte Anzahl an Bytes an, die übernommen werden soll. \p size wird auf die Bytesanzahl
+     * von \p str begrenzt.
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich hier um die Anzahl zu importierender Bytes des UTF-8 kodierten std::string, nicht Zeichen!
+     * @attention
+     * Die Konvertierung erfolgt über ::mbstowcs, was an einem eingebetteten 0-Byte in \p str
+     * abbricht. Enthaltene 0-Bytes werden daher nicht übernommen.
      * @exception OutOfMemoryException
      */
     WideString& set(const std::string& str, size_t size = (size_t)-1);
@@ -556,8 +563,8 @@ public:
      * @param str Referenz auf einen Wide-String der Standard Template Library (STL)
      * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
      * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
-     * die exakte Anzahl an Zeichen an, die übernommen werden soll – der Aufrufer muss sicherstellen,
-     * dass ab \p str mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll. \p size wird auf die Zeichenanzahl
+     * von \p str begrenzt. Enthaltene 0-Werte
      * werden dabei nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      * @return Referenz auf den String
      * @exception OutOfMemoryException
@@ -615,10 +622,18 @@ public:
      * Fügt einen C-String an das Ende des bestehenden an. Der String muss entweder
      * UTF-8 kodiert sein, oder es muss mit der statischen Funktion WideString::setGlobalEncoding
      * zuvor eine andere Kodierung gesetzt worden sein.
-     * @param[in] str Pointer auf einen Wide-Character String
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] str Pointer auf einen UTF-8 kodierten C-String
+     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Bytes an, die gelesen werden sollen – es werden genau \p size Bytes
+     * gelesen, auch wenn \p str vorher endet. Der Aufrufer muss sicherstellen, dass ab \p str
+     * mindestens so viele gültige Bytes gelesen werden können.
      *
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich um die Anzahl zu importierender Bytes, nicht Zeichen!
+     * @attention
+     * Die Konvertierung erfolgt über ::mbstowcs, was an einem eingebetteten 0-Byte in \p str
+     * abbricht. Enthaltene 0-Bytes werden daher nicht übernommen.
      *
      * @exception OutOfMemoryException
      * @exception UnsupportedFeatureException
@@ -631,7 +646,12 @@ public:
      *
      * Fügt einen Wide-Character String an das Ende des bestehenden an
      * @param[in] str Pointer auf einen Wide-Character String
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die gelesen werden sollen – es werden genau \p size Zeichen
+     * gelesen, auch wenn \p str vorher endet. Der Aufrufer muss sicherstellen, dass ab \p str
+     * mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      *
      * @return Referenz auf den String
      *
@@ -643,9 +663,14 @@ public:
      *
      * Fügt einen String an das Ende des bestehenden an.
      * @param[in] str Referenz auf ein String-Objekt
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu übernehmender Einheiten angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll. \p size wird auf die Länge der Quelle
+     * begrenzt. Enthaltene 0-Werte werden dabei nicht als Ende interpretiert, sondern als Teil des
+     * Inhalts übernommen.
      *
      * @return Referenz auf den String
+     * @note Bei \p str vom Typ WideString zählt \p size in Zeichen, bei \p str vom Typ String in Bytes.
      *
      * @exception OutOfMemoryException
      */
@@ -656,9 +681,16 @@ public:
      *
      * Fügt einen std::string an das Ende des bestehenden an.
      * @param[in] str Referenz auf ein String-Objekt der STL
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Bytes an, die übernommen werden soll. \p size wird auf die Bytesanzahl
+     * von \p str begrenzt.
      *
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich um die Anzahl zu importierender Bytes, nicht Zeichen!
+     * @attention
+     * Die Konvertierung erfolgt über ::mbstowcs, was an einem eingebetteten 0-Byte in \p str
+     * abbricht. Enthaltene 0-Bytes werden daher nicht übernommen.
      *
      * @exception OutOfMemoryException
      */
@@ -668,7 +700,11 @@ public:
      *
      * Fügt einen std::wstring an das Ende des bestehenden an.
      * @param[in] str Referenz auf ein Wide-String-Objekt der STL
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu übernehmender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll. \p size wird auf die Zeichenanzahl
+     * von \p str begrenzt. Enthaltene 0-Werte werden dabei nicht als Ende interpretiert, sondern als
+     * Teil des Inhalts übernommen.
      *
      * @return Referenz auf den String
      *
@@ -713,12 +749,23 @@ public:
     /** @brief Fügt einen C-String am Anfang des bestehenden Strings ein
      *
      * Fügt einen C-String am Anfang des bestehenden Strings ein
-     * @param[in] str Pointer auf einen C-String
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] str Pointer auf einen UTF-8 kodierten C-String
+     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Bytes an, die gelesen werden sollen – es werden genau \p size Bytes
+     * gelesen, auch wenn \p str vorher endet. Der Aufrufer muss sicherstellen, dass ab \p str
+     * mindestens so viele gültige Bytes gelesen werden können.
      *
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich um die Anzahl zu importierender Bytes, nicht Zeichen!
+     * @attention
+     * Die Konvertierung erfolgt über ::mbstowcs, was an einem eingebetteten 0-Byte in \p str
+     * abbricht. Enthaltene 0-Bytes werden daher nicht übernommen.
      *
      * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
      */
     WideString& prepend(const char* str, size_t size = (size_t)-1);
 
@@ -726,7 +773,12 @@ public:
      *
      * Fügt einen Wide-Character String am Anfang des bestehenden Strings ein
      * @param[in] str Pointer auf einen Wide-Character String
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die gelesen werden sollen – es werden genau \p size Zeichen
+     * gelesen, auch wenn \p str vorher endet. Der Aufrufer muss sicherstellen, dass ab \p str
+     * mindestens so viele gültige Zeichen gelesen werden können. Enthaltene 0-Werte werden dabei
+     * nicht als Ende interpretiert, sondern als Teil des Inhalts übernommen.
      *
      * @return Referenz auf den String
      *
@@ -738,9 +790,17 @@ public:
      *
      * Fügt einen String am Anfang des bestehenden Strings ein
      * @param[in] str Referenz auf einen String
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu übernehmender Einheiten angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an, die übernommen werden soll. \p size wird auf die Länge der Quelle
+     * begrenzt.
      *
      * @return Referenz auf den String
+     * @note Bei \p str vom Typ WideString zählt \p size in Zeichen, bei \p str vom Typ String in Bytes.
+     * @attention
+     * Bei \p str vom Typ WideString werden enthaltene 0-Werte als Teil des Inhalts übernommen.
+     * Bei \p str vom Typ String bricht die Konvertierung am ersten 0-Byte ab, eingebettete 0-Bytes
+     * werden nicht übernommen.
      *
      * @exception OutOfMemoryException
      */
@@ -751,9 +811,16 @@ public:
      *
      * Fügt einen std::string der Standard Template Library am Anfang des bestehenden Strings ein
      * @param[in] str Referenz auf einen std::string
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu importierender Bytes angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Bytes an, die übernommen werden soll. \p size wird auf die Bytesanzahl
+     * von \p str begrenzt.
      *
      * @return Referenz auf den String
+     * @note Bei \p size handelt es sich um die Anzahl zu importierender Bytes, nicht Zeichen!
+     * @attention
+     * Die Konvertierung erfolgt über ::mbstowcs, was an einem eingebetteten 0-Byte in \p str
+     * abbricht. Enthaltene 0-Bytes werden daher nicht übernommen.
      *
      * @exception OutOfMemoryException
      */
@@ -763,7 +830,11 @@ public:
      *
      * Fügt einen std::wstring der Standard Template Library am Anfang des bestehenden Strings ein
      * @param[in] str Referenz auf einen std::wstring
-     * @param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+     * @param[in] size Optionaler Parameter, der die Anzahl zu übernehmender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Andernfalls gibt \p size
+     * die exakte Anzahl an Zeichen an, die übernommen werden soll. \p size wird auf die Zeichenanzahl
+     * von \p str begrenzt. Enthaltene 0-Werte werden dabei nicht als Ende interpretiert, sondern als
+     * Teil des Inhalts übernommen.
      *
      * @return Referenz auf den String
      *
