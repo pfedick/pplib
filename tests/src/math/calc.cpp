@@ -49,7 +49,7 @@ class CalcTest : public ::testing::Test
 protected:
     CalcTest()
     {
-        if (setlocale(LC_ALL, "C") == NULL) {
+        if (setlocale(LC_NUMERIC, "C") == NULL) {
             printf("setlocale fehlgeschlagen\n");
             throw std::exception();
         }
