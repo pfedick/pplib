@@ -113,7 +113,16 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
 
     info.Format = AudioInfo::AudioFormat::AIFF;
     info.IsVBR = false;
+    info.SampleType = AudioInfo::SampleEncoding::INTEGER;
     info.FileSize = fsize;
+
+    //Der FORM-Subtyp entscheidet, ob klassisches AIFF oder AIFF-C vorliegt. Beide
+    //werden unterstuetzt, AIFF-C allerdings nur unkomprimiert bzw. als 32-Bit-Float.
+    if (fsize < 12) return false;
+    const char* subtype = file.tryMap(8, 4);
+    if (subtype == nullptr) return false;
+    const bool isAIFC = fourcc(subtype, "AIFC");
+    if (!isAIFC && !fourcc(subtype, "AIFF")) return false;
 
     //Die FORM-Huelle (Bytes 0..11) ist keine eigenstaendige Chunkstufe der inneren
     //Schleife: die Innerchunks beginnen fest bei 12, ihr Ende ergibt sich aus der
@@ -126,6 +135,8 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
     uint64_t frequency = 0;
     uint16_t channels = 0;
     uint16_t bitdepth = 0;
+    uint32_t commSize = 0;
+    char compType[4] = {'N', 'O', 'N', 'E'};  // klassisches AIFF gilt als unkomprimiert
     uint64_t audioStart = 0;
     uint64_t audioSize = 0;
 
@@ -138,13 +149,18 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
 
         if (fourcc(adr, "COMM") && size >= 18) {
             //18 Byte: Kanael (2) + Samples (4) + Bitdepth (2) + Sample-Rate als 80-Bit-Extended (10)
-            if (payload + 18 > fsize) break;
-            const char* comm = file.map(payload, 18);
+            //AIFF-C haengt zusaetzlich einen 4-Byte-Kompressionstyp an (Comm-Groesse >= 22)
+            const size_t headSize = (size >= 22) ? 22 : 18;
+            if (payload + headSize > fsize) break;
+            const char* comm = file.map(payload, headSize);
             channels = PeekN16(comm);
             samples = PeekN32(comm + 2);
             bitdepth = PeekN16(comm + 6);
             double f = readExtended80(comm + 8);
             if (f > 0.0 && f <= (double)UINT32_MAX) frequency = (uint64_t)(f + 0.5);
+            if (headSize >= 22)
+                for (int i = 0; i < 4; i++) compType[i] = comm[18 + i];
+            commSize = size;
             foundCOMM = true;
         } else if (fourcc(adr, "SSND") && size >= 8) {
             if (payload + 8 > fsize) break;
@@ -171,6 +187,19 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
     if (!foundCOMM || !foundSSND || frequency == 0) return false;
     if (channels == 0 || channels > 2) return false; // nicht unterstuetzt
     if (bitdepth < 8 || bitdepth > 32) return false; // Obergrenze: >32 Bit wird nicht unterstuetzt
+
+    //AIFF-C traegt einen Kompressionstyp. Dekodiert wird bewusst nur das Unkomprimierte
+    //(`NONE`) sowie 32-Bit-Fliesskomma (`FL32`/`fl32`, Big Endian). Kompressionen wie
+    //`sowt`, `ulaw`, `alaw`, `adpc` und 64-Bit-Float bleiben ununterstuetzt.
+    if (isAIFC) {
+        if (commSize < 22) return false; // AIFF-C ohne Kompressionstyp nicht beschreibbar
+        if (fourcc(compType, "FL32") || fourcc(compType, "fl32")) {
+            if (bitdepth != 32) return false;
+            info.SampleType = AudioInfo::SampleEncoding::FLOAT;
+        } else if (!fourcc(compType, "NONE")) {
+            return false;
+        }
+    }
 
     //Bytes pro Sample-Frame (= ein Sample je Kanal). AIFF packt jedes Kanal-Sample in einen
     //auf volle Bytes aufgerundeten Behaelter, also aufgerundete Bytes je Kanal mal Kanaele
@@ -318,9 +347,10 @@ AudioInfo::AudioFormat DetectFormat(FileObject& file, PPL_MPEG_HEADER* mp3)
     if (adr == nullptr) return AudioInfo::AudioFormat::UNKNOWN;
 
     // AIFF: FORM-Groesse (+8 Header) darf das Dateiende nicht ueberschreiten;
-    // Padding/Trailing-Bytes am Dateiende sind damit toleriert. AIFF-C ist bewusst
-    // nicht eingeschlossen, es wird (noch) nicht dekodiert.
-    if (fourcc(adr, "FORM") && (uint64_t)PeekN32(adr + 4) + 8 <= fsize && fourcc(adr + 8, "AIFF"))
+    // Padding/Trailing-Bytes am Dateiende sind damit toleriert. AIFF-C (`AIFC`) ist
+    // eingeschlossen, IdentAIFF() weist darin aber jede Kompression ausser `NONE`/`FL32` ab.
+    if (fourcc(adr, "FORM") && (uint64_t)PeekN32(adr + 4) + 8 <= fsize
+        && (fourcc(adr + 8, "AIFF") || fourcc(adr + 8, "AIFC")))
         return AudioInfo::AudioFormat::AIFF;
 
     // RIFF / WAV (nur PCM, Format-Tag 1)

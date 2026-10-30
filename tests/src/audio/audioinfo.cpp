@@ -47,6 +47,7 @@ namespace
 // Kurzalias der scoped Enums, damit die Erwartungen in den Tests lesbar bleiben
 using AF = pplib::AudioInfo::AudioFormat;
 using CM = pplib::AudioInfo::ChannelMode;
+using SE = pplib::AudioInfo::SampleEncoding;
 
 class AudioInfoTest : public ::testing::Test
 {
@@ -295,23 +296,32 @@ static void putExtended80(std::vector<char>& v, uint32_t rate, uint32_t fraction
         put8(v, (uint8_t)(mantissa >> (i * 8)));
 }
 
-/** @brief Minimaler AIFF-Container (FORM/AIFF + COMM + SSND)
+/** @brief Minimaler AIFF-Container (FORM/AIFF oder FORM/AIFC + COMM + SSND)
  *
  * Die deklarierten Chunk-Groessen (commSize, ssndSize) werden unveraendert in die
  * Datei geschrieben, unabhaengig von der Zahl der tatsaechlich folgenden Bytes.
  * Damit lassen sich defekte oder abgeschnittene Dateien nachbauen.
+ * Mit \p compType wird daraus AIFF-C: dann steht vor COMM ein FVER-Chunk und hinter
+ * der Sample-Rate der 4-Byte-Kompressionstyp.
  */
 static std::vector<char> MakeAIFF(uint32_t commSize, uint32_t ssndSize, uint32_t sampleOffset,
                                   size_t audioBytes, uint16_t channels = 2, uint16_t bitdepth = 16,
-                                  uint32_t rate = 44100, uint32_t fraction = 0)
+                                  uint32_t rate = 44100, uint32_t fraction = 0,
+                                  const char* formType = "AIFF", const char* compType = nullptr)
 {
     std::vector<char> body;
+    if (compType != nullptr) {
+        putTag(body, "FVER");
+        put32be(body, 4);
+        put32be(body, 0xA2805140); // AIFF-C-Version 1.0
+    }
     putTag(body, "COMM");
     put32be(body, commSize);
     put16be(body, channels);
     put32be(body, (uint32_t)(audioBytes / ((bitdepth * channels + 7) / 8)));
     put16be(body, bitdepth);
     putExtended80(body, rate, fraction);
+    if (compType != nullptr) putTag(body, compType);
 
     putTag(body, "SSND");
     put32be(body, ssndSize);
@@ -323,7 +333,7 @@ static std::vector<char> MakeAIFF(uint32_t commSize, uint32_t ssndSize, uint32_t
     std::vector<char> v;
     putTag(v, "FORM");
     put32be(v, (uint32_t)(4 + body.size()));
-    putTag(v, "AIFF");
+    putTag(v, formType);
     v.insert(v.end(), body.begin(), body.end());
     return v;
 }
@@ -455,6 +465,10 @@ TEST_F(AudioInfoTest, FormatOverloadMatchesInfoOverload)
         {"testdata/audio/test_192cbr.mp3", AF::MP3},
         {"testdata/audio/test_44kHz.wav", AF::WAVE},
         {"testdata/audio/test_44kHz.aiff", AF::AIFF},
+        {"testdata/audio/test_44kHz_16bit_mono.aiff", AF::AIFF},
+        {"testdata/audio/test_44kHz_24bit.aiff", AF::AIFF},
+        {"testdata/audio/test_44kHz_32bit.aiff", AF::AIFF},
+        {"testdata/audio/test_44kHz_32bit_float.aiff", AF::AIFF},
         {"testdata/audio/test_44kHz.ogg", AF::OGG},
         {"testdata/audio/test_44kHz_tagged.wav", AF::WAVE},
         {"testdata/audio/test_44kHz_tagged.aiff", AF::AIFF},
@@ -748,6 +762,106 @@ TEST_F(AudioInfoTest, AiffFormSizeBeyondEof)
     EXPECT_EQ(AF::UNKNOWN, pplib::IdentAudioFile(file));
     pplib::AudioInfo info;
     ASSERT_FALSE(pplib::IdentAudioFile(file, info));
+}
+
+TEST_F(AudioInfoTest, AiffOtherBitDepthsUsePaddedFrames)
+{
+    // Die von Audacity erzeugten Dateien decken die bei AIFF real vorkommenden Bitweiten ab.
+    // 24 Bit werden pro Kanal in 3 Byte gepackt (kein 4-Byte-Padding, wie es die Spec nennt),
+    // 32 Bit in 4 Byte. Die Samplezahl richtet sich nach den real folgenden Daten.
+    struct Entry {
+        const char* name;
+        uint8_t channels;
+        uint8_t bits;
+        uint8_t bytesPerSample;
+        uint16_t bitrate;
+        CM mode;
+    } matrix[] = {
+        {"test_44kHz_16bit_mono.aiff", (uint8_t)1, (uint8_t)16, (uint8_t)2, (uint16_t)705,  CM::MONO},
+        {"test_44kHz_24bit.aiff",      (uint8_t)2, (uint8_t)24, (uint8_t)6, (uint16_t)2116, CM::STEREO},
+        {"test_44kHz_32bit.aiff",      (uint8_t)2, (uint8_t)32, (uint8_t)8, (uint16_t)2822, CM::STEREO},
+    };
+    for (Entry& entry : matrix) {
+        pplib::File file;
+        OpenTestFile(file, entry.name);
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(file, info)) << entry.name;
+        EXPECT_EQ(entry.channels, info.Channels) << entry.name;
+        EXPECT_EQ(entry.bits, info.BitsPerSample) << entry.name;
+        EXPECT_EQ(entry.bytesPerSample, info.BytesPerSample) << entry.name;
+        EXPECT_EQ(entry.bitrate, info.Bitrate) << entry.name;
+        EXPECT_EQ(entry.mode, info.Mode) << entry.name;
+        EXPECT_EQ((uint64_t)173695, info.Samples) << entry.name;
+        EXPECT_EQ((uint32_t)3938, info.Length) << entry.name;
+        EXPECT_EQ(SE::INTEGER, info.SampleType) << entry.name;
+    }
+}
+
+TEST_F(AudioInfoTest, AiffcFloatSetsSampleType)
+{
+    // AIFF-C mit Kompressionstyp FL32: 32 Bit, aber float-codiert. Der vorgeschaltete
+    // FVER- und der PEAK-Chunk muessen beim Durchlaufen der Innerchunks uebersprungen werden.
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_32bit_float.aiff");
+
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ(AF::AIFF, info.Format);
+    EXPECT_EQ(SE::FLOAT, info.SampleType);
+    EXPECT_EQ((uint8_t)32, info.BitsPerSample);
+    EXPECT_EQ((uint8_t)8, info.BytesPerSample);
+    EXPECT_EQ((uint64_t)173695, info.Samples);
+    EXPECT_EQ((uint64_t)104, info.AudioStart);
+    EXPECT_EQ((uint64_t)1389560, info.AudioSize);
+    EXPECT_EQ((uint16_t)2822, info.Bitrate);
+}
+
+TEST_F(AudioInfoTest, AiffcUncompressedIsAccepted)
+{
+    // AIFF-C mit NONE entspricht dem klassischen AIFF, traegt aber FVER und Kompressionstyp
+    std::vector<char> aiff = MakeAIFF(22, 8 + 64, 0, 64, 2, 16, 44100, 0, "AIFC", "NONE");
+    pplib::MemFile file(aiff.data(), aiff.size());
+
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ(SE::INTEGER, info.SampleType);
+    EXPECT_EQ((uint8_t)16, info.BitsPerSample);
+    EXPECT_EQ((uint16_t)1411, info.Bitrate);
+}
+
+TEST_F(AudioInfoTest, AiffcCompressedIsRejected)
+{
+    // Dekodiert wird nur NONE und FL32. Typen wie sowt/ulaw/alaw/adpc bleiben ununterstuetzt;
+    // am Container selbst ist daran nichts zu aendern (Format-Uberladung erkennt AIFF).
+    std::vector<char> aiff = MakeAIFF(22, 8 + 64, 0, 64, 2, 16, 44100, 0, "AIFC", "sowt");
+    pplib::MemFile file(aiff.data(), aiff.size());
+
+    pplib::AudioInfo info = SentinelInfo();
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+    EXPECT_TRUE(SameInfo(info, SentinelInfo()));
+    EXPECT_EQ(AF::AIFF, pplib::IdentAudioFile(file));
+}
+
+TEST_F(AudioInfoTest, AiffcWithoutCompressionFieldIsRejected)
+{
+    // COMM misst nur 18 Byte, enthaelt also keinen Kompressionstyp -> nicht beschreibbar
+    std::vector<char> aiff = MakeAIFF(18, 8 + 64, 0, 64, 2, 16, 44100, 0, "AIFC", nullptr);
+    pplib::MemFile file(aiff.data(), aiff.size());
+
+    pplib::AudioInfo info = SentinelInfo();
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+    EXPECT_TRUE(SameInfo(info, SentinelInfo()));
+}
+
+TEST_F(AudioInfoTest, AiffcFl32WithWrongBitdepthIsRejected)
+{
+    // FL32 verspricht 32-Bit-Float. Weicht die Bitweite ab, ist die Datei defekt.
+    std::vector<char> aiff = MakeAIFF(22, 8 + 64, 0, 64, 2, 16, 44100, 0, "AIFC", "FL32");
+    pplib::MemFile file(aiff.data(), aiff.size());
+
+    pplib::AudioInfo info = SentinelInfo();
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+    EXPECT_TRUE(SameInfo(info, SentinelInfo()));
 }
 
 

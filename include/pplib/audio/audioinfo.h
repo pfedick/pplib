@@ -72,7 +72,10 @@ public:
      * Parser akzeptiert bewusst nur eine Teilmenge:
      * - WAVE: `fmt ` als erster Chunk, Format-Tag 1 (PCM), maximal 2 Kanaele und
      *   8..32 Bit. EXTENSIBLE, Float-PCM und Mehrkanal werden nicht erkannt.
-     * - AIFF: Classic-AIFF nur als `FORM`/`AIFF`; AIFF-C (`AIFC`) gilt als UNKNOWN.
+     * - AIFF: `FORM`/`AIFF` sowie `FORM`/`AIFC` (AIFF-C) nur mit den Sample-Formaten
+     *   unkomprimiert (`NONE`) oder 32-Bit-Fliesskomma (`FL32`/`fl32`). Alle uebrigen
+     *   AIFF-C-Kompressionen (`sowt`, `ulaw`, `adpc`, `alaw`, `fl64` ...) und Mehrkanal
+     *   sind UNKNOWN.
      * - OGG: ausschliesslich Ogg-Vorbis; Opus oder FLAC im Ogg-Container sind UNKNOWN.
      * - MP3: MPEG Layer 1-3.
      */
@@ -80,7 +83,7 @@ public:
     {
         UNKNOWN = 0,   //!< Kein bekanntes Audioformat
         WAVE = 1,      //!< RIFF/WAVE (PCM, 8..32 Bit, max. 2 Kanaele)
-        AIFF = 2,      //!< AIFF (Apple Audio Interchange File Format, nicht AIFF-C)
+        AIFF = 2,      //!< AIFF/AIFF-C (Apple Audio Interchange File Format, nur unkomprimiert oder FL32)
         MP3 = 3,       //!< MPEG Layer 1-3
         OGG = 4        //!< Ogg Vorbis (Opus/FLAC im Ogg-Container gelten als UNKNOWN)
     };
@@ -99,6 +102,20 @@ public:
         JOINT_STEREO = 4   //!< Joint Stereo (MPEG-Modus)
     };
 
+    /** @brief Zahlenformat eines Kanal-Samples
+     *
+     * \desc
+     * Trennt Ganzzahl- von FlieSSkomma-Samples, weil die Aufloesung allein
+     * dafuer nicht steht (32 Bit sind sowohl Ganzzahl als auch float).
+     * WAVE erkennt bewusst nur PCM, deshalb steht dort immer INTEGER.
+     * AIFF-C setzt FLOAT ausschliesslich fuer den Kompressionstyp `FL32`.
+     */
+    enum class SampleEncoding : uint8_t
+    {
+        INTEGER = 0,  //!< Zweierkomplement-Ganzzahl (Standardfall bei WAV, AIFF, AIFF-C/NONE)
+        FLOAT = 1     //!< IEEE-754-Fliesskomma (AIFF-C mit `FL32`, 32 Bit)
+    };
+
     AudioFormat Format = AudioFormat::UNKNOWN;  //!< erkanntes Audioformat
     bool HaveID3v2Tag = false;               //!< Datei enthaelt einen ID3v2-Tag
     bool IsVBR = false;                       //!< Variable Bitrate (nur MP3)
@@ -111,10 +128,11 @@ public:
     uint32_t Length = 0;                     //!< Spieldauer in Millisekunden
     uint32_t Frequency = 0;                  //!< Sample-Rate in Hz
     uint16_t Bitrate = 0;                    //!< Datenrate in kbit/s (bei PCM aus Frequency und BytesPerSample, bei Ueberlauf auf uint16_t-Max begrenzt)
-    uint8_t BitsPerSample = 0;               //!< Aufloesung eines Kanal-Samples in Bits
+    uint8_t BitsPerSample = 0;               //!< Aufloesung eines Kanal-Samples in Bits (bei SampleType FLOAT: Bitbreite des Fliesskomma-Samples)
     uint8_t BytesPerSample = 0;              //!< Bytes pro Sample-Frame, also alle Kanaele eines Sample-Zeitpunkts (AIFF/WAV: je Kanal auf volle Byte aufgerundet, dann mal Kanaele; 20 bit stereo => 6)
     uint8_t Channels = 0;                    //!< Anzahl Kanaele
     ChannelMode Mode = ChannelMode::UNKNOWN;  //!< Kanalmodus; bei unbekanntem Format ohne Aussage
+    SampleEncoding SampleType = SampleEncoding::INTEGER;  //!< Zahlenformat der Samples; alle bisher erkannten WAV/AIFF-Dateien sind INTEGER
 };
 
 /** @brief Audiodaten-Typ und -Aufbau einer Datei ermitteln
