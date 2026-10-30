@@ -663,7 +663,7 @@ static void toUtf16LE(const String& localCharset, const String& text, ByteArray&
     if (!b) throw pplib::OutOfMemoryException();
     b[0] = 0xff;
     b[1] = 0xfe;
-    memcpy(b + 2, buffer.ptr(), buffer.size());
+    if (buffer.size() > 0) memcpy(b + 2, buffer.ptr(), buffer.size());
 }
 
 ID3Frame* ID3Tag::findFrame(const String& name)
