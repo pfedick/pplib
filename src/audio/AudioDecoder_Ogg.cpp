@@ -52,17 +52,48 @@ typedef struct
 
 } OggVorbisPrivateData;
 
+/** @brief Lese-Callback fuer libvorbis
+ *
+ * libvorbis erwartet die Zahl gelesener ELEMENTE und behandelt ein Kurzlesen als
+ * normales Ende; eine Exception durch die C-Frames von libvorbis hindurch waere
+ * nicht portabel definiert (Windows/MSVC: kein garantiertes Unwinding). Deshalb
+ * wird Dateiende/Lesefehler als Kurzlesen (0) gemeldet.
+ */
 static size_t ppl_read_func(void* ptr, size_t size, size_t nmemb, void* datasource)
 {
-    return static_cast<FileObject*>(datasource)->read(ptr, size * nmemb);
+    if (size == 0 || nmemb == 0) return 0;
+    FileObject* f = static_cast<FileObject*>(datasource);
+    try {
+        return f->read(ptr, size * nmemb) / size;
+    } catch (...) {
+        return 0; // EOF oder Lesefehler: Signal an libvorbis, keine Exception
+    }
 }
 
+/** @brief Seek-Callback fuer libvorbis
+ *
+ * libvorbis verlangt 0 bei Erfolg und ungleich 0 als Fehler; FileObject::seek()
+ * liefert dagegen die neue Position, die bei jedem Sprung auf ein anderes Ziel
+ * als 0 wie ein Fehlschlag wirken wuerde.
+ */
 static int ppl_seek_func(void* datasource, ogg_int64_t offset, int whence)
 {
-    if (whence == SEEK_SET) return static_cast<FileObject*>(datasource)->seek(offset, FileObject::SeekOrigin::SEEKSET);
-    if (whence == SEEK_CUR) return static_cast<FileObject*>(datasource)->seek(offset, FileObject::SeekOrigin::SEEKCUR);
-    if (whence == SEEK_END) return static_cast<FileObject*>(datasource)->seek(offset, FileObject::SeekOrigin::SEEKEND);
-    return -1;
+    FileObject* f = static_cast<FileObject*>(datasource);
+    FileObject::SeekOrigin origin;
+    if (whence == SEEK_SET) origin = FileObject::SeekOrigin::SEEKSET;
+    else if (whence == SEEK_CUR) origin = FileObject::SeekOrigin::SEEKCUR;
+    else if (whence == SEEK_END) origin = FileObject::SeekOrigin::SEEKEND;
+    else return -1;
+
+    const int64_t base = (origin == FileObject::SeekOrigin::SEEKCUR) ? (int64_t)f->tell()
+                     : (origin == FileObject::SeekOrigin::SEEKEND) ? (int64_t)f->size() : 0;
+    const int64_t target = base + (int64_t)offset;
+    if (target < 0) return -1; // vor Dateianfang
+    try {
+        return (f->seek(offset, origin) == (uint64_t)target) ? 0 : -1;
+    } catch (...) {
+        return -1;
+    }
 }
 
 /*
@@ -86,18 +117,48 @@ static void init_callback(ov_callbacks& callbacks)
     callbacks.tell_func = ppl_tell_func;
 }
 
+/** @brief RAII-Huelle fuer OggVorbis_File
+ *
+ * ov_open_callbacks() laesst bei Misserfolg allokierte Strukturen zurueck, die
+ * erst ov_clear() freigibt. Ein frueher Rueckgabe- oder Throw-Pfad wuerde sie
+ * sonst leakieren (bei wiederholtem Scannen beschaedigter Dateien ein Dauerleck).
+ */
+class OggVorbisHandle
+{
+public:
+    OggVorbisHandle()
+    {
+        memset(&vf, 0, sizeof(OggVorbis_File));
+    }
+    OggVorbisHandle(const OggVorbisHandle&) = delete;
+    OggVorbisHandle& operator=(const OggVorbisHandle&) = delete;
+    ~OggVorbisHandle()
+    {
+        ov_clear(&vf);
+    }
+    OggVorbis_File* get() { return &vf; }
+
+private:
+    OggVorbis_File vf;
+};
+
 static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf, FileObject& file)
 {
     info.Format = AudioInfo::AudioFormat::OGG;
-    info.FileSize = (uint32_t)file.size();
+    info.FileSize = file.size();
     info.Channels = vf.vi->channels;
     info.Frequency = vf.vi->rate;
     info.IsVBR = true;
-    info.Bitrate = vf.vi->bitrate_nominal / 1000;
+    // libvorbis liefert Bit/s; AudioInfo::Bitrate ist kbit/s. Nominale, untere und
+    // obere Bitrate duerfen nicht in unterschiedlichen Einheiten verglichen werden.
+    double bits = vf.vi->bitrate_nominal;
     if (vf.vi->bitrate_lower == vf.vi->bitrate_upper) {
         info.IsVBR = false;
-        if (vf.vi->bitrate_lower != 0) info.Bitrate = vf.vi->bitrate_lower;
+        if (vf.vi->bitrate_lower > 0.0) bits = vf.vi->bitrate_lower;
     }
+    if (bits < 0.0) bits = 0.0;
+    const uint64_t kbit = (uint64_t)bits / 1000;
+    info.Bitrate = (kbit > UINT16_MAX) ? UINT16_MAX : (uint16_t)kbit;
     // pplib::PrintDebug("min: %d, max: %d, nominal: %d\n", vf.vi->bitrate_lower, vf.vi->bitrate_upper, vf.vi->bitrate_nominal);
     // info.Bitrate=ov_bitrate(&vf, -1);
     info.BitsPerSample = 16;
@@ -120,20 +181,20 @@ static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf, FileObject& 
 bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
 {
 #ifdef HAVE_LIBVORBIS
+    OggVorbisHandle handle;
+    OggVorbis_File* vf = handle.get();
     ov_callbacks callbacks;
-    OggVorbis_File vf;
-    memset(&vf, 0, sizeof(OggVorbis_File));
     init_callback(callbacks);
     file.seek(0);
-    int res = ov_open_callbacks(&file, &vf, NULL, 0, callbacks);
+    int res = ov_open_callbacks(&file, vf, NULL, 0, callbacks);
     // pplib::PrintDebug("try read vobis file, result is: %d\n", res);
-    if (res != 0) return false;
-    GetVorbisAudioInfo(info, vf, file);
-    ov_clear(&vf);
+    if (res != 0) return false; // Handle-Destruktor uebernimmt ov_clear()
+    GetVorbisAudioInfo(info, *vf, file);
     return true;
 
-#endif
+#else
     return false;
+#endif
 }
 
 AudioDecoder_Ogg::AudioDecoder_Ogg()

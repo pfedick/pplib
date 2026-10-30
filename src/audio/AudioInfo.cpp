@@ -96,6 +96,17 @@ double readExtended80(const char* adr)
     return (e[0] & 0x80) ? -value : value;
 }
 
+/** @brief Unkomprimierte Bitrate in kbit/s, begrenzt auf den Wertebereich von AudioInfo::Bitrate
+ *
+ * Frequenzen bis UINT32_MAX * 8 Byte * 8 Bit ueberschreiten uint16_t deutlich, deshalb wird
+ * in uint64_t gerechnet und nach oben begrenzt (Typ ANDEN AudioInfo::Bitrate bleibt uint16_t).
+ */
+static uint16_t ToKbitRate(uint64_t frequency, uint64_t bytesPerFrame)
+{
+    const uint64_t kbit = frequency * bytesPerFrame * 8 / 1000;
+    return (uint16_t)((kbit > UINT16_MAX) ? UINT16_MAX : kbit);
+}
+
 bool IdentAIFF(FileObject& file, AudioInfo& info)
 {
     const uint64_t fsize = file.size();
@@ -159,10 +170,19 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
 
     if (!foundCOMM || !foundSSND || frequency == 0) return false;
     if (channels == 0 || channels > 2) return false; // nicht unterstuetzt
+    if (bitdepth < 8 || bitdepth > 32) return false; // Obergrenze: >32 Bit wird nicht unterstuetzt
 
-    if (bitdepth < 8 || (bitdepth / 8) * channels == 0) return false; // 20-Bit u.a. tolerieren
-    uint8_t bytesPerSample = (uint8_t)((bitdepth / 8) * channels);
-    if (bytesPerSample == 0) return false; // bitdepth so gross, dass die Kuerzung auf 0 fiele
+    //Bytes pro Sample-Frame (= ein Sample je Kanal). AIFF packt jedes Kanal-Sample in einen
+    //auf volle Bytes aufgerundeten Behaelter, also aufgerundete Bytes je Kanal mal Kanaele
+    //(20 bit stereo -> 2 x 3 = 6). Durch bitdepth <= 32 und channels <= 2 bleibt uint8_t (max. 8).
+    uint8_t bytesPerSample = (uint8_t)(((bitdepth + 7) / 8) * channels);
+
+    //Der Sample-Frame ist die kleinste abspielbare Einheit: angehaengtes Halb-sample am
+    //Chunk-Ende abschneiden und die deklarierte Samplezahl an die real folgende Datenmenge anpassen
+    audioSize -= audioSize % bytesPerSample;
+    if (audioSize == 0) return false; // ohne abspielbare Samples kein gueltiges Audio
+    const uint64_t frames = audioSize / bytesPerSample;
+    if (samples > frames) samples = frames;
 
     info.Samples = samples;
     info.BitsPerSample = (uint8_t)bitdepth;
@@ -174,7 +194,7 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
     info.AudioSize = audioSize;
     if (audioSize > 0) info.AudioEnd = info.AudioStart + audioSize - 1;
     if (samples > 0) info.Length = (uint32_t)((uint64_t)samples * 1000 / frequency);
-    info.Bitrate = (uint16_t)((uint64_t)frequency * bytesPerSample * 8 / 1000);
+    info.Bitrate = ToKbitRate(frequency, bytesPerSample);
     return true;
 }
 
@@ -226,14 +246,16 @@ bool IdentWave(FileObject& file, AudioInfo& info)
 
     if (!foundFMT || !foundDATA) return false;
     if (channels == 0 || channels > 2) return false;
-    if (bitdepth < 8 || (bitdepth / 8) * channels == 0) return false; // 20-Bit u.a. tolerieren
+    if (bitdepth < 8 || bitdepth > 32) return false; // Obergrenze: >32 Bit wird nicht unterstuetzt
     if (frequency == 0) return false;
 
-    uint8_t bytesPerSample = (uint8_t)((bitdepth / 8) * channels);
-    if (bytesPerSample == 0) return false; // bitdepth so gross, dass die Kuerzung auf 0 fiele
+    //Bytes pro Sample-Frame, analog zu IdentAIFF und wie nBlockAlign des fmt-Chunks: je Kanal
+    //auf volle Bytes aufgerundet, mal Kanaele; durch die Grenzen passt der Wert stets in uint8_t
+    uint8_t bytesPerSample = (uint8_t)(((bitdepth + 7) / 8) * channels);
     uint64_t maxAudioSize = fsize - audioStart;
     uint64_t audioSize = (declaredDataSize > maxAudioSize) ? maxAudioSize : declaredDataSize;
     audioSize -= audioSize % bytesPerSample;
+    if (audioSize == 0) return false; // leerer data-Chunk ist nicht abspielbar
 
     info.Channels = (uint8_t)channels;
     info.Mode = (channels == 1) ? AudioInfo::ChannelMode::MONO : AudioInfo::ChannelMode::STEREO;
@@ -245,7 +267,7 @@ bool IdentWave(FileObject& file, AudioInfo& info)
     if (audioSize > 0) info.AudioEnd = info.AudioStart + audioSize - 1;
     info.Samples = audioSize / bytesPerSample;
     if (info.Samples > 0) info.Length = (uint32_t)(info.Samples * 1000 / frequency);
-    info.Bitrate = (uint16_t)((uint64_t)frequency * bytesPerSample * 8 / 1000);
+    info.Bitrate = ToKbitRate(frequency, bytesPerSample);
     return true;
 }
 

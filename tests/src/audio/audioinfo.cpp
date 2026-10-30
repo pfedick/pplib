@@ -309,7 +309,7 @@ static std::vector<char> MakeAIFF(uint32_t commSize, uint32_t ssndSize, uint32_t
     putTag(body, "COMM");
     put32be(body, commSize);
     put16be(body, channels);
-    put32be(body, (uint32_t)(audioBytes / ((bitdepth / 8) * channels)));
+    put32be(body, (uint32_t)(audioBytes / ((bitdepth * channels + 7) / 8)));
     put16be(body, bitdepth);
     putExtended80(body, rate, fraction);
 
@@ -523,8 +523,9 @@ TEST_F(AudioInfoTest, EmptyAndTruncatedFiles)
 
 TEST_F(AudioInfoTest, WaveAbsurdBitDepthIsRejected)
 {
-    // latenter Absturz: (bitdepth/8)*channels ist ungleich 0, die Kuerzung auf
-    // uint8_t liefert aber 0 -> audioSize % bytesPerSample waere eine Division durch 0
+    // Bitdepth weit jenseits der unterstuetzten Obergrenze von 32 Bit. Frueher lief die
+    // Pruefung ueber (bitdepth/8)*channels, was als uint8_t-Puffer 0 ergeben haette ->
+    // Division durch 0 bei audioSize % bytesPerSample.
     std::vector<char> wave = MakeWAVE(16, 16, 16, 1, 2048, 44100);
     pplib::MemFile file(wave.data(), wave.size());
     pplib::AudioInfo info = SentinelInfo();
@@ -569,8 +570,9 @@ TEST_F(AudioInfoTest, WaveId3ChunkBeforeData)
     EXPECT_EQ((uint64_t)8, info.AudioSize);
 }
 
-TEST_F(AudioInfoTest, Wave20BitMono)
+TEST_F(AudioInfoTest, Wave20BitPadsEachChannelSampleToThreeBytes)
 {
+    // Aufgerundet wird je Kanal-Sample, nicht global: mono 3 Bytes pro Frame, stereo 2 x 3 = 6
     std::vector<char> wave = MakeWAVE(16, 12, 12, 1, 20, 8000, false, false);
     pplib::MemFile file(wave.data(), wave.size());
     pplib::AudioInfo info;
@@ -578,8 +580,16 @@ TEST_F(AudioInfoTest, Wave20BitMono)
     EXPECT_EQ((uint8_t)1, info.Channels);
     EXPECT_EQ(CM::MONO, info.Mode);
     EXPECT_EQ((uint8_t)20, info.BitsPerSample);
-    EXPECT_EQ((uint8_t)2, info.BytesPerSample);
-    EXPECT_EQ((uint64_t)6, info.Samples);
+    EXPECT_EQ((uint8_t)3, info.BytesPerSample) << "20 Bit auf volle Bytes aufgerundet";
+    EXPECT_EQ((uint64_t)4, info.Samples) << "12 Byte / 3 Byte je Frame";
+
+    std::vector<char> stereo = MakeWAVE(16, 12, 12, 2, 20, 8000, false, false);
+    pplib::MemFile stereoFile(stereo.data(), stereo.size());
+    pplib::AudioInfo st;
+    ASSERT_TRUE(pplib::IdentAudioFile(stereoFile, st));
+    EXPECT_EQ((uint8_t)6, st.BytesPerSample) << "je Kanal auf 3 Bytes aufgefuellt";
+    EXPECT_EQ((uint64_t)2, st.Samples) << "12 Byte / 6 Byte je Frame";
+    EXPECT_EQ((uint16_t)384, st.Bitrate) << "8000 Frames/s * 6 Byte";
 }
 
 TEST_F(AudioInfoTest, Wave8BitMono48kHzExtensibleFmt)
@@ -599,6 +609,55 @@ TEST_F(AudioInfoTest, Wave8BitMono48kHzExtensibleFmt)
     EXPECT_EQ((uint64_t)68, info.AudioStart) << "40 Byte fmt-Payload statt 16";
 }
 
+TEST_F(AudioInfoTest, BothBitDepth33IsRejected)
+{
+    // Obergrenze 32 Bit ist inklusiv, 33 Bit muss fuer beide Container abgewiesen werden
+    std::vector<char> wave = MakeWAVE(16, 16, 16, 1, 33, 44100);
+    pplib::MemFile fileWave(wave.data(), wave.size());
+    pplib::AudioInfo infoWave;
+    EXPECT_FALSE(pplib::IdentAudioFile(fileWave, infoWave));
+
+    std::vector<char> aiff = MakeAIFF(18, 16, 0, 16, 1, 33, 44100, 0);
+    pplib::MemFile fileAiff(aiff.data(), aiff.size());
+    pplib::AudioInfo infoAiff;
+    EXPECT_FALSE(pplib::IdentAudioFile(fileAiff, infoAiff));
+    EXPECT_EQ(AF::WAVE, pplib::IdentAudioFile(fileWave)) << "Container bleibt erkennbar";
+    EXPECT_EQ(AF::AIFF, pplib::IdentAudioFile(fileAiff));
+}
+
+TEST_F(AudioInfoTest, EmptyAudioPayloadIsRejected)
+{
+    // data- bzw. SSND-Payload enthaelt keine abspielbaren Samples -> kein gueltiges Audio.
+    // Der Contract: Bei false bleibt das uebergebene info vollstaendig unveraendert.
+    std::vector<char> wave = MakeWAVE(16, 0, 0);
+    pplib::MemFile fileWave(wave.data(), wave.size());
+    pplib::AudioInfo infoWave = SentinelInfo();
+    EXPECT_FALSE(pplib::IdentAudioFile(fileWave, infoWave));
+    EXPECT_TRUE(SameInfo(infoWave, SentinelInfo()));
+    EXPECT_EQ(AF::WAVE, pplib::IdentAudioFile(fileWave)) << "Container bleibt erkennbar";
+
+    // SSND deklariert 8 Byte (nur Offset + Blockgroesse), es folgen keine Samples
+    std::vector<char> aiff = MakeAIFF(18, 8, 0, 8);
+    pplib::MemFile fileAiff(aiff.data(), aiff.size());
+    pplib::AudioInfo infoAiff = SentinelInfo();
+    EXPECT_FALSE(pplib::IdentAudioFile(fileAiff, infoAiff));
+    EXPECT_TRUE(SameInfo(infoAiff, SentinelInfo()));
+    EXPECT_EQ(AF::AIFF, pplib::IdentAudioFile(fileAiff));
+}
+
+TEST_F(AudioInfoTest, ExtremeFrequencyClampsBitrate)
+{
+    // 32 Bit Stereo bei 4 GHz: die Bitrate liegt weit ueber uint16_t und muss
+    // begrenzt werden, der Typ von AudioInfo::Bitrate bleibt aber uint16_t
+    std::vector<char> wave = MakeWAVE(16, 16, 16, 2, 32, 4000000000u);
+    pplib::MemFile file(wave.data(), wave.size());
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ((uint8_t)32, info.BitsPerSample) << "32 Bit sind noch innerhalb der Obergrenze";
+    EXPECT_EQ((uint8_t)8, info.BytesPerSample);
+    EXPECT_EQ((uint16_t)UINT16_MAX, info.Bitrate);
+}
+
 TEST_F(AudioInfoTest, AiffSampleOffsetAndChunkBeyondEof)
 {
     // SSND kuendigt 1 MByte an, real folgen 16 Byte; Sample-Offset 8 verschiebt den Beginn
@@ -610,7 +669,21 @@ TEST_F(AudioInfoTest, AiffSampleOffsetAndChunkBeyondEof)
     EXPECT_EQ((uint64_t)8, info.AudioSize) << "nur die bis zum Dateiende folgenden Bytes";
     EXPECT_EQ((uint64_t)(aiff.size() - 1), info.AudioEnd);
     EXPECT_EQ((uint64_t)aiff.size(), info.FileSize);
-    EXPECT_EQ((uint64_t)4, info.Samples) << "COMM deklariert 4 Samples";
+    EXPECT_EQ((uint64_t)2, info.Samples) << "COMM deklariert 4, real folgen nur 2 Sample-Frames";
+}
+
+TEST_F(AudioInfoTest, AiffTrailingHalfFrameIsTrimmed)
+{
+    // Nach Sample-Offset 8 folgen 117 Byte; bei Stereo/16 Bit (4 Byte je Frame) ist das
+    // letzte Byte ein halber Frame und darf nicht als abspielbar published werden
+    std::vector<char> aiff = MakeAIFF(18, 8 + 117, 3, 120);
+    pplib::MemFile file(aiff.data(), aiff.size());
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ((uint64_t)116, info.AudioSize);
+    EXPECT_EQ(info.AudioStart + info.AudioSize - 1, info.AudioEnd) << "AudioEnd innerhalb des Audiodatenbereichs";
+    EXPECT_LT(info.AudioEnd, info.FileSize) << "angehaengtes Einzelbyte aussen vor";
+    EXPECT_EQ((uint64_t)29, info.Samples) << "auf die real folgenden Frames begrenzt";
 }
 
 TEST_F(AudioInfoTest, AiffFractionalSampleRate)
@@ -640,9 +713,9 @@ TEST_F(AudioInfoTest, AiffMonoSetsMonoChannelMode)
 
 TEST_F(AudioInfoTest, AiffAbsurdBitDepthIsRejected)
 {
-    // bitdepth = 2048 ergibt (bitdepth/8)*channels = 256, was als uint8_t-Puffer
-    // auf 0 fiele. Die Rechnung muss abgefangen werden, statt mit BytesPerSample 0
-    // weiterzuarbeiten.
+    // Bitdepth weit jenseits der Obergrenze von 32 Bit. Frueher lief die Pruefung ueber
+    // (bitdepth/8)*channels, was als uint8_t-Puffer auf 0 fiele; statt mit BytesPerSample 0
+    // weiterzuarbeiten (audioSize % bytesPerSample), wird der Kandidat jetzt verworfen.
     std::vector<char> aiff = MakeAIFF(18, 16, 0, 16, 1, 2048, 44100, 0);
     pplib::MemFile file(aiff.data(), aiff.size());
     pplib::AudioInfo info = SentinelInfo();
@@ -778,6 +851,29 @@ TEST_F(AudioInfoTest, OggShorterThanCodecSignatureWindowIsUnknown)
     EXPECT_FALSE(pplib::IdentAudioFile(mf, info));
     EXPECT_TRUE(SameInfo(info, SentinelInfo()));
     mf.close();
+}
+
+TEST_F(AudioInfoTest, TruncatedOggVorbisReturnsFalse)
+{
+    // abgeschnittener Ogg-Vorbis-Stream: libvorbis bekommt Dateiende als Kurzlesen
+    // gemeldet, die Identifikation liefert false statt einer Exception und gibt ihre
+    // Allokationen wieder frei (ov_clear auf jedem Rueckgabepfad)
+    pplib::File src;
+    OpenTestFile(src, "test_44kHz.ogg");
+    const size_t total = (size_t)src.size();
+    std::vector<char> all(total);
+    ASSERT_EQ(total, src.read(all.data(), total));
+    src.close();
+
+    const size_t cuts[] = {3000, 300};
+    for (size_t cut : cuts) {
+        ASSERT_LT(cut, total) << "Testdatei ist zu kurz fuer den Schnitt bei " << cut;
+        pplib::MemFile file(all.data(), cut);
+        pplib::AudioInfo expected = SentinelInfo();
+        pplib::AudioInfo info = SentinelInfo();
+        EXPECT_NO_THROW(EXPECT_FALSE(pplib::IdentAudioFile(file, info))) << "Schnitt bei " << cut << " Bytes";
+        EXPECT_TRUE(SameInfo(info, expected)) << "info darf bei Misserfolg nicht veraendert werden";
+    }
 }
 
 TEST_F(AudioInfoTest, OpusInOggContainerIsNotSupported)

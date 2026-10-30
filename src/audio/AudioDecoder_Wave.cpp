@@ -39,6 +39,19 @@
 namespace pplib
 {
 
+/** @brief Begrenzt die Samplezahl auf die real im Audiofenster vorhandene Datenmenge
+ *
+ * Ein Dekodierer kann ein vom Aufrufer reingereichtes AudioInfo verwenden, dessen Samples
+ * nicht zu AudioSize passt. Ohne diese Grenze wird hinter dem Audioende gelesen (map()
+ * zeigt dann ggf. ueber das Chunk- bzw. Dateiende hinaus).
+ */
+static size_t ClampToAudioSize(const AudioInfo& info, size_t position, size_t samples)
+{
+    const size_t frames = (info.BytesPerSample > 0) ? (size_t)(info.AudioSize / info.BytesPerSample) : 0;
+    if (position >= frames) return 0;
+    return (position + samples > frames) ? (frames - position) : samples;
+}
+
 AudioDecoder_Wave::AudioDecoder_Wave()
 {
     position = 0;
@@ -98,6 +111,8 @@ size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16* interleafed)
 {
     size_t samples = num;
     if (position + samples > info.Samples) samples = info.Samples - position;
+    samples = ClampToAudioSize(info, position, samples);
+    if (samples == 0) return 0;
     ff->seek(info.AudioStart + position * info.BytesPerSample);
     size_t read = ff->read(interleafed, samples * info.BytesPerSample) / info.BytesPerSample;
     position += read;
@@ -108,6 +123,8 @@ size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
     size_t samples = num;
     if (position + samples > info.Samples) samples = info.Samples - position;
+    samples = ClampToAudioSize(info, position, samples);
+    if (samples == 0) return 0;
     const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
     if (info.BitsPerSample == 16) {
         for (size_t i = 0; i < samples; i++) {
@@ -124,6 +141,8 @@ size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
     size_t samples = num;
     if (position + samples > info.Samples) samples = info.Samples - position;
+    samples = ClampToAudioSize(info, position, samples);
+    if (samples == 0) return 0;
     const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
     if (info.BitsPerSample == 16) {
         for (size_t i = 0; i < samples; i++) {
@@ -140,6 +159,8 @@ size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
     size_t samples = num;
     if (position + samples > info.Samples) samples = info.Samples - position;
+    samples = ClampToAudioSize(info, position, samples);
+    if (samples == 0) return 0;
     const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
     if (info.BitsPerSample == 16) {
         for (size_t i = 0; i < samples; i++) {
