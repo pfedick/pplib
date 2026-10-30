@@ -30,12 +30,15 @@
 #include <gtest/gtest.h>
 
 #include <cstring>
+#include <limits>
 #include <vector>
 
 #include <pplib/core/memfile.h>
 #include <pplib/core/functions.h>
 #include <pplib/audio/audioinfo.h>
 #include <pplib/audio/decoder.h>
+#include <pplib/core/file.h>
+#include <string>
 #include <pplib/audio/sample_formats.h>
 
 namespace
@@ -174,6 +177,21 @@ protected:
     static void OpenWave(pplib::MemFile& file, pplib::AudioDecoder_Wave& decoder)
     {
         ASSERT_NO_THROW(decoder.open(file));
+    }
+
+    /** @brief Oeffnet echte Testdateien unter tests/testdata/audio, ohne Dekoder */
+    static void OpenFileOnly(pplib::File& file, const char* name)
+    {
+        const std::string path = std::string("testdata/audio/") + name;
+        ASSERT_NO_THROW(file.open(path.c_str())) << "open() warf fuer " << path;
+        ASSERT_TRUE(file.isOpen()) << "Datei ist nicht geoeffnet: " << path;
+    }
+
+    /** @brief Oeffnet echte Testdateien unter tests/testdata/audio mit dem AIFF-Dekoder */
+    static void OpenAIFF(pplib::File& file, pplib::AudioDecoder_Aiff& decoder, const char* name)
+    {
+        OpenFileOnly(file, name);
+        ASSERT_NO_THROW(decoder.open(file)) << name;
     }
 };
 
@@ -366,6 +384,8 @@ TEST_F(AudioDecoderTest, AiffOverstatedSampleCountDecodesOnlyRealFrames)
     pplib::STEREOSAMPLE16 buf[16];
     EXPECT_EQ((size_t)4, decoder.getSamples(16, buf));
     EXPECT_EQ((size_t)4, decoder.getPosition());
+    decoder.seekSample(9);
+    EXPECT_EQ((size_t)4, decoder.getPosition()) << "seekSample jenseits des letzten Frames klemmt an Samples";
     EXPECT_EQ((size_t)0, decoder.getSamples(16, buf)) << "Position hinter dem letzten Frame liefert 0";
 }
 
@@ -390,4 +410,537 @@ TEST_F(AudioDecoderTest, AiffHostileAudioInfoIsClampedToPayload)
     EXPECT_EQ((size_t)4, decoder.getSamples(16, buf)) << "Dekoder liest nie ueber AudioEnd hinaus";
     EXPECT_EQ((size_t)4, decoder.getPosition());
     EXPECT_EQ((size_t)0, decoder.getSamples(16, buf));
+}
+
+TEST_F(AudioDecoderTest, AiffSixteenBitFloatPathDividesBySignedScale)
+{
+    std::vector<char> payload;
+    appendBE(payload, 0x1234, 2);
+    appendBE(payload, 0x8000, 2);  // INT16_MIN -> -1.0f
+    appendBE(payload, 0x7FFF, 2);  // knapp unter der positiven Vollskaala
+    appendBE(payload, 0x0001, 2);
+    std::vector<char> aiff = MakeAIFF16(2, 16, 8 + (uint32_t)payload.size(), 2, payload);
+
+    pplib::MemFile file(aiff.data(), aiff.size());
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+
+    pplib::STEREOSAMPLE_FLOAT buf[4];
+    EXPECT_EQ((size_t)2, decoder.getSamples(4, buf));
+    EXPECT_FLOAT_EQ(0x1234 / 32768.0f, buf[0].left);
+    EXPECT_FLOAT_EQ(-1.0f, buf[0].right);
+    EXPECT_FLOAT_EQ(32767 / 32768.0f, buf[1].left);
+    EXPECT_FLOAT_EQ(1 / 32768.0f, buf[1].right);
+
+    // Der Float-Mischpuffer wird aufaddiert, nicht ersetzt. Der 16 Bit Wert muss
+    // dieselbe normierte Ebene wie oben erreichen
+    pplib::STEREOSAMPLE_FLOAT mix[4];
+    for (size_t i = 0; i < 4; i++) { mix[i].left = 1.0f; mix[i].right = -1.0f; }
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)2, decoder.addSamples(4, mix));
+    EXPECT_FLOAT_EQ(1.0f + 0x1234 / 32768.0f, mix[0].left);
+    EXPECT_FLOAT_EQ(-1.0f + 1 / 32768.0f, mix[1].right);
+}
+
+TEST_F(AudioDecoderTest, AiffTwentyFourBitMixBufferUsesSixteenBitLevel)
+{
+    std::vector<char> payload;
+    appendBE(payload, 0x010203, 3);
+    appendBE(payload, 0x040506, 3);
+    appendBE(payload, 0x800000, 3);  // -8388608
+    appendBE(payload, 0xFFFFFF, 3);  // -1
+    std::vector<char> aiff = MakeAIFF16(2, 24, 8 + (uint32_t)payload.size(), 2, payload);
+
+    pplib::MemFile file(aiff.data(), aiff.size());
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+
+    pplib::STEREOSAMPLE32 mix[4] = {};
+    EXPECT_EQ((size_t)2, decoder.addSamples(4, mix));
+    EXPECT_EQ(0x0102, mix[0].left);
+    EXPECT_EQ(0x0405, mix[0].right);
+    EXPECT_EQ((int32_t)-32768, mix[1].left);
+    EXPECT_EQ((int32_t)-1, mix[1].right) << "24 Bit darf nicht mehr in der Vollskaala des Mischpuffers landen";
+
+    pplib::STEREOSAMPLE_FLOAT fbuf[4];
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)2, decoder.getSamples(4, fbuf));
+    EXPECT_FLOAT_EQ(0x010203 / 8388608.0f, fbuf[0].left);
+    EXPECT_FLOAT_EQ(-1.0f, fbuf[1].left);
+}
+
+TEST_F(AudioDecoderTest, AiffThirtyTwoBitIntegerDownscaled)
+{
+    std::vector<char> payload;
+    appendBE(payload, 0x12340000, 4);
+    appendBE(payload, 0x7FFFFFFF, 4);
+    appendBE(payload, 0x80000000, 4);  // INT32_MIN -> INT16_MIN
+    appendBE(payload, 0xFFFFFFFF, 4);  // -1 -> -1
+    std::vector<char> aiff = MakeAIFF16(2, 32, 8 + (uint32_t)payload.size(), 2, payload);
+
+    pplib::MemFile file(aiff.data(), aiff.size());
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+    EXPECT_EQ((uint64_t)8, decoder.getAudioInfo().BytesPerSample);
+
+    pplib::STEREOSAMPLE16 buf[4];
+    EXPECT_EQ((size_t)2, decoder.getSamples(4, buf));
+    EXPECT_EQ((int16_t)0x1234, buf[0].left);
+    EXPECT_EQ((int16_t)0x7FFF, buf[0].right);
+    EXPECT_EQ((int16_t)-32768, buf[1].left);
+    EXPECT_EQ((int16_t)-1, buf[1].right);
+
+    pplib::STEREOSAMPLE_FLOAT fbuf[4];
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)2, decoder.getSamples(4, fbuf));
+    EXPECT_FLOAT_EQ(0x1234 / 32768.0f, fbuf[0].left);
+    EXPECT_FLOAT_EQ(-1.0f, fbuf[1].left) << "INT32_MIN/2^31 ist exakt -1.0f";
+
+    pplib::STEREOSAMPLE32 mix32[4];
+    for (pplib::STEREOSAMPLE32& m : mix32) { m.left = 1; m.right = -1; }
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)2, decoder.addSamples(4, mix32));
+    EXPECT_EQ(0x1235, mix32[0].left) << "32 Bit muessen im Mischpuffer das 16 Bit Niveau halten";
+    EXPECT_EQ(0x7FFE, mix32[0].right);
+    EXPECT_EQ((int32_t)-32767, mix32[1].left);
+    EXPECT_EQ((int32_t)-2, mix32[1].right);
+}
+
+TEST_F(AudioDecoderTest, AiffTwentyFourBitSumsIntoFloatMixBuffer)
+{
+    std::vector<char> payload;
+    appendBE(payload, 0x010203, 3);
+    appendBE(payload, 0x800000, 3);  // -8388608
+    appendBE(payload, 0xFFFFFF, 3);  // -1
+    appendBE(payload, 0x008000, 3);
+    std::vector<char> aiff = MakeAIFF16(2, 24, 8 + (uint32_t)payload.size(), 2, payload);
+
+    pplib::MemFile file(aiff.data(), aiff.size());
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+
+    pplib::STEREOSAMPLE_FLOAT mixf[4];
+    for (pplib::STEREOSAMPLE_FLOAT& m : mixf) { m.left = 0.25f; m.right = -0.25f; }
+    EXPECT_EQ((size_t)2, decoder.addSamples(4, mixf));
+    EXPECT_FLOAT_EQ(0.25f + 0x010203 / 8388608.0f, mixf[0].left) << "24 Bit wird auf Normalskala aufaddiert";
+    EXPECT_FLOAT_EQ(-1.25f, mixf[0].right);
+    EXPECT_FLOAT_EQ(0.25f - 1.0f / 8388608.0f, mixf[1].left) << "-1 in 24 Bit ist fast nichts";
+    EXPECT_FLOAT_EQ(-0.25f + 0x008000 / 8388608.0f, mixf[1].right);
+}
+
+TEST_F(AudioDecoderTest, AiffThirtyTwoBitSumsIntoFloatMixBuffer)
+{
+    std::vector<char> payload;
+    appendBE(payload, 0x40000000, 4);   // +0.5
+    appendBE(payload, 0xC0000000, 4);   // -0.5
+    appendBE(payload, 0xFFFFFFFF, 4);   // -1
+    appendBE(payload, 0x7FFFFFFF, 4);   // fast +1
+    std::vector<char> aiff = MakeAIFF16(2, 32, 8 + (uint32_t)payload.size(), 2, payload);
+
+    pplib::MemFile file(aiff.data(), aiff.size());
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+
+    pplib::STEREOSAMPLE_FLOAT mixf[4];
+    for (pplib::STEREOSAMPLE_FLOAT& m : mixf) { m.left = 0.25f; m.right = -0.25f; }
+    EXPECT_EQ((size_t)2, decoder.addSamples(4, mixf));
+    EXPECT_FLOAT_EQ(0.75f, mixf[0].left) << "32 Bit wird ueber 2^31 auf Normalskala aufaddiert";
+    EXPECT_FLOAT_EQ(-0.75f, mixf[0].right);
+    EXPECT_FLOAT_EQ(0.25f - 1.0f / 2147483648.0f, mixf[1].left);
+    EXPECT_FLOAT_EQ(-0.25f + 2147483647.0f / 2147483648.0f, mixf[1].right);
+}
+
+TEST_F(AudioDecoderTest, AiffFloatSamplesScaleToAllTargets)
+{
+    // Offene Float-Dateien enthalten normierte Werte, kein ganzzahliges Sample ist exakt darstellbar
+    auto putFloat = [](std::vector<char>& v, float f) {
+        uint32_t bits;
+        memcpy(&bits, &f, sizeof(bits));
+        appendBE(v, bits, 4);
+    };
+    std::vector<char> payload;
+    putFloat(payload, 0.5f);
+    putFloat(payload, -0.25f);
+    putFloat(payload, 2.0f);    // uebSteuerung muss begrenzt werden
+    putFloat(payload, -1.0f);
+
+    // AIFF-C mit FVER und Kompression 'FL32' statt CLASS-COMM
+    std::vector<char> body;
+    putTag(body, "FVER");
+    put32be(body, 4);
+    put32be(body, 0xA2805140);
+    putTag(body, "COMM");
+    put32be(body, 24);  // 18 Bytes plus Kompressionstyp plus leerer PString
+    put16be(body, 2);
+    put32be(body, 2);
+    put16be(body, 32);
+    putExtended80(body, 44100);
+    putTag(body, "FL32");
+    putByte(body, 0);  // PString-Laenge 0
+    putByte(body, 0);  // Fill auf even
+    putTag(body, "SSND");
+    put32be(body, 8 + (uint32_t)payload.size());
+    put32be(body, 0);
+    put32be(body, 0);
+    for (char c : payload) putByte(body, c);
+    std::vector<char> aifc;
+    putTag(aifc, "FORM");
+    put32be(aifc, (uint32_t)(4 + body.size()));
+    putTag(aifc, "AIFC");
+    aifc.insert(aifc.end(), body.begin(), body.end());
+
+    pplib::MemFile file(aifc.data(), aifc.size());
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+    ASSERT_EQ(pplib::AudioInfo::SampleEncoding::FLOAT, decoder.getAudioInfo().SampleType);
+
+    pplib::STEREOSAMPLE_FLOAT fbuf[4];
+    EXPECT_EQ((size_t)2, decoder.getSamples(4, fbuf));
+    EXPECT_FLOAT_EQ(0.5f, fbuf[0].left);
+    EXPECT_FLOAT_EQ(-0.25f, fbuf[0].right);
+    EXPECT_FLOAT_EQ(2.0f, fbuf[1].left) << "Float decodiert offen, ohne Begrenzung";
+
+    pplib::STEREOSAMPLE32 mix[4] = {};
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)2, decoder.addSamples(4, mix));
+    EXPECT_EQ(16384, mix[0].left);
+    EXPECT_EQ(-8192, mix[0].right);
+    EXPECT_EQ(32767, mix[1].left) << "uebSteuerung muss auf den 16 Bit Bereich begrenzt werden";
+
+    pplib::STEREOSAMPLE16 s16[4];
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)2, decoder.getSamples(4, s16));
+    EXPECT_EQ((int16_t)16384, s16[0].left);
+    EXPECT_EQ((int16_t)-32768, s16[1].right);
+
+    // Additiver Pfad in den Float-Mischpuffer: offene Floatwerte bleiben unveraendert,
+    // auch uebersteuerte 2.0f wird nicht begrenzt
+    pplib::STEREOSAMPLE_FLOAT mixf[4];
+    for (size_t i = 0; i < 4; i++) { mixf[i].left = 0.25f; mixf[i].right = -0.25f; }
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)2, decoder.addSamples(4, mixf));
+    EXPECT_FLOAT_EQ(0.75f, mixf[0].left);
+    EXPECT_FLOAT_EQ(-0.5f, mixf[0].right);
+    EXPECT_FLOAT_EQ(2.25f, mixf[1].left) << "mixen ohne Begrenzung, begrenzt wird erst am Mixbusausgang";
+}
+
+TEST_F(AudioDecoderTest, AiffMonoChannelIsReplicated)
+{
+    std::vector<char> payload;
+    appendBE(payload, 0x1234, 2);
+    appendBE(payload, 0x8000, 2);
+    std::vector<char> aiff = MakeAIFF16(1, 16, 8 + (uint32_t)payload.size(), 2, payload);
+
+    pplib::MemFile file(aiff.data(), aiff.size());
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+    ASSERT_EQ((uint64_t)1, decoder.getAudioInfo().Channels);
+    ASSERT_EQ((uint64_t)2, decoder.getAudioInfo().BytesPerSample);
+
+    pplib::STEREOSAMPLE16 buf[4];
+    EXPECT_EQ((size_t)2, decoder.getSamples(4, buf));
+    EXPECT_EQ((int16_t)0x1234, buf[0].left);
+    EXPECT_EQ((int16_t)0x1234, buf[0].right);
+    EXPECT_EQ((int16_t)-32768, buf[1].left);
+    EXPECT_EQ((int16_t)-32768, buf[1].right);
+
+    pplib::STEREOSAMPLE32 mix[4] = {};
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)2, decoder.addSamples(4, mix));
+    EXPECT_EQ(0x1234, mix[0].left);
+    EXPECT_EQ(0x1234, mix[0].right) << "mono muss im Mischpuffer ebenfalls doppelt stehen";
+    EXPECT_EQ((int32_t)-32768, mix[1].left);
+    EXPECT_EQ((int32_t)-32768, mix[1].right);
+
+    pplib::STEREOSAMPLE_FLOAT fbuf[4];
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)2, decoder.getSamples(4, fbuf));
+    EXPECT_FLOAT_EQ(0x1234 / 32768.0f, fbuf[0].left);
+    EXPECT_FLOAT_EQ(0x1234 / 32768.0f, fbuf[0].right) << "mono muss auch im Float-Ziel doppelt stehen";
+    EXPECT_FLOAT_EQ(-1.0f, fbuf[1].left);
+}
+
+TEST_F(AudioDecoderTest, AiffOpenRejectsSampleFormatesOutsideSupport)
+{
+    // 8, 12 und 20 Bit werden vom Parser erkannt, aber nicht dekodiert
+    const uint16_t depths[] = {8, 12, 20};
+    for (uint16_t bitdepth : depths) {
+        const size_t channelBytes = (size_t)((bitdepth + 7) / 8);
+        std::vector<char> payload;
+        for (size_t i = 0; i < 2 * channelBytes * 2; i++) putByte(payload, (char)0x5A);
+        std::vector<char> aiff = MakeAIFF16(2, bitdepth, 8 + (uint32_t)payload.size(), 2, payload);
+
+        pplib::MemFile file(aiff.data(), aiff.size());
+        pplib::AudioDecoder_Aiff decoder;
+        EXPECT_THROW(decoder.open(file), pplib::UnsupportedAudioFormatException) << "BitsPerSample " << bitdepth;
+    }
+
+    // Kann der Parser die Datei nicht zuordnen, hilft auch kein AudioInfo: open()
+    // muss mit DecoderInitializationException abbrechen statt ein leeres Info zu dekodieren
+    std::vector<char> junk;
+    for (int i = 0; i < 200; i++) putByte(junk, (char)(i * 7));
+    pplib::MemFile foreign(junk.data(), junk.size());
+    pplib::AudioDecoder_Aiff blinder;
+    EXPECT_THROW(blinder.open(foreign), pplib::DecoderInitializationException);
+}
+
+TEST_F(AudioDecoderTest, AiffOpenRejectsFrameSizeNotMatchingDepthAndChannels)
+{
+    // 24 Bit mit SPEC-Padding (4 Bytes je Kanal) und ein Info mit drei Kanaelen:
+    // die Frame-Laenge muss immer Bitbreite x Kanaele sein, sonst werden die Samples
+    // an der falschen Stelle gesucht
+    std::vector<char> payload;
+    for (int i = 0; i < 32; i++) putByte(payload, (char)0x5A);
+    std::vector<char> aiff = MakeAIFF16(2, 24, 8 + (uint32_t)payload.size(), 4, payload);
+    pplib::MemFile file(aiff.data(), aiff.size());
+
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    pplib::AudioDecoder_Aiff padded;
+    info.BytesPerSample = 8;
+    EXPECT_THROW(padded.open(file, &info), pplib::UnsupportedAudioFormatException) << "24 Bit auf 4 Bytes gepolstert";
+
+    pplib::AudioDecoder_Aiff widened;
+    info = pplib::AudioInfo();
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    info.BitsPerSample = 32;
+    info.BytesPerSample = 6;
+    EXPECT_THROW(widened.open(file, &info), pplib::UnsupportedAudioFormatException) << "32 Bit mit nur 3 Bytes je Kanal";
+
+    pplib::AudioDecoder_Aiff three;
+    info = pplib::AudioInfo();
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    info.Channels = 3;
+    info.BytesPerSample = 9;
+    EXPECT_THROW(three.open(file, &info), pplib::UnsupportedAudioFormatException) << "mehr als zwei Kanaele";
+}
+
+TEST_F(AudioDecoderTest, AiffReadWithoutOpenOrAfterCloseThrows)
+{
+    std::vector<char> payload;
+    appendBE(payload, 0x1234, 2);
+    appendBE(payload, 0x4321, 2);
+    std::vector<char> aiff = MakeAIFF16(2, 16, 8 + (uint32_t)payload.size(), 1, payload);
+    pplib::MemFile file(aiff.data(), aiff.size());
+
+    pplib::STEREOSAMPLE16 buf[4];
+    pplib::AudioDecoder_Aiff unused;
+    EXPECT_THROW(unused.getSamples(1, buf), pplib::DecoderException) << "readDecoded vor open()";
+
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+    EXPECT_EQ((size_t)1, decoder.getSamples(1, buf));
+    decoder.close();
+    EXPECT_THROW(decoder.getSamples(1, buf), pplib::DecoderException) << "readDecoded nach close()";
+    pplib::STEREOSAMPLE32 mix[4] = {};
+    EXPECT_THROW(decoder.addSamples(1, mix), pplib::DecoderException);
+    pplib::STEREOSAMPLE_FLOAT fbuf[4];
+    EXPECT_THROW(decoder.getSamples(1, fbuf), pplib::DecoderException);
+    pplib::AudioDecoder_Aiff offener;
+    ASSERT_NO_THROW(offener.open(file));
+    EXPECT_THROW(offener.getSamples(4, (pplib::STEREOSAMPLE16*)nullptr), pplib::DecoderException)
+        << "ein fehlender Puffer ist kein ignurierbarer Aufruf";
+    EXPECT_EQ((uint64_t)0, decoder.getAudioInfo().Samples) << "close() muss das AudioInfo invalidieren";
+    EXPECT_EQ((uint64_t)0, decoder.getAudioInfo().AudioStart);
+    EXPECT_EQ((uint64_t)0, decoder.getPosition());
+}
+
+TEST_F(AudioDecoderTest, AiffHostileAudioSizeBeyondFileIsClampedToFileEnd)
+{
+    std::vector<char> payload;
+    for (uint32_t frame = 0; frame < 4; frame++) {
+        appendBE(payload, 0x1000 + frame, 2);
+        appendBE(payload, 0x2000 + frame, 2);
+    }
+    std::vector<char> aiff = MakeAIFF16(2, 16, 8 + (uint32_t)payload.size(), 4, payload);
+    pplib::MemFile file(aiff.data(), aiff.size());
+
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    info.Samples = 20;                            // luegt mehr Frames als die Datei traegt
+    info.AudioSize = (uint64_t)file.size() * 2;  // AudioEnd liegt hinter dem Dateiende
+
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file, &info));
+    pplib::STEREOSAMPLE16 buf[16];
+    EXPECT_NO_THROW(EXPECT_EQ((size_t)4, decoder.getSamples(16, buf))) << "map() darf nicht iber das Dateiende lesen";
+    EXPECT_EQ((size_t)0, decoder.getSamples(16, buf));
+    EXPECT_EQ((size_t)4, decoder.getPosition());
+}
+
+TEST_F(AudioDecoderTest, AiffMonoFloatSourceIsReplicatedAndClipped)
+{
+    auto putFloat = [](std::vector<char>& v, float f) {
+        uint32_t bits;
+        memcpy(&bits, &f, sizeof(bits));
+        appendBE(v, bits, 4);
+    };
+    std::vector<char> payload;
+    putFloat(payload, 0.5f);
+    putFloat(payload, -2.0f);   // unterhalb des 16-Bit-Bereichs
+    putFloat(payload, 2.0f);    // oberhalb des 16-Bit-Bereichs
+    putFloat(payload, std::numeric_limits<float>::quiet_NaN());
+
+    std::vector<char> body;
+    putTag(body, "FVER");
+    put32be(body, 4);
+    put32be(body, 0xA2805140);
+    putTag(body, "COMM");
+    put32be(body, 24);
+    put16be(body, 1);  // mono
+    put32be(body, 4);
+    put16be(body, 32);
+    putExtended80(body, 44100);
+    putTag(body, "FL32");
+    putByte(body, 0);
+    putByte(body, 0);
+    putTag(body, "SSND");
+    put32be(body, 8 + (uint32_t)payload.size());
+    put32be(body, 0);
+    put32be(body, 0);
+    for (char c : payload) putByte(body, c);
+    std::vector<char> aifc;
+    putTag(aifc, "FORM");
+    put32be(aifc, (uint32_t)(4 + body.size()));
+    putTag(aifc, "AIFC");
+    aifc.insert(aifc.end(), body.begin(), body.end());
+
+    pplib::MemFile file(aifc.data(), aifc.size());
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+    ASSERT_EQ((uint64_t)1, decoder.getAudioInfo().Channels);
+
+    pplib::STEREOSAMPLE16 buf[4] = {};
+    EXPECT_EQ((size_t)4, decoder.getSamples(4, buf));
+    EXPECT_EQ((int16_t)16384, buf[0].left);
+    EXPECT_EQ((int16_t)16384, buf[0].right) << "Float-mono muss beide Ausgaenge fuellen";
+    EXPECT_EQ((int16_t)-32768, buf[1].left) << "nach unten auf den 16 Bit Bereich begrenzt";
+    EXPECT_EQ((int16_t)32767, buf[2].left) << "nach oben auf den 16 Bit Bereich begrenzt";
+    EXPECT_EQ((int16_t)0, buf[3].left) << "NaN wird zu 0, damit kein Mischpuffer vergiftet wird";
+
+    pplib::STEREOSAMPLE_FLOAT fbuf[4];
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)4, decoder.getSamples(4, fbuf));
+    EXPECT_FLOAT_EQ(0.5f, fbuf[0].left);
+    EXPECT_FLOAT_EQ(0.5f, fbuf[0].right) << "auch im Float-Ziel wird der mono-Kanal verdoppelt";
+    EXPECT_FLOAT_EQ(-2.0f, fbuf[1].left) << "ins Float-Ziel bleibt der Originalwert un begrenzt";
+    EXPECT_FLOAT_EQ(2.0f, fbuf[2].left);
+    EXPECT_NE(fbuf[3].left, fbuf[3].left) << "NaN wandert ins Float-Ziel unveraendert";
+
+    pplib::STEREOSAMPLE32 mix[4] = {};
+    decoder.seekSample(0);
+    EXPECT_EQ((size_t)4, decoder.addSamples(4, mix));
+    EXPECT_EQ(16384, mix[0].left);
+    EXPECT_EQ(16384, mix[0].right);
+    EXPECT_EQ((int32_t)-32768, mix[1].right) << "additiver Pfad muss ebenso begrenzen";
+    EXPECT_EQ(0, mix[3].left) << "NaN faengt im Mixpuffer mit 0 an";
+}
+
+TEST_F(AudioDecoderTest, AiffZeroSampleReadsLeavePositionUnchanged)
+{
+    std::vector<char> payload;
+    appendBE(payload, 0x1234, 2);
+    appendBE(payload, 0x4321, 2);
+    appendBE(payload, 0x1111, 2);
+    appendBE(payload, 0x2222, 2);
+    std::vector<char> aiff = MakeAIFF16(2, 16, 8 + (uint32_t)payload.size(), 2, payload);
+    pplib::MemFile file(aiff.data(), aiff.size());
+
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+    pplib::STEREOSAMPLE16 buf[4];
+    EXPECT_EQ((size_t)0, decoder.getSamples(0, buf)) << "eine Abfrage von null Samples ist kein Fehler";
+    pplib::STEREOSAMPLE_FLOAT fbuf[4];
+    EXPECT_EQ((size_t)0, decoder.getSamples(0, fbuf));
+    pplib::STEREOSAMPLE32 mix[4] = {};
+    EXPECT_EQ((size_t)0, decoder.addSamples(0, mix));
+    EXPECT_EQ((size_t)0, decoder.getPosition()) << "ein Leerraumlesen darf die Position nicht veraendern";
+}
+
+TEST_F(AudioDecoderTest, AiffAudioInfoOfAnotherFormatIsRejected)
+{
+    std::vector<char> payload;
+    appendBE(payload, 0x1234, 2);
+    appendBE(payload, 0x4321, 2);
+    std::vector<char> aiff = MakeAIFF16(2, 16, 8 + (uint32_t)payload.size(), 1, payload);
+    pplib::MemFile file(aiff.data(), aiff.size());
+
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    info.Format = pplib::AudioInfo::AudioFormat::WAVE;
+
+    pplib::AudioDecoder_Aiff decoder;
+    EXPECT_THROW(decoder.open(file, &info), pplib::UnsupportedAudioFormatException)
+        << "das Format muss auch bei mitgeliefertem AudioInfo geprueft werden";
+
+    info.Format = pplib::AudioInfo::AudioFormat::AIFF;
+    info.Channels = 5;
+    EXPECT_THROW(decoder.open(file, &info), pplib::UnsupportedAudioFormatException)
+        << "mehr als zwei Kanaael koennen nicht auf Stereodaten abgebildet werden";
+    info.Channels = 0;
+    EXPECT_THROW(decoder.open(file, &info), pplib::UnsupportedAudioFormatException) << "ein Kanal ohne Daten ist kein Ton";
+}
+
+TEST_F(AudioDecoderTest, AiffRaisesSmallMapWindowAndKeepsALargerOne)
+{
+    // Bei einem Vorlesebereich von null wuerde jeder getSamples-Aufruf ein
+    // mmap/munmap-Paar ausloesen. Der Dekoder hebt ihn an,verschlechtert aber
+    // einen bereits groesseren Wert des Aufrufers nicht
+    pplib::File file;
+    ASSERT_NO_THROW(OpenFileOnly(file, "test_44kHz.aiff"));
+    file.setMapWindowSize(4 * 1024);
+    pplib::AudioDecoder_Aiff decoder;
+    ASSERT_NO_THROW(decoder.open(file));
+    EXPECT_EQ((size_t)(32 * 1024), file.getMapWindowSize()) << "der Mindestbereich muss gesetzt werden";
+    pplib::STEREOSAMPLE16 buf[8];
+    EXPECT_EQ((size_t)8, decoder.getSamples(8, buf));
+
+    pplib::File gross;
+    ASSERT_NO_THROW(OpenFileOnly(gross, "test_44kHz.aiff"));
+    gross.setMapWindowSize(64 * 1024);
+    pplib::AudioDecoder_Aiff zweiter;
+    ASSERT_NO_THROW(zweiter.open(gross));
+    EXPECT_EQ((size_t)(64 * 1024), gross.getMapWindowSize()) << "ein groesserer Wert bleibt erhalten";
+    EXPECT_EQ((size_t)8, zweiter.getSamples(8, buf));
+    gross.close();
+    file.close();
+}
+
+TEST_F(AudioDecoderTest, AiffRealFixturesDecodeToTheSameSixteenBitValues)
+{
+    // Die fuenf realen Dateien von Audacity enthalten dieselbe Wellenform in
+    // 16 bit stereo, 16 bit mono, 24 bit stereo, 32 bit Integer und 32 bit Float.
+    // Alle Dekoderpfade muessen dieselben 16 bit Werte liefern, sofern die
+    // Audacity-Export durch das Runden nicht um 1 LSB abweichen
+    pplib::File f16, f24, f32, fFl, fMono;
+    pplib::AudioDecoder_Aiff d16, d24, d32, dFl, dMono;
+    ASSERT_NO_THROW(OpenAIFF(f16, d16, "test_44kHz.aiff"));
+    ASSERT_NO_THROW(OpenAIFF(f24, d24, "test_44kHz_24bit.aiff"));
+    ASSERT_NO_THROW(OpenAIFF(f32, d32, "test_44kHz_32bit.aiff"));
+    ASSERT_NO_THROW(OpenAIFF(fFl, dFl, "test_44kHz_32bit_float.aiff"));
+    ASSERT_NO_THROW(OpenAIFF(fMono, dMono, "test_44kHz_16bit_mono.aiff"));
+    ASSERT_EQ((uint64_t)2, d16.getAudioInfo().Channels);
+    ASSERT_EQ((uint64_t)1, dMono.getAudioInfo().Channels) << "die Mono-Datei muss als mono erkannt werden";
+
+    pplib::STEREOSAMPLE16 a[8], b[8], c[8], m[8];
+    pplib::STEREOSAMPLE_FLOAT fl[8];
+    ASSERT_EQ((size_t)8, d16.getSamples(8, a));
+    ASSERT_EQ((size_t)8, d24.getSamples(8, b));
+    ASSERT_EQ((size_t)8, d32.getSamples(8, c));
+    ASSERT_EQ((size_t)8, dFl.getSamples(8, fl));
+    ASSERT_EQ((size_t)8, dMono.getSamples(8, m));
+
+    for (size_t i = 0; i < 8; i++) {
+        EXPECT_NEAR((int)a[i].left, (int)b[i].left, 1) << "24 bit Linkskanal Frame " << i;
+        EXPECT_NEAR((int)a[i].right, (int)b[i].right, 1) << "24 bit Rechtskanal Frame " << i;
+        EXPECT_NEAR((int)a[i].left, (int)c[i].left, 1) << "32 bit Linkskanal Frame " << i;
+        EXPECT_NEAR((int)a[i].right, (int)c[i].right, 1) << "32 bit Rechtskanal Frame " << i;
+        EXPECT_NEAR((float)a[i].left / 32768.0f, fl[i].left, 1.0f / 32768.0f) << "Float Linkskanal Frame " << i;
+        EXPECT_NEAR((float)a[i].right / 32768.0f, fl[i].right, 1.0f / 32768.0f) << "Float Rechtskanal Frame " << i;
+        EXPECT_EQ(m[i].left, m[i].right) << "mono muss beide Ausgaenge fuellen Frame " << i;
+        // Die Mono-Datei ist ein Downmix der Stereo-Vorlage, also Mitte aus beiden
+        // Kanaelen. Der Vergleich mit den realen Dateien haelt nur bis 4 LSB, weil
+        // Audacity beim Export mit Ditherung arbeitet
+        EXPECT_NEAR((float)m[i].left, ((float)a[i].left + (float)a[i].right) / 2.0f, 4.0f) << "mono Frame " << i;
+    }
 }

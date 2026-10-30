@@ -202,25 +202,138 @@ public:
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
+/** @class AudioDecoder_Aiff
+ * @ingroup PPLGroupSound
+ * @brief Decoder für unkomprimierte AIFF- und AIFF-C-Dateien.
+ *
+ * Unterstützt werden klassische AIFF-Dateien (`FORM`/`AIFF`) sowie AIFF-C
+ * (`FORM`/`AIFC`) mit dem Kompressionstyp `NONE` oder `FL32`. Alle anderen
+ * AIFF-C-Kompressionen (zum Beispiel `sowt`, `ulaw`, `alaw`, `adpc`, `fl64`) leitet
+ * `open()` mit `UnsupportedAudioFormatException` ab, ebenso Dateien mit mehr als zwei
+ * Kanälen. Monodateien werden unterstützt, indem das eine Kanal-Sample auf links und
+ * rechts kopiert wird.
+ *
+ * Die Samples stehen in der nativen Abtastrate der Datei zur Verfügung; eine
+ * Konvertierung der Abtastrate findet nicht statt. Beim Lesen werden die Werte auf den
+ * Wertebereich des Zielpuffers skaliert:
+ *
+ * | Quelle                        | `getSamples(STEREOSAMPLE16)` | `addSamples(STEREOSAMPLE32)` | `getSamples`/`addSamples`(STEREOSAMPLE_FLOAT) |
+ * | ----------------------------- | ---------------------------- | ---------------------------- | --------------------------------------------- |
+ * | 16 Bit Integer                | unverändert                  | unverändert                  | Wert / 32768,0f                               |
+ * | 24 Bit Integer                | Wert >> 8                    | Wert >> 8                    | Wert / 8388608,0f                             |
+ * | 32 Bit Integer                | Wert >> 16                   | Wert >> 16                   | Wert / 2147483648,0f                          |
+ * | 32 Bit Float (AIFF-C `FL32`)  | Wert × 32768, auf ±32768 begrenzt | Wert × 32768 (additiv) | unverändert                                   |
+ *
+ * Der `STEREOSAMPLE32`-Puffer dient dem Mischen mehrerer Quellen: er nimmt durchgehend
+ * Werte im 16-Bit-Wertebereich auf, egal welche Bitbreite eine Quelle hat. Mehrere
+ * decodierte Streams können dadurch ohne weitere Skalierung addiert und anschliessend
+ * auf den 16-Bit-Bereich begrenzt werden. Abgeschnitten wird jeweils ohne Rundung.
+ *
+ * @note Die AIFF-Spezifikation definiert Samplewerte als Vorzeichen-Betrag-Werte
+ * (Sign-Magnitude). Der Decoder interpretiert sie - wie die gängigen Encoder
+ * (ffmpeg, Audacity) - als Zweierkomplement.
+ *
+ * @note Ein 24-Bit-Sample belegt genau 3 Bytes je Kanal, ein 16-Bit-Sample 2 Bytes.
+ * Das in der Spezifikation erwähnte Auffüllen auf 16-Bit-Wortgrenzen (24 Bit in 4 Bytes)
+ * wird nicht erkannt; eine so geschriebene Datei liefert falsche Samples.
+ *
+ * @see AudioInfo::SampleEncoding
+ */
 class AudioDecoder_Aiff : public AudioDecoder
 {
 private:
+    /** @brief Kodierung eines Kanal-Samples, wie sie `open()` aus dem AudioInfo ableitet. */
+    enum class FrameEncoding : uint8_t
+    {
+        NONE = 0,    //!< kein offener Decoder bzw. nicht unterstuetzte Kodierung
+        INT16 = 1,   //!< 16-Bit-Zweierkomplement
+        INT24 = 2,   //!< 24-Bit-Zweierkomplement, gepackt in 3 Bytes
+        INT32 = 3,   //!< 32-Bit-Zweierkomplement
+        FLOAT32 = 4  //!< 32-Bit-IEEE-Float (AIFF-C-Kompression `FL32`)
+    };
+
     FileObject* ff;
     AudioInfo info;
     size_t position;
-    size_t samplesize;
+    size_t bytesPerChannel;  //!< Bytes eines Kanal-Samples innerhalb eines Frames
+    FrameEncoding encoding;
+
+    /** @brief Begrenzt die angeforderte Samplezahl und liefert den Dateiversatz des
+     *         ersten Frames. Rueckgabewert 0 bedeutet "nichts zu lesen".
+     *
+     * @exception DecoderException Kein offener Dateihandle oder \p buffer ist NULL.
+     */
+    size_t prepareRead(size_t num, const void* buffer, uint64_t& offset) const;
 
 public:
     AudioDecoder_Aiff();
     ~AudioDecoder_Aiff() override;
+
+    /** @brief Öffnet die Datei und legt die Kodierung der Samples fest.
+     *
+     * Wird \p info übergeben, verwendet der Decoder diese Werte unverändert. Er prüft
+     * dann Format, Kanalzahl, und die Kombination aus `BitsPerSample`, `BytesPerSample`
+     * sowie `SampleType`; jede nicht dekodierbare Kombination wird mit
+     * `UnsupportedAudioFormatException` abgelehnt. Alle weiteren Felder, insbesondere
+     * `AudioStart` und `AudioSize`, werden vorausgesetzt und nicht gegen die Datei
+     * validiert - übergebene Werte müssen also von `IdentAudioFile()` stammen.
+     *
+     * @exception UnsupportedAudioFormatException Format ist nicht AIFF/AIFF-C, oder die
+     *   Sample-Kodierung wird nicht unterstützt.
+     * @exception DecoderInitializationException Das Format wurde nicht erkannt.
+     */
     void open(FileObject& file, const AudioInfo* info = NULL) override;
+
+    /** @brief Schließt den Decoder und erklärt das AudioInfo für ungültig.
+     *
+     * Nach `close()` liefert `getAudioInfo()` ein leeres `AudioInfo` (alle Felder 0),
+     * `seekSample()` hat keine Wirkung und die Lesemethoden werfen eine Exception.
+     */
     void close() override;
+
+    /** @brief Gibt Informationen über das geöffnete Audio zurück.
+     *
+     * Sinnvolle Werte liefert die Methode nur zwischen `open()` und `close()`.
+     */
     const AudioInfo& getAudioInfo() const override;
+
+    /** @brief Setzt die Position auf das gegebene Sample (Frame).
+     *
+     * Werte jenseits des Dateiendes werden an `AudioInfo::Samples` begrenzt; eine
+     * Exception wird nie ausgelöst. Nach `close()` bleibt die Position auf 0 stehen.
+     */
     void seekSample(size_t sample) override;
+
     size_t getPosition() const override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
+     *
+     * Rückgabe ist die tatsächlich gelesene Anzahl an Frames (ein Frame = ein Sample je
+     * Kanal), höchstens \p num. Am Dateiende wird 0 ohne Exception geliefert. Der
+     * Puffer muss groß genug für die returnierte Anzahl sein; er wird nicht aufgefüllt.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32 (Mischbetrieb).
+     *
+     * Siehe Klassenbeschreibung zur Skala der addierten Werte.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
