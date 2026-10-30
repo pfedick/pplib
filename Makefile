@@ -32,8 +32,10 @@ PREFIX ?= /usr/local
 
 ifeq ($(OS),Windows_NT)
     EXE = .exe
+    ASAN_LEAKS ?= 0    # LeakSanitizer existiert nur fuer Linux/Android
 else
     EXE =
+    ASAN_LEAKS ?= 1
 endif
 
 release:
@@ -68,6 +70,35 @@ build_tests:
 
 test: build_tests
 	cd tests && ../build/debug/tests/test_all$(EXE) --gtest_color=yes
+
+# Build & Lauf der Tests mit Address- und Undefined-Behaviour-Sanitizer.
+# Eigener Build-Ordner build/asan, damit der normale Debug-Build unangetastet bleibt.
+# TEST_ARGS erlaubt Selektion, z.B.: make asan TEST_ARGS="--gtest_filter=WideStringTest*"
+# Ohne installierte libubsan (Fedora: sudo dnf install libubsan) nur ASan verwenden:
+#   make asan ASAN_SANITIZERS=address
+ASAN_SANITIZERS ?= address,undefined
+ASAN_FLAGS ?= -fsanitize=$(ASAN_SANITIZERS) -fno-omit-frame-pointer -g -O1
+ASAN_OPTIONS ?= detect_leaks=$(ASAN_LEAKS):halt_on_error=0:max_errors=30:allocator_may_return_null=1
+UBSAN_OPTIONS ?= print_stacktrace=1:halt_on_error=0
+ASAN_LOG ?= build/asan/sanitizer.log
+
+# SHELL=bash, damit PIPESTATUS den Exit-Code des Tests hinter 'tee' liefert
+asan: SHELL := /bin/bash
+asan:
+	cmake -B build/asan -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_FLAGS="$(ASAN_FLAGS)" -DCMAKE_GTEST_DISCOVER_TESTS_DISCOVERY_MODE=PRE_TEST
+	cmake --build build/asan -j --target test_all
+	# Mitschnitt: Sanitizer-Meldungen gehen auf stderr und liegen zwischen den
+	# gtest-Zeilen. Komplette Ausgabe bleibt im Log erhalten, am Ende folgt die Zusammenfassung.
+	cd tests && ASAN_OPTIONS=$(ASAN_OPTIONS) UBSAN_OPTIONS=$(UBSAN_OPTIONS) ../build/asan/tests/test_all$(EXE) --gtest_color=yes $(TEST_ARGS) 2>&1 | tee ../$(ASAN_LOG); \
+	rc=$${PIPESTATUS[0]}; \
+	sed -i 's/\x1b\[[0-9;]*[A-Za-z]//g' ../$(ASAN_LOG); \
+	found=$$(grep -cE 'ERROR: (Address|Leak)Sanitizer|runtime error:' ../$(ASAN_LOG) || true); \
+	echo ""; \
+	echo "=== Sanitizer-Report ($(ASAN_SANITIZERS), Log: $(ASAN_LOG)) ==="; \
+	echo "Gefundene Meldungen: $$found    Exit-Code der Tests: $$rc"; \
+	grep -oE '^[^ ]+\.(c|cpp|h):[0-9]+:[0-9]+: runtime error: .*' ../$(ASAN_LOG) | sort -u | sed 's|^$(CURDIR)/||; s|^|  UBSan  |'; \
+	grep -E 'ERROR: (Address|Leak)Sanitizer|SUMMARY: (Address|Leak)Sanitizer|detected memory leaks' ../$(ASAN_LOG) | sort -u | sed 's|^|  ASan   |'; \
+	[ $$rc -eq 0 ] && [ $$found -eq 0 ] || exit 1
 
 #xml: debug
 #	cmake --build build/debug --target test_core test_audio test_crypto test_grafix test_database test_inet
@@ -114,4 +145,4 @@ html:
 	cp docs/pplib-icon-48x48.png documentation/html
 	echo "Documentation generated at documentation/html/index.html"
 
-.PHONY: all build_tests test coverage wip clean doku html
+.PHONY: all build_tests test asan coverage wip clean doku html
