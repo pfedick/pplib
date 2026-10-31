@@ -79,6 +79,10 @@ public:
      *   sind UNKNOWN.
      * - OGG: ausschliesslich Ogg-Vorbis; Opus oder FLAC im Ogg-Container sind UNKNOWN.
      * - MP3: MPEG Layer 1-3.
+     * - FLAC: `fLaC` mit `STREAMINFO` als erstem Metadata-Block, `last-metadata-block`
+     *   gesetzt, maximal 2 Kanaele und 16 oder 24 Bit. Vorangestellte ID3v2-Tags und ein
+     *   ID3v1-Tag am Dateiende werden akzeptiert; ein Decoder ist nur verfuegbar, wenn
+     *   pplib mit libFLAC gebaut wurde.
      */
     enum class AudioFormat : uint8_t
     {
@@ -86,7 +90,8 @@ public:
         WAVE = 1,      //!< RIFF/WAVE (PCM oder 32-Bit-Float, 8..32 Bit, max. 2 Kanaele)
         AIFF = 2,      //!< AIFF/AIFF-C (Apple Audio Interchange File Format, nur unkomprimiert oder FL32)
         MP3 = 3,       //!< MPEG Layer 1-3
-        OGG = 4        //!< Ogg Vorbis (Opus/FLAC im Ogg-Container gelten als UNKNOWN)
+        OGG = 4,       //!< Ogg Vorbis (Opus/FLAC im Ogg-Container gelten als UNKNOWN)
+        FLAC = 5       //!< FLAC (Lossless, max. 2 Kanaele, 16 oder 24 Bit, STREAMINFO required)
     };
     /** @brief Kanalmodus
      *

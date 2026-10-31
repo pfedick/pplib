@@ -335,6 +335,155 @@ bool IdentMP3(FileObject& file, AudioInfo& info, PPL_MPEG_HEADER& mp3)
     return true;
 }
 
+/** @brief Groesse eines ID3v2-Tags am Dateianfang ermitteln
+ *
+ * Ein ID3v2-Tag vor den Audiodaten ist bei MP3 üblich und wird von manchen
+ * Exportwerkzeugen auch vor eine FLAC-Datei gesetzt, obwohl die FLAC-Spec das nicht
+ * vorsieht. Für die Erkennung ist nur die Größe relevant, weil sie den Anfang der
+ * Audiodaten verschiebt.
+ *
+ * @return Byteanzahl des Tags inklusive 10 Byte Kopf, 0 wenn kein ID3v2-Tag am Anfang steht
+ */
+uint64_t ID3v2TagSize(FileObject& file, uint64_t fsize)
+{
+    const char* adr = file.tryMap(0, 10);
+    if (adr == nullptr) return 0;
+    if (memcmp(adr, "ID3", 3) != 0) return 0;
+    if (Peek8(adr + 3) < 2) return 0; // vor ID3v2.2 gibt es kein Größenfeld in diesem Format
+    //Die Tag-Größe ist ein Synchsafe Integer: 4 x 7 Bit, der Kopf ist nicht mitgezählt
+    const uint64_t size = ((uint64_t)Peek8(adr + 6) << 21) | ((uint64_t)Peek8(adr + 7) << 14)
+                        | ((uint64_t)Peek8(adr + 8) << 7) | (uint64_t)Peek8(adr + 9);
+    if (size + 10 + 4 > fsize) return 0; // Tag muss vollständig in der Datei liegen
+    return size + 10;
+}
+
+/** @brief Bitfeld eines Big-Endian-Bitstroms lesen
+ *
+ * FLAC packt seine Metadata-Felder bitgenau und nicht byte-aligniert. @p start und
+ * @p count zählen vom MSB von @p adr aus; @p count bleibt immer <= 36, das Ergebnis
+ * passt also stets in uint64_t.
+ */
+uint64_t PeekBits(const char* adr, uint32_t start, uint32_t count)
+{
+    uint64_t value = 0;
+    for (uint32_t i = 0; i < count; i++) {
+        const uint32_t pos = start + i;
+        const uint8_t byte = (uint8_t)adr[pos / 8];
+        value = (value << 1) | (uint64_t)((byte >> (7 - (pos % 8))) & 1);
+    }
+    return value;
+}
+
+/** @brief FLAC-Datei identifizieren und aus dem STREAMINFO-Block beschreiben
+ *
+ * Ein FLAC-Stream besteht aus dem Magic `fLaC`, einer Folge von Metadata-Blöcken und
+ * danach den komprimierten Frames. Der STREAMINFO-Block muss der erste Block sein; er
+ * enthält Sample-Rate, Kanalzahl, Bitbreite und die Gesamtzahl Samples. Alle übrigen
+ * Blocktypen (PADDING, SEEKTABLE, VORBIS_COMMENT, PICTURE ...) werden übersprungen,
+ * weil die AudioInfo keine Tag-Inhalte abbildet.
+ *
+ * @return true = FLAC erkannt und unterstuetzt
+ */
+bool IdentFLAC(FileObject& file, AudioInfo& info)
+{
+    const uint64_t fsize = file.size();
+
+    info.Format = AudioInfo::AudioFormat::FLAC;
+    info.IsVBR = false;
+    info.SampleType = AudioInfo::SampleEncoding::INTEGER; // Flieskomm-Samples gibt es in FLAC nicht
+    info.FileSize = fsize;
+
+    const uint64_t tagsize = ID3v2TagSize(file, fsize);
+    if (tagsize != 0) {
+        info.HaveID3v2Tag = true;
+        info.ID3v2TagStart = 0; // wie bei MP3: das Tag beginnt immer am Dateianfang
+    }
+
+    uint32_t frequency = 0;
+    uint32_t channels = 0;
+    uint32_t bitdepth = 0;
+    uint64_t declaredSamples = 0;
+    uint64_t maxBlocksize = 4096;
+    uint64_t p = tagsize + 4; // hinter dem "fLaC"-Magic
+    bool haveSTREAMINFO = false;
+    bool lastBlock = false;
+
+    //Block-Schleife: der Block mit gesetztem last-Bit (Bit 7) schliesst die Metadata ab
+    while (p + 4 <= fsize) {
+        const char* hdr = file.tryMap(p, 4);
+        if (hdr == nullptr) return false;
+        lastBlock = (Peek8(hdr) & 0x80) != 0;
+        const uint8_t type = (uint8_t)Peek8(hdr) & 0x7F;
+        //Blocklänge: 3 Byte big endian, also bis 16 MByte je Block
+        const uint64_t size = ((uint64_t)Peek8(hdr + 1) << 16) | ((uint64_t)Peek8(hdr + 2) << 8)
+                            | (uint64_t)Peek8(hdr + 3);
+        const uint64_t payload = p + 4;
+        if (payload + size > fsize) return false; // Block reicht über das Dateiende
+
+        if (type == 0) {
+            //STREAMINFO ist Pflicht, muss der erste Block sein und ist immer 34 Bytes groß
+            if (haveSTREAMINFO || payload + 34 > fsize || p != tagsize + 4 || size != 34) return false;
+            const char* si = file.map(payload, 34);
+            maxBlocksize    = PeekBits(si, 16, 16);  // maximale Blockgröße in Samples
+            frequency       = (uint32_t)PeekBits(si, 80, 20);
+            channels        = (uint32_t)PeekBits(si, 100, 3) + 1;
+            bitdepth        = (uint32_t)PeekBits(si, 103, 5) + 1;
+            declaredSamples = PeekBits(si, 108, 36);
+            haveSTREAMINFO  = true;
+        }
+
+        p = payload + size;
+        if (lastBlock) break;
+    }
+    if (!haveSTREAMINFO || !lastBlock) return false;
+
+    if (frequency == 0) return false;
+    //Kanaldichte und Bitbreite sind reine STREAMINFO-Fakten und werden gemeldet, auch wenn
+    //pplib dafuer keinen Decoder hat (8/32 Bit, 5.1). Erkennung und Unterstuetzung sind
+    //getrennt; abgelehnt wird erst in AudioDecoder_Flac::open().
+
+    //Die Frames beginnen direkt hinter dem letzten Metadata-Block. Ein ID3v1-Tag am
+    //Dateiende (128 Bytes, Magic "TAG") zählt nicht zu den Audiodaten.
+    const uint64_t audioStart = p;
+    uint64_t audioStop = fsize;
+    if (fsize >= audioStart + 128) {
+        const char* id3v1 = file.tryMap(fsize - 128, 3);
+        if (id3v1 != nullptr && memcmp(id3v1, "TAG", 3) == 0) audioStop = fsize - 128;
+    }
+    const uint64_t audioSize = audioStop - audioStart;
+    if (audioSize == 0) return false;
+
+    //Die Samplezahl steht in 36 Bit und ist bei Stream-Aufnahmen 0. Nach oben wird sie an
+    //die größtmögliche Zahl übertragener Samples geklemmt: jeder Frame überträgt höchstens
+    //maxBlocksize Samples und kostet mindestens 1 Byte. Das ist eine Plausibilitätsgrenze,
+    //keine exakte Grenze, weil FLAC komprimiert.
+    uint64_t samples = declaredSamples;
+    const uint64_t maxSamples = ((maxBlocksize == 0) ? 4096 : maxBlocksize) * audioSize;
+    if (samples > maxSamples) samples = maxSamples;
+
+    uint8_t bytesPerSample = (uint8_t)(((bitdepth + 7) / 8) * channels);
+
+    info.Frequency = frequency;
+    info.Channels = (uint8_t)channels;
+    info.Mode = (channels == 1) ? AudioInfo::ChannelMode::MONO : AudioInfo::ChannelMode::STEREO;
+    info.BitsPerSample = (uint8_t)bitdepth;
+    info.BytesPerSample = bytesPerSample;
+    info.AudioStart = audioStart;
+    info.AudioSize = audioSize;
+    info.AudioEnd = audioStart + audioSize - 1;
+    info.Samples = samples;
+
+    //Länge und Bitrate folgen aus der Samplezahl; bei unbekannter Samplezahl (STREAMINFO 0)
+    //bleiben beide 0, der Decoder nutzt dann die von libFLAC gemeldete Laufzeitposition.
+    if (samples > 0) {
+        uint64_t ms = (uint64_t)samples * 1000 / frequency;
+        info.Length = (uint32_t)((ms > UINT32_MAX) ? UINT32_MAX : ms);
+        const uint64_t kbit = (audioSize * 8 / 1000) * frequency / samples;
+        info.Bitrate = (uint16_t)((kbit > UINT16_MAX) ? UINT16_MAX : kbit);
+    }
+    return true;
+}
+
 /** @brief Gemeinsames Format-Sniffing beider IdentAudioFile-Overloads.
  *
  * Ermittelt anhand der Headerbytes das Audioformat. Bei MP3 wird zusatzlich
@@ -369,6 +518,13 @@ AudioInfo::AudioFormat DetectFormat(FileObject& file, PPL_MPEG_HEADER* mp3)
     if (fourcc(adr, "OggS"))
         return isOggVorbis(file, fsize) ? AudioInfo::AudioFormat::OGG : AudioInfo::AudioFormat::UNKNOWN;
 
+    // FLAC: Das "fLaC"-Magic sitzt am Dateianfang oder direkt hinter einem ID3v2-Tag, das
+    // manche Exportwerkzeuge vor eine FLAC-Datei setzen. Vor der MPEG-Suche pruefen: die
+    // findet in komprimierten FLAC-Nutzdaten regelmaessig eine vorgetaeuschte Frame-Sync.
+    if (const char* flacadr = file.tryMap(ID3v2TagSize(file, fsize), 4)) {
+        if (fourcc(flacadr, "fLaC")) return AudioInfo::AudioFormat::FLAC;
+    }
+
     PPL_MPEG_HEADER local;
     PPL_MPEG_HEADER* target = mp3 ? mp3 : &local;
     if (IdentMPEG(file, target)) return AudioInfo::AudioFormat::MP3;
@@ -400,6 +556,9 @@ bool IdentAudioFile(FileObject& file, AudioInfo& info)
         break;
     case AudioInfo::AudioFormat::OGG:
         ok = IdentOggVorbisAudioFile(file, result);
+        break;
+    case AudioInfo::AudioFormat::FLAC:
+        ok = IdentFLAC(file, result);
         break;
     default:
         break;

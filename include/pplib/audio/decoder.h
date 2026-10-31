@@ -509,6 +509,125 @@ public:
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
+//! libFLAC-Handle, Datenbasis und Rohsamples; vollstaendig in AudioDecoder_Flac.cpp definiert
+struct FlacState;
+
+/** @class AudioDecoder_Flac
+ * @ingroup PPLGroupSound
+ * @brief Decoder für FLAC-Dateien (`fLaC`) mit 16 oder 24 Bit pro Kanal.
+ *
+ * Unterstützt werden Dateien mit einem oder zwei Kanälen und 16 oder 24 Bit pro
+ * Kanal. Monodateien werden unterstützt, indem das eine Kanal-Sample auf links und
+ * rechts kopiert wird. Alles andere (mehr Kanäle, 8/32 Bit, Kompression in Ogg)
+ * lehnt `open()` mit `UnsupportedAudioFormatException` ab; `IdentAudioFile()`
+ * erkennt solche Dateien nicht als dekodierbares `FLAC`.
+ *
+ * Metadaten-Blöcke ( Padding, SEEKTABLE, VORBIS_COMMENT, PICTURE) werden übersprungen,
+ * ein vorangestelltes ID3v2-Tag und ein ID3v1-Tag am Dateiende über das `AudioInfo`
+ * berücksichtigt. Eine Konvertierung der Abtastrate findet nicht statt. Beim Lesen
+ * werden die Werte auf den Wertebereich des Zielpuffers skaliert:
+ *
+ * | Quelle        | `getSamples(STEREOSAMPLE16)` | `addSamples(STEREOSAMPLE32)` | `getSamples`/`addSamples`(STEREOSAMPLE_FLOAT) |
+ * | ------------- | ---------------------------- | ---------------------------- | --------------------------------------------- |
+ * | 16 Bit        | unverändert                  | unverändert                  | Wert / 32768,0f                               |
+ * | 24 Bit        | Wert >> 8                    | Wert >> 8                    | Wert / 8388608,0f                             |
+ *
+ * Der `STEREOSAMPLE32`-Puffer dient dem Mischen mehrerer Quellen: er nimmt durchgehend
+ * Werte im 16-Bit-Wertebereich auf, egal welche Bitbreite eine Quelle hat.
+ * Abgeschnitten wird jeweils ohne Rundung.
+ *
+ * @note libFLAC liefert die Samples pro Kanal als separate, rechtsbündige `int32_t`-Ebenen;
+ * der Decoder verschränkt (interleave) sie und wandelt sie beim Lesen um, damit alle
+ * Zielformate aus derselben Rohdatenquelle gespeist werden.
+ *
+ * @note Voraussetzung ist ein pplib-Build mit libFLAC (CMake-Option `PPLIB_WITH_FLAC`).
+ * Fehlt die Bibliothek, wirft `open()` eine `UnsupportedFeatureException`.
+ *
+ * @see AudioInfo::AudioFormat::FLAC
+ */
+class AudioDecoder_Flac : public AudioDecoder
+{
+private:
+    FlacState* state;  //!< libFLAC-Handle, Datenbasis und Rohsamples (in DER Uebersetzung definiert)
+    FileObject* ff;
+    AudioInfo info;
+    size_t position;
+    uint8_t srcBits;  //!< Bits pro Kanal laut STREAMINFO, 0 = kein offener Decoder
+
+    /** @brief Laedt Rohdaten decodiert nach, bis mindestens \p num Frames bereitstehen.
+     *
+     *  @return Anzahl bereitstehender Frames (kann wegen Dateiende kleiner sein).
+     *  @exception DecoderException interner Decodierfehler. */
+    size_t fillFrames(size_t num);
+
+    /** @brief Umweg ueber alle vier Lesemethoden: genau einer der drei Zielzeiger ist gesetzt.
+     *
+     *  @exception DecoderException Kein offener Decoder oder \p buffer ist NULL. */
+    size_t transferFrames(size_t num, STEREOSAMPLE16* buf16, STEREOSAMPLE32* buf32,
+                          STEREOSAMPLE_FLOAT* bufFloat, bool add);
+
+public:
+    AudioDecoder_Flac();
+    ~AudioDecoder_Flac() override;
+
+    /** @brief Öffnet die Datei, liest die Metadaten und prueft die Unterstuetzung.
+     *
+     * Wird \p info übergeben, verwendet der Decoder Kanalzahl, Bitbreite, Abtastrate und
+     * Ortsangaben unverändert; andernfalls ermittelt er sie mit `IdentAudioFile()`.
+     * Abgelehnt werden mehrere als ein oder zwei Kanäle und Bitbreiten ausser 16 und 24.
+     *
+     * @exception UnsupportedAudioFormatException Datei ist kein FLAC, oder das Format
+     *   wird nicht unterstützt.
+     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
+     * @exception DecoderException Der Datenanfang der FLAC-Kette ist nicht auffindbar.
+     */
+    void open(FileObject& file, const AudioInfo* info = nullptr) override;
+
+    /** @brief Schließt den Decoder und erklärt das AudioInfo für ungültig.
+     *
+     * Nach `close()` liefert `getAudioInfo()` ein leeres `AudioInfo` (alle Felder 0),
+     * `seekSample()` hat keine Wirkung und die Lesemethoden werfen eine Exception.
+     */
+    void close() override;
+
+    const AudioInfo& getAudioInfo() const override;
+
+    /** @brief Setzt die Position auf das Sample mit der gegebenen Nummer.
+     *
+     * libFLAC springt zum Rahmen, der das Ziel-Sample enthaelt; die Position liegt
+     * danach genau an dem angeforderten Sample. Werte ueber dem Ende werden auf das
+     * letzte Sample begrenzt, wenn die Samplezahl bekannt ist. Ein Fehlschlag des
+     * Sprungs laesst die Position unveraendert.
+     */
+    void seekSample(size_t sample) override;
+
+    size_t getPosition() const override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
+    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
+    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
+    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
+    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+};
+
 } // namespace pplib
 
 #endif // PPLIB_AUDIO_DECODER_H

@@ -1072,5 +1072,398 @@ TEST_F(AudioInfoTest, OpusInOggContainerIsNotSupported)
     file.close();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+// FLAC: Container, STREAMINFO und ID3-Grenzen
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+/** @brief Schreibt Bits in einen Byte-Puffer, MSB zuerst (Reihenfolge der STREAMINFO-Felder) */
+class FlacBitWriter
+{
+public:
+    FlacBitWriter(std::vector<char>& out) : out(out) {}
+    void Put(uint64_t value, uint32_t count)
+    {
+        for (uint32_t i = count; i > 0; i--) {
+            buf = (char)((buf << 1) | ((value >> (i - 1)) & 1));
+            if (++bits == 8) {
+                out.push_back(buf);
+                buf = 0;
+                bits = 0;
+            }
+        }
+    }
+    /// schliesst ein unvollstaendiges Byte mit Nullen auf (STREAMINFO ist exakt 34 Byte,
+    /// noetig nur fuer nachgebaut defekte Bloeke)
+    void Flush()
+    {
+        if (bits != 0) {
+            out.push_back((char)(buf << (8 - bits)));
+            buf = 0;
+            bits = 0;
+        }
+    }
+
+private:
+    std::vector<char>& out;
+    char buf = 0;
+    uint8_t bits = 0;
+};
+
+/// Metadata-Block-Kopf: 1 Bit last-flag, 7 Bit Typ, 3 Byte Groesse (Big Endian)
+static void PutFLACBlockHeader(std::vector<char>& v, uint8_t type, uint32_t size, bool last)
+{
+    v.push_back((char)((last ? 0x80 : 0x00) | (type & 0x7F)));
+    v.push_back((char)((size >> 16) & 0xFF));
+    v.push_back((char)((size >> 8) & 0xFF));
+    v.push_back((char)(size & 0xFF));
+}
+
+/** @brief STREAMINFO-Block (Typ 0) mit vorgegebenen Werten
+ *
+ * \p blockBits setzt die Bitbreite der Block-/Framegroessen, damit sich mit kleinem
+ * maxBlocksize die Obergrenze der Samplezahl gezielt unterholen laesst.
+ */
+static void PutFLACStreamInfo(std::vector<char>& v, uint16_t channels, uint32_t bitdepth,
+                              uint32_t rate, uint64_t totalSamples, uint16_t maxBlocksize = 4096,
+                              bool last = true, uint32_t blockBits = 16)
+{
+    PutFLACBlockHeader(v, 0, 34, last);
+    FlacBitWriter bits(v);
+    bits.Put(maxBlocksize, blockBits);
+    bits.Put(maxBlocksize, blockBits);
+    bits.Put(0, 24);  // minFrameSize
+    bits.Put(0, 24);  // maxFrameSize
+    bits.Put(rate, 20);
+    bits.Put(channels - 1, 3);
+    bits.Put(bitdepth - 1, 5);
+    bits.Put(totalSamples, 36);
+    for (int i = 0; i < 16; i++) bits.Put(0, 8);  // MD5
+    bits.Flush();
+}
+
+/** @brief Minimaler FLAC-Container: Magic, optional Padding vor STREAMINFO, dann \p audioBytes Daten */
+static std::vector<char> MakeFLAC(uint16_t channels = 2, uint32_t bitdepth = 16, uint32_t rate = 44100,
+                                  uint64_t totalSamples = 100, size_t audioBytes = 512,
+                                  uint16_t maxBlocksize = 4096, size_t paddingBefore = 0)
+{
+    std::vector<char> v;
+    putTag(v, "fLaC");
+    if (paddingBefore != 0) {
+        PutFLACBlockHeader(v, 1, (uint32_t)paddingBefore, false);
+        for (size_t i = 0; i < paddingBefore; i++) put8(v, 0);
+    }
+    PutFLACStreamInfo(v, channels, bitdepth, rate, totalSamples, maxBlocksize);
+    for (size_t i = 0; i < audioBytes; i++) put8(v, (char)(i & 0xFF));
+    return v;
+}
+
+/// schreibt 128 Bytes ID3v1-Tag (Magic "TAG") an das Dateiende
+static void AppendID3v1(std::vector<char>& v)
+{
+    put8(v, 'T'); put8(v, 'A'); put8(v, 'G');
+    for (int i = 0; i < 125; i++) put8(v, 0);
+}
+
+/** @brief Alle Felder einer erkannten FLAC-Datei gegen die Erwartungen pruefen
+ *
+ * Die Samples-Angabe ist bei allen Testdateien 173695, daher sind Length und Bitrate
+ * feste Rechenwerte (Length = Samples*1000/Frequency, Bitrate = AudioSize*8/FileSize*kHz).
+ */
+void ExpectFLAC(const pplib::AudioInfo& info, uint64_t fileSize, uint64_t audioStart,
+                uint64_t audioSize, uint64_t samples, uint32_t length, uint16_t bitrate,
+                uint8_t channels, uint8_t bitdepth, uint32_t frequency = 44100)
+{
+    EXPECT_EQ(AF::FLAC, info.Format);
+    EXPECT_EQ(fileSize, info.FileSize);
+    EXPECT_EQ(audioStart, info.AudioStart) << "erster Frame-Byte";
+    EXPECT_EQ(audioStart + audioSize - 1, info.AudioEnd);
+    EXPECT_EQ(audioSize, info.AudioSize) << " Frames bis Dateiende, ohne ID3-Tags";
+    EXPECT_EQ(samples, info.Samples);
+    EXPECT_EQ(length, info.Length);
+    EXPECT_EQ(bitrate, info.Bitrate);
+    EXPECT_EQ(frequency, info.Frequency);
+    EXPECT_EQ(channels, info.Channels);
+    EXPECT_EQ(bitdepth, info.BitsPerSample);
+    EXPECT_EQ((uint8_t)((bitdepth / 8) * channels), info.BytesPerSample);
+    EXPECT_EQ(channels == 1 ? CM::MONO : CM::STEREO, info.Mode);
+    EXPECT_EQ(SE::INTEGER, info.SampleType) << "FLAC kennt keine Fliesskomma-Samples";
+    EXPECT_FALSE(info.IsVBR);
+}
+
+TEST_F(AudioInfoTest, Flac16BitStereo)
+{
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_16bit.flac");
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    ExpectFLAC(info, 278361, 86, 278275, 173695, 3938, 565, 2, 16);
+    EXPECT_FALSE(info.HaveID3v2Tag);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
+}
+
+TEST_F(AudioInfoTest, Flac24BitStereo)
+{
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_24bit.flac");
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    ExpectFLAC(info, 280674, 86, 280588, 173695, 3938, 569, 2, 24);
+}
+
+TEST_F(AudioInfoTest, FlacMono)
+{
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_mono.flac");
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    // VORBIS_COMMENT und 8192 Byte Padding vor den Frames verschieben AudioStart
+    ExpectFLAC(info, 139616, 8286, 131330, 173695, 3938, 266, 1, 16);
+}
+
+TEST_F(AudioInfoTest, FlacSkipsSeektableAndVorbisComment)
+{
+    // STREAMINFO + SEEKTABLE (72 Byte) + VORBIS_COMMENT (40 Byte, letzter Block)
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_16bit_seektable.flac");
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    ExpectFLAC(info, 278437, 162, 278275, 173695, 3938, 565, 2, 16);
+}
+
+TEST_F(AudioInfoTest, FlacWithID3v2TagAtStartShiftsAudioStart)
+{
+    // 8192 Byte grosses ID3v2.3-Tag (Syncsafe-Value 8192, Kopf 10 Byte) vor "fLaC"
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_16bit_id3v2.flac");
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_TRUE(info.HaveID3v2Tag);
+    EXPECT_EQ((uint64_t)0, info.ID3v2TagStart);
+    ExpectFLAC(info, 286563, 8288, 278275, 173695, 3938, 565, 2, 16);
+    file.close();
+}
+
+TEST_F(AudioInfoTest, FlacWithID3v1TagAtEndExcludesTag)
+{
+    // 128 Byte ID3v1 am Ende: AudioEnd liegt davor, die Audiodaten selbst sind identisch
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_16bit_id3v1.flac");
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    ExpectFLAC(info, 278489, 86, 278275, 173695, 3938, 565, 2, 16);
+    EXPECT_FALSE(info.HaveID3v2Tag);
+}
+
+TEST_F(AudioInfoTest, FlacReportsHeaderSampleCountForTruncatedFile)
+{
+    // Nur der Kopf ist erhalten, die Frames fehlen. Die Erkennung liefert die deklarierte
+    // Samplezahl der STREAMINFO; dass der Decoder spaeter am Dateiende endet, prueft die Decoder-Suite.
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_16bit_truncated.flac");
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ((uint64_t)20000, info.FileSize);
+    EXPECT_EQ((uint64_t)86, info.AudioStart);
+    EXPECT_EQ((uint64_t)19914, info.AudioSize);
+    EXPECT_EQ((uint64_t)173695, info.Samples);
+    EXPECT_EQ((uint32_t)3938, info.Length);
+    EXPECT_EQ((uint16_t)40, info.Bitrate) << "Bitrate errechnet sich aus den vorhandenen Bytes";
+}
+
+TEST_F(AudioInfoTest, FlacStreamWithoutSampleCountKeepsLengthZero)
+{
+    // Eine uber eine Pipe kodierte FLAC-Datei nennt im STREAMINFO 0 als Gesamtsamplezahl.
+    // Ein ratengeschaezter Wert waere eine erfundene Obergrenze fur seekSample(), deshalb
+    // bleiben Samples, Length und Bitrate 0; die vorhandenen Bytes werden korrekt gemeldet.
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_16bit_stream.flac");
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    // Nach dem Kopf steht ein grosses PADDING-Block, die Frames starten spaeter
+    ExpectFLAC(info, 288051, 8286, 279765, 0, 0, 0, 2, 16);
+    EXPECT_FALSE(info.HaveID3v2Tag);
+}
+
+TEST_F(AudioInfoTest, FlacReportsSixChannelsAsFLAC)
+{
+    // STREAMINFO weist 6 Kanaele aus: die Erkennung meldet die Fakten des Containers,
+    // abgelehnt wird die Datei erst im Decoder (AudioDecoderFlacTest.OpenRejects... ).
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_51.flac");
+    EXPECT_EQ(AF::FLAC, pplib::IdentAudioFile(file));
+    pplib::AudioInfo info = SentinelInfo();
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    ExpectFLAC(info, 288844, 8328, 280516, 173695, 3938, 569, 6, 16);
+}
+
+TEST_F(AudioInfoTest, FlacReportsUnsupportedBitDepthsAsFLAC)
+{
+    // reale Datei mit 8 Bit pro Sample. Das 32-Bit-Beispiel ist nachgebaut, weil reale
+    // Encoder 32 Bit nicht erzeugen; beide sind guiltiges FLAC, nur ohne Decoder in pplib.
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_8bit.flac");
+    EXPECT_EQ(AF::FLAC, pplib::IdentAudioFile(file));
+    pplib::AudioInfo info = SentinelInfo();
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    ExpectFLAC(info, 24670, 8304, 16366, 8820, 200, 650, 2, 8);
+
+    std::vector<char> flac = MakeFLAC(2, 32, 44100, 100, 512);
+    pplib::MemFile wide(flac.data(), flac.size());
+    pplib::AudioInfo wideInfo = SentinelInfo();
+    ASSERT_TRUE(pplib::IdentAudioFile(wide, wideInfo));
+    ExpectFLAC(wideInfo, flac.size(), 42, 512, 100, 2, 1764, 2, 32);
+}
+
+TEST_F(AudioInfoTest, FlacStreamInfoMustBeFirstBlock)
+{
+    // Padding vor STREAMINFO: der Decoder verlangt den ersten Block
+    std::vector<char> flac = MakeFLAC(2, 16, 44100, 100, 512, 4096, 8);
+    pplib::MemFile file(flac.data(), flac.size());
+    pplib::AudioInfo expected = SentinelInfo();
+    pplib::AudioInfo info = SentinelInfo();
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+    EXPECT_TRUE(SameInfo(info, expected)) << "info darf bei Misserfolg nicht veraendert werden";
+}
+
+TEST_F(AudioInfoTest, FlacStreamInfoLengthBeyondToleranceIsRejected)
+{
+    std::vector<char> flac;
+    putTag(flac, "fLaC");
+    PutFLACBlockHeader(flac, 0, 33, true);
+    FlacBitWriter bits(flac);
+    bits.Put(4096, 16);
+    bits.Put(4096, 16);
+    bits.Put(0, 48);
+    bits.Put(44100, 20);
+    bits.Put(1, 3);
+    bits.Put(15, 5);
+    bits.Put(100, 36);
+    for (int i = 0; i < 15; i++) bits.Put(0, 8);  // ein Byte MD5 zu wenig
+    bits.Flush();
+    for (int i = 0; i < 512; i++) put8(flac, (char)(i & 0xFF));
+
+    pplib::MemFile file(flac.data(), flac.size());
+    pplib::AudioInfo info;
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+}
+
+TEST_F(AudioInfoTest, FlacWithoutLastMetadataBlockIsRejected)
+{
+    // STREAMINFO und PADDING, aber kein Block mit last-metadata-block: die Position der
+    // Frames steht nicht fest, also UNKNOWN. Nach dem letzten Block ist Dateiende.
+    std::vector<char> flac;
+    putTag(flac, "fLaC");
+    PutFLACStreamInfo(flac, 2, 16, 44100, 100, 4096, false);
+    PutFLACBlockHeader(flac, 1, 4, false);
+    for (int i = 0; i < 4; i++) put8(flac, 0);
+
+    pplib::MemFile file(flac.data(), flac.size());
+    pplib::AudioInfo info;
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+}
+
+TEST_F(AudioInfoTest, FlacMetadataBlockSizeBeyondEofIsRejected)
+{
+    // SEEKTABLE mit deklarierter Groesse hinter dem Dateiende
+    std::vector<char> flac;
+    putTag(flac, "fLaC");
+    PutFLACStreamInfo(flac, 2, 16, 44100, 100, 4096, false);
+    PutFLACBlockHeader(flac, 3, 1024 * 1024, true);
+
+    pplib::MemFile file(flac.data(), flac.size());
+    pplib::AudioInfo info;
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+}
+
+TEST_F(AudioInfoTest, FlacSampleCountIsCappedByAvailableBytes)
+{
+    // STREAMINFO behauptet 1 Mio. Samples. Jeder Frame uebertraegt hoechstens maxBlocksize
+    // Samples (hier 2) und kostet mindestens ein Byte, also wird auf 2 * 20000 begrenzt.
+    std::vector<char> flac = MakeFLAC(2, 16, 44100, 1u << 20, 20000, 2);
+    pplib::MemFile file(flac.data(), flac.size());
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ((uint64_t)(2 * 20000), info.Samples);
+    EXPECT_EQ((uint32_t)(40000 * 1000 / 44100), info.Length);
+    EXPECT_GT(info.Bitrate, (uint16_t)0);
+}
+
+TEST_F(AudioInfoTest, FlacStreamEnclosingZeroSampleCountGivesZeroDuration)
+{
+    // total samples = 0 bedeutet "unbekannt" (Stream-Aufnahme): Laenge und Bitrate sind 0,
+    // die Vorwaertswerte der Streaminfo bleiben aber erhalten
+    std::vector<char> flac = MakeFLAC(2, 24, 48000, 0, 20000);
+    pplib::MemFile file(flac.data(), flac.size());
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ((uint64_t)0, info.Samples);
+    EXPECT_EQ((uint32_t)0, info.Length);
+    EXPECT_EQ((uint16_t)0, info.Bitrate);
+    EXPECT_EQ((uint32_t)48000, info.Frequency);
+    EXPECT_EQ((uint8_t)24, info.BitsPerSample);
+    EXPECT_EQ((uint8_t)6, info.BytesPerSample);
+    EXPECT_EQ((uint64_t)20000, info.AudioSize);
+}
+
+TEST_F(AudioInfoTest, FlacWithEmptyID3v2TagAtStart)
+{
+    // ID3v2-Header ohne Frames (Taggroesse 0): die Revision faehrt die Suche danach fort
+    std::vector<char> flac = MakeFLAC(2, 16, 44100, 100, 512);
+    std::vector<char> all;
+    put8(all, 'I'); put8(all, 'D'); put8(all, '3');  // putTag wuerfe ein 4. Byte anhaengen
+    put8(all, 3);  // Major Version 3
+    put8(all, 0);  // Minor Version
+    put8(all, 0);  // keine Flags
+    for (int i = 0; i < 4; i++) put8(all, 0);        // Taggroesse 0: nur der 10-Byte-Header
+    all.insert(all.end(), flac.begin(), flac.end());
+
+    pplib::MemFile file(all.data(), all.size());
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_TRUE(info.HaveID3v2Tag);
+    EXPECT_EQ(0u, info.ID3v2TagStart);
+    // 10 Byte ID3v2-Header + 4 Byte Magie + Block-Kopf + 34 Byte STREAMINFO
+    ExpectFLAC(info, all.size(), 10u + 4u + 4u + 34u, 512, 100, 2, 1764, 2, 16);
+}
+
+TEST_F(AudioInfoTest, FlacID3v2TagClaimingSizeBeyondEofIsUnknown)
+{
+    std::vector<char> all;
+    put8(all, 'I'); put8(all, 'D'); put8(all, '3');
+    put8(all, 3);  // Major Version 3
+    put8(all, 0);  // Minor Version
+    put8(all, 0);  // keine Flags
+    for (int i = 0; i < 4; i++) put8(all, 0x7F);  // syncsichere 268435455
+    std::vector<char> flac = MakeFLAC(2, 16, 44100, 100, 512);
+    all.insert(all.end(), flac.begin(), flac.end());
+
+    pplib::MemFile file(all.data(), all.size());
+    EXPECT_EQ(AF::UNKNOWN, pplib::IdentAudioFile(file));
+    pplib::AudioInfo info;
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+}
+
+TEST_F(AudioInfoTest, FlacWithID3v1TagAtEndOfSyntheticFile)
+{
+    std::vector<char> flac = MakeFLAC(2, 16, 44100, 100, 512);
+    AppendID3v1(flac);
+
+    pplib::MemFile file(flac.data(), flac.size());
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    // 4 Byte Magie + 1 Block-Kopf + 34 Byte STREAMINFO + 128 Byte ID3v1
+    ExpectFLAC(info, 4u + 38u + 512u + 128u, 4u + 38u, 512, 100, 2, 1764, 2, 16);
+    EXPECT_EQ(4u + 38u + 512u - 1u, info.AudioEnd);
+}
+
+TEST_F(AudioInfoTest, FlacEmptyStreamIsRejected)
+{
+    // Kopf vorhanden, aber keine Frames: wie bei WAVE/AIFF ist eine Datei ohne Audiodaten UNKNOWN
+    std::vector<char> flac = MakeFLAC(2, 16, 44100, 0, 0);
+    pplib::MemFile file(flac.data(), flac.size());
+    pplib::AudioInfo info;
+    EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+}
+
 } // namespace
 

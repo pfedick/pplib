@@ -45,6 +45,7 @@ AudioDecoder* GetAudioDecoder(FileObject& file)
     if (info.Format == AudioInfo::AudioFormat::WAVE) decoder = (AudioDecoder*)new AudioDecoder_Wave();
     if (info.Format == AudioInfo::AudioFormat::MP3) decoder = (AudioDecoder*)new AudioDecoder_MP3();
     if (info.Format == AudioInfo::AudioFormat::OGG) decoder = (AudioDecoder*)new AudioDecoder_Ogg();
+    if (info.Format == AudioInfo::AudioFormat::FLAC) decoder = (AudioDecoder*)new AudioDecoder_Flac();
 
     if (!decoder) return NULL;
     decoder->open(file, &info);

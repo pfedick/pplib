@@ -89,7 +89,7 @@ sudo apt install -y gcc g++ nasm googletest \
    libbind-dev libmysqlclient-dev libpq-dev libsqlite3-dev \
    libpng-dev libjpeg-dev libtiff-dev libsdl2-dev libfreetype6-dev \
    libmad0-dev libmp3lame-dev libmpg123-dev \
-   libogg-dev libshout3-dev libmicrohttpd-dev libidn11-dev
+   libogg-dev libshout3-dev libmicrohttpd-dev libidn11-dev libflac-dev
 \endcode
 
 Ist alles installiert, kann man das configure mit folgenden Parametern aufrufen:
@@ -175,7 +175,7 @@ pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-bzip2 mingw-w64-x86_64-curl min
     mingw-w64-x86_64-libiconv mingw-w64-x86_64-libidn mingw-w64-x86_64-libjpeg-turbo \
     mingw-w64-x86_64-libmad mingw-w64-x86_64-libpng mingw-w64-x86_64-libogg mingw-w64-x86_64-libtiff \
     mingw-w64-x86_64-mpg123 mingw-w64-x86_64-nasm mingw-w64-x86_64-openssl mingw-w64-x86_64-pcre \
-    mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-zlib
+    mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-zlib mingw-w64-x86_64-flac
 \endcode
 
 \subsubsection inst3mingw_mcrypt MCrypt installieren
