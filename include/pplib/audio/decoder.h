@@ -450,35 +450,126 @@ public:
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
+struct Mp3Data;
+
+/**
+ * @brief MP3-Decoder auf Basis von libmpg123.
+ *
+ * Getragen werden Mono und Stereo; die gelieferten Samples entsprechen der in der Datei
+ * kodierten Abtastrate, es wird weder resampelt noch auf zwei Kanäle hochgemischt. Eine
+ * MP3-Datei enthält keinen Header mit Rahmen- oder Samplezahl: die von `IdentAudioFile()`
+ * gemeldete Zahl stammt aus dem Xing-/VBRI-Feld oder aus dem Durchzählen der Rahmen und kann
+ * von der tatsächlich dekodierbaren Menge abweichen. Dekodiert wird bis zum letzten Rahmen.
+ *
+ * Das Ausgabeformat des Decoders wird in `open()` aus den ermittelten Parametern gesetzt;
+ * das Umschalten zwischen 16-Bit- und Float-Zielpuffer während des Abspielens ist ohne
+ * Sampleverlust möglich.
+ *
+ * @exception DecoderException libmpg123 ist nicht verfügbar oder nicht initialisierbar.
+ * @exception UnsupportedAudioFormatException kein MP3, keine 1-2 Kanaele, fehlender Audiodatenblock.
+ *
+ * Ohne libmpg123 (`HAVE_MPG123` undefiniert) sind alle Methoden vorhanden, werfen aber
+ * `UnsupportedFeatureException`.
+ */
 class AudioDecoder_MP3 : public AudioDecoder
 {
 private:
-    void* decoder;
-    FileObject* ff;
-    uint8_t* readbuffer;
-    uint8_t* outbuffer;
+    Mp3Data* mp3;  ///< libmpg123-Handle, Datenbasis und dekodierte Samples (in DER Uebersetzung definiert)
 
     AudioInfo info;
     size_t position;
-    size_t samplesize;
-    size_t out_offset, out_size;
-    bool isRunning;
-    bool needInput;
-    int lastDecodeFormat;
 
-    size_t fillDecodeBuffer();
+    /** @brief Dekodiert den naechsten Block in den Ausgangspuffer `Mp3Data::outbuffer`.
+     *
+     * Setzt `outframes`/`outpos` zurueck und fuellt neu. Liefert false, wenn die
+     * Audiodaten erschöpft sind (`Mp3Data::eof`); der Aufrufer liefert dann 0 Frames.
+     */
+    bool fillFrames();
+    /** @brief Gleicht `info` (Kanalzahl, Abtastrate) an die von libmpg123 gemeldeten
+     *         Parameter an und setzt die Format-Tabelle erneut.
+     */
+    void syncFormat();
+    /** @brief Stellt die Kodierung des Ausgabepuffers ein (`MPG123_ENC_SIGNED_16` oder
+     *         `MPG123_ENC_FLOAT_32`). Samples, die schon im internen Puffer stehen, bleiben
+     *         erhalten und werden bei der naechsten Uebertragung umgerechnet.
+     */
+    void setTargetEncoding(int encoding);
+    /** @brief öffnet die Spur über libmpg123 erneut, damit sie in der eingestellten
+     *         Kodierung dekodiert, und sucht auf \p resume zurück.
+     *
+     * @note Nur aufrufen, wenn der interne Puffer leer ist; der Rückwärtssuchlauf ist
+     *       der einzige Preis des Wechsels.
+     */
+    void switchEncoding(size_t resume);
+    /** @brief Holt bis zu \p num Frames (zu je zwei Werten) aus dem Ausgangspuffer in
+     *         \p dest; die Elementgroesse ergibt sich aus der eingestellten Kodierung.
+     *         Stehen im Puffer noch Samples der vorherigen Kodierung, werden sie
+     *         umgerechnet; bei Mono werden beide Kanäle gefüllt.
+     */
+    size_t transferFrames(size_t num, void* dest);
 
 public:
     AudioDecoder_MP3();
     ~AudioDecoder_MP3() override;
+
+    /** @brief Oeffnet den Stream und richtet das Ausgabeformat von libmpg123 nach den
+     *         ermittelten Parametern ein.
+     *
+     * @exception UnsupportedAudioFormatException \p file ist kein MP3, oder Kanalzahl,
+     *            Abtastrate und Audiodatenblock passen nicht zueinander.
+     * @exception DecoderException libmpg123 stellt kein Handle zur Verfuegung.
+     */
     void open(FileObject& file, const AudioInfo* info = NULL) override;
+
+    /** @brief Gibt dekodierte Samples und das libmpg123-Handle frei. Die Datei des
+     *         Aufrufers bleibt offen. Mehrfaches `close()` ist erlaubt; anschliessend
+     *         melden die Lesemethoden `DecoderException`, `open()` ist erneut moeglich.
+     */
     void close() override;
+
     const AudioInfo& getAudioInfo() const override;
+
+    /** @brief Springt framegenau zur Frameposition. libmpg123 sucht dafuer bytemaessig
+     *         im Audiodatenblock und landet immer an einer Rahmenkante; Springe ueber
+     *         das Ende der Audiodaten hinaus werden nicht begrenzt.
+     */
     void seekSample(size_t sample) override;
+
     size_t getPosition() const override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
+     *
+     * Rückgabe ist die tatsächlich gelesene Anzahl an Frames (ein Frame = ein Sample je
+     * Kanal), höchstens \p num. Am Dateiende wird 0 ohne Exception geliefert. Der
+     * Puffer muss groß genug für die returnierte Anzahl sein; er wird nicht aufgefüllt.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32 (Mischbetrieb).
+     *
+     * Die MP3-Samples liegen bereits auf der 16-Bit-Skala des Mischpuffers und werden
+     * unveraendert addiert.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
+     *
+     * Die Samples werden wie in `getSamples()` mit `STEREOSAMPLE16` durch 32768 geteilt,
+     * damit beide Zieltypen dieselbe Skala haben. Ein Formatwechsel des Decoders
+     * (Mono/Stereo, Samplefrequenz) mitten im Stream wird beruecksichtigt.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 

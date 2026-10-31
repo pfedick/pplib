@@ -45,35 +45,139 @@ namespace pplib
 #ifdef HAVE_MPG123
 static Mutex MPG123_GlobalMutex;
 static uint64_t mpg123_instances = 0;
-#define READBUFFER 1024 * 1024
-#define OUTBUFF 32768
+static bool mpg123_initialized = false;
+
+/// Puffergroessen: auf dem Desktop grosshalten, auf Mikrocontrollern deutlich kleiner.
+/// Der Ausgabepuffer faesst einen MP3 Rahmen mit maximal 1152 Samples je Kanal.
+#ifdef PICO_BUILD
+constexpr size_t OUTBUFF = 4 * 1024;
+#else
+constexpr size_t OUTBUFF = 32 * 1024;
+#endif
+
+/// normierter Float-Wert ([-1,1]) entspricht der 16 Bit Vollskala.
+/// Nur noetig, wenn im Puffer noch 16 Bit Samples liegen und ein Float-Ziel gefuellt wird.
+constexpr float FULL_SCALE_16 = 32768.0f;
+
+/// Frames pro Durchlauf durch die Float- und Mixpfade
+constexpr size_t CHUNKFRAMES = 1024;
+
+struct Mp3Data
+{
+    mpg123_handle* handle = nullptr;
+    FileObject* file = nullptr;
+    int64_t audiostreamstart = 0;                             ///< erstes Byte des Audiodatenblocks in der Datei
+    int64_t audiolength = 0;                                  ///< Groesse des Audiodatenblocks in Bytes
+    int64_t pos = 0;                                          ///<Position innerhalb des Audiodatenblocks
+    unsigned char* outbuffer = nullptr;                       ///< dekodierte Samples in der Kodierung von bufencoding
+    size_t outcapacity = 0;                                   ///< Kapazitaet von outbuffer in Bytes
+    size_t outframes = 0;                                     ///< gueltige Frames im outbuffer
+    size_t outpos = 0;                                        ///< naechstes abzweigendes Frame
+    size_t channels = 0;                                      ///< Kanaele des Decoderausgangs
+    int encoding = MPG123_ENC_SIGNED_16;                      ///< vom Zielpuffer geforderte Kodierung
+    int bufencoding = MPG123_ENC_SIGNED_16;                   ///< Kodierung des Inhalts von outbuffer
+    bool eof = false;                                         ///< kein weiteres Frame mehr zu holen
+};
+
+static size_t SampleWidth(int encoding)
+{
+    return (encoding == MPG123_ENC_FLOAT_32) ? sizeof(float) : sizeof(int16_t);
+}
+
+static int16_t ClampToInt16(float value)
+{
+    if (value >= 1.0f) return 32767;
+    if (value <= -1.0f) return -32768;
+    return (int16_t)(value * FULL_SCALE_16);
+}
+
+static std::string DecoderError(mpg123_handle* handle)
+{
+    return std::string(mpg123_strerror(handle));
+}
+
+/** @brief Rückruffunktion von libmpg123: Datenblock über FileObject lesen
+ *
+ * libmpg123 sieht einen eigenen Datenstrom, dessen Position 0 der erste Byte des
+ * Audiodatenblocks ist. Anhaengsel wie ein ID3v1-Tag oder Auffuellbytes nach dem letzten
+ * Rahmen gehoeren nicht zu diesem Strom und gelangen nicht in den Decoder.
+ */
+static mpg123_ssize_t ReadStream(void* clientdata, void* buffer, size_t len)
+{
+    Mp3Data* mp3 = static_cast<Mp3Data*>(clientdata);
+    if (mp3 == nullptr || mp3->file == nullptr) return -1;
+    if (mp3->pos >= mp3->audiolength) return 0;
+    if (len > (size_t)(mp3->audiolength - mp3->pos)) len = (size_t)(mp3->audiolength - mp3->pos);
+    try {
+        mp3->file->seek((uint64_t)(mp3->audiostreamstart + mp3->pos));
+        size_t got = mp3->file->read(buffer, len);
+        mp3->pos += (int64_t)got;
+        return (mpg123_ssize_t)got;
+    } catch (Exception&) {
+        // Die Rueckruffunktion laeuft in fremdem C-Code, eine Exception darf hier nicht herauslaufen
+        return -1;
+    }
+}
+
+/** @brief Rückruffunktion von libmpg123: Datenbasis in FileObject verschieben
+ *
+ * libmpg123 nutzt SEEK_END um die Groesse des Datenstroms zu ermitteln. Als Ende gilt die
+ * Groesse des Audiodatenblocks, nicht das Dateiende, damit ein indexierter Sprung nie in
+ * einem Anhang landet.
+ */
+static off_t SeekStream(void* clientdata, off_t offset, int origin)
+{
+    Mp3Data* mp3 = static_cast<Mp3Data*>(clientdata);
+    if (mp3 == nullptr || mp3->file == nullptr) return -1;
+    int64_t base;
+    switch (origin) {
+        case SEEK_SET: base = 0; break;
+        case SEEK_CUR: base = mp3->pos; break;
+        case SEEK_END: base = mp3->audiolength; break;
+        default: return -1;
+    }
+    int64_t target = base + offset;
+    if (target < 0) target = 0;
+    if (target > mp3->audiolength) target = mp3->audiolength;
+    try {
+        mp3->file->seek((uint64_t)(mp3->audiostreamstart + target));
+        mp3->pos = target;
+        return (off_t)target;
+    } catch (Exception&) {
+        return -1;
+    }
+}
+
+/** @brief Rückruffunktion von libmpg123: Datenbasis schliessen
+ *
+ * Die Datei gehoert dem Aufrufer und wird hier nicht geschlossen.
+ */
+static void CloseStream(void* /*clientdata*/)
+{
+}
 #endif
 
 AudioDecoder_MP3::AudioDecoder_MP3()
 {
     position = 0;
-    samplesize = 0;
-    ff = NULL;
-    decoder = NULL;
-    readbuffer = NULL;
-    outbuffer = NULL;
-    out_offset = 0;
-    out_size = 0;
-    isRunning = false;
-    needInput = false;
-    lastDecodeFormat = 0;
 #ifdef HAVE_MPG123
-    lastDecodeFormat = MPG123_ENC_SIGNED_16;
+    mp3 = new (std::nothrow) Mp3Data;
+    if (mp3 == nullptr) throw OutOfMemoryException();
     MPG123_GlobalMutex.lock();
-    if (!mpg123_instances) {
+    if (!mpg123_initialized) {
         int ret = mpg123_init();
         if (ret != MPG123_OK) {
             MPG123_GlobalMutex.unlock();
+            delete mp3;
+            mp3 = nullptr;
             throw DecoderInitializationException("mpg123_init: %s", mpg123_plain_strerror(ret));
         }
+        mpg123_initialized = true;
     }
     mpg123_instances++;
     MPG123_GlobalMutex.unlock();
+#else
+    mp3 = nullptr;
 #endif
 }
 
@@ -81,74 +185,47 @@ AudioDecoder_MP3::~AudioDecoder_MP3()
 {
     close();
 #ifdef HAVE_MPG123
-    MPG123_GlobalMutex.lock();
-    if (mpg123_instances) {
-        mpg123_instances--;
-        if (mpg123_instances == 0) {
-            mpg123_exit();
+    if (mp3 != nullptr) {
+        MPG123_GlobalMutex.lock();
+        if (mpg123_instances) {
+            mpg123_instances--;
+            if (mpg123_instances == 0) {
+                mpg123_exit();
+                mpg123_initialized = false;
+            }
         }
+        MPG123_GlobalMutex.unlock();
+        delete mp3;
+        mp3 = nullptr;
     }
-    MPG123_GlobalMutex.unlock();
-#endif
-}
-
-void AudioDecoder_MP3::open(FileObject& file, const AudioInfo* info)
-{
-#ifndef HAVE_MPG123
-    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
-#else
-
-    if (!info) {
-        if (!IdentAudioFile(file, this->info)) {
-            throw UnsupportedAudioFormatException();
-        }
-    } else {
-        this->info = *info;
-    }
-    if (this->info.Format != AudioInfo::AudioFormat::MP3) throw UnsupportedAudioFormatException();
-    position = 0;
-    this->ff = &file;
-    if (decoder) mpg123_delete((mpg123_handle*)decoder);
-    int err;
-    decoder = mpg123_new(NULL, &err);
-    if (!decoder) throw DecoderInitializationException("mpg123_new: %s", mpg123_plain_strerror(err));
-    err = mpg123_open_feed((mpg123_handle*)decoder);
-    if (err != MPG123_OK) throw DecoderException("mpg123_open_feed: %s", mpg123_plain_strerror(err));
-    // mpg123_param((mpg123_handle*)decoder, MPG123_VERBOSE,2,0);
-    mpg123_format_none((mpg123_handle*)decoder);
-    mpg123_format((mpg123_handle*)decoder, 44100, MPG123_STEREO, MPG123_ENC_SIGNED_16);
-    lastDecodeFormat = MPG123_ENC_SIGNED_16;
-    out_offset = 0;
-    out_size = 0;
-    isRunning = true;
-    needInput = true;
-    // Buffer Reservieren, falls noch nicht vorhanden
-    if (!readbuffer) {
-        readbuffer = (uint8_t*)malloc(READBUFFER);
-        if (!readbuffer) throw OutOfMemoryException();
-    }
-    if (!outbuffer) {
-        outbuffer = (uint8_t*)malloc(OUTBUFF);
-        if (!outbuffer) throw OutOfMemoryException();
-    }
-    this->ff->seek(this->info.AudioStart);
 #endif
 }
 
 void AudioDecoder_MP3::close()
 {
-    free(readbuffer);
-    free(outbuffer);
 #ifdef HAVE_MPG123
-    if (decoder) mpg123_delete((mpg123_handle*)decoder);
+    if (mp3 == nullptr) return;
+    if (mp3->handle != nullptr) {
+        mpg123_close(mp3->handle);
+        mpg123_delete(mp3->handle);
+        mp3->handle = nullptr;
+    }
+    free(mp3->outbuffer);
+    mp3->outbuffer = nullptr;
+    mp3->file = nullptr;
+    mp3->audiostreamstart = 0;
+    mp3->audiolength = 0;
+    mp3->pos = 0;
+    mp3->outcapacity = 0;
+    mp3->outframes = 0;
+    mp3->outpos = 0;
+    mp3->channels = 0;
+    mp3->encoding = MPG123_ENC_SIGNED_16;
+    mp3->bufencoding = MPG123_ENC_SIGNED_16;
+    mp3->eof = false;
 #endif
-    ff = NULL;
     position = 0;
-    out_offset = 0;
-    out_size = 0;
-    isRunning = false;
-    needInput = false;
-    decoder = nullptr;
+    memset(&info, 0, sizeof(AudioInfo));
 }
 
 const AudioInfo& AudioDecoder_MP3::getAudioInfo() const
@@ -156,244 +233,387 @@ const AudioInfo& AudioDecoder_MP3::getAudioInfo() const
     return info;
 }
 
-void AudioDecoder_MP3::seekSample(size_t sample)
-{
-    if (sample == 0) {
-        ff->seek(info.AudioStart);
-        out_offset = 0;
-        out_size = 0;
-#ifdef HAVE_MPG123
-        off_t input_offset = 0;
-        mpg123_feedseek((mpg123_handle*)decoder, 0, SEEK_SET, &input_offset);
-#endif
-        return;
-    }
-    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3::seekSample");
-    // if (sample<info.Samples) position=sample;
-    // else position=info.Samples;
-}
-
 size_t AudioDecoder_MP3::getPosition() const
 {
     return position;
 }
 
-size_t AudioDecoder_MP3::fillDecodeBuffer()
+#ifdef HAVE_MPG123
+
+/** @brief setzt die Formatparameter des Decoders aus den ermittelten Audiodaten.
+ *
+ * libmpg123 waehlt einen Zielparameter aus der Formattabelle, der nicht zum kodierten Format
+ * passt, indem es die Samples hochreampelt oder auf zwei Kanaele aufmischt. Deshalb wird die
+ * Tabelle auf die reale Abtastrate und die reale Kanaelzahl gesetzt.
+ */
+static void ApplyDecoderFormat(mpg123_handle* handle, const AudioInfo& info, int encoding)
+{
+    mpg123_format_none(handle);
+    int mask = (info.Channels == 1) ? MPG123_MONO : MPG123_STEREO;
+    mpg123_format(handle, (long)info.Frequency, mask, encoding);
+}
+#endif  // HAVE_MPG123
+
+void AudioDecoder_MP3::open(FileObject& file, const AudioInfo* audioinfo)
 {
 #ifdef HAVE_MPG123
-    size_t size = 0;
-    int ret;
-    while (size == 0) {
-        ret = mpg123_read((mpg123_handle*)decoder, outbuffer, OUTBUFF, &size);
-        if (ret == MPG123_NEED_MORE) {
-            size_t restbytes = ff->size() - ff->tell();
-            size_t maxbytes = READBUFFER;
-            if (maxbytes > restbytes) maxbytes = restbytes;
-            if (maxbytes == 0) return 0;
-            size_t len = ff->read(readbuffer, maxbytes);
-            if (len == 0) return 0;
-            ret = mpg123_feed((mpg123_handle*)decoder, readbuffer, len);
-            if (ret != MPG123_OK) {
-                throw DecoderException("mpg123_feed: %s", mpg123_strerror((mpg123_handle*)decoder));
-            }
-        } else if (ret == MPG123_NEW_FORMAT) {
-            long rate;
-            int channels, enc;
-            mpg123_getformat((mpg123_handle*)decoder, &rate, &channels, &enc);
-        } else if (ret != MPG123_OK) {
-            throw DecoderException("mpg123_read: %s", mpg123_strerror((mpg123_handle*)decoder));
-        }
+    close();
+    if (mp3 == nullptr) throw DecoderException("MP3-Decoder nicht angelegt");
+
+    if (audioinfo) {
+        info = *audioinfo;
+    } else if (!IdentAudioFile(file, info)) {
+        throw UnsupportedAudioFormatException("File is not a MP3 file");
     }
-    out_size = size;
-    out_offset = 0;
-    return size;
+    if (info.Format != AudioInfo::AudioFormat::MP3) {
+        memset(&info, 0, sizeof(AudioInfo));
+        throw UnsupportedAudioFormatException("File is not a MP3 file");
+    }
+    if (info.Channels == 0 || info.Channels > 2) {
+        memset(&info, 0, sizeof(AudioInfo));
+        throw UnsupportedAudioFormatException("MP3 with %zu channels is not supported", info.Channels);
+    }
+    if (info.Frequency == 0 || info.AudioStart >= info.AudioEnd) {
+        memset(&info, 0, sizeof(AudioInfo));
+        throw UnsupportedAudioFormatException("File contains no MP3 frames");
+    }
+
+    int err = 0;
+    mp3->handle = mpg123_new(nullptr, &err);
+    if (mp3->handle == nullptr) {
+        close();
+        throw DecoderInitializationException("mpg123_new: %s", mpg123_plain_strerror(err));
+    }
+    // MPG123_QUIET ist ein Bit aus mpg123_param_flags, kein eigener Parameterschluessel,
+    // laesst sich also nur ueber die Flag-Kommandos setzen. ADD_FLAGS laesst die
+    // Standardflags (Gapless, Auto-Resample) unangetastet; ohne dieses Bit schreibt
+    // libmpg123 Notices und Fehlermeldungen ungefragt auf stderr.
+    mpg123_param(mp3->handle, MPG123_ADD_FLAGS, MPG123_QUIET, 0);
+    ApplyDecoderFormat(mp3->handle, info, mp3->encoding);
+    mp3->channels = info.Channels;
+
+    mp3->outcapacity = OUTBUFF;
+    mp3->outbuffer = (unsigned char*)malloc(mp3->outcapacity);
+    if (mp3->outbuffer == nullptr) {
+        close();
+        throw OutOfMemoryException();
+    }
+    mp3->file = &file;
+    mp3->audiostreamstart = (int64_t)info.AudioStart;
+    mp3->audiolength = (int64_t)info.AudioEnd - (int64_t)info.AudioStart;
+    mp3->pos = 0;
+    mp3->file->seek(info.AudioStart);
+
+    if (mpg123_replace_reader_handle(mp3->handle, ReadStream, SeekStream, CloseStream) != MPG123_OK) {
+        std::string msg = DecoderError(mp3->handle);
+        close();
+        throw DecoderException("mpg123_replace_reader_handle: %s", msg.c_str());
+    }
+    if (mpg123_open_handle(mp3->handle, mp3) != MPG123_OK) {
+        std::string msg = DecoderError(mp3->handle);
+        close();
+        throw DecoderException("mpg123_open_handle: %s", msg.c_str());
+    }
+    position = 0;
 #else
-    return 0;
+    (void)file;
+    (void)audioinfo;
+    throw UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #endif
+}
+
+/** @brief gleicht AudioInfo an die vom Decoder gemeldeten Parameter an
+ *
+ * Eine MP3-Datei kann in den Rahmen unterschiedliche Abtastraten und Kanaelzahlen verwenden.
+ * Der Decoder haelt sie auf den in open() festgelegten Zielwerten, die Information ueber das
+ * tatsaechlich kodierte Format stammt deshalb von libmpg123.
+ */
+void AudioDecoder_MP3::syncFormat()
+{
+#ifdef HAVE_MPG123
+    long rate = 0;
+    int channels = 0;
+    int encoding = 0;
+    if (mpg123_getformat(mp3->handle, &rate, &channels, &encoding) != MPG123_OK) return;
+    if (rate <= 0 || channels < 1 || channels > 2) return;
+    if ((size_t)rate == info.Frequency && (size_t)channels == mp3->channels) return;
+    info.Frequency = (size_t)rate;
+    info.Channels = (size_t)channels;
+    info.BitsPerSample = (uint8_t)(SampleWidth(mp3->encoding) * 8);
+    info.BytesPerSample = (uint8_t)(info.Channels * SampleWidth(mp3->encoding));
+    mp3->channels = (size_t)channels;
+    ApplyDecoderFormat(mp3->handle, info, mp3->encoding);
+#endif  // HAVE_MPG123
+}
+
+bool AudioDecoder_MP3::fillFrames()
+{
+#ifdef HAVE_MPG123
+    if (mp3 == nullptr || mp3->handle == nullptr || mp3->eof) return false;
+    bool syncneeded = (mp3->outframes == 0 && mp3->outpos == 0);
+    for (;;) {
+        size_t bytes = 0;
+        int ret = mpg123_read(mp3->handle, mp3->outbuffer, mp3->outcapacity, &bytes);
+        if (bytes > 0) {
+            size_t width = (size_t)mp3->channels * SampleWidth(mp3->bufencoding);
+            mp3->outframes = bytes / width;
+            mp3->outpos = 0;
+            if (mp3->outframes != 0) {
+                if (syncneeded) {
+                    syncFormat();
+                    syncneeded = false;
+                }
+                return true;
+            }
+        }
+        if (ret == MPG123_NEW_FORMAT) {
+            if (syncneeded) {
+                syncFormat();
+                syncneeded = false;
+            }
+            continue;
+        }
+        if (ret == MPG123_DONE) {
+            mp3->eof = true;
+            return false;
+        }
+        if (ret == MPG123_NEED_MORE) {
+            // Bei der ueber die Rueckruffunktionen gebundenen Datei tritt das nicht auf
+            mp3->eof = true;
+            return false;
+        }
+        std::string msg = DecoderError(mp3->handle);
+        close();
+        throw DecoderException("mpg123_read: %s", msg.c_str());
+    }
+#else
+    return false;
+#endif  // HAVE_MPG123
+}
+
+/** @brief holt bis zu num Frames aus dem Ausgangspuffer in den Zielpuffer
+ *
+ * Im Zielpuffer stehen je Frame zwei Werte (links, rechts) in der von den Lesemethoden
+ * eingestellten Kodierung. Stehen im internen Puffer noch Samples der vorherigen Kodierung,
+ * werden sie beim Uebertragen umgerechnet. Bei einer Mono-Datei werden beide Ausgaenge mit
+ * demselben Wert gefuellt, damit ueber die Stereoprojektion kein Kanal leer bleibt.
+ * Ein Rueckgabewert von 0 bedeutet Dateiende.
+ */
+size_t AudioDecoder_MP3::transferFrames(size_t num, void* dest)
+{
+#ifdef HAVE_MPG123
+    if (num == 0 || dest == nullptr) return 0;
+    const bool stereo = mp3->channels == 2;
+    const int to = mp3->encoding;
+    int16_t* dst16 = (to == MPG123_ENC_SIGNED_16) ? static_cast<int16_t*>(dest) : nullptr;
+    float* dst32 = (to == MPG123_ENC_FLOAT_32) ? static_cast<float*>(dest) : nullptr;
+    size_t done = 0;
+    while (done < num) {
+        if (mp3->outpos >= mp3->outframes) {
+            // Ein leerer interner Puffer darf auf die geforderte Kodierung umgestellt werden;
+            // position zaehlt bereits die an den Aufrufer abgegebenen Frames.
+            if (mp3->bufencoding != to) switchEncoding(position);
+            if (!fillFrames()) break;
+        }
+        const int from = mp3->bufencoding;
+        size_t avail = mp3->outframes - mp3->outpos;
+        size_t n = num - done;
+        if (n > avail) n = avail;
+        if (from == to) {
+            size_t width = (size_t)mp3->channels * SampleWidth(from);
+            if (stereo) {
+                memcpy(static_cast<char*>(dest) + done * width, mp3->outbuffer + mp3->outpos * width, n * width);
+            } else {
+                for (size_t i = 0; i < n; i++) {     // Mono: beide Ausgaenge gleich
+                    char* slot = static_cast<char*>(dest) + (done + i) * 2 * SampleWidth(from);
+                    memcpy(slot, mp3->outbuffer + (mp3->outpos + i) * SampleWidth(from), SampleWidth(from));
+                    memcpy(slot + SampleWidth(from), mp3->outbuffer + (mp3->outpos + i) * SampleWidth(from), SampleWidth(from));
+                }
+            }
+        } else if (from == MPG123_ENC_SIGNED_16) {
+            // outbuffer traegt je nach bufencoding 16-Bit- oder Float-Samples; libmpg123 schreibt
+            // den Puffer asynchron, daher ist die Interpretation hier zwingend
+            const int16_t* src = reinterpret_cast<const int16_t*>(mp3->outbuffer) + mp3->outpos * mp3->channels;
+            for (size_t i = 0; i < n; i++) {
+                int16_t l = stereo ? src[i * 2] : src[i];
+                int16_t r = stereo ? src[i * 2 + 1] : l;
+                dst32[(done + i) * 2] = (float)l / FULL_SCALE_16;
+                dst32[(done + i) * 2 + 1] = (float)r / FULL_SCALE_16;
+            }
+        } else {
+            const float* src = reinterpret_cast<const float*>(mp3->outbuffer) + mp3->outpos * mp3->channels;
+            for (size_t i = 0; i < n; i++) {
+                int16_t l = ClampToInt16(stereo ? src[i * 2] : src[i]);
+                int16_t r = stereo ? ClampToInt16(src[i * 2 + 1]) : l;
+                dst16[(done + i) * 2] = l;
+                dst16[(done + i) * 2 + 1] = r;
+            }
+        }
+        mp3->outpos += n;
+        // position fuehrt die Kernmethode: switchEncoding() braucht sie als Fortsetzungsposition
+        position += n;
+        done += n;
+    }
+    return done;
+#else
+    (void)num;
+    (void)dest;
+    throw UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#endif  // HAVE_MPG123
+}
+
+void AudioDecoder_MP3::seekSample(size_t sample)
+{
+    if (mp3 == nullptr) throw DecoderException("No MP3 file opened");
+#ifdef HAVE_MPG123
+    if (mp3->handle == nullptr) throw DecoderException("No MP3 file opened");
+    if (sample == position) return;
+    mp3->outframes = 0;
+    mp3->outpos = 0;
+    mp3->eof = false;
+    off_t ret = mpg123_seek(mp3->handle, (off_t)sample, SEEK_SET);
+    if (ret < 0) {
+        std::string msg = DecoderError(mp3->handle);
+        throw DecoderException("mpg123_seek: %s", msg.c_str());
+    }
+    position = (size_t)ret;
+    syncFormat();
+#else
+    throw UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#endif  // HAVE_MPG123
+}
+
+/** @brief stellt die von libmpg123 gelieferte Kodierung auf die von `encoding` geforderte um
+ *
+ * Nachweislich wirkt eine Andnerung der Format-Tabelle einer geoeffneten Spur nicht auf die
+ * laufende Dekodierung: libmpg123 liefert weiter die beim Oeffnen ausgehandelte Kodierung.
+ * Umschalten geht nur ueber ein erneutes Oeffnen der Spur, wobei Zaehlung und Dekodierung bei
+ * Frame 0 neu ansetzen. `resume` ist die Frameposition, an der der Aufrufer steht; dorthin wird
+ * zurueckgesucht, sodass der Lesevorgang verlustfrei fortgesetzt wird. Der Wechsel kostet das
+ * Neueinlesen der Kopfdaten und das suchpunktgenaue Seek, bleibt aber auf einen einzigen
+ * Wechsel pro Zielpuffertyp beschraenkt.
+ */
+void AudioDecoder_MP3::switchEncoding(size_t resume)
+{
+#ifdef HAVE_MPG123
+    auto fail = [this](const char* what) {
+        const std::string msg = DecoderError(mp3->handle);
+        close();
+        throw DecoderException("%s: %s", what, msg.c_str());
+    };
+    if (mpg123_close(mp3->handle) != MPG123_OK) fail("mpg123_close");
+    ApplyDecoderFormat(mp3->handle, info, mp3->encoding);
+    if (mpg123_open_handle(mp3->handle, mp3) != MPG123_OK) fail("mpg123_open_handle");
+    mp3->bufencoding = mp3->encoding;
+    mp3->outframes = 0;
+    mp3->outpos = 0;
+    mp3->eof = false;
+    if (resume > 0 && mpg123_seek(mp3->handle, (off_t)resume, SEEK_SET) < 0) fail("mpg123_seek");
+#else
+    (void)resume;
+    throw UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#endif  // HAVE_MPG123
+}
+
+/** @brief stellt die Kodierung des Ausgabepuffers ein
+ *
+ * Samples, die sich noch im internen Puffer befinden, bleiben erhalten und werden von
+ * `transferFrames()` in die neue Kodierung umgerechnet. Alle weiteren Frames liefert
+ * libmpg123 in der neuen Kodierung.
+ */
+void AudioDecoder_MP3::setTargetEncoding(int encoding)
+{
+#ifdef HAVE_MPG123
+    if (mp3 == nullptr || mp3->encoding == encoding) return;
+    mp3->encoding = encoding;
+    info.BitsPerSample = (uint8_t)(SampleWidth(encoding) * 8);
+    info.BytesPerSample = (uint8_t)(mp3->channels * SampleWidth(encoding));
+#endif  // HAVE_MPG123
 }
 
 size_t AudioDecoder_MP3::getSamples(size_t num, STEREOSAMPLE16* interleafed)
 {
-#ifndef HAVE_MPG123
-    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+    if (mp3 == nullptr) throw DecoderException("No MP3 file opened");
+    if (interleafed == nullptr) throw DecoderException("Buffer is null");
+#ifdef HAVE_MPG123
+    if (mp3->handle == nullptr) throw DecoderException("No MP3 file opened");
+    setTargetEncoding(MPG123_ENC_SIGNED_16);
+    size_t done = transferFrames(num, interleafed);
+    return done;
 #else
-    if (lastDecodeFormat != MPG123_ENC_SIGNED_16) {
-        // We need to switch the output format
-        mpg123_format_none((mpg123_handle*)decoder);
-        mpg123_format((mpg123_handle*)decoder, info.Frequency, info.Channels, MPG123_ENC_SIGNED_16);
-        lastDecodeFormat = MPG123_ENC_SIGNED_16;
-        out_offset = 0;
-        out_size = 0;
-        seekSample(0); // Reset decoder
-    }
-    const size_t bytes_per_frame = info.Channels * 2; // 2 bytes per channel (int16)
-    size_t rest = num;
-    while (rest) {
-        size_t av = out_size - out_offset;
-        if (av > 0) {
-            size_t frames = av / bytes_per_frame;
-            if (frames > rest) frames = rest;
-            if (info.Channels == 2) {
-                STEREOSAMPLE16* p = (STEREOSAMPLE16*)(outbuffer + out_offset);
-                memcpy(interleafed, p, frames * bytes_per_frame);
-            } else if (info.Channels == 1) {
-                int16_t* p = (int16_t*)(outbuffer + out_offset);
-                for (size_t i = 0; i < frames; i++) {
-                    interleafed[i].left = p[i];
-                    interleafed[i].right = p[i];
-                }
-            } else
-                throw UnsupportedAudioFormatException("channels <1 or >2");
-            interleafed += frames;
-            rest -= frames;
-            out_offset += frames * bytes_per_frame;
-        } else {
-            if (!fillDecodeBuffer()) break;
-        }
-    }
-    position += num - rest;
-    return num - rest;
-
-#endif
+    (void)num;
+    throw UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#endif  // HAVE_MPG123
 }
 
 size_t AudioDecoder_MP3::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
-#ifndef HAVE_MPG123
-    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
-#else
-    if (lastDecodeFormat != MPG123_ENC_SIGNED_16) {
-        // We need to switch the output format
-        mpg123_format_none((mpg123_handle*)decoder);
-        mpg123_format((mpg123_handle*)decoder, info.Frequency, info.Channels, MPG123_ENC_SIGNED_16);
-        lastDecodeFormat = MPG123_ENC_SIGNED_16;
-        out_offset = 0;
-        out_size = 0;
-        seekSample(0); // Reset decoder
-    }
-    const size_t bytes_per_frame = info.Channels * 2; // int16 per channel
-    size_t rest = num;
-    while (rest) {
-        size_t av = out_size - out_offset;
-        if (av > 0) {
-            size_t frames = av / bytes_per_frame;
-            if (frames > rest) frames = rest;
-            if (info.Channels == 2) {
-                STEREOSAMPLE16* p = (STEREOSAMPLE16*)(outbuffer + out_offset);
-                for (size_t i = 0; i < frames; i++) {
-                    buffer[i].left += p[i].left;
-                    buffer[i].right += p[i].right;
-                }
-            } else if (info.Channels == 1) {
-                int16_t* p = (int16_t*)(outbuffer + out_offset);
-                for (size_t i = 0; i < frames; i++) {
-                    buffer[i].left += p[i];
-                    buffer[i].right += p[i];
-                }
-            } else
-                throw UnsupportedAudioFormatException("channels <1 or >2");
-            buffer += frames;
-            rest -= frames;
-            out_offset += frames * bytes_per_frame;
-        } else {
-            if (!fillDecodeBuffer()) break;
+    if (mp3 == nullptr) throw DecoderException("No MP3 file opened");
+    if (buffer == nullptr) throw DecoderException("Buffer is null");
+#ifdef HAVE_MPG123
+    if (mp3->handle == nullptr) throw DecoderException("No MP3 file opened");
+    setTargetEncoding(MPG123_ENC_SIGNED_16);
+    int16_t tmp[CHUNKFRAMES * 2];
+    size_t done = 0;
+    while (done < num) {
+        size_t want = num - done;
+        if (want > CHUNKFRAMES) want = CHUNKFRAMES;
+        size_t n = transferFrames(want, tmp);
+        if (n == 0) break;
+        for (size_t i = 0; i < n; i++) {
+            // Die Samples liegen bereits auf der 16 Bit Ebene des Mixpuffers, eine Skala entfaellt
+            buffer[done + i].left += tmp[i * 2];
+            buffer[done + i].right += tmp[i * 2 + 1];
         }
+        done += n;
     }
-    position += num - rest;
-    return num - rest;
-
-#endif
+    return done;
+#else
+    (void)num;
+    throw UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#endif  // HAVE_MPG123
 }
 
 size_t AudioDecoder_MP3::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
-#ifndef HAVE_MPG123
-    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+    if (mp3 == nullptr) throw DecoderException("No MP3 file opened");
+    if (buffer == nullptr) throw DecoderException("Buffer is null");
+#ifdef HAVE_MPG123
+    if (mp3->handle == nullptr) throw DecoderException("No MP3 file opened");
+    setTargetEncoding(MPG123_ENC_FLOAT_32);
+    size_t done = transferFrames(num, buffer);
+    return done;
 #else
-    if (lastDecodeFormat != MPG123_ENC_FLOAT_32) {
-        // We need to switch the output format
-        mpg123_format_none((mpg123_handle*)decoder);
-        mpg123_format((mpg123_handle*)decoder, info.Frequency, info.Channels, MPG123_ENC_FLOAT_32);
-        lastDecodeFormat = MPG123_ENC_FLOAT_32;
-        out_offset = 0;
-        out_size = 0;
-        seekSample(0); // Reset decoder
-    }
-    const size_t bytes_per_frame = info.Channels * 4; // 4 bytes per channel (float)
-    size_t rest = num;
-    while (rest) {
-        size_t av = out_size - out_offset;
-        if (av > 0) {
-            size_t frames = av / bytes_per_frame;
-            if (frames > rest) frames = rest;
-            if (info.Channels == 2) {
-                STEREOSAMPLE_FLOAT* p = (STEREOSAMPLE_FLOAT*)(outbuffer + out_offset);
-                memcpy(buffer, p, frames * bytes_per_frame);
-            } else if (info.Channels == 1) {
-                float* p = (float*)(outbuffer + out_offset);
-                for (size_t i = 0; i < frames; i++) {
-                    buffer[i].left = p[i];
-                    buffer[i].right = p[i];
-                }
-            } else
-                throw UnsupportedAudioFormatException("channels <1 or >2");
-            buffer += frames;
-            rest -= frames;
-            out_offset += frames * bytes_per_frame;
-        } else {
-            if (!fillDecodeBuffer()) break;
-        }
-    }
-    position += num - rest;
-    return num - rest;
-#endif
+    (void)num;
+    throw UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#endif  // HAVE_MPG123
 }
 
 size_t AudioDecoder_MP3::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
-#ifndef HAVE_MPG123
-    throw pplib::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
-#else
-    if (lastDecodeFormat != MPG123_ENC_FLOAT_32) {
-        // We need to switch the output format
-        mpg123_format_none((mpg123_handle*)decoder);
-        mpg123_format((mpg123_handle*)decoder, info.Frequency, info.Channels, MPG123_ENC_FLOAT_32);
-        lastDecodeFormat = MPG123_ENC_FLOAT_32;
-        out_offset = 0;
-        out_size = 0;
-        seekSample(0); // Reset decoder
-    }
-    const size_t bytes_per_frame = info.Channels * 4; // 4 bytes per channel (float)
-    size_t rest = num;
-    while (rest) {
-        size_t av = out_size - out_offset;
-        if (av > 0) {
-            size_t frames = av / bytes_per_frame;
-            if (frames > rest) frames = rest;
-            if (info.Channels == 2) {
-                STEREOSAMPLE_FLOAT* p = (STEREOSAMPLE_FLOAT*)(outbuffer + out_offset);
-                for (size_t i = 0; i < frames; i++) {
-                    buffer[i].left += p[i].left;
-                    buffer[i].right += p[i].right;
-                }
-            } else if (info.Channels == 1) {
-                float* p = (float*)(outbuffer + out_offset);
-                for (size_t i = 0; i < frames; i++) {
-                    buffer[i].left += p[i];
-                    buffer[i].right += p[i];
-                }
-            } else
-                throw UnsupportedAudioFormatException("channels <1 or >2");
-            buffer += frames;
-            rest -= frames;
-            out_offset += frames * bytes_per_frame;
-        } else {
-            if (!fillDecodeBuffer()) break;
+    if (mp3 == nullptr) throw DecoderException("No MP3 file opened");
+    if (buffer == nullptr) throw DecoderException("Buffer is null");
+#ifdef HAVE_MPG123
+    if (mp3->handle == nullptr) throw DecoderException("No MP3 file opened");
+    setTargetEncoding(MPG123_ENC_FLOAT_32);
+    float tmp[CHUNKFRAMES * 2];
+    size_t done = 0;
+    while (done < num) {
+        size_t want = num - done;
+        if (want > CHUNKFRAMES) want = CHUNKFRAMES;
+        size_t n = transferFrames(want, tmp);
+        if (n == 0) break;
+        for (size_t i = 0; i < n; i++) {
+            buffer[done + i].left += tmp[i * 2];
+            buffer[done + i].right += tmp[i * 2 + 1];
         }
+        done += n;
     }
-    position += num - rest;
-    return num - rest;
-#endif
+    return done;
+#else
+    (void)num;
+    throw UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#endif  // HAVE_MPG123
 }
 
-} // namespace pplib
+}  // namespace pplib
