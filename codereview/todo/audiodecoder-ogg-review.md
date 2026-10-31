@@ -78,6 +78,8 @@ Referenz auf Basisreview: [audiodecoder-review.md](./audiodecoder-review.md).
   }
   ```
 
+  ==> Prüfen! read() sollte am Dateiende keinen Fehler werfen, sondern nur die tatsächlich gelesene Anzahl zurückgeben. Erst wenn nach dem Ende erneut gelesen wird, sollte eine `EndOfFileException` geworfen werden.
+
 - [ ] **`ppl_seek_func()` liefert neue Dateiposition statt 0** (`src/audio/AudioDecoder_Ogg.cpp:62-64`)
   Der Callback-Vertrag von `ov_callbacks::seek_func` verlangt „0 bei Erfolg, ≠0 bei Fehler". Zurückgegeben wird die neue Position. Aktuell funktioniert es nur zufällig, weil libvorbisfile ausschließlich `< 0` prüft — und damit echte Seek-Fehler unsichtbar bleiben (z. B. Seek vor Dateianfang).
   Behebung: Ergebnis prüfen und nur `0`/`-1` zurückgeben:
@@ -123,18 +125,39 @@ Referenz auf Basisreview: [audiodecoder-review.md](./audiodecoder-review.md).
 
 - [ ] **Typlose PImpl via `void*`** (`include/pplib/audio/decoder.h:263`)
   `void* private_data` verhindert Typsicherheit und macht jeden `static_cast` (Zeile 140, 168, 198, 220, 239, 301, 337) zum manuellen Downcast. Empfehlung: `struct OggVorbisPrivateData;` im Header vordeklarieren, Member als `std::unique_ptr<OggVorbisPrivateData>` — dann entfallen `free()`/`calloc()` komplett und der Destruktor wird implizit korrekt.
+
+  ==> NEIN, bleibt so! Es wäre lediglich zu überlegen, ob die anderen privaten
+  Member ebenfalls in private Struktur ausgelegert werden sollten
+
 - [ ] **`int decodebuffer_size`** (`include/pplib/audio/decoder.h:268`)
   Größen gehören zu `size_t`; `int` ist hier zusätzlich semantisch uneindeutig (Elemente oder Bytes, siehe Befund oben).
+
+  ==> ogg erwartet int und der Buffer ist klein (4096 Bytes). Und wenn ich das richtig sehen, sind es tatsächlich Bytes, nicht Elemente.
+
 - [ ] **Vier nahezu identische Methoden** (`src/audio/AudioDecoder_Ogg.cpp:236-296`, `298-368`)
   Die Float-Methoden unterscheiden sich nur in `=` vs. `+=`; die 16-Bit-Methoden ebenfalls. Empfehlung: eine private Kernmethode `template <class T, class Op> size_t readSamples(size_t num, T* buffer, bool additive)` bzw. Concepts + Lambda für das Combine-Verhalten. Das behebt auch die unterschiedliche `position`-Pflege (Quelle des kritischen Bugs).
+
+  ==> NEIN, bleibt so! Auf keinen Fall Templates verwenden, die den Code unnötig verkomplizieren und die Lesbarkeit verschlechtern!
+
+
 - [ ] **`#ifdef HAVE_LIBVORBIS` in jeder Methode** (`src/audio/AudioDecoder_Ogg.cpp:167`, `191`, `219`, `238`, `283`, `300`, `336`)
   Sieben Kopien derselben Bedingung, teils mit stillschweigend `return 0;` im `#else`-Zweig (Zeile 277, 294, 330, 366) — der Aufrufer kann „kein Vorbis im Build" nicht von „Dateiende" unterscheiden. Empfehlung: Kompatibilitätsklasse mit `throw UnsupportedFeatureException(...)` in einer einzigen `#else`-Implementierung (Muster wie Konstruktor Zeile 134-135), Datei in `AudioDecoder_Ogg.cpp` + `AudioDecoder_Ogg_stub.cpp` trennen.
+
+  ==> NEIN, bleibt so! Beide Pfade gehören zu jeder Funktion, daher sollen sie im Code auch zusammenhängend stehen, und nicht ein Teil irgendwo oben, der else-Zweig 400 Zeilen tieder oder sogar in einer anderen Datei. Das macht den Code unwartbar! Wer kommt auf so bescheuerte Ideen?
+
 - [ ] **C-Style-Casts und ungenutzte Includes** (`src/audio/AudioDecoder_Ogg.cpp:242`, `257`, `286`, `288-289`; `34`, `35`)
   `(char*)buffer`, `(pplib::SAMPLE16*)decodebuffer`, `(STEREOSAMPLE16*)readbuffer` → `reinterpret_cast` mit Kommentar, warum die Aliasse ok sind. `#include <pplib/core/functions.h>` und `<pplib/core/mutex.h>` werden nicht benötigt (im Gegensatz zur MP3-Implementierung gibt es hier keinen Global-Mutex).
+  ==> Ungenutzte Includes können raus, C-Style-Casts können bleiben. 
+  
 - [ ] **Mono-Unterstützung ist nur im Code sichtbar** (`src/audio/AudioDecoder_Ogg.cpp:178`, `255`)
   Als einzige der vier Decoder-Klassen akzeptiert OGG Mono (und dupliziert den Kanal auf rechts). Das ist eine API-Eigenschaft und gehört in die Klassen-Doku in `decoder.h`.
+
+  ==> Hä? Verstehe ich nicht, alle Decoder unterstützen Mono.
+
 - [ ] **Auskommentierter `ppl_close_func`** (`src/audio/AudioDecoder_Ogg.cpp:68-74`)
   Toter Code im Kommentarblock; `callbacks.close_func = NULL` (Zeile 83) ist korrekt begründet (Dateibesitz bleibt beim Aufrufer) — das als Kommentar neben Zeile 83 sichern und den Block entfernen.
+
+  ==> Kann weg
 
 ## Dokumentation & Doxygen
 
@@ -153,7 +176,8 @@ Referenz auf Basisreview: [audiodecoder-review.md](./audiodecoder-review.md).
 
 - [ ] **`FileObject::read()` wirft bei Dateiende statt Short-Count** (`src/core/File.cpp:489-491`)
   Für Stream-/Callback-basierte Decoder (OGG, MP3-Feed) ist eine Exception am Datenende ein schlechtes Signal; sie durchquert C-Bibliotheken. Betrifft auch `AudioDecoder_MP3::fillDecodeBuffer()` (`src/audio/AudioDecoder_MP3.cpp:193`).
-- [ ] **`IdentAIFF` berechnet `BytesPerSample` aus der Bitbreite statt aus der Sample-Stride** (`src/audio/AudioInfo.cpp:93`)
-  `(PeekN16(adr+14) * info.Channels)/8` ignoriert, dass AIFF-Samples auf 16-Bit-Wortgrenzen aufgefüllt sein dürfen. Für den OGG-Report nicht relevant, aber identische Fehlerquelle im AIFF-Decoder — Details in [audiodecoder-aiff-review.md](./audiodecoder-aiff-review.md).
+
+  ==> Nochmal prüfen, die read-Methode sollte am Dateiende keinen Fehler werfen, sondern nur die tatsächlich gelesene Anzahl zurückgeben. Erst wenn nach dem Ende erneut gelesen wird, wirft sie.
+
 - [ ] **`AudioInfo::Samples`/`Length`-Berechnung mit `uint32_t`-Multiplikation** (`src/audio/AudioDecoder_Ogg.cpp:108`)
   `info.Samples * 1000` wird in `uint32_t` (bzw. `long long` je nach Typ von `Samples`) gerechnet; bei `Samples > ~4,3 Mio.` (≈97 s bei 44,1 kHz, falls `Samples` als 32-Bit-Typ vorliegt) droht Überlauf. In `AudioInfo.cpp:165` wird dasselbe Problem bereits mit `(uint64_t)`-Cast gelöst — hier fehlt er.
