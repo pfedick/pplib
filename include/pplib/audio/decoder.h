@@ -180,25 +180,138 @@ public:
  */
 AudioDecoder* GetAudioDecoder(FileObject& file);
 
+/** @class AudioDecoder_Wave
+ * @ingroup PPLGroupSound
+ * @brief Decoder für unkomprimierte WAV-Dateien (RIFF/`WAVE`).
+ *
+ * Unterstützt werden die Format-Tags `1` (PCM) und `3` (IEEE-Float, nur 32 Bit) mit
+ * 16, 24 oder 32 Bit pro Kanal und einem oder zwei Kanälen. Monodateien werden
+ * unterstützt, indem das eine Kanal-Sample auf links und rechts kopiert wird. Alle
+ * anderen Format-Tags (`EXTENSIBLE` `0xFFFE`, `ADPCM`, `µ-law`, `a-law`, …) sowie
+ * 8-Bit- und 20-Bit-Samples lehnt `open()` mit `UnsupportedAudioFormatException` ab;
+ * `IdentAudioFile()` erkennt solche Dateien erst gar nicht als `WAVE`.
+ *
+ * Die Samples stehen in der nativen Abtastrate der Datei zur Verfügung; eine
+ * Konvertierung der Abtastrate findet nicht statt. Beim Lesen werden die Werte auf den
+ * Wertebereich des Zielpuffers skaliert:
+ *
+ * | Quelle                        | `getSamples(STEREOSAMPLE16)` | `addSamples(STEREOSAMPLE32)` | `getSamples`/`addSamples`(STEREOSAMPLE_FLOAT) |
+ * | ----------------------------- | ---------------------------- | ---------------------------- | --------------------------------------------- |
+ * | 16 Bit Integer                | unverändert                  | unverändert                  | Wert / 32768,0f                               |
+ * | 24 Bit Integer                | Wert >> 8                    | Wert >> 8                    | Wert / 8388608,0f                             |
+ * | 32 Bit Integer                | Wert >> 16                   | Wert >> 16                   | Wert / 2147483648,0f                          |
+ * | 32 Bit Float (Format-Tag 3)   | Wert × 32768, auf ±32768 begrenzt | Wert × 32768 (additiv) | unverändert                                   |
+ *
+ * Der `STEREOSAMPLE32`-Puffer dient dem Mischen mehrerer Quellen: er nimmt durchgehend
+ * Werte im 16-Bit-Wertebereich auf, egal welche Bitbreite eine Quelle hat. Mehrere
+ * decodierte Streams können dadurch ohne weitere Skalierung addiert und anschliessend
+ * auf den 16-Bit-Bereich begrenzt werden. Abgeschnitten wird jeweils ohne Rundung.
+ *
+ * @note WAV-Samples sind Little Endian abgelegt; der Decoder liest sie bytweise, ist also
+ * unabhängig von der Byteordnung des Hosts.
+ *
+ * @note Float-Samples sind normiert (typisch -1,0 bis 1,0). Werte ausserhalb dieses
+ * Bereichs werden beim Umrechnen auf 16 Bit hart begrenzt, NaN wird zu 0.
+ *
+ * @see AudioInfo::SampleEncoding
+ */
 class AudioDecoder_Wave : public AudioDecoder
 {
 private:
+    /** @brief Kodierung eines Kanal-Samples, wie sie `open()` aus dem AudioInfo ableitet. */
+    enum class FrameEncoding : uint8_t
+    {
+        NONE = 0,    //!< kein offener Decoder bzw. nicht unterstuetzte Kodierung
+        INT16 = 1,   //!< 16-Bit-Zweierkomplement
+        INT24 = 2,   //!< 24-Bit-Zweierkomplement, gepackt in 3 Bytes
+        INT32 = 3,   //!< 32-Bit-Zweierkomplement
+        FLOAT32 = 4  //!< 32-Bit-IEEE-Float (WAV-Format-Tag 3)
+    };
+
     FileObject* ff;
     AudioInfo info;
     size_t position;
-    size_t samplesize;
+    size_t bytesPerChannel;  //!< Bytes eines Kanal-Samples innerhalb eines Frames
+    FrameEncoding encoding;
+
+    /** @brief Begrenzt die angeforderte Samplezahl und liefert den Dateiversatz des
+     *         ersten Frames. Rueckgabewert 0 bedeutet "nichts zu lesen".
+     *
+     * @exception DecoderException Kein offener Dateihandle oder \p buffer ist NULL.
+     */
+    size_t prepareRead(size_t num, const void* buffer, uint64_t& offset) const;
 
 public:
     AudioDecoder_Wave();
     ~AudioDecoder_Wave() override;
-    void open(FileObject& file, const AudioInfo* info = NULL) override;
+
+    /** @brief Öffnet die Datei und legt die Kodierung der Samples fest.
+     *
+     * Wird \p info übergeben, verwendet der Decoder diese Werte unverändert. Er prüft
+     * dann Format, Kanalzahl, und die Kombination aus `BitsPerSample`, `BytesPerSample`
+     * sowie `SampleType`; jede nicht dekodierbare Kombination wird mit
+     * `UnsupportedAudioFormatException` abgelehnt. Die Ortsangaben `AudioStart` und
+     * `AudioSize` werden nicht gegen die Datei geprueft; der Decoder begrenzt beim Lesen
+     * lediglich auf die tatsaechlich vorhandene Datenmenge.
+     *
+     * @exception UnsupportedAudioFormatException Format ist nicht WAVE, oder die
+     *   Sample-Kodierung wird nicht unterstützt.
+     */
+    void open(FileObject& file, const AudioInfo* info = nullptr) override;
+
+    /** @brief Schließt den Decoder und erklärt das AudioInfo für ungültig.
+     *
+     * Nach `close()` liefert `getAudioInfo()` ein leeres `AudioInfo` (alle Felder 0),
+     * `seekSample()` hat keine Wirkung und die Lesemethoden werfen eine Exception.
+     */
     void close() override;
+
+    /** @brief Gibt Informationen über das geöffnete Audio zurück.
+     *
+     * Sinnvolle Werte liefert die Methode nur zwischen `open()` und `close()`.
+     */
     const AudioInfo& getAudioInfo() const override;
+
+    /** @brief Setzt die Position auf das gegebene Sample (Frame).
+     *
+     * Werte jenseits des Dateiendes werden an `AudioInfo::Samples` begrenzt; eine
+     * Exception wird nie ausgelöst. Nach `close()` bleibt die Position auf 0 stehen.
+     */
     void seekSample(size_t sample) override;
+
+    /** @brief Aktuelle Position in Frames, bezogen auf den Anfang der Audiodaten
+     *         (`AudioInfo::AudioStart`), nicht auf den Dateianfang.
+     */
     size_t getPosition() const override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
+     *
+     * Rückgabe ist die tatsächlich gelesene Anzahl an Frames (ein Frame = ein Sample je
+     * Kanal), höchstens \p num. Am Dateiende wird 0 ohne Exception geliefert. Der
+     * Puffer muss groß genug für die returnierte Anzahl sein; er wird nicht aufgefüllt.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32 (Mischbetrieb).
+     *
+     * Siehe Klassenbeschreibung zur Skala der addierten Werte.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT (Mischbetrieb).
+     *
+     * @exception DecoderException Vor `open()` oder nach `close()`.
+     */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 

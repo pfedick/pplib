@@ -27,12 +27,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <string.h>
 #include <config_pplib.h>
 #include <pplib/core/fileobject.h>
 #include <pplib/exceptions.h>
 #include <pplib/core/functions.h>
-#include <pplib/core/mutex.h>
 #include <pplib/audio/audioinfo.h>
 #include <pplib/audio/decoder.h>
 
@@ -55,38 +53,70 @@ static size_t ClampToAudioSize(const AudioInfo& info, size_t position, size_t sa
 AudioDecoder_Wave::AudioDecoder_Wave()
 {
     position = 0;
-    samplesize = 0;
-    ff = NULL;
+    bytesPerChannel = 0;
+    encoding = FrameEncoding::NONE;
+    ff = nullptr;
 }
 
 AudioDecoder_Wave::~AudioDecoder_Wave()
 {
+    close();
 }
 
-void AudioDecoder_Wave::open(FileObject& file, const AudioInfo* info)
+void AudioDecoder_Wave::open(FileObject& file, const AudioInfo* audioinfo)
 {
-    if (!info) {
+    if (!audioinfo) {
         if (!IdentAudioFile(file, this->info)) {
             throw UnsupportedAudioFormatException();
         }
     } else {
-        this->info = *info;
+        this->info = *audioinfo;
     }
     if (this->info.Format != AudioInfo::AudioFormat::WAVE) throw UnsupportedAudioFormatException();
-    // if (this->info.Frequency!=44100) throw UnsupportedAudioFormatException("Frequency != 44100");
-    // if (this->info.Bitrate!=1411) throw UnsupportedAudioFormatException("Bitrate != 1411");
-    if (this->info.Channels != 2) throw UnsupportedAudioFormatException("Channels != 2");
-    if (this->info.BitsPerSample != 16) throw UnsupportedAudioFormatException("BitsPerSample != 16");
-    if (this->info.BytesPerSample != 4) throw UnsupportedAudioFormatException("BytesPerSample != 4");
+    // Dekodiert wird mono (Kanal wird verdoppelt) und stereo, nicht mehr Kanael
+    if (this->info.Channels < 1 || this->info.Channels > 2) throw UnsupportedAudioFormatException("Channels not 1 or 2");
+
+    // Die Groesse eines Frames muss sich aus Bitbreite und Kanaelzahl ergeben, sonst
+    // wuerden die Lesemethoden die Samples an der falschen Stelle suchen
+    const size_t chanBytes = (size_t)((this->info.BitsPerSample + 7) / 8);
+    if (this->info.BytesPerSample != (uint8_t)(chanBytes * this->info.Channels))
+        throw UnsupportedAudioFormatException("BytesPerSample does not match BitsPerSample and Channels");
+
+    switch (this->info.BitsPerSample) {
+        case 32:
+            encoding = (this->info.SampleType == AudioInfo::SampleEncoding::FLOAT)
+                           ? FrameEncoding::FLOAT32
+                           : FrameEncoding::INT32;
+            break;
+        case 24:
+            encoding = FrameEncoding::INT24;
+            break;
+        case 16:
+            encoding = FrameEncoding::INT16;
+            break;
+        default:
+            // 8 Bit, 20 Bit in 3 Bytes und alles darueber hinaus wird nicht dekodiert
+            throw UnsupportedAudioFormatException("BitsPerSample is not 16, 24 or 32");
+    }
+    this->bytesPerChannel = chanBytes;
+
     position = 0;
     this->ff = &file;
+
+    // Ohne Vorlesebereich wuerde sequentielles Playen jede Leseoperation ein
+    // munmap/mmap-Paar ausloesen. Der Wert ist bewusst klein gehalten, weil WAV-Samples
+    // bis zu 8 Bytes pro Frame belegen. Ein groesserer Wert des Aufrufers bleibt erhalten.
+    if (file.getMapWindowSize() < 32 * 1024) file.setMapWindowSize(32 * 1024);
 }
 
 void AudioDecoder_Wave::close()
 {
-    ff = NULL;
+    ff = nullptr;
     position = 0;
-    samplesize = 0;
+    bytesPerChannel = 0;
+    encoding = FrameEncoding::NONE;
+    // Nach dem Schliessen gehoeren die Felder der offenen Datei nicht mehr dazu
+    info = AudioInfo();
 }
 
 const AudioInfo& AudioDecoder_Wave::getAudioInfo() const
@@ -102,36 +132,188 @@ void AudioDecoder_Wave::seekSample(size_t sample)
         position = info.Samples;
 }
 
+namespace {
+
+/// @brief extendiert eine 24 Bit Zweierkomplementzahl auf 32 Bit
+inline int32_t SignExtend24(uint32_t v)
+{
+    return (int32_t)(v << 8) >> 8;
+}
+
+/// @brief Vollskala der unterstuetzten Ganzzahl-Formate (2^15, 2^23, 2^31). Jede Bitbreite
+///        wird auf ihre eigene Vollskala normiert, damit alle Formate im Float-Puffer den
+///        Bereich -1.0 bis 1.0 fuellen.
+constexpr float FULL_SCALE_16 = 32768.0f;
+constexpr float FULL_SCALE_24 = 8388608.0f;
+constexpr float FULL_SCALE_32 = 2147483648.0f;
+
+/// @brief bringt einen normierten Float Samplewert auf die Ebene von STEREOSAMPLE16.
+///        WAV Float Dateien (Format-Tag 3) speichern normierte Werte (Bereich -1.0 bis 1.0),
+///        deshalb zuerst die 16 Bit Vollskala, dann Begrenzung. NaN wird 0.
+inline int32_t ScaleFloatToSample16(float v)
+{
+    if (v != v) return 0; //NaN vergleicht niemals gleich, deshalb ist das der NaN-Test ohne <cmath>
+                          //Ohne diese Prüfung greifen die beiden Begrenzungen nicht und (int32_t)v
+                          //wäre undefiniertes Verhalten; im Mixpuffer würde NaN sonst dauerhaft weitergereicht.
+    v *= FULL_SCALE_16;
+    if (v > 32767.0f) return 32767;
+    if (v < -32768.0f) return -32768;
+    return (int32_t)v;
+}
+
+}  // namespace
+
+/** @brief bereitet den nächsten Lesevorgang vor
+ *
+ * Begrenzt die angeforderte Samplezahl auf das Datei- bzw. Sampleende und liefert in
+ * \p offset den Dateiversatz des ersten Frames. Ein Rückgabewert von 0 bedeutet
+ * "nichts zu lesen". Die Prüfungen stehen hier und nicht in den vier Lesemethoden,
+ * weil sie für alle Zielformate völlig gleich sind.
+ */
+size_t AudioDecoder_Wave::prepareRead(size_t num, const void* buffer, uint64_t& offset) const
+{
+    offset = 0;
+    if (!ff) throw DecoderException("No file opened");
+    if (!buffer) throw DecoderException("Buffer is null");
+    if (num == 0) return 0;
+    if (position >= info.Samples) return 0;
+
+    size_t samples = num;
+    if (position + samples > info.Samples) samples = info.Samples - position;
+    samples = ClampToAudioSize(info, position, samples);
+
+    // Die von map() gelesene Laenge darf nicht ueber das Dateiende hinauslaufen, sonst
+    // wirft map() eine OverflowException. Noetig wird das nur bei einem vom Aufrufer
+    // gelieferten AudioInfo, das eine zu grosse AudioSize nennt
+    offset = (uint64_t)info.AudioStart + (uint64_t)position * info.BytesPerSample;
+    if (offset >= (uint64_t)ff->size()) return 0;
+    if (samples > (size_t)(((uint64_t)ff->size() - offset) / info.BytesPerSample))
+        samples = (size_t)(((uint64_t)ff->size() - offset) / info.BytesPerSample);
+    return samples;
+}
+
 size_t AudioDecoder_Wave::getPosition() const
 {
     return position;
 }
 
-size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16* interleafed)
+size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16* buffer)
 {
-    size_t samples = num;
-    if (position + samples > info.Samples) samples = info.Samples - position;
-    samples = ClampToAudioSize(info, position, samples);
+    if (!buffer) throw DecoderException("Buffer is null");
+    uint64_t offset;
+    size_t samples = prepareRead(num, buffer, offset);
     if (samples == 0) return 0;
-    ff->seek(info.AudioStart + position * info.BytesPerSample);
-    size_t read = ff->read(interleafed, samples * info.BytesPerSample) / info.BytesPerSample;
-    position += read;
-    return read;
+
+    const char* data = ff->map(offset, samples * info.BytesPerSample);
+    if (!data) throw DecoderException("Mapping audio data failed");
+
+    const size_t frameBytes = info.BytesPerSample;
+    const size_t chanBytes = bytesPerChannel;
+    const bool stereo = info.Channels == 2;
+
+    switch (encoding) {
+    case FrameEncoding::INT16:
+        for (size_t i = 0; i < samples; i++) {
+            int16_t l = (int16_t)Peek16(data);
+            int16_t r = stereo ? (int16_t)Peek16(data + chanBytes) : l;
+            buffer[i].left = l;
+            buffer[i].right = r;
+            data += frameBytes;
+        }
+        break;
+    case FrameEncoding::INT24:
+        for (size_t i = 0; i < samples; i++) {
+            int16_t l = (int16_t)(SignExtend24(Peek24(data)) >> 8);
+            int16_t r = stereo ? (int16_t)(SignExtend24(Peek24(data + chanBytes)) >> 8) : l;
+            buffer[i].left = l;
+            buffer[i].right = r;
+            data += frameBytes;
+        }
+        break;
+    case FrameEncoding::INT32:
+        for (size_t i = 0; i < samples; i++) {
+            int16_t l = (int16_t)((int32_t)Peek32(data) >> 16);
+            int16_t r = stereo ? (int16_t)((int32_t)Peek32(data + chanBytes) >> 16) : l;
+            buffer[i].left = l;
+            buffer[i].right = r;
+            data += frameBytes;
+        }
+        break;
+    case FrameEncoding::FLOAT32:
+        // WAV Float-Samples (Format-Tag 3) sind normiert (-1.0 .. 1.0), deshalb Skala 32768
+        for (size_t i = 0; i < samples; i++) {
+            int16_t l = (int16_t)ScaleFloatToSample16(PeekFloat(data));
+            int16_t r = stereo ? (int16_t)ScaleFloatToSample16(PeekFloat(data + chanBytes)) : l;
+            buffer[i].left = l;
+            buffer[i].right = r;
+            data += frameBytes;
+        }
+        break;
+    default:
+        // FrameEncoding::NONE laesst open() gar nicht erst zu den Lesemethoden kommen
+        break;
+    }
+    position += samples;
+    return samples;
 }
 
 size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
-    size_t samples = num;
-    if (position + samples > info.Samples) samples = info.Samples - position;
-    samples = ClampToAudioSize(info, position, samples);
+    if (!buffer) throw DecoderException("Buffer is null");
+    uint64_t offset;
+    size_t samples = prepareRead(num, buffer, offset);
     if (samples == 0) return 0;
-    const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
-    if (info.BitsPerSample == 16) {
+
+    const char* data = ff->map(offset, samples * info.BytesPerSample);
+    if (!data) throw DecoderException("Mapping audio data failed");
+
+    const size_t frameBytes = info.BytesPerSample;
+    const size_t chanBytes = bytesPerChannel;
+    const bool stereo = info.Channels == 2;
+
+    // Der Mixpuffer nimmt durchgehend Werte im 16 Bit Bereich auf, damit Quellen
+    // unterschiedlicher Bitbreite ohne weitere Skalierung aufaddiert werden koennen.
+    // Abgeschnitten wird ohne Rundung: Uebersteuerungsprodukte entstehen erst durch das
+    // Aufaddieren und werden am Mixbus-Ausgang begrenzt
+    switch (encoding) {
+    case FrameEncoding::INT16:
         for (size_t i = 0; i < samples; i++) {
-            buffer[i].left += Peek16(data);
-            buffer[i].right += Peek16(data + 2);
-            data += 4;
+            int16_t l = (int16_t)Peek16(data);
+            int16_t r = stereo ? (int16_t)Peek16(data + chanBytes) : l;
+            buffer[i].left += l;
+            buffer[i].right += r;
+            data += frameBytes;
         }
+        break;
+    case FrameEncoding::INT24:
+        for (size_t i = 0; i < samples; i++) {
+            int16_t l = (int16_t)(SignExtend24(Peek24(data)) >> 8);
+            int16_t r = stereo ? (int16_t)(SignExtend24(Peek24(data + chanBytes)) >> 8) : l;
+            buffer[i].left += l;
+            buffer[i].right += r;
+            data += frameBytes;
+        }
+        break;
+    case FrameEncoding::INT32:
+        for (size_t i = 0; i < samples; i++) {
+            int16_t l = (int16_t)((int32_t)Peek32(data) >> 16);
+            int16_t r = stereo ? (int16_t)((int32_t)Peek32(data + chanBytes) >> 16) : l;
+            buffer[i].left += l;
+            buffer[i].right += r;
+            data += frameBytes;
+        }
+        break;
+    case FrameEncoding::FLOAT32:
+        for (size_t i = 0; i < samples; i++) {
+            int16_t l = (int16_t)ScaleFloatToSample16(PeekFloat(data));
+            int16_t r = stereo ? (int16_t)ScaleFloatToSample16(PeekFloat(data + chanBytes)) : l;
+            buffer[i].left += l;
+            buffer[i].right += r;
+            data += frameBytes;
+        }
+        break;
+    default:
+        break;
     }
     position += samples;
     return samples;
@@ -139,17 +321,58 @@ size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE32* buffer)
 
 size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
-    size_t samples = num;
-    if (position + samples > info.Samples) samples = info.Samples - position;
-    samples = ClampToAudioSize(info, position, samples);
+    if (!buffer) throw DecoderException("Buffer is null");
+    uint64_t offset;
+    size_t samples = prepareRead(num, buffer, offset);
     if (samples == 0) return 0;
-    const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
-    if (info.BitsPerSample == 16) {
+
+    const char* data = ff->map(offset, samples * info.BytesPerSample);
+    if (!data) throw DecoderException("Mapping audio data failed");
+
+    const size_t frameBytes = info.BytesPerSample;
+    const size_t chanBytes = bytesPerChannel;
+    const bool stereo = info.Channels == 2;
+
+    switch (encoding) {
+    case FrameEncoding::INT16:
         for (size_t i = 0; i < samples; i++) {
-            buffer[i].left = (int16_t)Peek16(data) / 32768.0f;
-            buffer[i].right = (int16_t)Peek16(data + 2) / 32768.0f;
-            data += 4;
+            float l = (int16_t)Peek16(data) / FULL_SCALE_16;
+            float r = stereo ? (int16_t)Peek16(data + chanBytes) / FULL_SCALE_16 : l;
+            buffer[i].left = l;
+            buffer[i].right = r;
+            data += frameBytes;
         }
+        break;
+    case FrameEncoding::INT24:
+        for (size_t i = 0; i < samples; i++) {
+            float l = (float)SignExtend24(Peek24(data)) / FULL_SCALE_24;
+            float r = stereo ? (float)SignExtend24(Peek24(data + chanBytes)) / FULL_SCALE_24 : l;
+            buffer[i].left = l;
+            buffer[i].right = r;
+            data += frameBytes;
+        }
+        break;
+    case FrameEncoding::INT32:
+        for (size_t i = 0; i < samples; i++) {
+            float l = (float)(int32_t)Peek32(data) / FULL_SCALE_32;
+            float r = stereo ? (float)(int32_t)Peek32(data + chanBytes) / FULL_SCALE_32 : l;
+            buffer[i].left = l;
+            buffer[i].right = r;
+            data += frameBytes;
+        }
+        break;
+    case FrameEncoding::FLOAT32:
+        // Die Samples stehen bereits als normierter Float in der Datei, die Skala entfaellt
+        for (size_t i = 0; i < samples; i++) {
+            float l = PeekFloat(data);
+            float r = stereo ? PeekFloat(data + chanBytes) : l;
+            buffer[i].left = l;
+            buffer[i].right = r;
+            data += frameBytes;
+        }
+        break;
+    default:
+        break;
     }
     position += samples;
     return samples;
@@ -157,17 +380,57 @@ size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 
 size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
-    size_t samples = num;
-    if (position + samples > info.Samples) samples = info.Samples - position;
-    samples = ClampToAudioSize(info, position, samples);
+    if (!buffer) throw DecoderException("Buffer is null");
+    uint64_t offset;
+    size_t samples = prepareRead(num, buffer, offset);
     if (samples == 0) return 0;
-    const char* data = ff->map(info.AudioStart + position * info.BytesPerSample, samples * info.BytesPerSample);
-    if (info.BitsPerSample == 16) {
+
+    const char* data = ff->map(offset, samples * info.BytesPerSample);
+    if (!data) throw DecoderException("Mapping audio data failed");
+
+    const size_t frameBytes = info.BytesPerSample;
+    const size_t chanBytes = bytesPerChannel;
+    const bool stereo = info.Channels == 2;
+
+    switch (encoding) {
+    case FrameEncoding::INT16:
         for (size_t i = 0; i < samples; i++) {
-            buffer[i].left += (int16_t)Peek16(data) / 32768.0f;
-            buffer[i].right += (int16_t)Peek16(data + 2) / 32768.0f;
-            data += 4;
+            float l = (int16_t)Peek16(data) / FULL_SCALE_16;
+            float r = stereo ? (int16_t)Peek16(data + chanBytes) / FULL_SCALE_16 : l;
+            buffer[i].left += l;
+            buffer[i].right += r;
+            data += frameBytes;
         }
+        break;
+    case FrameEncoding::INT24:
+        for (size_t i = 0; i < samples; i++) {
+            float l = (float)SignExtend24(Peek24(data)) / FULL_SCALE_24;
+            float r = stereo ? (float)SignExtend24(Peek24(data + chanBytes)) / FULL_SCALE_24 : l;
+            buffer[i].left += l;
+            buffer[i].right += r;
+            data += frameBytes;
+        }
+        break;
+    case FrameEncoding::INT32:
+        for (size_t i = 0; i < samples; i++) {
+            float l = (float)(int32_t)Peek32(data) / FULL_SCALE_32;
+            float r = stereo ? (float)(int32_t)Peek32(data + chanBytes) / FULL_SCALE_32 : l;
+            buffer[i].left += l;
+            buffer[i].right += r;
+            data += frameBytes;
+        }
+        break;
+    case FrameEncoding::FLOAT32:
+        for (size_t i = 0; i < samples; i++) {
+            float l = PeekFloat(data);
+            float r = stereo ? PeekFloat(data + chanBytes) : l;
+            buffer[i].left += l;
+            buffer[i].right += r;
+            data += frameBytes;
+        }
+        break;
+    default:
+        break;
     }
     position += samples;
     return samples;

@@ -345,12 +345,13 @@ static std::vector<char> MakeAIFF(uint32_t commSize, uint32_t ssndSize, uint32_t
  */
 static std::vector<char> MakeWAVE(uint32_t fmtSize, uint32_t dataSize, size_t audioBytes,
                                   uint16_t channels = 2, uint16_t bitdepth = 16, uint32_t rate = 44100,
-                                  bool listChunkBeforeData = false, bool id3ChunkBeforeData = false)
+                                  bool listChunkBeforeData = false, bool id3ChunkBeforeData = false,
+                                  uint16_t formatTag = 1)
 {
     std::vector<char> body;
     putTag(body, "fmt ");
     put32le(body, fmtSize);
-    put16le(body, 1); // PCM
+    put16le(body, formatTag);  // 1 = PCM, 3 = IEEE-Float
     put16le(body, channels);
     put32le(body, rate);
     put32le(body, rate * channels * (bitdepth / 8));
@@ -464,6 +465,9 @@ TEST_F(AudioInfoTest, FormatOverloadMatchesInfoOverload)
     } matrix[] = {
         {"testdata/audio/test_192cbr.mp3", AF::MP3},
         {"testdata/audio/test_44kHz.wav", AF::WAVE},
+        {"testdata/audio/test_44kHz_24bit.wav", AF::WAVE},
+        {"testdata/audio/test_44kHz_32bit.wav", AF::WAVE},
+        {"testdata/audio/test_44kHz_float.wav", AF::WAVE},
         {"testdata/audio/test_44kHz.aiff", AF::AIFF},
         {"testdata/audio/test_44kHz_16bit_mono.aiff", AF::AIFF},
         {"testdata/audio/test_44kHz_24bit.aiff", AF::AIFF},
@@ -621,6 +625,69 @@ TEST_F(AudioInfoTest, Wave8BitMono48kHzExtensibleFmt)
     EXPECT_EQ((uint64_t)12, info.Samples);
     EXPECT_EQ((uint16_t)384, info.Bitrate);
     EXPECT_EQ((uint64_t)68, info.AudioStart) << "40 Byte fmt-Payload statt 16";
+}
+
+TEST_F(AudioInfoTest, WaveFloatFormatTagUsesFloatSampleEncoding)
+{
+    // 32 Bit sind sowohl Ganzzahl als auch float: erst der Format-Tag 3 aus dem fmt-Chunk
+    // entscheidet, und ohne ihn waere eine Float-Datei keinem Dekoder zugeordnet
+    std::vector<char> wave = MakeWAVE(16, 32, 32, 2, 32, 44100, false, false, 3);
+    pplib::MemFile file(wave.data(), wave.size());
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ(SE::FLOAT, info.SampleType);
+    EXPECT_EQ((uint8_t)32, info.BitsPerSample);
+    EXPECT_EQ((uint8_t)8, info.BytesPerSample);
+    EXPECT_EQ((uint64_t)4, info.Samples) << "32 Byte / 8 Byte je Frame";
+    EXPECT_EQ((uint16_t)2822, info.Bitrate) << "44100 Frames/s * 8 Byte";
+}
+
+TEST_F(AudioInfoTest, WavePcmWidthsUseIntegerSampleEncoding)
+{
+    // Die unterstuetzten PCM-Breiten: Samples stets pro Frame, bei mono nur ein Kanal
+    const uint16_t widths[] = {16, 24, 32};
+    for (uint16_t bits : widths) {
+        SCOPED_TRACE(bits);
+        const uint8_t frameBytes = (uint8_t)((bits + 7) / 8 * 2);
+        std::vector<char> wave = MakeWAVE(16, 48, 48, 2, bits, 44100, false, false);
+        pplib::MemFile file(wave.data(), wave.size());
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+        EXPECT_EQ(SE::INTEGER, info.SampleType);
+        EXPECT_EQ((uint8_t)bits, info.BitsPerSample);
+        EXPECT_EQ(frameBytes, info.BytesPerSample);
+        EXPECT_EQ((uint64_t)(48 / frameBytes), info.Samples);
+
+        std::vector<char> mono = MakeWAVE(16, 48, 48, 1, bits, 44100, false, false);
+        pplib::MemFile monoFile(mono.data(), mono.size());
+        pplib::AudioInfo minfo;
+        ASSERT_TRUE(pplib::IdentAudioFile(monoFile, minfo));
+        EXPECT_EQ((uint8_t)1, minfo.Channels);
+        EXPECT_EQ(CM::MONO, minfo.Mode);
+        EXPECT_EQ((uint8_t)(bits / 8), minfo.BytesPerSample);
+        EXPECT_EQ((uint64_t)(48 / (bits / 8)), minfo.Samples);
+    }
+}
+
+TEST_F(AudioInfoTest, WaveFormatTagOutsidePcmAndFloatIsNotSupported)
+{
+    // EXTENSIBLE (0xFFFE) und aLaw (6) haben keinen Dekoder: beide Overloads weisen die
+    // Datei ab, damit spaeter nicht ein Dekoder mit falschen Annahmen gewaehlt wird
+    const uint16_t tags[] = {0xFFFE, 6, 0};
+    for (uint16_t tag : tags) {
+        SCOPED_TRACE(tag);
+        std::vector<char> wave = MakeWAVE(40, 16, 16, 2, 16, 44100, false, false, tag);
+        pplib::MemFile file(wave.data(), wave.size());
+        pplib::AudioInfo info = SentinelInfo();
+        EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+        EXPECT_EQ(AF::UNKNOWN, pplib::IdentAudioFile(file)) << "Container wird nicht mehr zugesagt";
+
+        // Der Tag 3 verlangt 32 Bit; 16-Bit-Float gibt es nicht
+        std::vector<char> mismatch = MakeWAVE(16, 16, 16, 2, 16, 44100, false, false, 3);
+        pplib::MemFile badFile(mismatch.data(), mismatch.size());
+        pplib::AudioInfo badInfo;
+        EXPECT_FALSE(pplib::IdentAudioFile(badFile, badInfo));
+    }
 }
 
 TEST_F(AudioInfoTest, BothBitDepth33IsRejected)

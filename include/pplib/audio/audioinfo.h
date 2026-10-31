@@ -70,8 +70,9 @@ public:
      * \desc
      * Nicht jedes Format, das erkannt wird, laesst sich auch dekodieren. Der
      * Parser akzeptiert bewusst nur eine Teilmenge:
-     * - WAVE: `fmt ` als erster Chunk, Format-Tag 1 (PCM), maximal 2 Kanaele und
-     *   8..32 Bit. EXTENSIBLE, Float-PCM und Mehrkanal werden nicht erkannt.
+     * - WAVE: `fmt ` als erster Chunk, Format-Tag 1 (PCM) oder 3 (IEEE-Fliesskomma,
+     *   nur 32 Bit), maximal 2 Kanaele und 8..32 Bit. EXTENSIBLE (`0xFFFE`),
+     *   komprimierte Tags (`ADPCM`, `ulaw`, `alaw` ...) und Mehrkanal werden nicht erkannt.
      * - AIFF: `FORM`/`AIFF` sowie `FORM`/`AIFC` (AIFF-C) nur mit den Sample-Formaten
      *   unkomprimiert (`NONE`) oder 32-Bit-Fliesskomma (`FL32`/`fl32`). Alle uebrigen
      *   AIFF-C-Kompressionen (`sowt`, `ulaw`, `adpc`, `alaw`, `fl64` ...) und Mehrkanal
@@ -82,7 +83,7 @@ public:
     enum class AudioFormat : uint8_t
     {
         UNKNOWN = 0,   //!< Kein bekanntes Audioformat
-        WAVE = 1,      //!< RIFF/WAVE (PCM, 8..32 Bit, max. 2 Kanaele)
+        WAVE = 1,      //!< RIFF/WAVE (PCM oder 32-Bit-Float, 8..32 Bit, max. 2 Kanaele)
         AIFF = 2,      //!< AIFF/AIFF-C (Apple Audio Interchange File Format, nur unkomprimiert oder FL32)
         MP3 = 3,       //!< MPEG Layer 1-3
         OGG = 4        //!< Ogg Vorbis (Opus/FLAC im Ogg-Container gelten als UNKNOWN)
@@ -107,13 +108,13 @@ public:
      * \desc
      * Trennt Ganzzahl- von FlieSSkomma-Samples, weil die Aufloesung allein
      * dafuer nicht steht (32 Bit sind sowohl Ganzzahl als auch float).
-     * WAVE erkennt bewusst nur PCM, deshalb steht dort immer INTEGER.
+     * WAVE setzt FLOAT fuer den Format-Tag 3 (32-Bit-IEEE-Float), sonst INTEGER.
      * AIFF-C setzt FLOAT ausschliesslich fuer den Kompressionstyp `FL32`.
      */
     enum class SampleEncoding : uint8_t
     {
         INTEGER = 0,  //!< Zweierkomplement-Ganzzahl (Standardfall bei WAV, AIFF, AIFF-C/NONE)
-        FLOAT = 1     //!< IEEE-754-Fliesskomma (AIFF-C mit `FL32`, 32 Bit)
+        FLOAT = 1     //!< IEEE-754-Fliesskomma (WAV Format-Tag 3 und AIFF-C mit `FL32`, je 32 Bit)
     };
 
     AudioFormat Format = AudioFormat::UNKNOWN;  //!< erkanntes Audioformat

@@ -240,6 +240,7 @@ bool IdentWave(FileObject& file, AudioInfo& info)
     uint32_t frequency = 0;
     uint16_t channels = 0;
     uint16_t bitdepth = 0;
+    uint16_t formatTag = 0;
     uint64_t declaredDataSize = 0;
     uint64_t audioStart = 0;
 
@@ -255,6 +256,7 @@ bool IdentWave(FileObject& file, AudioInfo& info)
         if (fourcc(adr, "fmt ")) {
             if (size < 16 || payload + 16 > fsize) break;
             const char* fmt = file.map(payload, 16);
+            formatTag = Peek16(fmt);  // 1 = PCM, 3 = IEEE-Float, 0xFFFE = EXTENSIBLE
             channels = Peek16(fmt + 2);
             frequency = Peek32(fmt + 4);
             bitdepth = Peek16(fmt + 14);
@@ -274,6 +276,8 @@ bool IdentWave(FileObject& file, AudioInfo& info)
     }
 
     if (!foundFMT || !foundDATA) return false;
+    if (formatTag != 1 && formatTag != 3) return false;  // nur PCM und 32-Bit-IEEE-Float
+    if (formatTag == 3 && bitdepth != 32) return false;  // Float gibt es nur als 32 Bit
     if (channels == 0 || channels > 2) return false;
     if (bitdepth < 8 || bitdepth > 32) return false; // Obergrenze: >32 Bit wird nicht unterstuetzt
     if (frequency == 0) return false;
@@ -290,6 +294,7 @@ bool IdentWave(FileObject& file, AudioInfo& info)
     info.Mode = (channels == 1) ? AudioInfo::ChannelMode::MONO : AudioInfo::ChannelMode::STEREO;
     info.Frequency = frequency;
     info.BitsPerSample = (uint8_t)bitdepth;
+    info.SampleType = (formatTag == 3) ? AudioInfo::SampleEncoding::FLOAT : AudioInfo::SampleEncoding::INTEGER;
     info.BytesPerSample = bytesPerSample;
     info.AudioStart = audioStart;
     info.AudioSize = audioSize;
@@ -353,8 +358,9 @@ AudioInfo::AudioFormat DetectFormat(FileObject& file, PPL_MPEG_HEADER* mp3)
         && (fourcc(adr + 8, "AIFF") || fourcc(adr + 8, "AIFC")))
         return AudioInfo::AudioFormat::AIFF;
 
-    // RIFF / WAV (nur PCM, Format-Tag 1)
-    if (fourcc(adr, "RIFF") && fourcc(adr + 8, "WAVE") && fourcc(adr + 12, "fmt ") && Peek16(adr + 20) == 1)
+    // RIFF / WAV (PCM Tag 1 und IEEE-Float Tag 3). IdentWave() prueft die Tag-Bitbreiten-Kombination
+    if (fourcc(adr, "RIFF") && fourcc(adr + 8, "WAVE") && fourcc(adr + 12, "fmt ")
+        && (Peek16(adr + 20) == 1 || Peek16(adr + 20) == 3))
         return AudioInfo::AudioFormat::WAVE;
 
     // Ogg ist ein codec-neutraer Container: unterstuetzt ist hier ausschliesslich

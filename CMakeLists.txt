@@ -350,6 +350,9 @@ endif()
 # ==============================================================================
 # 3. GRAFIX (src/grafix, src/asm)
 # ==============================================================================
+# Effectiver NASM-Status (auch ohne grafix-Modul definiert, fuer die Feature-Zusammenfassung)
+set(PPLIB_HAVE_NASM OFF)
+
 if(PPLIB_ENABLE_GRAFIX)
     file(GLOB GFX_SOURCES CONFIGURE_DEPENDS "src/grafix/*.cpp")
 
@@ -357,7 +360,11 @@ if(PPLIB_ENABLE_GRAFIX)
     set(ASM_SOURCES)
     if(PPLIB_WITH_ASM)
         enable_language(ASM_NASM OPTIONAL)
-        if(CMAKE_ASM_NASM_COMPILER_LOADED)
+        # OPTIONAL unterdrückt den Abbruch bei fehlendem nasm, lässt aber
+        # CMAKE_ASM_NASM_COMPILER_LOADED trotzdem wahr sein. Verlässlich ist nur
+        # der Compilerpfad selbst: er endet dann auf "-NOTFOUND" und ist damit falsch.
+        if(CMAKE_ASM_NASM_COMPILER)
+            set(PPLIB_HAVE_NASM ON)
             set(HAVE_NASM 1)
             file(GLOB ASM_SOURCES CONFIGURE_DEPENDS "src/asm/*.asm")
             set_source_files_properties(${ASM_SOURCES} PROPERTIES LANGUAGE ASM_NASM)
@@ -374,7 +381,7 @@ if(PPLIB_ENABLE_GRAFIX)
     target_include_directories(pplib_grafix PUBLIC ${PPLIB_INCLUDE_DIRS})
     target_link_libraries(pplib_grafix PUBLIC pplib_core)
 
-    if(CMAKE_ASM_NASM_COMPILER_LOADED)
+    if(PPLIB_HAVE_NASM)
         target_compile_definitions(pplib_grafix PRIVATE HAVE_X86_ASSEMBLER=1)
         set (HAVE_X86_ASSEMBLER 1)
     endif()
@@ -733,7 +740,7 @@ pplib_bool_str(PPLIB_ENABLE_INTERNET STR_INET)
 pplib_bool_str(PPLIB_ENABLE_DATABASE STR_DB)
 pplib_bool_str(PPLIB_ENABLE_PICO STR_PICO)
 
-pplib_bool_str(CMAKE_ASM_NASM_COMPILER_LOADED STR_ASM)
+pplib_bool_str(PPLIB_HAVE_NASM STR_ASM)
 pplib_bool_str(ZLIB_FOUND STR_ZLIB)
 pplib_bool_str(BZip2_FOUND STR_BZIP2)
 pplib_bool_str(ZSTD_FOUND STR_ZSTD)
