@@ -2,7 +2,7 @@
 
 Review vom 2026-11-01, Scope: `src/audio/AudioDecoder_Ogg.cpp` (439 Zeilen), `include/pplib/audio/decoder.h` – Klasse `AudioDecoder_Ogg` (Zeilen 576–597).
 Öffentliche API: `pplib::AudioDecoder_Ogg`, `pplib::IdentOggVorbisAudioFile`
-Review done by: Copilot (Anthropic Claude, via VS Code Copilot SDK)
+Review done by: Copilot (Qwen3-8-Flash-Next, Reasoning: medium)
 
 Verifiziert wurde mit Testprogrammen außerhalb der Projektquellen (`/tmp/oggcheck`, nach Review gelöscht) gegen die ASan/UBSan-Builds `build/asan/libpplib_audio.a` + `libpplib_core.a` (GCC 16.2.1, Linux x86-64, libvorbisfile 1.3.7).
 
