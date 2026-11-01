@@ -176,7 +176,9 @@ public:
  *
  * @param file Die Datei, für die ein Audio-Decoder erstellt werden soll.
  * @return Zeiger auf ein AudioDecoder-Objekt, das für die gegebene Datei geeignet ist, oder NULL,
- * falls kein passender Decoder gefunden wurde.
+ * falls kein passender Decoder gefunden wurde oder der Decoder die Datei nicht öffnen kann.
+ * In beiden Fällen wird kein Objekt angelegt bzw. das halb fertiggestellte wieder freigegeben;
+ * die Funktion wirft keine Ausnahme.
  */
 AudioDecoder* GetAudioDecoder(FileObject& file);
 
@@ -610,12 +612,15 @@ struct FlacState;
  * Unterstützt werden Dateien mit einem oder zwei Kanälen und 16 oder 24 Bit pro
  * Kanal. Monodateien werden unterstützt, indem das eine Kanal-Sample auf links und
  * rechts kopiert wird. Alles andere (mehr Kanäle, 8/32 Bit, Kompression in Ogg)
- * lehnt `open()` mit `UnsupportedAudioFormatException` ab; `IdentAudioFile()`
- * erkennt solche Dateien nicht als dekodierbares `FLAC`.
+ * lehnt `open()` mit `UnsupportedAudioFormatException` ab. `IdentAudioFile()` erkennt
+ * solche Dateien dagegen als `FLAC` und meldet Kanalzahl und Bitbreite korrekt:
+ * Erkennung und Unterstützung sind getrennt, abgelehnt wird erst hier.
  *
- * Metadaten-Blöcke ( Padding, SEEKTABLE, VORBIS_COMMENT, PICTURE) werden übersprungen,
- * ein vorangestelltes ID3v2-Tag und ein ID3v1-Tag am Dateiende über das `AudioInfo`
- * berücksichtigt. Eine Konvertierung der Abtastrate findet nicht statt. Beim Lesen
+ * Metadaten-Blöcke ( Padding, SEEKTABLE, VORBIS_COMMENT, PICTURE) werden übersprungen.
+ * Ein vorangestelltes ID3v2-Tag wird beim Auffinden des Datenanfangs übersprungen; ein
+ * ID3v1-Tag am Dateiende läuft über die Fehlerbehandlung der Decodier-Callbackfunktion
+ * zusammen mit sonstigem Anhängsel als toleriertes Dateiende. Eine Konvertierung
+ * der Abtastrate findet nicht statt. Beim Lesen
  * werden die Werte auf den Wertebereich des Zielpuffers skaliert:
  *
  * | Quelle        | `getSamples(STEREOSAMPLE16)` | `addSamples(STEREOSAMPLE32)` | `getSamples`/`addSamples`(STEREOSAMPLE_FLOAT) |
@@ -632,7 +637,19 @@ struct FlacState;
  * Zielformate aus derselben Rohdatenquelle gespeist werden.
  *
  * @note Voraussetzung ist ein pplib-Build mit libFLAC (CMake-Option `PPLIB_WITH_FLAC`).
- * Fehlt die Bibliothek, wirft `open()` eine `UnsupportedFeatureException`.
+ * Fehlt die Bibliothek, wirft jede Methode dieser Klasse eine `UnsupportedFeatureException`.
+ *
+ * @note Die MD5-Prüfsumme einer FLAC-Datei wird bewusst nicht ausgewertet: Bei stückweisem
+ * Lesen mit toleriertem Dateiende kann libFLAC sie nicht gültig abschließen. Defekte
+ * Audiodaten melden eine `DecoderException`, eine abgeschnittene Datei liefert die
+ * vollständig dekodierbaren Frames und endet mit einem Rückgabewert unter der
+ * angeforderten Zahl. Ein Sync-Verlust, der erst nach dem letzten Rahmen gemeldet wird
+ * (zum Beispiel ein Anhängsel wie ein ID3v1-Tag), ist von einem Defekt nicht zu
+ * unterscheiden und zählt als Dateiende.
+ *
+ * @note Das übergebene `FileObject` gehört dem Decoder exklusiv: Er liest direkt über das
+ * Objekt und verändert dabei die Dateiposition. Nutzen zwei Decoder dasselbe `FileObject`,
+ * liest der zweite ab der Position, die der erste hinterlassen hat.
  *
  * @see AudioInfo::AudioFormat::FLAC
  */
@@ -647,13 +664,14 @@ private:
 
     /** @brief Laedt Rohdaten decodiert nach, bis mindestens \p num Frames bereitstehen.
      *
-     *  @return Anzahl bereitstehender Frames (kann wegen Dateiende kleiner sein).
-     *  @exception DecoderException interner Decodierfehler. */
+     *  Decodier- oder Dateifehler werden nur im Zustand vermerkt, nicht geworfen.
+     *  @return Anzahl bereitstehender Frames (kann wegen Dateiende kleiner sein). */
     size_t fillFrames(size_t num);
 
     /** @brief Umweg ueber alle vier Lesemethoden: genau einer der drei Zielzeiger ist gesetzt.
      *
-     *  @exception DecoderException Kein offener Decoder oder \p buffer ist NULL. */
+     *  @exception DecoderException Kein offener Decoder, \p buffer ist NULL oder die
+     *          Audiodaten sind vor dem Ziel defekt. */
     size_t transferFrames(size_t num, STEREOSAMPLE16* buf16, STEREOSAMPLE32* buf32,
                           STEREOSAMPLE_FLOAT* bufFloat, bool add);
 
@@ -663,14 +681,28 @@ public:
 
     /** @brief Öffnet die Datei, liest die Metadaten und prueft die Unterstuetzung.
      *
-     * Wird \p info übergeben, verwendet der Decoder Kanalzahl, Bitbreite, Abtastrate und
-     * Ortsangaben unverändert; andernfalls ermittelt er sie mit `IdentAudioFile()`.
-     * Abgelehnt werden mehrere als ein oder zwei Kanäle und Bitbreiten ausser 16 und 24.
+     * Wird \p info übergeben, prüft der Decoder Kanalzahl, Bitbreite und Abtastrate gegen
+     * den STREAMINFO-Block und lehnt Abweichungen ab; andernfalls ermittelt er die Werte
+     * mit `IdentAudioFile()`. Die Bitrate berechnet er aus den Werten des STREAMINFO-Blocks.
+     * Abgelehnt werden mehr als zwei Kanäle und Bitbreiten ausser 16 und 24.
+     *
+     * Die Ortsangaben `AudioInfo::AudioStart` und `AudioInfo::AudioSize` aus \p info werden
+     * nicht ausgewertet. Der Decoder sucht das `fLaC`-Magic selbst (inklusive ID3v2-Tag am
+     * Dateianfang) und liest bis zum physischen Dateiende; ein ID3v1-Tag oder sonstiges
+     * Anhängsel nach dem letzten Rahmen wird dabei toleriert, eine `AudioSize` aus einem
+     * Container begrenzt den Datenstrom nicht.
+     *
+     * Das `FileObject` wird exclusiv an den Decoder uebergeben: Er liest direkt darin und
+     * verandert die Dateiposition. Ein Objekt, das zugleich einem anderen Decoder oder
+     * externen Lesern gehoert, sollte vorher eine kopierte eigene Datei besitzen.
      *
      * @exception UnsupportedAudioFormatException Datei ist kein FLAC, oder das Format
      *   wird nicht unterstützt.
      * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
-     * @exception DecoderException Der Datenanfang der FLAC-Kette ist nicht auffindbar.
+     * @exception DecoderInitializationException libFLAC stellte keine Decoderinstanz zur
+     *   Verfügung.
+     * @exception DecoderException Der Datenanfang der FLAC-Kette ist nicht auffindbar,
+     *   oder libFLAC konnte die Instanz nicht initialisieren.
      */
     void open(FileObject& file, const AudioInfo* info = nullptr) override;
 
@@ -687,8 +719,12 @@ public:
      *
      * libFLAC springt zum Rahmen, der das Ziel-Sample enthaelt; die Position liegt
      * danach genau an dem angeforderten Sample. Werte ueber dem Ende werden auf das
-     * letzte Sample begrenzt, wenn die Samplezahl bekannt ist. Ein Fehlschlag des
-     * Sprungs laesst die Position unveraendert.
+     * letzte Sample begrenzt, wenn die Samplezahl bekannt ist.
+     *
+     * @note Schlaegt der Sprung fehl (Stream ohne Samplezahl oder unlesbarer Zielrahmen),
+     * arbeitet der Decoder die Daten von der aktuellen Position linear ab. Die Position
+     * bleibt dann nicht unveraendert, sondern endet am letzten erreichbar lesbaren Sample;
+     * bei einer abgeschnittenen Datei liegt das deutlich vor dem angeforderten Ziel.
      */
     void seekSample(size_t sample) override;
 

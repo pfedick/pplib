@@ -41,14 +41,22 @@ AudioDecoder* GetAudioDecoder(FileObject& file)
     AudioInfo info;
     if (!IdentAudioFile(file, info)) return NULL;
     AudioDecoder* decoder = NULL;
-    if (info.Format == AudioInfo::AudioFormat::AIFF) decoder = (AudioDecoder*)new AudioDecoder_Aiff();
-    if (info.Format == AudioInfo::AudioFormat::WAVE) decoder = (AudioDecoder*)new AudioDecoder_Wave();
-    if (info.Format == AudioInfo::AudioFormat::MP3) decoder = (AudioDecoder*)new AudioDecoder_MP3();
-    if (info.Format == AudioInfo::AudioFormat::OGG) decoder = (AudioDecoder*)new AudioDecoder_Ogg();
-    if (info.Format == AudioInfo::AudioFormat::FLAC) decoder = (AudioDecoder*)new AudioDecoder_Flac();
+    // Anlage und Oeffnung in einem try-Block: ein Decoder, der nicht geoeffnet werden
+    // kann, ist kein Decoder. Die Fabrik liefert NULL statt einer Exception und gibt
+    // das halb fertiggestellte Objekt frei.
+    try {
+        if (info.Format == AudioInfo::AudioFormat::AIFF) decoder = (AudioDecoder*)new AudioDecoder_Aiff();
+        if (info.Format == AudioInfo::AudioFormat::WAVE) decoder = (AudioDecoder*)new AudioDecoder_Wave();
+        if (info.Format == AudioInfo::AudioFormat::MP3) decoder = (AudioDecoder*)new AudioDecoder_MP3();
+        if (info.Format == AudioInfo::AudioFormat::OGG) decoder = (AudioDecoder*)new AudioDecoder_Ogg();
+        if (info.Format == AudioInfo::AudioFormat::FLAC) decoder = (AudioDecoder*)new AudioDecoder_Flac();
 
-    if (!decoder) return NULL;
-    decoder->open(file, &info);
+        if (!decoder) return NULL;
+        decoder->open(file, &info);
+    } catch (...) {
+        delete decoder;
+        return NULL;
+    }
 
     return decoder;
 }
