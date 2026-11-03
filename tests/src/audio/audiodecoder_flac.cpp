@@ -427,6 +427,52 @@ TEST_F(AudioDecoderFlacTest, MonoFileReplicatesTheOnlyChannel)
     EXPECT_TRUE(nonzero) << "Mono-Samples sollten nicht durchgaengig 0 sein";
 }
 
+/** @brief alle vier Zielvarianten an einer Monodatei: Duplizat und dieselbe Skalierung
+ *
+ *  Jede Lesemethode fuehrt eine eigene Schleife; geprueft wird, dass alle aus demselben
+ *  Rohpuffer dieselben Werte liefern und links wie rechts dasselbe steht.
+ */
+TEST_F(AudioDecoderFlacTest, MonoFileFeedsEveryTargetLoopWithDuplicatedChannel)
+{
+    std::vector<pplib::STEREOSAMPLE16> s16;
+    {
+        pplib::File file;
+        pplib::AudioDecoder_Flac dec;
+        Open(file, dec, "test_44kHz_mono.flac");
+        DecodeAll16(dec, s16);
+    }
+    ASSERT_EQ((size_t)173695, s16.size());
+
+    std::vector<pplib::STEREOSAMPLE32> mix;
+    {
+        pplib::File file;
+        pplib::AudioDecoder_Flac dec;
+        Open(file, dec, "test_44kHz_mono.flac");
+        DecodeAll32(dec, mix);
+    }
+
+    std::vector<pplib::STEREOSAMPLE_FLOAT> flt;
+    {
+        pplib::File file;
+        pplib::AudioDecoder_Flac dec;
+        Open(file, dec, "test_44kHz_mono.flac");
+        DecodeAllFloat(dec, flt);
+    }
+
+    ASSERT_EQ(s16.size(), mix.size());
+    ASSERT_EQ(s16.size(), flt.size());
+
+    bool nonzero = false;
+    for (size_t i = 0; i < s16.size(); i++) {
+        EXPECT_EQ(s16[i].left, s16[i].right) << "Frame " << i;
+        EXPECT_EQ((int32_t)s16[i].left, mix[i].left) << "Frame " << i;
+        EXPECT_EQ((int32_t)s16[i].right, mix[i].right) << "Frame " << i;
+        EXPECT_FLOAT_EQ((float)s16[i].left / 32768.0f, flt[i].left) << "Frame " << i;
+        if (s16[i].left != 0) nonzero = true;
+    }
+    EXPECT_TRUE(nonzero) << "Mono-Samples sollten nicht durchgaengig 0 sein";
+}
+
 TEST_F(AudioDecoderFlacTest, SeekLandsOnExactSample)
 {
     pplib::File file;
@@ -925,6 +971,53 @@ TEST_F(AudioDecoderFlacTest, ClosedFileAbortsDecodingAtTheCallbacks)
     // Ein Sprung ueber die geschlossene Datei wirft nicht, die naechste Leseranfrage schon
     dec.seekSample(100000);
     EXPECT_THROW(dec.getSamples(64, buf), pplib::DecoderException);
+    dec.close();
+}
+
+TEST_F(AudioDecoderFlacTest, SeekAfterReopeningTheFileStillDetectsTheEnd)
+{
+    // Ein Dateifehler in einem Betriebs-Callback setzt ioError, damit ein durch den
+    // Abbruch entstehendes "Streamende" nicht als echtes Dateiende gilt. Bleibt das
+    // Merkmal nach einem erfolgreichen Sprung stehen, kann fillFrames()
+    // sein Ende-Flag nicht mehr setzen: weder atEnd noch error wird wahr, und die
+    // Nachleseschleife laeuft endlos.
+    const char* name = "test_44kHz_16bit.flac";
+    const std::string path = std::string("testdata/audio/") + name;
+    pplib::File file;
+    OpenTestFile(file, name);
+    pplib::AudioDecoder_Flac dec;
+    ASSERT_NO_THROW(dec.open(file));
+
+    pplib::STEREOSAMPLE16 buf[1024];
+    size_t got = 0;
+    file.close();
+    // Der Lese-Callback von libFLAC holt Portionsgroessen aus der Datei: erst wenn der
+    // interne Eingabepuffer leer ist, erreicht der Dateifehler die Lesemethode
+    bool thrown = false;
+    try {
+        got = 0;
+        while (!thrown && got < 40000) {
+            const size_t n = dec.getSamples(1024, buf);
+            if (n == 0) break;
+            got += n;
+        }
+    } catch (const pplib::DecoderException&) {
+        thrown = true;
+    }
+    ASSERT_TRUE(thrown) << "geschlossene Datei fuehrt nicht zur DecoderException, gelesen: " << got;
+
+    // Dieselbe FileObject-Instanz wieder oeffnen: damit gelingt der naechste Sprung
+    ASSERT_NO_THROW(file.open(path.c_str()));
+    ASSERT_TRUE(file.isOpen());
+    dec.seekSample(40000);
+    ASSERT_EQ((size_t)40000, dec.getPosition());
+
+    // Ab hier entscheidet sich, ob die Nachleseschleife ihr Ende findet: ohne das
+    // Zuruecksetzen von ioError dreht sie unendlich (nachweisbar per Aussen-Timeout)
+    std::vector<pplib::STEREOSAMPLE16> out;
+    DecodeAll16(dec, out);
+    EXPECT_EQ((size_t)(173695 - 40000), out.size());
+    EXPECT_EQ((size_t)173695, dec.getPosition());
     dec.close();
 }
 

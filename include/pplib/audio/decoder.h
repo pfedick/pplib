@@ -616,7 +616,7 @@ struct FlacState;
  * solche Dateien dagegen als `FLAC` und meldet Kanalzahl und Bitbreite korrekt:
  * Erkennung und Unterstützung sind getrennt, abgelehnt wird erst hier.
  *
- * Metadaten-Blöcke ( Padding, SEEKTABLE, VORBIS_COMMENT, PICTURE) werden übersprungen.
+ * Metadaten-Blöcke (Padding, SEEKTABLE, VORBIS_COMMENT, PICTURE) werden übersprungen.
  * Ein vorangestelltes ID3v2-Tag wird beim Auffinden des Datenanfangs übersprungen; ein
  * ID3v1-Tag am Dateiende läuft über die Fehlerbehandlung der Decodier-Callbackfunktion
  * zusammen mit sonstigem Anhängsel als toleriertes Dateiende. Eine Konvertierung
@@ -633,8 +633,9 @@ struct FlacState;
  * Abgeschnitten wird jeweils ohne Rundung.
  *
  * @note libFLAC liefert die Samples pro Kanal als separate, rechtsbündige `int32_t`-Ebenen;
- * der Decoder verschränkt (interleave) sie und wandelt sie beim Lesen um, damit alle
- * Zielformate aus derselben Rohdatenquelle gespeist werden.
+ * der Decoder verschränkt (interleave) sie und wandelt sie beim Lesen um. Jede der vier
+ * Lesemethoden schaltet vor ihrer Schleife über die Bitbreite der Quelle und lässt in der
+ * innersten Schleife keine Formatentscheidung mehr.
  *
  * @note Voraussetzung ist ein pplib-Build mit libFLAC (CMake-Option `PPLIB_WITH_FLAC`).
  * Fehlt die Bibliothek, wirft jede Methode dieser Klasse eine `UnsupportedFeatureException`.
@@ -656,11 +657,19 @@ struct FlacState;
 class AudioDecoder_Flac : public AudioDecoder
 {
 private:
+    /** @brief Kodierung eines Kanal-Samples, wie sie der STREAMINFO-Block vorgibt. */
+    enum class FrameEncoding : uint8_t
+    {
+        NONE = 0,    //!< kein offener Decoder
+        INT16 = 1,   //!< 16-Bit-Zweierkomplement
+        INT24 = 2    //!< 24-Bit-Zweierkomplement, von libFLAC in `int32_t` geliefert
+    };
+
     FlacState* state;  //!< libFLAC-Handle, Datenbasis und Rohsamples (in DER Uebersetzung definiert)
     FileObject* ff;
     AudioInfo info;
     size_t position;
-    uint8_t srcBits;  //!< Bits pro Kanal laut STREAMINFO, 0 = kein offener Decoder
+    FrameEncoding encoding;  //!< Bitbreite der Quelle, von `open()` aus STREAMINFO abgeleitet
 
     /** @brief Laedt Rohdaten decodiert nach, bis mindestens \p num Frames bereitstehen.
      *
@@ -668,12 +677,18 @@ private:
      *  @return Anzahl bereitstehender Frames (kann wegen Dateiende kleiner sein). */
     size_t fillFrames(size_t num);
 
-    /** @brief Umweg ueber alle vier Lesemethoden: genau einer der drei Zielzeiger ist gesetzt.
+    /** @brief bereitet den naechsten Lesevorgang vor: prueft Voraussetzungen und stellt
+     *         hochstens \p num Frames im Rohpuffer bereit. Ein Rueckgabewert von 0 bedeutet
+     *         "nichts zu lesen". Die Pruefungen stehen hier und nicht in den vier
+     *         Lesemethoden, weil sie fuer alle Zielformate voellig gleich sind.
      *
      *  @exception DecoderException Kein offener Decoder, \p buffer ist NULL oder die
      *          Audiodaten sind vor dem Ziel defekt. */
-    size_t transferFrames(size_t num, STEREOSAMPLE16* buf16, STEREOSAMPLE32* buf32,
-                          STEREOSAMPLE_FLOAT* bufFloat, bool add);
+    size_t prepareRead(size_t num, const void* buffer);
+
+    /** @brief Zaehlt \p frames uebernommene Frames weiter und raeumt den verbrauchten
+     *         Teil des Rohpuffers zurueck. */
+    void claimFrames(size_t frames);
 
 public:
     AudioDecoder_Flac();
@@ -681,10 +696,13 @@ public:
 
     /** @brief Öffnet die Datei, liest die Metadaten und prueft die Unterstuetzung.
      *
-     * Wird \p info übergeben, prüft der Decoder Kanalzahl, Bitbreite und Abtastrate gegen
-     * den STREAMINFO-Block und lehnt Abweichungen ab; andernfalls ermittelt er die Werte
-     * mit `IdentAudioFile()`. Die Bitrate berechnet er aus den Werten des STREAMINFO-Blocks.
-     * Abgelehnt werden mehr als zwei Kanäle und Bitbreiten ausser 16 und 24.
+     * Wird \p info übergeben, prüft der Decoder Kanalzahl und Bitbreite gegen den
+     * STREAMINFO-Block und lehnt Abweichungen ab. Andernfalls ermittelt er die Werte mit
+     * `IdentAudioFile()`. Die Abtastrate steht im STREAMINFO-Block und gilt fest für den
+     * gesamten Stream; `AudioInfo::Frequency` gibt sie unverändert weiter.
+     * `AudioInfo::Bitrate` uebernimmt der Decoder aus dem `AudioInfo`-Objekt, das sie selbst
+     * aus dem STREAMINFO-Block liest. Abgelehnt werden mehr als zwei Kanäle und Bitbreiten
+     * ausser 16 und 24.
      *
      * Die Ortsangaben `AudioInfo::AudioStart` und `AudioInfo::AudioSize` aus \p info werden
      * nicht ausgewertet. Der Decoder sucht das `fLaC`-Magic selbst (inklusive ID3v2-Tag am
@@ -692,7 +710,7 @@ public:
      * Anhängsel nach dem letzten Rahmen wird dabei toleriert, eine `AudioSize` aus einem
      * Container begrenzt den Datenstrom nicht.
      *
-     * Das `FileObject` wird exclusiv an den Decoder uebergeben: Er liest direkt darin und
+     * Das `FileObject` wird exklusiv an den Decoder uebergeben: Er liest direkt darin und
      * verandert die Dateiposition. Ein Objekt, das zugleich einem anderen Decoder oder
      * externen Lesern gehoert, sollte vorher eine kopierte eigene Datei besitzen.
      *

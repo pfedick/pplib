@@ -702,7 +702,7 @@ TEST_F(AudioDecoderWaveTest, AddSamplesFloatBufferAccumulatesNormalizedValues)
         { 32, 3, 0 },  // Float-Samples stehen bereits normiert in der Datei
     };
     for (const Width& w : widths) {
-        SCOPED_TRACE(w.bits + (w.tag == 3 ? " Bit float" : " Bit integer"));
+        SCOPED_TRACE(std::to_string(w.bits) + (w.tag == 3 ? " Bit float" : " Bit integer"));
         std::vector<char> payload;
         const uint32_t neg = (w.tag == 3) ? 0 : (uint32_t)(0x100000000ull - (uint64_t)w.half);
         if (w.tag == 3) {

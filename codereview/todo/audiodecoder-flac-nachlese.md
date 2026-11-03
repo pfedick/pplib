@@ -98,7 +98,7 @@ Callback-Absicherung ist jedoch ein neuer Fehler entstanden.
 
 ## Bugs (kritisch)
 
-- [ ] **`seekSample()` loescht `FlacState::ioError` nicht, danach laeuft `getSamples()` endlos
+- [x] **`seekSample()` loescht `FlacState::ioError` nicht, danach laeuft `getSamples()` endlos
       weiter** (`src/audio/AudioDecoder_Flac.cpp:496` bis `:502`, Folgewirkung `:577`)
       Der Reset-Block am Anfang von `seekSample()` setzt `atEnd`, `error`, `totalFrames` und
       `seekTarget` zurueck, nicht aber `ioError`. Der Schutzgedanke dahinter, naemlich das Flag
@@ -139,9 +139,16 @@ Callback-Absicherung ist jedoch ein neuer Fehler entstanden.
       ohne erneuten Versuch eingeschraenkt werden, sonst widersprechen sich Kommentar und Code
       (siehe Abschnitt Strukturvorschlaege).
 
+      **Umsetzung:** Reproduziert mit `AudioDecoderFlacTest.SeekAfterReopeningTheFileStillDetectsTheEnd`
+      (tests/src/audio/audiodecoder_flac.cpp:931): Datei schliessen, bis die `DecoderException` kommt,
+      dieselbe `FileObject`-Instanz wieder oeffnen, `seekSample(40000)`; ohne Fix dreht der Test endlos
+      (`timeout`-Rueckgabe 124), mit Fix endet er bei 133 695 Frames. Fix ist die fehlende Zeile
+      `state->ioError = false;` im ersten Reset-Block (`src/audio/AudioDecoder_Flac.cpp:505`) samt
+      Kommentar, der den Grund nennt. Die FLAC-Suite laeuft danach 32 von 32 gruen.
+
 ## Bugs (mittel / Warnungen)
 
-- [ ] **Doppeltes `FLAC__stream_decoder_reset()` im Fehlsuche-Zweig**
+- [x] **Doppeltes `FLAC__stream_decoder_reset()` im Fehlsuche-Zweig**
       (`src/audio/AudioDecoder_Flac.cpp:512` und `:523`)
       Der Zweig ruft zuerst `FLAC__stream_decoder_reset()` (`:512`), geht in den sequenziellen
       Pfad und ruft dort erneut `FLAC__stream_decoder_reset()` (`:523`) vor dem Metadata-Nachlauf
@@ -149,7 +156,13 @@ Callback-Absicherung ist jedoch ein neuer Fehler entstanden.
       zurueck, der erste Aufruf ist also wirkungslos. Gefaehrdlich ist weniger die Doppelung als
       dass an beiden Stellen unterschiedliche Einstellungen stehen koennten. Empfehlung: die
       erste Stelle streichen oder den Reset in `seekSample()` auf eine Stelle ziehen.
-- [ ] **Dokumentation verspricht eine Abtastraten-Pruefung, die es nicht gibt**
+
+      **Umsetzung:** Der erste Aufruf ist gestrichen; `FLAC__stream_decoder_reset()` steht jetzt
+      nur noch vor dem sequenziellen Pfad (`src/audio/AudioDecoder_Flac.cpp:528`). Der Zustand des
+      Readers wird weiterhin direkt nach dem fehlgeschlagenen Sprung bereinigt, weil `seek_absolute()`
+      ueber die Betriebs-Callbacks `error` und `ioError` gesetzt haben kann; das sagt jetzt auch der
+      Kommentar an dieser Stelle.
+- [x] **Dokumentation verspricht eine Abtastraten-Pruefung, die es nicht gibt**
       (`include/pplib/audio/decoder.h:684`)
       Die Doku zu `open()` sagt, der Decoder pruefe "Kanalzahl, Bitbreite und Abtastrate", der
       Klassenkommentar (`:612` bis `:617`) verspricht eine oder zwei Kanaele und 16 oder 24 Bit.
@@ -161,40 +174,96 @@ Callback-Absicherung ist jedoch ein neuer Fehler entstanden.
       `metadata->data.stream_info.sample_rate`, fuer einen Vergleich fehlt in `FlacState` aber ein
       Feld) oder die Doku auf Kanalzahl und Bitbreite einschraenken.
 
+      **Umsetzung:** Verifiziert: `open()` vergleicht Format, Kanaelzahl, Bitbreite, SampleTyp und
+      STREAMINFO gegen `AudioInfo`, die Abtastrate nirgends. Gewaehlt wurde die Doku-Variante. Nach
+      Rueckmeldung des Nutzers ist der Punkt damit auch inhaltlich erledigt: Die Spec legt die Rate
+      im STREAMINFO-Block fuer den gesamten Stream fest, `IdentAudioFile()` liest sie dort
+      (`src/audio/AudioInfo.cpp:428`, `:466`), und der Decoder gibt sie mit `info = *src`
+      unveraendert weiter. Der Halbsatz "die Abtastrate wird nicht verglichen" ist ersatzlos
+      gestrichen (`include/pplib/audio/decoder.h:699` bis `:702`); noetige Doku bleibt der Satz,
+      dass die Rate aus dem STREAMINFO-Block stammt und fuer den ganzen Stream gilt.
+
 ## Wartbarkeit & Aufräumen
 
-- [ ] **Zwei unterschiedliche Reset-Zustaende in `seekSample()`**
+- [x] **Zwei unterschiedliche Reset-Zustaende in `seekSample()`**
       (`src/audio/AudioDecoder_Flac.cpp:496` bis `:502` und `:513` bis `:519`): direkte Quelle des
       Haengt-Befundes oben, Zusammenfassung im Abschnitt Strukturvorschlaege.
+
+      **Umsetzung:** Behoben durch den oben genannten Fix: beide Bloecke setzen jetzt
+      `atEnd`, `error`, `ioError`, `totalFrames` und den Puffer zurueck. Die Zusammenlegung der
+      Bloecke (Abschnitt Strukturvorschlaege) ist bewusst nicht umgesetzt.
+
 - [ ] **Die Position des Dekoderstroms wird an zwei Stellen unterschiedlich begruendet**
       (`src/audio/AudioDecoder_Flac.cpp:36` bis `:38` und `:494` bis `:495`): Der eine Kommentar
       sagt, der Dateiposition werde nicht hinterhergearbeitet, der andere begruendet genau damit,
       dass man sie nicht verlieren duerfe. Ein Kommentar, der den Mechanismus nennt (sequenzieller
       Pfad setzt alles zurueck, Zielsprung bei intaktem Zugriff bleibt erhalten), erspart die
       naechste Verwechslung.
-- [ ] **Uneinheitliche Schreibweise in Kommentaren**: `Unterdriickungsregel`
+
+      **Umsetzung nicht wie beschrieben:** Der Befund trifft in den Code nicht zu. `:36` bis `:38`
+      ist die Zustandsbeschreibung des verskraenkten Rohpuffers, `:494` bis `:495` enthaelt keinen
+      Kommentar zur Dateiposition; eine Suche nach "Dateiposition" trifft in der .cpp ueberhaupt
+      nicht. Der gewuenschte Mechanismus-Satz steht jetzt im Kommentar von `seekSample()`
+      (`src/audio/AudioDecoder_Flac.cpp:491` bis `:493`) und in der neuen Beschreibung von
+      `fillFrames()`; der Haken bleibt wegen des unpassenden Befunds aus.
+
+- [x] **Uneinheitliche Schreibweise in Kommentaren**: `Unterdriickungsregel`
       (`src/audio/AudioDecoder_Flac.cpp:502`), `exclusiv` (`include/pplib/audio/decoder.h:695`)
       neben `exklusiv` (`:650`, `:652`), "Metadaten-Blöcke ( Padding, ...)" mit ueberfluessigem
       Leerzeichen (`:619`). `Abtstrate` und `Metedaten` aus dem alten Code kommen nirgends mehr
       vor. Rein kosmetisch.
 
+      **Umsetzung:** `Unterdriickungsregel` zu "Unterdückungsregel" berichtigt
+      (`src/audio/AudioDecoder_Flac.cpp:507`), `exclusiv` zu "exklusiv" und das Leerzeichen nach der
+      Klammer in "Metadaten-Blöcke (Padding, ...)" entfernt (`include/pplib/audio/decoder.h:619`
+      und `:697`).
+
+- [x] **Der gemeinsame Transferkern `transferFrames()` verzweigt in der innersten Schleife**
+      (auf Zuruf des Nutzers, nicht aus dem urspruenglichen Befundskatalog): Alle vier
+      Lesemethoden riefen denselben Kern mit drei Zielzeigern und einem `add`-Schalter auf
+      (`src/audio/AudioDecoder_Flac.cpp:605` bis `:680` in der besprochenen Fassung). Pro Sample
+      wurden Zielzeiger, Bitbreite und Zuweisung oder Zuendung entschieden; der Zuweisungszweig des
+      32-Bit-Ziels war ueber die oeffentliche Schnittstelle ueberhaupt nicht erreichbar.
+
+      **Umsetzung:** `transferFrames()` ist gestrichen, die Struktur entspricht jetzt
+      `src/audio/AudioDecoder_Wave.cpp`: `prepareRead()` (`src/audio/AudioDecoder_Flac.cpp:618`)
+      prueft die Voraussetzungen und stellt Frames bereit, `claimFrames()` (`:646`) zaehlt weiter,
+      und jede der vier Lesemethoden (`:666`, `:703`, `:738`, `:771`) schaltet vor ihrer Schleife
+      ueber das neue Feld `encoding` (`FrameEncoding::INT16`/`INT24`, gesetzt in `open()`); in der
+      innersten Schleife stehen nur noch Kopie oder Addition und bei 24 Bit das Schieben. Damit
+      faellt auch der tote Zuweisungszweig weg. Verhalten unveraendert: alle bisherigen FLAC-Tests
+      blieben unveraendert gruuen; neu ist
+      `AudioDecoderFlacTest.MonoFileFeedsEveryTargetLoopWithDuplicatedChannel`, das die jetzt
+      getrennten Schleifen an einer Monodatei gegeneinander abgleicht.
+
 ## Dokumentation & Doxygen
 
-- [ ] **Der Kommentar zu `fillFrames()` verschweigt den Positionsmechanismus**
+- [x] **Der Kommentar zu `fillFrames()` verschweigt den Positionsmechanismus**
       (`src/audio/AudioDecoder_Flac.cpp:546` bis `:550`): `fillFrames()` synchronisiert an der
       Dateiposition nichts; ein Sprung innerhalb der Puffergroessenordnung verschiebt die Position
       des Dekoderstroms nicht. Das Verhalten ist richtig und durch
       `DecodingLeavesTheFileOpenAndPositionUseable` abgedeckt, aber die Kommentierung der Klasse
       (`:36` bis `:38`) und des `@note` in `decoder.h:724` beschreiben es unterschiedlich. Kein
       Programmfehler.
-- [ ] **Begruendung fuer die Kompaktierung in `transferFrames()` fehlt**
+
+      **Umsetzung:** Der Kommentar von `fillFrames()` nennt den Mechanismus jetzt selbst
+      (`src/audio/AudioDecoder_Flac.cpp:552` bis `:555`): Die Dateiposition wird nicht nachgefuehrt,
+      libFLAC steht am Ende des zuletzt gelieferten Rahmens.
+
+- [x] **Begruendung fuer die Kompaktierung in `transferFrames()` fehlt**
       (`src/audio/AudioDecoder_Flac.cpp:665` bis `:669`): Nach der Uebernahme werden Lese- und
       Schreibzeiger auf null zurueckgesetzt und der Puffer geleert, dieselbe Stelle gibt es in
       `fillFrames()` (`:557` bis `:561`) mit Begruendung (`:554` bis `:556`: Kapazitaet bleibt
       erhalten, Speicher wird wiedergenutzt). An der zweiten Stelle fehlt der Satz; ohne den
       Schritt wuerden die Zeiger mit der Zahl der gelesenen Frames weiterlaufen und der Vektor
       immer weiter anwachsen. Ein Halbsatz dort reicht.
-- [ ] **`@param` beschreibt eine Bitrate-Berechnung, die der Dekoder nicht ausfuehrt**
+
+      **Umsetzung:** Halbsatz am Ruecksetzblock ergaenzt: Zeiger wachsen sonst mit der Zahl der
+      gelesenen Frames, die Kapazitaet bleibt erhalten. Der Block sitzt nach dem Umbau der
+      Lesemethoden (siehe Befund unten) in `claimFrames()` (`src/audio/AudioDecoder_Flac.cpp:646`
+      bis `:660`).
+
+- [x] **`@param` beschreibt eine Bitrate-Berechnung, die der Dekoder nicht ausfuehrt**
       (`include/pplib/audio/decoder.h:686`): "Die Bitrate wird_moeglichst aus den Metadaten des
       STREAMINFO-Blocks ermittelt, nicht aus der Dateigroesse geschaetzt." Die Bitrate steht nach
       dem Oeffnen in `info`, aber `open()` setzt sie nicht; sie kommt aus `info = *src`
@@ -204,9 +273,14 @@ Callback-Absicherung ist jedoch ein neuer Fehler entstanden.
       **[Pruefen]** Doku praezisieren ("`info` uebernimmt die Bitrate aus den Metadaten des
       `AudioInfo`-Objekts") oder die Berechnung tatsaechlich in den Dekoder ziehen.
 
+      **Umsetzung:** Verifiziert: `open()` setzt die Bitrate nicht selbst, uebernommen wird sie mit
+      `info = *src` (`src/audio/AudioDecoder_Flac.cpp:458`); gelesen hat sie `AudioInfo.cpp`. Die
+      Doku ist auf die Uebernahme umgestellt (`include/pplib/audio/decoder.h:686` bis `:688`), am
+      Verhalten aendert sich nichts.
+
 ## Befunde in Drittdateien
 
-- [ ] **`SCOPED_TRACE` mit Zeigerarithmetik in `tests/src/audio/audiodecoder_wave.cpp:705`**
+- [x] **`SCOPED_TRACE` mit Zeigerarithmetik in `tests/src/audio/audiodecoder_wave.cpp:705`**
       `SCOPED_TRACE(w.bits + (w.tag == 3 ? " Bit float" : " Bit integer"));`: `w.bits` ist
       `uint16_t`, der Conditional-Ausdruck ein `const char*`. Der Plus-Operator promoviert
       `w.bits` auf `int` und verschiebt den Zeiger des 13 Byte langen Literals um 16, 24 oder 32
@@ -220,6 +294,10 @@ Callback-Absicherung ist jedoch ein neuer Fehler entstanden.
       ```cpp
       SCOPED_TRACE(std::to_string(w.bits) + (w.tag == 3 ? " Bit float" : " Bit integer"));
       ```
+
+      **Umsetzung:** Genau dieser Fix steht jetzt in der Testdatei; `build/asan` meldet bei
+      `--gtest_filter='AudioDecoderFlacTest*:AudioDecoderWaveTest*'` keine ASan-Meldung mehr,
+      52 von 52 Tests sind gruen.
 
 ## Strukturvorschläge (nur zur Diskussion)
 

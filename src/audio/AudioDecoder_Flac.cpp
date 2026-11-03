@@ -345,7 +345,7 @@ AudioDecoder_Flac::AudioDecoder_Flac()
     state = nullptr;
     ff = nullptr;
     position = 0;
-    srcBits = 0;
+    encoding = FrameEncoding::NONE;
     memset(&info, 0, sizeof(AudioInfo));
 #endif
 }
@@ -456,7 +456,9 @@ void AudioDecoder_Flac::open(FileObject& file, const AudioInfo* given)
 
     ff = &file;
     info = *src;
-    srcBits = (uint8_t)src->BitsPerSample;
+    // open() hat Bitbreiten ausser 16 und 24 schon abgelehnt, die Entscheidung faellt also
+    // einmal und nicht in jeder innersten Schleife
+    encoding = (src->BitsPerSample == 24) ? FrameEncoding::INT24 : FrameEncoding::INT16;
     position = 0;
     // Reservierung passend zum groessten Rahmen, damit der Write-Callback nicht wachsen muss
     state->raw.reserve((state->metaMaxBlocksize > 0 ? state->metaMaxBlocksize : 4096u) * 2);
@@ -477,7 +479,7 @@ void AudioDecoder_Flac::close()
     }
     ff = nullptr;
     position = 0;
-    srcBits = 0;
+    encoding = FrameEncoding::NONE;
     memset(&info, 0, sizeof(AudioInfo));
 #else
     throw UnsupportedFeatureException("AudioDecoder_Flac");
@@ -488,8 +490,9 @@ void AudioDecoder_Flac::seekSample(size_t sample)
 {
 #ifdef HAVE_LIBFLAC
     if (ff == nullptr || state == nullptr) return;
-    // libFLAC kann nur springen, wenn die Samplezahl feststeht; sonst wird neu
-    //initialisiert und von vorn bis zum Ziel gelesen.
+    // libFLAC kann nur springen, wenn die Samplezahl feststeht: dann bleibt der Strom am
+    // Zielrahmen stehen. Sonst wird der Decoder neu initialisiert und bis zum Ziel
+    // durchgearbeitet; dieser sequenzielle Pfad setzt samtlichen Zustand zurueck.
     if (info.Samples > 0 && sample >= (size_t)info.Samples) sample = (size_t)info.Samples - 1;
     if (sample == position) return;
 
@@ -498,8 +501,12 @@ void AudioDecoder_Flac::seekSample(size_t sample)
     state->rawWrite = 0;
     state->atEnd = false;
     state->error = false;
+    // Ein neuer Versuch beginnt wieder sauber: bliebe ioError stehen, koennte
+    // fillFrames() sein Ende-Flag nie mehr setzen und die Nachleseschleife faende
+    // nie an, weil weder atEnd noch error gesetzt wird
+    state->ioError = false;
     state->seekTarget = kNoSeek;
-    state->totalFrames = 0;  // Unterdriickungsregel in flacErrorCb() wieder scharf stellen
+    state->totalFrames = 0;  // Unterdückungsregel in flacErrorCb() wieder scharf stellen
 
     if (info.Samples > 0) {
         state->seekTarget = sample;
@@ -507,9 +514,9 @@ void AudioDecoder_Flac::seekSample(size_t sample)
             position = sample;
             return;
         }
-        // Sprung fehlgeschlagen: Decoder in einen definierten Zustand bringen
+        // Sprung fehlgeschlagen: der Decoder wird erst vor dem sequenziellen Pfad
+        // resett; hier nur den Zustand des Decoders entwerten
         state->seekTarget = kNoSeek;
-        FLAC__stream_decoder_reset(state->dec);
         state->raw.clear();
         state->rawRead = 0;
         state->rawWrite = 0;
@@ -546,6 +553,9 @@ void AudioDecoder_Flac::seekSample(size_t sample)
 
 /** @brief Decodiert so lange weiter, bis \p num Frames im Rohpuffer bereitstehen.
  *
+ *  Die Dateiposition des Dekoderstroms wird dabei nicht nachgefuehrt: was der Aufrufer
+ *  schon uebernommen hat, ist nur im Rohpuffer verbraucht, libFLAC steht weiter am Ende
+ *  des zuletzt gelieferten Rahmens.
  *  @return Anzahl bereitstehender Frames; 0, wenn das Ende des Samples erreicht ist.
  */
 size_t AudioDecoder_Flac::fillFrames(size_t num)
@@ -588,18 +598,28 @@ size_t AudioDecoder_Flac::fillFrames(size_t num)
 #endif
 }
 
-/** @brief Gemeinsamer Kern aller vier Lesemethoden.
- *
- *  Aus den Rohsamples im libFLAC-Wertebereich werden die Zielformate erzeugt:
- *  16 Bit unveraendert, 24 Bit rechtsbuendig auf 16 Bit gebracht (>>8); Float
- *  normiert der Bitbreite entsprechend.
+namespace {
+
+/** @brief Vollskala der unterstuetzten Quellformate (2^15, 2^23). Jede Bitbreite wird auf
+ *         ihre eigene Vollskala normiert, damit beide im Float-Puffer den Bereich
+ *         -1,0 bis 1,0 fuellen.
  */
-size_t AudioDecoder_Flac::transferFrames(size_t num, STEREOSAMPLE16* buf16, STEREOSAMPLE32* buf32,
-                                         STEREOSAMPLE_FLOAT* bufFloat, bool add)
+constexpr float FULL_SCALE_16 = 32768.0f;
+constexpr float FULL_SCALE_24 = 8388608.0f;
+
+}  // namespace
+
+/** @brief bereitet den naechsten Lesevorgang vor
+ *
+ *  Prueft die Voraussetzungen und stellt bis zu \p num Frames im Rohpuffer bereit. Ein
+ *  Rueckgabewert von 0 bedeutet "nichts zu lesen". Die Pruefungen stehen hier und nicht in
+ *  den vier Lesemethoden, weil sie fuer alle Zielformate voellig gleich sind.
+ */
+size_t AudioDecoder_Flac::prepareRead(size_t num, const void* buffer)
 {
 #ifdef HAVE_LIBFLAC
     if (ff == nullptr || state == nullptr) throw DecoderException("AudioDecoder_Flac: Decoder ist nicht geoeffnet");
-    if (buf16 == nullptr && buf32 == nullptr && bufFloat == nullptr) throw DecoderException("AudioDecoder_Flac: buffer ist NULL");
+    if (buffer == nullptr) throw DecoderException("AudioDecoder_Flac: buffer ist NULL");
     if (num == 0) return 0;
 
     // Ein FLAC-Rahmen liegt oft vollstaendig im Puffer; die Zahl bereiter Frames kann
@@ -616,94 +636,165 @@ size_t AudioDecoder_Flac::transferFrames(size_t num, STEREOSAMPLE16* buf16, STER
         if (state->error && !state->atEnd) throw DecoderException("AudioDecoder_Flac: Decode-Fehler");
         return 0;
     }
-    const size_t got = avail < num ? avail : num;
+    return avail < num ? avail : num;
+#else
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#endif
+}
 
-    const int32_t* in = state->raw.data() + state->rawRead;
-    const bool shift24 = (srcBits == 24);
-    const float scale = shift24 ? (1.0f / 8388608.0f) : (1.0f / 32768.0f);
-    int32_t left, right;
-    for (size_t i = 0; i < got; i++) {
-        const int32_t l = in[0];
-        const int32_t r = in[1];
-        in += 2;
-        left = l;
-        right = r;
-        if (shift24) {
-            // Arithmetisches Schieben: vorzeichenbehaftete Werte bleiben vorzeichenerhaltend
-            left >>= 8;
-            right >>= 8;
-        }
-        if (buf16 != nullptr) {
-            buf16[i].left = (SAMPLE16)left;
-            buf16[i].right = (SAMPLE16)right;
-        } else if (buf32 != nullptr) {
-            // Die oeffentliche Schnittstelle kennt fuer das 32-Bit-Ziel nur addSamples();
-            // der Zuweisungszweig (add == false) ist darueber nicht erreichbar und gehoert
-            // nur der Vollstaendigkeit des Umwegs wegen hierher.
-            if (add) {
-                buf32[i].left += left;
-                buf32[i].right += right;
-            } else {
-                buf32[i].left = left;
-                buf32[i].right = right;
-            }
-        } else {
-            // Float nutzt den vollen Rohwert, nicht den auf 16 Bit geschobenen
-            const float fleft = (float)l * scale;
-            const float fright = (float)r * scale;
-            if (add) {
-                bufFloat[i].left += fleft;
-                bufFloat[i].right += fright;
-            } else {
-                bufFloat[i].left = fleft;
-                bufFloat[i].right = fright;
-            }
-        }
-    }
-    state->rawRead += got * 2;
-    position += got;
+/** @brief zaehlt \p frames uebernommene Frames weiter und raeumt den Rohpuffer. */
+void AudioDecoder_Flac::claimFrames(size_t frames)
+{
+#ifdef HAVE_LIBFLAC
+    state->rawRead += frames * 2;   // zwei Kanal-Samples je Frame
+    position += frames;
     if (state->rawRead == state->rawWrite) {
+        // Nach dem letzten uebernommenen Frame zuruecksetzen, damit die Zeiger nicht mit
+        // der Zahl der bisher gelesenen Frames wachsen; die Kapazitaet bleibt erhalten
         state->rawRead = 0;
         state->rawWrite = 0;
         state->raw.clear();
     }
+#else
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#endif
+}
+
+/** @brief liefert 16-Bit-Samples: Quelle 16 Bit unveraendert, Quelle 24 Bit auf die
+ *         16-Bit-Ebene geschoben.
+ */
+size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE16* buffer)
+{
+#ifdef HAVE_LIBFLAC
+    const size_t got = prepareRead(num, buffer);
+    if (got == 0) return 0;
+
+    const int32_t* in = state->raw.data() + state->rawRead;
+    switch (encoding) {
+    case FrameEncoding::INT16:
+        for (size_t i = 0; i < got; i++) {
+            buffer[i].left = (SAMPLE16)in[0];
+            buffer[i].right = (SAMPLE16)in[1];
+            in += 2;
+        }
+        break;
+    case FrameEncoding::INT24:
+        // Arithmetisches Schieben: vorzeichenbehaftete Werte bleiben vorzeichenerhaltend
+        for (size_t i = 0; i < got; i++) {
+            buffer[i].left = (SAMPLE16)(in[0] >> 8);
+            buffer[i].right = (SAMPLE16)(in[1] >> 8);
+            in += 2;
+        }
+        break;
+    default:
+        // FrameEncoding::NONE laesst open() gar nicht erst zu den Lesemethoden kommen
+        break;
+    }
+    claimFrames(got);
     return got;
 #else
     throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
-size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE16* buffer)
-{
-#ifdef HAVE_LIBFLAC
-    return transferFrames(num, buffer, nullptr, nullptr, false);
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
-#endif
-}
-
+/** @brief mixt Samples in den 32-Bit-Mixpuffer: Werte bleiben durchgehend auf der
+ *         16-Bit-Ebene, unabhaengig von der Bitbreite der Quelle.
+ */
 size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
 #ifdef HAVE_LIBFLAC
-    return transferFrames(num, nullptr, buffer, nullptr, true);
+    const size_t got = prepareRead(num, buffer);
+    if (got == 0) return 0;
+
+    const int32_t* in = state->raw.data() + state->rawRead;
+    switch (encoding) {
+    case FrameEncoding::INT16:
+        for (size_t i = 0; i < got; i++) {
+            buffer[i].left += in[0];
+            buffer[i].right += in[1];
+            in += 2;
+        }
+        break;
+    case FrameEncoding::INT24:
+        for (size_t i = 0; i < got; i++) {
+            buffer[i].left += in[0] >> 8;
+            buffer[i].right += in[1] >> 8;
+            in += 2;
+        }
+        break;
+    default:
+        break;
+    }
+    claimFrames(got);
+    return got;
 #else
     throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
+/** @brief liefert normierte Float-Samples: jede Quellbitbreite wird auf ihre eigene
+ *         Vollskala geteilt.
+ */
 size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
 #ifdef HAVE_LIBFLAC
-    return transferFrames(num, nullptr, nullptr, buffer, false);
+    const size_t got = prepareRead(num, buffer);
+    if (got == 0) return 0;
+
+    const int32_t* in = state->raw.data() + state->rawRead;
+    switch (encoding) {
+    case FrameEncoding::INT16:
+        for (size_t i = 0; i < got; i++) {
+            buffer[i].left = (float)in[0] / FULL_SCALE_16;
+            buffer[i].right = (float)in[1] / FULL_SCALE_16;
+            in += 2;
+        }
+        break;
+    case FrameEncoding::INT24:
+        for (size_t i = 0; i < got; i++) {
+            buffer[i].left = (float)in[0] / FULL_SCALE_24;
+            buffer[i].right = (float)in[1] / FULL_SCALE_24;
+            in += 2;
+        }
+        break;
+    default:
+        break;
+    }
+    claimFrames(got);
+    return got;
 #else
     throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
+/** @brief mixt normierte Float-Samples in den Float-Puffer. */
 size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
 #ifdef HAVE_LIBFLAC
-    return transferFrames(num, nullptr, nullptr, buffer, true);
+    const size_t got = prepareRead(num, buffer);
+    if (got == 0) return 0;
+
+    const int32_t* in = state->raw.data() + state->rawRead;
+    switch (encoding) {
+    case FrameEncoding::INT16:
+        for (size_t i = 0; i < got; i++) {
+            buffer[i].left += (float)in[0] / FULL_SCALE_16;
+            buffer[i].right += (float)in[1] / FULL_SCALE_16;
+            in += 2;
+        }
+        break;
+    case FrameEncoding::INT24:
+        for (size_t i = 0; i < got; i++) {
+            buffer[i].left += (float)in[0] / FULL_SCALE_24;
+            buffer[i].right += (float)in[1] / FULL_SCALE_24;
+            in += 2;
+        }
+        break;
+    default:
+        break;
+    }
+    claimFrames(got);
+    return got;
 #else
     throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
