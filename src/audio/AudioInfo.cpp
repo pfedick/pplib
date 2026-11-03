@@ -39,6 +39,9 @@
 namespace pplib
 {
 
+// Modulinterne Deklaration, bewusst ohne Header: die Definition liegt in
+// src/audio/AudioDecoder_Ogg.cpp und ist nicht Teil der offenen API.
+// Die Signatur muss mit der dortigen Definition uebereinstimmen.
 bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info);
 
 namespace

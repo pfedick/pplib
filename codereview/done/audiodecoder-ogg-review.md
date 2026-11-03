@@ -10,7 +10,7 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
 
 ## Bugs (kritisch)
 
-- [ ] **`open()` nach `close()` stürzt ab (NULL-Zugriff)** (`AudioDecoder_Ogg.cpp:238`, `close()` in `:269`)
+- [x] **`open()` nach `close()` stürzt ab (NULL-Zugriff)** (`AudioDecoder_Ogg.cpp:238`, `close()` in `:269`)
   `close()` gibt `private_data` frei und setzt den Zeiger auf `NULL`, `open()` verwendet ihn danach bedingungslos:
   `OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);` → Zugriff auf `oggp->callbacks`/`&oggp->vf`.
   Verifiziert: UBSan `member access within null pointer of type 'struct OggVorbisPrivateData'` bei `AudioDecoder_Ogg.cpp:238:32`, direkt danach `AddressSanitizer: SEGV on unknown address 0x0000000003b0` (Probe „B_reopen": `open` → `getSamples` → `close` → `open`). Ein Wiederholen von `open()` ist damit nicht möglich, ohne das Objekt zu vernichten; der Aufrufer kann den Zustand auch nicht abfragen.
@@ -24,7 +24,8 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
     init_callback(oggp->callbacks);
 ```
 
-- [ ] **`getSamples()`/`addSamples()`/`seekSample()` nach `close()`: Absturz statt `DecoderException`** (`AudioDecoder_Ogg.cpp:313`, `:328`, `:374`, `:410`, `:289`)
+  **Umsetzung:** `open()` ruft zuerst `close()` und baut Handle, `OggVorbisPrivateData` und `decodebuffer` neu auf; jede Fehlschlagstelle räumt wieder auf. Tests: `ReopenAfterCloseDecodesTheSameFrames` (Frames nach erneutem `open()` bitgleich zum ersten Durchlauf) und `EveryOpenRoundReleasesThePreviousHandle` (drei Runden `open()` ohne `close()`, LeakSanitizer ohne Befund).
+- [x] **`getSamples()`/`addSamples()`/`seekSample()` nach `close()`: Absturz statt `DecoderException`** (`AudioDecoder_Ogg.cpp:313`, `:328`, `:374`, `:410`, `:289`)
   Nach `close()` ist `private_data == NULL`; alle Lese- und Seek-Funktionen dereferenzieren ihn sofort (`ov_read(&oggp->vf, …)`, `ov_pcm_seek(&oggp->vf, …)`). Der in `decoder.h` dokumentierte Vertrag der anderen Decoder lautet aber „`@exception DecoderException` Vor `open()` oder nach `close()`" (z. B. `decoder.h:293`, `:301`, `:307`).
   Verifiziert: UBSan „member access within null pointer" in `:313` bzw. `:289`, jeweils gefolgt von `AddressSanitizer: SEGV` (Proben „C_readAfterClose", „C2_seekAfterClose").
   Minimaler Fix, je Funktion als erste Zeile:
@@ -32,7 +33,8 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
     if (!private_data) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geöffnet");
 ```
 
-- [ ] **16-Bit-Lesepfad: falsche Frame-Zahl bei großem `num` (Ganzzahl-Überlauf)** (`AudioDecoder_Ogg.cpp:308`, Rückgabe in `:322` und `:341`)
+  **Umsetzung:** Alle vier Lesepfade und `seekSample()` prüfen `private_data == NULL` und werfen `DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet")`; zusätzlich wird `buffer == NULL` abgewiesen. Tests: `AllReadPathsThrowAfterClose`, `AllReadPathsThrowBeforeOpen`, `SeekAfterCloseThrowsDecoderException`, `NullBufferIsRejectedByEveryReadPath`.
+- [x] **16-Bit-Lesepfad: falsche Frame-Zahl bei großem `num` (Ganzzahl-Überlauf)** (`AudioDecoder_Ogg.cpp:308`, Rückgabe in `:322` und `:341`)
   `int rest = num * info.BytesPerSample;` verengt das Produkt von `size_t` in `int`. Bei Stereo (`BytesPerSample == 4`) kippt es bereits ab `num >= 0x20000000`; `rest` wird negativ, die `while (rest > 0)`-Schleife läuft null Mal, und `return num - (rest / 4)` liefert **mehr Frames als angefordert**, ohne etwas geschrieben zu haben. Ein Aufrufer, der sich an die Returnzahl hält (Puffervertrag in `decoder.h:289-291`), schreibt bzw. liest dann über seinen Puffer hinaus.
   Verifiziert (ASan-Build, keine Speicherfehler, weil der Puffer im Probenprogramm bewusst nicht gelesen wurde):
   `getSamples(0x20000000, buf)` auf `test_44kHz.ogg` → **Rückgabe 1073741824 Frames** (angefordert 536870912), `getPosition()` unverändert 0.
@@ -44,7 +46,8 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
     return (done <= num) ? done : num; // Analog in der Mono-Variante: rest / 2
 ```
 
-- [ ] **Float-Pfad: Heap-Überlesen bei verketteten OGG-Dateien mit Kanalwechsel** (`AudioDecoder_Ogg.cpp:379`, analoge Stelle im Float-`addSamples` bei `:414`)
+  **Umsetzung:** Die Anfrage wird vor dem Dekodieren auf die Länge der ersten Kette begrenzt (`limit = oggp->firstChainFrames`), die Allozierung bleibt damit bei `4 * limit` Byte, und die Schleife holt die Frames in mehreren `ov_read()`-Aufrufen. Test `HugeRequestReturnsOnlyAvailableFrames`: 2^40 Frames angefordert, exakt `kStereoFrames` (173695) geliefert, und zwar in allen vier Lesepfaden.
+- [x] **Float-Pfad: Heap-Überlesen bei verketteten OGG-Dateien mit Kanalwechsel** (`AudioDecoder_Ogg.cpp:379`, analoge Stelle im Float-`addSamples` bei `:414`)
   Die Verzweigung nutzt `info.Channels` — das stammt aus Kette 0 — libvorbisfile liefert aber die PCM-Zeiger der **aktiven** Kette. Enthalten die Ketten unterschiedliche Kanalzahlen, wird `pcm[1]` gelesen, obwohl libvorbis nur ein Feld allokiert hat.
   Verifiziert: `AddressSanitizer: heap-buffer-overflow`, `READ of size 8`, „0 bytes after 8-byte region", Zuteilungsstack `malloc` ← `vorbis_synthesis_init` (libvorbis) ← `ov_read_float` ← `AudioDecoder_Ogg.cpp:379` (Datei `chained.ogg`: Kette 0 stereo, Kette 1 mono, 2 Links).
   Gegenprobe mit minimalem Fix — Kanalzahl der aktiven Kette statt `info.Channels` benutzen (beide Float-Pfade):
@@ -55,7 +58,8 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
   Damit läuft dieselbe Probe fehlerfrei durch (0 Sanitizer-Meldungen auf `chained.ogg`, `chained2.ogg`, `chained3.ogg`, `mono.ogg`, `test_44kHz.ogg`).
   Randbemerkung zur Gegenrichtung (mono → stereo, `chained3.ogg`): der `info.Channels == 1`-Zweig kopiert nur `pcm[0]`, der zweite Kanal der Stereo-Kette wird lautlos verworfen (verifiziert: unterschiedliche Prüfsummen 474 gegen 18446744073709551524 bei gleicher Framezahl).
 
-- [ ] **`getPosition()` bleibt nach 16-Bit-Lesevorgangen auf 0** (`AudioDecoder_Ogg.cpp:313-341`, `:353`)
+  **Umsetzung:** Beide Float-Pfade fragen `ov_read_float()` in Frames nach und stoppen an `firstChainFrames` (Kette 0); Dateien mit mehr als zwei Kanälen lehnt `open()` ohnehin ab, ein Kanalwechsel innerhalb der ersten Kette ist nach dem Vorbild kein Szenario. Tests: `ChainedFileDecodesOnlyFirstChain`, `ChainedFloatPathStopsAtFirstChain`, `MultichannelFileIsIdentifiedButNotOpened`.
+- [x] **`getPosition()` bleibt nach 16-Bit-Lesevorgangen auf 0** (`AudioDecoder_Ogg.cpp:313-341`, `:353`)
   Nur die beiden Float-Pfade ziehen `position` nach (`:395`, `:431`). `getSamples(STEREOSAMPLE16*)` und das darüber laufende `addSamples(STEREOSAMPLE32*)` ändern `position` nicht; `getPosition()` meldet daher nach vollständigem Durchlauf 0. MP3- und FLAC-Decoder führen `position` in allen Pfaden nach (im Review geprüft).
   Verifiziert: Factory-Pfad auf `test_44kHz.ogg`: dekodiert 173695 Frames, `getPosition()=0`; Mono-Datei: `pos after s16 loop=0`, `addSamples32 pos=0`. Nach dem Fix (position in beiden 16-Bit-Zweigen nachziehen) dieselbe Probe: `frames=173695 getPosition=173695`.
   Minimaler Fix: in beiden Zweigen mitzählen, z. B. Stereo
@@ -66,14 +70,16 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
 ```
   und Mono akkumuliert über die Schleife (`wr += bytes_read / 2; … position += wr; return wr;`).
 
-- [ ] **Doppeltes `open()` ohne `close()` leakt den kompletten libvorbisfile-Handle** (`AudioDecoder_Ogg.cpp:238`)
+  **Umsetzung:** `position` zählt Frames und wird in allen vier Lesepfaden um die geliefert Zahl erhöht; `open()` setzt 0, `seekSample()` setzt das Ziel. Test `PositionTracksFramesInBothReadPaths` prüft das nach jedem Teilschritt, `DecodeAll16`/`DecodeAllFloat` vergleichen die Summe mit `AudioInfo::Samples`.
+- [x] **Doppeltes `open()` ohne `close()` leakt den kompletten libvorbisfile-Handle** (`AudioDecoder_Ogg.cpp:238`)
   `open()` ruft erneut `ov_open_callbacks()` auf, ohne den vorherigen Handle zu klären. Pro Objekt bleiben dabei Sync-Puffer, Stream-Zustände und Vorbis Decode-Strukturen stehen.
   Verifiziert: LeakSanitizer `69244 byte(s) leaked in 125 allocation(s)`, Direkt-Leak-Stacks in `ov_open_callbacks` → `ogg_sync_buffer` (10412 B), `ogg_stream_init` (16384/8192/4096 B). Kontrollprobe mit nur einem `open()` meldet keine Leaks. Auslöser ist auch der übliche Aufrufpfad: `GetAudioDecoder()` öffnet den Decoder bereits selbst (`AudioDecoder.cpp:51`), ein zusätzliches `open()` des Aufrufers leakt also bereits.
   Minimaler Fix: siehe Snippet beim ersten Befund (`close()` am Anfang von `open()`).
 
+  **Umsetzung:** `open()` beginnt mit `close()`, das den alten Handle freigibt. Test `EveryOpenRoundReleasesThePreviousHandle` (drei Runden, die Frames danach bleiben korrekt); LeakSanitizer meldet nichts.
 ## Bugs (mittel / Warnungen)
 
-- [ ] **`ov_pcm_seek()`-Rückgabewert wird ignoriert** (`AudioDecoder_Ogg.cpp:289`)
+- [x] **`ov_pcm_seek()`-Rückgabewert wird ignoriert** (`AudioDecoder_Ogg.cpp:289`)
   Ein Sprung hinter das Dateiende oder in einen ungültigen Stream wird als Erfolg behandelt, weil anschließend bedingungslos `position = sample;` steht.
   Verifiziert (`chained.ogg`, 173695 Samples): `seekSample(Samples + 100000)` → `getPosition()=273695` (großer als `Samples`), anschließfend liefert `getSamples()` erneut Daten (4 Frames); `seekSample(2000000)` → `pos=2000004`, weiterhin Daten. Ein `seekSample()` vor/ohne `open()` wird ebenfalls kommentarlos akzeptiert.
   Minimaler Fix:
@@ -83,7 +89,8 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
     position = sample;
 ```
 
-- [ ] **`ov_pcm_total()`-Fehlerwert landet als Mega-Zahl in `AudioInfo`** (`AudioDecoder_Ogg.cpp:174`, `:176`)
+  **Umsetzung:** Der Rückgabewert wird geprüft, bei Fehler wirft `seekSample()` eine `DecoderException`; `position` folgt nur einem erfolgreichen Sprung. Ziele hinter dem Kettenende werden vorher abgewiesen. Tests: `SeekBeyondFirstChainThrows`, `SeekToChainEndReadsNoFrames`, `IoFailureDuringSeekThrowsDecoderException`.
+- [x] **`ov_pcm_total()`-Fehlerwert landet als Mega-Zahl in `AudioInfo`** (`AudioDecoder_Ogg.cpp:174`, `:176`)
   `info.Samples = ov_pcm_total(&vf, -1);`weise t den `ogg_int64_t` ohne Plausibilitätsprüfung einem `uint64_t` zu; libvorbisfile liefert bei unvollständigem/nicht lesbarem Stream einen negativen Fehlerwert. Auch `Length` wird aus dem Unsinn gerechnet.
   Verifiziert (Probe mit werfender `FileObject`-Subklasse, die den Tell-Callback beim vierten Aufruf abbricht): `AudioInfo::Samples = 18446744073709551485`, `open()` läuft durch, `getSamples()` liefert weiter Daten.
   Minimaler Fix:
@@ -92,18 +99,21 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
     info.Samples = (total > 0) ? (uint64_t)total : 0;
 ```
 
-- [ ] **Verkettete OGG-Dateien: `Samples`/`Length` über alle Ketten, Decode liefert nur die erste** (`AudioDecoder_Ogg.cpp:174`, `:176`, Auswirkung in allen Lesepfaden)
+  **Umsetzung:** `FirstChainFrames()` interpretiert negative Rückgaben als Fehlversuch (ersatzweise Gesamtlänge, sonst 0), `Length` wird nur aus einem plausiblen Wert gerechnet. Tests: `TruncatedFileReportsNoSamplesAndReadsNothing`, `ChainedFileReportsFirstChainInAudioInfo` (keine 347390).
+- [x] **Verkettete OGG-Dateien: `Samples`/`Length` über alle Ketten, Decode liefert nur die erste** (`AudioDecoder_Ogg.cpp:174`, `:176`, Auswirkung in allen Lesepfaden)
   `ov_pcm_total(&vf, -1)` zählt die Samples aller Links, der sequenzielle Lesebetrieb endet aber am Kettenende.
   Verifiziert: `chained2.ogg` (2 Links mit je 44100 Frames, beide stereo) → `AudioInfo::Samples=88200`, `Length=2000` ms, dekodiert werden 44100 Frames (16-Bit- und Float-Pfad, je 87 Aufrufe). Referenz direkt gegen libvorbisfile: `ov_read()` liefert nach 176400 Bytes (= 44100 Stereo-Frames) 0. Bei `chained.ogg` (stereo → mono) überschneidet sich das mit dem Heap-Befund oben.
   Konsequenz: Fortschrittsanzeige/Ende-Erkennung von Playern und Mixern, die `Samples` vertrauen, falsch um den Faktor (Anzahl Ketten).
   Minimaler Fix: bei `vf.links > 1` `ov_pcm_total(&vf, 0)` verwenden und im Header dokumentieren, dass nur die erste Kette dekodiert wird.
 
-- [ ] **Falscher Exception-Typ bei „noch nicht offen"** (`AudioDecoder_Ogg.cpp:343`, `:387`, `:423`)
+  **Umsetzung:** `AudioInfo::Samples` und `Length` melden ausschließlich Kette 0 (`ov_pcm_total(&vf, 0)` über `FirstChainFrames()`), im Header steht, dass nur die erste Kette dekodiert wird. Tests: `ChainedFileReportsFirstChainInAudioInfo` (173695 Frames, 3938 ms), `ChainedFileDecodesOnlyFirstChain`, `ChainedFloatPathStopsAtFirstChain`, `SeekBeyondFirstChainThrows`, `SeekToChainEndReadsNoFrames`.
+- [x] **Falscher Exception-Typ bei „noch nicht offen"** (`AudioDecoder_Ogg.cpp:343`, `:387`, `:423`)
   Die Kanalzahlen-Prüfung in den Lesepfaden wirft `UnsupportedAudioFormatException`; nach dem Basisvertrag (`decoder.h:293`, `:301`) wäre dort `DecoderException` erwartet, das `UnsupportedAudioFormatException` gehört in `open()`.
   Verifiziert: frisch konstruierter, nie geöffneter Decoder → `getSamples(512, buf)` wirft `UnsupportedAudioFormatException: channels <1 or >2`; `addSamples(512, STEREOSAMPLE32*)` ebenso; der Float-Pfad wirft zufällig `DecoderException: ...: -131` (libvorbis-Fehlercode auf nullgesetztem Handle, kein Crash).
   Minimaler Fix: in den Lesepfaden `DecoderException` werfen (zusammen mit dem Guard aus dem zweiten Bug-Befund erledigt sich das zumeist).
 
-- [ ] **Echte I/O-Fehler werden als Dateiende interpretiert** (`AudioDecoder_Ogg.cpp:64-70`)
+  **Umsetzung:** Die Kanalprüfung ist aus den Lesepfaden entfernt; dort wirft nur noch der Zustands-Guard `DecoderException`. `UnsupportedAudioFormatException` bleibt `open()` vorbehalten. Tests: `AllReadPathsThrowBeforeOpen`, `MultichannelFileIsIdentifiedButNotOpened`.
+- [x] **Echte I/O-Fehler werden als Dateiende interpretiert** (`AudioDecoder_Ogg.cpp:64-70`)
   Der Kommentar am Callback begründet das bewusst (Exception durch die C-Frames von libvorbis ist nicht portabel definiert). Dennoch verschluckt `catch (...)` aber jeden Lesefehler: `ppl_read_func` liefert 0, libvorbisfile hält das Decode für beendet, `getSamples()` liefert 0 wie am Dateiende. Bei einem defekten Bandmedium/Netzwerk-FileObject bricht der Download also lautlos halb ab.
   **[Prüfen]**: ob `FileObject` einen Weg bietet, „echter Fehler" von „Dateiende" zu unterscheiden (in `include/pplib/core/fileobject.h` ist kein separates Fehlerstatus-Flag sichtbar).
   Minimaler Vorschlag, ohne das Werfen-durch-C-Frames-Prinzip aufzubrechen: in `OggVorbisPrivateData` (Zeile 48-51) ein Flag `int io_error;` ergänzen, im `catch (...)` von `ppl_read_func`/`ppl_seek_func` setzen und nach jedem `ov_read()`/`ov_read_float()` in den Lesepfaden prüfen:
@@ -111,21 +121,25 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
     if (oggp->io_error) { oggp->io_error = 0; throw DecoderException("AudioDecoder_Ogg: Lesefehler in FileObject"); }
 ```
 
-- [ ] **Ausnahme einer `FileObject`-Subklasse reicht durch die libvorbis-C-Frames hindurch nach außen** (`AudioDecoder_Ogg.cpp:64-70`, `:78-99`) **[Prüfen]**
+  **Umsetzung:** Verhalten bewusst behalten (Entscheidung C: Lesefehler wirkt weiterhin wie Dateiende); der vorgeschlagene `io_error`-Flag-Mechanismus wurde nicht eingebaut. Erledigt ueber die Doku: Die Callbacks melden libvorbisfile weiterhin Kurzlesen, das Verhalten ist in der Klassen-Doku als „Lesefehler wirkt wie Dateiende“ festgehalten. Abgedeckt durch `IoFailureDuringReadEndsStreamLikeEof`; Seek-Fehler werfen weiterhin eine `DecoderException` (`IoFailureDuringSeekThrowsDecoderException`).
+- [x] **Ausnahme einer `FileObject`-Subklasse reicht durch die libvorbis-C-Frames hindurch nach außen** (`AudioDecoder_Ogg.cpp:64-70`, `:78-99`) **[Prüfen]**
   Die Callbacks fangen `catch (...)`, aber `ppl_seek_func` ruft `f->tell()` und `f->size()` **außerhalb** des `try`-Blocks (Zeilen 88-90) und `ppl_tell_func` (`:105-108`) hat gar kein `try`. Eine werfende `FileObject`-Implementierung wirft also mitten durch libvorbis/ogg hindurch.
   Verifiziert auf Linux/GCC: funktioniert kontrolliert (Probe wirft in `tell()` beim vierten Aufruf, Exception erreicht den Aufrufer; unter ASan/UBSan kein Leak, kein Crash, weil der RAII-Handle `OggVorbisHandle` (`:118-140`) aufräumt). Auf Windows/MSVC ist Unwinding durch C-Fremd-Frames nicht garantiert → dort **[Prüfen]**.
   Minimaler Fix: `f->tell()`/`f->size()` in den `try`-Block von `ppl_seek_func` holen und `ppl_tell_func` mit `try { … } catch (...) { return -1; }` absichern.
 
-- [ ] **`AudioInfo` wird beim Identifizieren einer trunkierten Datei „gültig"** (`AudioDecoder_Ogg.cpp:174`, Auswirkung in `IdentOggVorbisAudioFile`)
+  **Umsetzung:** `f->tell()` und `f->size()` liegen im `try`-Block von `ppl_seek_func`, `ppl_tell_func` fängt ebenfalls Ausnahmen und liefert `-1`; damit verlässt keine Exception ein C-Frame. Tests: `IoFailureDuringSeekThrowsDecoderException`, `IoFailureInTellCallbackBecomesDecoderException`, `IoFailureDuringReadEndsStreamLikeEof`.
+- [x] **`AudioInfo` wird beim Identifizieren einer trunkierten Datei „gültig"** (`AudioDecoder_Ogg.cpp:174`, Auswirkung in `IdentOggVorbisAudioFile`)
   Verifiziert: `trunc6000.ogg` (6000 Bytes, angeschnittene Kette) → `ident=1`, `ch=2`, `bits=4`, `Samples=0`, `Length=0`, `kbit=192`, `AudioStart=3852`, `AudioEnd=5999`; `getSamples()` liefert 0 Frames ohne Exception. Kurze Trunkate (bis 3000 Bytes) werden korrekt mit `ident=0` abgelehnt.
   Kein Fehler im engeren Sinn, aber die Kombination `ident=1` + `Samples=0` sollte im Header stehen, damit Aufrufer nicht auf „Datei hat 0 Frames" als Formatfehler prüfen. Double-Free durch `OggVorbisHandle` wurde geprüft: Destruktor ruft bedingungslos `ov_clear()`, stderr blieb leer (keine Meldungen).
 
-- [ ] **`ppl_tell_func` liefert `long` (32 Bit auf Windows)** (`AudioDecoder_Ogg.cpp:105-108`)
+  **Umsetzung:** Verhalten beibehalten und im Header dokumentiert: angeschnittene Dateien werden als `OGG` erkannt, `Samples` und `Length` bleiben 0, `getSamples()` liefert 0 Frames. Test `TruncatedFileReportsNoSamplesAndReadsNothing` (Fixture `test_44kHz_truncated.ogg`, 6000 Byte).
+- [x] **`ppl_tell_func` liefert `long` (32 Bit auf Windows)** (`AudioDecoder_Ogg.cpp:105-108`)
   Die Signatur ist durch libvorbisfile vorgegeben (`long (*tell_func)(void*)`), eine Änderung ist nicht möglich. Auf Linux (LP64) unkritisch; bei Dateien > 2 GiB unter Windows/LLP64 liefert der Callback abgeschnittene Positionen, was `ov_*_seek()` und die Offset-Berechnung in `GetVorbisAudioInfo` (`:167`) stört. **[Prüfen]** (Windows-Build nicht ausgeführt).
 
+  **Umsetzung:** Signaturen sind von libvorbisfile vorgegeben; die Grenze ist als `@note` im Header festgehalten (32-Bit-`long` unter Windows/LLP64, Dateien > 2 GiB nicht korrekt seekbar).
 *Nachträge: Die folgenden Befunde standen nicht im ersten Durchlauf; sie wurden beim Abgleich mit einem früheren Review-Entwurf und anschließender Kontrolle am aktuellem Code nachgetragen.*
 
-- [ ] **Multichannel-Ogg passiert die Datei-Erkennung (Nachtrag)** (`AudioDecoder_Ogg.cpp:190-192`)
+- [x] **Multichannel-Ogg passiert die Datei-Erkennung (Nachtrag)** (`AudioDecoder_Ogg.cpp:190-192`)
   `IdentOggVorbisAudioFile()` prüft die Kanalzahl nicht und liefert auch bei 5.1-Material `true`; `AudioInfo` meldet dann `Channels=6` und eine Samplezahl. Begrenzt wird erst in `open()` (`:246`), also mitten in der Decoder-Erstellung (siehe den Drittdatei-Befund zum Decoder-Leak in `AudioDecoder.cpp`). Zum Vergleich: `IdentWave()` (`AudioInfo.cpp:188`) und `IdentAIFF()` (`:281`) lehnen mehr als zwei Kanäle direkt ab; der FLAC-Zweig akzeptiert Multichannel bewusst und begründet das im Code (`AudioInfo.cpp:440-442`) — ein solcher Hinweis fehlt beim Ogg-Zweig.
   Verifiziert (Testprobe `T_MULTICH`, selbst erzeugtes 5.1-Ogg mit ffmpeg `-ac 6 -channel_layout 5.1 -b:a 384k`): `IdentOggVorbisAudioFile()=1` mit `ch=6`, `IdentAudioFile()=1`. `GetAudioDecoder()` wirft `UnsupportedAudioFormatException: channels <1 or >2`; LeakSanitizer meldet zusätzlich den Decoder-Leak (siehe den Drittdatei-Befund zum Decoder-Leak in `AudioDecoder.cpp`).
   Minimaler Fix, falls Ogg weiterhin auf ein/zwei Kanäle beschränkt bleiben soll (der Handle wird per `OggVorbisHandle` abgeräumt, `ov_clear()` darf hier nicht zusätzlich aufgerufen werden):
@@ -134,13 +148,15 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
 ```
   Alternativ kann die bewusste Entscheidung bleiben; dann gehört sie in die Klassen-Doku.
 
-- [ ] **`info.Mode` bleibt bei Ogg auf `ChannelMode::UNKNOWN` (Nachtrag)** (`AudioDecoder_Ogg.cpp:142-178`)
+  **Umsetzung:** Bewusst die zweite Variante (Entscheidung im Review: Variante 2): `IdentOggVorbisAudioFile()` meldet Kanalzahl, Abtastrate und Bitrate auch bei mehr als zwei Kanälen, abgelehnt wird in `open()` mit `UnsupportedAudioFormatException`. Beides steht in der Funktions-Doku und in der Klassendoku; Test `MultichannelFileIsIdentifiedButNotOpened` (Fixture `test_44kHz_51.ogg`, 6 Kanäle).
+- [x] **`info.Mode` bleibt bei Ogg auf `ChannelMode::UNKNOWN` (Nachtrag)** (`AudioDecoder_Ogg.cpp:142-178`)
   Weder `GetVorbisAudioInfo()` noch `IdentOggVorbisAudioFile()` weisen einen Kanalmodus zu, es bleibt der Default `UNKNOWN` (`audioinfo.h:140`). Die anderen Formate setzen ihn: WAV (`AudioInfo.cpp:219`), AIFF (`:294`, `:324`), FLAC (`:468`), MP3 ebenfalls. Verifiziert in derselben Probe: Stereo-Ogg liefert `Mode=0`. In pplib liest derzeit kein Modul `Mode` (entsprechende Suche in `src/` ohne Treffer), externe Aufrufer können Mono/Stereo aber nicht abfragen. Minimaler Fix in `GetVorbisAudioInfo()`:
 ```c++
     info.Mode = (vf.vi->channels == 1) ? AudioInfo::ChannelMode::MONO : AudioInfo::ChannelMode::STEREO;
 ```
 
-- [ ] **Beide Float-Pfade: `num` ohne Obergrenze, Verengung in `long`/`int` (Nachtrag)** (`AudioDecoder_Ogg.cpp:372-374`, `:408-410`)
+  **Umsetzung:** `GetVorbisAudioInfo()` setzt `Mode` auf `MONO` bzw. `STEREO` (damit auch beim Identifizieren). Test: `OpenFillsAudioInfoAndFactorySelectsOgg` (STEREO) und `MonoFileUpmixesBothChannels` (MONO, `BytesPerSample` 2).
+- [x] **Beide Float-Pfade: `num` ohne Obergrenze, Verengung in `long`/`int` (Nachtrag)** (`AudioDecoder_Ogg.cpp:372-374`, `:408-410`)
   `ov_read_float()` erwartet eine `int`-Puffergröße; die Pfade übergeben `(int)(num - total)` und vergleichen mit `(long)num`. Bei `num > INT_MAX` wird die Länge negativ, libvorbisfile schreibt damit unbegrenzt in den Zielbereich, und außerdem ist die Rückgabe-Berechnung unplausibel. Verifiziert: **[Prüfen]** (kein Laufversuch; ASan-Test mit > 2^31 Frames war nicht möglich, weil die Zielallokierung den Speicher überschritten hätte.) Empfehlung wie bei der 16-Bit-Variante: `num` nach oben begrenzen, vor dem Dekodieren.
   Minimaler Fix:
 ```c++
@@ -148,64 +164,84 @@ Methodik: frische Objekte der Datei gegen die vorhandenen `build/asan`-Archive g
 ```
   (analog für `ov_read()` mit Faktor 4)
 
+  **Umsetzung:** Beide Float-Pfade begrenzen die Anfrage auf `firstChainFrames - position` und dekodieren in Blöcken von höchstens 8192 Frames, der `int`-Parameter von `ov_read_float()` bleibt damit klein und positiv. Test `HugeRequestReturnsOnlyAvailableFrames` und `ChainedFloatPathStopsAtFirstChain` prüfen die Obergrenze.
 ## Wartbarkeit & Aufräumen
 
-- [ ] **`decodebuffer` Größe und Nutzung passen nicht zusammen** (`AudioDecoder_Ogg.cpp:247-250`, `:326-328`)
+- [x] **`decodebuffer` Größe und Nutzung passen nicht zusammen** (`AudioDecoder_Ogg.cpp:247-250`, `:326-328`)
   `decodebuffer_size = 4096; decodebuffer = (char*)malloc(decodebuffer_size * 4);` legt 16 KiB an, benutzt wird der Puffer aber nur mit maximal `decodebuffer_size` Bytes (`int size = decodebuffer_size; if (rest < size) size = rest;`). Faktor 4 zu groß, und die Variable bedeutet einmal „Bytes", einmal „Bytes/4". Der Stereo- und der Float-Pfad verwenden den Puffer gar nicht. Empfehlung: `malloc(decodebuffer_size)` und `decodebuffer_size` als Byte-Grenze stehen lassen (kein Verhaltensunterschied, 12 KiB weniger pro Decoder).
 
-- [ ] **Toter Code / auskommentierte Reste** (`AudioDecoder_Ogg.cpp:100-105`, `:162-163`, `:350`)
+  **Umsetzung:** `decodebuffer = malloc(decodebuffer_size)` mit `decodebuffer_size = 2048 * 2 * 2` Byte; die interne Hilfsgröße bedeutet jetzt durchgehend Bytes. Verhalten unverändert (pro Decoder 12 KiB weniger).
+- [x] **Toter Code / auskommentierte Reste** (`AudioDecoder_Ogg.cpp:100-105`, `:162-163`, `:350`)
   Auskommentierter `ppl_close_func`-Block, `PrintDebug`-/`ov_bitrate`-Zeilen und ein auskommentierter `OggVorbisPrivateData*` in `addSamples(STEREOSAMPLE32*)`. Empfehlung: entfernen (der Destruktor `close()` ist der aufräumende Pfad, ein `close_func`-Callback wäre bei `FileObject`-Lebenszeit gefährlich).
 
-- [ ] **`pcm` wird nie auf `NULL` geprüft** (`AudioDecoder_Ogg.cpp:374`, `:410`)
+  **Umsetzung:** Die auskommentierten `PrintDebug`-/`ov_bitrate`-Zeilen und die Restkommentare in `addSamples()` sind entfernt; ein `close_func`-Callback wird nicht eingerichtet (`callbacks.close_func = NULL` ist Absicht, das `FileObject` gehört dem Aufrufer).
+- [x] **`pcm` wird nie auf `NULL` geprüft** (`AudioDecoder_Ogg.cpp:374`, `:410`)
   `float** pcm` wird mit `nullptr` initialisiert, bei `got > 0` aber unbedarft indiziert. Eine defensive Zeile (`if (got > 0 && pcm == NULL) got = 0;`) kostet nichts und schützt gegen unerwartete libvorbis-Rückgaben.
 
-- [ ] **Kanalzahl wird doppelt geprüft, mit unterschiedlichen Exceptions** (`AudioDecoder_Ogg.cpp:246` und `:343`, `:387`, `:423`)
+  **Umsetzung:** `if (pcm == NULL)` bricht jetzt beide Float-Schleifen sauber ab (statt weiterzulaufen und `pcm[1]` zu lesen); geworfen wird nicht, weil eine leere Rückgabe von libvorbisfile als Dateiende gilt.
+- [x] **Kanalzahl wird doppelt geprüft, mit unterschiedlichen Exceptions** (`AudioDecoder_Ogg.cpp:246` und `:343`, `:387`, `:423`)
   `open()` wirft `UnsupportedAudioFormatException`, die Lesepfade dieselbe Prüfung erneut mit derselben Exception (siehe Exception-Befund oben). Empfehlung: Prüfung nur in `open()`, in den Lesepfaden nichts werfen.
 
-- [ ] **`SampleType` wird in `GetVorbisAudioInfo` nie gesetzt** (`AudioDecoder_Ogg.cpp:142-178`)
+  **Umsetzung:** Geprüft wird die Kanalzahl nur noch in `open()`; die Lesepfade setzen `info.Channels` als gesetzt voraus und werfen höchstens die Zustands-`DecoderException`.
+- [x] **`SampleType` wird in `GetVorbisAudioInfo` nie gesetzt** (`AudioDecoder_Ogg.cpp:142-178`)
   `info.SampleType` bleibt auf dem Default `SampleEncoding::INTEGER` (`audioinfo.h:141`); WAV und FLAC setzen ihn explizit (`AudioInfo.cpp:297`, `:393`). Für OGG ist das inhaltlich vertretbar (Lese-API liefert 16-Bit-Integer), sollte aber im Header stehen, weil die Float-Pfade Fließkomma liefern. Verifiziert: `IdentAudioFile()` auf Ogg-Dateien liefert `type=0` (INTEGER), `bits=16`.
 
-- [ ] **Falscher Funktionsname in der Fehlermeldung des Float-`addSamples` (Nachtrag)** (`AudioDecoder_Ogg.cpp:428`)
+  **Umsetzung:** `info.SampleType = AudioInfo::SampleEncoding::INTEGER` zusammen mit `BitsPerSample = 16`; im Header steht, dass die Float-Pfade normierte Werte liefern. Test `OpenFillsAudioInfoAndFactorySelectsOgg` prüft `SampleType`.
+- [x] **Falscher Funktionsname in der Fehlermeldung des Float-`addSamples` (Nachtrag)** (`AudioDecoder_Ogg.cpp:428`)
   Die Meldung lautet `"AudioDecoder_Ogg::getSamples: %d"`, geworfen wird sie aber in `addSamples(size_t, STEREOSAMPLE_FLOAT*)`. Bei der Fehlersuche führt das in den falschen Pfad. Empfehlung: Text auf `addSamples` korrigieren.
 
+  **Umsetzung:** Meldung lautet jetzt `"AudioDecoder_Ogg::addSamples: %d"`; beibehalten wird die Nummer des libvorbis-Fehlercodes.
 ## Dokumentation & Doxygen
 
-- [ ] **`class AudioDecoder_Ogg` ohne jede Doxygen** (`include/pplib/audio/decoder.h:576-604`)
+- [x] **`class AudioDecoder_Ogg` ohne jede Doxygen** (`include/pplib/audio/decoder.h:576-604`)
   Alle anderen Decoder-Klassen haben `@class`/`@brief` plus `@exception`-Hinweise (Muster: `decoder.h:183-330` Wave, `:606-724` FLAC, sowie die `@exception DecoderException Vor \`open()\` oder nach \`close()\``-Zeilen `:293`, `:301`, `:307`, `:313`). Für Ogg fehlt alles: keine Aussage zu `position`-Semantik (After welchem Lesevorgang wird sie nachgezogen?), keine zu `seekSample()`-Verhalten außerhalb des Bereichs, keine zu verketteten Dateien, keine zu `AudioInfo::Samples`/`Length`, keine Exception-Liste. Vorschlag: Klassenkommentar im Stil der FLAC-Klasse, mit den Punkten „nur erste Kette bei Verkettung", `BitsPerSample` immer 16, `SampleType` INTEGER, `Samples` aus `ov_pcm_total(-1)`.
 
-- [ ] **Dokumentierter Basisvertrag wird nicht erfüllt** (`include/pplib/audio/decoder.h:293` und `AudioDecoder_Ogg.cpp` Lese-/Seek-Funktionen)
+  **Umsetzung:** Klassenblock im Stil der FLAC-Klasse ergänzt: unterstützte Varianten, Mono-Aufmischung, Kettenbehandlung (nur Kette 0 inkl. `Samples`/`Length`), `position`-Semantik in Frames, Skala-Tabelle der vier Lesepfade, `seekSample()`-Grenzen, `AudioStart`/`AudioEnd` als Seitengrenzen, Exception-Liste je Methode.
+- [x] **Dokumentierter Basisvertrag wird nicht erfüllt** (`include/pplib/audio/decoder.h:293` und `AudioDecoder_Ogg.cpp` Lese-/Seek-Funktionen)
   Die Überschriften der anderen Decoder versprechen `DecoderException` „vor `open()` oder nach `close()`"; Ogg crasht dort (siehe kritische Befunde) bzw. wirft `UnsupportedAudioFormatException`. Nach dem Fix der 16-Bit-Pfade die Ogg-Klasse mit denselben `@exception`-Zeilen versehen.
 
-- [ ] **Keine Aussage zu `IdentOggVorbisAudioFile()` und `GetVorbisAudioInfo()`** (`AudioDecoder_Ogg.cpp:181-193`, `:142-178`)
+  **Umsetzung:** Alle vier Lesemethoden und `seekSample()` werfen die angekündigte `DecoderException` vor `open()`/nach `close()`, und die Ogg-Klasse enthält dieselben `@exception`-Hinweise wie WAV und FLAC.
+- [x] **Keine Aussage zu `IdentOggVorbisAudioFile()` und `GetVorbisAudioInfo()`** (`AudioDecoder_Ogg.cpp:181-193`, `:142-178`)
   Die Callback-Kommentare (`:53-70`, `:73-77`) sind gut und erklären die libvorbis-Verträge; die beiden Info-Funktionen selbst haben keine. Sinnvolle Ergänzung: `AudioStart`/`AudioEnd` sind Seitengrenzen (verifiziert an `test_44kHz.ogg`: `AudioStart=8060`, `AudioEnd=90767` bei 90768 Bytes), `AudioSize`/`AudioEnd` bleiben ungesetzt, wenn `vf.end <= vf.offset` (nicht seekbarer Input), `Bitrate`-Quelle ist nominale/untere/obere Bitrate mit Clamping auf `uint16_t`.
 
-- [ ] **`IsVBR`/`Bitrate`-Ableitung undokumentiert und für VBR-Dateien fraglich** (`AudioDecoder_Ogg.cpp:154-161`) **[Prüfen]**
+  **Umsetzung:** Beide Funktionen haben eine Doxygen-Kurzbeschreibung in `AudioDecoder_Ogg.cpp`: Seitengrenzen bei `AudioStart`/`AudioEnd`, `AudioSize`/`AudioEnd` ungesetzt wenn `vf.end <= vf.offset`, Bitrate-Quelle inklusive Clamping, Kette-0-Aussage für `Samples`/`Length`. Verifiziert an `test_44kHz.ogg`: `AudioStart=8060`, `AudioEnd=90767` bei 90768 Byte.
+- [x] **`IsVBR`/`Bitrate`-Ableitung undokumentiert und für VBR-Dateien fraglich** (`AudioDecoder_Ogg.cpp:154-161`) **[Prüfen]**
   `IsVBR` wird auf `false` gesetzt, wenn `bitrate_lower == bitrate_upper`. Bei einer mit `libvorbis -q 3` (VBR-Modus) kodierten Datei meldet pplib `IsVBR=false` und `Bitrate=112`; bei den ABR-Testdateien (`-b:a 64k/192k`) ebenso `IsVBR=false`, `Bitrate` 64/192. Ob libvorbis bei VBR-Kodierung untere und obere Bitrate tatsächlich gleich schreibt (dann ist die Klassifizierung korrekt) oder pplib VBR-Dateien falsch als CBR kennzeichnet, ließ sich mit den hier verfügbaren Werkzeugen nicht eindeutig belegen. Empfehlung: Verhalten im Header festhalten.
 
-- [ ] **Verhalten ohne libvorbis-Bau und Sample-Skalierung undokumentiert (Nachtrag)** (`include/pplib/audio/decoder.h:576-604`)
+  **Umsetzung:** Als Näherung dokumentiert (untere == obere Bitrate gilt als konstante Bitrate, sonst nominale; Clamping auf `uint16_t`, negative Werte auf 0). Beide Zweige sind jetzt durch Tests abgedeckt: `OpenFillsAudioInfoAndFactorySelectsOgg` meldet für `test_44kHz.ogg` `IsVBR=true`; `ConstantBitrateFileIsNotReportedAsVBR` (Fixture `test_44kHz_cbr.ogg`, `ffmpeg -b:a 192k`) meldet `IsVBR=false` und `Bitrate=192`.
+- [x] **Verhalten ohne libvorbis-Bau und Sample-Skalierung undokumentiert (Nachtrag)** (`include/pplib/audio/decoder.h:576-604`)
   Der Klasse fehlen – wie im ersten Doku-Befund genannt – alle Vertragsangaben. Konkret sollten zwei Punkte eingetragen werden: (1) Das Verhalten ohne libvorbis im Build: Der Konstruktor wirft `UnsupportedFeatureException` (`AudioDecoder_Ogg.cpp:200-202`), `open()`/`close()`/`seekSample()` enthalten dann keinen Code, die Lesepfade geben 0 zurück (jeweils `#else`-Zweig, z. B. `:433-436`). (2) Die Skala der Leseformate, analog zur Tabelle bei `AudioDecoder_Flac`: 16-Bit-Pfade über `ov_read()` (native 16-Bit-Werte), Float-Pfade über `ov_read_float()` (normiert, etwa −1,0 bis 1,0). Die `@exception`-Angaben der Basisklasse (`decoder.h:293`, `:301`) fehlen ebenfalls.
   Verifiziert: `open()`-Rumpf komplett im `#ifdef HAVE_LIBVORBIS`; Konstruktor-Wurf im `#ifndef HAVE_LIBVORBIS`.
 
+  **Umsetzung:** `@note` zur CMake-Option `PPLIB_WITH_VORBIS` (Konstruktor wirft `UnsupportedFeatureException`, die übrigen Methoden enthalten keinen Code bzw. geben 0 zurück) und Skala-Tabelle analog zur FLAC-Klasse, die Skala selbst vergleicht `FloatPathScalesLikeSixteenBitPath` (Float = 16-Bit / 32768, Betrag <= 1,0).
 ## Befunde in Drittdateien
 
-- [ ] **`GetAudioDecoder()` leakt den Decoder, wenn `open()` wirft (Nachtrag)** (`src/audio/AudioDecoder.cpp:47`, `:51`)
+- [x] **`GetAudioDecoder()` leakt den Decoder, wenn `open()` wirft (Nachtrag)** (`src/audio/AudioDecoder.cpp:47`, `:51`)
   Die Funktion erzeugt das Decoder-Objekt (Zeile 47) und ruft `decoder->open(file, &info)` (Zeile 51) ohne Absicherung. Wirft `open()` – etwa bei Multichannel-Ogg (siehe Befund „Multichannel-Ogg passiert die Datei-Erkennung“) –, bleibt das Objekt verloren, zusammen mit den schon allokierten libvorbis-Strukturen. Die Header-Doku (`decoder.h:178-179`) nennt nur „NULL, falls kein passender Decoder gefunden wurde“ und lässt offen, dass `open()`-Ausnahmen durchgereicht werden und das Objekt dann undicht zurücklassen.
   Verifiziert: LeakSanitizer meldet „Direct leak 128 byte(s) in 1 object(s)” im Stack `operator new` ← ... `AudioDecoder.cpp:47`, dazu „Indirect leak 16384 byte(s)“ (`ogg_stream_init`), „12230 byte(s)“ (`ogg_sync_buffer`), „8544 byte(s) in 3 objects“ (`res0_unpack` ← `vorbis_synthesis_headerin`) über `AudioDecoder_Ogg::open` (`AudioDecoder_Ogg.cpp:238`) ← `AudioDecoder.cpp:51`; Auslöser ist eine mit ffmpeg erzeugte 5.1-Ogg-Datei.
   Minimaler Fix in `GetAudioDecoder()`: `open()` in try/catch, im Fehlerfall `delete decoder;` und `decoder = NULL;`, danach `throw;`.
 
-- [ ] **FLAC-Klassen-Doku verspricht eine Kanal-/Bitbreiten-Begrenzung, die die Erkennung nicht umsetzt (Nachtrag)** (`include/pplib/audio/decoder.h:606-614`, `src/audio/AudioInfo.cpp:440-442`, `src/audio/AudioDecoder_Flac.cpp:330`)
+  **Umsetzung:** Der aktuelle Stand umschließt Anlage und `open()` bereits mit einem `try`/`catch`, das `delete decoder;` ausführt und NULL liefert; die Header-Doku nennt jetzt beide Fälle. Verifiziert durch `FactoryReturnsNothingForAFileTheDecoderRejects` (6-Kanal-Datei) im ASan-Build.
+- [x] **FLAC-Klassen-Doku verspricht eine Kanal-/Bitbreiten-Begrenzung, die die Erkennung nicht umsetzt (Nachtrag)** (`include/pplib/audio/decoder.h:606-614`, `src/audio/AudioInfo.cpp:440-442`, `src/audio/AudioDecoder_Flac.cpp:330`)
   Die Klasse `AudioDecoder_Flac` dokumentiert, `IdentAudioFile()` erkenne mehrkanalige bzw. 8/32-Bit-Dateien „nicht als dekodierbares FLAC“. Der Erkennungszweig akzeptiert sie jedoch bewusst („Erkennung und Unterstuetzung sind getrennt; abgelehnt wird erst in AudioDecoder_Flac::open()“, `AudioInfo.cpp:440-442`); abgelehnt wird erst dort (`AudioDecoder_Flac.cpp:330`). Verifiziert: `IdentAudioFile()` auf einer selbst erzeugten 5.1-FLAC-Datei liefert `true` mit `ch=6` (Testdatei per ffmpeg, `-ac 6`); im verwendeten Build war libFLAC deaktiviert (`build/asan/include/config_pplib.h:98`), die Erkennung ist aber nicht an `HAVE_LIBFLAC` gekoppelt (`AudioInfo.cpp` enthält keine entsprechende Bedingung). Außerdem: der FLAC-Zweig setzt `info.Mode` auf `MONO`/`STEREO` (Zeile 468), also bei sechs Kanälen auf `STEREO`. Empfehlung: Klassen-Doku an die getrennte Erkenntnis-/Unterstützungslogik anpassen und das `Mode`-Verhalten für >2 Kanäle festlegen.
 
-- [ ] **`GetAudioDecoder()` öffnet den Decoder selbst** (`src/audio/AudioDecoder.cpp:39-54`, `:51`)
+  **Umsetzung:** Eigener `@note` in der FLAC-Klasse ergänzt („Erkennung und Unterstützung sind getrennt: `IdentAudioFile()` meldet auch mehr als zwei Kanäle und 8/32 Bit“); der Hinweis im FLAC-Zweig von `AudioInfo.cpp` stand bereits.
+- [x] **`GetAudioDecoder()` öffnet den Decoder selbst** (`src/audio/AudioDecoder.cpp:39-54`, `:51`)
   Der Aufrufer erhält einen bereits geöffneten Decoder; ein zusätzliches `open()` (nahe liegend, weil `open()` öffentlich ist) leakt pro doppeltem Öffnen ~69 KB (verifiziert, siehe kritischer Leak-Befund). Empfehlung: im Header von `GetAudioDecoder()` dokumentieren, dass der Decoder bereits geöffnet ist.
 
-- [ ] **`IdentOggVorbisAudioFile()` nirgends im Header deklariert** (`src/audio/AudioInfo.cpp:42` lokale Deklaration, `:558` Aufruf; Definition in `AudioDecoder_Ogg.cpp:181-193`)
+  **Umsetzung:** Header-Doku sagt jetzt ausdrücklich, dass ein erfolgreicher Rückgabewert ein bereits geöffneter Decoder ist; der Kommentar im Code bleibt. Die Signatur der Funktion bleibt unverändert.
+- [x] **`IdentOggVorbisAudioFile()` nirgends im Header deklariert** (`src/audio/AudioInfo.cpp:42` lokale Deklaration, `:558` Aufruf; Definition in `AudioDecoder_Ogg.cpp:181-193`)
   Die Funktion ist nur lokal deklariert, die Signatur kann also unbemerkt auseinanderlaufen. Empfehlung: gemeinsame private Deklaration (analog zu anderen `Ident*`-Funktionen) oder `static` plus Registrierung.
 
+  **Umsetzung:** Entscheidung im Review: modulintern, kein zusätzlicher Header. Die örtliche Deklaration in `AudioInfo.cpp:42` bleibt und hat jetzt einen Kommentar, der auf die Definition in `AudioDecoder_Ogg.cpp` verweist; die Funktionsdoku dort nennt die Aufruferin. Eine abweichende Signatur fällt durch das C++-Name-Mangling als Bindungsfehler auf, nicht als laufender Fehler.
 - [ ] **Decoder-Interna im öffentlichen Header** (`include/pplib/audio/decoder.h:581-584`)
   `readbuffer`, `buffersize`, `decodebuffer`, `decodebuffer_size` sind Members von `AudioDecoder_Ogg` im Header, benutzt werden sie nur in zwei Funktionen der `.cpp`. Kein Fehler, aber die Größenanpassung (`decodebuffer_size * 4`, s. o.) wirkt sich auf die Objektgröße aller Decoder aus; eine Kapselung wie `private_data` wäre konsistenter. Nur zur Kenntnis.
 
+  **Umsetzung:** Bewusst nicht umgesetzt: ein Umzug der Mitglieder hinter einen PImpl-Handle (Pointer-to-Implementation: private Daten hinter einem undurchsichtigen Zeiger) wäre ein Ownership-Wechsel, den das Review nur „zur Kenntnis“ nimmt.
+
 ## Strukturvorschläge (nur zur Diskussion)
+
+Nicht umgesetzt, wie besprochen. Die ersten drei Punkte sind teilweise durch die konkreten Fixes mitgenommen: RAII bleibt auf den Identify-Pfad beschränkt (`open()`/`close()` räumen jetzt explizit und vollständig), die 16-Bit-Pfade zählen Frames statt Bytes, und die Kettenentscheidung ist auf „nur Kette 0“ festgelegt und dokumentiert.
 
 - **RAII auch fur `open()`/`close()` verwenden** (`AudioDecoder_Ogg.cpp:118-140`, `:232-277`): Der `OggVorbisHandle` existiert bereits und wird nur im Identify-Pfad genutzt. Wird der Handle (und damit `ov_clear()`) auch in `open()`/`close()`/den Throw-Pfaden zur einzigen Aufräumquelle, erledigen sich doppelten Leak, Handle-Rest nach dem Kanalzahlen-Wurf (`:246`) und Exception-Pfad-Rest automatisch. Aufwand mittel, Risiko gering, Verhalten nach außen unverändert.
 - **16-Bit-Lesepfade auf Frame-Zählung umstellen** (`:304-344`): aktuell werden Bytes (`rest`, `info.BytesPerSample`) und Frames (`num`, Rückgabe) gemischt; daraus entstehen der Überlauf-Befund und die falschen Mengenangaben bei Kettenwechsel. Eine Umstellung auf „angeforderte Frames zählen, `ov_read()` mit passender Bytegröße pro Frame" beseitigt beide Klassen. Aufwand mittel, Risiko: Verhaltensänderung bei Restbytes am Kettenende, deshalb nur mit Tests.

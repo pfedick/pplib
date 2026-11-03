@@ -118,9 +118,13 @@ public:
      * Der Puffer ist hier im Format STEREOSAMPLE16. Dabei entspricht ein Sample jeweils einem 16-Bit-Wert
      * für links und einen 16-Bit-Wert für rechts. Der Puffer muss entsprechend groß sein, um alle Samples aufzunehmen.
      *
+     * Ein Sample ist immer ein Frame, also ein Wert pro Kanal. Die Zahl der Werte im Puffer
+     * ist deshalb unabhängig von der Kanalzahl der Datei und entspricht immer \p num.
+     *
      * @param num Die Anzahl der zu lesenden Samples.
      * @param buffer Zeiger auf den Puffer, in den die Samples geschrieben werden sollen.
-     * @return Die tatsächlich gelesene Anzahl an Samples.
+     * @return Die tatsächlich gelesene Anzahl an Samples. Das Ende des Audiodatenbereichs
+     *   liefert 0, ohne eine Exception zu werfen.
      */
     virtual size_t getSamples(size_t num, STEREOSAMPLE16* buffer) = 0;
 
@@ -178,7 +182,8 @@ public:
  * @return Zeiger auf ein AudioDecoder-Objekt, das für die gegebene Datei geeignet ist, oder NULL,
  * falls kein passender Decoder gefunden wurde oder der Decoder die Datei nicht öffnen kann.
  * In beiden Fällen wird kein Objekt angelegt bzw. das halb fertiggestellte wieder freigegeben;
- * die Funktion wirft keine Ausnahme.
+ * die Funktion wirft keine Ausnahme. Ein erfolgreicher Rückgabewert ist ein bereits geöffneter
+ * Decoder; ein zusätzliches `open()` durch den Aufrufer ist nicht erforderlich.
  */
 AudioDecoder* GetAudioDecoder(FileObject& file);
 
@@ -223,17 +228,17 @@ private:
     /** @brief Kodierung eines Kanal-Samples, wie sie `open()` aus dem AudioInfo ableitet. */
     enum class FrameEncoding : uint8_t
     {
-        NONE = 0,    //!< kein offener Decoder bzw. nicht unterstuetzte Kodierung
-        INT16 = 1,   //!< 16-Bit-Zweierkomplement
-        INT24 = 2,   //!< 24-Bit-Zweierkomplement, gepackt in 3 Bytes
-        INT32 = 3,   //!< 32-Bit-Zweierkomplement
-        FLOAT32 = 4  //!< 32-Bit-IEEE-Float (WAV-Format-Tag 3)
+        NONE = 0,   //!< kein offener Decoder bzw. nicht unterstuetzte Kodierung
+        INT16 = 1,  //!< 16-Bit-Zweierkomplement
+        INT24 = 2,  //!< 24-Bit-Zweierkomplement, gepackt in 3 Bytes
+        INT32 = 3,  //!< 32-Bit-Zweierkomplement
+        FLOAT32 = 4 //!< 32-Bit-IEEE-Float (WAV-Format-Tag 3)
     };
 
     FileObject* ff;
     AudioInfo info;
     size_t position;
-    size_t bytesPerChannel;  //!< Bytes eines Kanal-Samples innerhalb eines Frames
+    size_t bytesPerChannel; //!< Bytes eines Kanal-Samples innerhalb eines Frames
     FrameEncoding encoding;
 
     /** @brief Begrenzt die angeforderte Samplezahl und liefert den Dateiversatz des
@@ -360,17 +365,17 @@ private:
     /** @brief Kodierung eines Kanal-Samples, wie sie `open()` aus dem AudioInfo ableitet. */
     enum class FrameEncoding : uint8_t
     {
-        NONE = 0,    //!< kein offener Decoder bzw. nicht unterstuetzte Kodierung
-        INT16 = 1,   //!< 16-Bit-Zweierkomplement
-        INT24 = 2,   //!< 24-Bit-Zweierkomplement, gepackt in 3 Bytes
-        INT32 = 3,   //!< 32-Bit-Zweierkomplement
-        FLOAT32 = 4  //!< 32-Bit-IEEE-Float (AIFF-C-Kompression `FL32`)
+        NONE = 0,   //!< kein offener Decoder bzw. nicht unterstuetzte Kodierung
+        INT16 = 1,  //!< 16-Bit-Zweierkomplement
+        INT24 = 2,  //!< 24-Bit-Zweierkomplement, gepackt in 3 Bytes
+        INT32 = 3,  //!< 32-Bit-Zweierkomplement
+        FLOAT32 = 4 //!< 32-Bit-IEEE-Float (AIFF-C-Kompression `FL32`)
     };
 
     FileObject* ff;
     AudioInfo info;
     size_t position;
-    size_t bytesPerChannel;  //!< Bytes eines Kanal-Samples innerhalb eines Frames
+    size_t bytesPerChannel; //!< Bytes eines Kanal-Samples innerhalb eines Frames
     FrameEncoding encoding;
 
     /** @brief Begrenzt die angeforderte Samplezahl und liefert den Dateiversatz des
@@ -476,7 +481,7 @@ struct Mp3Data;
 class AudioDecoder_MP3 : public AudioDecoder
 {
 private:
-    Mp3Data* mp3;  ///< libmpg123-Handle, Datenbasis und dekodierte Samples (in DER Uebersetzung definiert)
+    Mp3Data* mp3; ///< libmpg123-Handle, Datenbasis und dekodierte Samples (in DER Uebersetzung definiert)
 
     AudioInfo info;
     size_t position;
@@ -575,15 +580,100 @@ public:
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
+/** @class AudioDecoder_Ogg
+ * @ingroup PPLGroupSound
+ * @brief Decoder für Ogg-Vorbis-Dateien (`.ogg`, `.oga`) auf Basis von libvorbisfile.
+ *
+ * Unterstützt werden Dateien mit einem oder zwei Kanälen. Monodateien werden
+ * unterstützt, indem das eine Kanal-Sample auf links und rechts kopiert wird. Mehr als
+ * zwei Kanäle lehnt `open()` mit `UnsupportedAudioFormatException` ab; `IdentAudioFile()`
+ * erkennt solche Dateien dagegen als `OGG` und meldet die Kanalzahl des Bitstroms:
+ * Erkennung und Unterstützung sind getrennt, abgelehnt wird erst im Decoder.
+ *
+ * Ogg-Dateien können zu mehreren Ketten verkettet sein (mehrere Bitströme direkt
+ * hintereinander, zum Beispiel durch `cat` zweier Dateien). Abgespielt wird nur die
+ * erste Kette, obwohl libvorbisfile die verketteten Ströme fortlaufend weiterspielen
+ * würde. Dazu passend beschreiben `AudioInfo::Samples` und `AudioInfo::Length` nur die
+ * erste Kette; libvorbisfile meldet sonst die Summe aller Ketten.
+ *
+ * Die Bitbreite ist immer 16 (`AudioInfo::BitsPerSample`), die Abtastung
+ * `SampleEncoding::INTEGER`, obwohl der Vorbis-Decoder intern mit Fließkomma arbeitet:
+ * Die Integer-Pfade lesen über `ov_read()`, die Float-Pfade über `ov_read_float()`.
+ *
+ * | Quelle     | `getSamples(STEREOSAMPLE16)` | `addSamples(STEREOSAMPLE32)`     | `getSamples`/`addSamples`(STEREOSAMPLE_FLOAT) |
+ * | ---------- | ---------------------------- | -------------------------------- | --------------------------------------------- |
+ * | Ogg Vorbis | unverändert, 16 Bit          | unverändert, 16-Bit-Wertebereich | normiert, Bereich etwa −1,0 bis 1,0     |
+ *
+ * Der `STEREOSAMPLE32`-Puffer dient dem Mischen mehrerer Quellen. Die Float-Werte sind
+ * die Decoderwerte ohne Rundung; die 16-Bit-Werte sind deren Rundung durch libvorbisfile,
+ * unterscheiden sich also höchstens um eine Stelle (1/32768). Eine Konvertierung der
+ * Abtastrate findet nicht statt.
+ *
+ * @note Alle vier Lesemethoden rechnen in Frames (ein Frame = ein Sample aller Kanäle):
+ * Der übergebene Puffer fasst pro Frame zwei Werte, `num` ist die Zahl der Frames und der
+ * Rückgabewert die Zahl tatsächlich gelesener Frames. Ist das Ende der ersten Kette
+ * erreicht, liefert der Aufruf weniger Frames als angefordert; angeforderte Frames über
+ * dem Kettenende entfallen, die entsprechenden Pufferfelder bleiben unverändert.
+ *
+ * @note `position` zählt Frames (nicht Kanal-Samples) und wird in allen vier Lesemethoden
+ * nachgezogen; `open()` setzt sie auf 0, `seekSample()` setzt sie auf das Ziel.
+ *
+ * @note `seekSample()` lehnt Ziele hinter dem Ende der ersten Kette mit einer
+ * `DecoderException` ab, statt sie still auf eine gültige Position umzusetzen. Ein Ziel
+ * genau auf dem Kettenende gilt als Dateiende und liefert 0 Frames.
+ *
+ * @note `AudioInfo::AudioStart` und `AudioInfo::AudioEnd` sind Seitengrenzen des Ogg-
+ * Containers: `AudioStart` zeigt auf den Anfang der ersten Datenseite nach den
+ * Header-Seiten, `AudioEnd` auf das letzte Datenbyte des letzten Datenpages. Beide
+ * Grenzen enthalten also die Seitenköpfe. `AudioInfo::AudioSize` und `AudioInfo::AudioEnd`
+ * bleiben ungesetzt, wenn libvorbisfile das Ende nicht bestimmen kann (nicht seekbarer
+ * Input).
+ *
+ * @note `AudioInfo::IsVBR` und `AudioInfo::Bitrate` leitet der Decoder aus den von
+ * libvorbis gemeldeten nominalen, unteren und oberen Bitraten ab: sind untere und obere
+ * Bitrate gleich, gilt die Datei als konstante Bitrate und `Bitrate` übernimmt diesen
+ * Wert, sonst die nominale Bitrate. Die Angabe ist nur eine Näherung – eine mit
+ * `libvorbis -q` kodierte VBR-Datei wird darüber in der Regel als CBR gemeldet.
+ * `Bitrate` steht in kbit/s und wird auf den Bereich von `uint16_t` begrenzt; meldet
+ * libvorbis einen negativen (fremde Encoder) oder unplausiblen Wert, steht 0 bzw. 65535.
+ *
+ * @note I/O-Fehler der übergebenen Datei erreichen den Aufrufer nicht: Die Callbacks des
+ * Decoders fangen Ausnahmen des `FileObject` ab und melden sie libvorbisfile als
+ * Kurzlesen. Ein Lesefehler wirkt damit wie ein Dateiende – die bis dahin dekodierten
+ * Frames werden geliefert, danach liefert die Lesemethode 0. Ein Seek-Fehler beim
+ * `seekSample()` meldet eine `DecoderException`.
+ *
+ * @note Eine angeschnittene Ogg-Datei erkennt `IdentAudioFile()` möglicherweise als `OGG`,
+ * ohne die Samplezahl zu melden (`AudioInfo::Samples` und `AudioInfo::Length` bleiben 0);
+ * kurze Rumpfstücke ohne vollständigen Header werden dagegen erst gar nicht erkannt. Ein
+ * `getSamples()` auf einer solchen Datei liefert 0 Frames.
+ *
+ * @note Die Callback-Funktionen von libvorbisfile liefern Positionen als `long`. Auf
+ * Plattformen mit 32 Bit grossem `long` (Windows/LLP64) sind dadurch Ogg-Dateien über
+ * 2 GiB nicht korrekt seekbar; die Signaturen sind durch die Bibliothek vorgegeben.
+ *
+ * @note Voraussetzung ist ein pplib-Build mit libvorbis (CMake-Option
+ * `PPLIB_WITH_VORBIS`). Fehlt die Bibliothek, wirft der Konstruktor eine
+ * `UnsupportedFeatureException`; `open()`, `close()` und `seekSample()` enthalten dann
+ * keinen Code und die Lesemethoden geben 0 zurück.
+ *
+ * @note Das übergebene `FileObject` gehört dem Decoder exklusiv: Er liest direkt über das
+ * Objekt und verändert dabei die Dateiposition. `GetAudioDecoder()` liefert einen bereits
+ * geöffneten Decoder; ein zusätzliches `open()` des Aufrufers ist überflüssig, aber
+ * ungefährlich, weil `open()` den bisherigen Handle zunächst freigibt.
+ *
+ * @see AudioInfo::AudioFormat::OGG
+ */
 class AudioDecoder_Ogg : public AudioDecoder
 {
 private:
-    void* private_data;
-    size_t position;
-    char* readbuffer;
-    size_t buffersize;
-    char* decodebuffer;
-    int decodebuffer_size;
+    void* private_data; //!< libvorbisfile-Handle; NULL, solange nicht geöffnet ist
+    size_t position;    //!< nächste zu lesende Position in Frames (nicht Kanal-Samples)
+
+    char* readbuffer;      //!< Zwischenpuffer der 16-Bit-Pfade
+    size_t buffersize;     //!< Größe von `readbuffer` in Byte
+    char* decodebuffer;    //!< reservierter Vorrat für die Callback-Funktionen
+    int decodebuffer_size; //!< Größe von `decodebuffer` in Byte
     AudioInfo info;
 
     void allocateBuffer(size_t size);
@@ -591,14 +681,72 @@ private:
 public:
     AudioDecoder_Ogg();
     ~AudioDecoder_Ogg() override;
+
+    /** @brief Öffnet die Datei, liest die Vorbis-Header und prüft die Unterstützung.
+     *
+     * Wird \p info übergeben, gelten die Werte des Objekts; der Decoder prüft nur die
+     * Kanalzahl dagegen. Andernfalls ermittelt er sie aus den Vorbis-Headern und
+     * bestimmt `AudioInfo::Samples` und `AudioInfo::Length` aus der ersten Kette.
+     * Ein bereits offener Handle wird vorher freigegeben, `open()` nach `close()` ist
+     * also erlaubt.
+     *
+     * @exception UnsupportedAudioFormatException Datei ist kein Ogg-Vorbis-Stream, oder
+     *   das Format wird nicht unterstützt (mehr als zwei Kanäle).
+     * @exception OutOfMemoryException Der Handle oder der interne Puffer fehlt.
+     */
     void open(FileObject& file, const AudioInfo* info = NULL) override;
+
+    /** @brief Gibt den libvorbisfile-Handle und die internen Puffer frei, setzt
+     *         `position` auf 0 und ist aufrufbar, auch wenn nichts geöffnet ist. */
     void close() override;
+
     const AudioInfo& getAudioInfo() const override;
+
+    /** @brief Springt zu Frame \p sample innerhalb der ersten Kette.
+     *
+     * @exception DecoderException Kein offener Decoder, oder \p sample liegt hinter dem
+     *   Ende der ersten Kette.
+     */
     void seekSample(size_t sample) override;
+
     size_t getPosition() const override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
+     *
+     * Monodateien werden auf beide Kanäle hochgemischt; \p num und der Rückgabewert sind
+     * Frames. Angeforderte Frames über dem Ende der ersten Kette entfallen. Die Werte
+     * entsprechen der Rundung, die libvorbisfile aus den Float-Werten des Dekoders bildet.
+     *
+     * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
+     */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32.
+     *
+     * \p num und der Rückgabewert sind Frames; der Zielwert bleibt auf den
+     * 16-Bit-Wertebereich begrenzt.
+     *
+     * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
+     * @exception OutOfMemoryException Der Read-Puffer des Decoders reicht nicht.
+     */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+
+    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
+     *
+     * Die Float-Pfade dekodieren direkt mit `ov_read_float()`, ohne die Zwischenrundung
+     * über 16 Bit. Monodateien werden auf beide Kanäle hochgemischt; \p num und der
+     * Rückgabewert sind Frames. Das Kettenende der ersten Kette begrenzt die Lieferung.
+     *
+     * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
+     */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+
+    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
+     *
+     * Der Zielwert wird auf den Wertebereich von `STEREOSAMPLE_FLOAT` begrenzt.
+     *
+     * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
+     */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
@@ -660,16 +808,16 @@ private:
     /** @brief Kodierung eines Kanal-Samples, wie sie der STREAMINFO-Block vorgibt. */
     enum class FrameEncoding : uint8_t
     {
-        NONE = 0,    //!< kein offener Decoder
-        INT16 = 1,   //!< 16-Bit-Zweierkomplement
-        INT24 = 2    //!< 24-Bit-Zweierkomplement, von libFLAC in `int32_t` geliefert
+        NONE = 0,  //!< kein offener Decoder
+        INT16 = 1, //!< 16-Bit-Zweierkomplement
+        INT24 = 2  //!< 24-Bit-Zweierkomplement, von libFLAC in `int32_t` geliefert
     };
 
-    FlacState* state;  //!< libFLAC-Handle, Datenbasis und Rohsamples (in DER Uebersetzung definiert)
+    FlacState* state; //!< libFLAC-Handle, Datenbasis und Rohsamples (in DER Uebersetzung definiert)
     FileObject* ff;
     AudioInfo info;
     size_t position;
-    FrameEncoding encoding;  //!< Bitbreite der Quelle, von `open()` aus STREAMINFO abgeleitet
+    FrameEncoding encoding; //!< Bitbreite der Quelle, von `open()` aus STREAMINFO abgeleitet
 
     /** @brief Laedt Rohdaten decodiert nach, bis mindestens \p num Frames bereitstehen.
      *

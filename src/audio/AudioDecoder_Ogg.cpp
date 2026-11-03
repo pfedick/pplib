@@ -49,8 +49,23 @@ typedef struct
 {
     OggVorbis_File vf;
     ov_callbacks callbacks;
+    // Frames der ersten Kette: bei verketteten Ogg-Dateien zaehlt ov_pcm_total(-1) alle
+    // Ketten, gespielt wird aber nur die erste (siehe Klassen-Doku).
+    long firstChainFrames;
 
 } OggVorbisPrivateData;
+
+/** @brief Frameanzahl der ersten Kette, 0 bei Fehler oder leerer Datei
+ *
+ * ov_pcm_total(&vf, -1) zaehlt alle Ketten einer verketteten Datei und liefert -1 bei
+ * Fehlern; der Wert wuerde als Mega-Zahl in AudioInfo landen.
+ */
+static long FirstChainFrames(OggVorbis_File& vf)
+{
+    long frames = ov_pcm_total(&vf, 0);
+    if (frames < 0) frames = ov_pcm_total(&vf, -1);
+    return (frames < 0) ? 0 : frames;
+}
 
 /** @brief Lese-Callback fuer libvorbis
  *
@@ -65,7 +80,8 @@ static size_t ppl_read_func(void* ptr, size_t size, size_t nmemb, void* datasour
     FileObject* f = static_cast<FileObject*>(datasource);
     try {
         return f->read(ptr, size * nmemb) / size;
-    } catch (...) {
+    }
+    catch (...) {
         return 0; // EOF oder Lesefehler: Signal an libvorbis, keine Exception
     }
 }
@@ -79,34 +95,40 @@ static size_t ppl_read_func(void* ptr, size_t size, size_t nmemb, void* datasour
 static int ppl_seek_func(void* datasource, ogg_int64_t offset, int whence)
 {
     FileObject* f = static_cast<FileObject*>(datasource);
-    FileObject::SeekOrigin origin;
-    if (whence == SEEK_SET) origin = FileObject::SeekOrigin::SEEKSET;
-    else if (whence == SEEK_CUR) origin = FileObject::SeekOrigin::SEEKCUR;
-    else if (whence == SEEK_END) origin = FileObject::SeekOrigin::SEEKEND;
-    else return -1;
-
-    const int64_t base = (origin == FileObject::SeekOrigin::SEEKCUR) ? (int64_t)f->tell()
-                     : (origin == FileObject::SeekOrigin::SEEKEND) ? (int64_t)f->size() : 0;
-    const int64_t target = base + (int64_t)offset;
-    if (target < 0) return -1; // vor Dateianfang
+    // try deckt den ganzen Koerper ab: tell() und size() koennen ebenso werfen wie seek().
     try {
+        FileObject::SeekOrigin origin;
+        if (whence == SEEK_SET)
+            origin = FileObject::SeekOrigin::SEEKSET;
+        else if (whence == SEEK_CUR)
+            origin = FileObject::SeekOrigin::SEEKCUR;
+        else if (whence == SEEK_END)
+            origin = FileObject::SeekOrigin::SEEKEND;
+        else
+            return -1;
+
+        const int64_t base = (origin == FileObject::SeekOrigin::SEEKCUR)   ? (int64_t)f->tell()
+                             : (origin == FileObject::SeekOrigin::SEEKEND) ? (int64_t)f->size()
+                                                                           : 0;
+        const int64_t target = base + (int64_t)offset;
+        if (target < 0) return -1; // vor Dateianfang
         return (f->seek(offset, origin) == (uint64_t)target) ? 0 : -1;
-    } catch (...) {
+    }
+    catch (...) {
         return -1;
     }
 }
 
-/*
-static int ppl_close_func(void* datasource)
-{
-    static_cast<FileObject*>(datasource)->close();
-    return 0;
-}
-*/
-
 static long ppl_tell_func(void* datasource)
 {
-    return (long)static_cast<FileObject*>(datasource)->tell();
+    // Rueckgabewert -1 gilt libvorbis als Fehler; eine Exception duerfte nicht durch die
+    // C-Frames von libvorbis hindurch laufen.
+    try {
+        return (long)static_cast<FileObject*>(datasource)->tell();
+    }
+    catch (...) {
+        return -1;
+    }
 }
 
 static void init_callback(ov_callbacks& callbacks)
@@ -136,12 +158,31 @@ public:
     {
         ov_clear(&vf);
     }
-    OggVorbis_File* get() { return &vf; }
+    OggVorbis_File* get()
+    {
+        return &vf;
+    }
 
 private:
     OggVorbis_File vf;
 };
 
+/** \brief Fuellt `AudioInfo` aus den Vorbis-Headern.
+ *
+ * `AudioInfo::Samples` und `AudioInfo::Length` beziehen sich nur auf die erste Kette,
+ * weil der Decoder ausschliesslich die erste Kette abspielt (siehe `FirstChainFrames()`).
+ * `AudioInfo::AudioStart` und `AudioInfo::AudioEnd` sind Seitengrenzen des Ogg-Containers
+ * und enthalten damit die Seitenkoepfe. `AudioInfo::AudioSize` und `AudioInfo::AudioEnd`
+ * bleiben ungesetzt, wenn libvorbisfile das Datenende nicht bestimmen kann, zum Beispiel
+ * bei nicht seekbarem Input (`vf.end <= vf.offset`).
+ *
+ * Die Bitrate stammt aus den von libvorbis gemeldeten nominalen, unteren und oberen
+ * Bitraten und ist eine Naeherung: sind untere und obere Bitrate gleich, gilt die Datei
+ * als konstante Bitrate, sonst zaehlt die nominale Bitrate. Eine mit `libvorbis -q`
+ * kodierte VBR-Datei wird darueber in der Regel als CBR gemeldet. Negative (libvorbis
+ * meldet -1 fuer "unbekannt") und uebergrosse Werte - manche Encoder belegen die Felder
+ * gar nicht - werden auf 0 bis 65535 kbit/s geklemmt.
+ */
 static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf, FileObject& file)
 {
     info.Format = AudioInfo::AudioFormat::OGG;
@@ -156,12 +197,15 @@ static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf, FileObject& 
         info.IsVBR = false;
         if (vf.vi->bitrate_lower > 0.0) bits = vf.vi->bitrate_lower;
     }
-    if (bits < 0.0) bits = 0.0;
-    const uint64_t kbit = (uint64_t)bits / 1000;
-    info.Bitrate = (kbit > UINT16_MAX) ? UINT16_MAX : (uint16_t)kbit;
-    // pplib::PrintDebug("min: %d, max: %d, nominal: %d\n", vf.vi->bitrate_lower, vf.vi->bitrate_upper, vf.vi->bitrate_nominal);
-    // info.Bitrate=ov_bitrate(&vf, -1);
+    // Klemmen VOR dem Cast: einen Double, der ausserhalb des Wertebereichs von
+    // uint64_t liegt (manche Encoder schreiben uninitialisierte Headerfelder), zu casten
+    // ist undefiniertes Verhalten. NaN trifft denselben Zweig.
+    if (!(bits >= 0.0)) bits = 0.0;
+    if (bits > (double)UINT16_MAX * 1000.0) bits = (double)UINT16_MAX * 1000.0;
+    info.Bitrate = (uint16_t)((uint64_t)bits / 1000);
     info.BitsPerSample = 16;
+    info.SampleType = AudioInfo::SampleEncoding::INTEGER;
+    info.Mode = (info.Channels == 1) ? AudioInfo::ChannelMode::MONO : AudioInfo::ChannelMode::STEREO;
     info.AudioStart = vf.offset;
 
     // AudioEnd ist - wie bei WAV, MP3 und AIFF - die Position des letzten Datenbytes.
@@ -171,13 +215,24 @@ static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf, FileObject& 
     }
 
     info.BytesPerSample = info.BitsPerSample * info.Channels / 8;
-    info.Samples = ov_pcm_total(&vf, -1);
-    if (info.Frequency > 0)
-        info.Length = (uint32_t)((uint64_t)info.Samples * 1000 / info.Frequency);
+    info.Samples = (uint64_t)FirstChainFrames(vf);
+    if (info.Frequency > 0) info.Length = (uint32_t)((uint64_t)info.Samples * 1000 / info.Frequency);
 }
 
 #endif
 
+/** \brief Prueft, ob die Datei ein Ogg-Vorbis-Stream ist, und fuellt `AudioInfo` mit den
+ *         Headern des Bitstroms.
+ *
+ * Die Funktion lehnt nichts ab, was der Decoder spaeter nicht unterstuetzt: sie meldet
+ * Kanalzahl, Abtastrate und Bitrate des ersten Bitstroms, auch bei Dateien mit mehr als
+ * zwei Kanaelen. Abgeschlossen wird das Format erst in `AudioDecoder_Ogg::open()`.
+ *
+ * Die Funktion oeffnet und schliesst die Datei, veraendert also die Dateiposition.
+ *
+ * Aufgerufen wird sie von `IdentAudioFile()` in `AudioInfo.cpp`, die dort eine eigene
+ * Deklaration traegt; eine Header-Deklaration ist nicht gewollt (modulintern).
+ */
 bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
 {
 #ifdef HAVE_LIBVORBIS
@@ -187,7 +242,6 @@ bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
     init_callback(callbacks);
     file.seek(0);
     int res = ov_open_callbacks(&file, vf, NULL, 0, callbacks);
-    // pplib::PrintDebug("try read vobis file, result is: %d\n", res);
     if (res != 0) return false; // Handle-Destruktor uebernimmt ov_clear()
     GetVorbisAudioInfo(info, *vf, file);
     return true;
@@ -203,10 +257,9 @@ AudioDecoder_Ogg::AudioDecoder_Ogg()
     throw UnsupportedFeatureException("AudioDecoder_Ogg");
 #else
 
-    private_data = calloc(sizeof(OggVorbisPrivateData), 1);
-    if (!private_data) throw OutOfMemoryException();
-    OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
-    init_callback(oggp->callbacks);
+    // Der Handle entsteht erst in open(); NULL steht fuer "nicht geoeffnet" und die
+    // Lese- und Seek-Funktionen werfen in diesem Zustand eine DecoderException.
+    private_data = NULL;
     position = 0;
     readbuffer = NULL;
     buffersize = 0;
@@ -233,21 +286,43 @@ void AudioDecoder_Ogg::allocateBuffer(size_t size)
 void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
 {
 #ifdef HAVE_LIBVORBIS
+    // open() uebernimmt die Freigabe eines bereits vorhandenen Handles: ein zweites
+    // open() ohne close() liess sonst den kompletten libvorbisfile-Zustand stehen,
+    // und ein open() nach close() arbeitete auf dem NULL-Zeiger.
+    close();
+    private_data = calloc(sizeof(OggVorbisPrivateData), 1);
+    if (!private_data) throw OutOfMemoryException();
     OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
+    init_callback(oggp->callbacks);
     file.seek(0);
     int res = ov_open_callbacks(&file, &oggp->vf, NULL, 0, oggp->callbacks);
-    if (res != 0) throw UnsupportedAudioFormatException();
+    if (res != 0) {
+        close(); // ov_clear() gibt auch den halb aufgebauten Handle frei
+        throw UnsupportedAudioFormatException();
+    }
     if (!info) {
         GetVorbisAudioInfo(this->info, oggp->vf, file);
     } else {
         this->info = *info;
     }
 
-    if (this->info.Channels < 1 || this->info.Channels > 2) throw UnsupportedAudioFormatException("channels <1 or >2");
-    if (this->info.Channels == 1 && decodebuffer == NULL) {
-        decodebuffer_size = 4096;
-        decodebuffer = (char*)malloc(decodebuffer_size * 4);
-        if (!decodebuffer) throw OutOfMemoryException();
+    // Die Kanalzahl wird aussliesslich hier geprueft, die Lesepfade verlasssen sich darauf.
+    if (this->info.Channels < 1 || this->info.Channels > 2) {
+        close();
+        throw UnsupportedAudioFormatException("channels <1 or >2");
+    }
+    // Samples und Length beschreiben das, was abgespielt wird: nur die erste Kette
+    oggp->firstChainFrames = FirstChainFrames(oggp->vf);
+    this->info.Samples = (uint64_t)oggp->firstChainFrames;
+    if (this->info.Frequency > 0) this->info.Length = (uint32_t)((uint64_t)this->info.Samples * 1000 / this->info.Frequency);
+
+    // Interner Lese-Puffer, von allen Lesepfaden benutzt; damit bleibt die bei
+    // ov_read() angeforderte Bytezahl konstant und passt in ein int.
+    decodebuffer_size = 2048 * 2 * 2; // Frames * Kanaele * Bytes je Kanal-Sample
+    decodebuffer = (char*)malloc(decodebuffer_size);
+    if (!decodebuffer) {
+        close();
+        throw OutOfMemoryException();
     }
 
     position = 0;
@@ -285,10 +360,18 @@ const AudioInfo& AudioDecoder_Ogg::getAudioInfo() const
 void AudioDecoder_Ogg::seekSample(size_t sample)
 {
 #ifdef HAVE_LIBVORBIS
+    if (private_data == NULL) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet");
     OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
-    ov_pcm_seek(&oggp->vf, sample);
+    const size_t limit = (size_t)oggp->firstChainFrames;
+    // ov_pcm_seek() nimmt auch Ziele hinter dem Ende der ersten Kette an und setzt sie
+    // still auf eine gueltige Position um; solche Ziele waren in Review ein stiller Fehl-Seek.
+    if (sample > limit) throw DecoderException("AudioDecoder_Ogg: Ziel hinter dem Ende der ersten Kette");
+    if (sample == limit) {
+        position = sample;
+        return;
+    }
+    if (ov_pcm_seek(&oggp->vf, (ogg_int64_t)sample) != 0) throw DecoderException("AudioDecoder_Ogg: ov_pcm_seek fehlgeschlagen");
     position = sample;
-
 #endif
 }
 
@@ -304,43 +387,46 @@ size_t AudioDecoder_Ogg::getPosition() const
 size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
 {
 #ifdef HAVE_LIBVORBIS
+    if (private_data == NULL) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet");
+    if (buffer == NULL) throw DecoderException("AudioDecoder_Ogg: buffer ist NULL");
     OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
-    int rest = num * info.BytesPerSample;
+    const size_t limit = (size_t)oggp->firstChainFrames;
+    if (position >= limit) return 0;
+    size_t want = num;
+    if (want > limit - position) want = limit - position;
+
+    const size_t channels = info.Channels; // open() garantiert 1 oder 2 Kanaele
+    const size_t framebytes = channels * 2;
+    const size_t maxframes = (size_t)decodebuffer_size / framebytes;
+    size_t total = 0;
     int bitstream = 0;
-    char* b = (char*)buffer;
-    if (info.Channels == 2) {
-        while (rest > 0) {
-            long bytes_read = ov_read(&oggp->vf, b, rest, 0, 2, 1, &bitstream);
-            if (bytes_read > 0)
-                rest -= bytes_read;
-            else if (bytes_read == 0)
-                break;
-            else
-                throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
-            b += bytes_read;
+    while (total < want) {
+        size_t frames = want - total;
+        if (frames > maxframes) frames = maxframes;
+        // libvorbisfile liefert pro Aufruf hoechstens einen Decode-Block und puffert den
+        // Rest, die gelieferte Bytezahl bleibt also oft unter der Anfrage. Abbruch nur am
+        // Dateiende (Rueckgabewert 0); ein Rest unter einem Frame kann nicht uebernommen werden.
+        long bytes_read = ov_read(&oggp->vf, decodebuffer, (int)(frames * framebytes), 0, 2, 1, &bitstream);
+        if (bytes_read < 0) throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
+        if (bytes_read == 0) break; // Dateiende
+        const pplib::SAMPLE16* src = (const pplib::SAMPLE16*)decodebuffer;
+        size_t got = (size_t)bytes_read / framebytes;
+        if (got == 0) break;
+        if (channels == 2) {
+            for (size_t i = 0; i < got; i++) {
+                buffer[total + i].left = src[i * 2];
+                buffer[total + i].right = src[i * 2 + 1];
+            }
+        } else {
+            for (size_t i = 0; i < got; i++) {
+                buffer[total + i].left = src[i]; // Mono: gleicher Wert auf beide Kanaele
+                buffer[total + i].right = src[i];
+            }
         }
-        return num - (rest / 4);
-    } else if (info.Channels == 1) {
-        int size = decodebuffer_size;
-        pplib::SAMPLE16* sample = (pplib::SAMPLE16*)decodebuffer;
-        while (rest > 0) {
-            if (rest < size) size = rest;
-            long bytes_read = ov_read(&oggp->vf, decodebuffer, size, 0, 2, 1, &bitstream);
-            if (bytes_read > 0) {
-                rest -= bytes_read;
-                for (int i = 0; i < bytes_read / 2; i++) {
-                    buffer[i].left = sample[i];
-                    buffer[i].right = sample[i];
-                }
-            } else if (bytes_read == 0)
-                break;
-            else
-                throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
-            buffer += (bytes_read / 2);
-        }
-        return num - (rest / 2);
-    } else
-        throw UnsupportedAudioFormatException("channels <1 or >2");
+        total += got;
+    }
+    position += total;
+    return total;
 #else
     return 0;
 #endif
@@ -349,9 +435,15 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
 size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
 #ifdef HAVE_LIBVORBIS
-    // OggVorbisPrivateData* oggp=static_cast<OggVorbisPrivateData*>(private_data);
-    allocateBuffer(4 * num);
-    size_t real_num = getSamples(num, (STEREOSAMPLE16*)readbuffer);
+    if (private_data == NULL) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet");
+    if (buffer == NULL) throw DecoderException("AudioDecoder_Ogg: buffer ist NULL");
+    OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
+    const size_t limit = (size_t)oggp->firstChainFrames;
+    if (position >= limit) return 0;
+    size_t want = num;
+    if (want > limit - position) want = limit - position;
+    allocateBuffer(4 * want);
+    size_t real_num = getSamples(want, (STEREOSAMPLE16*)readbuffer);
     for (size_t i = 0; i < real_num; i++) {
         buffer[i].left += ((STEREOSAMPLE16*)readbuffer)[i].left;
         buffer[i].right += ((STEREOSAMPLE16*)readbuffer)[i].right;
@@ -366,34 +458,45 @@ size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE32* buffer)
 size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
 #ifdef HAVE_LIBVORBIS
+    if (private_data == NULL) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet");
+    if (buffer == NULL) throw DecoderException("AudioDecoder_Ogg: buffer ist NULL");
     OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
-    long total = 0;
+    const size_t limit = (size_t)oggp->firstChainFrames;
+    if (position >= limit) return 0;
+    size_t want = num;
+    if (want > limit - position) want = limit - position;
+
+    const size_t channels = info.Channels; // open() garantiert 1 oder 2 Kanaele
+    size_t total = 0;
     int bitstream = 0;
-    while (total < (long)num) {
+    while (total < want) {
+        size_t frames = want - total;
+        if (frames > 8192) frames = 8192; // eine ov_read_float-Anfrage passt immer in ein int
         float** pcm = nullptr;
-        long got = ov_read_float(&oggp->vf, &pcm, (int)(num - total), &bitstream);
-        if (got > 0) {
-            if (info.Channels == 2) {
-                for (long i = 0; i < got; i++) {
-                    buffer[total + i].left = pcm[0][i];
-                    buffer[total + i].right = pcm[1][i];
-                }
-            } else if (info.Channels == 1) {
-                for (long i = 0; i < got; i++) {
-                    buffer[total + i].left = pcm[0][i];
-                    buffer[total + i].right = pcm[0][i];
-                }
-            } else
-                throw UnsupportedAudioFormatException("channels <1 or >2");
-            total += got;
-        } else if (got == 0) {
-            break; // EOF
+        // ov_read_float() zaehlt Limit und Rueckgabewert in Frames und liefert hoechstens
+        // einen Decode-Block. Nicht abgenommene Frames eines Blocks verwirft libvorbisfile,
+        // darum wird nie mehr angefordert als in diesem Aufruf auch ubernommen wird.
+        long got = ov_read_float(&oggp->vf, &pcm, (int)frames, &bitstream);
+        if (got < 0) throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)got);
+        // Rueckgabe 0 ist Dateiende; ohne Sample-Zeiger kann nichts ubernommen werden.
+        if (got == 0 || pcm == NULL) break;
+        const long n = (got > (long)frames) ? (long)frames : got;
+        // Die Kanalzahl steht ausserhalb der inneren Schleife, analog zu den anderen Pfaden.
+        if (channels == 2) {
+            for (long i = 0; i < n; i++) {
+                buffer[total + i].left = pcm[0][i];
+                buffer[total + i].right = pcm[1][i];
+            }
         } else {
-            throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)got);
+            for (long i = 0; i < n; i++) {
+                buffer[total + i].left = pcm[0][i];
+                buffer[total + i].right = pcm[0][i]; // Mono: gleicher Wert auf beide Kanaele
+            }
         }
+        total += (size_t)n;
     }
     position += total;
-    return (size_t)total;
+    return total;
 #else
     return 0;
 #endif
@@ -402,34 +505,44 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
 #ifdef HAVE_LIBVORBIS
+    if (private_data == NULL) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet");
+    if (buffer == NULL) throw DecoderException("AudioDecoder_Ogg: buffer ist NULL");
     OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
-    long total = 0;
+    const size_t limit = (size_t)oggp->firstChainFrames;
+    if (position >= limit) return 0;
+    size_t want = num;
+    if (want > limit - position) want = limit - position;
+
+    const size_t channels = info.Channels; // open() garantiert 1 oder 2 Kanaele
+    size_t total = 0;
     int bitstream = 0;
-    while (total < (long)num) {
+    while (total < want) {
+        size_t frames = want - total;
+        if (frames > 8192) frames = 8192; // eine ov_read_float-Anfrage passt immer in ein int
         float** pcm = nullptr;
-        long got = ov_read_float(&oggp->vf, &pcm, (int)(num - total), &bitstream);
-        if (got > 0) {
-            if (info.Channels == 2) {
-                for (long i = 0; i < got; i++) {
-                    buffer[total + i].left += pcm[0][i];
-                    buffer[total + i].right += pcm[1][i];
-                }
-            } else if (info.Channels == 1) {
-                for (long i = 0; i < got; i++) {
-                    buffer[total + i].left += pcm[0][i];
-                    buffer[total + i].right += pcm[0][i];
-                }
-            } else
-                throw UnsupportedAudioFormatException("channels <1 or >2");
-            total += got;
-        } else if (got == 0) {
-            break; // EOF
+        // Limit und Rueckgabewert von ov_read_float zaehlen in Frames; ungenutzte Frames
+        // eines Blocks gehen verloren, darum wird nie mehr angefordert als uebernommen wird.
+        long got = ov_read_float(&oggp->vf, &pcm, (int)frames, &bitstream);
+        if (got < 0) throw DecoderException("AudioDecoder_Ogg::addSamples: %d", (int)got);
+        // Rueckgabe 0 ist Dateiende; ohne Sample-Zeiger kann nichts ubernommen werden.
+        if (got == 0 || pcm == NULL) break;
+        const long n = (got > (long)frames) ? (long)frames : got;
+        // Die Kanalzahl steht ausserhalb der inneren Schleife, analog zu den anderen Pfaden.
+        if (channels == 2) {
+            for (long i = 0; i < n; i++) {
+                buffer[total + i].left += pcm[0][i];
+                buffer[total + i].right += pcm[1][i];
+            }
         } else {
-            throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)got);
+            for (long i = 0; i < n; i++) {
+                buffer[total + i].left += pcm[0][i];
+                buffer[total + i].right += pcm[0][i]; // Mono: gleicher Wert auf beide Kanaele
+            }
         }
+        total += (size_t)n;
     }
     position += total;
-    return (size_t)total;
+    return total;
 #else
     return 0;
 #endif
