@@ -225,7 +225,7 @@ void AudioDecoder_MP3::close()
     mp3->eof = false;
 #endif
     position = 0;
-    memset(&info, 0, sizeof(AudioInfo));
+    info = AudioInfo();
 }
 
 const AudioInfo& AudioDecoder_MP3::getAudioInfo() const
@@ -266,15 +266,15 @@ void AudioDecoder_MP3::open(FileObject& file, const AudioInfo* audioinfo)
         throw UnsupportedAudioFormatException("File is not a MP3 file");
     }
     if (info.Format != AudioInfo::AudioFormat::MP3) {
-        memset(&info, 0, sizeof(AudioInfo));
+        info = AudioInfo();
         throw UnsupportedAudioFormatException("File is not a MP3 file");
     }
     if (info.Channels == 0 || info.Channels > 2) {
-        memset(&info, 0, sizeof(AudioInfo));
+        info = AudioInfo();
         throw UnsupportedAudioFormatException("MP3 with %zu channels is not supported", info.Channels);
     }
     if (info.Frequency == 0 || info.AudioStart >= info.AudioEnd) {
-        memset(&info, 0, sizeof(AudioInfo));
+        info = AudioInfo();
         throw UnsupportedAudioFormatException("File contains no MP3 frames");
     }
 
