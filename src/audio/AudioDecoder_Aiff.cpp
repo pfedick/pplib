@@ -66,6 +66,7 @@ AudioDecoder_Aiff::~AudioDecoder_Aiff()
 
 void AudioDecoder_Aiff::open(FileObject& file, const AudioInfo* audioinfo)
 {
+    close();
     if (!audioinfo) {
         if (!IdentAudioFile(file, this->info)) {
             throw UnsupportedAudioFormatException();
@@ -161,10 +162,9 @@ inline float PeekFloatBE(const char* p)
 ///        zuerst die 16 Bit Vollskala, dann Begrenzung. NaN wird 0.
 inline int32_t ScaleFloatToSample16(float v)
 {
-    if (v != v)
-        return 0; // NaN vergleicht niemals gleich, deshalb ist das der NaN-Test ohne <cmath>.
-                  // Ohne diese Prüfung greifen die beiden Begrenzungen nicht und (int32_t)v
-                  // wäre undefiniertes Verhalten; im Mixpuffer würde NaN sonst dauerhaft weitergereicht.
+    if (v != v) return 0; // NaN vergleicht niemals gleich, deshalb ist das der NaN-Test ohne <cmath>.
+                          // Ohne diese Prüfung greifen die beiden Begrenzungen nicht und (int32_t)v
+                          // wäre undefiniertes Verhalten; im Mixpuffer würde NaN sonst dauerhaft weitergereicht.
     v *= 32768.0f;
     if (v > 32767.0f) return 32767;
     if (v < -32768.0f) return -32768;
@@ -195,13 +195,16 @@ size_t AudioDecoder_Aiff::prepareRead(size_t num, const void* buffer, uint64_t& 
     if (position + samples > info.Samples) samples = info.Samples - position;
     samples = ClampToAudioSize(info, position, samples);
 
+    if (info.BytesPerSample == 0) return 0; // Hand-AudioInfo mit unplausibler Framegroesse
+
     // Die von map() gelesene Laenge darf nicht ueber das Dateiende hinauslaufen, sonst
-    // wirft map() eine OverflowException. Noetig wird das nur bei einem vom Aufrufer
+    // wirft map() eine OutOfBoundsException. Noetig wird das nur bei einem vom Aufrufer
     // gelieferten AudioInfo, das eine zu grosse AudioSize nennt
     offset = (uint64_t)info.AudioStart + (uint64_t)position * info.BytesPerSample;
-    if (offset >= (uint64_t)ff->size()) return 0;
-    if (samples > (size_t)(((uint64_t)ff->size() - offset) / info.BytesPerSample))
-        samples = (size_t)(((uint64_t)ff->size() - offset) / info.BytesPerSample);
+    const uint64_t fileSize = (uint64_t)ff->size();
+    if (offset >= fileSize) return 0;
+    const size_t fits = (size_t)((fileSize - offset) / info.BytesPerSample);
+    if (samples > fits) samples = fits;
     return samples;
 }
 
@@ -212,7 +215,6 @@ size_t AudioDecoder_Aiff::getSamples(size_t num, STEREOSAMPLE16* buffer)
     if (samples == 0) return 0;
 
     const char* data = ff->map(offset, samples * info.BytesPerSample);
-    if (!data) throw DecoderException("Mapping audio data failed");
 
     const size_t frameBytes = info.BytesPerSample;
     const size_t chanBytes = bytesPerChannel;
@@ -272,7 +274,6 @@ size_t AudioDecoder_Aiff::addSamples(size_t num, STEREOSAMPLE32* buffer)
     if (samples == 0) return 0;
 
     const char* data = ff->map(offset, samples * info.BytesPerSample);
-    if (!data) throw DecoderException("Mapping audio data failed");
 
     const size_t frameBytes = info.BytesPerSample;
     const size_t chanBytes = bytesPerChannel;
@@ -333,7 +334,6 @@ size_t AudioDecoder_Aiff::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
     if (samples == 0) return 0;
 
     const char* data = ff->map(offset, samples * info.BytesPerSample);
-    if (!data) throw DecoderException("Mapping audio data failed");
 
     const size_t frameBytes = info.BytesPerSample;
     const size_t chanBytes = bytesPerChannel;
@@ -391,7 +391,6 @@ size_t AudioDecoder_Aiff::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
     if (samples == 0) return 0;
 
     const char* data = ff->map(offset, samples * info.BytesPerSample);
-    if (!data) throw DecoderException("Mapping audio data failed");
 
     const size_t frameBytes = info.BytesPerSample;
     const size_t chanBytes = bytesPerChannel;
