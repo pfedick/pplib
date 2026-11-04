@@ -54,7 +54,12 @@ PPLIBEXCEPTION(DecoderInitializationException, DecoderException);
  * berücksichtigt werden, dass kein Upsampling, Downsampling oder automatische Formatkonvertierung erfolgt.
  * Der Decoder liefert die Samples in der nativen Frequenz des Audio-Files.
  *
- * Auch kann es sein, dass nicht alle Formate unterstützt werden.
+ * @note Alle Funktionen, die Samples lesen oder setzen, arbeiten in Frames: Ein Frame
+ * enthält je einen Sample-Wert pro Kanal. \p num, Rückgabewerte und `AudioInfo::Samples`
+ * zählen in Frames; `AudioInfo::BitsPerSample` bezieht sich auf einen einzelnen Kanalwert.
+ *
+ * Welche Dateiformate, Kanalzahlen und Bitbreiten ein Decoder unterstützt, steht in der
+ * Beschreibung der abgeleiteten Klassen.
  */
 class AudioDecoder
 {
@@ -73,29 +78,46 @@ public:
      */
     virtual ~AudioDecoder() {};
 
-    /** @brief Öffnet die gegebene Datei und initialisiert den Decoder.
+    /** @brief Verwendet die gegebene Datei als Quelle und initialisiert den Decoder.
      *
-     * Diese Methode öffnet die gegebene Datei und initialisiert den Decoder.
+     * Diese Methode verwendet das angegebene FileObject \p file als Quelle der Audiodaten
+     * und initialisiert den Decoder. Solange der Decoder existiert, darf das Fileobjekt nicht
+     * vorzeitig geschlossen oder zerstört werden! Auch darf nicht parallel auf das FileObject zugegriffen werden, da
+     * der Lesezeiger während der Nutzung des Decoders verändert wird.
      *
      * @param file Die zu öffnende Datei.
      * @param info Optional: Falls zuvor bereits Informationen über das Audio vorliegen (zum Beispiel nach Aufruf von `IdentAudioFile()`),
      * können diese hier übergeben werden. Die Funktion muss diese Informationen dann nicht noch einmal auslesen.
      *
+     * @note Solange der Decoder existiert, muss das übergebene `FileObject` \p file gültig bleiben und darf nicht vorzeitig zerstört werden.
+     * Passiert dies doch, muss mit weiteren als den angegebenen Exceptions und undefiniertem Verhalten gerechnet werden!
+     * @note Wenn die Datei, auf die das FileObject zeigt, zur Laufzeit wächst, kann dies zu unerwartetem Verhalten führen, da der Decoder die
+     * Dateigröße nur beim Öffnen der Datei ermittelt.
+     *
      * @exception DecoderInitializationException Wenn der Decoder nicht initialisiert werden kann.
      * @exception UnsupportedAudioFormatException Wenn das Audio-Format der Datei nicht unterstützt wird.
+     * @exception OutOfMemoryException Der Speicher für den Decoder oder interne Puffer konnte nicht zugewiesen werden.
+     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
      * @note Andere Exceptions können je nach Implementierung des spezifischen Decoders auftreten.
      */
     virtual void open(FileObject& file, const AudioInfo* info = NULL) = 0;
 
     /** @brief Schließt den Decoder und gibt alle Ressourcen frei.
      *
+     * Diese Methode gibt alle vom Decoder belegten Ressourcen frei und setzt den Decoder in einen nicht initialisierten Zustand zurück.
+     * Nach dem Aufruf von `close()` darf der Decoder erneut mit `open()` geöffnet werden.
+     * 
+     * @note Das zuvor übergebene `FileObject` \p file wird nicht geschlossen und ist weiterhin gültig. Die Anwendung
+     * ist dafür verantwortlich, das `FileObject` nach dem Aufruf von `close()` zu schließen oder zu zerstören.
+     * 
+     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
      */
     virtual void close() = 0;
 
     /** @brief Gibt Informationen über das Audio zurück.
      *
      * Gibt Informationen über das geöffnete Audio-File zurück. Wird die Methode vor `open()` oder nach `close()` aufgerufen,
-     * ist das Verhalten undefiniert.
+     * wird ein leeres `AudioInfo` zurückgegeben.
      *
      * @return Referenz auf die AudioInfo-Struktur.
      */
@@ -103,12 +125,15 @@ public:
 
     /** @brief Setzt die aktuelle Position auf das gegebene Sample.
      * @param sample Die Sample-Position, zu der gesprungen werden soll.
+     * @exception DecoderException wird geworfen, wenn ein Fehler beim Setzen der Position auftritt, oder
+     * der Decoder keine Audiodatei geöffnet hat.
+     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
      */
     virtual void seekSample(size_t sample) = 0;
 
     /** @brief Gibt die aktuelle Sample-Position zurück.
      *
-     * @return Die aktuelle Sample-Position im Audio-Stream.
+     * @return Die aktuelle Sample-Position im Audio-Stream. Ist 0, wenn keine Audiodatei geöffnet ist oder der Stream am Anfang steht.
      */
     virtual size_t getPosition() const = 0;
 
@@ -125,6 +150,10 @@ public:
      * @param buffer Zeiger auf den Puffer, in den die Samples geschrieben werden sollen.
      * @return Die tatsächlich gelesene Anzahl an Samples. Das Ende des Audiodatenbereichs
      *   liefert 0, ohne eine Exception zu werfen.
+     * @exception DecoderException wird geworfen, wenn ein Fehler beim Lesen der Samples auftritt, oder
+     * der Decoder keine Audiodatei geöffnet hat.
+     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
+     * @exception OutOfMemoryException Wenn interne Puffer des Decoders nicht reserviert werden können.
      */
     virtual size_t getSamples(size_t num, STEREOSAMPLE16* buffer) = 0;
 
@@ -132,14 +161,19 @@ public:
      *
      * Liest \p num Audio-Samples aus dem Audio-Stream und addiert diese zum gegebenen Puffer \p buffer.
      *
-     * Der Puffer ist hier im Format STEREOSAMPLE32. Dabei entspricht ein Sample jeweils einem 32-Bit-Wert
-     * für links und einen 32-Bit-Wert für rechts. Der Puffer muss entsprechend groß sein, um alle Samples aufzunehmen.
+     * Der Puffer ist hier im Format `STEREOSAMPLE32`. Er dient dem Mischen mehrerer Audio-Quellen. Er
+     * nimmt durchgehend Werte im 16-Bit-Wertebereich auf, egal welche Bitbreite eine Quelle hat. Dateien mit höherer
+     * Bitbreite werden entsprechend skaliert.
      *
      * Die Funktion kann verwendet werden, wenn zum Beispiel mehrere Audio-Streams gemischt werden sollen.
      *
      * @param num Die Anzahl der zu addierenden Samples.
      * @param buffer Zeiger auf den Puffer, zu dem die Samples addiert werden sollen.
      * @return Die tatsächlich addierte Anzahl an Samples.
+     * @exception DecoderException wird geworfen, wenn ein Fehler beim Lesen der Samples auftritt, oder
+     * der Decoder keine Audiodatei geöffnet hat.
+     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
+     * @exception OutOfMemoryException Wenn interne Puffer des Decoders nicht reserviert werden können.
      */
     virtual size_t addSamples(size_t num, STEREOSAMPLE32* buffer) = 0;
 
@@ -152,6 +186,10 @@ public:
      * @param num Die Anzahl der zu lesenden Samples.
      * @param buffer Zeiger auf den Puffer, in den die Samples geschrieben werden sollen.
      * @return Die tatsächlich gelesene Anzahl an Samples.
+     * @exception DecoderException wird geworfen, wenn ein Fehler beim Lesen der Samples auftritt, oder
+     * der Decoder keine Audiodatei geöffnet hat.
+     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
+     * @exception OutOfMemoryException Wenn interne Puffer des Decoders nicht reserviert werden können.
      */
     virtual size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) = 0;
 
@@ -159,14 +197,18 @@ public:
      *
      * Liest \p num Audio-Samples aus dem Audio-Stream und addiert diese zum gegebenen Puffer \p buffer.
      *
-     * Der Puffer ist hier im Format STEREOSAMPLE_FLOAT. Dabei entspricht ein Sample jeweils einem 32-Bit-Float-Wert
-     * für links und einen 32-Bit-Float-Wert für rechts. Der Puffer muss entsprechend groß sein, um alle Samples aufzunehmen.
+     * Der Puffer ist hier im Format `STEREOSAMPLE_FLOAT`. Er dient dem Mischen mehrerer Audio-Quellen.
+     * Die normierten Werte der Quelle werden zu den bestehenden Werten addiert.
      *
      * Die Funktion kann verwendet werden, wenn zum Beispiel mehrere Audio-Streams gemischt werden sollen.
      *
      * @param num Die Anzahl der zu addierenden Samples.
      * @param buffer Zeiger auf den Puffer, zu dem die Samples addiert werden sollen.
      * @return Die tatsächlich addierte Anzahl an Samples.
+     * @exception DecoderException wird geworfen, wenn ein Fehler beim Lesen der Samples auftritt, oder
+     * der Decoder keine Audiodatei geöffnet hat.
+     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
+     * @exception OutOfMemoryException Wenn interne Puffer des Decoders nicht reserviert werden können.
      */
     virtual size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) = 0;
 };
@@ -175,8 +217,8 @@ public:
  * @brief Erstellt einen passenden Audio-Decoder für die gegebene Datei.
  *
  * Diese Funktion analysiert die gegebene Datei und erstellt einen passenden Audio-Decoder basierend auf dem Dateiformat.
- * Dieser wird als Zeiger auf ein AudioDecoder-Objekt zurückgegeben. Der Aufrufer ist für die Freigabe des Speichers verantwortlich
- * (delete).
+ * Dieser wird als Zeiger auf ein AudioDecoder-Objekt zurückgegeben. Der Aufrufer ist für das Löschen des Decoders
+ * verantwortlich (delete).
  *
  * @param file Die Datei, für die ein Audio-Decoder erstellt werden soll.
  * @return Zeiger auf ein AudioDecoder-Objekt, das für die gegebene Datei geeignet ist, oder NULL,
@@ -184,6 +226,9 @@ public:
  * In beiden Fällen wird kein Objekt angelegt bzw. das halb fertiggestellte wieder freigegeben;
  * die Funktion wirft keine Ausnahme. Ein erfolgreicher Rückgabewert ist ein bereits geöffneter
  * Decoder; ein zusätzliches `open()` durch den Aufrufer ist nicht erforderlich.
+ *
+ * @note Solange der Decoder existiert, muss das übergebene `FileObject` \p file gültig bleiben und darf nicht
+ * vorzeitig zerstört werden!
  */
 AudioDecoder* GetAudioDecoder(FileObject& file);
 
@@ -208,17 +253,6 @@ AudioDecoder* GetAudioDecoder(FileObject& file);
  * | 24 Bit Integer                | Wert >> 8                    | Wert >> 8                    | Wert / 8388608,0f                             |
  * | 32 Bit Integer                | Wert >> 16                   | Wert >> 16                   | Wert / 2147483648,0f                          |
  * | 32 Bit Float (Format-Tag 3)   | Wert × 32768, auf ±32768 begrenzt | Wert × 32768 (additiv) | unverändert                                   |
- *
- * Der `STEREOSAMPLE32`-Puffer dient dem Mischen mehrerer Quellen: er nimmt durchgehend
- * Werte im 16-Bit-Wertebereich auf, egal welche Bitbreite eine Quelle hat. Mehrere
- * decodierte Streams können dadurch ohne weitere Skalierung addiert und anschliessend
- * auf den 16-Bit-Bereich begrenzt werden. Abgeschnitten wird jeweils ohne Rundung.
- *
- * @note WAV-Samples sind Little Endian abgelegt; der Decoder liest sie bytweise, ist also
- * unabhängig von der Byteordnung des Hosts.
- *
- * @note Float-Samples sind normiert (typisch -1,0 bis 1,0). Werte ausserhalb dieses
- * Bereichs werden beim Umrechnen auf 16 Bit hart begrenzt, NaN wird zu 0.
  *
  * @see AudioInfo::SampleEncoding
  */
@@ -252,73 +286,22 @@ public:
     AudioDecoder_Wave();
     ~AudioDecoder_Wave() override;
 
-    /** @brief Öffnet die Datei und legt die Kodierung der Samples fest.
-     *
-     * Wird \p info übergeben, verwendet der Decoder diese Werte unverändert. Er prüft
-     * dann Format, Kanalzahl, und die Kombination aus `BitsPerSample`, `BytesPerSample`
-     * sowie `SampleType`; jede nicht dekodierbare Kombination wird mit
-     * `UnsupportedAudioFormatException` abgelehnt. Die Ortsangaben `AudioStart` und
-     * `AudioSize` werden nicht gegen die Datei geprueft; der Decoder begrenzt beim Lesen
-     * lediglich auf die tatsaechlich vorhandene Datenmenge.
-     *
-     * @exception UnsupportedAudioFormatException Format ist nicht WAVE, oder die
-     *   Sample-Kodierung wird nicht unterstützt.
-     */
     void open(FileObject& file, const AudioInfo* info = nullptr) override;
 
-    /** @brief Schließt den Decoder und erklärt das AudioInfo für ungültig.
-     *
-     * Nach `close()` liefert `getAudioInfo()` ein leeres `AudioInfo` (alle Felder 0),
-     * `seekSample()` hat keine Wirkung und die Lesemethoden werfen eine Exception.
-     */
     void close() override;
 
-    /** @brief Gibt Informationen über das geöffnete Audio zurück.
-     *
-     * Sinnvolle Werte liefert die Methode nur zwischen `open()` und `close()`.
-     */
     const AudioInfo& getAudioInfo() const override;
 
-    /** @brief Setzt die Position auf das gegebene Sample (Frame).
-     *
-     * Werte jenseits des Dateiendes werden an `AudioInfo::Samples` begrenzt; eine
-     * Exception wird nie ausgelöst. Nach `close()` bleibt die Position auf 0 stehen.
-     */
     void seekSample(size_t sample) override;
 
-    /** @brief Aktuelle Position in Frames, bezogen auf den Anfang der Audiodaten
-     *         (`AudioInfo::AudioStart`), nicht auf den Dateianfang.
-     */
     size_t getPosition() const override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
-     *
-     * Rückgabe ist die tatsächlich gelesene Anzahl an Frames (ein Frame = ein Sample je
-     * Kanal), höchstens \p num. Am Dateiende wird 0 ohne Exception geliefert. Der
-     * Puffer muss groß genug für die returnierte Anzahl sein; er wird nicht aufgefüllt.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32 (Mischbetrieb).
-     *
-     * Siehe Klassenbeschreibung zur Skala der addierten Werte.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT (Mischbetrieb).
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
@@ -343,19 +326,6 @@ public:
  * | 24 Bit Integer                | Wert >> 8                    | Wert >> 8                    | Wert / 8388608,0f                             |
  * | 32 Bit Integer                | Wert >> 16                   | Wert >> 16                   | Wert / 2147483648,0f                          |
  * | 32 Bit Float (AIFF-C `FL32`)  | Wert × 32768, auf ±32768 begrenzt | Wert × 32768 (additiv) | unverändert                                   |
- *
- * Der `STEREOSAMPLE32`-Puffer dient dem Mischen mehrerer Quellen: er nimmt durchgehend
- * Werte im 16-Bit-Wertebereich auf, egal welche Bitbreite eine Quelle hat. Mehrere
- * decodierte Streams können dadurch ohne weitere Skalierung addiert und anschliessend
- * auf den 16-Bit-Bereich begrenzt werden. Abgeschnitten wird jeweils ohne Rundung.
- *
- * @note Die AIFF-Spezifikation definiert Samplewerte als Vorzeichen-Betrag-Werte
- * (Sign-Magnitude). Der Decoder interpretiert sie - wie die gängigen Encoder
- * (ffmpeg, Audacity) - als Zweierkomplement.
- *
- * @note Ein 24-Bit-Sample belegt genau 3 Bytes je Kanal, ein 16-Bit-Sample 2 Bytes.
- * Das in der Spezifikation erwähnte Auffüllen auf 16-Bit-Wortgrenzen (24 Bit in 4 Bytes)
- * wird nicht erkannt; eine so geschriebene Datei liefert falsche Samples.
  *
  * @see AudioInfo::SampleEncoding
  */
@@ -389,96 +359,45 @@ public:
     AudioDecoder_Aiff();
     ~AudioDecoder_Aiff() override;
 
-    /** @brief Öffnet die Datei und legt die Kodierung der Samples fest.
-     *
-     * Wird \p info übergeben, verwendet der Decoder diese Werte unverändert. Er prüft
-     * dann Format, Kanalzahl, und die Kombination aus `BitsPerSample`, `BytesPerSample`
-     * sowie `SampleType`; jede nicht dekodierbare Kombination wird mit
-     * `UnsupportedAudioFormatException` abgelehnt. Alle weiteren Felder, insbesondere
-     * `AudioStart` und `AudioSize`, werden vorausgesetzt und nicht gegen die Datei
-     * validiert - übergebene Werte müssen also von `IdentAudioFile()` stammen.
-     *
-     * @exception UnsupportedAudioFormatException Format ist nicht AIFF/AIFF-C, oder die
-     *   Sample-Kodierung wird nicht unterstützt.
-     * @exception DecoderInitializationException Das Format wurde nicht erkannt.
-     */
     void open(FileObject& file, const AudioInfo* info = NULL) override;
 
-    /** @brief Schließt den Decoder und erklärt das AudioInfo für ungültig.
-     *
-     * Nach `close()` liefert `getAudioInfo()` ein leeres `AudioInfo` (alle Felder 0),
-     * `seekSample()` hat keine Wirkung und die Lesemethoden werfen eine Exception.
-     */
     void close() override;
 
-    /** @brief Gibt Informationen über das geöffnete Audio zurück.
-     *
-     * Sinnvolle Werte liefert die Methode nur zwischen `open()` und `close()`.
-     */
     const AudioInfo& getAudioInfo() const override;
 
-    /** @brief Setzt die Position auf das gegebene Sample (Frame).
-     *
-     * Werte jenseits des Dateiendes werden an `AudioInfo::Samples` begrenzt; eine
-     * Exception wird nie ausgelöst. Nach `close()` bleibt die Position auf 0 stehen.
-     */
     void seekSample(size_t sample) override;
 
     size_t getPosition() const override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
-     *
-     * Rückgabe ist die tatsächlich gelesene Anzahl an Frames (ein Frame = ein Sample je
-     * Kanal), höchstens \p num. Am Dateiende wird 0 ohne Exception geliefert. Der
-     * Puffer muss groß genug für die returnierte Anzahl sein; er wird nicht aufgefüllt.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32 (Mischbetrieb).
-     *
-     * Siehe Klassenbeschreibung zur Skala der addierten Werte.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
 struct Mp3Data;
 
-/**
- * @brief MP3-Decoder auf Basis von libmpg123.
+/** @class AudioDecoder_MP3
+ * @ingroup PPLGroupSound
+ * @brief Decoder für MP3-Dateien auf Basis von libmpg123.
  *
- * Getragen werden Mono und Stereo; die gelieferten Samples entsprechen der in der Datei
- * kodierten Abtastrate, es wird weder resampelt noch auf zwei Kanäle hochgemischt. Eine
- * MP3-Datei enthält keinen Header mit Rahmen- oder Samplezahl: die von `IdentAudioFile()`
- * gemeldete Zahl stammt aus dem Xing-/VBRI-Feld oder aus dem Durchzählen der Rahmen und kann
- * von der tatsächlich dekodierbaren Menge abweichen. Dekodiert wird bis zum letzten Rahmen.
+ * Mit diesem Dekoder können mp3-Dateien gelesen und dekodiert werden.
+ * Unterstützt werden Dateien mit 1 oder 2 Kanälen (Mono/Stereo). Die gelieferten Samples entsprechen
+ * der in der Datei kodierten Abtastrate, es findet kein Resampling statt.
  *
- * Das Ausgabeformat des Decoders wird in `open()` aus den ermittelten Parametern gesetzt;
- * das Umschalten zwischen 16-Bit- und Float-Zielpuffer während des Abspielens ist ohne
- * Sampleverlust möglich.
+ * @note MP3-Dateien enthalten keine Samplezahl; `AudioInfo::Samples` und `AudioInfo::Length`
+ * stammen aus dem Xing-/VBRI-Feld oder aus dem Zählen der Rahmen und können von der
+ * tatsächlich dekodierbaren Menge abweichen.
+ * @note Das Zielformat kann während des Abspielens gewechselt werden (z. B. erst
+ * `getSamples(STEREOSAMPLE16)`, dann `getSamples(STEREOSAMPLE_FLOAT)`), ohne dass Samples
+ * verloren gehen.
+ * @note Voraussetzung ist ein Build mit libmpg123 (`PPLIB_WITH_MPG123`). Fehlt sie, ist das
+ * Objekt konstruierbar, aber alle Funktionen außer `getAudioInfo()` und `getPosition()` Werfen
+ * eine `UnsupportedFeatureException`; `GetAudioDecoder()` erzeugt dann keinen MP3-Decoder.
  *
- * @exception DecoderException libmpg123 ist nicht verfügbar oder nicht initialisierbar.
- * @exception UnsupportedAudioFormatException kein MP3, keine 1-2 Kanaele, fehlender Audiodatenblock.
- *
- * Ohne libmpg123 (`HAVE_MPG123` undefiniert) ist das Objekt konstruierbar, aber leer:
- * bis auf `getAudioInfo()` und `getPosition()` wirft jede Methode eine
- * `UnsupportedFeatureException`; der Destruktor ruft `close()` dann nicht auf und bleibt
- * wurffrei.
  */
 class AudioDecoder_MP3 : public AudioDecoder
 {
@@ -518,162 +437,67 @@ private:
     size_t transferFrames(size_t num, void* dest);
 
 public:
+    /** @brief Konstruktor für den MP3-Decoder.
+     *
+     * @exception OutOfMemoryException Wird geworfen, wenn nicht genügend Speicher für den Decoder verfügbar ist.
+     * @exception DecoderInitializationException Wird geworfen, wenn die Initialisierung des Decoders fehlschlägt.
+     */
     AudioDecoder_MP3();
     ~AudioDecoder_MP3() override;
 
-    /** @brief Oeffnet den Stream und richtet das Ausgabeformat von libmpg123 nach den
-     *         ermittelten Parametern ein.
-     *
-     * @exception UnsupportedAudioFormatException \p file ist kein MP3, oder Kanalzahl,
-     *            Abtastrate und Audiodatenblock passen nicht zueinander.
-     * @exception DecoderException libmpg123 stellt kein Handle zur Verfuegung.
-     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
-     */
     void open(FileObject& file, const AudioInfo* info = NULL) override;
 
-    /** @brief Gibt dekodierte Samples und das libmpg123-Handle frei. Die Datei des
-     *         Aufrufers bleibt offen. Mehrfaches `close()` ist erlaubt; anschliessend
-     *         melden die Lesemethoden `DecoderException`, `open()` ist erneut moeglich.
-     *
-     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
-     */
     void close() override;
 
     const AudioInfo& getAudioInfo() const override;
 
-    /** @brief Springt framegenau zur Frameposition. libmpg123 sucht dafuer bytemaessig
-     *         im Audiodatenblock und landet immer an einer Rahmenkante; Springe ueber
-     *         das Ende der Audiodaten hinaus werden nicht begrenzt.
-     *
-     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
-     */
     void seekSample(size_t sample) override;
 
     size_t getPosition() const override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
-     *
-     * Rückgabe ist die tatsächlich gelesene Anzahl an Frames (ein Frame = ein Sample je
-     * Kanal), höchstens \p num. Am Dateiende wird 0 ohne Exception geliefert. Der
-     * Puffer muss groß genug für die returnierte Anzahl sein; er wird nicht aufgefüllt.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32 (Mischbetrieb).
-     *
-     * Die MP3-Samples liegen bereits auf der 16-Bit-Skala des Mischpuffers und werden
-     * unveraendert addiert.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
-     *
-     * Die Samples werden wie in `getSamples()` mit `STEREOSAMPLE16` durch 32768 geteilt,
-     * damit beide Zieltypen dieselbe Skala haben. Ein Formatwechsel des Decoders
-     * (Mono/Stereo, Samplefrequenz) mitten im Stream wird beruecksichtigt.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
 /** @class AudioDecoder_Ogg
  * @ingroup PPLGroupSound
- * @brief Decoder für Ogg-Vorbis-Dateien (`.ogg`, `.oga`) auf Basis von libvorbisfile.
+ * @brief Decoder für Ogg-Vorbis-Dateien (`.ogg`, `.oga`).
  *
- * Unterstützt werden Dateien mit einem oder zwei Kanälen. Monodateien werden
- * unterstützt, indem das eine Kanal-Sample auf links und rechts kopiert wird. Mehr als
- * zwei Kanäle lehnt `open()` mit `UnsupportedAudioFormatException` ab; `IdentAudioFile()`
- * erkennt solche Dateien dagegen als `OGG` und meldet die Kanalzahl des Bitstroms:
- * Erkennung und Unterstützung sind getrennt, abgelehnt wird erst im Decoder.
+ * Unterstützt werden Ogg-Dateien mit Vorbis-Audio und einem oder zwei Kanälen; Monodaten
+ * werden auf links und rechts kopiert. Mehr als zwei Kanäle lehnt `open()` mit
+ * `UnsupportedAudioFormatException` ab, während `IdentAudioFile()` solche Dateien als `OGG`
+ * erkennt. Die Schnittstelle und das Verhalten der Funktionen beschreibt `AudioDecoder`.
  *
- * Ogg-Dateien können zu mehreren Ketten verkettet sein (mehrere Bitströme direkt
- * hintereinander, zum Beispiel durch `cat` zweier Dateien). Abgespielt wird nur die
- * erste Kette, obwohl libvorbisfile die verketteten Ströme fortlaufend weiterspielen
- * würde. Dazu passend beschreiben `AudioInfo::Samples` und `AudioInfo::Length` nur die
- * erste Kette; libvorbisfile meldet sonst die Summe aller Ketten.
+ * @see IdentAudioFile()
  *
- * Die Bitbreite ist immer 16 (`AudioInfo::BitsPerSample`), die Abtastung
- * `SampleEncoding::INTEGER`, obwohl der Vorbis-Decoder intern mit Fließkomma arbeitet:
- * Die Integer-Pfade lesen über `ov_read()`, die Float-Pfade über `ov_read_float()`.
+ * Die gelieferten Werte hängen vom Zielpuffer ab:
  *
- * | Quelle     | `getSamples(STEREOSAMPLE16)` | `addSamples(STEREOSAMPLE32)`     | `getSamples`/`addSamples`(STEREOSAMPLE_FLOAT) |
- * | ---------- | ---------------------------- | -------------------------------- | --------------------------------------------- |
- * | Ogg Vorbis | unverändert, 16 Bit          | unverändert, 16-Bit-Wertebereich | normiert, Bereich etwa −1,0 bis 1,0     |
+ * | Zielpuffer              | Werte                                        |
+ * | ----------------------- | -------------------------------------------- |
+ * | `STEREOSAMPLE16`        | 16-Bit-Werte der Datei                       |
+ * | `STEREOSAMPLE32`        | dieselben Werte, für das Mischen mehrerer Quellen |
+ * | `STEREOSAMPLE_FLOAT`    | normiert, Bereich etwa −1,0 bis 1,0          |
  *
- * Der `STEREOSAMPLE32`-Puffer dient dem Mischen mehrerer Quellen. Die Float-Werte sind
- * die Decoderwerte ohne Rundung; die 16-Bit-Werte sind deren Rundung durch libvorbisfile,
- * unterscheiden sich also höchstens um eine Stelle (1/32768). Eine Konvertierung der
- * Abtastrate findet nicht statt.
  *
- * @note Alle vier Lesemethoden rechnen in Frames (ein Frame = ein Sample aller Kanäle):
- * Der übergebene Puffer fasst pro Frame zwei Werte, `num` ist die Zahl der Frames und der
- * Rückgabewert die Zahl tatsächlich gelesener Frames. Ist das Ende der ersten Kette
- * erreicht, liefert der Aufruf weniger Frames als angefordert; angeforderte Frames über
- * dem Kettenende entfallen, die entsprechenden Pufferfelder bleiben unverändert.
- *
- * @note `position` zählt Frames (nicht Kanal-Samples) und wird in allen vier Lesemethoden
- * nachgezogen; `open()` setzt sie auf 0, `seekSample()` setzt sie auf das Ziel.
- *
- * @note `seekSample()` lehnt Ziele hinter dem Ende der ersten Kette mit einer
- * `DecoderException` ab, statt sie still auf eine gültige Position umzusetzen. Ein Ziel
- * genau auf dem Kettenende gilt als Dateiende und liefert 0 Frames.
- *
- * @note `AudioInfo::AudioStart` und `AudioInfo::AudioEnd` sind Seitengrenzen des Ogg-
- * Containers: `AudioStart` zeigt auf den Anfang der ersten Datenseite nach den
- * Header-Seiten, `AudioEnd` auf das letzte Datenbyte des letzten Datenpages. Beide
- * Grenzen enthalten also die Seitenköpfe. `AudioInfo::AudioSize` und `AudioInfo::AudioEnd`
- * bleiben ungesetzt, wenn libvorbisfile das Ende nicht bestimmen kann (nicht seekbarer
- * Input).
- *
- * @note `AudioInfo::IsVBR` und `AudioInfo::Bitrate` leitet der Decoder aus den von
- * libvorbis gemeldeten nominalen, unteren und oberen Bitraten ab: sind untere und obere
- * Bitrate gleich, gilt die Datei als konstante Bitrate und `Bitrate` übernimmt diesen
- * Wert, sonst die nominale Bitrate. Die Angabe ist nur eine Näherung – eine mit
- * `libvorbis -q` kodierte VBR-Datei wird darüber in der Regel als CBR gemeldet.
- * `Bitrate` steht in kbit/s und wird auf den Bereich von `uint16_t` begrenzt; meldet
- * libvorbis einen negativen (fremde Encoder) oder unplausiblen Wert, steht 0 bzw. 65535.
- *
- * @note I/O-Fehler der übergebenen Datei erreichen den Aufrufer nicht: Die Callbacks des
- * Decoders fangen Ausnahmen des `FileObject` ab und melden sie libvorbisfile als
- * Kurzlesen. Ein Lesefehler wirkt damit wie ein Dateiende – die bis dahin dekodierten
- * Frames werden geliefert, danach liefert die Lesemethode 0. Ein Seek-Fehler beim
- * `seekSample()` meldet eine `DecoderException`.
- *
- * @note Eine angeschnittene Ogg-Datei erkennt `IdentAudioFile()` möglicherweise als `OGG`,
- * ohne die Samplezahl zu melden (`AudioInfo::Samples` und `AudioInfo::Length` bleiben 0);
- * kurze Rumpfstücke ohne vollständigen Header werden dagegen erst gar nicht erkannt. Ein
- * `getSamples()` auf einer solchen Datei liefert 0 Frames.
- *
- * @note Die Callback-Funktionen von libvorbisfile liefern Positionen als `long`. Auf
- * Plattformen mit 32 Bit grossem `long` (Windows/LLP64) sind dadurch Ogg-Dateien über
- * 2 GiB nicht korrekt seekbar; die Signaturen sind durch die Bibliothek vorgegeben.
- *
- * @note Voraussetzung ist ein pplib-Build mit libvorbis (CMake-Option
- * `PPLIB_WITH_VORBIS`). Fehlt die Bibliothek, ist das Objekt konstruierbar, aber leer:
- * bis auf `getAudioInfo()` und `getPosition()` wirft jede Methode eine
- * `UnsupportedFeatureException`; der Destruktor ruft `close()` dann nicht auf und bleibt
- * wurffrei. `IdentAudioFile()` erkennt Ogg in diesem Modus nicht, `GetAudioDecoder()`
- * erzeugt für Ogg-Dateien also von sich aus keinen Decoder.
- *
- * @note Das übergebene `FileObject` gehört dem Decoder exklusiv: Er liest direkt über das
- * Objekt und verändert dabei die Dateiposition. `GetAudioDecoder()` liefert einen bereits
- * geöffneten Decoder; ein zusätzliches `open()` des Aufrufers ist überflüssig, aber
- * ungefährlich, weil `open()` den bisherigen Handle zunächst freigibt.
+ * @note Eine verkettete Ogg-Datei (mehrere Bitströme hintereinander) wird nur bis zum Ende des
+ * ersten Bitstroms gespielt; `AudioInfo::Samples` und `AudioInfo::Length` beschreiben ebenfalls
+ * nur diesen Strom.
+ * @note `seekSample()` lehnt ein Ziel jenseits des ersten Bitstroms mit `DecoderException` ab.
+ * @note `AudioInfo::AudioStart`/`AudioEnd` bezeichnen Seiten des Ogg-Containers einschließlich
+ * ihrer Köpfe; beide bleiben ungesetzt, wenn das Datenende nicht bestimmbar ist (nicht seekbarer Input).
+ * @note `AudioInfo::IsVBR`/`Bitrate` sind close Angaben des Encoders, keine gemessenen Werte;
+ * `Bitrate` steht in kbit/s.
+ * @note Bei einer unvollständigen Datei (fehlendes Dateiende) liefern die Lesefunktionen die
+ * dekodierbaren Frames und danach 0; `IdentAudioFile()` erkennt solche Dateien möglicherweise
+ * ohne Samplezahl.
+ * @note Voraussetzung ist ein Build mit libvorbis (`PPLIB_WITH_VORBIS`). Fehlt sie, wirft jede
+ * Funktion außer `getAudioInfo()` und `getPosition()` eine `UnsupportedFeatureException`;
+ * `GetAudioDecoder()` erzeugt dann keinen Ogg-Decoder.
  *
  * @see AudioInfo::AudioFormat::OGG
  */
@@ -695,80 +519,22 @@ public:
     AudioDecoder_Ogg();
     ~AudioDecoder_Ogg() override;
 
-    /** @brief Öffnet die Datei, liest die Vorbis-Header und prüft die Unterstützung.
-     *
-     * Wird \p info übergeben, gelten die Werte des Objekts; der Decoder prüft nur die
-     * Kanalzahl dagegen. Andernfalls ermittelt er sie aus den Vorbis-Headern und
-     * bestimmt `AudioInfo::Samples` und `AudioInfo::Length` aus der ersten Kette.
-     * Ein bereits offener Handle wird vorher freigegeben, `open()` nach `close()` ist
-     * also erlaubt.
-     *
-     * @exception UnsupportedAudioFormatException Datei ist kein Ogg-Vorbis-Stream, oder
-     *   das Format wird nicht unterstützt (mehr als zwei Kanäle).
-     * @exception OutOfMemoryException Der Handle oder der interne Puffer fehlt.
-     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
-     */
     void open(FileObject& file, const AudioInfo* info = NULL) override;
 
-    /** @brief Gibt den libvorbisfile-Handle und die internen Puffer frei, setzt
-     *         `position` auf 0 und ist aufrufbar, auch wenn nichts geöffnet ist.
-     *
-     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
-     */
     void close() override;
 
     const AudioInfo& getAudioInfo() const override;
 
-    /** @brief Springt zu Frame \p sample innerhalb der ersten Kette.
-     *
-     * @exception DecoderException Kein offener Decoder, oder \p sample liegt hinter dem
-     *   Ende der ersten Kette.
-     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
-     */
     void seekSample(size_t sample) override;
 
     size_t getPosition() const override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
-     *
-     * Monodateien werden auf beide Kanäle hochgemischt; \p num und der Rückgabewert sind
-     * Frames. Angeforderte Frames über dem Ende der ersten Kette entfallen. Die Werte
-     * entsprechen der Rundung, die libvorbisfile aus den Float-Werten des Dekoders bildet.
-     *
-     * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
-     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32.
-     *
-     * \p num und der Rückgabewert sind Frames; der Zielwert bleibt auf den
-     * 16-Bit-Wertebereich begrenzt.
-     *
-     * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
-     * @exception OutOfMemoryException Der Read-Puffer des Decoders reicht nicht.
-     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
-     *
-     * Die Float-Pfade dekodieren direkt mit `ov_read_float()`, ohne die Zwischenrundung
-     * über 16 Bit. Monodateien werden auf beide Kanäle hochgemischt; \p num und der
-     * Rückgabewert sind Frames. Das Kettenende der ersten Kette begrenzt die Lieferung.
-     *
-     * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
-     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
-     *
-     * Der Zielwert wird auf den Wertebereich von `STEREOSAMPLE_FLOAT` begrenzt.
-     *
-     * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
-     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
@@ -810,18 +576,6 @@ struct FlacState;
  * @note Voraussetzung ist ein pplib-Build mit libFLAC (CMake-Option `PPLIB_WITH_FLAC`).
  * Fehlt die Bibliothek, ist das Objekt konstruierbar, aber leer: bis auf `getAudioInfo()`
  * und `getPosition()` wirft jede Methode eine `UnsupportedFeatureException`.
- *
- * @note Die MD5-Prüfsumme einer FLAC-Datei wird bewusst nicht ausgewertet: Bei stückweisem
- * Lesen mit toleriertem Dateiende kann libFLAC sie nicht gültig abschließen. Defekte
- * Audiodaten melden eine `DecoderException`, eine abgeschnittene Datei liefert die
- * vollständig dekodierbaren Frames und endet mit einem Rückgabewert unter der
- * angeforderten Zahl. Ein Sync-Verlust, der erst nach dem letzten Rahmen gemeldet wird
- * (zum Beispiel ein Anhängsel wie ein ID3v1-Tag), ist von einem Defekt nicht zu
- * unterscheiden und zählt als Dateiende.
- *
- * @note Das übergebene `FileObject` gehört dem Decoder exklusiv: Er liest direkt über das
- * Objekt und verändert dabei die Dateiposition. Nutzen zwei Decoder dasselbe `FileObject`,
- * liest der zweite ab der Position, die der erste hinterlassen hat.
  *
  * @see AudioInfo::AudioFormat::FLAC
  */
@@ -865,90 +619,22 @@ public:
     AudioDecoder_Flac();
     ~AudioDecoder_Flac() override;
 
-    /** @brief Öffnet die Datei, liest die Metadaten und prueft die Unterstuetzung.
-     *
-     * Wird \p info übergeben, prüft der Decoder Kanalzahl und Bitbreite gegen den
-     * STREAMINFO-Block und lehnt Abweichungen ab. Andernfalls ermittelt er die Werte mit
-     * `IdentAudioFile()`. Die Abtastrate steht im STREAMINFO-Block und gilt fest für den
-     * gesamten Stream; `AudioInfo::Frequency` gibt sie unverändert weiter.
-     * `AudioInfo::Bitrate` uebernimmt der Decoder aus dem `AudioInfo`-Objekt, das sie selbst
-     * aus dem STREAMINFO-Block liest. Abgelehnt werden mehr als zwei Kanäle und Bitbreiten
-     * ausser 16 und 24.
-     *
-     * Die Ortsangaben `AudioInfo::AudioStart` und `AudioInfo::AudioSize` aus \p info werden
-     * nicht ausgewertet. Der Decoder sucht das `fLaC`-Magic selbst (inklusive ID3v2-Tag am
-     * Dateianfang) und liest bis zum physischen Dateiende; ein ID3v1-Tag oder sonstiges
-     * Anhängsel nach dem letzten Rahmen wird dabei toleriert, eine `AudioSize` aus einem
-     * Container begrenzt den Datenstrom nicht.
-     *
-     * Das `FileObject` wird exklusiv an den Decoder uebergeben: Er liest direkt darin und
-     * verandert die Dateiposition. Ein Objekt, das zugleich einem anderen Decoder oder
-     * externen Lesern gehoert, sollte vorher eine kopierte eigene Datei besitzen.
-     *
-     * @exception UnsupportedAudioFormatException Datei ist kein FLAC, oder das Format
-     *   wird nicht unterstützt.
-     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
-     * @exception DecoderInitializationException libFLAC stellte keine Decoderinstanz zur
-     *   Verfügung.
-     * @exception DecoderException Der Datenanfang der FLAC-Kette ist nicht auffindbar,
-     *   oder libFLAC konnte die Instanz nicht initialisieren.
-     */
     void open(FileObject& file, const AudioInfo* info = nullptr) override;
 
-    /** @brief Schließt den Decoder und erklärt das AudioInfo für ungültig.
-     *
-     * Nach `close()` liefert `getAudioInfo()` ein leeres `AudioInfo` (alle Felder 0),
-     * `seekSample()` hat keine Wirkung und die Lesemethoden werfen eine Exception.
-     *
-     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
-     */
     void close() override;
 
     const AudioInfo& getAudioInfo() const override;
 
-    /** @brief Setzt die Position auf das Sample mit der gegebenen Nummer.
-     *
-     * libFLAC springt zum Rahmen, der das Ziel-Sample enthaelt; die Position liegt
-     * danach genau an dem angeforderten Sample. Werte ueber dem Ende werden auf das
-     * letzte Sample begrenzt, wenn die Samplezahl bekannt ist.
-     *
-     * @note Schlaegt der Sprung fehl (Stream ohne Samplezahl oder unlesbarer Zielrahmen),
-     * arbeitet der Decoder die Daten von der aktuellen Position linear ab. Die Position
-     * bleibt dann nicht unveraendert, sondern endet am letzten erreichbar lesbaren Sample;
-     * bei einer abgeschnittenen Datei liegt das deutlich vor dem angeforderten Ziel.
-     *
-     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
-     */
     void seekSample(size_t sample) override;
 
     size_t getPosition() const override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
 
-    /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
-     */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 
-    /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
-     *
-     * @exception DecoderException Vor `open()` oder nach `close()`.
-     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
-     */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
 
