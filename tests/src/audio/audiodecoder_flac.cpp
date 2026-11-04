@@ -35,7 +35,7 @@
 #include <vector>
 
 #if defined(__GLIBC__)
-#include <malloc.h>  // mallinfo2(): belegter Heap-Platz als Messgroesse fuer den Rohpuffer
+#include <malloc.h> // mallinfo2(): belegter Heap-Platz als Messgroesse fuer den Rohpuffer
 #endif
 
 #include <config_pplib.h>
@@ -45,6 +45,7 @@
 #include <pplib/core/file.h>
 #include <pplib/core/functions.h>
 #include <pplib/core/memfile.h>
+#include <pplib/exceptions.h>
 
 #ifdef HAVE_LIBFLAC
 
@@ -62,7 +63,7 @@ static size_t LiveHeap()
     const struct mallinfo2 mi = mallinfo2();
     return mi.uordblks + mi.hblkhd;
 }
-#endif  // __GLIBC__
+#endif // __GLIBC__
 
 /** @brief Dekodiert den Rest der Datei in einen Vektor
  *
@@ -388,16 +389,16 @@ TEST_F(AudioDecoderFlacTest, Samples24MatchTheReferenceDecoder)
     pplib::AudioDecoder_Flac dec;
     Open(file, dec, "test_44kHz_24bit.flac");
 
-    struct Anker { uint64_t frame; int16_t left; int16_t right; };
-    static const Anker anker[] = {
-        { 0, 452, 434 },       { 1, 676, 643 },      { 2, 590, 572 },
-        { 3, 626, 621 },       { 4, 599, 587 },      { 5, 627, 612 },
-        { 10000, 1577, -503 }, { 10001, 2506, 300 }, { 10002, 3254, 803 },
-        { 10003, 3619, 1083 },
-        { 173679, -1, -5 },    { 173680, 0, 7 },     { 173681, 2, -6 },
-        { 173682, -5, 5 },     { 173683, 8, -4 },    { 173684, -10, 3 },
-        { 173692, 2, -1 },     { 173693, -4, 0 },    { 173694, 7, 0 }
+    struct Anker
+    {
+        uint64_t frame;
+        int16_t left;
+        int16_t right;
     };
+    static const Anker anker[] = {{0, 452, 434},    {1, 676, 643},       {2, 590, 572},      {3, 626, 621},      {4, 599, 587},
+                                  {5, 627, 612},    {10000, 1577, -503}, {10001, 2506, 300}, {10002, 3254, 803}, {10003, 3619, 1083},
+                                  {173679, -1, -5}, {173680, 0, 7},      {173681, 2, -6},    {173682, -5, 5},    {173683, 8, -4},
+                                  {173684, -10, 3}, {173692, 2, -1},     {173693, -4, 0},    {173694, 7, 0}};
 
     pplib::STEREOSAMPLE16 buf[8];
     for (const Anker& a : anker) {
@@ -587,8 +588,7 @@ TEST_F(AudioDecoderFlacTest, LinearFallbackSeekDoesNotBufferTheJumpDistance)
 #if defined(__GLIBC__)
     const size_t heapAfter = LiveHeap();
     // 170 000 Frames waeren 1,36 MB Rohpuffer; in Portionen gelesen bleiben es Dutzende KB
-    EXPECT_LT(heapAfter, heapBefore + 300 * 1024)
-        << "Rohpuffer wuchs mit der Sprungdistanz um " << (heapAfter - heapBefore) << " Byte";
+    EXPECT_LT(heapAfter, heapBefore + 300 * 1024) << "Rohpuffer wuchs mit der Sprungdistanz um " << (heapAfter - heapBefore) << " Byte";
 #endif
 
     // Der lineare Fallback muss trotzdem exakt am Ziel sitzen
@@ -656,7 +656,10 @@ TEST_F(AudioDecoderFlacTest, AddSamplesAccumulatesOntoExistingValues)
     Open(file, dec, "test_44kHz_16bit.flac");
 
     pplib::STEREOSAMPLE32 ibuf[64];
-    for (size_t i = 0; i < 64; i++) { ibuf[i].left = 1000; ibuf[i].right = -1000; }
+    for (size_t i = 0; i < 64; i++) {
+        ibuf[i].left = 1000;
+        ibuf[i].right = -1000;
+    }
     ASSERT_EQ((size_t)64, dec.addSamples(64, ibuf));
     pplib::STEREOSAMPLE16 ref[64];
     dec.seekSample(0);
@@ -665,7 +668,10 @@ TEST_F(AudioDecoderFlacTest, AddSamplesAccumulatesOntoExistingValues)
     EXPECT_EQ((int32_t)ref[10].right - 1000, ibuf[10].right);
 
     pplib::STEREOSAMPLE_FLOAT fbuf[64];
-    for (size_t i = 0; i < 64; i++) { fbuf[i].left = 0.5f; fbuf[i].right = -0.5f; }
+    for (size_t i = 0; i < 64; i++) {
+        fbuf[i].left = 0.5f;
+        fbuf[i].right = -0.5f;
+    }
     dec.seekSample(0);
     ASSERT_EQ((size_t)64, dec.addSamples(64, fbuf));
     EXPECT_NEAR(ref[5].left / 32768.0f + 0.5f, fbuf[5].left, 1e-6f);
@@ -681,9 +687,7 @@ TEST_F(AudioDecoderFlacTest, TaggedAndSeektableFilesDecodeLikePlainFile)
     DecodeAll16(plain, ref);
     ASSERT_EQ((size_t)173695, ref.size());
 
-    const char* variants[] = {"test_44kHz_16bit_seektable.flac",
-                              "test_44kHz_16bit_id3v2.flac",
-                              "test_44kHz_16bit_id3v1.flac"};
+    const char* variants[] = {"test_44kHz_16bit_seektable.flac", "test_44kHz_16bit_id3v2.flac", "test_44kHz_16bit_id3v1.flac"};
     for (const char* name : variants) {
         pplib::File file;
         pplib::AudioDecoder_Flac dec;
@@ -787,13 +791,13 @@ TEST_F(AudioDecoderFlacTest, ForeignAudioInfoWithoutFlacDataThrows)
     pplib::AudioDecoder_Flac dec;
     EXPECT_THROW(dec.open(junk, &src), pplib::DecoderException);
 
-    const uint8_t bytes[13] = {'N','i','c','h','t','f','l','a','c','W','X','Y','Z'};
+    const uint8_t bytes[13] = {'N', 'i', 'c', 'h', 't', 'f', 'l', 'a', 'c', 'W', 'X', 'Y', 'Z'};
     pplib::MemFile mem((void*)bytes, sizeof(bytes));
     pplib::AudioDecoder_Flac memDec;
     EXPECT_THROW(memDec.open(mem, &src), pplib::DecoderException);
 
     // Reines "fLaC"-Magic ohne STREAMINFO-Block: der Sniffer der Bibliothek lehnt ab
-    const uint8_t head[4] = {'f','L','a','C'};
+    const uint8_t head[4] = {'f', 'L', 'a', 'C'};
     pplib::MemFile magicOnly((void*)head, sizeof(head));
     pplib::AudioDecoder_Flac headDec;
     EXPECT_THROW(headDec.open(magicOnly, &src), pplib::DecoderException);
@@ -802,15 +806,15 @@ TEST_F(AudioDecoderFlacTest, ForeignAudioInfoWithoutFlacDataThrows)
     // libFLAC bricht beim lesen der Metadaten ab
     uint8_t broken[48] = {};
     memcpy(broken, "fLaC", 4);
-    broken[4] = 0x80;            // letzter Block, Typ STREAMINFO
+    broken[4] = 0x80; // letzter Block, Typ STREAMINFO
     broken[5] = 0x00;
     broken[6] = 0x00;
-    broken[7] = 0x22;            // 34 BytePayload
+    broken[7] = 0x22; // 34 BytePayload
     pplib::MemFile brokenMeta((void*)broken, sizeof(broken));
     pplib::AudioDecoder_Flac brokenDec;
     EXPECT_THROW(brokenDec.open(brokenMeta, &src), pplib::UnsupportedAudioFormatException);
     // Metadaten-Block mit ungueltiger Laenge (STREAMINFO muss 34 Bytes haben): Metadaten-Parsing bricht ab
-    static uint8_t badLenBuf[44] = { 'f', 'L', 'a', 'C', 0x80, 0x00, 0x7F, 0xFF };
+    static uint8_t badLenBuf[44] = {'f', 'L', 'a', 'C', 0x80, 0x00, 0x7F, 0xFF};
     pplib::MemFile badLen(badLenBuf, sizeof(badLenBuf));
     EXPECT_THROW(brokenDec.open(badLen, &src), pplib::DecoderException);
     // Nach einem fehlgeschlagenen open() ist der Decoder leer und kann neu geoeffnet werden
@@ -827,12 +831,19 @@ TEST_F(AudioDecoderFlacTest, FlacChainWithoutStreamInfoIsRejected)
     // ein passendes AudioInfo mit, umgeht er die Datei-Erkennung; open() muss trotzdem
     // abbrechen und darf die libFLAC-Instanz zurckgeben.
     std::vector<uint8_t> bytes;
-    bytes.push_back('f'); bytes.push_back('L'); bytes.push_back('a'); bytes.push_back('C');
-    bytes.push_back(0x01);                                    // PADDING, nicht der letzte Block
-    bytes.push_back(0x00); bytes.push_back(0x00); bytes.push_back(0x28);  // 40 Byte Payload
+    bytes.push_back('f');
+    bytes.push_back('L');
+    bytes.push_back('a');
+    bytes.push_back('C');
+    bytes.push_back(0x01); // PADDING, nicht der letzte Block
+    bytes.push_back(0x00);
+    bytes.push_back(0x00);
+    bytes.push_back(0x28); // 40 Byte Payload
     bytes.insert(bytes.end(), 40, 0);
-    bytes.push_back(0x81);                                    // letzter Block, wieder PADDING
-    bytes.push_back(0x00); bytes.push_back(0x00); bytes.push_back(0x00);
+    bytes.push_back(0x81); // letzter Block, wieder PADDING
+    bytes.push_back(0x00);
+    bytes.push_back(0x00);
+    bytes.push_back(0x00);
     ASSERT_EQ((size_t)52, bytes.size());
 
     pplib::AudioInfo src;
@@ -962,7 +973,8 @@ TEST_F(AudioDecoderFlacTest, ClosedFileAbortsDecodingAtTheCallbacks)
         while (!thrown && after < 150000 && (got = dec.getSamples(1024, buf)) > 0) {
             after += got;
         }
-    } catch (const pplib::DecoderException&) {
+    }
+    catch (const pplib::DecoderException&) {
         thrown = true;
     }
     EXPECT_TRUE(thrown) << "keine DecoderException, nach dem Schliessen " << after << " Frames gelesen";
@@ -1001,7 +1013,8 @@ TEST_F(AudioDecoderFlacTest, SeekAfterReopeningTheFileStillDetectsTheEnd)
             if (n == 0) break;
             got += n;
         }
-    } catch (const pplib::DecoderException&) {
+    }
+    catch (const pplib::DecoderException&) {
         thrown = true;
     }
     ASSERT_TRUE(thrown) << "geschlossene Datei fuehrt nicht zur DecoderException, gelesen: " << got;
@@ -1172,8 +1185,6 @@ TEST_F(AudioDecoderFlacTest, OpenRejectsAudioInfoThatDoesNotFitTheStream)
     EXPECT_EQ((uint64_t)173695, dec.getAudioInfo().Samples);
 }
 
-#endif  // HAVE_LIBFLAC
-
 TEST_F(AudioDecoderFlacTest, FactoryReturnsNullWhenTheFileCannotBeOpened)
 {
     // Gueltiges FLAC mit abgelehnter Bitbreite: open() wirft. Die Fabrik soll
@@ -1200,7 +1211,7 @@ TEST_F(AudioDecoderFlacTest, SmallestPlayableFlacIsAccepted)
     full.seek(0, pplib::File::SEEKSET);
     std::vector<char> head(43, (char)0xFF);
     ASSERT_EQ((size_t)42, full.read(head.data(), 42));
-    head[4] = (char)0x80;   // letzte Metadata-Kappe: STREAMINFO (Typ 0, 34 Bytes) schliesst ab
+    head[4] = (char)0x80; // letzte Metadata-Kappe: STREAMINFO (Typ 0, 34 Bytes) schliesst ab
 
     pplib::MemFile mem(head.data(), head.size());
     ASSERT_TRUE(mem.isOpen());
@@ -1216,3 +1227,91 @@ TEST_F(AudioDecoderFlacTest, SmallestPlayableFlacIsAccepted)
     pplib::STEREOSAMPLE16 out[4];
     EXPECT_EQ((uint64_t)0, dec.getSamples(4, out));
 }
+
+#else
+// Build ohne libFLAC: Der Konstruktor liefert ein gueltiges, aber leeres Objekt; alle
+// Methoden ausser den beiden Konstanzengettern müssen UnsupportedFeatureException werfen.
+// Es werden dieselben echten Testdateien benutzt wie im Build mit libFLAC.
+
+//!\brief Anzahl angeforderter Frames in den Lesetests
+constexpr size_t kStubFrames = 16;
+
+//!\brief Basis-Fixture fuer den Build ohne libFLAC
+class AudioDecoderFlacStubTest : public ::testing::Test
+{
+protected:
+    /** @brief Oeffnet eine echte Testdatei unter tests/testdata/audio */
+    static void OpenTestFile(pplib::File& file, const char* name)
+    {
+        const std::string path = std::string("testdata/audio/") + name;
+        ASSERT_NO_THROW(file.open(path.c_str())) << "open() warf fuer " << path;
+        ASSERT_TRUE(file.isOpen()) << "Datei ist nicht geoeffnet: " << path;
+    }
+};
+
+TEST_F(AudioDecoderFlacStubTest, ConstructorAndDestructorDoNotThrow)
+{
+    // Das Objekt ist konstruierbar und wieder zerstoerbar, ohne zu werfen
+    EXPECT_NO_THROW({ pplib::AudioDecoder_Flac dec; });
+}
+
+TEST_F(AudioDecoderFlacStubTest, NewDecoderReportsEmptyAudioInfo)
+{
+    pplib::AudioDecoder_Flac dec;
+    const pplib::AudioInfo info = dec.getAudioInfo();
+    EXPECT_EQ(pplib::AudioInfo::AudioFormat::UNKNOWN, info.Format);
+    EXPECT_EQ((uint64_t)0, info.Samples);
+    EXPECT_EQ((uint8_t)0, info.Channels);
+    EXPECT_EQ((uint64_t)0, dec.getPosition());
+}
+
+TEST_F(AudioDecoderFlacStubTest, OpenThrowsWithoutFlac)
+{
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_16bit.flac");
+    pplib::AudioDecoder_Flac dec;
+    EXPECT_THROW(dec.open(file), pplib::UnsupportedFeatureException);
+    // Zweiter Versuch ueber den optionalen AudioInfo-Parameter wirft ebenfalls
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_THROW(dec.open(file, &info), pplib::UnsupportedFeatureException);
+}
+
+TEST_F(AudioDecoderFlacStubTest, CloseThrowsWithoutFlac)
+{
+    pplib::AudioDecoder_Flac dec;
+    EXPECT_THROW(dec.close(), pplib::UnsupportedFeatureException);
+}
+
+TEST_F(AudioDecoderFlacStubTest, SeekSampleThrowsWithoutFlac)
+{
+    pplib::AudioDecoder_Flac dec;
+    EXPECT_THROW(dec.seekSample(0), pplib::UnsupportedFeatureException);
+}
+
+TEST_F(AudioDecoderFlacStubTest, ReaderMethodsThrowWithoutFlac)
+{
+    pplib::AudioDecoder_Flac dec;
+    pplib::STEREOSAMPLE16 buf16[kStubFrames];
+    pplib::STEREOSAMPLE32 buf32[kStubFrames];
+    pplib::STEREOSAMPLE_FLOAT bufFloat[kStubFrames];
+    EXPECT_THROW(dec.getSamples(kStubFrames, buf16), pplib::UnsupportedFeatureException);
+    EXPECT_THROW(dec.addSamples(kStubFrames, buf32), pplib::UnsupportedFeatureException);
+    EXPECT_THROW(dec.getSamples(kStubFrames, bufFloat), pplib::UnsupportedFeatureException);
+    EXPECT_THROW(dec.addSamples(kStubFrames, bufFloat), pplib::UnsupportedFeatureException);
+}
+
+TEST_F(AudioDecoderFlacStubTest, FactoryReturnsNullForFlacFile)
+{
+    // Die Dateierkennung ist Bibliotheks-unabhaengig, der Decoder steht nicht zur Verfuegung:
+    // Die Fabrik faengt die Exception ab und liefert NULL.
+    pplib::File file;
+    OpenTestFile(file, "test_44kHz_16bit.flac");
+    pplib::AudioInfo info;
+    ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+    EXPECT_EQ(pplib::AudioInfo::AudioFormat::FLAC, info.Format);
+    pplib::AudioDecoder* made = pplib::GetAudioDecoder(file);
+    EXPECT_EQ(nullptr, made);
+}
+
+#endif // HAVE_LIBFLAC

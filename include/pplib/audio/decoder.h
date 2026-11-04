@@ -786,7 +786,8 @@ struct FlacState;
  * innersten Schleife keine Formatentscheidung mehr.
  *
  * @note Voraussetzung ist ein pplib-Build mit libFLAC (CMake-Option `PPLIB_WITH_FLAC`).
- * Fehlt die Bibliothek, wirft jede Methode dieser Klasse eine `UnsupportedFeatureException`.
+ * Fehlt die Bibliothek, ist das Objekt konstruierbar, aber leer: bis auf `getAudioInfo()`
+ * und `getPosition()` wirft jede Methode eine `UnsupportedFeatureException`.
  *
  * @note Die MD5-Prüfsumme einer FLAC-Datei wird bewusst nicht ausgewertet: Bei stückweisem
  * Lesen mit toleriertem Dateiende kann libFLAC sie nicht gültig abschließen. Defekte
@@ -876,6 +877,8 @@ public:
      *
      * Nach `close()` liefert `getAudioInfo()` ein leeres `AudioInfo` (alle Felder 0),
      * `seekSample()` hat keine Wirkung und die Lesemethoden werfen eine Exception.
+     *
+     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
      */
     void close() override;
 
@@ -891,6 +894,8 @@ public:
      * arbeitet der Decoder die Daten von der aktuellen Position linear ab. Die Position
      * bleibt dann nicht unveraendert, sondern endet am letzten erreichbar lesbaren Sample;
      * bei einer abgeschnittenen Datei liegt das deutlich vor dem angeforderten Ziel.
+     *
+     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
      */
     void seekSample(size_t sample) override;
 
@@ -899,24 +904,28 @@ public:
     /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE16.
      *
      * @exception DecoderException Vor `open()` oder nach `close()`.
+     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
      */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
 
     /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE32.
      *
      * @exception DecoderException Vor `open()` oder nach `close()`.
+     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
      */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
 
     /** @brief Liest Frames in einen Puffer im Format STEREOSAMPLE_FLOAT.
      *
      * @exception DecoderException Vor `open()` oder nach `close()`.
+     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
      */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 
     /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
      *
      * @exception DecoderException Vor `open()` oder nach `close()`.
+     * @exception UnsupportedFeatureException pplib wurde ohne libFLAC gebaut.
      */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };

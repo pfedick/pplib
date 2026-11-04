@@ -61,26 +61,39 @@ struct FlacState
 {
     FLAC__StreamDecoder* dec;
     FileObject* file;
-    uint64_t base;  //!< Dateiversatz des "fLaC"-Magic: libFLAC zaehlt ab hier
+    uint64_t base; //!< Dateiversatz des "fLaC"-Magic: libFLAC zaehlt ab hier
     std::vector<int32_t> raw;
-    size_t rawWrite;  //!< Schreibzeiger in Kanal-Samples
-    size_t rawRead;   //!< Leszeiger in Kanal-Samples
+    size_t rawWrite; //!< Schreibzeiger in Kanal-Samples
+    size_t rawRead;  //!< Leszeiger in Kanal-Samples
     uint32_t channels;
-    bool atEnd;       //!< libFLAC meldete Ende des Samples-Datensatzes
-    bool error;       //!< Decodier- oder Callbackfehler
-    bool ioError;     //!< Fehler im Dateizugriff eines Betriebs-Callbacks
+    bool atEnd;   //!< libFLAC meldete Ende des Samples-Datensatzes
+    bool error;   //!< Decodier- oder Callbackfehler
+    bool ioError; //!< Fehler im Dateizugriff eines Betriebs-Callbacks
     bool haveMeta;
     uint32_t metaChannels;
     uint32_t metaBits;
-    uint32_t metaMaxBlocksize;  //!< STREAMINFO max blocksize: bemisst die Reservierung des Rohpuffers
-    uint64_t metaSamples;  //!< STREAMINFO Gesamtzahl Samples, 0 = unbekannt
-    uint64_t totalFrames;  //!< bisher gelieferte Frames, auch ueber den Lesepuffer zurueck
-    uint64_t seekTarget;   //!< Samplezahl, bis zu der gelieferte Frames verworfen werden (kNoSeek = keiner)
+    uint32_t metaMaxBlocksize; //!< STREAMINFO max blocksize: bemisst die Reservierung des Rohpuffers
+    uint64_t metaSamples;      //!< STREAMINFO Gesamtzahl Samples, 0 = unbekannt
+    uint64_t totalFrames;      //!< bisher gelieferte Frames, auch ueber den Lesepuffer zurueck
+    uint64_t seekTarget;       //!< Samplezahl, bis zu der gelieferte Frames verworfen werden (kNoSeek = keiner)
 
     FlacState()
-        : dec(nullptr), file(nullptr), base(0), rawWrite(0), rawRead(0), channels(2),
-          atEnd(false), error(false), ioError(false), haveMeta(false), metaChannels(0), metaBits(0),
-          metaMaxBlocksize(0), metaSamples(0), totalFrames(0), seekTarget(kNoSeek)
+        : dec(nullptr),
+          file(nullptr),
+          base(0),
+          rawWrite(0),
+          rawRead(0),
+          channels(2),
+          atEnd(false),
+          error(false),
+          ioError(false),
+          haveMeta(false),
+          metaChannels(0),
+          metaBits(0),
+          metaMaxBlocksize(0),
+          metaSamples(0),
+          totalFrames(0),
+          seekTarget(kNoSeek)
     {
     }
 };
@@ -94,15 +107,24 @@ struct FlacState
 class FlacDecoderHandle
 {
 public:
-    FlacDecoderHandle() { dec = FLAC__stream_decoder_new(); }
+    FlacDecoderHandle()
+    {
+        dec = FLAC__stream_decoder_new();
+    }
     FlacDecoderHandle(const FlacDecoderHandle&) = delete;
     FlacDecoderHandle& operator=(const FlacDecoderHandle&) = delete;
     ~FlacDecoderHandle()
     {
         if (dec != nullptr) FLAC__stream_decoder_delete(dec);
     }
-    FLAC__StreamDecoder* get() { return dec; }
-    void release() { dec = nullptr; }  //!< Uebergibt die Instanz an den Aufrufer
+    FLAC__StreamDecoder* get()
+    {
+        return dec;
+    }
+    void release()
+    {
+        dec = nullptr;
+    } //!< Uebergibt die Instanz an den Aufrufer
 
 private:
     FLAC__StreamDecoder* dec;
@@ -147,7 +169,8 @@ static FLAC__StreamDecoderReadStatus flacReadCb(const FLAC__StreamDecoder*, FLAC
         }
         *bytes = got;
         return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
-    } catch (...) {
+    }
+    catch (...) {
         *bytes = 0;
         st->error = true;
         st->ioError = true;
@@ -163,7 +186,8 @@ static FLAC__StreamDecoderSeekStatus flacSeekCb(const FLAC__StreamDecoder*, FLAC
         if (target < st->base || target > st->file->size()) return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
         if (st->file->seek(target, FileObject::SeekOrigin::SEEKSET) != target) return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
         return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
-    } catch (...) {
+    }
+    catch (...) {
         st->error = true;
         st->ioError = true;
         return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
@@ -178,7 +202,8 @@ static FLAC__StreamDecoderTellStatus flacTellCb(const FLAC__StreamDecoder*, FLAC
         if (now < st->base) return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
         *absolute_byte_offset = now - st->base;
         return FLAC__STREAM_DECODER_TELL_STATUS_OK;
-    } catch (...) {
+    }
+    catch (...) {
         // libFLAC fragt hier keinen Fehlerwert ab: 0 zusammen mit gesetztem Fehlermerkmal
         // ist die einzige Moglichkeit, den Abbruch sichtbar zu machen
         *absolute_byte_offset = 0;
@@ -196,7 +221,8 @@ static FLAC__StreamDecoderLengthStatus flacLengthCb(const FLAC__StreamDecoder*, 
         if (total < st->base) return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
         *stream_length = total - st->base;
         return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
-    } catch (...) {
+    }
+    catch (...) {
         *stream_length = 0;
         st->error = true;
         st->ioError = true;
@@ -209,7 +235,8 @@ static FLAC__bool flacEofCb(const FLAC__StreamDecoder*, void* client)
     FlacState* st = static_cast<FlacState*>(client);
     try {
         return st->file->eof() ? true : false;
-    } catch (...) {
+    }
+    catch (...) {
         // "kein Dateiende" laesst libFLAC weiterlesen: der Lese-Callback meldet dann
         // den Abbruch und setzt dieselben Fehlermerkmale
         st->error = true;
@@ -224,12 +251,15 @@ static FLAC__bool flacEofCb(const FLAC__StreamDecoder*, void* client)
  * wächst der Puffer bei Bedarf; schlägt das fehl, wird der Abbruch gemeldet und der
  * Fehlerzustand gesetzt - eine Exception darf die C-Ebenen nicht durchlaufen.
  */
-static FLAC__StreamDecoderWriteStatus flacWriteCb(const FLAC__StreamDecoder*, const FLAC__Frame* frame, const int32_t* const buffer[], void* client)
+static FLAC__StreamDecoderWriteStatus flacWriteCb(const FLAC__StreamDecoder*,
+                                                  const FLAC__Frame* frame,
+                                                  const int32_t* const buffer[],
+                                                  void* client)
 {
     FlacState* st = static_cast<FlacState*>(client);
     size_t frames = frame->header.blocksize;
     if (frame->header.channels != st->channels) {
-        st->error = true;  // Kanalzahl wechselt mitten im Stream: nicht unterstuetzt
+        st->error = true; // Kanalzahl wechselt mitten im Stream: nicht unterstuetzt
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     }
     if (frames == 0 || buffer[0] == nullptr || (st->channels == 2 && buffer[1] == nullptr)) {
@@ -253,7 +283,8 @@ static FLAC__StreamDecoderWriteStatus flacWriteCb(const FLAC__StreamDecoder*, co
     frames -= start;
     try {
         st->raw.resize(st->rawWrite + frames * 2);
-    } catch (...) {
+    }
+    catch (...) {
         st->error = true;
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     }
@@ -293,9 +324,7 @@ static void flacErrorCb(const FLAC__StreamDecoder*, FLAC__StreamDecoderErrorStat
     // Nach dem letzten Frame koennen abhangende Daten (z.B. ein ID3v1-Tag) als SYNC-Verlust
     // oder unlesbarer Frame gemeldet werden. Steht die Samplezahl fest und ist das Sample-
     // Ende schon ueberschritten, ist das unbeachtlich.
-    if (status == FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC ||
-        status == FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM)
-    {
+    if (status == FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC || status == FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM) {
         if (st->metaSamples > 0 && st->totalFrames >= st->metaSamples) return;
     }
     st->error = true;
@@ -324,8 +353,8 @@ static uint64_t FlacStreamStart(FileObject& file)
         memcpy(tag, head, 4);
         if (file.read(tag + 4, 6) != 6) return kNoStreamStart;
         if ((uint8_t)tag[3] < 2) return kNoStreamStart;
-        const uint32_t size = ((uint32_t)(uint8_t)tag[6] << 21) | ((uint32_t)(uint8_t)tag[7] << 14)
-                            | ((uint32_t)(uint8_t)tag[8] << 7) | (uint8_t)tag[9];
+        const uint32_t size =
+            ((uint32_t)(uint8_t)tag[6] << 21) | ((uint32_t)(uint8_t)tag[7] << 14) | ((uint32_t)(uint8_t)tag[8] << 7) | (uint8_t)tag[9];
         pos = 10 + size;
         if (pos + 4 > fsize) return kNoStreamStart;
         if (file.seek(pos, FileObject::SeekOrigin::SEEKSET) != pos) return kNoStreamStart;
@@ -335,21 +364,19 @@ static uint64_t FlacStreamStart(FileObject& file)
     return pos;
 }
 
-#endif  // HAVE_LIBFLAC
+#endif // HAVE_LIBFLAC
 
+// Der Konstruktor wirft nie, auch nicht ohne libFLAC: das Objekt ist dann guiltig, aber leer.
+// Erst die Methoden selbst melden eine fehlende Bibliothek mit UnsupportedFeatureException.
 AudioDecoder_Flac::AudioDecoder_Flac()
 {
-#ifndef HAVE_LIBFLAC
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
-#else
     state = nullptr;
     ff = nullptr;
     position = 0;
     encoding = FrameEncoding::NONE;
-    memset(&info, 0, sizeof(AudioInfo));
-#endif
 }
 
+// Der Destruktor wirft niemals: ohne libFLAC ist state immer NULL, der Rumpf ist wegdefiniert
 AudioDecoder_Flac::~AudioDecoder_Flac()
 {
 #ifdef HAVE_LIBFLAC
@@ -371,10 +398,11 @@ size_t AudioDecoder_Flac::getPosition() const
     return position;
 }
 
-
 void AudioDecoder_Flac::open(FileObject& file, const AudioInfo* given)
 {
-#ifdef HAVE_LIBFLAC
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
     if (ff != nullptr) close();
     AudioInfo local;
     const AudioInfo* src = given;
@@ -418,9 +446,8 @@ void AudioDecoder_Flac::open(FileObject& file, const AudioInfo* given)
     FLAC__stream_decoder_set_metadata_ignore_all(dec);
     FLAC__stream_decoder_set_metadata_respond(dec, FLAC__METADATA_TYPE_STREAMINFO);
 
-    const FLAC__StreamDecoderInitStatus init = FLAC__stream_decoder_init_stream(
-        dec, flacReadCb, flacSeekCb, flacTellCb, flacLengthCb, flacEofCb,
-        flacWriteCb, flacMetadataCb, flacErrorCb, st);
+    const FLAC__StreamDecoderInitStatus init = FLAC__stream_decoder_init_stream(dec, flacReadCb, flacSeekCb, flacTellCb, flacLengthCb,
+                                                                                flacEofCb, flacWriteCb, flacMetadataCb, flacErrorCb, st);
     if (init != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
         delete st;
         throw DecoderException("AudioDecoder_Flac: libFLAC-Initialisierung fehlgeschlagen");
@@ -462,14 +489,14 @@ void AudioDecoder_Flac::open(FileObject& file, const AudioInfo* given)
     position = 0;
     // Reservierung passend zum groessten Rahmen, damit der Write-Callback nicht wachsen muss
     state->raw.reserve((state->metaMaxBlocksize > 0 ? state->metaMaxBlocksize : 4096u) * 2);
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
 void AudioDecoder_Flac::close()
 {
-#ifdef HAVE_LIBFLAC
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
     if (ff == nullptr) return;
     if (state != nullptr) {
         ReleaseFlacDecoder(state->dec);
@@ -480,15 +507,15 @@ void AudioDecoder_Flac::close()
     ff = nullptr;
     position = 0;
     encoding = FrameEncoding::NONE;
-    memset(&info, 0, sizeof(AudioInfo));
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
+    info = AudioInfo();
 #endif
 }
 
 void AudioDecoder_Flac::seekSample(size_t sample)
 {
-#ifdef HAVE_LIBFLAC
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
     if (ff == nullptr || state == nullptr) return;
     // libFLAC kann nur springen, wenn die Samplezahl feststeht: dann bleibt der Strom am
     // Zielrahmen stehen. Sonst wird der Decoder neu initialisiert und bis zum Ziel
@@ -506,7 +533,7 @@ void AudioDecoder_Flac::seekSample(size_t sample)
     // nie an, weil weder atEnd noch error gesetzt wird
     state->ioError = false;
     state->seekTarget = kNoSeek;
-    state->totalFrames = 0;  // Unterdückungsregel in flacErrorCb() wieder scharf stellen
+    state->totalFrames = 0; // Unterdückungsregel in flacErrorCb() wieder scharf stellen
 
     if (info.Samples > 0) {
         state->seekTarget = sample;
@@ -540,14 +567,12 @@ void AudioDecoder_Flac::seekSample(size_t sample)
         const size_t chunk = (state->metaMaxBlocksize > 0) ? (size_t)state->metaMaxBlocksize : 4096u;
         const size_t distance = sample - position;
         const size_t avail = fillFrames(distance < chunk ? distance : chunk);
-        if (avail == 0) return;  // Dateiende: Position bleibt stehen
+        if (avail == 0) return; // Dateiende: Position bleibt stehen
         const size_t need = sample - position;
         const size_t skip = avail < need ? avail : need;
         state->rawRead += skip * 2;
         position += skip;
     }
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
@@ -560,14 +585,16 @@ void AudioDecoder_Flac::seekSample(size_t sample)
  */
 size_t AudioDecoder_Flac::fillFrames(size_t num)
 {
-#ifdef HAVE_LIBFLAC
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
     // Vollstaendig verbraichten Puffer vor dem Nachlesen zuruecksetzen, damit die
     // Schreibposition nicht mit der Zahl der bisher gelesenen Frames waechst.
     // Ein Aufrufer, der alles uebernommen hat, hinterliess rawRead == rawWrite.
     if (state->rawRead == state->rawWrite) {
         state->rawRead = 0;
         state->rawWrite = 0;
-        state->raw.clear();  // Kapazitaet bleibt erhalten, der Speicher wird wiedergenutzt
+        state->raw.clear(); // Kapazitaet bleibt erhalten, der Speicher wird wiedergenutzt
     }
     size_t avail = (state->rawWrite - state->rawRead) / 2;
     while (avail < num) {
@@ -577,28 +604,27 @@ size_t AudioDecoder_Flac::fillFrames(size_t num)
         // END_OF_STREAM stehen. Der Rueckgabewert kann die Schleife also nicht beenden,
         // sonst laeuft sie ohne Fortschritt weiter.
         switch (FLAC__stream_decoder_get_state(state->dec)) {
-            case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
-            case FLAC__STREAM_DECODER_READ_FRAME:
-                break;   // normaler Betrieb, es kann noch Rahmen bringen
-            case FLAC__STREAM_DECODER_END_OF_STREAM:
-            case FLAC__STREAM_DECODER_END_OF_LINK:
-                // Ein Abbruch im Dateizugriff laesst libFLAC ebenso "Streamende" melden
-                // wie eine abgeschnittene Datei. Nur der Dateifehler unterscheidet beides.
-                if (!state->ioError) state->atEnd = true;
-                break;
-            default:      // SEEK_ERROR, ABORTED, Speicherfehler, uninitialisiert
-                state->error = true;
-                break;
+        case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
+        case FLAC__STREAM_DECODER_READ_FRAME:
+            break; // normaler Betrieb, es kann noch Rahmen bringen
+        case FLAC__STREAM_DECODER_END_OF_STREAM:
+        case FLAC__STREAM_DECODER_END_OF_LINK:
+            // Ein Abbruch im Dateizugriff laesst libFLAC ebenso "Streamende" melden
+            // wie eine abgeschnittene Datei. Nur der Dateifehler unterscheidet beides.
+            if (!state->ioError) state->atEnd = true;
+            break;
+        default: // SEEK_ERROR, ABORTED, Speicherfehler, uninitialisiert
+            state->error = true;
+            break;
         }
         avail = (state->rawWrite - state->rawRead) / 2;
     }
     return avail;
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
-namespace {
+namespace
+{
 
 /** @brief Vollskala der unterstuetzten Quellformate (2^15, 2^23). Jede Bitbreite wird auf
  *         ihre eigene Vollskala normiert, damit beide im Float-Puffer den Bereich
@@ -607,7 +633,7 @@ namespace {
 constexpr float FULL_SCALE_16 = 32768.0f;
 constexpr float FULL_SCALE_24 = 8388608.0f;
 
-}  // namespace
+} // namespace
 
 /** @brief bereitet den naechsten Lesevorgang vor
  *
@@ -617,7 +643,9 @@ constexpr float FULL_SCALE_24 = 8388608.0f;
  */
 size_t AudioDecoder_Flac::prepareRead(size_t num, const void* buffer)
 {
-#ifdef HAVE_LIBFLAC
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
     if (ff == nullptr || state == nullptr) throw DecoderException("AudioDecoder_Flac: Decoder ist nicht geoeffnet");
     if (buffer == nullptr) throw DecoderException("AudioDecoder_Flac: buffer ist NULL");
     if (num == 0) return 0;
@@ -637,16 +665,16 @@ size_t AudioDecoder_Flac::prepareRead(size_t num, const void* buffer)
         return 0;
     }
     return avail < num ? avail : num;
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
 /** @brief zaehlt \p frames uebernommene Frames weiter und raeumt den Rohpuffer. */
 void AudioDecoder_Flac::claimFrames(size_t frames)
 {
-#ifdef HAVE_LIBFLAC
-    state->rawRead += frames * 2;   // zwei Kanal-Samples je Frame
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
+    state->rawRead += frames * 2; // zwei Kanal-Samples je Frame
     position += frames;
     if (state->rawRead == state->rawWrite) {
         // Nach dem letzten uebernommenen Frame zuruecksetzen, damit die Zeiger nicht mit
@@ -655,8 +683,6 @@ void AudioDecoder_Flac::claimFrames(size_t frames)
         state->rawWrite = 0;
         state->raw.clear();
     }
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
@@ -665,7 +691,9 @@ void AudioDecoder_Flac::claimFrames(size_t frames)
  */
 size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE16* buffer)
 {
-#ifdef HAVE_LIBFLAC
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
     const size_t got = prepareRead(num, buffer);
     if (got == 0) return 0;
 
@@ -692,8 +720,6 @@ size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE16* buffer)
     }
     claimFrames(got);
     return got;
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
@@ -702,7 +728,9 @@ size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE16* buffer)
  */
 size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
-#ifdef HAVE_LIBFLAC
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
     const size_t got = prepareRead(num, buffer);
     if (got == 0) return 0;
 
@@ -727,8 +755,6 @@ size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE32* buffer)
     }
     claimFrames(got);
     return got;
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
@@ -737,7 +763,9 @@ size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE32* buffer)
  */
 size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
-#ifdef HAVE_LIBFLAC
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
     const size_t got = prepareRead(num, buffer);
     if (got == 0) return 0;
 
@@ -762,15 +790,15 @@ size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
     }
     claimFrames(got);
     return got;
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
 /** @brief mixt normierte Float-Samples in den Float-Puffer. */
 size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 {
-#ifdef HAVE_LIBFLAC
+#ifndef HAVE_LIBFLAC
+    throw UnsupportedFeatureException("AudioDecoder_Flac");
+#else
     const size_t got = prepareRead(num, buffer);
     if (got == 0) return 0;
 
@@ -795,9 +823,7 @@ size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
     }
     claimFrames(got);
     return got;
-#else
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
 #endif
 }
 
-}  // namespace pplib
+} // namespace pplib
