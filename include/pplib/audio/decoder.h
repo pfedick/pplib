@@ -653,9 +653,11 @@ public:
  * 2 GiB nicht korrekt seekbar; die Signaturen sind durch die Bibliothek vorgegeben.
  *
  * @note Voraussetzung ist ein pplib-Build mit libvorbis (CMake-Option
- * `PPLIB_WITH_VORBIS`). Fehlt die Bibliothek, wirft der Konstruktor eine
- * `UnsupportedFeatureException`; `open()`, `close()` und `seekSample()` enthalten dann
- * keinen Code und die Lesemethoden geben 0 zurück.
+ * `PPLIB_WITH_VORBIS`). Fehlt die Bibliothek, ist das Objekt konstruierbar, aber leer:
+ * bis auf `getAudioInfo()` und `getPosition()` wirft jede Methode eine
+ * `UnsupportedFeatureException`; der Destruktor ruft `close()` dann nicht auf und bleibt
+ * wurffrei. `IdentAudioFile()` erkennt Ogg in diesem Modus nicht, `GetAudioDecoder()`
+ * erzeugt für Ogg-Dateien also von sich aus keinen Decoder.
  *
  * @note Das übergebene `FileObject` gehört dem Decoder exklusiv: Er liest direkt über das
  * Objekt und verändert dabei die Dateiposition. `GetAudioDecoder()` liefert einen bereits
@@ -693,11 +695,15 @@ public:
      * @exception UnsupportedAudioFormatException Datei ist kein Ogg-Vorbis-Stream, oder
      *   das Format wird nicht unterstützt (mehr als zwei Kanäle).
      * @exception OutOfMemoryException Der Handle oder der interne Puffer fehlt.
+     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
      */
     void open(FileObject& file, const AudioInfo* info = NULL) override;
 
     /** @brief Gibt den libvorbisfile-Handle und die internen Puffer frei, setzt
-     *         `position` auf 0 und ist aufrufbar, auch wenn nichts geöffnet ist. */
+     *         `position` auf 0 und ist aufrufbar, auch wenn nichts geöffnet ist.
+     *
+     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
+     */
     void close() override;
 
     const AudioInfo& getAudioInfo() const override;
@@ -706,6 +712,7 @@ public:
      *
      * @exception DecoderException Kein offener Decoder, oder \p sample liegt hinter dem
      *   Ende der ersten Kette.
+     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
      */
     void seekSample(size_t sample) override;
 
@@ -718,6 +725,7 @@ public:
      * entsprechen der Rundung, die libvorbisfile aus den Float-Werten des Dekoders bildet.
      *
      * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
+     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
      */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
 
@@ -728,6 +736,7 @@ public:
      *
      * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
      * @exception OutOfMemoryException Der Read-Puffer des Decoders reicht nicht.
+     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
      */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
 
@@ -738,6 +747,7 @@ public:
      * Rückgabewert sind Frames. Das Kettenende der ersten Kette begrenzt die Lieferung.
      *
      * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
+     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
      */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 
@@ -746,6 +756,7 @@ public:
      * Der Zielwert wird auf den Wertebereich von `STEREOSAMPLE_FLOAT` begrenzt.
      *
      * @exception DecoderException Kein offener Decoder, oder \p buffer ist NULL.
+     * @exception UnsupportedFeatureException pplib wurde ohne libvorbis gebaut.
      */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };
