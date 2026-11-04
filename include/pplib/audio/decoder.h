@@ -475,8 +475,10 @@ struct Mp3Data;
  * @exception DecoderException libmpg123 ist nicht verfügbar oder nicht initialisierbar.
  * @exception UnsupportedAudioFormatException kein MP3, keine 1-2 Kanaele, fehlender Audiodatenblock.
  *
- * Ohne libmpg123 (`HAVE_MPG123` undefiniert) sind alle Methoden vorhanden, werfen aber
- * `UnsupportedFeatureException`.
+ * Ohne libmpg123 (`HAVE_MPG123` undefiniert) ist das Objekt konstruierbar, aber leer:
+ * bis auf `getAudioInfo()` und `getPosition()` wirft jede Methode eine
+ * `UnsupportedFeatureException`; der Destruktor ruft `close()` dann nicht auf und bleibt
+ * wurffrei.
  */
 class AudioDecoder_MP3 : public AudioDecoder
 {
@@ -525,12 +527,15 @@ public:
      * @exception UnsupportedAudioFormatException \p file ist kein MP3, oder Kanalzahl,
      *            Abtastrate und Audiodatenblock passen nicht zueinander.
      * @exception DecoderException libmpg123 stellt kein Handle zur Verfuegung.
+     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
      */
     void open(FileObject& file, const AudioInfo* info = NULL) override;
 
     /** @brief Gibt dekodierte Samples und das libmpg123-Handle frei. Die Datei des
      *         Aufrufers bleibt offen. Mehrfaches `close()` ist erlaubt; anschliessend
      *         melden die Lesemethoden `DecoderException`, `open()` ist erneut moeglich.
+     *
+     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
      */
     void close() override;
 
@@ -539,6 +544,8 @@ public:
     /** @brief Springt framegenau zur Frameposition. libmpg123 sucht dafuer bytemaessig
      *         im Audiodatenblock und landet immer an einer Rahmenkante; Springe ueber
      *         das Ende der Audiodaten hinaus werden nicht begrenzt.
+     *
+     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
      */
     void seekSample(size_t sample) override;
 
@@ -551,6 +558,7 @@ public:
      * Puffer muss groß genug für die returnierte Anzahl sein; er wird nicht aufgefüllt.
      *
      * @exception DecoderException Vor `open()` oder nach `close()`.
+     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
      */
     size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
 
@@ -560,6 +568,7 @@ public:
      * unveraendert addiert.
      *
      * @exception DecoderException Vor `open()` oder nach `close()`.
+     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
      */
     size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
 
@@ -570,12 +579,14 @@ public:
      * (Mono/Stereo, Samplefrequenz) mitten im Stream wird beruecksichtigt.
      *
      * @exception DecoderException Vor `open()` oder nach `close()`.
+     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
      */
     size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 
     /** @brief Addiert Frames zu einem Puffer im Format STEREOSAMPLE_FLOAT.
      *
      * @exception DecoderException Vor `open()` oder nach `close()`.
+     * @exception UnsupportedFeatureException pplib wurde ohne libmpg123 gebaut.
      */
     size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
 };

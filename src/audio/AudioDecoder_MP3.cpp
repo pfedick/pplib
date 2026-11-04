@@ -183,8 +183,8 @@ AudioDecoder_MP3::AudioDecoder_MP3()
 
 AudioDecoder_MP3::~AudioDecoder_MP3()
 {
-    close();
 #ifdef HAVE_MPG123
+    close();
     if (mp3 != nullptr) {
         MPG123_GlobalMutex.lock();
         if (mpg123_instances) {
@@ -203,7 +203,9 @@ AudioDecoder_MP3::~AudioDecoder_MP3()
 
 void AudioDecoder_MP3::close()
 {
-#ifdef HAVE_MPG123
+#ifndef HAVE_MPG123
+    throw UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#else
     if (mp3 == nullptr) return;
     if (mp3->handle != nullptr) {
         mpg123_close(mp3->handle);
@@ -223,9 +225,9 @@ void AudioDecoder_MP3::close()
     mp3->encoding = MPG123_ENC_SIGNED_16;
     mp3->bufencoding = MPG123_ENC_SIGNED_16;
     mp3->eof = false;
-#endif
     position = 0;
     info = AudioInfo();
+#endif
 }
 
 const AudioInfo& AudioDecoder_MP3::getAudioInfo() const
