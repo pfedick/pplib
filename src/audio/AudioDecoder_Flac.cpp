@@ -393,7 +393,7 @@ const AudioInfo& AudioDecoder_Flac::getAudioInfo() const
     return info;
 }
 
-size_t AudioDecoder_Flac::getPosition() const
+size_t AudioDecoder_Flac::getPosition() const noexcept
 {
     return position;
 }
@@ -641,30 +641,18 @@ constexpr float FULL_SCALE_24 = 8388608.0f;
  *  Rueckgabewert von 0 bedeutet "nichts zu lesen". Die Pruefungen stehen hier und nicht in
  *  den vier Lesemethoden, weil sie fuer alle Zielformate voellig gleich sind.
  */
-size_t AudioDecoder_Flac::prepareRead(size_t num, const void* buffer)
+size_t AudioDecoder_Flac::prepareRead(size_t num, const void* buffer) noexcept
 {
 #ifndef HAVE_LIBFLAC
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
+    return 0;
 #else
-    if (ff == nullptr || state == nullptr) throw DecoderException("AudioDecoder_Flac: Decoder ist nicht geoeffnet");
-    if (buffer == nullptr) throw DecoderException("AudioDecoder_Flac: buffer ist NULL");
-    if (num == 0) return 0;
+    if (ff == nullptr || state == nullptr || buffer == nullptr || num == 0) return 0;
 
     // Ein FLAC-Rahmen liegt oft vollstaendig im Puffer; die Zahl bereiter Frames kann
     // ueber dem Wunsch liegen. Uebernommen wird nur, was der Aufrufer Platz hat.
     const size_t avail = fillFrames(num);
-    if (avail == 0) {
-        // Ein Bibliotheksfehler darf nicht wie Dateiende aussehen: ohne Fehlermeldung
-        // bekame der Aufrufer stillschweigend zu wenige Samples zurueck.
-        // Steht das Streamende fest, gilt jeder spaeter gemeldete Sync-Verlust als Dateiende:
-        // Anhaengsel nach dem letzten Rahmen (ID3v1-Tag, Restdaten) melden sich in libFLAC
-        // ebenso wie echter Datenverfall. Der Preis dieser Toleranz ist, dass ein erst nach
-        // dem regulaeren Ende gemeldeter Defekt nicht unterscheidbar ist; der Verbraucher
-        // erkennt ihn an der zu kleinen Rueckgabe, nicht an einer Exception.
-        if (state->error && !state->atEnd) throw DecoderException("AudioDecoder_Flac: Decode-Fehler");
-        return 0;
-    }
-    return avail < num ? avail : num;
+    if (avail == 0) return 0;
+    return std::min(avail, num);
 #endif
 }
 
@@ -689,10 +677,10 @@ void AudioDecoder_Flac::claimFrames(size_t frames)
 /** @brief liefert 16-Bit-Samples: Quelle 16 Bit unveraendert, Quelle 24 Bit auf die
  *         16-Bit-Ebene geschoben.
  */
-size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE16* buffer)
+size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE16* buffer) noexcept
 {
 #ifndef HAVE_LIBFLAC
-    throw UnsupportedFeatureException("AudioDecoder_Flac");
+    return 0;
 #else
     const size_t got = prepareRead(num, buffer);
     if (got == 0) return 0;
@@ -726,7 +714,7 @@ size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE16* buffer)
 /** @brief mixt Samples in den 32-Bit-Mixpuffer: Werte bleiben durchgehend auf der
  *         16-Bit-Ebene, unabhaengig von der Bitbreite der Quelle.
  */
-size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE32* buffer)
+size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE32* buffer) noexcept
 {
 #ifndef HAVE_LIBFLAC
     throw UnsupportedFeatureException("AudioDecoder_Flac");
@@ -761,7 +749,7 @@ size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE32* buffer)
 /** @brief liefert normierte Float-Samples: jede Quellbitbreite wird auf ihre eigene
  *         Vollskala geteilt.
  */
-size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
+size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept
 {
 #ifndef HAVE_LIBFLAC
     throw UnsupportedFeatureException("AudioDecoder_Flac");
@@ -794,7 +782,7 @@ size_t AudioDecoder_Flac::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 }
 
 /** @brief mixt normierte Float-Samples in den Float-Puffer. */
-size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
+size_t AudioDecoder_Flac::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept
 {
 #ifndef HAVE_LIBFLAC
     throw UnsupportedFeatureException("AudioDecoder_Flac");

@@ -257,8 +257,6 @@ AudioDecoder_Ogg::AudioDecoder_Ogg()
     // Lese- und Seek-Funktionen werfen in diesem Zustand eine DecoderException.
     private_data = NULL;
     position = 0;
-    readbuffer = NULL;
-    buffersize = 0;
     decodebuffer_size = 0;
     decodebuffer = NULL;
 }
@@ -268,16 +266,6 @@ AudioDecoder_Ogg::~AudioDecoder_Ogg()
 #ifdef HAVE_LIBVORBIS
     close();
 #endif
-}
-
-void AudioDecoder_Ogg::allocateBuffer(size_t size)
-{
-    if (size != buffersize) {
-        free(readbuffer);
-        readbuffer = (char*)malloc(size);
-        if (!readbuffer) throw OutOfMemoryException();
-        buffersize = size;
-    }
 }
 
 void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
@@ -344,11 +332,6 @@ void AudioDecoder_Ogg::close()
         free(private_data);
         private_data = NULL;
     }
-    if (readbuffer) {
-        free(readbuffer);
-        readbuffer = NULL;
-        buffersize = 0;
-    }
     position = 0;
 #endif
 }
@@ -378,18 +361,17 @@ void AudioDecoder_Ogg::seekSample(size_t sample)
 #endif
 }
 
-size_t AudioDecoder_Ogg::getPosition() const
+size_t AudioDecoder_Ogg::getPosition() const noexcept
 {
     return position;
 }
 
-size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
+size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer) noexcept
 {
 #ifndef HAVE_LIBVORBIS
-    throw UnsupportedFeatureException("AudioDecoder_Ogg");
+    return 0;
 #else
-    if (private_data == NULL) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet");
-    if (buffer == NULL) throw DecoderException("AudioDecoder_Ogg: buffer ist NULL");
+    if (private_data == nullptr || buffer == nullptr) return 0;
     OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
     const size_t limit = (size_t)oggp->firstChainFrames;
     if (position >= limit) return 0;
@@ -408,7 +390,7 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
         // Rest, die gelieferte Bytezahl bleibt also oft unter der Anfrage. Abbruch nur am
         // Dateiende (Rueckgabewert 0); ein Rest unter einem Frame kann nicht uebernommen werden.
         long bytes_read = ov_read(&oggp->vf, decodebuffer, (int)(frames * framebytes), 0, 2, 1, &bitstream);
-        if (bytes_read < 0) throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
+        if (bytes_read < 0) return 0;
         if (bytes_read == 0) break; // Dateiende
         const pplib::SAMPLE16* src = (const pplib::SAMPLE16*)decodebuffer;
         size_t got = (size_t)bytes_read / framebytes;
@@ -431,37 +413,56 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
 #endif
 }
 
-size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE32* buffer)
+size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE32* buffer) noexcept
 {
 #ifndef HAVE_LIBVORBIS
-    throw UnsupportedFeatureException("AudioDecoder_Ogg");
+    return 0;
 #else
-    if (private_data == NULL) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet");
-    if (buffer == NULL) throw DecoderException("AudioDecoder_Ogg: buffer ist NULL");
+    if (private_data == nullptr || buffer == nullptr) return 0;
     OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
     const size_t limit = (size_t)oggp->firstChainFrames;
     if (position >= limit) return 0;
     size_t want = num;
     if (want > limit - position) want = limit - position;
-    allocateBuffer(4 * want);
-    size_t real_num = getSamples(want, (STEREOSAMPLE16*)readbuffer);
-    for (size_t i = 0; i < real_num; i++) {
-        buffer[i].left += ((STEREOSAMPLE16*)readbuffer)[i].left;
-        buffer[i].right += ((STEREOSAMPLE16*)readbuffer)[i].right;
-    }
 
-    return real_num;
+    const size_t channels = info.Channels; // open() garantiert 1 oder 2 Kanaele
+    const size_t framebytes = channels * 2;
+    const size_t maxframes = (size_t)decodebuffer_size / framebytes;
+    size_t total = 0;
+    int bitstream = 0;
+    while (total < want) {
+        size_t frames = want - total;
+        if (frames > maxframes) frames = maxframes;
+        long bytes_read = ov_read(&oggp->vf, decodebuffer, (int)(frames * framebytes), 0, 2, 1, &bitstream);
+        if (bytes_read < 0) return 0;
+        if (bytes_read == 0) break; // Dateiende
+        const pplib::SAMPLE16* src = (const pplib::SAMPLE16*)decodebuffer;
+        size_t got = (size_t)bytes_read / framebytes;
+        if (got == 0) break;
+        if (channels == 2) {
+            for (size_t i = 0; i < got; i++) {
+                buffer[total + i].left += src[i * 2];
+                buffer[total + i].right += src[i * 2 + 1];
+            }
+        } else {
+            for (size_t i = 0; i < got; i++) {
+                buffer[total + i].left += src[i];
+                buffer[total + i].right += src[i];
+            }
+        }
+        total += got;
+    }
+    position += total;
+    return total;
 #endif
 }
 
-size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
+size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept
 {
 #ifndef HAVE_LIBVORBIS
-    throw UnsupportedFeatureException("AudioDecoder_Ogg");
+    return 0;
 #else
-
-    if (private_data == NULL) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet");
-    if (buffer == NULL) throw DecoderException("AudioDecoder_Ogg: buffer ist NULL");
+    if (private_data == nullptr || buffer == nullptr) return 0;
     OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
     const size_t limit = (size_t)oggp->firstChainFrames;
     if (position >= limit) return 0;
@@ -479,7 +480,7 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
         // einen Decode-Block. Nicht abgenommene Frames eines Blocks verwirft libvorbisfile,
         // darum wird nie mehr angefordert als in diesem Aufruf auch ubernommen wird.
         long got = ov_read_float(&oggp->vf, &pcm, (int)frames, &bitstream);
-        if (got < 0) throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)got);
+        if (got < 0) return 0;
         // Rueckgabe 0 ist Dateiende; ohne Sample-Zeiger kann nichts ubernommen werden.
         if (got == 0 || pcm == NULL) break;
         const long n = (got > (long)frames) ? (long)frames : got;
@@ -502,13 +503,12 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 #endif
 }
 
-size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
+size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept
 {
 #ifndef HAVE_LIBVORBIS
-    throw UnsupportedFeatureException("AudioDecoder_Ogg");
+    return 0;
 #else
-    if (private_data == NULL) throw DecoderException("AudioDecoder_Ogg: Decoder ist nicht geoeffnet");
-    if (buffer == NULL) throw DecoderException("AudioDecoder_Ogg: buffer ist NULL");
+    if (private_data == nullptr || buffer == nullptr) return 0;
     OggVorbisPrivateData* oggp = static_cast<OggVorbisPrivateData*>(private_data);
     const size_t limit = (size_t)oggp->firstChainFrames;
     if (position >= limit) return 0;
@@ -525,7 +525,7 @@ size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
         // Limit und Rueckgabewert von ov_read_float zaehlen in Frames; ungenutzte Frames
         // eines Blocks gehen verloren, darum wird nie mehr angefordert als uebernommen wird.
         long got = ov_read_float(&oggp->vf, &pcm, (int)frames, &bitstream);
-        if (got < 0) throw DecoderException("AudioDecoder_Ogg::addSamples: %d", (int)got);
+        if (got < 0) return 0;
         // Rueckgabe 0 ist Dateiende; ohne Sample-Zeiger kann nichts ubernommen werden.
         if (got == 0 || pcm == NULL) break;
         const long n = (got > (long)frames) ? (long)frames : got;

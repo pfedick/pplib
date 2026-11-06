@@ -252,10 +252,10 @@ TEST_F(AudioDecoderOggTest, AllReadPathsThrowAfterClose)
     ASSERT_EQ((size_t)8, dec.getSamples(8, s16));
     dec.close();
 
-    EXPECT_THROW(dec.getSamples(8, s16), pplib::DecoderException);
-    EXPECT_THROW(dec.addSamples(8, s32), pplib::DecoderException);
-    EXPECT_THROW(dec.getSamples(8, sflt), pplib::DecoderException);
-    EXPECT_THROW(dec.addSamples(8, sflt), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, dec.getSamples(8, s16));
+    EXPECT_EQ((size_t)0, dec.addSamples(8, s32));
+    EXPECT_EQ((size_t)0, dec.getSamples(8, sflt));
+    EXPECT_EQ((size_t)0, dec.addSamples(8, sflt));
 }
 
 TEST_F(AudioDecoderOggTest, SeekAfterCloseThrowsDecoderException)
@@ -274,10 +274,10 @@ TEST_F(AudioDecoderOggTest, AllReadPathsThrowBeforeOpen)
     pplib::STEREOSAMPLE32 s32[8] = {};
     pplib::STEREOSAMPLE_FLOAT sflt[8] = {};
 
-    EXPECT_THROW(dec.getSamples(8, s16), pplib::DecoderException);
-    EXPECT_THROW(dec.addSamples(8, s32), pplib::DecoderException);
-    EXPECT_THROW(dec.getSamples(8, sflt), pplib::DecoderException);
-    EXPECT_THROW(dec.addSamples(8, sflt), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, dec.getSamples(8, s16));
+    EXPECT_EQ((size_t)0, dec.addSamples(8, s32));
+    EXPECT_EQ((size_t)0, dec.getSamples(8, sflt));
+    EXPECT_EQ((size_t)0, dec.addSamples(8, sflt));
     EXPECT_THROW(dec.seekSample(8), pplib::DecoderException);
     EXPECT_EQ((size_t)0, dec.getPosition());
 }
@@ -620,7 +620,7 @@ TEST_F(AudioDecoderOggTest, MultichannelFileIsIdentifiedButNotOpened)
     EXPECT_THROW(dec.open(file), pplib::UnsupportedAudioFormatException);
     EXPECT_THROW(dec.seekSample(0), pplib::DecoderException);
     pplib::STEREOSAMPLE16 buf[8];
-    EXPECT_THROW(dec.getSamples(8, buf), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, dec.getSamples(8, buf));
 
     // Die Factory faengt die Ablehnung ab und liefert kein halbfertiges Objekt
     pplib::AudioDecoder* auto_dec = pplib::GetAudioDecoder(file);
@@ -719,10 +719,10 @@ TEST_F(AudioDecoderOggTest, NullBufferIsRejectedByEveryReadPath)
     pplib::AudioDecoder_Ogg dec;
     Open(file, dec, "test_44kHz.ogg");
 
-    EXPECT_THROW(dec.getSamples(8, (pplib::STEREOSAMPLE16*)NULL), pplib::DecoderException);
-    EXPECT_THROW(dec.addSamples(8, (pplib::STEREOSAMPLE32*)NULL), pplib::DecoderException);
-    EXPECT_THROW(dec.getSamples(8, (pplib::STEREOSAMPLE_FLOAT*)NULL), pplib::DecoderException);
-    EXPECT_THROW(dec.addSamples(8, (pplib::STEREOSAMPLE_FLOAT*)NULL), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, dec.getSamples(8, (pplib::STEREOSAMPLE16*)NULL));
+    EXPECT_EQ((size_t)0, dec.addSamples(8, (pplib::STEREOSAMPLE32*)NULL));
+    EXPECT_EQ((size_t)0, dec.getSamples(8, (pplib::STEREOSAMPLE_FLOAT*)NULL));
+    EXPECT_EQ((size_t)0, dec.addSamples(8, (pplib::STEREOSAMPLE_FLOAT*)NULL));
     EXPECT_NO_THROW(dec.close());
 }
 
@@ -789,7 +789,7 @@ TEST_F(AudioDecoderOggTest, OpenRejectsFileWithoutOggVorbisStream)
 
     // Nach der Ablehnung besteht derselbe Zustand wie vor jedem open()
     pplib::STEREOSAMPLE16 buf[8];
-    EXPECT_THROW(dec.getSamples(8, buf), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, dec.getSamples(8, buf));
     EXPECT_NO_THROW(dec.close());
     EXPECT_NO_THROW(dec.close());
 

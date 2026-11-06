@@ -927,8 +927,8 @@ TEST_F(AudioDecoderFlacTest, CorruptAudioMaterialStopsWithoutHanging)
     DecodeAll16(ref, good);
     ASSERT_EQ((size_t)173695, good.size());
 
-    // Bis zum Fehler wird geliefert, ab dem Fehler werfen die Lesemethoden
-    EXPECT_THROW(DecodeAll16(dec, corrupt), pplib::DecoderException);
+    // Bis zum Fehler wird geliefert, ab dem Fehler liefert der Decoder 0
+    DecodeAll16(dec, corrupt);
     // Bis zur zerstoerten Stelle dekodiert der Decoder weiter. Die zerstoerten Frames fehlen in
     // der Kette, deshalb ist die Gesamtzahl kleiner als im unbeschaedigten Material.
     EXPECT_EQ((size_t)77824, corrupt.size());
@@ -937,7 +937,7 @@ TEST_F(AudioDecoderFlacTest, CorruptAudioMaterialStopsWithoutHanging)
         ASSERT_EQ(good[i].right, corrupt[i].right) << "Frame " << i;
     }
     pplib::STEREOSAMPLE16 buf[8];
-    EXPECT_THROW(dec.getSamples(8, buf), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, dec.getSamples(8, buf));
     // Ein Sprung hebt den Fehler auf, danach dekodiert der Decoder wieder
     dec.seekSample(100);
     ASSERT_EQ((size_t)8, dec.getSamples(8, buf));
@@ -965,24 +965,17 @@ TEST_F(AudioDecoderFlacTest, ClosedFileAbortsDecodingAtTheCallbacks)
     file.close();
 
     // Der Eingabepuffer von libFLAC haelt noch einige Bloecke: spaetestens nach dem
-    // Nachfuellen aus der Datei muss der Abbruch als DecoderException ankommen
+    // Nachfuellen aus der Datei stoppt das Lesen und liefert 0
     size_t after = 0;
-    bool thrown = false;
-    try {
-        size_t got;
-        while (!thrown && after < 150000 && (got = dec.getSamples(1024, buf)) > 0) {
-            after += got;
-        }
+    size_t got;
+    while (after < 150000 && (got = dec.getSamples(1024, buf)) > 0) {
+        after += got;
     }
-    catch (const pplib::DecoderException&) {
-        thrown = true;
-    }
-    EXPECT_TRUE(thrown) << "keine DecoderException, nach dem Schliessen " << after << " Frames gelesen";
     EXPECT_LT(after, (size_t)20000);
 
-    // Ein Sprung ueber die geschlossene Datei wirft nicht, die naechste Leseranfrage schon
+    // Ein Sprung ueber die geschlossene Datei liefert bei der naechsten Leseanfrage 0
     dec.seekSample(100000);
-    EXPECT_THROW(dec.getSamples(64, buf), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, dec.getSamples(64, buf));
     dec.close();
 }
 
@@ -1004,20 +997,13 @@ TEST_F(AudioDecoderFlacTest, SeekAfterReopeningTheFileStillDetectsTheEnd)
     size_t got = 0;
     file.close();
     // Der Lese-Callback von libFLAC holt Portionsgroessen aus der Datei: erst wenn der
-    // interne Eingabepuffer leer ist, erreicht der Dateifehler die Lesemethode
-    bool thrown = false;
-    try {
-        got = 0;
-        while (!thrown && got < 40000) {
-            const size_t n = dec.getSamples(1024, buf);
-            if (n == 0) break;
-            got += n;
-        }
+    // interne Eingabepuffer leer ist, stoppt das Lesen und liefert 0
+    while (got < 40000) {
+        const size_t n = dec.getSamples(1024, buf);
+        if (n == 0) break;
+        got += n;
     }
-    catch (const pplib::DecoderException&) {
-        thrown = true;
-    }
-    ASSERT_TRUE(thrown) << "geschlossene Datei fuehrt nicht zur DecoderException, gelesen: " << got;
+    EXPECT_LT(got, (size_t)20000);
 
     // Dieselbe FileObject-Instanz wieder oeffnen: damit gelingt der naechste Sprung
     ASSERT_NO_THROW(file.open(path.c_str()));
@@ -1062,7 +1048,7 @@ TEST_F(AudioDecoderFlacTest, SecondPassOverCorruptMaterialIsJudgedAlike)
     // uebersteigt: ab dann wirke die Unterdriickung auch bei echtem Datenfehler
     for (int pass = 1; pass <= 3; pass++) {
         std::vector<pplib::STEREOSAMPLE16> out;
-        EXPECT_THROW(DecodeAll16(dec, out), pplib::DecoderException) << "Durchlauf " << pass;
+        DecodeAll16(dec, out);
         EXPECT_GT(out.size(), (size_t)4000) << "Durchlauf " << pass;
         EXPECT_LT(out.size(), good.size()) << "Durchlauf " << pass;
         if (pass == 1) {
@@ -1096,9 +1082,9 @@ TEST_F(AudioDecoderFlacTest, CloseInvalidatesInfoAndRejectsFurtherReads)
     pplib::STEREOSAMPLE16 buf[8];
     pplib::STEREOSAMPLE32 ibuf[8];
     pplib::STEREOSAMPLE_FLOAT fbuf[8];
-    EXPECT_THROW(dec.getSamples(8, buf), pplib::DecoderException);
-    EXPECT_THROW(dec.addSamples(8, ibuf), pplib::DecoderException);
-    EXPECT_THROW(dec.getSamples(8, fbuf), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, dec.getSamples(8, buf));
+    EXPECT_EQ((size_t)0, dec.addSamples(8, ibuf));
+    EXPECT_EQ((size_t)0, dec.getSamples(8, fbuf));
     // Ein Sprung auf dem geschlossenen Decoder ist wirkungslos, wirft aber nicht
     dec.seekSample(10);
     EXPECT_EQ((size_t)0, dec.getPosition());
@@ -1289,16 +1275,16 @@ TEST_F(AudioDecoderFlacStubTest, SeekSampleThrowsWithoutFlac)
     EXPECT_THROW(dec.seekSample(0), pplib::UnsupportedFeatureException);
 }
 
-TEST_F(AudioDecoderFlacStubTest, ReaderMethodsThrowWithoutFlac)
+TEST_F(AudioDecoderFlacStubTest, ReaderMethodsReturnZeroWithoutFlac)
 {
     pplib::AudioDecoder_Flac dec;
     pplib::STEREOSAMPLE16 buf16[kStubFrames];
     pplib::STEREOSAMPLE32 buf32[kStubFrames];
     pplib::STEREOSAMPLE_FLOAT bufFloat[kStubFrames];
-    EXPECT_THROW(dec.getSamples(kStubFrames, buf16), pplib::UnsupportedFeatureException);
-    EXPECT_THROW(dec.addSamples(kStubFrames, buf32), pplib::UnsupportedFeatureException);
-    EXPECT_THROW(dec.getSamples(kStubFrames, bufFloat), pplib::UnsupportedFeatureException);
-    EXPECT_THROW(dec.addSamples(kStubFrames, bufFloat), pplib::UnsupportedFeatureException);
+    EXPECT_EQ((size_t)0, dec.getSamples(kStubFrames, buf16));
+    EXPECT_EQ((size_t)0, dec.addSamples(kStubFrames, buf32));
+    EXPECT_EQ((size_t)0, dec.getSamples(kStubFrames, bufFloat));
+    EXPECT_EQ((size_t)0, dec.addSamples(kStubFrames, bufFloat));
 }
 
 TEST_F(AudioDecoderFlacStubTest, FactoryReturnsNullForFlacFile)

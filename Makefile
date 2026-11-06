@@ -69,7 +69,7 @@ build_tests:
 	cmake --build build/debug -j --target test_core test_crypto test_all
 
 test: build_tests
-	cd tests && ../build/debug/tests/test_all$(EXE) --gtest_color=yes
+	cd tests && ../build/debug/tests/test_all$(EXE) --gtest_color=yes $(TEST_ARGS)
 
 # Build & Lauf der Tests mit Address- und Undefined-Behaviour-Sanitizer.
 # Eigener Build-Ordner build/asan, damit der normale Debug-Build unangetastet bleibt.

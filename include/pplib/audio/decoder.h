@@ -135,7 +135,7 @@ public:
      *
      * @return Die aktuelle Sample-Position im Audio-Stream. Ist 0, wenn keine Audiodatei geöffnet ist oder der Stream am Anfang steht.
      */
-    virtual size_t getPosition() const = 0;
+    virtual size_t getPosition() const noexcept = 0;
 
     /** @brief Liest Samples in einen Puffer im Format STEREOSAMPLE16 ein.
      *
@@ -148,14 +148,9 @@ public:
      *
      * @param num Die Anzahl der zu lesenden Samples.
      * @param buffer Zeiger auf den Puffer, in den die Samples geschrieben werden sollen.
-     * @return Die tatsächlich gelesene Anzahl an Samples. Das Ende des Audiodatenbereichs
-     *   liefert 0, ohne eine Exception zu werfen.
-     * @exception DecoderException wird geworfen, wenn ein Fehler beim Lesen der Samples auftritt, oder
-     * der Decoder keine Audiodatei geöffnet hat.
-     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
-     * @exception OutOfMemoryException Wenn interne Puffer des Decoders nicht reserviert werden können.
+     * @return Die tatsächlich gelesene Anzahl an Samples. 0, wenn keine Samples mehr verfügbar waren, oder ein Fehler aufgetreten ist.
      */
-    virtual size_t getSamples(size_t num, STEREOSAMPLE16* buffer) = 0;
+    virtual size_t getSamples(size_t num, STEREOSAMPLE16* buffer) noexcept = 0;
 
     /** @brief Addiert Audio-Samples aus dem File zum gegebenen Puffer.
      *
@@ -169,13 +164,9 @@ public:
      *
      * @param num Die Anzahl der zu addierenden Samples.
      * @param buffer Zeiger auf den Puffer, zu dem die Samples addiert werden sollen.
-     * @return Die tatsächlich addierte Anzahl an Samples.
-     * @exception DecoderException wird geworfen, wenn ein Fehler beim Lesen der Samples auftritt, oder
-     * der Decoder keine Audiodatei geöffnet hat.
-     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
-     * @exception OutOfMemoryException Wenn interne Puffer des Decoders nicht reserviert werden können.
+     * @return Die tatsächlich addierte Anzahl an Samples. 0, wenn keine Samples mehr verfügbar waren, oder ein Fehler aufgetreten ist.
      */
-    virtual size_t addSamples(size_t num, STEREOSAMPLE32* buffer) = 0;
+    virtual size_t addSamples(size_t num, STEREOSAMPLE32* buffer) noexcept = 0;
 
     /** @brief Liest Samples in einen Puffer im Format STEREOSAMPLE_FLOAT ein.
      *
@@ -185,13 +176,9 @@ public:
      *
      * @param num Die Anzahl der zu lesenden Samples.
      * @param buffer Zeiger auf den Puffer, in den die Samples geschrieben werden sollen.
-     * @return Die tatsächlich gelesene Anzahl an Samples.
-     * @exception DecoderException wird geworfen, wenn ein Fehler beim Lesen der Samples auftritt, oder
-     * der Decoder keine Audiodatei geöffnet hat.
-     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
-     * @exception OutOfMemoryException Wenn interne Puffer des Decoders nicht reserviert werden können.
+     * @return Die tatsächlich gelesene Anzahl an Samples. 0, wenn keine Samples mehr verfügbar waren, oder ein Fehler aufgetreten ist.
      */
-    virtual size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) = 0;
+    virtual size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept = 0;
 
     /** @brief Addiert Samples zum gegebenen Puffer im Format STEREOSAMPLE_FLOAT.
      *
@@ -204,13 +191,9 @@ public:
      *
      * @param num Die Anzahl der zu addierenden Samples.
      * @param buffer Zeiger auf den Puffer, zu dem die Samples addiert werden sollen.
-     * @return Die tatsächlich addierte Anzahl an Samples.
-     * @exception DecoderException wird geworfen, wenn ein Fehler beim Lesen der Samples auftritt, oder
-     * der Decoder keine Audiodatei geöffnet hat.
-     * @exception UnsupportedFeatureException Eine für einen spezifischen Dekoder benötigte third party library ist nicht verfügbar/einkompiliert.
-     * @exception OutOfMemoryException Wenn interne Puffer des Decoders nicht reserviert werden können.
+     * @return Die tatsächlich addierte Anzahl an Samples. 0, wenn keine Samples mehr verfügbar waren, oder ein Fehler aufgetreten ist.
      */
-    virtual size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) = 0;
+    virtual size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept = 0;
 };
 
 /** @ingroup PPLGroupSound
@@ -276,11 +259,10 @@ private:
     FrameEncoding encoding;
 
     /** @brief Begrenzt die angeforderte Samplezahl und liefert den Dateiversatz des
-     *         ersten Frames. Rueckgabewert 0 bedeutet "nichts zu lesen".
-     *
-     * @exception DecoderException Kein offener Dateihandle oder \p buffer ist NULL.
+     *         ersten Frames. Rueckgabewert 0 bedeutet "nichts zu lesen" oder Fehler,
+     *         zum Beispiel wenn die Datei nicht geöffnet ist.
      */
-    size_t prepareRead(size_t num, const void* buffer, uint64_t& offset) const;
+    size_t prepareRead(size_t num, const void* buffer, uint64_t& offset) const noexcept;
 
 public:
     AudioDecoder_Wave();
@@ -294,15 +276,15 @@ public:
 
     void seekSample(size_t sample) override;
 
-    size_t getPosition() const override;
+    size_t getPosition() const noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 };
 
 /** @class AudioDecoder_Aiff
@@ -349,11 +331,10 @@ private:
     FrameEncoding encoding;
 
     /** @brief Begrenzt die angeforderte Samplezahl und liefert den Dateiversatz des
-     *         ersten Frames. Rueckgabewert 0 bedeutet "nichts zu lesen".
-     *
-     * @exception DecoderException Kein offener Dateihandle oder \p buffer ist NULL.
+     *         ersten Frames. Rueckgabewert 0 bedeutet "nichts zu lesen" oder Fehler,
+     *         zum Beispiel wenn die Datei nicht geöffnet ist.
      */
-    size_t prepareRead(size_t num, const void* buffer, uint64_t& offset) const;
+    size_t prepareRead(size_t num, const void* buffer, uint64_t& offset) const noexcept;
 
 public:
     AudioDecoder_Aiff();
@@ -367,15 +348,15 @@ public:
 
     void seekSample(size_t sample) override;
 
-    size_t getPosition() const override;
+    size_t getPosition() const noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 };
 
 struct Mp3Data;
@@ -422,19 +403,6 @@ private:
      *         erhalten und werden bei der naechsten Uebertragung umgerechnet.
      */
     void setTargetEncoding(int encoding);
-    /** @brief öffnet die Spur über libmpg123 erneut, damit sie in der eingestellten
-     *         Kodierung dekodiert, und sucht auf \p resume zurück.
-     *
-     * @note Nur aufrufen, wenn der interne Puffer leer ist; der Rückwärtssuchlauf ist
-     *       der einzige Preis des Wechsels.
-     */
-    void switchEncoding(size_t resume);
-    /** @brief Holt bis zu \p num Frames (zu je zwei Werten) aus dem Ausgangspuffer in
-     *         \p dest; die Elementgroesse ergibt sich aus der eingestellten Kodierung.
-     *         Stehen im Puffer noch Samples der vorherigen Kodierung, werden sie
-     *         umgerechnet; bei Mono werden beide Kanäle gefüllt.
-     */
-    size_t transferFrames(size_t num, void* dest);
 
 public:
     /** @brief Konstruktor für den MP3-Decoder.
@@ -453,15 +421,15 @@ public:
 
     void seekSample(size_t sample) override;
 
-    size_t getPosition() const override;
+    size_t getPosition() const noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 };
 
 /** @class AudioDecoder_Ogg
@@ -507,13 +475,9 @@ private:
     void* private_data; //!< libvorbisfile-Handle; NULL, solange nicht geöffnet ist
     size_t position;    //!< nächste zu lesende Position in Frames (nicht Kanal-Samples)
 
-    char* readbuffer;      //!< Zwischenpuffer der 16-Bit-Pfade
-    size_t buffersize;     //!< Größe von `readbuffer` in Byte
     char* decodebuffer;    //!< reservierter Vorrat für die Callback-Funktionen
     int decodebuffer_size; //!< Größe von `decodebuffer` in Byte
     AudioInfo info;
-
-    void allocateBuffer(size_t size);
 
 public:
     AudioDecoder_Ogg();
@@ -527,15 +491,15 @@ public:
 
     void seekSample(size_t sample) override;
 
-    size_t getPosition() const override;
+    size_t getPosition() const noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 };
 
 //! libFLAC-Handle, Datenbasis und Rohsamples; vollstaendig in AudioDecoder_Flac.cpp definiert
@@ -604,12 +568,9 @@ private:
 
     /** @brief bereitet den naechsten Lesevorgang vor: prueft Voraussetzungen und stellt
      *         hochstens \p num Frames im Rohpuffer bereit. Ein Rueckgabewert von 0 bedeutet
-     *         "nichts zu lesen". Die Pruefungen stehen hier und nicht in den vier
-     *         Lesemethoden, weil sie fuer alle Zielformate voellig gleich sind.
-     *
-     *  @exception DecoderException Kein offener Decoder, \p buffer ist NULL oder die
-     *          Audiodaten sind vor dem Ziel defekt. */
-    size_t prepareRead(size_t num, const void* buffer);
+     *         "nichts zu lesen" oder ein Fehler ist aufgetreten.
+     */
+    size_t prepareRead(size_t num, const void* buffer) noexcept;
 
     /** @brief Zaehlt \p frames uebernommene Frames weiter und raeumt den verbrauchten
      *         Teil des Rohpuffers zurueck. */
@@ -627,15 +588,15 @@ public:
 
     void seekSample(size_t sample) override;
 
-    size_t getPosition() const override;
+    size_t getPosition() const noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE16* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE32* buffer) noexcept override;
 
-    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 
-    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) override;
+    size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept override;
 };
 
 } // namespace pplib

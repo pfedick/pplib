@@ -83,20 +83,18 @@ void AudioDecoder_Wave::open(FileObject& file, const AudioInfo* audioinfo)
         throw UnsupportedAudioFormatException("BytesPerSample does not match BitsPerSample and Channels");
 
     switch (this->info.BitsPerSample) {
-        case 32:
-            encoding = (this->info.SampleType == AudioInfo::SampleEncoding::FLOAT)
-                           ? FrameEncoding::FLOAT32
-                           : FrameEncoding::INT32;
-            break;
-        case 24:
-            encoding = FrameEncoding::INT24;
-            break;
-        case 16:
-            encoding = FrameEncoding::INT16;
-            break;
-        default:
-            // 8 Bit, 20 Bit in 3 Bytes und alles darueber hinaus wird nicht dekodiert
-            throw UnsupportedAudioFormatException("BitsPerSample is not 16, 24 or 32");
+    case 32:
+        encoding = (this->info.SampleType == AudioInfo::SampleEncoding::FLOAT) ? FrameEncoding::FLOAT32 : FrameEncoding::INT32;
+        break;
+    case 24:
+        encoding = FrameEncoding::INT24;
+        break;
+    case 16:
+        encoding = FrameEncoding::INT16;
+        break;
+    default:
+        // 8 Bit, 20 Bit in 3 Bytes und alles darueber hinaus wird nicht dekodiert
+        throw UnsupportedAudioFormatException("BitsPerSample is not 16, 24 or 32");
     }
     this->bytesPerChannel = chanBytes;
 
@@ -132,7 +130,8 @@ void AudioDecoder_Wave::seekSample(size_t sample)
         position = info.Samples;
 }
 
-namespace {
+namespace
+{
 
 /// @brief extendiert eine 24 Bit Zweierkomplementzahl auf 32 Bit
 inline int32_t SignExtend24(uint32_t v)
@@ -161,7 +160,7 @@ inline int32_t ScaleFloatToSample16(float v)
     return (int32_t)v;
 }
 
-}  // namespace
+} // namespace
 
 /** @brief bereitet den nächsten Lesevorgang vor
  *
@@ -170,42 +169,42 @@ inline int32_t ScaleFloatToSample16(float v)
  * "nichts zu lesen". Die Prüfungen stehen hier und nicht in den vier Lesemethoden,
  * weil sie für alle Zielformate völlig gleich sind.
  */
-size_t AudioDecoder_Wave::prepareRead(size_t num, const void* buffer, uint64_t& offset) const
+size_t AudioDecoder_Wave::prepareRead(size_t num, const void* buffer, uint64_t& offset) const noexcept
 {
     offset = 0;
-    if (!ff) throw DecoderException("No file opened");
-    if (!buffer) throw DecoderException("Buffer is null");
-    if (num == 0) return 0;
-    if (position >= info.Samples) return 0;
+    if (!ff || !buffer || num == 0 || position >= info.Samples) return 0;
+    if (info.BytesPerSample == 0) return 0; // Schutz vor Division durch 0
 
     size_t samples = num;
     if (position + samples > info.Samples) samples = info.Samples - position;
     samples = ClampToAudioSize(info, position, samples);
 
-    // Die von map() gelesene Laenge darf nicht ueber das Dateiende hinauslaufen, sonst
-    // wirft map() eine OverflowException. Noetig wird das nur bei einem vom Aufrufer
-    // gelieferten AudioInfo, das eine zu grosse AudioSize nennt
     offset = (uint64_t)info.AudioStart + (uint64_t)position * info.BytesPerSample;
-    if (offset >= (uint64_t)ff->size()) return 0;
-    if (samples > (size_t)(((uint64_t)ff->size() - offset) / info.BytesPerSample))
-        samples = (size_t)(((uint64_t)ff->size() - offset) / info.BytesPerSample);
-    return samples;
+    try {
+        const uint64_t fileSize = (uint64_t)ff->size();
+        if (offset >= fileSize) return 0;
+        const size_t fits = (size_t)((fileSize - offset) / info.BytesPerSample);
+        if (samples > fits) samples = fits;
+        return samples;
+    }
+    catch (...) {
+        return 0; // falls FileObject von außen geschlossen wurde
+    }
 }
 
-size_t AudioDecoder_Wave::getPosition() const
+size_t AudioDecoder_Wave::getPosition() const noexcept
 {
     return position;
 }
 
-size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16* buffer)
+size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16* buffer) noexcept
 {
-    if (!buffer) throw DecoderException("Buffer is null");
     uint64_t offset;
     size_t samples = prepareRead(num, buffer, offset);
     if (samples == 0) return 0;
 
-    const char* data = ff->map(offset, samples * info.BytesPerSample);
-    if (!data) throw DecoderException("Mapping audio data failed");
+    const char* data = ff->tryMap(offset, samples * info.BytesPerSample);
+    if (!data) return 0;
 
     const size_t frameBytes = info.BytesPerSample;
     const size_t chanBytes = bytesPerChannel;
@@ -213,59 +212,96 @@ size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16* buffer)
 
     switch (encoding) {
     case FrameEncoding::INT16:
-        for (size_t i = 0; i < samples; i++) {
-            int16_t l = (int16_t)Peek16(data);
-            int16_t r = stereo ? (int16_t)Peek16(data + chanBytes) : l;
-            buffer[i].left = l;
-            buffer[i].right = r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)Peek16(data);
+                int16_t r = (int16_t)Peek16(data + chanBytes);
+                buffer[i].left = l;
+                buffer[i].right = r;
+                data += frameBytes;
+            }
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)Peek16(data);
+                buffer[i].left = l;
+                buffer[i].right = l;
+                data += frameBytes;
+            }
         }
         break;
     case FrameEncoding::INT24:
-        for (size_t i = 0; i < samples; i++) {
-            int16_t l = (int16_t)(SignExtend24(Peek24(data)) >> 8);
-            int16_t r = stereo ? (int16_t)(SignExtend24(Peek24(data + chanBytes)) >> 8) : l;
-            buffer[i].left = l;
-            buffer[i].right = r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)(SignExtend24(Peek24(data)) >> 8);
+                int16_t r = (int16_t)(SignExtend24(Peek24(data + chanBytes)) >> 8);
+                buffer[i].left = l;
+                buffer[i].right = r;
+                data += frameBytes;
+            }
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)(SignExtend24(Peek24(data)) >> 8);
+                buffer[i].left = l;
+                buffer[i].right = l;
+                data += frameBytes;
+            }
         }
         break;
     case FrameEncoding::INT32:
-        for (size_t i = 0; i < samples; i++) {
-            int16_t l = (int16_t)((int32_t)Peek32(data) >> 16);
-            int16_t r = stereo ? (int16_t)((int32_t)Peek32(data + chanBytes) >> 16) : l;
-            buffer[i].left = l;
-            buffer[i].right = r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)((int32_t)Peek32(data) >> 16);
+                int16_t r = (int16_t)((int32_t)Peek32(data + chanBytes) >> 16);
+                buffer[i].left = l;
+                buffer[i].right = r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)((int32_t)Peek32(data) >> 16);
+                buffer[i].left = l;
+                buffer[i].right = l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::FLOAT32:
         // WAV Float-Samples (Format-Tag 3) sind normiert (-1.0 .. 1.0), deshalb Skala 32768
-        for (size_t i = 0; i < samples; i++) {
-            int16_t l = (int16_t)ScaleFloatToSample16(PeekFloat(data));
-            int16_t r = stereo ? (int16_t)ScaleFloatToSample16(PeekFloat(data + chanBytes)) : l;
-            buffer[i].left = l;
-            buffer[i].right = r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)ScaleFloatToSample16(PeekFloat(data));
+                int16_t r = (int16_t)ScaleFloatToSample16(PeekFloat(data + chanBytes));
+                buffer[i].left = l;
+                buffer[i].right = r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)ScaleFloatToSample16(PeekFloat(data));
+                buffer[i].left = l;
+                buffer[i].right = l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     default:
         // FrameEncoding::NONE laesst open() gar nicht erst zu den Lesemethoden kommen
-        break;
+        return 0;
     }
     position += samples;
     return samples;
 }
 
-size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE32* buffer)
+size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE32* buffer) noexcept
 {
-    if (!buffer) throw DecoderException("Buffer is null");
     uint64_t offset;
     size_t samples = prepareRead(num, buffer, offset);
     if (samples == 0) return 0;
 
-    const char* data = ff->map(offset, samples * info.BytesPerSample);
-    if (!data) throw DecoderException("Mapping audio data failed");
+    const char* data = ff->tryMap(offset, samples * info.BytesPerSample);
+    if (!data) return 0;
 
     const size_t frameBytes = info.BytesPerSample;
     const size_t chanBytes = bytesPerChannel;
@@ -277,57 +313,96 @@ size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE32* buffer)
     // Aufaddieren und werden am Mixbus-Ausgang begrenzt
     switch (encoding) {
     case FrameEncoding::INT16:
-        for (size_t i = 0; i < samples; i++) {
-            int16_t l = (int16_t)Peek16(data);
-            int16_t r = stereo ? (int16_t)Peek16(data + chanBytes) : l;
-            buffer[i].left += l;
-            buffer[i].right += r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)Peek16(data);
+                int16_t r = (int16_t)Peek16(data + chanBytes);
+                buffer[i].left += l;
+                buffer[i].right += r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)Peek16(data);
+                buffer[i].left += l;
+                buffer[i].right += l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::INT24:
-        for (size_t i = 0; i < samples; i++) {
-            int16_t l = (int16_t)(SignExtend24(Peek24(data)) >> 8);
-            int16_t r = stereo ? (int16_t)(SignExtend24(Peek24(data + chanBytes)) >> 8) : l;
-            buffer[i].left += l;
-            buffer[i].right += r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)(SignExtend24(Peek24(data)) >> 8);
+                int16_t r = (int16_t)(SignExtend24(Peek24(data + chanBytes)) >> 8);
+                buffer[i].left += l;
+                buffer[i].right += r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)(SignExtend24(Peek24(data)) >> 8);
+                buffer[i].left += l;
+                buffer[i].right += l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::INT32:
-        for (size_t i = 0; i < samples; i++) {
-            int16_t l = (int16_t)((int32_t)Peek32(data) >> 16);
-            int16_t r = stereo ? (int16_t)((int32_t)Peek32(data + chanBytes) >> 16) : l;
-            buffer[i].left += l;
-            buffer[i].right += r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)((int32_t)Peek32(data) >> 16);
+                int16_t r = (int16_t)((int32_t)Peek32(data + chanBytes) >> 16);
+                buffer[i].left += l;
+                buffer[i].right += r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)((int32_t)Peek32(data) >> 16);
+                buffer[i].left += l;
+                buffer[i].right += l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::FLOAT32:
-        for (size_t i = 0; i < samples; i++) {
-            int16_t l = (int16_t)ScaleFloatToSample16(PeekFloat(data));
-            int16_t r = stereo ? (int16_t)ScaleFloatToSample16(PeekFloat(data + chanBytes)) : l;
-            buffer[i].left += l;
-            buffer[i].right += r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)ScaleFloatToSample16(PeekFloat(data));
+                int16_t r = (int16_t)ScaleFloatToSample16(PeekFloat(data + chanBytes));
+                buffer[i].left += l;
+                buffer[i].right += r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                int16_t l = (int16_t)ScaleFloatToSample16(PeekFloat(data));
+                buffer[i].left += l;
+                buffer[i].right += l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     default:
-        break;
+        return 0;
     }
     position += samples;
     return samples;
 }
 
-size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
+size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept
 {
-    if (!buffer) throw DecoderException("Buffer is null");
     uint64_t offset;
     size_t samples = prepareRead(num, buffer, offset);
     if (samples == 0) return 0;
 
-    const char* data = ff->map(offset, samples * info.BytesPerSample);
-    if (!data) throw DecoderException("Mapping audio data failed");
+    const char* data = ff->tryMap(offset, samples * info.BytesPerSample);
+    if (!data) return 0;
 
     const size_t frameBytes = info.BytesPerSample;
     const size_t chanBytes = bytesPerChannel;
@@ -335,58 +410,97 @@ size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 
     switch (encoding) {
     case FrameEncoding::INT16:
-        for (size_t i = 0; i < samples; i++) {
-            float l = (int16_t)Peek16(data) / FULL_SCALE_16;
-            float r = stereo ? (int16_t)Peek16(data + chanBytes) / FULL_SCALE_16 : l;
-            buffer[i].left = l;
-            buffer[i].right = r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (int16_t)Peek16(data) / FULL_SCALE_16;
+                float r = (int16_t)Peek16(data + chanBytes) / FULL_SCALE_16;
+                buffer[i].left = l;
+                buffer[i].right = r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (int16_t)Peek16(data) / FULL_SCALE_16;
+                buffer[i].left = l;
+                buffer[i].right = l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::INT24:
-        for (size_t i = 0; i < samples; i++) {
-            float l = (float)SignExtend24(Peek24(data)) / FULL_SCALE_24;
-            float r = stereo ? (float)SignExtend24(Peek24(data + chanBytes)) / FULL_SCALE_24 : l;
-            buffer[i].left = l;
-            buffer[i].right = r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (float)SignExtend24(Peek24(data)) / FULL_SCALE_24;
+                float r = (float)SignExtend24(Peek24(data + chanBytes)) / FULL_SCALE_24;
+                buffer[i].left = l;
+                buffer[i].right = r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (float)SignExtend24(Peek24(data)) / FULL_SCALE_24;
+                buffer[i].left = l;
+                buffer[i].right = l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::INT32:
-        for (size_t i = 0; i < samples; i++) {
-            float l = (float)(int32_t)Peek32(data) / FULL_SCALE_32;
-            float r = stereo ? (float)(int32_t)Peek32(data + chanBytes) / FULL_SCALE_32 : l;
-            buffer[i].left = l;
-            buffer[i].right = r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (float)(int32_t)Peek32(data) / FULL_SCALE_32;
+                float r = (float)(int32_t)Peek32(data + chanBytes) / FULL_SCALE_32;
+                buffer[i].left = l;
+                buffer[i].right = r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (float)(int32_t)Peek32(data) / FULL_SCALE_32;
+                buffer[i].left = l;
+                buffer[i].right = l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::FLOAT32:
         // Die Samples stehen bereits als normierter Float in der Datei, die Skala entfaellt
-        for (size_t i = 0; i < samples; i++) {
-            float l = PeekFloat(data);
-            float r = stereo ? PeekFloat(data + chanBytes) : l;
-            buffer[i].left = l;
-            buffer[i].right = r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                float l = PeekFloat(data);
+                float r = PeekFloat(data + chanBytes);
+                buffer[i].left = l;
+                buffer[i].right = r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                float l = PeekFloat(data);
+                buffer[i].left = l;
+                buffer[i].right = l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     default:
-        break;
+        return 0;
     }
     position += samples;
     return samples;
 }
 
-size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
+size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) noexcept
 {
-    if (!buffer) throw DecoderException("Buffer is null");
     uint64_t offset;
     size_t samples = prepareRead(num, buffer, offset);
     if (samples == 0) return 0;
 
-    const char* data = ff->map(offset, samples * info.BytesPerSample);
-    if (!data) throw DecoderException("Mapping audio data failed");
+    const char* data = ff->tryMap(offset, samples * info.BytesPerSample);
+    if (!data) return 0;
 
     const size_t frameBytes = info.BytesPerSample;
     const size_t chanBytes = bytesPerChannel;
@@ -394,43 +508,83 @@ size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
 
     switch (encoding) {
     case FrameEncoding::INT16:
-        for (size_t i = 0; i < samples; i++) {
-            float l = (int16_t)Peek16(data) / FULL_SCALE_16;
-            float r = stereo ? (int16_t)Peek16(data + chanBytes) / FULL_SCALE_16 : l;
-            buffer[i].left += l;
-            buffer[i].right += r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (int16_t)Peek16(data) / FULL_SCALE_16;
+                float r = (int16_t)Peek16(data + chanBytes) / FULL_SCALE_16;
+                buffer[i].left += l;
+                buffer[i].right += r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (int16_t)Peek16(data) / FULL_SCALE_16;
+                buffer[i].left += l;
+                buffer[i].right += l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::INT24:
-        for (size_t i = 0; i < samples; i++) {
-            float l = (float)SignExtend24(Peek24(data)) / FULL_SCALE_24;
-            float r = stereo ? (float)SignExtend24(Peek24(data + chanBytes)) / FULL_SCALE_24 : l;
-            buffer[i].left += l;
-            buffer[i].right += r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (float)SignExtend24(Peek24(data)) / FULL_SCALE_24;
+                float r = (float)SignExtend24(Peek24(data + chanBytes)) / FULL_SCALE_24;
+                buffer[i].left += l;
+                buffer[i].right += r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (float)SignExtend24(Peek24(data)) / FULL_SCALE_24;
+                buffer[i].left += l;
+                buffer[i].right += l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::INT32:
-        for (size_t i = 0; i < samples; i++) {
-            float l = (float)(int32_t)Peek32(data) / FULL_SCALE_32;
-            float r = stereo ? (float)(int32_t)Peek32(data + chanBytes) / FULL_SCALE_32 : l;
-            buffer[i].left += l;
-            buffer[i].right += r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (float)(int32_t)Peek32(data) / FULL_SCALE_32;
+                float r = (float)(int32_t)Peek32(data + chanBytes) / FULL_SCALE_32;
+                buffer[i].left += l;
+                buffer[i].right += r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                float l = (float)(int32_t)Peek32(data) / FULL_SCALE_32;
+                buffer[i].left += l;
+                buffer[i].right += l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     case FrameEncoding::FLOAT32:
-        for (size_t i = 0; i < samples; i++) {
-            float l = PeekFloat(data);
-            float r = stereo ? PeekFloat(data + chanBytes) : l;
-            buffer[i].left += l;
-            buffer[i].right += r;
-            data += frameBytes;
+        if (stereo) {
+            for (size_t i = 0; i < samples; i++) {
+                float l = PeekFloat(data);
+                float r = PeekFloat(data + chanBytes);
+                buffer[i].left += l;
+                buffer[i].right += r;
+                data += frameBytes;
+            }
+            break;
+        } else {
+            for (size_t i = 0; i < samples; i++) {
+                float l = PeekFloat(data);
+                buffer[i].left += l;
+                buffer[i].right += l;
+                data += frameBytes;
+            }
+            break;
         }
-        break;
     default:
-        break;
+        return 0;
     }
     position += samples;
     return samples;

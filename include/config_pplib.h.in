@@ -90,6 +90,7 @@
 
 #cmakedefine HAVE_LAME 1
 #cmakedefine HAVE_MAD_H 1
+#cmakedefine HAVE_LIBFLAC 1
 #cmakedefine HAVE_LIBMAD 1
 #cmakedefine HAVE_MPG123 1
 #cmakedefine HAVE_LIBSHOUT 1

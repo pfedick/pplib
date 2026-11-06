@@ -579,7 +579,7 @@ TEST_F(AudioDecoderAiffTest, AiffOpenRejectsFrameSizeNotMatchingDepthAndChannels
     EXPECT_THROW(three.open(file, &info), pplib::UnsupportedAudioFormatException) << "mehr als zwei Kanaele";
 }
 
-TEST_F(AudioDecoderAiffTest, AiffReadWithoutOpenOrAfterCloseThrows)
+TEST_F(AudioDecoderAiffTest, AiffReadWithoutOpenOrAfterCloseReturnsZero)
 {
     std::vector<char> payload;
     appendBE(payload, 0x1234, 2);
@@ -589,21 +589,20 @@ TEST_F(AudioDecoderAiffTest, AiffReadWithoutOpenOrAfterCloseThrows)
 
     pplib::STEREOSAMPLE16 buf[4];
     pplib::AudioDecoder_Aiff unused;
-    EXPECT_THROW(unused.getSamples(1, buf), pplib::DecoderException) << "readDecoded vor open()";
+    EXPECT_EQ((size_t)0, unused.getSamples(1, buf));
 
     pplib::AudioDecoder_Aiff decoder;
     ASSERT_NO_THROW(decoder.open(file));
     EXPECT_EQ((size_t)1, decoder.getSamples(1, buf));
     decoder.close();
-    EXPECT_THROW(decoder.getSamples(1, buf), pplib::DecoderException) << "readDecoded nach close()";
+    EXPECT_EQ((size_t)0, decoder.getSamples(1, buf));
     pplib::STEREOSAMPLE32 mix[4] = {};
-    EXPECT_THROW(decoder.addSamples(1, mix), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, decoder.addSamples(1, mix));
     pplib::STEREOSAMPLE_FLOAT fbuf[4];
-    EXPECT_THROW(decoder.getSamples(1, fbuf), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, decoder.getSamples(1, fbuf));
     pplib::AudioDecoder_Aiff offener;
     ASSERT_NO_THROW(offener.open(file));
-    EXPECT_THROW(offener.getSamples(4, (pplib::STEREOSAMPLE16*)nullptr), pplib::DecoderException)
-        << "ein fehlender Puffer ist kein ignurierbarer Aufruf";
+    EXPECT_EQ((size_t)0, offener.getSamples(4, (pplib::STEREOSAMPLE16*)nullptr));
     EXPECT_EQ((uint64_t)0, decoder.getAudioInfo().Samples) << "close() muss das AudioInfo invalidieren";
     EXPECT_EQ((uint64_t)0, decoder.getAudioInfo().AudioStart);
     EXPECT_EQ((uint64_t)0, decoder.getPosition());

@@ -509,14 +509,14 @@ TEST_F(AudioDecoderWaveTest, DecodingRequiresAnOpenedFile)
     pplib::AudioDecoder_Wave decoder;
     pplib::STEREOSAMPLE16 buf[8];
 
-    EXPECT_THROW(decoder.getSamples(8, buf), pplib::DecoderException) << "ohne open() ist Dekodieren ein Fehler";
+    EXPECT_EQ((size_t)0, decoder.getSamples(8, buf)) << "ohne open() ist Dekodieren 0";
     pplib::STEREOSAMPLE_FLOAT fbuf[8];
-    EXPECT_THROW(decoder.getSamples(8, fbuf), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, decoder.getSamples(8, fbuf));
     pplib::STEREOSAMPLE_FLOAT fmix[8] = {};
-    EXPECT_THROW(decoder.addSamples(8, fmix), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, decoder.addSamples(8, fmix));
     pplib::STEREOSAMPLE32 mix[8] = {};
-    EXPECT_THROW(decoder.addSamples(8, mix), pplib::DecoderException);
-    EXPECT_THROW(decoder.getSamples(8, (pplib::STEREOSAMPLE16*) nullptr), pplib::DecoderException);
+    EXPECT_EQ((size_t)0, decoder.addSamples(8, mix));
+    EXPECT_EQ((size_t)0, decoder.getSamples(8, (pplib::STEREOSAMPLE16*) nullptr));
 
     // open() und schliessendes close() im selben Scope: der Zerleger darf nicht abstuerzen
     {
@@ -530,7 +530,7 @@ TEST_F(AudioDecoderWaveTest, DecodingRequiresAnOpenedFile)
     EXPECT_EQ((size_t)10, decoder.getPosition());
     decoder.close();
     EXPECT_EQ((uint64_t)0, decoder.getAudioInfo().Samples) << "close() gibt den AudioInfo-Datensatz zurueck";
-    EXPECT_THROW(decoder.getSamples(8, buf), pplib::DecoderException) << "nach close() ist der Dekoder unbenutzbar";
+    EXPECT_EQ((size_t)0, decoder.getSamples(8, buf)) << "nach close() liefert der Dekoder 0";
 }
 
 TEST_F(AudioDecoderWaveTest, TruncatedFileIsClampedToRealData)
