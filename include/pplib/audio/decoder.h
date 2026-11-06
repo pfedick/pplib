@@ -60,6 +60,9 @@ PPLIBEXCEPTION(DecoderInitializationException, DecoderException);
  *
  * Welche Dateiformate, Kanalzahlen und Bitbreiten ein Decoder unterstützt, steht in der
  * Beschreibung der abgeleiteten Klassen.
+ *
+ * @note Die Methoden zum Lesen von Samples (`getSamples`, `addSamples`) schließen sich in der Regel gegenseitig aus.
+ * Insbesondere sollte nicht zwischen float und integer Sample-Formaten gewechselt werden.
  */
 class AudioDecoder
 {
