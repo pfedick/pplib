@@ -44,10 +44,6 @@ namespace pplib
 
 #define ENCODESAMPLES 100000
 
-/*!\class AudioEncoder_MP3
- * \ingroup PPLGroupSound
- */
-
 AudioEncoder_MP3::AudioEncoder_MP3()
 {
     out = NULL;
@@ -68,31 +64,17 @@ AudioEncoder_MP3::AudioEncoder_MP3()
     // LAME mit Standardwerten initialisieren
     lame_set_bWriteVbrTag((lame_global_flags*)gfp, 0);
     lame_set_write_id3tag_automatic((lame_global_flags*)gfp, 0);
-    /*
-    lame_set_quality((lame_global_flags*)gfp,2);	// Beste Qualitaet und gute Performance
-    lame_set_mode((lame_global_flags*)gfp,STEREO);
-    lame_set_brate((lame_global_flags*)gfp,192);
-    */
-    /*
-    lame_set_lowpassfreq((lame_global_flags*)gfp,-1);	// Filter disablen
-    lame_set_highpassfreq((lame_global_flags*)gfp,-1);	// Filter disablen
-    */
 #endif
 }
 
 AudioEncoder_MP3::~AudioEncoder_MP3()
 {
+    if (mp3buf) free(mp3buf);
+    if (readcache) free(readcache);
+
 #ifdef HAVE_LAME
     if (gfp) lame_close((lame_global_flags*)gfp);
 #endif
-    /*
-    PushError();
-    if (started) FinishEncode();
-    if (mp3buf) free(mp3buf);
-    if (readcache) free(readcache);
-    if (gfp) lame_close ((lame_global_flags*)gfp);
-    PopError();
-    */
 }
 
 void AudioEncoder_MP3::setCBR(int kbps, int quality)
@@ -177,22 +159,7 @@ void AudioEncoder_MP3::setABR(int avg, int quality)
     if (!started) {
         lame_set_bWriteVbrTag((lame_global_flags*)gfp, 1);
         lame_set_preset((lame_global_flags*)gfp, avg);
-        // lame_set_VBR((lame_global_flags*)gfp, vbr_abr);
-        // lame_set_VBR_q((lame_global_flags*)gfp, quality);
         lame_set_quality((lame_global_flags*)gfp, quality);
-        // lame_set_VBR_mean_bitrate_kbps((lame_global_flags*)gfp, avg);
-    }
-#endif
-}
-
-void AudioEncoder_MP3::setQuality(int quality)
-{
-#ifndef HAVE_LAME
-    throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
-#else
-    if (!started) {
-        lame_set_quality((lame_global_flags*)gfp, quality);
-        lame_set_VBR_q((lame_global_flags*)gfp, quality);
     }
 #endif
 }
@@ -205,15 +172,15 @@ void AudioEncoder_MP3::setStereoMode(const AudioInfo::ChannelMode mode)
     if (!started) {
         MPEG_mode m;
         switch (mode) {
-        case AudioInfo::STEREO:
+        case AudioInfo::ChannelMode::STEREO:
             m = STEREO;
             break;
-        case AudioInfo::JOINT_STEREO:
+        case AudioInfo::ChannelMode::JOINT_STEREO:
             m = JOINT_STEREO;
             break;
-        case AudioInfo::DUAL_CHANNEL:
+        case AudioInfo::ChannelMode::DUAL_CHANNEL:
             throw UnsupportedFeatureException("AudioEncoder_MP3::setStereoMode (AudioInfo::ChannelMode::DUAL_CHANNEL)");
-        case AudioInfo::MONO:
+        case AudioInfo::ChannelMode::MONO:
             m = MONO;
             break;
         default:
@@ -301,26 +268,27 @@ static inline void dispatchEncoderError(int code)
     throw EncoderException("Unknown Error");
 }
 
-int AudioEncoder_MP3::encodeBuffer(STEREOSAMPLE16* buffer, int num, void* mp3buf, size_t buffersize)
+int AudioEncoder_MP3::encodeBuffer(STEREOSAMPLE16* buffer, int num_samples, void* mp3buf, size_t buffersize)
 {
 #ifndef HAVE_LAME
     throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
 #else
     if (!started) throw EncoderNotStartedException();
-    int ret = lame_encode_buffer_interleaved((lame_global_flags*)gfp, (short int*)buffer, num, (unsigned char*)mp3buf, (int)buffersize);
+    int ret =
+        lame_encode_buffer_interleaved((lame_global_flags*)gfp, (short int*)buffer, num_samples, (unsigned char*)mp3buf, (int)buffersize);
     if (ret < 0) dispatchEncoderError(ret);
     return ret;
 #endif
 }
 
-int AudioEncoder_MP3::encodeBuffer(SAMPLE16* left, SAMPLE16* right, int num, void* mp3buf, size_t buffersize)
+int AudioEncoder_MP3::encodeBuffer(SAMPLE16* left, SAMPLE16* right, int num_samples, void* mp3buf, size_t buffersize)
 {
 #ifndef HAVE_LAME
     throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
 #else
     if (!started) throw EncoderNotStartedException();
-    int ret = lame_encode_buffer((lame_global_flags*)gfp, (const short int*)left, (const short int*)right, num, (unsigned char*)mp3buf,
-                                 (int)buffersize);
+    int ret = lame_encode_buffer((lame_global_flags*)gfp, (const short int*)left, (const short int*)right, num_samples,
+                                 (unsigned char*)mp3buf, (int)buffersize);
     if (ret < 0) dispatchEncoderError(ret);
     return ret;
 #endif
@@ -376,9 +344,9 @@ void AudioEncoder_MP3::encode(AudioDecoder& decoder)
         size_t samples_got = decoder.getSamples(current_samples, (STEREOSAMPLE16*)readcache);
         if (samples_got == 0) break;
         samples_left -= samples_got;
-        uint32_t encodedbytes = lame_encode_buffer_interleaved((lame_global_flags*)gfp, (short*)readcache, samples_got, mp3buf, mp3bufsize);
-        if (encodedbytes) {
-            writeEncodedBytes((char*)mp3buf, encodedbytes);
+        int encodedbytes = lame_encode_buffer_interleaved((lame_global_flags*)gfp, (short*)readcache, samples_got, mp3buf, mp3bufsize);
+        if (encodedbytes > 0) {
+            writeEncodedBytes((char*)mp3buf, (size_t)encodedbytes);
         } else if (encodedbytes < 0)
             dispatchEncoderError(encodedbytes);
         if (bStopEncode) throw EncoderAbortedException();
@@ -419,7 +387,7 @@ void AudioEncoder_MP3::finish()
 #endif
 }
 
-void AudioEncoder_MP3::stop()
+void AudioEncoder_MP3::stopEncoder()
 {
     bStopEncode = true;
 }
