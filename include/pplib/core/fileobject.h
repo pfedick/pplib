@@ -663,16 +663,12 @@ public:
      * @param[in] size Die Anzahl Bytes, die gemapped werden sollen. Muss größer 0 sein.
      * @param[in] prot Zugriffsmodus für das Mapping. Standardmäßig wird nur Lesezugriff gewährt.
      * @return Pointer auf den gemappten Speicherbereich, nullptr wenn die Region nicht
-     *         vollständig in der Datei liegt oder @p size 0 ist.
-     * @exception pplib::FileNotOpenException Die Datei ist nicht geöffnet.
-     * @exception pplib::ReadOnlyException @p prot ist READWRITE, die Datei ist aber schreibgeschützt
-     *            (MemFile) bzw. pplib::PermissionDeniedException bei File.
-     * @exception pplib::OutOfMemoryException Das Betriebssystem konnte kein Mapping anlegen.
+     *         vollständig in der Datei liegt oder @p size 0 ist, oder irgendein anderer Fehler beim Mapping auftritt.
      *
      * @see FileObject::map() für die Variante, die Grenzüberschreitungen als Exception meldet.
      * @see FileObject::mapAtMost für das Einlesen von Bereichsenden unbekannter Länge.
      */
-    char* tryMap(uint64_t position, size_t size, MapProtection prot = MapProtection::READ);
+    char* tryMap(uint64_t position, size_t size, MapProtection prot = MapProtection::READ) noexcept;
 
     /** @brief Mapping aufheben
      *

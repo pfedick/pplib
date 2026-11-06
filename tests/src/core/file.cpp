@@ -1234,9 +1234,9 @@ TEST_F(FileTest, tryMapReturnsNullptrForRegionBeyondEof)
     // 0 Bytes sind kein gueltiges Mapping
     EXPECT_EQ(nullptr, ff.tryMap(0, 0));
 
-    // Nicht geoeffnete Datei bleibt eine Exception
+    // Nicht geoeffnete Datei gibt auch nullptr zurück
     ff.close();
-    EXPECT_THROW(ff.tryMap(0, 10), pplib::FileNotOpenException);
+    EXPECT_EQ(nullptr, ff.tryMap(0, 10));
 }
 
 TEST_F(FileTest, tryMapHonoursProtectionParameter)
@@ -1248,8 +1248,8 @@ TEST_F(FileTest, tryMapHonoursProtectionParameter)
     ASSERT_NE(nullptr, ro.tryMap(0, 10));
 
     // READWRITE auf schreibgeschuetztem Objekt: Region ist grenzengueltig,
-    // der Schutzrechtsfehler wird geworfen und nicht zu nullptr abgefangen
-    EXPECT_THROW(ro.tryMap(0, 5, pplib::FileObject::MapProtection::READWRITE), pplib::ReadOnlyException);
+    // Auch hier wird nullptr zurückgegeben, wenn das Mapping nicht erlaubt ist
+    EXPECT_EQ(nullptr, ro.tryMap(0, 5, pplib::FileObject::MapProtection::READWRITE));
 
     // READWRITE auf beschreibbarem Objekt gelingt und liefert einen schreibbaren Zeiger
     pplib::MemFile rw;
