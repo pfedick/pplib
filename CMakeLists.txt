@@ -140,7 +140,7 @@ find_package(PkgConfig QUIET)
 set(PPLIB_INCLUDE_DIRS
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/pplib8>
 )
 
 
@@ -164,7 +164,7 @@ if(PPLIB_ENABLE_CORE)
 
     add_library(pplib_core STATIC ${CORE_SOURCES})
     add_library(pplib::core ALIAS pplib_core)
-    set_target_properties(pplib_core PROPERTIES EXPORT_NAME core)
+    set_target_properties(pplib_core PROPERTIES OUTPUT_NAME "pplib8-core" EXPORT_NAME core)
 
     list(APPEND PPLIB_INSTALL_TARGETS pplib_core)
 
@@ -304,7 +304,7 @@ if(PPLIB_ENABLE_CRYPTO)
 
     add_library(pplib_crypto STATIC ${CRYPTO_SOURCES})
     add_library(pplib::crypto ALIAS pplib_crypto)
-    set_target_properties(pplib_crypto PROPERTIES EXPORT_NAME crypto)
+    set_target_properties(pplib_crypto PROPERTIES OUTPUT_NAME "pplib8-crypto" EXPORT_NAME crypto)
 
     list(APPEND PPLIB_INSTALL_TARGETS pplib_crypto)
 
@@ -375,7 +375,7 @@ if(PPLIB_ENABLE_GRAFIX)
 
     add_library(pplib_grafix STATIC ${GFX_SOURCES} ${ASM_SOURCES})
     add_library(pplib::grafix ALIAS pplib_grafix)
-    set_target_properties(pplib_grafix PROPERTIES EXPORT_NAME grafix)
+    set_target_properties(pplib_grafix PROPERTIES OUTPUT_NAME "pplib8-grafix" EXPORT_NAME grafix)
 
     list(APPEND PPLIB_INSTALL_TARGETS pplib_grafix)
 
@@ -439,7 +439,7 @@ if(PPLIB_ENABLE_INTERNET)
 
     add_library(pplib_internet STATIC ${INET_SOURCES})
     add_library(pplib::internet ALIAS pplib_internet)
-    set_target_properties(pplib_internet PROPERTIES EXPORT_NAME internet)
+    set_target_properties(pplib_internet PROPERTIES OUTPUT_NAME "pplib8-internet" EXPORT_NAME internet)
 
     list(APPEND PPLIB_INSTALL_TARGETS pplib_internet)
 
@@ -488,7 +488,7 @@ if(PPLIB_ENABLE_DATABASE)
 
     add_library(pplib_database STATIC ${DB_SOURCES})
     add_library(pplib::db ALIAS pplib_database)
-    set_target_properties(pplib_database PROPERTIES EXPORT_NAME db)
+    set_target_properties(pplib_database PROPERTIES OUTPUT_NAME "pplib8-database" EXPORT_NAME db)
 
     list(APPEND PPLIB_INSTALL_TARGETS pplib_database)
 
@@ -543,7 +543,7 @@ if(PPLIB_ENABLE_AUDIO)
 
     add_library(pplib_audio STATIC ${AUDIO_SOURCES})
     add_library(pplib::audio ALIAS pplib_audio)
-    set_target_properties(pplib_audio PROPERTIES EXPORT_NAME audio)
+    set_target_properties(pplib_audio PROPERTIES OUTPUT_NAME "pplib8-audio" EXPORT_NAME audio)
 
     list(APPEND PPLIB_INSTALL_TARGETS pplib_audio)
 
@@ -726,7 +726,7 @@ if(NOT PPLIB_ENABLE_PICO)
 
     # Header installieren
     install(DIRECTORY include/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/pplib8
         FILES_MATCHING PATTERN "*.h"
     )
 

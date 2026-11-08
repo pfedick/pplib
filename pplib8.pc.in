@@ -1,11 +1,12 @@
 prefix=@CMAKE_INSTALL_PREFIX@
 exec_prefix=${prefix}
 libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
-includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@/pplib8
 
 Name: pplib8
 Description: Patrick's Programming Library (meta package: all built modules)
 Version: @PROJECT_VERSION@
 URL: https://github.com/pfedick/pplib
 Requires: @PPLIB_MODULES_PC_STR@
+Cflags: -I${includedir}
 
