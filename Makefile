@@ -114,7 +114,7 @@ coverage:
 	#cmake --build build/coverage -j --target test_core test_crypto test_audio
 	cmake --build build/coverage -j --target test_all
 	ln -sf build/coverage/compile_commands.json compile_commands.json
-	cd tests && ../build/coverage/tests/test_all$(EXE)
+	cd tests && ../build/coverage/tests/test_all$(EXE) --gtest_color=yes $(TEST_ARGS)
 	mkdir -p coverage_html
 	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --xml-pretty -o coverage.xml --exclude 'tests/.*' --exclude 'build/coverage/_deps'
 	@echo "Report: coverage_html/index.html"
@@ -123,7 +123,7 @@ wip:
 	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPLIB_ENABLE_COVERAGE=ON
 	cmake --build build/coverage -j --target test_all
 	ln -sf build/coverage/compile_commands.json compile_commands.json
-	-cd tests && ../build/coverage/tests/test_all$(EXE) --gtest_filter=DateTimeTest*
+	-cd tests && ../build/coverage/tests/test_all$(EXE) --gtest_color=yes --gtest_filter=DateTimeTest*
 	mkdir -p coverage_html
 	gcovr --root . build/coverage --medium-threshold 70 --source-encoding UTF-8 --exclude-throw-branches --html-details coverage_html/index.html --xml-pretty -o coverage.xml --exclude 'tests/.*' --exclude 'build/coverage/_deps'
 
