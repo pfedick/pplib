@@ -1,6 +1,8 @@
 # pplib
 Das Projekt "pplib", hier version 8, ist eine plattformübergreifende C++-Bibliothek, die auf verschiedenen Plattformen (Windows MingW64/MSys, Linux, FreeBSD) getestet wird und sowohl auf Desktop- als auch auf Mikrocontroller-Umgebungen effizient laufen soll. Nur ein Subset davon wird auf Mikrocontrollern verwendet, und hier aktuell auch nur Raspberry Pico 2 (siehe Define `PICO_BUILD`).
 
+Die Bibliothek bietet eine Vielzahl von Funktionen und Abstraktionen, um gängige Programmieraufgaben zu vereinfachen. Sie deckt Datei- und Verzeichnisoperationen, Strings und Arrays, Zeit, Mathematik, Threads, Grafik, Sound, Datenbankzugriff und Internetkommunikation ab.
+
 ## Build und Tests
 
 - **Nicht** CTest oder die CMakeTools-Erweiterung direkt aufrufen.
