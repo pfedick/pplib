@@ -87,7 +87,8 @@ public:
      * @brief Konstruktor ohne Angabe von Werten
      *
      * Mit diesem Konstruktor wird eine Instanz der Klasse erzeugt, und mit dem Farbwert
-     * für schwarz initialisiert.
+     * 0 für alle Farbkomponenten initialisiert, was einer schwarzen Farbe entspricht, die
+     * komplett transparent ist.
      */
     Color() noexcept
     {
@@ -427,6 +428,7 @@ public:
      * Mit dieser Funktion werden die zwei Farbwerte \p background und \p foreground
      * anhand des dritten Parameters \p intensity vermischt. Dabei gilt, je höher der Wert
      * \p intensity, desto stärker kommt der Farbwert \p foreground zur Geltung.
+     * Der Alpha-Kanal wird nicht verwendet und im Ergebnis immer auf 255 gesetzt.
      *
      * @param background Hintergrundfarbe
      * @param foreground Vordergrundfarbe
@@ -438,13 +440,13 @@ public:
     /** @brief Lineare Interpolation zwischen zwei Farben
      *
      * Mit dieser Funktion kann eine lineare Interpolation zwischen zwei Farben durchgeführt werden.
-     * Dabei wird der Farbwert \p c1 mit dem Faktor \p factor gewichtet, während der Farbwert \p c2
-     * mit dem Faktor (1.0 - \p factor) gewichtet wird. Der Faktor \p factor muss dabei im Bereich
+     * Dabei wird der Farbwert \p c1 mit dem Faktor (1.0 - \p factor) gewichtet, während der
+     * Farbwert \p c2 mit dem Faktor \p factor) gewichtet wird. Der Faktor \p factor muss dabei im Bereich
      * von 0.0 bis 1.0 liegen.
      *
-     * @param c1 Erste Farbe
-     * @param c2 Zweite Farbe
-     * @param factor Gewichtungsfaktor für die erste Farbe auf einer Skala von 0.0 bis 1.0
+     * @param c1 Erste Farbe. Bei t=0.0 wird exakt dieser Wert zurückgegeben
+     * @param c2 Zweite Farbe. Bei t=1.0 wird exakt dieser Wert zurückgegeben
+     * @param t Interpolationsfaktor auf einer Skala von 0.0 bis 1.0
      * @return Interpolierte Farbe
      */
     static Color lerp(const Color& c1, const Color& c2, float t) noexcept;
