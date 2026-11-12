@@ -71,6 +71,29 @@ build_tests:
 test: build_tests
 	cd tests && ../build/debug/tests/test_all$(EXE) --gtest_color=yes $(TEST_ARGS)
 
+# -----------------------------------------------------------------------------
+# Grafik-Referenztests (tests/gfxreftest)
+# Eigenstaendiges CMake-Projekt, eigene Build-Mappe. Bewusst getrennt von den
+# GoogleTest-Unittests: kein CTest, kein gtest, kein Zugriff auf testdata der
+# Unittests. Referenzbilder dienen dem Visuellen Review, spaeter kommen
+# Performance-Vergleiche der Bit-Blt-Implementierungen dazu.
+# Setzt die fertige Release-Bibliothek voraus, wird daher darueber geordnet.
+# -----------------------------------------------------------------------------
+GFXREF_DIR ?= tests/gfxreftest
+GFXREF_BUILD ?= build/gfxref
+GFXREF_BUILD_TYPE ?= Release
+# Optionale Argumente fuer das Programm selbst, z.B. make gfxreftest_run GFXREF_ARGS=--blt
+
+gfxreftest: release
+	cmake -B $(GFXREF_BUILD) -S $(GFXREF_DIR) -DCMAKE_BUILD_TYPE=$(GFXREF_BUILD_TYPE) \
+		-DPPLIB_RELEASE_DIR=$(CURDIR)/build/release
+	cmake --build $(GFXREF_BUILD) -j
+	@echo "Fertig: $(GFXREF_BUILD)/gfxreftest$(EXE)"
+
+# Start aus tests/, gfxreftest.cpp liest testdata/ relativ und schreibt nach tmp/
+gfxreftest_run: gfxreftest
+	cd tests && ../$(GFXREF_BUILD)/gfxreftest$(EXE) $(GFXREF_ARGS)
+
 # Build & Lauf der Tests mit Address- und Undefined-Behaviour-Sanitizer.
 # Eigener Build-Ordner build/asan, damit der normale Debug-Build unangetastet bleibt.
 # TEST_ARGS erlaubt Selektion, z.B.: make asan TEST_ARGS="--gtest_filter=WideStringTest*"
@@ -145,4 +168,4 @@ html:
 	cp docs/pplib-icon-48x48.png documentation/html
 	echo "Documentation generated at documentation/html/index.html"
 
-.PHONY: all build_tests test asan coverage wip clean doku html
+.PHONY: all release debug configure install install_home build_tests test gfxreftest gfxreftest_run asan coverage wip clean doku html
