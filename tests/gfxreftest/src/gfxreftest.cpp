@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -36,11 +31,21 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <math.h>
-#include "../include/pplib.h"
-#include "../include/pplib-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 
 using namespace pplib;
 using namespace pplib::grafix;
+
+pplib::grafix::ImageList Icons32, Toolbar, ButtonSymbolsSmall;
+
+static void LoadImageLists()
+{
+    pplib::Resource* res = GetPPLResource();
+    Toolbar.load(res->getMemory(14), 16, 16, ImageList::ALPHABLT);
+    Icons32.load(res->getMemory(13), 32, 32, ImageList::ALPHABLT);
+    ButtonSymbolsSmall.load(res->getMemory(12), 9, 9, ImageList::DIFFUSE);
+}
 
 int DoCLS(Drawable& surface, int& num)
 {
@@ -321,14 +326,14 @@ int DoPutPixel(Drawable& surface, int& num)
         for (int x = 0; x < 640; x++) {
             float y = sinf(s * rad);
             s += pi;
-            surface.blendPixel(x - 1, 15 + (y * 15), white, 200);
-            surface.blendPixel(x - 2, 15 + (y * 15), white, 150);
-            surface.blendPixel(x - 3, 15 + (y * 15), white, 100);
-            surface.blendPixel(x - 4, 15 + (y * 15), white, 50);
-            surface.blendPixel(x + 1, 15 + (y * 15), white, 200);
-            surface.blendPixel(x + 2, 15 + (y * 15), white, 150);
-            surface.blendPixel(x + 3, 15 + (y * 15), white, 100);
-            surface.blendPixel(x + 4, 15 + (y * 15), white, 50);
+            surface.blendPixel(x - 1, (int)(15 + (y * 15)), white, (uint8_t)200);
+            surface.blendPixel(x - 2, 15 + (y * 15), white, (uint8_t)150);
+            surface.blendPixel(x - 3, 15 + (y * 15), white, (uint8_t)100);
+            surface.blendPixel(x - 4, 15 + (y * 15), white, (uint8_t)50);
+            surface.blendPixel(x + 1, 15 + (y * 15), white, (uint8_t)200);
+            surface.blendPixel(x + 2, 15 + (y * 15), white, (uint8_t)150);
+            surface.blendPixel(x + 3, 15 + (y * 15), white, (uint8_t)100);
+            surface.blendPixel(x + 4, 15 + (y * 15), white, (uint8_t)50);
             surface.putPixel(x, 15 + (y * 15), white);
             if (surface.getPixel(x, 15 + (y * 15)) != white) failed = true;
         }
@@ -543,26 +548,26 @@ int LoadFonts(Drawable& surface, int& num)
     num++;
     printf("Test %i: Loading Font-Files... ", num);
     bool failed = false;
-    Grafix* gfx = GetGrafix();
+    Grafix& gfx = GetGrafix();
     try {
-        gfx->loadFont("testdata/fonts/liberationsans8.fnt5", "PPL Liberation Sans 8");
-        gfx->loadFont("../resource/liberationsans2.fnt6", "PPL Liberation Sans 2");
-        gfx->loadFont("testdata/fonts/LiberationSans-Bold.ttf", "PPL Liberation Sans Bold TTF");
-        gfx->loadFont("testdata/fonts/freesans4.fnt5", "PPL FreeSans 4");
-        gfx->loadFont("testdata/fonts/segoeui4.fnt5", "SegoeUI");
+        gfx.loadFont("testdata/fonts/liberationsans8.fnt5", "PPL Liberation Sans 8");
+        gfx.loadFont("../resource/liberationsans2.fnt6", "PPL Liberation Sans 2");
+        gfx.loadFont("testdata/fonts/LiberationSans-Bold.ttf", "PPL Liberation Sans Bold TTF");
+        gfx.loadFont("testdata/fonts/freesans4.fnt5", "PPL FreeSans 4");
+        gfx.loadFont("testdata/fonts/segoeui4.fnt5", "SegoeUI");
     }
     catch (pplib::Exception& e) {
         printf("failed! %s\n", e.what());
-        gfx->listFonts();
+        gfx.listFonts();
         return 0;
     }
     if (failed) {
         printf("failed!\n");
-        gfx->listFonts();
+        gfx.listFonts();
         return 0;
     }
     printf("ok\n");
-    gfx->listFonts();
+    gfx.listFonts();
     return 1;
 }
 
@@ -767,7 +772,7 @@ int DoAlphaBlt(Drawable& surface, int& num, Image& Icons)
     bool failed = false;
     try {
         Color c;
-        Grafix* gfx = GetGrafix();
+        Grafix& gfx = GetGrafix();
         Resource* res = GetPPLResource();
         Image Img;
         Img.load(res->getMemory(5));
@@ -845,13 +850,13 @@ int DoAlphaBlt(Drawable& surface, int& num, Image& Icons)
         for (float w = 0; w < 360; w += 15) {
             x = (int)(sinf(w * rad) * 60.0f);
             y = (int)(cosf(w * rad) * 50.0f);
-            surface.draw(gfx->Icons32, i++, 460 + x, 200 + y);
+            surface.draw(Icons32, i++, 460 + x, 200 + y);
         }
         i = 0;
         for (float w = 0.0f; w < 360.0f; w += 6.0f) {
             x = sinf(w * rad) * 100;
             y = cosf(w * rad) * 90;
-            surface.draw(gfx->Toolbar, i++, 468 + x, 208 + y);
+            surface.draw(Toolbar, i++, 468 + x, 208 + y);
         }
     }
     catch (Exception& e) {
@@ -874,7 +879,7 @@ int DoDiffuseBlt(Drawable& surface, int& num)
     bool failed = false;
     try {
         Color c;
-        Grafix* gfx = GetGrafix();
+        Grafix& gfx = GetGrafix();
 
         surface.fillRect(30, 300, 230, 400, Color(0, 0, 0));
         surface.fillRect(25, 295, 225, 395, Color(64, 64, 255));
@@ -883,19 +888,18 @@ int DoDiffuseBlt(Drawable& surface, int& num)
         surface.line(225, 296, 225, 395, Color(128, 128, 255));
         surface.line(26, 395, 225, 395, Color(128, 128, 255));
 
-        surface.draw(gfx->ButtonSymbolsSmall, 0, 60, 300, Color(255, 255, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 1, 80, 300, Color(255, 200, 100));
-        surface.draw(gfx->ButtonSymbolsSmall, 2, 100, 300, Color(238, 85, 193));
-        surface.draw(gfx->ButtonSymbolsSmall, 3, 120, 300, Color(0, 255, 0));
-        surface.draw(gfx->ButtonSymbolsSmall, 4, 140, 300, Color(0, 255, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 5, 160, 300, Color(0, 0, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 6, 180, 300, Color(255, 0, 255));
-
-        surface.draw(gfx->ButtonSymbolsSmall, 7, 60, 320, Color(255, 0, 0));
-        surface.draw(gfx->ButtonSymbolsSmall, 8, 80, 320, Color(64, 128, 64));
-        surface.draw(gfx->ButtonSymbolsSmall, 9, 100, 320, Color(64, 128, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 21, 120, 320, Color(255, 255, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 20, 140, 320, Color(255, 255, 255));
+        surface.draw(ButtonSymbolsSmall, 0, 60, 300, Color(255, 255, 255));
+        surface.draw(ButtonSymbolsSmall, 1, 80, 300, Color(255, 200, 100));
+        surface.draw(ButtonSymbolsSmall, 2, 100, 300, Color(238, 85, 193));
+        surface.draw(ButtonSymbolsSmall, 3, 120, 300, Color(0, 255, 0));
+        surface.draw(ButtonSymbolsSmall, 4, 140, 300, Color(0, 255, 255));
+        surface.draw(ButtonSymbolsSmall, 5, 160, 300, Color(0, 0, 255));
+        surface.draw(ButtonSymbolsSmall, 6, 180, 300, Color(255, 0, 255));
+        surface.draw(ButtonSymbolsSmall, 7, 60, 320, Color(255, 0, 0));
+        surface.draw(ButtonSymbolsSmall, 8, 80, 320, Color(64, 128, 64));
+        surface.draw(ButtonSymbolsSmall, 9, 100, 320, Color(64, 128, 255));
+        surface.draw(ButtonSymbolsSmall, 21, 120, 320, Color(255, 255, 255));
+        surface.draw(ButtonSymbolsSmall, 20, 140, 320, Color(255, 255, 255));
 
         c = surface.getPixel(64, 304);
         if (!c.match(0xffffffff)) failed = true;
@@ -1303,14 +1307,14 @@ int DoButton(Drawable& surface, int& num)
     bool failed = false;
 
     try {
-        Grafix* gfx = GetGrafix();
+        Grafix& gfx = GetGrafix();
         Drawable draw = surface.getDrawable(80, 350, 180, 380);
         Rect r = draw.rect();
         draw.drawRect(r, Color(66, 66, 66));
-        int x1 = r.x1 + 1;
-        int y1 = r.y1 + 1;
-        int x2 = r.x2 - 1;
-        int y2 = r.y2 - 1;
+        int x1 = r.left() + 1;
+        int y1 = r.top() + 1;
+        int x2 = r.right() - 1;
+        int y2 = r.bottom() - 1;
         int m = (y2 - y1) / 2 + y1;
         draw.line(x1, y1, x2, y1, Color(219, 219, 219));
         draw.colorGradient(x1, y1 + 1, x2, m, Color(152, 152, 152), Color(125, 125, 125), 1);
@@ -1335,11 +1339,11 @@ int DoButton(Drawable& surface, int& num)
                 brightness = (maxd - d) / maxd;
                 if (brightness < 0) brightness = 0.0f;
                 // printf ("Distance von %i:%i zu %i:%i: %.2f\n",p.x(),p.y(),mp.x(),mp.y(),d);
-                draw.blendPixel(x, y, Color(128, 128, 256), brightness);
+                draw.blendPixel(x, y, Color(128, 128, 255), brightness);
             }
         }
 
-        draw.draw(gfx->Toolbar, 24, x1 + 4, y1 + (y2 - y1 - 16) / 2);
+        draw.draw(Toolbar, 24, x1 + 4, y1 + (y2 - y1 - 16) / 2);
 
         // draw.draw(gfx->Toolbar,0,8,8);
 
@@ -1401,6 +1405,7 @@ int main(int argc, char** argv)
     int failed = 0;
     int succeeded = 0;
     Grafix Grafix;
+    LoadImageLists();
     printf("sizeof(Drawable)=%i\n", (int)sizeof(Drawable));
     printf("sizeof(Image)=%i\n", (int)sizeof(Image));
     printf("sizeof(ImageList)=%i\n", (int)sizeof(ImageList));
@@ -1467,7 +1472,7 @@ int main(int argc, char** argv)
     BltClipping(Image, count, Icons);
     DoSprites(Image, count);
 
-    Drawable Draw(Image, Rect(60, 60, 10, 10));
+    Drawable Draw = Image.getDrawable(Rect(60, 60, 10, 10));
     Draw.cls(Color(255, 0, 0));
     Image.putPixel(60, 60, Color(255, 255, 255));
     Image.putPixel(70, 70, Color(255, 255, 255));

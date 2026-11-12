@@ -37,16 +37,18 @@ if(NOT PPLIB_CORE_LIB OR NOT PPLIB_GRAFIX_LIB)
     message(FATAL_ERROR
         "pplib8-core / pplib8-grafix nicht gefunden unter: ${PPLIB_RELEASE_DIR}\n"
         "Bitte zuerst im Quellbaum 'make release' ausfuehren (oder "
-        "-DPPLIB_RELEASE_DIR=<pfad> setzen).")
+        "-DPPLIB_RELEASE_DIR=<pfad> setzen).\n"
+        "Hinweis: Archive aus aelteren Staenden heissen libpplib_core.a statt "
+        "libpplib8-core.a - in dem Fall build/release einmal neu konfigurieren.")
 endif()
 
 # ------------------------------------------------------------------------------
-# Malus: statisch gebundene Library => die externen Bibliotheken, mit denen die
+# Die Library wird statisch gebunden => die externen Bibliotheken, mit denen die
 # fertige Library gebaut wurde, übernimmt man aus den pkg-config-Fragmenten des
 # Release-Builds. So muss diese Suite die Abhängigkeiten (jpeg, png, tiff,
-# freetype, pcre2, zstd, ...) nicht ein zweites Mal erfassen. Die eigenen
-# -l/-L-Einträge der .pc-Dateien werden entfernt, die Archives binden wir direkt
-# über ihren vollen Pfad ein.
+# freetype, pcre2, zstd, ...) nicht ein zweites Mal erfassen. Die Einträge, die
+# die pplib-Module selbst betreffen (-lpplib8-*, -L${libdir}), werden entfernt;
+# die Archives binden wir direkt über ihren vollen Pfad ein.
 # ------------------------------------------------------------------------------
 function(pplib_pc_external_libs module out_var)
     set(_pc "${PPLIB_RELEASE_DIR}/pplib8-${module}.pc")
@@ -56,7 +58,8 @@ function(pplib_pc_external_libs module out_var)
     endif()
     file(READ "${_pc}" _pc_content)
     string(REGEX MATCH "Libs:[^\n]*" _pc_libs "${_pc_content}")
-    string(REGEX REPLACE "-lpplib8-[A-Za-z0-9_-]+" "" _pc_libs "${_pc_libs}")
+    string(REGEX REPLACE "^Libs:" "" _pc_libs "${_pc_libs}")
+    string(REGEX REPLACE "-lpplib8?[A-Za-z0-9_-]*" "" _pc_libs "${_pc_libs}")
     string(REGEX REPLACE "-L\\$\\{[A-Za-z_]+\\}" "" _pc_libs "${_pc_libs}")
     string(STRIP "${_pc_libs}" _pc_libs)
     separate_arguments(_pc_libs UNIX_COMMAND "${_pc_libs}")
