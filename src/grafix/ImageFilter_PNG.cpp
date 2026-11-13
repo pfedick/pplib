@@ -163,13 +163,10 @@ bool ImageFilter_PNG::ident(FileObject& file, IMAGE& img) noexcept
             img.format = RGBFormat::A8R8G8B8;
             break;
         case PNG_COLOR_TYPE_GRAY_ALPHA:
-            // Graustufen mit Alpha werden derzeit nicht unterstützt
-            supported = false; // Mark as unsupported
-            /*
+            // Graustufen mit Alpha werden auf 32-Bit RGBA konvertiert
             img.colors = 256;
             img.bitdepth = 16;
-            img.format = RGBFormat::GREY8_ALPHA8;
-            */
+            img.format = RGBFormat::RGBFormat::A8R8G8B8;
             break;
         };
 

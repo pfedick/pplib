@@ -58,6 +58,7 @@ protected:
 
 TEST_F(ImageFilterLoadTest, loadPNGGreyscale)
 {
+
     pplib::grafix::Image img;
     ASSERT_NO_THROW({ img.load("../resource/ButtonSymbols.png"); });
 }
