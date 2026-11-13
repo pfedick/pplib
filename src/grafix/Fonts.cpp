@@ -447,6 +447,7 @@ FontFile* Grafix::findFont(const Font& font) noexcept
 void Drawable::print(const Font& font, int x, int y, const WideString& text)
 {
     FontFile* file = GetGrafix().findFont(font.name());
+    if (!file) return;
     if (font.drawShadow()) {
         file->engine->render(*file, font, *this, x + 2, y + 2, text, font.shadowColor());
     }

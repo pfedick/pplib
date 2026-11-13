@@ -1421,7 +1421,7 @@ int main(int argc, char** argv)
     DoFontsAA2(Image, count);
     DoFontsNonAA(Image, count);
     DoFontsAA8(Image, count);
-    DoFontsFreetype(Image, count);
+    //DoFontsFreetype(Image, count);
 
     DoPNG(Image, count);
     DoBMP(Image, count);

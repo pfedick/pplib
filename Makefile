@@ -85,7 +85,11 @@ GFXREF_BUILD_TYPE ?= Release
 # Optionale Argumente fuer das Programm selbst, z.B. make gfxreftest_run GFXREF_ARGS=--blt
 
 gfxreftest: release
+	cmake -B build/release -DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_C_FLAGS_RELEASE="-O3 -g -DNDEBUG" -DCMAKE_CXX_FLAGS_RELEASE="-O3 -g -DNDEBUG"
+	cmake --build build/release -j
 	cmake -B $(GFXREF_BUILD) -S $(GFXREF_DIR) -DCMAKE_BUILD_TYPE=$(GFXREF_BUILD_TYPE) \
+		-DCMAKE_C_FLAGS_RELEASE="-O3 -g -DNDEBUG" -DCMAKE_CXX_FLAGS_RELEASE="-O3 -g -DNDEBUG" \
 		-DPPLIB_RELEASE_DIR=$(CURDIR)/build/release
 	cmake --build $(GFXREF_BUILD) -j
 	@echo "Fertig: $(GFXREF_BUILD)/gfxreftest$(EXE)"

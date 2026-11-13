@@ -28,6 +28,7 @@
  *******************************************************************************/
 
 #include <string.h>
+#include <pplib/core/resource.h>
 #include <pplib/grafix/drawable.h>
 #include <pplib/grafix/grafix.h>
 #include <pplib/grafix/imagefilter.h>
@@ -98,6 +99,9 @@ Grafix::Grafix()
     FontEngineFreeType* freetype = new FontEngineFreeType;
     addFontEngine(freetype);
 #endif
+    Resource* res = GetPPLResource();
+    useFontFromMemory(res->getMemory(34), "Default");
+    useFontFromMemory(res->getMemory(35), "Default Mono");
 }
 
 Grafix::~Grafix()
