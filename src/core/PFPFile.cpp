@@ -93,6 +93,8 @@ void PFPChunk::setData(const ByteArrayPtr& data)
 
 void PFPChunk::useData(const void* ptr, size_t size)
 {
+    // Das Groessenfeld im Datei-Layout ist 32 Bit, groessere Chunks waeren nicht speicherbar
+    if (size > (0xffffffff - 8) || (!ptr && size > 0)) throw IllegalArgumentException();
     if (ownMemory && chunkdata.ptr() && chunkdata.ptr() != ptr) {
         ::free(chunkdata.ptr());
     }
@@ -163,8 +165,7 @@ PFPChunk& PFPChunk::operator=(PFPChunk&& other) noexcept
         if (ownMemory && chunkdata.ptr()) {
             ::free(chunkdata.ptr());
         }
-        memcpy(chunkname, other.chunkname, 4);
-        chunkname[4] = '\0';
+        memcpy(chunkname, other.chunkname, 5);
         ownMemory = other.ownMemory;
         chunkdata = other.chunkdata;
         other.chunkdata.use(nullptr, 0);
@@ -253,10 +254,8 @@ static String getStringFromChunk(const PFPChunk& chunk)
 {
     const char* str = (const char*)chunk.data();
     size_t len = chunk.size();
-    if (len > 0 && str && str[len - 1] == '\0') {
-        len--;
-    }
     if (!str || len == 0) return String();
+    if (str[len - 1] == '\0') len--;  // Spezifikationsgemaess kann ein abschliessendes 0-Byte enthalten sein
     return String(str, len);
 }
 
@@ -344,24 +343,30 @@ void PFPFile::save(const String& filename)
     size_t pp = hsize;
     // Chunks zusammenfassen
     // Zuerst die vordefinierten, die wir am Anfang des Files wollen
+    // Von den vordefinierten Namen darf jeder nur einmal in der Datei stehen,
+    // auch wenn der Anwender ueber addChunk() weitere gleichnamige Chunks ergaenzt hat
     for (const auto& chunk : Chunks) {
         if (std::string_view(chunk.chunkname, 4) == "NAME") {
             pp += saveChunk(p, pp, &chunk);
+            break;
         }
     }
     for (const auto& chunk : Chunks) {
         if (std::string_view(chunk.chunkname, 4) == "AUTH") {
             pp += saveChunk(p, pp, &chunk);
+            break;
         }
     }
     for (const auto& chunk : Chunks) {
         if (std::string_view(chunk.chunkname, 4) == "DESC") {
             pp += saveChunk(p, pp, &chunk);
+            break;
         }
     }
     for (const auto& chunk : Chunks) {
         if (std::string_view(chunk.chunkname, 4) == "COPY") {
             pp += saveChunk(p, pp, &chunk);
+            break;
         }
     }
     // Restliche Chunks
@@ -432,7 +437,6 @@ void PFPFile::deleteChunk(const String& chunkname)
     for (int i = 0; i < 4; i++)
         cn[i] = (char)toupper((unsigned char)cn[i]);
 
-    // Chunks.remove_if([&s](const PFPChunk& c) { return c.name() == s; });
     auto it = Chunks.begin();
     while (it != Chunks.end()) {
         if (strncmp(it->chunkname, cn, 4) == 0) {

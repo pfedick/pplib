@@ -283,6 +283,22 @@ TEST_F(PFPChunkTest, UseData)
     EXPECT_EQ((const void*)ba.ptr(), chunk.data());
 }
 
+// =============================================================================
+// Groessen, die nicht in das 32-Bit-Groessenfeld des PFP-Formats passen, muessen abgelehnt werden
+TEST_F(PFPChunkTest, UseDataRejectsOversizedOrNull)
+{
+    static const char content[] = "abcd";             // 5 Bytes inklusive 0-Byte
+    pplib::PFPChunk chunk("DATA", pplib::ByteArrayPtr(content, sizeof(content)));
+
+    EXPECT_THROW(chunk.useData(content, 0x100000000ULL), pplib::IllegalArgumentException);
+    EXPECT_THROW(chunk.useData(NULL, 5), pplib::IllegalArgumentException);
+    EXPECT_THROW(chunk.setData(content, 0x100000000ULL), pplib::IllegalArgumentException);
+    EXPECT_EQ(5u, chunk.size());              // Abgewiesene Aufrufe lassen den Chunk unveraendert
+
+    chunk.useData(NULL, 0);                   // NULL ohne Inhalt ist wie im ByteArrayPtr erlaubt
+    EXPECT_EQ(0u, chunk.size());
+}
+
 // ============================================================================
 // PFPFile Tests
 // ============================================================================
@@ -462,6 +478,37 @@ TEST_F(PFPFileTest, StringParamSavedWithTrailingNullByte)
     pplib::PFPFile file;
     ASSERT_NO_THROW(file.load(filename));
     EXPECT_EQ(pplib::String("Patrick"), file.getAuthor());
+}
+
+// Ein leerer String-Parameter erzeut einen 1 Byte grossen Chunk, der nur aus dem
+// 0-Byte besteht. Beim Lesen wird daraus wieder ein leerer String.
+TEST_F(PFPFileTest, EmptyStringParamRoundtrip)
+{
+    const pplib::String filename("tmp/pfp_empty_param.pfp");
+    {
+        pplib::PFPFile file;
+        file.setId("DEMO");
+        file.setDescription("");
+        ASSERT_NO_THROW(file.save(filename));
+    }
+
+    pplib::File ff(filename, pplib::File::FileMode::READ);
+    pplib::ByteArray fileData;
+    ff.load(fileData);
+    ff.close();
+
+    const char* p = (const char*)fileData.ptr();
+    ASSERT_NE(nullptr, p);
+    // 24 Byte Header + DESC-Chunk (8 Byte Kopf + 1 Byte Terminus) + 8 Byte ENDF-Chunk
+    ASSERT_EQ(41u, fileData.size());
+    ASSERT_EQ(pplib::String("DESC"), pplib::String(p + 24, 4));
+    EXPECT_EQ(9u, pplib::Peek32(p + 28));
+    EXPECT_EQ(0, (int)p[32]);
+    ASSERT_EQ(pplib::String("ENDF"), pplib::String(p + 33, 4));
+
+    pplib::PFPFile file;
+    ASSERT_NO_THROW(file.load(filename));
+    EXPECT_TRUE(file.getDescription().isEmpty());
 }
 
 TEST_F(PFPFileTest, AddChunkLvalueAndRvalue)
@@ -823,6 +870,43 @@ TEST_F(PFPFileTest, PredefinedChunksOrderingAndNoOverwrite)
     EXPECT_NE(nullptr, file.findFirstChunk(it, "USER"));
 }
 
+// Ein beim Speichern mehrfach vorkommender vordefinierter Name darf nur einen einzigen
+// Abschnitt in die Datei schreiben, damit die Datei von PFP selbst wieder lesbar bleibt
+TEST_F(PFPFileTest, PredefinedChunkNamesWrittenOnce)
+{
+    const pplib::String filename("tmp/pfp_once.pfp");
+    {
+        pplib::PFPFile file;
+        file.setId("ONCE");
+        file.setAuthor("ErsterAutor");
+        file.addChunk(pplib::PFPChunk("AUTH", pplib::ByteArray("ZweiterAutor", 12)));
+        ASSERT_NO_THROW(file.save(filename));
+    }
+
+    pplib::File ff(filename, pplib::File::FileMode::READ);
+    pplib::ByteArray fileData;
+    ff.load(fileData);
+    ff.close();
+
+    const char* p = (const char*)fileData.ptr();
+    ASSERT_NE(nullptr, p);
+    int authCount = 0;
+    size_t pos = 24;                        // hinter dem Header anfangen
+    while (pos + 8 <= fileData.size()) {
+        pplib::String name(p + pos, 4);
+        if (name == "ENDF") break;
+        if (name == "AUTH") authCount++;
+        size_t total = pplib::Peek32(p + pos + 4);
+        if (total < 8) break;
+        pos += total;
+    }
+    EXPECT_EQ(1, authCount);
+
+    pplib::PFPFile file;
+    ASSERT_NO_THROW(file.load(filename));
+    EXPECT_EQ(pplib::String("ErsterAutor"), file.getAuthor());
+}
+
 TEST_F(PFPFileTest, IdentInvalidFiles)
 {
     pplib::PFPFile file;
@@ -991,9 +1075,24 @@ TEST_F(PFPFileTest, LoadRealWorldFontFile)
 
 TEST_F(PFPFileTest, LoadTruncatedFontFileThrows)
 {
-    const pplib::String path("testdata/fonts/freesans4.fnt5");
-    if (!pplib::File::exists(path)) {
+    const pplib::String source("testdata/fonts/freesans4.fnt5");
+    if (!pplib::File::exists(source)) {
         GTEST_SKIP() << "testdata/fonts/freesans4.fnt5 not found";
+    }
+
+    // Aus dem intakten Original eine abgeschnittene Datei bauen: kompletter Header,
+    // aber nur die Haelfte der komprimierten Nutzdaten
+    const pplib::String path("tmp/test_truncated.fnt5");
+    {
+        pplib::File src(source, pplib::File::FileMode::READ);
+        pplib::ByteArray data;
+        src.load(data);
+        src.close();
+        ASSERT_GT(data.size(), 100u);
+
+        pplib::File dst(path, pplib::File::FileMode::WRITE);
+        dst.write(data.ptr(), data.size() / 2);
+        dst.close();
     }
 
     pplib::PFPFile file;
@@ -1001,8 +1100,7 @@ TEST_F(PFPFileTest, LoadTruncatedFontFileThrows)
     EXPECT_EQ(pplib::String("FONT"), file.getID());
     EXPECT_EQ(5, file.getMainVersion());
 
-    // freesans4.fnt5 is truncated (stored sizecomp exceeds file length)
-    // -> load must detect this and throw InvalidFormatException
+    // Die deklarierte komprimierte Datenmenge ragt ueber das Dateiende hinaus
     EXPECT_THROW(file.load(path), pplib::InvalidFormatException);
 }
 

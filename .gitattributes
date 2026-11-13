@@ -1,2 +1,37 @@
 # Testdaten niemals anfassen - Byte für Byte unverändert lassen
 tests/testdata/** -text
+
+# Bilder
+*.png -text
+*.jpg -text
+*.jpeg -text
+*.gif -text
+*.bmp -text
+*.ico -text
+*.pcx -text
+*.ppm -text
+*.tga -text
+*.tif -text
+*.tiff -text
+
+# Fonts und PFP-Container
+*.ttf -text
+*.fnt5 -text
+*.fnt6 -text
+
+# Audiodateien
+*.aiff -text
+*.flac -text
+*.m4a -text
+*.mp3 -text
+*.ogg -text
+*.oga -text
+*.opus -text
+*.wav -text
+
+# Archivo / komprimierte Daten
+*.bz2 -text
+*.gz -text
+*.xz -text
+*.zip -text
+*.7z -text
