@@ -179,8 +179,7 @@ bool ImageFilter_PNG::ident(FileObject& file, IMAGE& img) noexcept
             return 0;
         }
         return 1;
-    }
-    catch (...) {
+    } catch (...) {
         return 0;
     }
     return 0;

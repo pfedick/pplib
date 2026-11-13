@@ -46,12 +46,12 @@ class ByteArray;
  */
 struct PPL_MPEG_HEADER
 {
-    uint64_t start = 0;      //!< Offset des ersten MPEG-Frames (nach ID3v2-Tag)
-    uint64_t end = 0;        //!< Offset des letzten Bytes der Audiodaten (inklusive, vor ID3v1-Tag)
-    uint64_t size = 0;       //!< Groesse der Audiodaten in Bytes (end - start + 1)
-    uint64_t filesize = 0;   //!< Groesse der Datei in Bytes
-    int32_t version = 0;     //!< MPEG-Version: 1 = MPEG-1, 2 = MPEG-2, 3 = MPEG-2.5, 0 = unbekannt
-    int32_t layer = 0;       //!< Layer der Kodierung: 2 oder 3 (Layer I wird nicht erkannt)
+    uint64_t start = 0;           //!< Offset des ersten MPEG-Frames (nach ID3v2-Tag)
+    uint64_t end = 0;             //!< Offset des letzten Bytes der Audiodaten (inklusive, vor ID3v1-Tag)
+    uint64_t size = 0;            //!< Groesse der Audiodaten in Bytes (end - start + 1)
+    uint64_t filesize = 0;        //!< Groesse der Datei in Bytes
+    int32_t version = 0;          //!< MPEG-Version: 1 = MPEG-1, 2 = MPEG-2, 3 = MPEG-2.5, 0 = unbekannt
+    int32_t layer = 0;            //!< Layer der Kodierung: 2 oder 3 (Layer I wird nicht erkannt)
     int32_t error_protection = 0; //!< gesetzt, wenn der Frame CRC-geschuetzt ist
     int32_t bitrate_index = 0;    //!< Bitrate-Index aus dem Frame-Header (1..14)
     int32_t bitrate = 0;          //!< Bitrate in kbit/s (bei VBR: Durchschnitt der geprüften Frames)

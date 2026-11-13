@@ -79,8 +79,7 @@ bool ImageFilter_PPM::ident(FileObject& file, IMAGE& img) noexcept
             img.format = RGBFormat::X8R8G8B8;
             return 1;
         }
-    }
-    catch (...) {
+    } catch (...) {
         return 0;
     }
     return 0;

@@ -318,11 +318,11 @@ TEST_F(AudioDecoderWaveTest, FloatPathsMatchIntegerPathFor16BitSource)
 TEST_F(AudioDecoderWaveTest, Int24IsScaledTo16BitMixLevel)
 {
     std::vector<char> payload;
-    appendLE(payload, 0x008000, 3);         // +32768
-    appendLE(payload, 0x000100, 3);         // +256
-    appendLE(payload, 0xFFEC78, 3);         // -5000
-    appendLE(payload, 0xFFFF00, 3);         // -256
-    appendLE(payload, 0x800000, 3);         // INT24_MIN
+    appendLE(payload, 0x008000, 3); // +32768
+    appendLE(payload, 0x000100, 3); // +256
+    appendLE(payload, 0xFFEC78, 3); // -5000
+    appendLE(payload, 0xFFFF00, 3); // -256
+    appendLE(payload, 0x800000, 3); // INT24_MIN
     appendLE(payload, 0, 3);
     std::vector<char> wave = MakeWave((uint32_t)payload.size(), payload.size(), 2, 24, 44100, 1, &payload);
 
@@ -341,8 +341,8 @@ TEST_F(AudioDecoderWaveTest, Int24IsScaledTo16BitMixLevel)
     pplib::STEREOSAMPLE32 mix[4] = {};
     decoder.seekSample(0);
     EXPECT_EQ((size_t)3, decoder.addSamples(4, mix));
-    EXPECT_EQ((int32_t)-20, mix[1].left);   // -5000 >> 8
-    EXPECT_EQ((int32_t)-1, mix[1].right);   // -256 >> 8
+    EXPECT_EQ((int32_t)-20, mix[1].left);    // -5000 >> 8
+    EXPECT_EQ((int32_t)-1, mix[1].right);    // -256 >> 8
     EXPECT_EQ((int32_t)-32768, mix[2].left); // INT24_MIN entspricht der 16 Bit Vollskala
     EXPECT_EQ((int32_t)0, mix[2].right);
 
@@ -357,10 +357,10 @@ TEST_F(AudioDecoderWaveTest, Int24IsScaledTo16BitMixLevel)
 TEST_F(AudioDecoderWaveTest, Int32IsScaledTo16BitMixLevel)
 {
     std::vector<char> payload;
-    appendLE(payload, 0x01000000, 4);       // +16777216
-    appendLE(payload, 0x00010000, 4);       // +65536
-    appendLE(payload, 0xFFFFEC78, 4);       // -5000
-    appendLE(payload, 0x80000000, 4);       // INT32_MIN
+    appendLE(payload, 0x01000000, 4); // +16777216
+    appendLE(payload, 0x00010000, 4); // +65536
+    appendLE(payload, 0xFFFFEC78, 4); // -5000
+    appendLE(payload, 0x80000000, 4); // INT32_MIN
     std::vector<char> wave = MakeWave((uint32_t)payload.size(), payload.size(), 2, 32, 44100, 1, &payload);
 
     pplib::MemFile file(wave.data(), wave.size());
@@ -378,7 +378,7 @@ TEST_F(AudioDecoderWaveTest, Int32IsScaledTo16BitMixLevel)
     pplib::STEREOSAMPLE32 mix[4] = {};
     decoder.seekSample(0);
     EXPECT_EQ((size_t)2, decoder.addSamples(4, mix));
-    EXPECT_EQ((int32_t)-1, mix[1].left);  // -5000 >> 16
+    EXPECT_EQ((int32_t)-1, mix[1].left); // -5000 >> 16
     EXPECT_EQ((int32_t)-32768, mix[1].right);
 
     pplib::STEREOSAMPLE_FLOAT fbuf[4];
@@ -394,7 +394,7 @@ TEST_F(AudioDecoderWaveTest, FloatSamplesUseTheWholeNormalizedRange)
     std::vector<char> payload;
     appendFloat(payload, 0.5f);
     appendFloat(payload, -0.25f);
-    appendFloat(payload, 1.5f);  // uebersteuert
+    appendFloat(payload, 1.5f); // uebersteuert
     appendFloat(payload, -1.0f);
     std::vector<char> wave = MakeWave((uint32_t)payload.size(), payload.size(), 2, 32, 44100, 3, &payload);
 
@@ -516,7 +516,7 @@ TEST_F(AudioDecoderWaveTest, DecodingRequiresAnOpenedFile)
     EXPECT_EQ((size_t)0, decoder.addSamples(8, fmix));
     pplib::STEREOSAMPLE32 mix[8] = {};
     EXPECT_EQ((size_t)0, decoder.addSamples(8, mix));
-    EXPECT_EQ((size_t)0, decoder.getSamples(8, (pplib::STEREOSAMPLE16*) nullptr));
+    EXPECT_EQ((size_t)0, decoder.getSamples(8, (pplib::STEREOSAMPLE16*)nullptr));
 
     // open() und schliessendes close() im selben Scope: der Zerleger darf nicht abstuerzen
     {
@@ -596,13 +596,12 @@ TEST_F(AudioDecoderWaveTest, TestdataFilesPublishTheirRealFormat)
         const char* filename;
         uint64_t bits;
         uint64_t bytesPerSample;
-        int sampleType;  // verglichen gegen (int) info.SampleType
+        int sampleType; // verglichen gegen (int) info.SampleType
     };
-    const Expectation cases[] = {
-            {"test_44kHz.wav", 16, 4, (int)pplib::AudioInfo::SampleEncoding::INTEGER},
-            {"test_44kHz_24bit.wav", 24, 6, (int)pplib::AudioInfo::SampleEncoding::INTEGER},
-            {"test_44kHz_32bit.wav", 32, 8, (int)pplib::AudioInfo::SampleEncoding::INTEGER},
-            {"test_44kHz_float.wav", 32, 8, (int)pplib::AudioInfo::SampleEncoding::FLOAT}};
+    const Expectation cases[] = {{"test_44kHz.wav", 16, 4, (int)pplib::AudioInfo::SampleEncoding::INTEGER},
+                                 {"test_44kHz_24bit.wav", 24, 6, (int)pplib::AudioInfo::SampleEncoding::INTEGER},
+                                 {"test_44kHz_32bit.wav", 32, 8, (int)pplib::AudioInfo::SampleEncoding::INTEGER},
+                                 {"test_44kHz_float.wav", 32, 8, (int)pplib::AudioInfo::SampleEncoding::FLOAT}};
 
     for (const Expectation& c : cases) {
         SCOPED_TRACE(c.filename);
@@ -677,7 +676,7 @@ TEST_F(AudioDecoderWaveTest, OpenRejectsAudioInfoContradictingTheFile)
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
     pplib::AudioDecoder_Wave decoder;
 
-    info.BytesPerSample = 6;  // sechs Bytes gehoehren zu 24 Bit oder zu drei Kanaelen
+    info.BytesPerSample = 6; // sechs Bytes gehoehren zu 24 Bit oder zu drei Kanaelen
     EXPECT_THROW(decoder.open(file, &info), pplib::UnsupportedAudioFormatException);
 
     info.BytesPerSample = 4;
@@ -693,13 +692,13 @@ TEST_F(AudioDecoderWaveTest, AddSamplesFloatBufferAccumulatesNormalizedValues)
     {
         uint16_t bits;
         uint16_t tag;
-        uint32_t half;      // halbe Vollskala im Quellformat, vorzeichenbehaftet
+        uint32_t half; // halbe Vollskala im Quellformat, vorzeichenbehaftet
     };
     const Width widths[] = {
-        { 16, 1, 0x00004000 },
-        { 24, 1, 0x00400000 },
-        { 32, 1, 0x40000000 },
-        { 32, 3, 0 },  // Float-Samples stehen bereits normiert in der Datei
+        {16, 1, 0x00004000},
+        {24, 1, 0x00400000},
+        {32, 1, 0x40000000},
+        {32, 3, 0}, // Float-Samples stehen bereits normiert in der Datei
     };
     for (const Width& w : widths) {
         SCOPED_TRACE(std::to_string(w.bits) + (w.tag == 3 ? " Bit float" : " Bit integer"));
@@ -721,7 +720,7 @@ TEST_F(AudioDecoderWaveTest, AddSamplesFloatBufferAccumulatesNormalizedValues)
         pplib::AudioDecoder_Wave decoder;
         OpenWave(file, decoder);
 
-        pplib::STEREOSAMPLE_FLOAT mix[2] = { { 0.25f, 0.25f }, { -0.25f, -0.25f } };
+        pplib::STEREOSAMPLE_FLOAT mix[2] = {{0.25f, 0.25f}, {-0.25f, -0.25f}};
         EXPECT_EQ((size_t)2, decoder.addSamples(2, mix));
         EXPECT_NEAR(0.75f, mix[0].left, 1e-4f);
         EXPECT_NEAR(-0.25f, mix[0].right, 1e-4f);
@@ -736,19 +735,20 @@ TEST_F(AudioDecoderWaveTest, MonoIsReplicatedInEveryReadOverload)
     const int32_t value = -5000;
     const uint32_t bits24 = 0xFFEC78;
     std::vector<char> payload;
-    for (int i = 0; i < 4; i++) appendLE(payload, bits24, 3);
+    for (int i = 0; i < 4; i++)
+        appendLE(payload, bits24, 3);
     std::vector<char> wave = MakeWave((uint32_t)payload.size(), payload.size(), 1, 24, 44100, 1, &payload);
     pplib::MemFile file(wave.data(), wave.size());
     pplib::AudioDecoder_Wave decoder;
     OpenWave(file, decoder);
 
-    const int16_t at16 = (int16_t)(value >> 8);  // -20: die Uebergabe an 16-bit-Stellen erfolgt skaliert
+    const int16_t at16 = (int16_t)(value >> 8); // -20: die Uebergabe an 16-bit-Stellen erfolgt skaliert
     pplib::STEREOSAMPLE16 i16[4];
     EXPECT_EQ((size_t)4, decoder.getSamples(4, i16));
     EXPECT_EQ(at16, i16[1].left);
     EXPECT_EQ(i16[1].left, i16[1].right);
 
-    pplib::STEREOSAMPLE32 summed[4] = { { 1, 1 }, { 1, 1 }, { 1, 1 }, { 1, 1 } };
+    pplib::STEREOSAMPLE32 summed[4] = {{1, 1}, {1, 1}, {1, 1}, {1, 1}};
     decoder.seekSample(0);
     EXPECT_EQ((size_t)4, decoder.addSamples(4, summed));
     EXPECT_EQ((int32_t)at16 + 1, summed[2].left);
@@ -761,7 +761,7 @@ TEST_F(AudioDecoderWaveTest, MonoIsReplicatedInEveryReadOverload)
     EXPECT_NEAR(norm, fp[3].left, 1e-6f);
     EXPECT_FLOAT_EQ(fp[3].left, fp[3].right);
 
-    pplib::STEREOSAMPLE_FLOAT mix[2] = { { 0.5f, 0.5f }, { 0.0f, 0.0f } };
+    pplib::STEREOSAMPLE_FLOAT mix[2] = {{0.5f, 0.5f}, {0.0f, 0.0f}};
     decoder.seekSample(0);
     EXPECT_EQ((size_t)2, decoder.addSamples(2, mix));
     EXPECT_NEAR(0.5f + norm, mix[0].left, 1e-6f);

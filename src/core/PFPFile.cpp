@@ -541,8 +541,7 @@ bool PFPFile::ident(const String& file)
     File ff;
     try {
         ff.open(file, File::FileMode::READ);
-    }
-    catch (...) {
+    } catch (...) {
         return false;
     }
     return ident(ff);
@@ -560,8 +559,7 @@ bool PFPFile::ident(FileObject& ff)
         subversion = Peek8(p + 14);
         comp = static_cast<Compression::Algorithm>(Peek8(p + 16));
         return true;
-    }
-    catch (...) {
+    } catch (...) {
         return false;
     }
     return false;
@@ -579,8 +577,7 @@ bool PFPFile::ident(const ByteArrayPtr& buffer) noexcept
         subversion = Peek8(p + 14);
         comp = static_cast<Compression::Algorithm>(Peek8(p + 16));
         return true;
-    }
-    catch (...) {
+    } catch (...) {
         return false;
     }
 }
@@ -646,8 +643,7 @@ void PFPFile::useMemory(const ByteArrayPtr& data)
             chunk.setName(p + z, 4);
             chunk.useData(p + z + 8, size - 8);
             addChunk(std::move(chunk));
-        }
-        catch (...) {
+        } catch (...) {
             // Ungültige Chunks ignorieren
         }
         z += size;

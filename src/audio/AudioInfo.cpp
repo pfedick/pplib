@@ -27,7 +27,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
 #include <string.h>
 #include <math.h>
 #include <cstdint>
@@ -55,10 +54,10 @@ bool fourcc(const char* adr, const char tag[4])
 
 //!\brief MPEG-Kanalmodus (2 Bit des Frame-Headers) auf ChannelMode abbilden
 constexpr AudioInfo::ChannelMode mpegModeTBL[4] = {
-    AudioInfo::ChannelMode::STEREO,        // 0
-    AudioInfo::ChannelMode::JOINT_STEREO,  // 1
-    AudioInfo::ChannelMode::DUAL_CHANNEL,  // 2
-    AudioInfo::ChannelMode::MONO           // 3
+    AudioInfo::ChannelMode::STEREO,       // 0
+    AudioInfo::ChannelMode::JOINT_STEREO, // 1
+    AudioInfo::ChannelMode::DUAL_CHANNEL, // 2
+    AudioInfo::ChannelMode::MONO          // 3
 };
 
 /** @brief Liegt ein Ogg-Stream mit Vorbis-Codec vor?
@@ -139,7 +138,7 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
     uint16_t channels = 0;
     uint16_t bitdepth = 0;
     uint32_t commSize = 0;
-    char compType[4] = {'N', 'O', 'N', 'E'};  // klassisches AIFF gilt als unkomprimiert
+    char compType[4] = {'N', 'O', 'N', 'E'}; // klassisches AIFF gilt als unkomprimiert
     uint64_t audioStart = 0;
     uint64_t audioSize = 0;
 
@@ -162,7 +161,8 @@ bool IdentAIFF(FileObject& file, AudioInfo& info)
             double f = readExtended80(comm + 8);
             if (f > 0.0 && f <= (double)UINT32_MAX) frequency = (uint64_t)(f + 0.5);
             if (headSize >= 22)
-                for (int i = 0; i < 4; i++) compType[i] = comm[18 + i];
+                for (int i = 0; i < 4; i++)
+                    compType[i] = comm[18 + i];
             commSize = size;
             foundCOMM = true;
         } else if (fourcc(adr, "SSND") && size >= 8) {
@@ -259,7 +259,7 @@ bool IdentWave(FileObject& file, AudioInfo& info)
         if (fourcc(adr, "fmt ")) {
             if (size < 16 || payload + 16 > fsize) break;
             const char* fmt = file.map(payload, 16);
-            formatTag = Peek16(fmt);  // 1 = PCM, 3 = IEEE-Float, 0xFFFE = EXTENSIBLE
+            formatTag = Peek16(fmt); // 1 = PCM, 3 = IEEE-Float, 0xFFFE = EXTENSIBLE
             channels = Peek16(fmt + 2);
             frequency = Peek32(fmt + 4);
             bitdepth = Peek16(fmt + 14);
@@ -279,8 +279,8 @@ bool IdentWave(FileObject& file, AudioInfo& info)
     }
 
     if (!foundFMT || !foundDATA) return false;
-    if (formatTag != 1 && formatTag != 3) return false;  // nur PCM und 32-Bit-IEEE-Float
-    if (formatTag == 3 && bitdepth != 32) return false;  // Float gibt es nur als 32 Bit
+    if (formatTag != 1 && formatTag != 3) return false; // nur PCM und 32-Bit-IEEE-Float
+    if (formatTag == 3 && bitdepth != 32) return false; // Float gibt es nur als 32 Bit
     if (channels == 0 || channels > 2) return false;
     if (bitdepth < 8 || bitdepth > 32) return false; // Obergrenze: >32 Bit wird nicht unterstuetzt
     if (frequency == 0) return false;
@@ -354,8 +354,8 @@ uint64_t ID3v2TagSize(FileObject& file, uint64_t fsize)
     if (memcmp(adr, "ID3", 3) != 0) return 0;
     if (Peek8(adr + 3) < 2) return 0; // vor ID3v2.2 gibt es kein Größenfeld in diesem Format
     //Die Tag-Größe ist ein Synchsafe Integer: 4 x 7 Bit, der Kopf ist nicht mitgezählt
-    const uint64_t size = ((uint64_t)Peek8(adr + 6) << 21) | ((uint64_t)Peek8(adr + 7) << 14)
-                        | ((uint64_t)Peek8(adr + 8) << 7) | (uint64_t)Peek8(adr + 9);
+    const uint64_t size =
+        ((uint64_t)Peek8(adr + 6) << 21) | ((uint64_t)Peek8(adr + 7) << 14) | ((uint64_t)Peek8(adr + 8) << 7) | (uint64_t)Peek8(adr + 9);
     if (size + 10 + 4 > fsize) return 0; // Tag muss vollständig in der Datei liegen
     return size + 10;
 }
@@ -418,8 +418,7 @@ bool IdentFLAC(FileObject& file, AudioInfo& info)
         lastBlock = (Peek8(hdr) & 0x80) != 0;
         const uint8_t type = (uint8_t)Peek8(hdr) & 0x7F;
         //Blocklänge: 3 Byte big endian, also bis 16 MByte je Block
-        const uint64_t size = ((uint64_t)Peek8(hdr + 1) << 16) | ((uint64_t)Peek8(hdr + 2) << 8)
-                            | (uint64_t)Peek8(hdr + 3);
+        const uint64_t size = ((uint64_t)Peek8(hdr + 1) << 16) | ((uint64_t)Peek8(hdr + 2) << 8) | (uint64_t)Peek8(hdr + 3);
         const uint64_t payload = p + 4;
         if (payload + size > fsize) return false; // Block reicht über das Dateiende
 
@@ -427,12 +426,12 @@ bool IdentFLAC(FileObject& file, AudioInfo& info)
             //STREAMINFO ist Pflicht, muss der erste Block sein und ist immer 34 Bytes groß
             if (haveSTREAMINFO || payload + 34 > fsize || p != tagsize + 4 || size != 34) return false;
             const char* si = file.map(payload, 34);
-            maxBlocksize    = PeekBits(si, 16, 16);  // maximale Blockgröße in Samples
-            frequency       = (uint32_t)PeekBits(si, 80, 20);
-            channels        = (uint32_t)PeekBits(si, 100, 3) + 1;
-            bitdepth        = (uint32_t)PeekBits(si, 103, 5) + 1;
+            maxBlocksize = PeekBits(si, 16, 16); // maximale Blockgröße in Samples
+            frequency = (uint32_t)PeekBits(si, 80, 20);
+            channels = (uint32_t)PeekBits(si, 100, 3) + 1;
+            bitdepth = (uint32_t)PeekBits(si, 103, 5) + 1;
             declaredSamples = PeekBits(si, 108, 36);
-            haveSTREAMINFO  = true;
+            haveSTREAMINFO = true;
         }
 
         p = payload + size;
@@ -506,20 +505,17 @@ AudioInfo::AudioFormat DetectFormat(FileObject& file, PPL_MPEG_HEADER* mp3)
     // AIFF: FORM-Groesse (+8 Header) darf das Dateiende nicht ueberschreiten;
     // Padding/Trailing-Bytes am Dateiende sind damit toleriert. AIFF-C (`AIFC`) ist
     // eingeschlossen, IdentAIFF() weist darin aber jede Kompression ausser `NONE`/`FL32` ab.
-    if (fourcc(adr, "FORM") && (uint64_t)PeekN32(adr + 4) + 8 <= fsize
-        && (fourcc(adr + 8, "AIFF") || fourcc(adr + 8, "AIFC")))
+    if (fourcc(adr, "FORM") && (uint64_t)PeekN32(adr + 4) + 8 <= fsize && (fourcc(adr + 8, "AIFF") || fourcc(adr + 8, "AIFC")))
         return AudioInfo::AudioFormat::AIFF;
 
     // RIFF / WAV (PCM Tag 1 und IEEE-Float Tag 3). IdentWave() prueft die Tag-Bitbreiten-Kombination
-    if (fourcc(adr, "RIFF") && fourcc(adr + 8, "WAVE") && fourcc(adr + 12, "fmt ")
-        && (Peek16(adr + 20) == 1 || Peek16(adr + 20) == 3))
+    if (fourcc(adr, "RIFF") && fourcc(adr + 8, "WAVE") && fourcc(adr + 12, "fmt ") && (Peek16(adr + 20) == 1 || Peek16(adr + 20) == 3))
         return AudioInfo::AudioFormat::WAVE;
 
     // Ogg ist ein codec-neutraer Container: unterstuetzt ist hier ausschliesslich
     // Vorbis, Opus/FLAC bleiben UNKNOWN. Die MPEG-Suche entfaellt in dem Fall,
     // da sie in Ogg-Nutzdaten regelmaessig ein vorgetaeuschtes Frame-Sync-Wort findet.
-    if (fourcc(adr, "OggS"))
-        return isOggVorbis(file, fsize) ? AudioInfo::AudioFormat::OGG : AudioInfo::AudioFormat::UNKNOWN;
+    if (fourcc(adr, "OggS")) return isOggVorbis(file, fsize) ? AudioInfo::AudioFormat::OGG : AudioInfo::AudioFormat::UNKNOWN;
 
     // FLAC: Das "fLaC"-Magic sitzt am Dateianfang oder direkt hinter einem ID3v2-Tag, das
     // manche Exportwerkzeuge vor eine FLAC-Datei setzen. Vor der MPEG-Suche pruefen: die

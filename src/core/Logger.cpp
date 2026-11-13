@@ -221,8 +221,7 @@ void Logger::setLogfile(PRIORITY prio, const String& filename)
             mutex.unlock();
             print(prio, 0, "pplib::Logger", "SetLogfile", __FILE__, __LINE__, ToString("=== Logfile started for %s", prioritylist[prio]));
         }
-    }
-    catch (...) {
+    } catch (...) {
         mutex.unlock();
         throw;
     }
@@ -241,8 +240,7 @@ void Logger::setLogfile(PRIORITY prio, const String& filename, int level)
             mutex.unlock();
             print(prio, 0, "pplib::Logger", "SetLogfile", __FILE__, __LINE__, ToString("=== Logfile started for %s", prioritylist[prio]));
         }
-    }
-    catch (...) {
+    } catch (...) {
         mutex.unlock();
         throw;
     }

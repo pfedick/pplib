@@ -109,8 +109,7 @@ File::~File()
 {
     try {
         close();
-    }
-    catch (...) {
+    } catch (...) {
     }
 }
 
@@ -1272,8 +1271,7 @@ bool File::tryStatFile(const String& filename, DirEntry& result)
     try {
         File::statFile(filename, result);
         return true;
-    }
-    catch (...) {
+    } catch (...) {
         return false;
     }
 }

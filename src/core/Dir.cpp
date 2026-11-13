@@ -618,8 +618,7 @@ bool Dir::tryOpen(const String& path, Sort s)
     try {
         open(path, s);
         return true;
-    }
-    catch (...) {
+    } catch (...) {
     }
     return false;
 }

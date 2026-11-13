@@ -603,8 +603,7 @@ bool ID3Tag::tryLoad(const String& filename)
         ff.open(filename, File::FileMode::READ);
         load(ff);
         return true;
-    }
-    catch (...) {
+    } catch (...) {
     }
     return false;
 }
@@ -614,8 +613,7 @@ bool ID3Tag::tryLoad(FileObject& file)
     try {
         load(file);
         return true;
-    }
-    catch (...) {
+    } catch (...) {
     }
     return false;
 }
@@ -1156,8 +1154,7 @@ void ID3Tag::saveMP3()
             n.close();
             o.close();
             File::rename(tmpfile, Filename);
-        }
-        catch (...) {
+        } catch (...) {
             n.close();
             o.close();
             File::remove(tmpfile);
@@ -1268,8 +1265,7 @@ void ID3Tag::saveAiff()
                 o.close();
                 return;
             }
-        }
-        catch (...) {
+        } catch (...) {
         }
     }
     // create temporary file for new tag
@@ -1277,8 +1273,7 @@ void ID3Tag::saveAiff()
     n.open(tmpfile, File::FileMode::READWRITE);
     try {
         copyAiffToNewFile(o, n, tagV2);
-    }
-    catch (...) {
+    } catch (...) {
         n.close();
         o.close();
         File::remove(tmpfile);
@@ -1748,16 +1743,14 @@ void ID3Tag::saveWave()
                 o.close();
                 return;
             }
-        }
-        catch (...) {
+        } catch (...) {
         }
     }
     n.touch(tmpfile);
     n.open(tmpfile, File::FileMode::READWRITE);
     try {
         copyWaveToNewFile(o, n, tagV2);
-    }
-    catch (...) {
+    } catch (...) {
         n.close();
         o.close();
         File::remove(tmpfile);

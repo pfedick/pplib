@@ -80,8 +80,7 @@ static size_t ppl_read_func(void* ptr, size_t size, size_t nmemb, void* datasour
     FileObject* f = static_cast<FileObject*>(datasource);
     try {
         return f->read(ptr, size * nmemb) / size;
-    }
-    catch (...) {
+    } catch (...) {
         return 0; // EOF oder Lesefehler: Signal an libvorbis, keine Exception
     }
 }
@@ -113,8 +112,7 @@ static int ppl_seek_func(void* datasource, ogg_int64_t offset, int whence)
         const int64_t target = base + (int64_t)offset;
         if (target < 0) return -1; // vor Dateianfang
         return (f->seek(offset, origin) == (uint64_t)target) ? 0 : -1;
-    }
-    catch (...) {
+    } catch (...) {
         return -1;
     }
 }
@@ -125,8 +123,7 @@ static long ppl_tell_func(void* datasource)
     // C-Frames von libvorbis hindurch laufen.
     try {
         return (long)static_cast<FileObject*>(datasource)->tell();
-    }
-    catch (...) {
+    } catch (...) {
         return -1;
     }
 }

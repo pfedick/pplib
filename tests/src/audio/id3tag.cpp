@@ -192,8 +192,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithoutEncodingByte)
     frame.setData(ba);
     try {
         ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         e.print();
     }
     EXPECT_EQ(expected, result);
@@ -215,8 +214,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte0)
     frame.setData(ba);
     try {
         ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         e.print();
     }
     EXPECT_EQ(expected, result);
@@ -237,8 +235,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte1)
     frame.setData(ba);
     try {
         ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         e.print();
     }
     EXPECT_EQ(expected, result);
@@ -260,8 +257,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte2)
     frame.setData(ba);
     try {
         ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         e.print();
     }
     EXPECT_EQ(expected, result);
@@ -283,8 +279,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte3)
     frame.setData(ba);
     try {
         ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         e.print();
     }
     EXPECT_EQ(expected, result);
@@ -596,8 +591,7 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithoutPicture)
     ASSERT_NO_THROW({
         try {
             Tags.save();
-        }
-        catch (const pplib::Exception& e) {
+        } catch (const pplib::Exception& e) {
             e.print();
             throw;
         }
@@ -860,8 +854,7 @@ TEST_F(ID3TagTest, Overflow)
     pplib::ID3Tag Tags;
     try {
         Tags.load("testdata/audio/tags_at_eof.aiff");
-    }
-    catch (const pplib::Exception& ex) {
+    } catch (const pplib::Exception& ex) {
         ex.print();
     }
 }

@@ -82,10 +82,12 @@ Date& Date::set(const String& date)
     std::vector<String> tokens;
     const char* p = d.c_str();
     while (*p) {
-        while (*p && (*p == ' ' || *p == '\t' || *p == ',')) p++;
+        while (*p && (*p == ' ' || *p == '\t' || *p == ','))
+            p++;
         if (!*p) break;
         const char* start = p;
-        while (*p && *p != ' ' && *p != '\t' && *p != ',') p++;
+        while (*p && *p != ' ' && *p != '\t' && *p != ',')
+            p++;
         tokens.push_back(String(start, p - start));
     }
     if (tokens.size() == 3) {

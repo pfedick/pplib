@@ -320,8 +320,7 @@ String FileObject::md5()
     try {
         oldpos = tell();
         seek(0);
-    }
-    catch (const IllegalOperationOnPipeException&) {
+    } catch (const IllegalOperationOnPipeException&) {
         is_pipe = true;
     }
 
@@ -331,11 +330,9 @@ String FileObject::md5()
             if (bytes_read == 0) break;
             MD5Update(&ctx, (const unsigned char*)buffer.ptr(), bytes_read);
         }
-    }
-    catch (const EndOfFileException&) {
+    } catch (const EndOfFileException&) {
         if (!is_pipe) throw; // Bei regulären Dateien unerwartet, bei Pipes normales EOF
-    }
-    catch (...) {
+    } catch (...) {
         if (!is_pipe) seek(oldpos); // Bei regulären Dateien Position wiederherstellen, bei Pipes nicht möglich
         throw;
     }

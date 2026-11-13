@@ -110,8 +110,7 @@ static mpg123_ssize_t ReadStream(void* clientdata, void* buffer, size_t len)
         size_t got = mp3->file->read(buffer, len);
         mp3->pos += (int64_t)got;
         return (mpg123_ssize_t)got;
-    }
-    catch (Exception&) {
+    } catch (Exception&) {
         // Die Rueckruffunktion laeuft in fremdem C-Code, eine Exception darf hier nicht herauslaufen
         return -1;
     }
@@ -148,8 +147,7 @@ static off_t SeekStream(void* clientdata, off_t offset, int origin)
         mp3->file->seek((uint64_t)(mp3->audiostreamstart + target));
         mp3->pos = target;
         return (off_t)target;
-    }
-    catch (Exception&) {
+    } catch (Exception&) {
         return -1;
     }
 }

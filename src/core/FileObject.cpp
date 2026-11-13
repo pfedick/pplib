@@ -130,8 +130,7 @@ uint64_t FileObject::copyFrom(FileObject& quellfile, uint64_t bytes)
         size_t n = 0;
         try {
             n = quellfile.read((void*)CopyBuffer.ptr(), (size_t)by);
-        }
-        catch (const EndOfFileException&) {
+        } catch (const EndOfFileException&) {
             break;
         }
         if (n == 0) break; // EOF oder Fehler
@@ -241,8 +240,7 @@ size_t FileObject::load(ByteArray& object)
     bool is_pipe = false;
     try {
         seek(0);
-    }
-    catch (const IllegalOperationOnPipeException&) {
+    } catch (const IllegalOperationOnPipeException&) {
         is_pipe = true;
     }
 
@@ -260,8 +258,7 @@ size_t FileObject::load(ByteArray& object)
                 if (by == 0) break;
                 total_read += by;
             }
-        }
-        catch (const EndOfFileException&) {
+        } catch (const EndOfFileException&) {
         }
         if (total_read < s) {
             object[total_read] = 0;
@@ -281,8 +278,7 @@ size_t FileObject::load(ByteArray& object)
             object.append(chunk.ptr(), by);
             total_read += by;
         }
-    }
-    catch (const EndOfFileException&) {
+    } catch (const EndOfFileException&) {
     }
     return total_read;
 }
@@ -431,8 +427,7 @@ char* FileObject::tryMap(uint64_t position, size_t size, MapProtection prot) noe
         const uint64_t filesize = this->size();
         if ((position > filesize) || (size > filesize - position)) return nullptr;
         return map(position, size, prot);
-    }
-    catch (...) {
+    } catch (...) {
         return nullptr;
     }
 }

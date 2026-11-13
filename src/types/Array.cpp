@@ -57,8 +57,7 @@ template <typename Func> static void runAndCatchOperation(Func&& op)
     // LCOV_EXCL_START
     catch (const std::bad_alloc&) {
         throw OutOfMemoryException();
-    }
-    catch (const std::length_error&) {
+    } catch (const std::length_error&) {
         throw OutOfMemoryException();
     }
     // LCOV_EXCL_STOP

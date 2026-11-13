@@ -38,6 +38,7 @@ BraceWrapping:
   AfterFunction: true
   AfterControlStatement: Never
   BeforeElse: false
+  BeforeCatch: false
   AfterClass: true
 
 # Kommentare: clang-format darf den Text in Kommentaren nicht neu umbrechen.

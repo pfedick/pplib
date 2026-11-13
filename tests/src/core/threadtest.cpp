@@ -171,8 +171,7 @@ public:
     {
         try {
             threadJoin();
-        }
-        catch (const pplib::DeadlockException&) {
+        } catch (const pplib::DeadlockException&) {
             threw_deadlock = true;
         }
     }

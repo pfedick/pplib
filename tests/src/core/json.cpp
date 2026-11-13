@@ -69,8 +69,7 @@ TEST_F(JsonTest, ParseFromStringWithDictToAssocArray)
     pplib::AssocArray data;
     try {
         pplib::Json::loads(data, text);
-    }
-    catch (const pplib::Exception& exp) {
+    } catch (const pplib::Exception& exp) {
         exp.print();
         FAIL() << "unexpected exception occured";
     }
@@ -117,8 +116,7 @@ TEST_F(JsonTest, ParseFromStringWithArrayToVariantArray)
     pplib::VariantArray data;
     try {
         pplib::Json::loads(data, text);
-    }
-    catch (const pplib::Exception& exp) {
+    } catch (const pplib::Exception& exp) {
         exp.print();
         FAIL() << "unexpected exception occured";
     }
@@ -237,8 +235,7 @@ TEST_F(JsonTest, DumpsNestedListAtFirstLevel)
     ASSERT_NO_THROW({
         try {
             str = pplib::Json::dumps(data);
-        }
-        catch (const pplib::Exception& exp) {
+        } catch (const pplib::Exception& exp) {
             exp.print();
             throw;
         }

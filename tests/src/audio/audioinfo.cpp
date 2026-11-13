@@ -97,7 +97,6 @@ TEST_F(AudioInfoTest, IdentMp3CBR192WithoutID3)
     EXPECT_EQ((uint64_t)0, info.AudioStart) << "Unexpected audio start";
     EXPECT_EQ((uint64_t)95919, info.AudioEnd) << "Unexpected audio end";
     EXPECT_EQ((uint64_t)95920, info.AudioSize) << "Unexpected audio size";
-
 }
 
 TEST_F(AudioInfoTest, IdentMp3CBR320WithoutID3)
@@ -175,7 +174,6 @@ TEST_F(AudioInfoTest, IdentAiffWithoutID3)
     EXPECT_EQ((uint64_t)54, info.AudioStart) << "Unexpected audio start";
     EXPECT_EQ((uint64_t)694833, info.AudioEnd) << "Unexpected audio end";
     EXPECT_EQ((uint64_t)694780, info.AudioSize) << "Unexpected audio size";
-
 }
 
 TEST_F(AudioInfoTest, IdentAiffWithID3)
@@ -199,7 +197,6 @@ TEST_F(AudioInfoTest, IdentAiffWithID3)
     EXPECT_EQ((uint64_t)54, info.AudioStart) << "Unexpected audio start";
     EXPECT_EQ((uint64_t)694833, info.AudioEnd) << "Unexpected audio end";
     EXPECT_EQ((uint64_t)694780, info.AudioSize) << "Unexpected audio size";
-
 }
 
 TEST_F(AudioInfoTest, IdentWaveWithoutID3)
@@ -250,7 +247,6 @@ TEST_F(AudioInfoTest, IdentOggVorbis)
     EXPECT_EQ((uint64_t)8060, info.AudioStart) << "Unexpected audio start";
     EXPECT_EQ((uint64_t)90767, info.AudioEnd) << "Unexpected audio end";
     EXPECT_EQ((uint64_t)82708, info.AudioSize) << "Unexpected audio size";
-
 }
 
 //--- Helfer fuer synthetische Header (Negativ- und Edge-Faelle) -----------------
@@ -304,10 +300,16 @@ static void putExtended80(std::vector<char>& v, uint32_t rate, uint32_t fraction
  * Mit \p compType wird daraus AIFF-C: dann steht vor COMM ein FVER-Chunk und hinter
  * der Sample-Rate der 4-Byte-Kompressionstyp.
  */
-static std::vector<char> MakeAIFF(uint32_t commSize, uint32_t ssndSize, uint32_t sampleOffset,
-                                  size_t audioBytes, uint16_t channels = 2, uint16_t bitdepth = 16,
-                                  uint32_t rate = 44100, uint32_t fraction = 0,
-                                  const char* formType = "AIFF", const char* compType = nullptr)
+static std::vector<char> MakeAIFF(uint32_t commSize,
+                                  uint32_t ssndSize,
+                                  uint32_t sampleOffset,
+                                  size_t audioBytes,
+                                  uint16_t channels = 2,
+                                  uint16_t bitdepth = 16,
+                                  uint32_t rate = 44100,
+                                  uint32_t fraction = 0,
+                                  const char* formType = "AIFF",
+                                  const char* compType = nullptr)
 {
     std::vector<char> body;
     if (compType != nullptr) {
@@ -343,21 +345,27 @@ static std::vector<char> MakeAIFF(uint32_t commSize, uint32_t ssndSize, uint32_t
  * Auch hier werden Chunk-Groessen deklariert, die nicht zum real folgenden Inhalt
  * passen muessen (defekte Dateien).
  */
-static std::vector<char> MakeWAVE(uint32_t fmtSize, uint32_t dataSize, size_t audioBytes,
-                                  uint16_t channels = 2, uint16_t bitdepth = 16, uint32_t rate = 44100,
-                                  bool listChunkBeforeData = false, bool id3ChunkBeforeData = false,
+static std::vector<char> MakeWAVE(uint32_t fmtSize,
+                                  uint32_t dataSize,
+                                  size_t audioBytes,
+                                  uint16_t channels = 2,
+                                  uint16_t bitdepth = 16,
+                                  uint32_t rate = 44100,
+                                  bool listChunkBeforeData = false,
+                                  bool id3ChunkBeforeData = false,
                                   uint16_t formatTag = 1)
 {
     std::vector<char> body;
     putTag(body, "fmt ");
     put32le(body, fmtSize);
-    put16le(body, formatTag);  // 1 = PCM, 3 = IEEE-Float
+    put16le(body, formatTag); // 1 = PCM, 3 = IEEE-Float
     put16le(body, channels);
     put32le(body, rate);
     put32le(body, rate * channels * (bitdepth / 8));
     put16le(body, (uint16_t)((bitdepth / 8) * channels));
     put16le(body, bitdepth);
-    for (uint32_t i = 16; i < fmtSize && i < 40; i++) put8(body, 0);
+    for (uint32_t i = 16; i < fmtSize && i < 40; i++)
+        put8(body, 0);
 
     if (listChunkBeforeData) {
         putTag(body, "LIST");
@@ -373,9 +381,9 @@ static std::vector<char> MakeWAVE(uint32_t fmtSize, uint32_t dataSize, size_t au
         putTag(body, "id3 ");
         put32le(body, 10);
         putTag(body, "ID3\x03"); // 'I','D','3', Major-Version
-        put8(body, 0);          // Minor-Version
-        put8(body, 0);          // Flags
-        put32le(body, 0);       // synchsafe Groesse: leerer Tag
+        put8(body, 0);           // Minor-Version
+        put8(body, 0);           // Flags
+        put32le(body, 0);        // synchsafe Groesse: leerer Tag
     }
 
     putTag(body, "data");
@@ -458,7 +466,8 @@ TEST_F(AudioInfoTest, SizeFieldsAre64Bit)
 
 TEST_F(AudioInfoTest, FormatOverloadMatchesInfoOverload)
 {
-    struct Entry {
+    struct Entry
+    {
         const char* path;
         pplib::AudioInfo::AudioFormat format;
         bool identifiable = true;
@@ -836,7 +845,8 @@ TEST_F(AudioInfoTest, AiffOtherBitDepthsUsePaddedFrames)
     // Die von Audacity erzeugten Dateien decken die bei AIFF real vorkommenden Bitweiten ab.
     // 24 Bit werden pro Kanal in 3 Byte gepackt (kein 4-Byte-Padding, wie es die Spec nennt),
     // 32 Bit in 4 Byte. Die Samplezahl richtet sich nach den real folgenden Daten.
-    struct Entry {
+    struct Entry
+    {
         const char* name;
         uint8_t channels;
         uint8_t bits;
@@ -844,9 +854,9 @@ TEST_F(AudioInfoTest, AiffOtherBitDepthsUsePaddedFrames)
         uint16_t bitrate;
         CM mode;
     } matrix[] = {
-        {"test_44kHz_16bit_mono.aiff", (uint8_t)1, (uint8_t)16, (uint8_t)2, (uint16_t)705,  CM::MONO},
-        {"test_44kHz_24bit.aiff",      (uint8_t)2, (uint8_t)24, (uint8_t)6, (uint16_t)2116, CM::STEREO},
-        {"test_44kHz_32bit.aiff",      (uint8_t)2, (uint8_t)32, (uint8_t)8, (uint16_t)2822, CM::STEREO},
+        {"test_44kHz_16bit_mono.aiff", (uint8_t)1, (uint8_t)16, (uint8_t)2, (uint16_t)705, CM::MONO},
+        {"test_44kHz_24bit.aiff", (uint8_t)2, (uint8_t)24, (uint8_t)6, (uint16_t)2116, CM::STEREO},
+        {"test_44kHz_32bit.aiff", (uint8_t)2, (uint8_t)32, (uint8_t)8, (uint16_t)2822, CM::STEREO},
     };
     for (Entry& entry : matrix) {
         pplib::File file;
@@ -931,8 +941,6 @@ TEST_F(AudioInfoTest, AiffcFl32WithWrongBitdepthIsRejected)
     EXPECT_TRUE(SameInfo(info, SentinelInfo()));
 }
 
-
-
 /** @brief Minimaler MP3-Stream mit vorgegebenem Mode-Feld des Frame- Headers.
  *
  * 3 Frames a 104 Byte (MPEG-1 Layer III, 32 kbit/s, 44,1 kHz, ohne Padding).
@@ -944,16 +952,17 @@ static std::vector<char> MakeMP3(uint8_t mode, size_t frames = 3)
     for (size_t i = 0; i < frames; i++) {
         char* hdr = data.data() + i * frameBytes;
         hdr[0] = (char)0xFF;
-        hdr[1] = (char)0xFB;          // Sync, MPEG-1, Layer III, ohne CRC
-        hdr[2] = (char)0x20;          // Bitrate-Index 2 (32 kbit/s), 44,1 kHz
-        hdr[3] = (char)(mode << 6);   // Mode-Feld, keine Mode-Erweiterung
+        hdr[1] = (char)0xFB;        // Sync, MPEG-1, Layer III, ohne CRC
+        hdr[2] = (char)0x20;        // Bitrate-Index 2 (32 kbit/s), 44,1 kHz
+        hdr[3] = (char)(mode << 6); // Mode-Feld, keine Mode-Erweiterung
     }
     return data;
 }
 
 TEST_F(AudioInfoTest, Mp3ModeFieldSelectsChannelMode)
 {
-    struct {
+    struct
+    {
         uint8_t mode;
         pplib::AudioInfo::ChannelMode expect;
         uint8_t channels;
@@ -1080,7 +1089,10 @@ TEST_F(AudioInfoTest, OpusInOggContainerIsNotSupported)
 class FlacBitWriter
 {
 public:
-    FlacBitWriter(std::vector<char>& out) : out(out) {}
+    FlacBitWriter(std::vector<char>& out)
+        : out(out)
+    {
+    }
     void Put(uint64_t value, uint32_t count)
     {
         for (uint32_t i = count; i > 0; i--) {
@@ -1123,45 +1135,60 @@ static void PutFLACBlockHeader(std::vector<char>& v, uint8_t type, uint32_t size
  * \p blockBits setzt die Bitbreite der Block-/Framegroessen, damit sich mit kleinem
  * maxBlocksize die Obergrenze der Samplezahl gezielt unterholen laesst.
  */
-static void PutFLACStreamInfo(std::vector<char>& v, uint16_t channels, uint32_t bitdepth,
-                              uint32_t rate, uint64_t totalSamples, uint16_t maxBlocksize = 4096,
-                              bool last = true, uint32_t blockBits = 16)
+static void PutFLACStreamInfo(std::vector<char>& v,
+                              uint16_t channels,
+                              uint32_t bitdepth,
+                              uint32_t rate,
+                              uint64_t totalSamples,
+                              uint16_t maxBlocksize = 4096,
+                              bool last = true,
+                              uint32_t blockBits = 16)
 {
     PutFLACBlockHeader(v, 0, 34, last);
     FlacBitWriter bits(v);
     bits.Put(maxBlocksize, blockBits);
     bits.Put(maxBlocksize, blockBits);
-    bits.Put(0, 24);  // minFrameSize
-    bits.Put(0, 24);  // maxFrameSize
+    bits.Put(0, 24); // minFrameSize
+    bits.Put(0, 24); // maxFrameSize
     bits.Put(rate, 20);
     bits.Put(channels - 1, 3);
     bits.Put(bitdepth - 1, 5);
     bits.Put(totalSamples, 36);
-    for (int i = 0; i < 16; i++) bits.Put(0, 8);  // MD5
+    for (int i = 0; i < 16; i++)
+        bits.Put(0, 8); // MD5
     bits.Flush();
 }
 
 /** @brief Minimaler FLAC-Container: Magic, optional Padding vor STREAMINFO, dann \p audioBytes Daten */
-static std::vector<char> MakeFLAC(uint16_t channels = 2, uint32_t bitdepth = 16, uint32_t rate = 44100,
-                                  uint64_t totalSamples = 100, size_t audioBytes = 512,
-                                  uint16_t maxBlocksize = 4096, size_t paddingBefore = 0)
+static std::vector<char> MakeFLAC(uint16_t channels = 2,
+                                  uint32_t bitdepth = 16,
+                                  uint32_t rate = 44100,
+                                  uint64_t totalSamples = 100,
+                                  size_t audioBytes = 512,
+                                  uint16_t maxBlocksize = 4096,
+                                  size_t paddingBefore = 0)
 {
     std::vector<char> v;
     putTag(v, "fLaC");
     if (paddingBefore != 0) {
         PutFLACBlockHeader(v, 1, (uint32_t)paddingBefore, false);
-        for (size_t i = 0; i < paddingBefore; i++) put8(v, 0);
+        for (size_t i = 0; i < paddingBefore; i++)
+            put8(v, 0);
     }
     PutFLACStreamInfo(v, channels, bitdepth, rate, totalSamples, maxBlocksize);
-    for (size_t i = 0; i < audioBytes; i++) put8(v, (char)(i & 0xFF));
+    for (size_t i = 0; i < audioBytes; i++)
+        put8(v, (char)(i & 0xFF));
     return v;
 }
 
 /// schreibt 128 Bytes ID3v1-Tag (Magic "TAG") an das Dateiende
 static void AppendID3v1(std::vector<char>& v)
 {
-    put8(v, 'T'); put8(v, 'A'); put8(v, 'G');
-    for (int i = 0; i < 125; i++) put8(v, 0);
+    put8(v, 'T');
+    put8(v, 'A');
+    put8(v, 'G');
+    for (int i = 0; i < 125; i++)
+        put8(v, 0);
 }
 
 /** @brief Alle Felder einer erkannten FLAC-Datei gegen die Erwartungen pruefen
@@ -1169,9 +1196,16 @@ static void AppendID3v1(std::vector<char>& v)
  * Die Samples-Angabe ist bei allen Testdateien 173695, daher sind Length und Bitrate
  * feste Rechenwerte (Length = Samples*1000/Frequency, Bitrate = AudioSize*8/FileSize*kHz).
  */
-void ExpectFLAC(const pplib::AudioInfo& info, uint64_t fileSize, uint64_t audioStart,
-                uint64_t audioSize, uint64_t samples, uint32_t length, uint16_t bitrate,
-                uint8_t channels, uint8_t bitdepth, uint32_t frequency = 44100)
+void ExpectFLAC(const pplib::AudioInfo& info,
+                uint64_t fileSize,
+                uint64_t audioStart,
+                uint64_t audioSize,
+                uint64_t samples,
+                uint32_t length,
+                uint16_t bitrate,
+                uint8_t channels,
+                uint8_t bitdepth,
+                uint32_t frequency = 44100)
 {
     EXPECT_EQ(AF::FLAC, info.Format);
     EXPECT_EQ(fileSize, info.FileSize);
@@ -1338,9 +1372,11 @@ TEST_F(AudioInfoTest, FlacStreamInfoLengthBeyondToleranceIsRejected)
     bits.Put(1, 3);
     bits.Put(15, 5);
     bits.Put(100, 36);
-    for (int i = 0; i < 15; i++) bits.Put(0, 8);  // ein Byte MD5 zu wenig
+    for (int i = 0; i < 15; i++)
+        bits.Put(0, 8); // ein Byte MD5 zu wenig
     bits.Flush();
-    for (int i = 0; i < 512; i++) put8(flac, (char)(i & 0xFF));
+    for (int i = 0; i < 512; i++)
+        put8(flac, (char)(i & 0xFF));
 
     pplib::MemFile file(flac.data(), flac.size());
     pplib::AudioInfo info;
@@ -1355,7 +1391,8 @@ TEST_F(AudioInfoTest, FlacWithoutLastMetadataBlockIsRejected)
     putTag(flac, "fLaC");
     PutFLACStreamInfo(flac, 2, 16, 44100, 100, 4096, false);
     PutFLACBlockHeader(flac, 1, 4, false);
-    for (int i = 0; i < 4; i++) put8(flac, 0);
+    for (int i = 0; i < 4; i++)
+        put8(flac, 0);
 
     pplib::MemFile file(flac.data(), flac.size());
     pplib::AudioInfo info;
@@ -1410,11 +1447,14 @@ TEST_F(AudioInfoTest, FlacWithEmptyID3v2TagAtStart)
     // ID3v2-Header ohne Frames (Taggroesse 0): die Revision faehrt die Suche danach fort
     std::vector<char> flac = MakeFLAC(2, 16, 44100, 100, 512);
     std::vector<char> all;
-    put8(all, 'I'); put8(all, 'D'); put8(all, '3');  // putTag wuerfe ein 4. Byte anhaengen
-    put8(all, 3);  // Major Version 3
-    put8(all, 0);  // Minor Version
-    put8(all, 0);  // keine Flags
-    for (int i = 0; i < 4; i++) put8(all, 0);        // Taggroesse 0: nur der 10-Byte-Header
+    put8(all, 'I');
+    put8(all, 'D');
+    put8(all, '3'); // putTag wuerfe ein 4. Byte anhaengen
+    put8(all, 3);   // Major Version 3
+    put8(all, 0);   // Minor Version
+    put8(all, 0);   // keine Flags
+    for (int i = 0; i < 4; i++)
+        put8(all, 0); // Taggroesse 0: nur der 10-Byte-Header
     all.insert(all.end(), flac.begin(), flac.end());
 
     pplib::MemFile file(all.data(), all.size());
@@ -1429,11 +1469,14 @@ TEST_F(AudioInfoTest, FlacWithEmptyID3v2TagAtStart)
 TEST_F(AudioInfoTest, FlacID3v2TagClaimingSizeBeyondEofIsUnknown)
 {
     std::vector<char> all;
-    put8(all, 'I'); put8(all, 'D'); put8(all, '3');
-    put8(all, 3);  // Major Version 3
-    put8(all, 0);  // Minor Version
-    put8(all, 0);  // keine Flags
-    for (int i = 0; i < 4; i++) put8(all, 0x7F);  // syncsichere 268435455
+    put8(all, 'I');
+    put8(all, 'D');
+    put8(all, '3');
+    put8(all, 3); // Major Version 3
+    put8(all, 0); // Minor Version
+    put8(all, 0); // keine Flags
+    for (int i = 0; i < 4; i++)
+        put8(all, 0x7F); // syncsichere 268435455
     std::vector<char> flac = MakeFLAC(2, 16, 44100, 100, 512);
     all.insert(all.end(), flac.begin(), flac.end());
 
@@ -1466,4 +1509,3 @@ TEST_F(AudioInfoTest, FlacEmptyStreamIsRejected)
 }
 
 } // namespace
-

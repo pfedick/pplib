@@ -199,8 +199,7 @@ void FontEngineFont5::loadFont(FontFile& file, bool useKerning)
         }
         file.engine = this;
         file.priv = File;
-    }
-    catch (...) {
+    } catch (...) {
         delete File;
         throw;
     }

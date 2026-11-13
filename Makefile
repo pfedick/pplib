@@ -169,3 +169,14 @@ html:
 	echo "Documentation generated at documentation/html/index.html"
 
 .PHONY: all release debug configure install install_home build_tests test gfxreftest gfxreftest_run asan coverage wip clean doku html
+
+
+SRC_FILES = $(shell git ls-files -z | grep -zE '\.(cpp|h|hpp|inl)$$' \
+              | grep -zvE '^(resource/res\.h|tests/src/wordlist\.cpp)$$' \
+              | grep -zv '^tests/testdata/' | xargs -0)
+
+format:
+	clang-format -i --style=file $(SRC_FILES)
+
+format_check:
+	clang-format --dry-run --Werror --style=file $(SRC_FILES)

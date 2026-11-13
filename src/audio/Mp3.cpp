@@ -222,8 +222,7 @@ void GetMP3Frame(FileObject& file, PPL_MPEG_HEADER& mpg, ByteArray& buffer)
     size_t got = 0;
     try {
         got = file.read(buffer, readsize);
-    }
-    catch (const EndOfFileException&) {
+    } catch (const EndOfFileException&) {
         // Abgeschnittene Datei: kein Frame liefern
         got = 0;
     }

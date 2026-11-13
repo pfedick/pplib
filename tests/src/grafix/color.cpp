@@ -283,8 +283,7 @@ TEST(GrafixColorTest, AddOperators)
     c += pplib::grafix::Color(200, 200, 200, 200);
     EXPECT_EQ(pplib::grafix::Color(255, 255, 255, 255), c);
 
-    EXPECT_EQ(pplib::grafix::Color(255, 255, 255, 255),
-              pplib::grafix::Color(200, 100, 50, 200) + pplib::grafix::Color(100, 200, 250, 100));
+    EXPECT_EQ(pplib::grafix::Color(255, 255, 255, 255), pplib::grafix::Color(200, 100, 50, 200) + pplib::grafix::Color(100, 200, 250, 100));
 }
 
 TEST(GrafixColorTest, ComparisonOperators)

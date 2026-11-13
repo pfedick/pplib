@@ -298,8 +298,7 @@ void ConfigParser::deleteKey(const String& section, const String& key)
     if (!s) return;
     try {
         s->values.remove(key);
-    }
-    catch (const KeyNotFoundException&) {
+    } catch (const KeyNotFoundException&) {
     }
 }
 
@@ -540,8 +539,7 @@ void ConfigParser::load(FileObject& file)
                 }
             }
         }
-    }
-    catch (const pplib::EndOfFileException&) {
+    } catch (const pplib::EndOfFileException&) {
         section = NULL;
         return;
     }

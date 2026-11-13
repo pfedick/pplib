@@ -547,8 +547,7 @@ TEST_F(GzFileTest, eofDetection)
         while (true) {
             f.fread(buf, 1, sizeof(buf));
         }
-    }
-    catch (const pplib::EndOfFileException&) {
+    } catch (const pplib::EndOfFileException&) {
     }
     ASSERT_TRUE(f.eof());
 }

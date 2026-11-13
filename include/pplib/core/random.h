@@ -138,7 +138,6 @@ public:
     {
         return fill(buffer, buffer.size());
     }
-
 };
 
 /**

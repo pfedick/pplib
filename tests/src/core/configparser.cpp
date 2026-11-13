@@ -701,8 +701,7 @@ TEST_F(ConfigParserTest, save)
     // Temp-File loeschen
     try {
         pplib::File::unlink(TmpFile);
-    }
-    catch (...) {
+    } catch (...) {
         // Do nothing
     }
 }
