@@ -432,6 +432,38 @@ TEST_F(PFPFileTest, PredefinedChunks)
     EXPECT_EQ(pplib::String("Copyright"), fileWithNulls.getCopyright());
 }
 
+// Regressiontest: String-Parameter muessen spezifikationsgemaess mit schliessendem 0-Byte in der Datei stehen
+TEST_F(PFPFileTest, StringParamSavedWithTrailingNullByte)
+{
+    const pplib::String filename("tmp/test_terminator.pfp");
+    {
+        pplib::PFPFile file;
+        file.setId("DEMO");
+        file.setAuthor("Patrick");
+        ASSERT_NO_THROW(file.save(filename));
+    }
+
+    pplib::File ff(filename, pplib::File::FileMode::READ);
+    pplib::ByteArray fileData;
+    ff.load(fileData);
+    ff.close();
+
+    const char* p = (const char*)fileData.ptr();
+    ASSERT_NE(nullptr, p);
+    // 24 Byte Header + AUTH-Chunk + 8 Byte ENDF-Chunk
+    ASSERT_EQ(48u, fileData.size());
+    ASSERT_EQ(pplib::String("AUTH"), pplib::String(p + 24, 4));
+    // Groessenfeld = 8 Byte Chunk-Kopf + 7 Zeichen + 0-Byte
+    EXPECT_EQ(16u, pplib::Peek32(p + 28));
+    EXPECT_EQ(0, memcmp(p + 32, "Patrick", 7));
+    EXPECT_EQ(0, (int)p[39]);
+    EXPECT_EQ(pplib::String("ENDF"), pplib::String(p + 40, 4));
+
+    pplib::PFPFile file;
+    ASSERT_NO_THROW(file.load(filename));
+    EXPECT_EQ(pplib::String("Patrick"), file.getAuthor());
+}
+
 TEST_F(PFPFileTest, AddChunkLvalueAndRvalue)
 {
     pplib::PFPFile file;

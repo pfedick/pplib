@@ -224,7 +224,8 @@ void PFPFile::setCompression(Compression::Algorithm type)
 void PFPFile::setStringParam(const String& chunkname, const String& data)
 {
     deleteChunk(chunkname);
-    PFPChunk chunk(chunkname, ByteArrayPtr(data));
+    // Spezifikationsgemaess mit schliessendem 0-Byte ablegen (String::c_str() liefert stets einen terminierten Buffer)
+    PFPChunk chunk(chunkname, ByteArrayPtr(data.c_str(), data.len() + 1));
     Chunks.push_back(std::move(chunk));
 }
 
