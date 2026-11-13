@@ -533,7 +533,7 @@ Size FontEngineFont5::measure(const FontFile& file, const Font& font, const Wide
             glyph = header + Peek32(jump + ((code - start) << 2));
             if (glyph) {
                 // width=Peek16(glyph);
-                height = Peek16(glyph);
+                height = Peek16(glyph + 2);
                 bearingy = Peek16(glyph + 6);
                 // bearingx=Peek16(glyph+4);
                 advance = Peek16(glyph + 8);
