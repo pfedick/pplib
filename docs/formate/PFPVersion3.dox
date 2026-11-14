@@ -59,18 +59,20 @@ Die nachfolgenden Chunks sind vordefiniert, aber optional
 <li>\b Author
 
 \code
-Byte 0: AUTH
-Byte 4: Länge des nachfolgenden Strings
+Byte 0: "AUTH"                                         4 Byte
+Byte 4: Größe des Chunks einschließlich 8-Byte Header  4 Byte
 Byte 8: Name des Authors mit schließendem 0-Byte
 \endcode
 Der Name des Authors kann mit der Funktion PFPFile::SetAuthor gesetzt werden.
+Die Größe des Chunks ergibt sich aus der Länge des Namens des Authors plus 0-Byte Terminator,
+zuzüglich 8-Byte Header.
 </li>
 
 <li>\b Name
 
 \code
-Byte 0: NAME
-Byte 4: Länge des nachfolgenden Strings
+Byte 0: "NAME"                                         4 Byte
+Byte 4: Größe des Chunks einschließlich 8-Byte Header  4 Byte
 Byte 8: Name der Datei oder Beschreibung des Inhalts mit schließendem 0-Byte
 \endcode
 Der Name des Files kann mit der Funktion PFPFile::SetName gesetzt werden.
@@ -79,8 +81,8 @@ Der Name des Files kann mit der Funktion PFPFile::SetName gesetzt werden.
 <li>\b Description
 
 \code
-Byte 0: DESC
-Byte 4: Länge des nachfolgenden Strings
+Byte 0: "DESC"                                         4 Byte
+Byte 4: Größe des Chunks einschließlich 8-Byte Header  4 Byte
 Byte 8: Nähere Beschreibung mit schließendem 0-Byte
 \endcode
 Die Description kann mit der Funktion PFPFile::SetDescription gesetzt werden.
@@ -89,8 +91,8 @@ Die Description kann mit der Funktion PFPFile::SetDescription gesetzt werden.
 <li>\b Copyright
 
 \code
-Byte 0: COPY
-Byte 4: Länge des nachfolgenden Strings
+Byte 0: "COPY"                                         4 Byte
+Byte 4: Größe des Chunks einschließlich 8-Byte Header  4 Byte
 Byte 8: Copyright-String mit schließendem 0-Byte
 \endcode
 Der Copyright-String kann mit der Funktion PFPFile::SetCopyright gesetzt werden.
@@ -102,8 +104,8 @@ Der Copyright-String kann mit der Funktion PFPFile::SetCopyright gesetzt werden.
 Dieser Chunk ist immer der letzte in der Datei und kennzeichnet das
 Ende der Nutzdaten.
 \code
-Byte 0: ENDF
-Byte 4: 0
+Byte 0: "ENDF"                                         4 Byte
+Byte 4: 0                                              4 Byte
 \endcode
 
 \par Nutzung

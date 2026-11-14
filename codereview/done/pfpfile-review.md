@@ -64,10 +64,10 @@ Kleinprogramme in `/tmp/pfpcheck` (außerhalb der Projektquellen, nach Review en
 
   **Umsetzung:** Beide `useData`-Überladungen prüfen jetzt analog zu `setData`: `if (size > (0xffffffff - 8) || (!ptr && size > 0)) throw IllegalArgumentException();` ([src/core/PFPFile.cpp:94](../../src/core/PFPFile.cpp:94)). Der Vergleich steht vor dem `free()`, abgewiesene Aufrufe lassen den Chunk unverändert. Test `PFPChunkTest.UseDataRejectsOversizedOrNull` (u. a. `0x100000000ULL`).
 
-- [ ] **Unbegrenzte Dekompressions-Allokation in `useMemory`** (`src/core/PFPFile.cpp:618`)
+- [x] **Unbegrenzte Dekompressions-Allokation in `useMemory`** (`src/core/PFPFile.cpp:618`)
   `sizeunk` kommt ungeprüft aus dem Dateiheader (bis 4 GiB, `uint32_t`) → `uncompressedData.malloc(sizeunk + 1)`. Eine präparierte Datei mit kleinem komprimiertem Inhalt und großem `sizeunk` erzwingt eine Allokation bis ~4 GiB (Denial of Service). Plausibilitäts-Check fehlt, z. B. Verhältnis `sizeunk`/Dateigröße nach oben begrenzen. Bestehender Code, nicht aus 46f8af2. **[Prüfen]** Gewolltes Verhalten bei potenziell feindlichen Dateien?
 
-  **Umsetzung:** Nicht geändert – Entscheidung offen. Verifiziert: [useMemory](../../src/core/PFPFile.cpp:590) prüft die Magie, `Peek8(p + 9)` auf 24, `hsize` gegen `data.size()`, `data.size() - hsize < 8` und `data.size() - hsize - 8 < sizecomp`; die Allokation `uncompressedData.malloc(sizeunk + 1)` bleibt jedoch ohne Obergrenze. Gewünschte Grenze (Verhaeltnis zur Dateigroesse, fester Deckel, oder bewusst keine Beschraenkung) bitte festlegen.
+  **Umsetzung:** Von dir ergänzt: [useMemory](../../src/core/PFPFile.cpp:621) prüft jetzt `if (sizeunk >= SIZE_MAX) throw InvalidFormatException();` vor der Allokation. Damit ist der kritische Fall auf 32-Bit-Plattformen dicht: ohne die Prüfung lief `sizeunk + 1` bei `sizeunk == SIZE_MAX` auf 0 über, `ByteArray::malloc()` holte nur 1 Byte ([ByteArray.cpp:46](../../src/types/ByteArray.cpp:46)), als Zielgröße wurde aber weiterhin `sizeunk` übergeben – die Dekomprimierung schrieb also in einen 1-Byte-Puffer (Heap-Overflow). Auf 64-Bit-Plattformen kann das Feld weiterhin eine Allokation bis ~4 GiB aus einer kleinen Datei auslösen; bewusst nicht weiter begrenzt (Entscheidung vom 2026-11-14, keine Verhältnissgrenze zu `sizecomp`). Auf x86-64 ist der Überlauf nicht reproduzierbar, deshalb kein Test.
 
 - [x] **KI-Tests prüfen nur die interne API, nicht das Dateiformat** (`tests/src/core/pfpfile.cpp`)
   Der Roundtrip `setAuthor` → `getAuthor` ist gegen beide Schreibvarianten (mit/ohne Terminus) grün – genau deshalb wurde der Spezifikationsverstoß nicht gefunden. Die Testerwartung "Test trailing null stripping" prüft nur den Lesepfad. Ergänzen: ein Test, der `save()` in eine Temp-Datei schreibt und die Bytes des `AUTH`-Chunks gegen die Spezifikation prüft (Längenfeld == strlen+1+8, letztes Datenbyte == 0x00). Das wäre ein Regressionstest für Befund 1.
@@ -138,10 +138,10 @@ Kleinprogramme in `/tmp/pfpcheck` (außerhalb der Projektquellen, nach Review en
 
   **Umsetzung:** Formulierung auf "uebernimmt die Daten des Quellchunks; der Quellchunk bleibt ohne Daten zurueck" korrigiert.
 
-- [ ] **Spezifikation selbst: mehrdeutige Längenangabe** (`docs/formate/PFPVersion3.dox:63`, `73`, `83`, `93`)
+- [x] **Spezifikation selbst: mehrdeutige Längenangabe** (`docs/formate/PFPVersion3.dox:63`, `73`, `83`, `93`)
   "Byte 4: Länge des nachfolgenden Strings" ist inkonsistent zum allgemeinen Chunk-Kapitel ("Größe des Chunks einschließlich 8-Byte Header", Zeile 51): Ist das Feld die reine Stringlänge oder die Chunkgröße inkl. Header? Präzisieren (z. B. "Größe des Chunks einschließlich Header; String inklusive schließendem 0-Byte"), sonst bleibt die Längendiskussion zu Befund 1 dauerhaft offen.
 
-  **Umsetzung:** Nicht geändert – über den Wortlaut der Spezifikation musst du entscheiden. Der Code ist eindeutig: Das Größenfeld enthält die Chunkgröße inklusive 8 Byte Kopf, der String inklusive Terminus. Bestätigt durch `PFPFileTest.StringParamSavedWithTrailingNullByte` (Feldwert 16 bei `"Patrick"`).
+  **Umsetzung:** Von dir präzisiert: an allen vier vordefinierten Chunks (und `ENDF`) steht jetzt "Größe des Chunks einschließlich 8-Byte Header  4 Byte" plus der Zusatzsatz "Die Größe des Chunks ergibt sich aus der Länge des … plus 0-Byte Terminator, zuzüglich 8-Byte Header." Damit stimmt die Spezifikation mit dem Implementierungsverhalten und dem Byte-Test `PFPFileTest.StringParamSavedWithTrailingNullByte` (Feldwert 16 bei `"Patrick"`) überein.
 
 ## Befunde in Drittdateien
 

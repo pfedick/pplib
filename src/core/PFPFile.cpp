@@ -255,7 +255,7 @@ static String getStringFromChunk(const PFPChunk& chunk)
     const char* str = (const char*)chunk.data();
     size_t len = chunk.size();
     if (!str || len == 0) return String();
-    if (str[len - 1] == '\0') len--;  // Spezifikationsgemaess kann ein abschliessendes 0-Byte enthalten sein
+    if (str[len - 1] == '\0') len--; // Spezifikationsgemaess kann ein abschliessendes 0-Byte enthalten sein
     return String(str, len);
 }
 
@@ -618,7 +618,7 @@ void PFPFile::useMemory(const ByteArrayPtr& data)
         size_t sizecomp = Peek32(p + hsize + 4);
         // Kurzer Bounds-Check, ob die komprimierten Daten innerhalb des Puffers liegen
         if (data.size() - hsize - 8 < sizecomp) throw InvalidFormatException();
-
+        if (sizeunk >= SIZE_MAX) throw InvalidFormatException();
         ByteArray uncompressedData;
         uncompressedData.malloc(sizeunk + 1);
         size_t dstlen = sizeunk;
