@@ -33,8 +33,11 @@
 
 #include <pplib/types/string.h>
 #include <pplib/core/functions.h>
+#include <pplib/core/stringfunctions.h>
+#include <pplib/core/dir.h>
 #include <pplib/core/file.h>
 #include <pplib/audio/audioinfo.h>
+#include <pplib/audio/id3tag.h>
 
 #include "pplib-tests.h"
 
@@ -62,6 +65,264 @@ TEST_F(FlacTest, AudioInfoOnOriginalBeatportFile)
     pplib::AudioInfo info;
     ASSERT_TRUE(pplib::IdentAudioFile(file, info));
     info.print();
+}
+
+static void copyTestFile(const pplib::String& src, const pplib::String& dst)
+{
+    pplib::Dir::mkDir("tmp");
+    pplib::File in(src, pplib::File::FileMode::READ);
+    pplib::File out;
+    out.open(dst, pplib::File::FileMode::WRITE);
+    out.copyFrom(in, 0, in.size(), 0);
+    out.close();
+    in.close();
+}
+
+TEST_F(FlacTest, LoadBasicFlacAndId3v2PrefixedFlac)
+{
+    pplib::ID3Tag tag;
+    ASSERT_TRUE(tag.tryLoad("testdata/audio/test_44kHz_16bit.flac"));
+
+    pplib::ID3Tag tagId3;
+    ASSERT_TRUE(tagId3.tryLoad("testdata/audio/test_44kHz_16bit_id3v2.flac"));
+
+    // Invalid / truncated metadata header must throw UnsupportedAudioFormatException
+    pplib::Dir::mkDir("tmp");
+    pplib::String badPath = "tmp/bad_flac_meta.flac";
+    {
+        pplib::File f;
+        f.open(badPath, pplib::File::FileMode::WRITE);
+        const char badHeader[8] = {'f', 'L', 'a', 'C', 0x00, 0x00, 0x00, 0x22}; // claims 34 bytes STREAMINFO, EOF immediately
+        f.write(badHeader, sizeof(badHeader), 0);
+        f.close();
+    }
+    pplib::ID3Tag tagBad;
+    EXPECT_THROW(tagBad.load(badPath), pplib::UnsupportedAudioFormatException);
+    pplib::File::remove(badPath);
+}
+
+TEST_F(FlacTest, RoundtripStandardTagsPopularimeterAndCustomText)
+{
+    pplib::String tmpPath = "tmp/flac_roundtrip_tags.flac";
+    copyTestFile("testdata/audio/test_44kHz_16bit.flac", tmpPath);
+
+    pplib::ByteArray synthBin(32);
+    unsigned char* p = (unsigned char*)synthBin.ptr();
+    for (size_t i = 0; i < 32; ++i) p[i] = (unsigned char)(i * 7 + 3);
+    pplib::String encodedCustom = pplib::ToBase91(synthBin);
+
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        tag.setArtist("Factor B & Friends");
+        tag.setTitle("A Gift To The Earth (Ümlaut Mix)");
+        tag.setAlbum("Trance Classics");
+        tag.setGenre("Trance");
+        tag.setYear("2026");
+        tag.setTrack("4/9");
+        tag.setComment("Test Comment");
+        tag.setRemixer("Sneijder");
+        tag.setLabel("Theatre of the Mind");
+        tag.setBPM("138");
+        tag.setKey("A");
+        tag.setEnergyLevel("8");
+        tag.setPopularimeter("traktor@native-instruments.de", 204);
+        tag.setUserDefinedText("TRAKTOR4", encodedCustom);
+        tag.setUserDefinedText("ISRC", "NLD682602352");
+        tag.save();
+    }
+
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        EXPECT_EQ(pplib::String("Factor B & Friends"), tag.getArtist());
+        EXPECT_EQ(pplib::String("A Gift To The Earth (Ümlaut Mix)"), tag.getTitle());
+        EXPECT_EQ(pplib::String("Trance Classics"), tag.getAlbum());
+        EXPECT_EQ(pplib::String("Trance"), tag.getGenre());
+        EXPECT_EQ(pplib::String("2026"), tag.getYear());
+        EXPECT_EQ(pplib::String("4/9"), tag.getTrack());
+        EXPECT_EQ(pplib::String("Test Comment"), tag.getComment());
+        EXPECT_EQ(pplib::String("Sneijder"), tag.getRemixer());
+        EXPECT_EQ(pplib::String("Theatre of the Mind"), tag.getLabel());
+        EXPECT_EQ(pplib::String("138"), tag.getBPM());
+        EXPECT_EQ(pplib::String("A"), tag.getKey());
+        EXPECT_EQ(pplib::String("8"), tag.getEnergyLevel());
+        EXPECT_EQ(204, tag.getPopularimeter());
+        EXPECT_EQ(encodedCustom, tag.getUserDefinedText("TRAKTOR4"));
+        EXPECT_EQ(pplib::String("NLD682602352"), tag.getUserDefinedText("ISRC"));
+
+        pplib::ByteArray decoded = pplib::FromBase91(tag.getUserDefinedText("TRAKTOR4"));
+        ASSERT_EQ(synthBin.size(), decoded.size());
+        EXPECT_EQ(0, memcmp(synthBin.ptr(), decoded.ptr(), synthBin.size()));
+
+        // Known ID3v1 genre must be written without "(13)" prefix in FLAC
+        tag.setGenre("Pop");
+        tag.save();
+    }
+
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        const pplib::ID3Frame* tcon = tag.findFrame("TCON");
+        ASSERT_NE(nullptr, tcon);
+        pplib::String rawGenre;
+        pplib::ID3Tag::decode(tcon, 1, pplib::Peek8(tcon->dataPtr()), rawGenre, "UTF-8");
+        EXPECT_EQ(pplib::String("Pop"), rawGenre);
+    }
+
+    pplib::File::remove(tmpPath);
+}
+
+TEST_F(FlacTest, RoundtripPictures)
+{
+    pplib::String tmpPath = "tmp/flac_roundtrip_pic.flac";
+    copyTestFile("testdata/audio/test_44kHz_16bit.flac", tmpPath);
+
+    pplib::ByteArray frontImg(128);
+    memset(frontImg.ptr(), 0xAA, 128);
+    pplib::ByteArray backImg(64);
+    memset(backImg.ptr(), 0x55, 64);
+
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        tag.setPicture(pplib::ID3Tag::PIC_COVER_FRONT, frontImg, "image/jpeg");
+        tag.setPicture(pplib::ID3Tag::PIC_COVER_BACK, backImg, "image/png");
+        tag.save();
+    }
+
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        EXPECT_TRUE(tag.hasPicture(pplib::ID3Tag::PIC_COVER_FRONT));
+        EXPECT_TRUE(tag.hasPicture(pplib::ID3Tag::PIC_COVER_BACK));
+
+        pplib::ByteArray outFront, outBack;
+        ASSERT_TRUE(tag.getPicture(pplib::ID3Tag::PIC_COVER_FRONT, outFront));
+        ASSERT_TRUE(tag.getPicture(pplib::ID3Tag::PIC_COVER_BACK, outBack));
+        ASSERT_EQ(frontImg.size(), outFront.size());
+        ASSERT_EQ(backImg.size(), outBack.size());
+        EXPECT_EQ(0, memcmp(frontImg.ptr(), outFront.ptr(), frontImg.size()));
+        EXPECT_EQ(0, memcmp(backImg.ptr(), outBack.ptr(), backImg.size()));
+
+        tag.removePicture(pplib::ID3Tag::PIC_COVER_BACK);
+        tag.save();
+    }
+
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        EXPECT_TRUE(tag.hasPicture(pplib::ID3Tag::PIC_COVER_FRONT));
+        EXPECT_FALSE(tag.hasPicture(pplib::ID3Tag::PIC_COVER_BACK));
+    }
+
+    pplib::File::remove(tmpPath);
+}
+
+TEST_F(FlacTest, InPlaceSaveOverflowAndSeektablePreserved)
+{
+    pplib::String tmpPath = "tmp/flac_inplace_seektable.flac";
+    copyTestFile("testdata/audio/test_44kHz_16bit_seektable.flac", tmpPath);
+
+    pplib::AudioInfo infoBefore;
+    {
+        pplib::File f(tmpPath);
+        ASSERT_TRUE(pplib::IdentAudioFile(f, infoBefore));
+    }
+
+    // 1. Initial save creates PADDING (1024 bytes)
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        tag.setPaddingSize(1024);
+        tag.setArtist("Artist 1");
+        tag.save();
+    }
+    uint64_t sizeAfterFirstSave = pplib::File(tmpPath).size();
+
+    // 2. Small update must fit in-place without changing file size
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        tag.setArtist("Artist 2");
+        tag.setTitle("Short Title");
+        tag.save();
+    }
+    EXPECT_EQ(sizeAfterFirstSave, pplib::File(tmpPath).size());
+
+    // 3. Large update (>1024 bytes) overflows PADDING and rewrites via temp file
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        pplib::ByteArray bigPic(4096);
+        memset(bigPic.ptr(), 0x7E, 4096);
+        tag.setPicture(pplib::ID3Tag::PIC_COVER_FRONT, bigPic, "image/jpeg");
+        tag.save();
+    }
+    EXPECT_GT(pplib::File(tmpPath).size(), sizeAfterFirstSave);
+
+    // Verify SEEKTABLE is still present and AudioInfo is valid
+    bool hasSeektable = false;
+    {
+        pplib::File f(tmpPath);
+        pplib::AudioInfo infoAfter;
+        ASSERT_TRUE(pplib::IdentAudioFile(f, infoAfter));
+        EXPECT_EQ(infoBefore.Frequency, infoAfter.Frequency);
+        EXPECT_EQ(infoBefore.Channels, infoAfter.Channels);
+        EXPECT_EQ(infoBefore.Samples, infoAfter.Samples);
+
+        uint64_t p = 4;
+        while (p + 4 <= f.size()) {
+            const char* hdr = f.map(p, 4);
+            bool last = (pplib::Peek8(hdr) & 0x80) != 0;
+            uint8_t type = pplib::Peek8(hdr) & 0x7F;
+            uint32_t sz = ((uint32_t)pplib::Peek8(hdr + 1) << 16) | ((uint32_t)pplib::Peek8(hdr + 2) << 8) | (uint32_t)pplib::Peek8(hdr + 3);
+            if (type == 3) hasSeektable = true;
+            p += 4 + sz;
+            if (last) break;
+        }
+    }
+    EXPECT_TRUE(hasSeektable);
+
+    pplib::File::remove(tmpPath);
+}
+
+TEST_F(FlacTest, SaveStripsLeadingId3v2Tag)
+{
+    pplib::String tmpPath = "tmp/flac_strip_id3v2.flac";
+    copyTestFile("testdata/audio/test_44kHz_16bit_id3v2.flac", tmpPath);
+
+    {
+        pplib::File f(tmpPath);
+        pplib::AudioInfo infoBefore;
+        ASSERT_TRUE(pplib::IdentAudioFile(f, infoBefore));
+        ASSERT_TRUE(infoBefore.HaveID3v2Tag);
+    }
+
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        tag.setArtist("Clean FLAC Artist");
+        tag.save();
+    }
+
+    {
+        pplib::File f(tmpPath);
+        const char* magic = f.map(0, 4);
+        EXPECT_EQ(0, memcmp(magic, "fLaC", 4));
+
+        pplib::AudioInfo infoAfter;
+        ASSERT_TRUE(pplib::IdentAudioFile(f, infoAfter));
+        EXPECT_FALSE(infoAfter.HaveID3v2Tag);
+    }
+
+    {
+        pplib::ID3Tag tag;
+        tag.load(tmpPath);
+        EXPECT_EQ(pplib::String("Clean FLAC Artist"), tag.getArtist());
+    }
+
+    pplib::File::remove(tmpPath);
 }
 
 } // namespace

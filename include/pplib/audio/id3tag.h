@@ -159,7 +159,8 @@ public:
         AF_UNKNOWN = 0,
         AF_MP3,
         AF_AIFF,
-        AF_WAVE
+        AF_WAVE,
+        AF_FLAC
     };
 
     enum PictureType
@@ -171,6 +172,7 @@ public:
 private:
     String Filename;
     String localCharset;
+    String flacVendor;
     int Flags;
     int Size;
     AudioFormat myAudioFormat;
@@ -197,13 +199,17 @@ private:
 
     AudioFormat identAudioFormat(FileObject& File);
     uint64_t findId3Tag(FileObject& File);
+    void loadFlac(FileObject& file);
     void saveMP3();
     void saveAiff();
     void saveWave();
+    void saveFlac();
     bool trySaveAiffInExistingFile(FileObject& o, const ByteArrayPtr& tagV2);
     bool trySaveWaveInExistingFile(FileObject& o, const ByteArrayPtr& tagV2);
+    bool trySaveFlacInExistingFile(FileObject& o, const ByteArrayPtr& metadataBlocks, uint64_t flacStart, uint64_t audioStart);
     void copyAiffToNewFile(FileObject& o, FileObject& n, const ByteArrayPtr& tagV2);
     void copyWaveToNewFile(FileObject& o, FileObject& n, const ByteArrayPtr& tagV2);
+    void copyFlacToNewFile(FileObject& o, FileObject& n, const ByteArrayPtr& metadataBlocks, uint64_t flacStart, uint64_t audioStart);
     String getNullPaddedString(const ID3Frame& frame, size_t offset = 0) const;
 
 public:
