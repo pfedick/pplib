@@ -41,6 +41,7 @@
 #include "config_pplib.h"
 
 #include <vector>
+#include <array>
 
 #include <pplib/types/bytearray.h>
 #include <pplib/types/array.h>
@@ -413,6 +414,92 @@ String Transcode(const String& str, const String& fromEncoding, const String& to
     iconv.transcode(str, to);
     return to;
 #endif
+}
+
+static constexpr char base91_enc[92] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!#$%&()*+,./:;<=>?@[]^_`{|}~\"";
+
+static constexpr std::array<int8_t, 256> makeBase91DecTable()
+{
+    std::array<int8_t, 256> tab{};
+    for (size_t i = 0; i < 256; ++i) tab[i] = -1;
+    for (size_t i = 0; i < 91; ++i) {
+        tab[(unsigned char)base91_enc[i]] = (int8_t)i;
+    }
+    return tab;
+}
+
+static constexpr std::array<int8_t, 256> base91_dec = makeBase91DecTable();
+
+String ToBase91(const ByteArrayPtr& bin)
+{
+    String out;
+    if (bin.isEmpty()) return out;
+    const unsigned char* src = (const unsigned char*)bin.adr();
+    size_t len = bin.size();
+    uint32_t b = 0;
+    int n = 0;
+    for (size_t i = 0; i < len; ++i) {
+        b |= (uint32_t)src[i] << n;
+        n += 8;
+        if (n > 13) {
+            uint32_t v = b & 8191;
+            if (v > 88) {
+                b >>= 13;
+                n -= 13;
+            } else {
+                v = b & 16383;
+                b >>= 14;
+                n -= 14;
+            }
+            out.append(base91_enc[v % 91]);
+            out.append(base91_enc[v / 91]);
+        }
+    }
+    if (n > 0) {
+        out.append(base91_enc[b % 91]);
+        if (n > 7 || b > 90) {
+            out.append(base91_enc[b / 91]);
+        }
+    }
+    return out;
+}
+
+ByteArray FromBase91(const String& str)
+{
+    if (str.isEmpty()) return ByteArray();
+    std::vector<unsigned char> out;
+    out.reserve((str.size() * 14) / 16 + 2);
+    const char* src = str.c_str();
+    size_t len = str.size();
+    uint32_t b = 0;
+    int n = 0;
+    int v = -1;
+    for (size_t i = 0; i < len; ++i) {
+        unsigned char ch = (unsigned char)src[i];
+        if (ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') continue;
+        int d = base91_dec[ch];
+        if (d < 0) {
+            throw IllegalArgumentException("Invalid character in basE91 string");
+        }
+        if (v < 0) {
+            v = d;
+        } else {
+            v += d * 91;
+            b |= (uint32_t)v << n;
+            n += (v & 8191) > 88 ? 13 : 14;
+            do {
+                out.push_back((unsigned char)(b & 0xff));
+                b >>= 8;
+                n -= 8;
+            } while (n > 7);
+            v = -1;
+        }
+    }
+    if (v != -1) {
+        out.push_back((unsigned char)((b | ((uint32_t)v << n)) & 0xff));
+    }
+    if (out.empty()) return ByteArray();
+    return ByteArray(out.data(), out.size());
 }
 
 } // namespace pplib

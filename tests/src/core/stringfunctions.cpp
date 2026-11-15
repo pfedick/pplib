@@ -403,6 +403,45 @@ TEST_F(StringFunctionTest, Transcode)
     EXPECT_EQ(isoStr, ptrTranscoded);
 }
 
+TEST_F(StringFunctionTest, Base91EmptyAndSmallLengths)
+{
+    // Empty
+    pplib::ByteArray empty;
+    EXPECT_EQ(pplib::String(""), pplib::ToBase91(empty));
+    EXPECT_EQ(0u, pplib::FromBase91(pplib::String("")).size());
+
+    // 1 byte, 2 bytes, 3 bytes, and all byte values 0..255
+    for (size_t len = 1; len <= 17; ++len) {
+        pplib::ByteArray orig(len);
+        unsigned char* p = (unsigned char*)orig.ptr();
+        for (size_t i = 0; i < len; ++i) {
+            p[i] = (unsigned char)((i * 37 + len * 13) & 0xff);
+        }
+        pplib::String enc = pplib::ToBase91(orig);
+        EXPECT_FALSE(enc.isEmpty());
+        pplib::ByteArray dec = pplib::FromBase91(enc);
+        ASSERT_EQ(orig.size(), dec.size());
+        EXPECT_EQ(0, memcmp(orig.ptr(), dec.ptr(), orig.size()));
+    }
+
+    // Known vector: "test" -> "fPNKd"
+    pplib::ByteArray testBytes("test", 4);
+    EXPECT_EQ(pplib::String("fPNKd"), pplib::ToBase91(testBytes));
+    pplib::ByteArray decTest = pplib::FromBase91(pplib::String("fPNKd"));
+    ASSERT_EQ(4u, decTest.size());
+    EXPECT_EQ(0, memcmp("test", decTest.ptr(), 4));
+}
+
+TEST_F(StringFunctionTest, Base91WhitespaceAndInvalidChar)
+{
+    pplib::ByteArray dec = pplib::FromBase91(pplib::String("fP \t\r\nNKd"));
+    ASSERT_EQ(4u, dec.size());
+    EXPECT_EQ(0, memcmp("test", dec.ptr(), 4));
+
+    EXPECT_THROW(pplib::FromBase91(pplib::String("fPNK-")), pplib::IllegalArgumentException);
+    EXPECT_THROW(pplib::FromBase91(pplib::String("fPNK'")), pplib::IllegalArgumentException);
+}
+
 // ByteArray fromBase64(const String &base64);
 
 } // namespace

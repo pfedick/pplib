@@ -67,6 +67,26 @@ inline ByteArray FromBase64(const String& str)
     return ByteArray::fromBase64(str); // bytearray.h:366
 }
 
+/** @brief Speicherbereich als basE91 in einen String exportieren
+ *
+ * Der Speicherbereich in \p bin wird im basE91-Format (Standardalphabet nach
+ * Joachim Henke) als ASCII-String exportiert.
+ *
+ * @param bin Der Speicherbereich, der in basE91 konvertiert werden soll.
+ * @return Inhalt des Speicherbereichs als basE91-String.
+ */
+String ToBase91(const ByteArrayPtr& bin);
+
+/** @brief basE91-kodierten String in einen Speicherbereich zurückkonvertieren
+ *
+ * Der basE91-kodierte String \p str wird in einen Speicherbereich zurückkonvertiert.
+ *
+ * @param str Der basE91-kodierte String
+ * @return Der dekodierte Speicherbereich als ByteArray
+ * @exception IllegalArgumentException Der Eingabe-String enthält ungültige Zeichen
+ */
+ByteArray FromBase91(const String& str);
+
 /**@brief Entfernt Backslashes aus einem String
  * @relates String
  *
