@@ -86,18 +86,12 @@ public:
      */
     enum class AudioFormat : uint8_t
     {
-        UNKNOWN = 0,     //!< Kein bekanntes Audioformat
-        WAVE = 1,        //!< RIFF/WAVE (PCM oder 32-Bit-Float, 8..32 Bit, max. 2 Kanaele)
-        AIFF = 2,        //!< AIFF/AIFF-C (Apple Audio Interchange File Format, nur unkomprimiert oder FL32)
-        MP3 = 3,         //!< MPEG Layer 1-3
-        OGG = 4,         //!< Ogg Vorbis (Opus/FLAC im Ogg-Container gelten als UNKNOWN)
-        FLAC = 5         //!< FLAC (Lossless, max. 2 Kanaele, 16 oder 24 Bit, STREAMINFO required)
-            UNKNOWN = 0, //!< Kein bekanntes Audioformat
-        WAVE = 1,        //!< RIFF/WAVE (PCM oder 32-Bit-Float, 8..32 Bit, max. 2 Kanaele)
-        AIFF = 2,        //!< AIFF/AIFF-C (Apple Audio Interchange File Format, nur unkomprimiert oder FL32)
-        MP3 = 3,         //!< MPEG Layer 1-3
-        OGG = 4,         //!< Ogg Vorbis (Opus/FLAC im Ogg-Container gelten als UNKNOWN)
-        FLAC = 5         //!< FLAC (Lossless, max. 2 Kanaele, 16 oder 24 Bit, STREAMINFO required)
+        UNKNOWN = 0, //!< Kein bekanntes Audioformat
+        WAVE = 1,    //!< RIFF/WAVE (PCM oder 32-Bit-Float, 8..32 Bit, max. 2 Kanaele)
+        AIFF = 2,    //!< AIFF/AIFF-C (Apple Audio Interchange File Format, nur unkomprimiert oder FL32)
+        MP3 = 3,     //!< MPEG Layer 1-3
+        OGG = 4,     //!< Ogg Vorbis (Opus/FLAC im Ogg-Container gelten als UNKNOWN)
+        FLAC = 5     //!< FLAC (Lossless, max. 2 Kanaele, 16 oder 24 Bit, STREAMINFO required)
     };
     /** @brief Kanalmodus
      *
@@ -124,10 +118,8 @@ public:
      */
     enum class SampleEncoding : uint8_t
     {
-        INTEGER = 0,     //!< Zweierkomplement-Ganzzahl (Standardfall bei WAV, AIFF, AIFF-C/NONE)
-        FLOAT = 1        //!< IEEE-754-Fliesskomma (WAV Format-Tag 3 und AIFF-C mit `FL32`, je 32 Bit)
-            INTEGER = 0, //!< Zweierkomplement-Ganzzahl (Standardfall bei WAV, AIFF, AIFF-C/NONE)
-        FLOAT = 1        //!< IEEE-754-Fliesskomma (WAV Format-Tag 3 und AIFF-C mit `FL32`, je 32 Bit)
+        INTEGER = 0, //!< Zweierkomplement-Ganzzahl (Standardfall bei WAV, AIFF, AIFF-C/NONE)
+        FLOAT = 1    //!< IEEE-754-Fliesskomma (WAV Format-Tag 3 und AIFF-C mit `FL32`, je 32 Bit)
     };
 
     AudioFormat Format = AudioFormat::UNKNOWN; //!< erkanntes Audioformat
