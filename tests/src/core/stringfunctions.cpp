@@ -89,11 +89,9 @@ TEST_F(StringFunctionTest, FromBase64)
         EXPECT_EQ(b1, pplib::FromBase64(pplib::String("DQ43QoH/QgBMFw==")));
         b1.use(binarydata, 11);
         EXPECT_EQ(b1, pplib::FromBase64(pplib::String("DQ43QoH/QgBMFxJ=")));
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         e.print();
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         printf("std::exception: %s\n", e.what());
     }
 }

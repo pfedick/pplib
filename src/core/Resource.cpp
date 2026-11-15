@@ -126,8 +126,7 @@ void Resource::load(FileObject& file)
         checkResource(memory);
         memref = memory;
         parse();
-    }
-    catch (...) {
+    } catch (...) {
         clear();
         throw;
     }
@@ -311,8 +310,7 @@ void Resource::uncompress(void* resource)
     if (!buffer) throw OutOfMemoryException();
     try {
         comp.uncompress(buffer, &bufferlen, res->uncompressed, res->size_c, (Compression::Algorithm)res->compression);
-    }
-    catch (...) {
+    } catch (...) {
         free(buffer);
         throw;
     }

@@ -169,8 +169,7 @@ static FLAC__StreamDecoderReadStatus flacReadCb(const FLAC__StreamDecoder*, FLAC
         }
         *bytes = got;
         return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
-    }
-    catch (...) {
+    } catch (...) {
         *bytes = 0;
         st->error = true;
         st->ioError = true;
@@ -186,8 +185,7 @@ static FLAC__StreamDecoderSeekStatus flacSeekCb(const FLAC__StreamDecoder*, FLAC
         if (target < st->base || target > st->file->size()) return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
         if (st->file->seek(target, FileObject::SeekOrigin::SEEKSET) != target) return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
         return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
-    }
-    catch (...) {
+    } catch (...) {
         st->error = true;
         st->ioError = true;
         return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
@@ -202,8 +200,7 @@ static FLAC__StreamDecoderTellStatus flacTellCb(const FLAC__StreamDecoder*, FLAC
         if (now < st->base) return FLAC__STREAM_DECODER_TELL_STATUS_ERROR;
         *absolute_byte_offset = now - st->base;
         return FLAC__STREAM_DECODER_TELL_STATUS_OK;
-    }
-    catch (...) {
+    } catch (...) {
         // libFLAC fragt hier keinen Fehlerwert ab: 0 zusammen mit gesetztem Fehlermerkmal
         // ist die einzige Moglichkeit, den Abbruch sichtbar zu machen
         *absolute_byte_offset = 0;
@@ -221,8 +218,7 @@ static FLAC__StreamDecoderLengthStatus flacLengthCb(const FLAC__StreamDecoder*, 
         if (total < st->base) return FLAC__STREAM_DECODER_LENGTH_STATUS_ERROR;
         *stream_length = total - st->base;
         return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
-    }
-    catch (...) {
+    } catch (...) {
         *stream_length = 0;
         st->error = true;
         st->ioError = true;
@@ -235,8 +231,7 @@ static FLAC__bool flacEofCb(const FLAC__StreamDecoder*, void* client)
     FlacState* st = static_cast<FlacState*>(client);
     try {
         return st->file->eof() ? true : false;
-    }
-    catch (...) {
+    } catch (...) {
         // "kein Dateiende" laesst libFLAC weiterlesen: der Lese-Callback meldet dann
         // den Abbruch und setzt dieselben Fehlermerkmale
         st->error = true;
@@ -283,8 +278,7 @@ static FLAC__StreamDecoderWriteStatus flacWriteCb(const FLAC__StreamDecoder*,
     frames -= start;
     try {
         st->raw.resize(st->rawWrite + frames * 2);
-    }
-    catch (...) {
+    } catch (...) {
         st->error = true;
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
     }

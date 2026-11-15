@@ -594,8 +594,7 @@ TEST_F(AudioDecoderOggTest, IoFailureDuringSeekThrowsDecoderException)
     file.failRead = true;
     try {
         dec.seekSample(30000);
-    }
-    catch (const pplib::DecoderException&) {
+    } catch (const pplib::DecoderException&) {
     }
     EXPECT_NO_THROW(dec.close());
 }

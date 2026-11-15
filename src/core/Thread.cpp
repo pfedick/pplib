@@ -272,8 +272,7 @@ void Thread::threadStartUp()
 
     try {
         run();
-    }
-    catch (...) {
+    } catch (...) {
         // Exception in run() abfangen, damit der Gesamtprozess nicht mit std::terminate abbricht
     }
 

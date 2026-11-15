@@ -46,15 +46,13 @@ TEST(ExceptionTest, EmptyException)
 {
     try {
         throw pplib::Exception();
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         EXPECT_STREQ(e.what(), "Exception");
         EXPECT_STREQ(e.className(), "Exception");
     }
     try {
         throw pplib::Exception("");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         EXPECT_STREQ(e.what(), "Exception");
         EXPECT_STREQ(e.className(), "Exception");
     }
@@ -64,8 +62,7 @@ TEST(ExceptionTest, ExceptionWithString)
 {
     try {
         throw pplib::Exception("Test exception");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         EXPECT_STREQ(e.what(), "Exception: Test exception");
         EXPECT_STREQ(e.className(), "Exception");
     }
@@ -78,8 +75,7 @@ TEST(ExceptionTest, CopyConstructor)
         pplib::Exception copy(original);
         EXPECT_STREQ(copy.what(), "Exception: Original exception");
         EXPECT_STREQ(copy.className(), "Exception");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         FAIL() << "Exception thrown during copy construction: " << e.what();
     }
     try {
@@ -87,8 +83,7 @@ TEST(ExceptionTest, CopyConstructor)
         pplib::Exception copy(original2);
         EXPECT_STREQ(copy.what(), "Exception");
         EXPECT_STREQ(copy.className(), "Exception");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         FAIL() << "Exception thrown during copy construction: " << e.what();
     }
 }
@@ -100,8 +95,7 @@ TEST(ExceptionTest, MoveConstructor)
         pplib::Exception moved(std::move(original));
         EXPECT_STREQ(moved.what(), "Exception: Original exception");
         EXPECT_STREQ(moved.className(), "Exception");
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         FAIL() << "Exception thrown during move construction: " << e.what();
     }
 }

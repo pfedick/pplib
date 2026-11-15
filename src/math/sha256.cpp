@@ -234,8 +234,7 @@ String FileObject::sha256()
     try {
         oldpos = tell();
         seek(0);
-    }
-    catch (const IllegalOperationOnPipeException&) {
+    } catch (const IllegalOperationOnPipeException&) {
         is_pipe = true;
     }
 
@@ -245,11 +244,9 @@ String FileObject::sha256()
             if (bytesRead == 0) break;
             SHA256Update(ctx, (const unsigned char*)buffer.ptr(), bytesRead);
         }
-    }
-    catch (const EndOfFileException&) {
+    } catch (const EndOfFileException&) {
         if (!is_pipe) throw; // Bei regulären Dateien unerwartet, bei Pipes normales EOF
-    }
-    catch (...) {
+    } catch (...) {
         if (!is_pipe) seek(oldpos);
         throw;
     }

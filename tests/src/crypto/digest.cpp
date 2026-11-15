@@ -347,7 +347,7 @@ TEST_F(DigestTest, TestAddDataFromSeveralFiles)
     pplib::Digest hash;
     ASSERT_NO_THROW(hash.setAlgorithm(pplib::Digest::Algo_SHA256));
     ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/testfile.txt"));
-    ASSERT_NO_THROW(hash.addFile("testdata/test.gif"));
+    ASSERT_NO_THROW(hash.addFile("testdata/images/test.gif"));
     ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/afile.txt"));
     ASSERT_EQ((uint64_t)1615253, hash.bytesHashed());
     pplib::String result;

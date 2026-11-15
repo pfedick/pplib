@@ -35,7 +35,6 @@
 #include <pplib/types/bytearray.h>
 #include <pplib/core/compression.h>
 #include <pplib/core/fileobject.h>
-#include <pplib/core/mutex.h>
 
 #include <list>
 #include <string_view>
@@ -100,7 +99,8 @@ public:
     /**
      * @brief Move-Konstruktor des PFPChunk
      *
-     * Der Move-Konstruktor erstellt eine Kopie eines existierenden Chunks.
+     * Der Move-Konstruktor uebernimmt die Nutzdaten eines existierenden Chunks. Der Quell-Chunk
+     * wird dabei leer gesetzt und erhaelt den internen Namen "UNKN".
      */
     PFPChunk(PFPChunk&& other) noexcept;
 
@@ -165,7 +165,11 @@ public:
      * auf die vorhandenen Daten verwendet.
      *
      * @param ptr Ein Pointer auf den Beginn der Daten
-     * @param size Größe der Daten in Byte
+     * @param size Größe der Daten in Byte. Ein Chunk darf maximal 2^32 - 9 Bytes groß sein
+     * @exception IllegalArgumentException Wird geworfen, wenn \p size größer als 2^32 - 9 ist oder
+     * \p ptr NULL ist und \p size größer als 0.
+     * @warning Der Speicher muss so lange gueltig bleiben, wie der Chunk verwendet wird, spaetestens
+     * bis zum Ende der Datei gueltig sein, aus der er stammt.
      */
     void useData(const void* ptr, size_t size);
 
@@ -177,6 +181,7 @@ public:
      * auf die vorhandenen Daten verwendet.
      *
      * @param data Eine Referenz auf ein ByteArray oder ByteArrayPtr
+     * @exception IllegalArgumentException Wird geworfen, wenn die Datenmenge zu groß ist.
      */
     void useData(const ByteArrayPtr& data);
 
@@ -228,7 +233,7 @@ public:
  * Jedes File, ganz gleich welchen Inhalt es hat, hat bis zum Ende den gleichen Aufbau. Wichtigste
  * Neuerung dabei sind die sogenannten Chunks. Ein File kann aus bliebig vielen Chunks bestehen.
  * Diese werden von der Klasse PFPChunk abgeleitet, bekommen einen Namen und einen beliebigen
- * Inhalt. Diese können dann mit PFPFile::add in das File hinzugefügt werden.
+ * Inhalt. Diese können dann mit PFPFile::addChunk in das File hinzugefügt werden.
  *
  * @copydoc PFPFileVersion3
  */
@@ -249,15 +254,30 @@ private:
      * Diese Funktion wird intern verwendet, um die vordefinierten Text-Chunks zu speichern. Sie
      * stellt sicher, dass jeder Chunk nur einmal vorkommt.
      *
-     * @param chunkname Pointer auf den Namen des Chunks.
-     * @param data Pointer auf den zu setzenden Text-String
+     * @param chunkname Name des Chunks, muss exakt 4 Byte lang sein
+     * @param data Text-String, der ohne den vorbestimmten Chunk mit gleichem Namen
+     *               geschrieben wird. Der String wird spezifikationsgemaess inklusive
+     *               abschliessendem 0-Byte abgelegt.
      * @see Die Funktion wird intern von folgenden Funktionen aufgerufen:
-     * - PFPFile::SetName
-     * - PFPFile::SetAuthor
-     * - PFPFile::SetDescription
-     * - PFPFile::SetCopyright
+     * - PFPFile::setName
+     * - PFPFile::setAuthor
+     * - PFPFile::setDescription
+     * - PFPFile::setCopyright
      */
     void setStringParam(const String& chunkname, const String& data);
+
+    /**
+     * @brief Einzelnen Chunk in einen Puffer schreiben
+     *
+     * Die Funktion schreibt den Namen und die Groesse des Chunks gefolgt von den Nutzdaten
+     * in den Puffer \p buffer und liefert die Anzahl der geschriebenen Byte zurueck.
+     * Das Groessenfeld des Chunks enthaelt zusaetzlich die 8 Byte des Chunk-Kopfs.
+     *
+     * @param buffer Zielpuffer, der gross genug sein muss
+     * @param pp Offset, an dem der Chunk im Puffer geschrieben wird
+     * @param chunk Zeiger auf den zu schreibenden Chunk
+     * @return Anzahl der geschriebenen Byte (8 Byte Kopf plus Nutzdaten)
+     */
     size_t saveChunk(char* buffer, size_t pp, const PFPChunk* chunk);
 
 public:
@@ -412,10 +432,14 @@ public:
      * Mit dieser Funktion wird ein neuer Chunk in die Klasse hinzugefügt. Der Chunk muss einen Namen haben.
      * Ist dies nicht der Fall, gibt die Funktion eine Fehlermeldung zurück.
      *
-     * @param chunk Referenz auf den hinzuzufügenden Chunk
+     * @param chunk Referenz auf den hinzuzufügenden Chunk. Sein Name muss exakt 4 Byte lang sein.
+     * @return Referenz auf die in der Klasse gespeicherte Kopie des Chunks
+     * @exception IllegalArgumentException Wird geworfen, wenn der Name des Chunks nicht gesetzt ist
+     * (interner Name "UNKN").
      * @remarks Es ist möglich mehrere Chunks mit gleichem Namen hinzuzufügen. Der Chunk wird nur in der
      * Klasse hinzugefügt, nicht aber in die Datei geschrieben. Zum Speichern muss explizit die Funktion
-     * PFPFile::Save aufgerufen werden.
+     * PFPFile::save aufgerufen werden. Vordefinierte Namen (NAME, AUTH, DESC, COPY) werden beim
+     * Speichern nur einmal geschrieben.
      *
      * @example
      * @code
@@ -435,10 +459,14 @@ public:
      * Mit dieser Funktion wird ein neuer Chunk in die Klasse hinzugefügt. Der Chunk muss einen Namen haben.
      * Ist dies nicht der Fall, gibt die Funktion eine Fehlermeldung zurück.
      *
-     * @param chunk Rvalue-Referenz auf den hinzuzufügenden Chunk
+     * @param chunk Rvalue-Referenz auf den hinzuzufügenden Chunk. Sein Name muss exakt 4 Byte lang sein.
+     * @return Referenz auf die in der Klasse gespeicherte Kopie des Chunks
+     * @exception IllegalArgumentException Wird geworfen, wenn der Name des Chunks nicht gesetzt ist
+     * (interner Name "UNKN").
      * @remarks Es ist möglich mehrere Chunks mit gleichem Namen hinzuzufügen. Der Chunk wird nur in der
      * Klasse hinzugefügt, nicht aber in die Datei geschrieben. Zum Speichern muss explizit die Funktion
-     * PFPFile::Save aufgerufen werden.
+     * PFPFile::save aufgerufen werden. Vordefinierte Namen (NAME, AUTH, DESC, COPY) werden beim
+     * Speichern nur einmal geschrieben.
      *
      * @example
      * @code
@@ -479,6 +507,10 @@ public:
      * @param it Iterator, der für die Suche verwendet wird.
      * @param chunkname Pointer auf den Namen des Chunks
      * @return Pointer auf den gefundenen Chunk oder NULL, wenn kein Chunk gefunden wurde
+     * @exception IllegalArgumentException Wird geworfen, wenn \p chunkname (oder der im Iterator
+     * gespeicherte Name) nicht exakt 4 Byte lang ist.
+     * @remarks Die Suche beginnt immer beim ersten Chunk der Liste. Der Name wird grossgeschrieben
+     * verglichen.
      */
     PFPChunk* findFirstChunk(Iterator& it, const String& chunkname) const;
 
@@ -533,6 +565,30 @@ public:
      */
     void load(const String& file);
 
+    /**
+     * @brief Liest eine PFP-Datei aus einem bereits im Speicher liegenden Datenbild
+     *
+     * Geprüft werden die Magie \c PFP-File, die Hauptversion 3 und die angegebene
+     * Headergröße. Sämtliche vorher enthaltenen Chunks werden verworfen. Gültige Chunks
+     * werden eingelesen, ungültige ignoriert; ein unplausibles Größenfeld beendet den
+     * Einlesevorgang, ohne dass ein Fehler gemeldet wird.
+     *
+     * @param data Datenbild einer PFP-Datei inklusive Header
+     *
+     * @exception InvalidFormatException Wird geworfen, wenn \p data kürzer als 24 Byte ist
+     * oder der Header keine PFP-Datei der Version 3 beschreibt.
+     * @exception DecompressionFailedException Wird geworfen, wenn eine komprimierte Datei
+     * nicht die erwartete Datenmenge ergibt.
+     *
+     * @remarks
+     * Bei einer unkomprimierten Datei zeigen die Chunks direkt in den übergebenen Puffer,
+     * es werden keine Daten kopiert. \p data muss daher gültig bleiben, bis das Objekt
+     * zerstört oder der Inhalt durch \ref PFPFile::load oder \ref PFPFile::clear ersetzt wird.
+     * Bei einer komprimierten Datei werden die entpackten Nutzdaten in eigenen Puffern
+     * angelegt; der übergebene Puffer kann dann nach dem Aufruf freigegeben werden.
+     *
+     * @see PFPFile::load
+     */
     void useMemory(const ByteArrayPtr& data);
 
     /**
@@ -585,6 +641,7 @@ public:
      *
      * Mit dieser Funktion wird der Name des Files aus dem Namens-Chunk ("NAME") ausgelesen.
      * \returns String mit dem Namen. Kann auch leer sein, wenn es keinen "NAME"-Chunk in der Datei gibt.
+     * Ein abschließendes 0-Byte des Chunks gehört nicht zum zurückgegebenen String.
      */
     String getName() const;
 
@@ -593,6 +650,7 @@ public:
      *
      * Mit dieser Funktion wird der Name des Authors aus dem Author-Chunk ("AUTH") ausgelesen.
      * \returns String mit dem Namen des Authors. Kann auch leer sein, wenn es keinen "AUTH"-Chunk in der Datei gibt.
+     * Ein abschließendes 0-Byte des Chunks gehört nicht zum zurückgegebenen String.
      */
     String getAuthor() const;
 
@@ -601,6 +659,7 @@ public:
      *
      * Mit dieser Funktion wird die Description des Files aus dem Description-Chunk ("DESC") ausgelesen.
      * \returns String mit der Description. Kann auch leer sein, wenn es keinen "DESC"-Chunk in der Datei gibt.
+     * Ein abschließendes 0-Byte des Chunks gehört nicht zum zurückgegebenen String.
      */
     String getDescription() const;
 
@@ -609,6 +668,7 @@ public:
      *
      * Mit dieser Funktion wird das Copyright des Files aus dem Copyright-Chunk ("COPY") ausgelesen.
      * \returns String mit dem Copyright. Kann auch leer sein, wenn es keinen "COPY"-Chunk in der Datei gibt.
+     * Ein abschließendes 0-Byte des Chunks gehört nicht zum zurückgegebenen String.
      */
     String getCopyright() const;
 
@@ -686,16 +746,16 @@ public:
      * @brief Zeiger zum Durchwandern der Chunks zurücksetzen
      *
      * Mit dieser Funktion wird der Zeiger, der beim Durchwandern der Chunks mit den Funktionen
-     * FindNextChunk und GetNext verwendet wird, wieder auf den Anfang gesetzt.
+     * findNextChunk und getNext verwendet wird, wieder auf den Anfang gesetzt.
      *
      * @param it Iterator, der zurückgesetzt werden soll
      *
      * @see
-     * - PFPFile::FindFirstChunk
-     * - PFPFile::FindNextChunk
-     * - PFPFile::Reset
-     * - PFPFile::GetFirst
-     * - PFPFile::GetNext
+     * - PFPFile::findFirstChunk
+     * - PFPFile::findNextChunk
+     * - PFPFile::reset
+     * - PFPFile::getFirst
+     * - PFPFile::getNext
      *
      * \since Version 6.1.0
      */
@@ -710,11 +770,11 @@ public:
      *
      * @returns Pointer auf den ersten Chunk oder NULL, wenn es keine Chunks gibt.
      * @see
-     * - PFPFile::FindFirstChunk
-     * - PFPFile::FindNextChunk
-     * - PFPFile::Reset
-     * - PFPFile::GetFirst
-     * - PFPFile::GetNext
+     * - PFPFile::findFirstChunk
+     * - PFPFile::findNextChunk
+     * - PFPFile::reset
+     * - PFPFile::getFirst
+     * - PFPFile::getNext
      *
      * @since Version 6.1.0
      */
@@ -729,11 +789,11 @@ public:
      *
      * @returns Pointer auf den nächsten Chunk oder NULL, wenn es keine weiteren Chunks gibt.
      * @see
-     * - PFPFile::FindFirstChunk
-     * - PFPFile::FindNextChunk
-     * - PFPFile::Reset
-     * - PFPFile::GetFirst
-     * - PFPFile::GetNext
+     * - PFPFile::findFirstChunk
+     * - PFPFile::findNextChunk
+     * - PFPFile::reset
+     * - PFPFile::getFirst
+     * - PFPFile::getNext
      *
      * @since Version 6.1.0
      */

@@ -1117,8 +1117,7 @@ void FontEngineFont6::loadFont(FontFile& file, bool useKerning)
         render->loadFont(file, useKerning);
         file.engine = this;
         file.priv = render;
-    }
-    catch (...) {
+    } catch (...) {
         delete render;
         throw;
     }

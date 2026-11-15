@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 8 (PPLIB).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
  * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -36,11 +31,21 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <math.h>
-#include "../include/pplib.h"
-#include "../include/pplib-grafix.h"
+#include "pplib.h"
+#include "pplib-grafix.h"
 
 using namespace pplib;
 using namespace pplib::grafix;
+
+pplib::grafix::ImageList Icons32, Toolbar, ButtonSymbolsSmall;
+
+static void LoadImageLists()
+{
+    pplib::Resource* res = GetPPLResource();
+    Toolbar.load(res->getMemory(14), 16, 16, ImageList::ALPHABLT);
+    Icons32.load(res->getMemory(13), 32, 32, ImageList::ALPHABLT);
+    ButtonSymbolsSmall.load(res->getMemory(12), 9, 9, ImageList::DIFFUSE);
+}
 
 int DoCLS(Drawable& surface, int& num)
 {
@@ -72,8 +77,7 @@ int DoCLS(Drawable& surface, int& num)
 
         surface.cls(Color(0, 0, 0, 255));
         surface.fillRect(0, 0, surface.width(), 30, red);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -122,8 +126,7 @@ int DoLines(Drawable& surface, int& num)
         if (c != white) failed = true;
         c = surface.getPixel(10, 35);
         if (c != blue) failed = true;
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -182,8 +185,7 @@ int DoLinesAA(Drawable& surface, int& num)
             y = cosf(w * rad) * 50;
             surface.lineAA(560, 60, 560 + x, 60 + y, white);
         }
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -207,8 +209,7 @@ int DoColorGradient(Drawable& surface, int& num)
         if (surface.getPixel(10, 293) != Color(0, 0, 0x54)) failed = true;
         if (surface.getPixel(13, 346) != Color(0, 0, 0x84)) failed = true;
         if (surface.getPixel(07, 470) != Color(0, 0, 0xf5)) failed = true;
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -292,8 +293,7 @@ int DoAlphaPixel(Drawable& surface, int& num)
         AlphaPixelPattern(draw, Color(0, 255, 0));
         draw = surface.getDrawable(Rect(710, 5, 11, 10));
         AlphaPixelPattern(draw, Color(0, 0, 255));
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -321,19 +321,18 @@ int DoPutPixel(Drawable& surface, int& num)
         for (int x = 0; x < 640; x++) {
             float y = sinf(s * rad);
             s += pi;
-            surface.blendPixel(x - 1, 15 + (y * 15), white, 200);
-            surface.blendPixel(x - 2, 15 + (y * 15), white, 150);
-            surface.blendPixel(x - 3, 15 + (y * 15), white, 100);
-            surface.blendPixel(x - 4, 15 + (y * 15), white, 50);
-            surface.blendPixel(x + 1, 15 + (y * 15), white, 200);
-            surface.blendPixel(x + 2, 15 + (y * 15), white, 150);
-            surface.blendPixel(x + 3, 15 + (y * 15), white, 100);
-            surface.blendPixel(x + 4, 15 + (y * 15), white, 50);
+            surface.blendPixel(x - 1, (int)(15 + (y * 15)), white, (uint8_t)200);
+            surface.blendPixel(x - 2, 15 + (y * 15), white, (uint8_t)150);
+            surface.blendPixel(x - 3, 15 + (y * 15), white, (uint8_t)100);
+            surface.blendPixel(x - 4, 15 + (y * 15), white, (uint8_t)50);
+            surface.blendPixel(x + 1, 15 + (y * 15), white, (uint8_t)200);
+            surface.blendPixel(x + 2, 15 + (y * 15), white, (uint8_t)150);
+            surface.blendPixel(x + 3, 15 + (y * 15), white, (uint8_t)100);
+            surface.blendPixel(x + 4, 15 + (y * 15), white, (uint8_t)50);
             surface.putPixel(x, 15 + (y * 15), white);
             if (surface.getPixel(x, 15 + (y * 15)) != white) failed = true;
         }
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -368,8 +367,7 @@ int DoRGBBlend(Drawable& surface, int& num)
         c.blend(0xffe0ff00, 0x9a0fe0cc, 240);
         if (!c.match(0xff1be1c0)) failed = true;
         // printf ("c=0x%8x\n",c);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -450,8 +448,7 @@ int DoRects(Drawable& surface, int& num)
         if (c != black) failed = true;
         c = surface.getPixel(231, 64); // 0
         if (c != black) failed = true;
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -524,8 +521,7 @@ int DoFilledRects(Drawable& surface, int& num)
         if (c != black) failed = true;
         c = surface.getPixel(410, 80); // 0
         if (c != black) failed = true;
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -543,26 +539,25 @@ int LoadFonts(Drawable& surface, int& num)
     num++;
     printf("Test %i: Loading Font-Files... ", num);
     bool failed = false;
-    Grafix* gfx = GetGrafix();
+    Grafix& gfx = GetGrafix();
     try {
-        gfx->loadFont("testdata/fonts/liberationsans8.fnt5", "PPL Liberation Sans 8");
-        gfx->loadFont("../resource/liberationsans2.fnt6", "PPL Liberation Sans 2");
-        gfx->loadFont("testdata/fonts/LiberationSans-Bold.ttf", "PPL Liberation Sans Bold TTF");
-        gfx->loadFont("testdata/fonts/freesans4.fnt5", "PPL FreeSans 4");
-        gfx->loadFont("testdata/fonts/segoeui4.fnt5", "SegoeUI");
-    }
-    catch (pplib::Exception& e) {
+        gfx.loadFont("testdata/fonts/liberationsans8.fnt5", "PPL Liberation Sans 8");
+        gfx.loadFont("../resource/liberationsans2.fnt6", "PPL Liberation Sans 2");
+        gfx.loadFont("testdata/fonts/LiberationSans-Bold.ttf", "PPL Liberation Sans Bold TTF");
+        gfx.loadFont("testdata/fonts/freesans4.fnt5", "PPL FreeSans 4");
+        gfx.loadFont("testdata/fonts/segoeui4.fnt5", "SegoeUI");
+    } catch (pplib::Exception& e) {
         printf("failed! %s\n", e.what());
-        gfx->listFonts();
+        gfx.listFonts();
         return 0;
     }
     if (failed) {
         printf("failed!\n");
-        gfx->listFonts();
+        gfx.listFonts();
         return 0;
     }
     printf("ok\n");
-    gfx->listFonts();
+    gfx.listFonts();
     return 1;
 }
 
@@ -591,8 +586,7 @@ int DoFontsNonAA(Drawable& surface, int& num)
         c = surface.getPixel(7, 118);
         if (!c.match(0xff000000)) failed = true;
         // printf ("Farbe: %x\n",c);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -637,8 +631,7 @@ int DoFontsAA2(Drawable& surface, int& num)
         surface.print(Font, 5, 455, "Ein Font-Test FreeSans");
         Font.setBold(true);
         surface.print(Font, 5, 470, "Ein Font-Test FreeSans");
-    }
-    catch (pplib::Exception& e) {
+    } catch (pplib::Exception& e) {
         printf("failed! %s\n", e.what());
         e.print();
         return 0;
@@ -674,8 +667,7 @@ int DoFontsAA8(Drawable& surface, int& num)
         c = surface.getPixel(17, 153);
         if (!c.match(0xff000000)) failed = true;
         // printf ("Farbe: %x\n",c);
-    }
-    catch (pplib::Exception& e) {
+    } catch (pplib::Exception& e) {
         printf("failed! %s\n", e.what());
         e.print();
         return 0;
@@ -726,8 +718,7 @@ int DoFontsFreetype(Drawable& surface, int& num)
     if (!c.match(0xff000000)) failed=true;
     //printf ("Farbe: %x\n",c);
          */
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -746,9 +737,8 @@ int DoLoadIcons(Image& icons, int& num)
     printf("Test %i: Loading 32-Bit BMP-Image... ", num);
     bool failed = false;
     try {
-        icons.load("testdata/unittest.png");
-    }
-    catch (Exception& e) {
+        icons.load("testdata/images/unittest.png");
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -767,7 +757,7 @@ int DoAlphaBlt(Drawable& surface, int& num, Image& Icons)
     bool failed = false;
     try {
         Color c;
-        Grafix* gfx = GetGrafix();
+        Grafix& gfx = GetGrafix();
         Resource* res = GetPPLResource();
         Image Img;
         Img.load(res->getMemory(5));
@@ -845,16 +835,15 @@ int DoAlphaBlt(Drawable& surface, int& num, Image& Icons)
         for (float w = 0; w < 360; w += 15) {
             x = (int)(sinf(w * rad) * 60.0f);
             y = (int)(cosf(w * rad) * 50.0f);
-            surface.draw(gfx->Icons32, i++, 460 + x, 200 + y);
+            surface.draw(Icons32, i++, 460 + x, 200 + y);
         }
         i = 0;
         for (float w = 0.0f; w < 360.0f; w += 6.0f) {
             x = sinf(w * rad) * 100;
             y = cosf(w * rad) * 90;
-            surface.draw(gfx->Toolbar, i++, 468 + x, 208 + y);
+            surface.draw(Toolbar, i++, 468 + x, 208 + y);
         }
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -874,7 +863,7 @@ int DoDiffuseBlt(Drawable& surface, int& num)
     bool failed = false;
     try {
         Color c;
-        Grafix* gfx = GetGrafix();
+        Grafix& gfx = GetGrafix();
 
         surface.fillRect(30, 300, 230, 400, Color(0, 0, 0));
         surface.fillRect(25, 295, 225, 395, Color(64, 64, 255));
@@ -883,19 +872,18 @@ int DoDiffuseBlt(Drawable& surface, int& num)
         surface.line(225, 296, 225, 395, Color(128, 128, 255));
         surface.line(26, 395, 225, 395, Color(128, 128, 255));
 
-        surface.draw(gfx->ButtonSymbolsSmall, 0, 60, 300, Color(255, 255, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 1, 80, 300, Color(255, 200, 100));
-        surface.draw(gfx->ButtonSymbolsSmall, 2, 100, 300, Color(238, 85, 193));
-        surface.draw(gfx->ButtonSymbolsSmall, 3, 120, 300, Color(0, 255, 0));
-        surface.draw(gfx->ButtonSymbolsSmall, 4, 140, 300, Color(0, 255, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 5, 160, 300, Color(0, 0, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 6, 180, 300, Color(255, 0, 255));
-
-        surface.draw(gfx->ButtonSymbolsSmall, 7, 60, 320, Color(255, 0, 0));
-        surface.draw(gfx->ButtonSymbolsSmall, 8, 80, 320, Color(64, 128, 64));
-        surface.draw(gfx->ButtonSymbolsSmall, 9, 100, 320, Color(64, 128, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 21, 120, 320, Color(255, 255, 255));
-        surface.draw(gfx->ButtonSymbolsSmall, 20, 140, 320, Color(255, 255, 255));
+        surface.draw(ButtonSymbolsSmall, 0, 60, 300, Color(255, 255, 255));
+        surface.draw(ButtonSymbolsSmall, 1, 80, 300, Color(255, 200, 100));
+        surface.draw(ButtonSymbolsSmall, 2, 100, 300, Color(238, 85, 193));
+        surface.draw(ButtonSymbolsSmall, 3, 120, 300, Color(0, 255, 0));
+        surface.draw(ButtonSymbolsSmall, 4, 140, 300, Color(0, 255, 255));
+        surface.draw(ButtonSymbolsSmall, 5, 160, 300, Color(0, 0, 255));
+        surface.draw(ButtonSymbolsSmall, 6, 180, 300, Color(255, 0, 255));
+        surface.draw(ButtonSymbolsSmall, 7, 60, 320, Color(255, 0, 0));
+        surface.draw(ButtonSymbolsSmall, 8, 80, 320, Color(64, 128, 64));
+        surface.draw(ButtonSymbolsSmall, 9, 100, 320, Color(64, 128, 255));
+        surface.draw(ButtonSymbolsSmall, 21, 120, 320, Color(255, 255, 255));
+        surface.draw(ButtonSymbolsSmall, 20, 140, 320, Color(255, 255, 255));
 
         c = surface.getPixel(64, 304);
         if (!c.match(0xffffffff)) failed = true;
@@ -903,8 +891,7 @@ int DoDiffuseBlt(Drawable& surface, int& num)
         if (!c.match(0xffd0a689)) failed = true;
         c = surface.getPixel(105, 307);
         if (!c.match(0xffa44cdb)) failed = true;
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -932,8 +919,7 @@ int BltClipping(Drawable& surface, int& num, Image& Icons)
         draw.bltAlpha(Icons, r, draw.width() - 16, -16);
         draw.bltAlpha(Icons, r, -16, draw.height() - 16);
         draw.bltAlpha(Icons, r, draw.width() - 16, draw.height() - 16);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1014,8 +1000,7 @@ int DoBlt(Drawable& surface, int& num, Image& Icons)
         if (!c.match(0xff5ea165)) failed = true;
         c = surface.getPixel(618, 170);
         if (!c.match(0xffca35cc)) failed = true;
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1105,8 +1090,7 @@ int DoColorKeyBlt(Drawable& surface, int& num, Image& Icons)
     if (c!=0xffca35cc) failed=true;
     //printf ("Farbe: %x\n",c);
          */
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1135,8 +1119,7 @@ void PresentImage(Drawable& surface, const Image& Image, const String& Type, int
 
     try {
         surface.print(Font, x + 70, y + 12, Type);
-    }
-    catch (...) {
+    } catch (...) {
     }
 }
 
@@ -1149,10 +1132,9 @@ int DoPNG(Drawable& surface, int& num)
     // PresentImage(surface, Img,"PNG",10,380);
 
     try {
-        Img.load("testdata/test.png", RGBFormat::A8R8G8B8);
+        Img.load("testdata/images/test.png", RGBFormat::A8R8G8B8);
         PresentImage(surface, Img, "PNG", 10, 190);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1171,10 +1153,9 @@ int DoBMP(Drawable& surface, int& num)
     bool failed = false;
     Image Img;
     try {
-        Img.load("testdata/test.bmp", RGBFormat::A8R8G8B8);
+        Img.load("testdata/images/test.bmp", RGBFormat::A8R8G8B8);
         PresentImage(surface, Img, "BMP", 100, 220);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1193,10 +1174,9 @@ int DoJPEG(Drawable& surface, int& num)
     bool failed = false;
     Image Img;
     try {
-        Img.load("testdata/test.jpg", RGBFormat::A8R8G8B8);
+        Img.load("testdata/images/test.jpg", RGBFormat::A8R8G8B8);
         PresentImage(surface, Img, "JPEG", 10 + 2 * 90, 250);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1215,10 +1195,9 @@ int DoGIF(Drawable& surface, int& num)
     bool failed = false;
     Image Img;
     try {
-        Img.load("testdata/test.gif", RGBFormat::A8R8G8B8);
+        Img.load("testdata/images/test.gif", RGBFormat::A8R8G8B8);
         PresentImage(surface, Img, "GIF", 10 + 3 * 90, 280);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1237,10 +1216,9 @@ int DoPPM(Drawable& surface, int& num)
     bool failed = false;
     Image Img;
     try {
-        Img.load("testdata/test.ppm", RGBFormat::A8R8G8B8);
+        Img.load("testdata/images/test.ppm", RGBFormat::A8R8G8B8);
         PresentImage(surface, Img, "PPM", 10 + 4 * 90, 310);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1259,10 +1237,9 @@ int DoTGA(Drawable& surface, int& num)
     bool failed = false;
     Image Img;
     try {
-        Img.load("testdata/test.tga", RGBFormat::A8R8G8B8);
+        Img.load("testdata/images/test.tga", RGBFormat::A8R8G8B8);
         PresentImage(surface, Img, "TGA", 10 + 5 * 90, 340);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1281,10 +1258,9 @@ int DoTIFF(Drawable& surface, int& num)
     bool failed = false;
     Image Img;
     try {
-        Img.load("testdata/test.tif", RGBFormat::A8R8G8B8);
+        Img.load("testdata/images/test.tif", RGBFormat::A8R8G8B8);
         PresentImage(surface, Img, "TIFF", 10 + 6 * 90, 370);
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1303,14 +1279,14 @@ int DoButton(Drawable& surface, int& num)
     bool failed = false;
 
     try {
-        Grafix* gfx = GetGrafix();
+        Grafix& gfx = GetGrafix();
         Drawable draw = surface.getDrawable(80, 350, 180, 380);
         Rect r = draw.rect();
         draw.drawRect(r, Color(66, 66, 66));
-        int x1 = r.x1 + 1;
-        int y1 = r.y1 + 1;
-        int x2 = r.x2 - 1;
-        int y2 = r.y2 - 1;
+        int x1 = r.left() + 1;
+        int y1 = r.top() + 1;
+        int x2 = r.right() - 1;
+        int y2 = r.bottom() - 1;
         int m = (y2 - y1) / 2 + y1;
         draw.line(x1, y1, x2, y1, Color(219, 219, 219));
         draw.colorGradient(x1, y1 + 1, x2, m, Color(152, 152, 152), Color(125, 125, 125), 1);
@@ -1335,11 +1311,11 @@ int DoButton(Drawable& surface, int& num)
                 brightness = (maxd - d) / maxd;
                 if (brightness < 0) brightness = 0.0f;
                 // printf ("Distance von %i:%i zu %i:%i: %.2f\n",p.x(),p.y(),mp.x(),mp.y(),d);
-                draw.blendPixel(x, y, Color(128, 128, 256), brightness);
+                draw.blendPixel(x, y, Color(128, 128, 255), brightness);
             }
         }
 
-        draw.draw(gfx->Toolbar, 24, x1 + 4, y1 + (y2 - y1 - 16) / 2);
+        draw.draw(Toolbar, 24, x1 + 4, y1 + (y2 - y1 - 16) / 2);
 
         // draw.draw(gfx->Toolbar,0,8,8);
 
@@ -1351,8 +1327,7 @@ int DoButton(Drawable& surface, int& num)
         Font.setOrientation(Font::BOTTOM);
         Font.setColor(Color(255, 255, 255));
         draw.print(Font, x1 + 24, m + 5, "Button");
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1373,16 +1348,9 @@ int DoSprites(Drawable& surface, int& num)
     try {
 
         /*TODO:
-    CSprite Sprite;
-    if (!Sprite.load("../../../games/SissisAbenteuer/res/sissi-l.tex",CSurface::Lockable)) {
-        PrintError();
-        failed=true;
-    } else {
 
-    }
          */
-    }
-    catch (Exception& e) {
+    } catch (Exception& e) {
         printf("failed! %s\n", e.what());
         return 0;
     }
@@ -1401,6 +1369,12 @@ int main(int argc, char** argv)
     int failed = 0;
     int succeeded = 0;
     Grafix Grafix;
+    try {
+        LoadImageLists();
+    } catch (pplib::Exception& e) {
+        printf("failed to load image lists! %s\n", e.what());
+        return 1;
+    }
     printf("sizeof(Drawable)=%i\n", (int)sizeof(Drawable));
     printf("sizeof(Image)=%i\n", (int)sizeof(Image));
     printf("sizeof(ImageList)=%i\n", (int)sizeof(ImageList));
@@ -1447,7 +1421,7 @@ int main(int argc, char** argv)
     DoFontsAA2(Image, count);
     DoFontsNonAA(Image, count);
     DoFontsAA8(Image, count);
-    DoFontsFreetype(Image, count);
+    //DoFontsFreetype(Image, count);
 
     DoPNG(Image, count);
     DoBMP(Image, count);
@@ -1467,7 +1441,7 @@ int main(int argc, char** argv)
     BltClipping(Image, count, Icons);
     DoSprites(Image, count);
 
-    Drawable Draw(Image, Rect(60, 60, 10, 10));
+    Drawable Draw = Image.getDrawable(Rect(60, 60, 10, 10));
     Draw.cls(Color(255, 0, 0));
     Image.putPixel(60, 60, Color(255, 255, 255));
     Image.putPixel(70, 70, Color(255, 255, 255));

@@ -37,7 +37,6 @@
 namespace pplib
 {
 
-
 /**
  * @brief Kryptographisch sichere Zufallszahlen erzeugen
  * @ingroup PPLGroupMath
@@ -107,7 +106,6 @@ public:
         */
     static size_t get(size_t min, size_t max);
 };
-
 
 } // namespace pplib
 

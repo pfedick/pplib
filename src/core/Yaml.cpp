@@ -92,8 +92,7 @@ private:
             try {
                 size_t n = file.fread(buffer, 1, BUFFER_SIZE);
                 bufLen = n;
-            }
-            catch (const pplib::EndOfFileException&) {
+            } catch (const pplib::EndOfFileException&) {
                 return EOF;
             }
             if (bufLen == 0) return EOF;
@@ -1429,8 +1428,7 @@ pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_vie
                 try {
                     return pplib::Variant(
                         pplib::Date(digitsToInt(raw.substr(0, 4)), digitsToInt(raw.substr(5, 2)), digitsToInt(raw.substr(8, 2))));
-                }
-                catch (const std::exception&) {
+                } catch (const std::exception&) {
                     throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
                 }
             }
@@ -1438,8 +1436,7 @@ pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_vie
                 allDigits(raw, 8, 10) && (raw[10] == 'T' || raw[10] == 't' || raw[10] == ' ')) {
                 try {
                     return pplib::Variant(pplib::DateTime(pplib::String(raw)));
-                }
-                catch (const std::exception&) {
+                } catch (const std::exception&) {
                     throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
                 }
             }
@@ -1448,16 +1445,14 @@ pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_vie
         if (tag == "!Time") {
             try {
                 return pplib::Variant(pplib::Time(pplib::String(raw)));
-            }
-            catch (const std::exception&) {
+            } catch (const std::exception&) {
                 throw pplib::TypeConversionException("Invalid !Time value '%s'", pplib::String(raw).c_str());
             }
         }
         if (tag == "!TimeDelta") {
             try {
                 return pplib::Variant(pplib::TimeDelta(pplib::String(raw)));
-            }
-            catch (const std::exception&) {
+            } catch (const std::exception&) {
                 throw pplib::TypeConversionException("Invalid !TimeDelta value '%s'", pplib::String(raw).c_str());
             }
         }
@@ -1489,11 +1484,9 @@ pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_vie
                 int offset = hours * 60 + minutes;
                 if (negative) offset = -offset;
                 return pplib::Variant(pplib::TimeZone(offset, pplib::String("")));
-            }
-            catch (const pplib::Exception&) {
+            } catch (const pplib::Exception&) {
                 throw;
-            }
-            catch (const std::exception&) {
+            } catch (const std::exception&) {
                 throw pplib::TypeConversionException(bad, pplib::String(raw).c_str());
             }
         }
@@ -1515,8 +1508,7 @@ pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_vie
     if (raw.size() == 10 && raw[4] == '-' && raw[7] == '-' && allDigits(raw, 0, 4) && allDigits(raw, 5, 7) && allDigits(raw, 8, 10)) {
         try {
             return pplib::Variant(pplib::Date(digitsToInt(raw.substr(0, 4)), digitsToInt(raw.substr(5, 2)), digitsToInt(raw.substr(8, 2))));
-        }
-        catch (const std::exception&) {
+        } catch (const std::exception&) {
             return asString(raw); // kein gültiges Datum -> String
         }
     }
@@ -1525,8 +1517,7 @@ pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_vie
         (raw[10] == 'T' || raw[10] == 't' || raw[10] == ' ')) {
         try {
             return pplib::Variant(pplib::DateTime(pplib::String(raw)));
-        }
-        catch (const std::exception&) {
+        } catch (const std::exception&) {
             return asString(raw);
         }
     }
@@ -1535,8 +1526,7 @@ pplib::Variant YamlParser::resolveScalar(std::string_view rawIn, std::string_vie
         (raw.size() == 5 || raw[5] == '.' || raw[5] == ':')) {
         try {
             return pplib::Variant(pplib::Time(pplib::String(raw)));
-        }
-        catch (const std::exception&) {
+        } catch (const std::exception&) {
             return asString(raw);
         }
     }

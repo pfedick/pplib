@@ -237,22 +237,10 @@ TEST_F(CryptoTest, EncryptDecryptWithBase64_AES_256_CFB)
 // ------------------------------------------------------------------------------------------------------
 
 static const pplib::Crypt::Algorithm ALL_ALGORITHMS[] = {
-    pplib::Crypt::Algo_AES_128,
-    pplib::Crypt::Algo_AES_192,
-    pplib::Crypt::Algo_AES_256,
-    pplib::Crypt::Algo_ARIA_128,
-    pplib::Crypt::Algo_ARIA_192,
-    pplib::Crypt::Algo_ARIA_256,
-    pplib::Crypt::Algo_BLOWFISH,
-    pplib::Crypt::Algo_CAMELLIA_128,
-    pplib::Crypt::Algo_CAMELLIA_192,
-    pplib::Crypt::Algo_CAMELLIA_256,
-    pplib::Crypt::Algo_CAST5,
-    pplib::Crypt::Algo_DES,
-    pplib::Crypt::Algo_TRIPLE_DES,
-    pplib::Crypt::Algo_IDEA,
-    pplib::Crypt::Algo_RC2,
-    pplib::Crypt::Algo_RC5,
+    pplib::Crypt::Algo_AES_128,      pplib::Crypt::Algo_AES_192,      pplib::Crypt::Algo_AES_256,  pplib::Crypt::Algo_ARIA_128,
+    pplib::Crypt::Algo_ARIA_192,     pplib::Crypt::Algo_ARIA_256,     pplib::Crypt::Algo_BLOWFISH, pplib::Crypt::Algo_CAMELLIA_128,
+    pplib::Crypt::Algo_CAMELLIA_192, pplib::Crypt::Algo_CAMELLIA_256, pplib::Crypt::Algo_CAST5,    pplib::Crypt::Algo_DES,
+    pplib::Crypt::Algo_TRIPLE_DES,   pplib::Crypt::Algo_IDEA,         pplib::Crypt::Algo_RC2,      pplib::Crypt::Algo_RC5,
 };
 
 static const pplib::Crypt::Mode ALL_MODES[] = {
@@ -316,25 +304,20 @@ TEST_F(CryptoTest, EncryptDecryptAllAlgorithmsAndModes)
 
 TEST_F(CryptoTest, ConstructWithInvalidAlgorithmThrows)
 {
-    ASSERT_THROW(pplib::Encrypt((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC),
-                 pplib::UnsupportedAlgorithmException);
-    ASSERT_THROW(pplib::Decrypt((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC),
-                 pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(pplib::Encrypt((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC), pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(pplib::Decrypt((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC), pplib::UnsupportedAlgorithmException);
 }
 
 TEST_F(CryptoTest, ConstructWithInvalidModeThrows)
 {
-    ASSERT_THROW(pplib::Encrypt(pplib::Crypt::Algo_AES_128, (pplib::Crypt::Mode)99),
-                 pplib::UnsupportedAlgorithmException);
-    ASSERT_THROW(pplib::Decrypt(pplib::Crypt::Algo_AES_128, (pplib::Crypt::Mode)99),
-                 pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(pplib::Encrypt(pplib::Crypt::Algo_AES_128, (pplib::Crypt::Mode)99), pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(pplib::Decrypt(pplib::Crypt::Algo_AES_128, (pplib::Crypt::Mode)99), pplib::UnsupportedAlgorithmException);
 }
 
 TEST_F(CryptoTest, MethodsThrowWhenNotInitialized)
 {
     pplib::Encrypt encrypt(pplib::Crypt::Algo_AES_128, pplib::Crypt::Mode_CBC);
-    ASSERT_THROW(encrypt.setAlgorithm((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC),
-                 pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(encrypt.setAlgorithm((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC), pplib::UnsupportedAlgorithmException);
     ASSERT_THROW(encrypt.keyLength(), pplib::NotInitializedException);
     ASSERT_THROW(encrypt.ivLength(), pplib::NotInitializedException);
     ASSERT_THROW(encrypt.blockSize(), pplib::NotInitializedException);
@@ -342,8 +325,7 @@ TEST_F(CryptoTest, MethodsThrowWhenNotInitialized)
     ASSERT_THROW(encrypt.setKeyLength(16), pplib::NotInitializedException);
 
     pplib::Decrypt decrypt(pplib::Crypt::Algo_AES_128, pplib::Crypt::Mode_CBC);
-    ASSERT_THROW(decrypt.setAlgorithm((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC),
-                 pplib::UnsupportedAlgorithmException);
+    ASSERT_THROW(decrypt.setAlgorithm((pplib::Crypt::Algorithm)999, pplib::Crypt::Mode_CBC), pplib::UnsupportedAlgorithmException);
     ASSERT_THROW(decrypt.keyLength(), pplib::NotInitializedException);
     ASSERT_THROW(decrypt.ivLength(), pplib::NotInitializedException);
     ASSERT_THROW(decrypt.blockSize(), pplib::NotInitializedException);

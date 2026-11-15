@@ -140,8 +140,7 @@ bool ImageFilter_BMP::ident(FileObject& file, IMAGE& img) noexcept
                 return true;
             }
         }
-    }
-    catch (...) {
+    } catch (...) {
     }
     return false;
 }

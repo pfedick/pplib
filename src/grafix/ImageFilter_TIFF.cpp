@@ -144,8 +144,7 @@ bool ImageFilter_TIFF::ident(FileObject& file, IMAGE& img) noexcept
 
         TIFFClose(tif);
         return 1;
-    }
-    catch (...) {
+    } catch (...) {
         return 0;
     }
     return 0;

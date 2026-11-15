@@ -36,7 +36,7 @@ namespace pplib::grafix
 
 RGBFormat::RGBFormat(Identifier id)
 {
-    format_id = id;
+    setFormat(id);
 }
 
 RGBFormat::RGBFormat(const String& Identifier)
@@ -201,9 +201,11 @@ int RGBFormat::bitdepth() const
     case RGBFormat::X1R5G5B5:
     case RGBFormat::X1B5G5R5:
     case RGBFormat::X4R4G4B4:
+    case RGBFormat::X4B4G4R4:
     case RGBFormat::A1R5G5B5:
     case RGBFormat::A1B5G5R5:
     case RGBFormat::A4R4G4B4:
+    case RGBFormat::A4B4G4R4:
     case RGBFormat::A8R3G3B2:
         return 16;
     case RGBFormat::R8G8B8:

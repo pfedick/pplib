@@ -186,8 +186,7 @@ size_t AudioDecoder_Wave::prepareRead(size_t num, const void* buffer, uint64_t& 
         const size_t fits = (size_t)((fileSize - offset) / info.BytesPerSample);
         if (samples > fits) samples = fits;
         return samples;
-    }
-    catch (...) {
+    } catch (...) {
         return 0; // falls FileObject von außen geschlossen wurde
     }
 }

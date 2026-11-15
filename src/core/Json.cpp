@@ -78,8 +78,7 @@ private:
             size_t n = file.fread(buffer, 1, BUFFER_SIZE);
             bufLen = n;
             return bufLen > 0;
-        }
-        catch (const pplib::EndOfFileException&) {
+        } catch (const pplib::EndOfFileException&) {
             return false;
         }
     }
@@ -539,8 +538,7 @@ void Json::load(pplib::Variant& data, pplib::FileObject& file)
         if (c == EOF) throw pplib::UnexpectedEndOfDataException();
         data = parseValue(reader, c, 0);
         expectEof(reader);
-    }
-    catch (const pplib::EndOfFileException&) {
+    } catch (const pplib::EndOfFileException&) {
         throw pplib::UnexpectedEndOfDataException();
     }
 }

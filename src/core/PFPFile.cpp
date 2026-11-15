@@ -93,6 +93,8 @@ void PFPChunk::setData(const ByteArrayPtr& data)
 
 void PFPChunk::useData(const void* ptr, size_t size)
 {
+    // Das Groessenfeld im Datei-Layout ist 32 Bit, groessere Chunks waeren nicht speicherbar
+    if (size > (0xffffffff - 8) || (!ptr && size > 0)) throw IllegalArgumentException();
     if (ownMemory && chunkdata.ptr() && chunkdata.ptr() != ptr) {
         ::free(chunkdata.ptr());
     }
@@ -163,8 +165,7 @@ PFPChunk& PFPChunk::operator=(PFPChunk&& other) noexcept
         if (ownMemory && chunkdata.ptr()) {
             ::free(chunkdata.ptr());
         }
-        memcpy(chunkname, other.chunkname, 4);
-        chunkname[4] = '\0';
+        memcpy(chunkname, other.chunkname, 5);
         ownMemory = other.ownMemory;
         chunkdata = other.chunkdata;
         other.chunkdata.use(nullptr, 0);
@@ -224,7 +225,8 @@ void PFPFile::setCompression(Compression::Algorithm type)
 void PFPFile::setStringParam(const String& chunkname, const String& data)
 {
     deleteChunk(chunkname);
-    PFPChunk chunk(chunkname, ByteArrayPtr(data));
+    // Spezifikationsgemaess mit schliessendem 0-Byte ablegen (String::c_str() liefert stets einen terminierten Buffer)
+    PFPChunk chunk(chunkname, ByteArrayPtr(data.c_str(), data.len() + 1));
     Chunks.push_back(std::move(chunk));
 }
 
@@ -252,10 +254,8 @@ static String getStringFromChunk(const PFPChunk& chunk)
 {
     const char* str = (const char*)chunk.data();
     size_t len = chunk.size();
-    if (len > 0 && str && str[len - 1] == '\0') {
-        len--;
-    }
     if (!str || len == 0) return String();
+    if (str[len - 1] == '\0') len--; // Spezifikationsgemaess kann ein abschliessendes 0-Byte enthalten sein
     return String(str, len);
 }
 
@@ -343,24 +343,30 @@ void PFPFile::save(const String& filename)
     size_t pp = hsize;
     // Chunks zusammenfassen
     // Zuerst die vordefinierten, die wir am Anfang des Files wollen
+    // Von den vordefinierten Namen darf jeder nur einmal in der Datei stehen,
+    // auch wenn der Anwender ueber addChunk() weitere gleichnamige Chunks ergaenzt hat
     for (const auto& chunk : Chunks) {
         if (std::string_view(chunk.chunkname, 4) == "NAME") {
             pp += saveChunk(p, pp, &chunk);
+            break;
         }
     }
     for (const auto& chunk : Chunks) {
         if (std::string_view(chunk.chunkname, 4) == "AUTH") {
             pp += saveChunk(p, pp, &chunk);
+            break;
         }
     }
     for (const auto& chunk : Chunks) {
         if (std::string_view(chunk.chunkname, 4) == "DESC") {
             pp += saveChunk(p, pp, &chunk);
+            break;
         }
     }
     for (const auto& chunk : Chunks) {
         if (std::string_view(chunk.chunkname, 4) == "COPY") {
             pp += saveChunk(p, pp, &chunk);
+            break;
         }
     }
     // Restliche Chunks
@@ -431,7 +437,6 @@ void PFPFile::deleteChunk(const String& chunkname)
     for (int i = 0; i < 4; i++)
         cn[i] = (char)toupper((unsigned char)cn[i]);
 
-    // Chunks.remove_if([&s](const PFPChunk& c) { return c.name() == s; });
     auto it = Chunks.begin();
     while (it != Chunks.end()) {
         if (strncmp(it->chunkname, cn, 4) == 0) {
@@ -541,8 +546,7 @@ bool PFPFile::ident(const String& file)
     File ff;
     try {
         ff.open(file, File::FileMode::READ);
-    }
-    catch (...) {
+    } catch (...) {
         return false;
     }
     return ident(ff);
@@ -560,8 +564,7 @@ bool PFPFile::ident(FileObject& ff)
         subversion = Peek8(p + 14);
         comp = static_cast<Compression::Algorithm>(Peek8(p + 16));
         return true;
-    }
-    catch (...) {
+    } catch (...) {
         return false;
     }
     return false;
@@ -579,8 +582,7 @@ bool PFPFile::ident(const ByteArrayPtr& buffer) noexcept
         subversion = Peek8(p + 14);
         comp = static_cast<Compression::Algorithm>(Peek8(p + 16));
         return true;
-    }
-    catch (...) {
+    } catch (...) {
         return false;
     }
 }
@@ -616,7 +618,7 @@ void PFPFile::useMemory(const ByteArrayPtr& data)
         size_t sizecomp = Peek32(p + hsize + 4);
         // Kurzer Bounds-Check, ob die komprimierten Daten innerhalb des Puffers liegen
         if (data.size() - hsize - 8 < sizecomp) throw InvalidFormatException();
-
+        if (sizeunk >= SIZE_MAX) throw InvalidFormatException();
         ByteArray uncompressedData;
         uncompressedData.malloc(sizeunk + 1);
         size_t dstlen = sizeunk;
@@ -646,8 +648,7 @@ void PFPFile::useMemory(const ByteArrayPtr& data)
             chunk.setName(p + z, 4);
             chunk.useData(p + z + 8, size - 8);
             addChunk(std::move(chunk));
-        }
-        catch (...) {
+        } catch (...) {
             // Ungültige Chunks ignorieren
         }
         z += size;

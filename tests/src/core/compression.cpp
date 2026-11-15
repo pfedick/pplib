@@ -599,8 +599,7 @@ TEST(CompressionTest, BufferTooSmallReportsWrittenBytes)
     try {
         comp.compress(dst.data(), &dstlen, original.ptr(), original.size());
         FAIL() << "Expected BufferTooSmallException";
-    }
-    catch (const pplib::BufferTooSmallException&) {
+    } catch (const pplib::BufferTooSmallException&) {
         EXPECT_EQ(dstlen, 100);
     }
 
@@ -610,8 +609,7 @@ TEST(CompressionTest, BufferTooSmallReportsWrittenBytes)
     try {
         copy.compress(dst.data(), &dstlen, original.ptr(), original.size());
         FAIL() << "Expected BufferTooSmallException";
-    }
-    catch (const pplib::BufferTooSmallException&) {
+    } catch (const pplib::BufferTooSmallException&) {
         EXPECT_EQ(dstlen, 5000);
     }
 }
@@ -846,8 +844,7 @@ static bool algoAvailable(pplib::Compression::Algorithm a)
         pplib::Compression comp(a);
         (void)comp;
         return true;
-    }
-    catch (const pplib::UnsupportedFeatureException&) {
+    } catch (const pplib::UnsupportedFeatureException&) {
         return false;
     }
 }

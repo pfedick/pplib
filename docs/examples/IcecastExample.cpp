@@ -55,8 +55,7 @@ int main(int argc, char** argv)
             ice.send(buffer, bytes);
         }
         printf("Stream beendet\n");
-    }
-    catch (ppl6::Exception& e) {
+    } catch (ppl6::Exception& e) {
         // Ursache der Exception ausgeben
         printf("Exception aufgetreten: %s\n", e.what());
         free(buffer);

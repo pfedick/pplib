@@ -98,5 +98,4 @@ ByteArray& Random::fill(ByteArray& buffer, size_t bytes)
     return buffer;
 }
 
-
 } // namespace pplib

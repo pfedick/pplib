@@ -435,8 +435,7 @@ bool ImageFilter_GIF::ident(FileObject& file, IMAGE& img) noexcept
             return 1;
         }
         return 0;
-    }
-    catch (...) {
+    } catch (...) {
         return 0;
     }
     return 0;

@@ -104,7 +104,8 @@ TEST_F(DirTest, print)
 
     // Stichproben machen
     ASSERT_TRUE(output.contains("jsontest1.json"));
-    ASSERT_TRUE(output.contains("test.bmp"));
+    ASSERT_TRUE(output.contains("images"));
+    ASSERT_TRUE(output.contains("fonts"));
     ASSERT_TRUE(output.contains("unicodeUtf8äöü.txt"));
 }
 

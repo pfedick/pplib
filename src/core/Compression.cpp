@@ -607,8 +607,7 @@ void Compression::uncompressTo(ByteArray& out, const void* ptr, size_t size)
                 uncompress(out.ptr(), &dstlen, ptr, size);
                 out.truncate(dstlen);
                 return;
-            }
-            catch (const BufferTooSmallException&) {
+            } catch (const BufferTooSmallException&) {
                 buffersize += bsize;
             }
         }

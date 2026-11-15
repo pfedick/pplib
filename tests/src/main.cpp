@@ -110,8 +110,7 @@ int main(int argc, char** argv)
 
             PPLIBTestConfig.load("test.conf");
         }
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         printf("ERROR: Failed to load test configuration-file\n");
         e.print();
         throw;
@@ -133,11 +132,9 @@ int main(int argc, char** argv)
 
     try {
         return RUN_ALL_TESTS();
-    }
-    catch (const pplib::Exception& e) {
+    } catch (const pplib::Exception& e) {
         printf("pplib::Exception: %s\n", e.what());
-    }
-    catch (...) {
+    } catch (...) {
         printf("Unbekannte Exception\n");
     }
 

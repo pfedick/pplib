@@ -382,8 +382,7 @@ TEST(AssocArrayTest, addAndDeleteWordlist)
     for (size_t i = 0; i < total; i++) {
         try {
             a.erase(Wordlist[i]);
-        }
-        catch (pplib::KeyNotFoundException&) {
+        } catch (pplib::KeyNotFoundException&) {
         }
     }
     // pplib::PrintDebugTime("done\n");
@@ -587,8 +586,7 @@ TEST(AssocArrayTest, exportAndImportBinary)
     EXPECT_NO_THROW({
         try {
             ba = a.exportBinary();
-        }
-        catch (const pplib::Exception& exp) {
+        } catch (const pplib::Exception& exp) {
             exp.print();
             throw;
         }

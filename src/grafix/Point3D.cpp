@@ -207,7 +207,7 @@ void Point3D::setPoint(const Point3D& other)
  * \param[in] factor Der Faktor, mit dem die Koordinate multipliziert werden soll
  * \return Referenz auf den Point3D
  */
-Point3D& Point3D::operator*=(double factor)
+Point3D& Point3D::operator*=(real_t factor)
 {
     x = (int)(x * factor);
     y = (int)(y * factor);
@@ -258,7 +258,7 @@ Point3D& Point3D::operator-=(const Point3D& point)
  * \param[in] divisor Der Divisor, durch den die aktuelle Koordinate geteilt werden soll
  * \return Referenz auf den Point3D
  */
-Point3D& Point3D::operator/=(double divisor)
+Point3D& Point3D::operator/=(real_t divisor)
 {
     x = (int)(x / divisor);
     y = (int)(y / divisor);
@@ -282,12 +282,12 @@ bool operator==(const Point3D& p1, const Point3D& p2)
     return true;
 }
 
-const Point3D operator*(const Point3D& point, double factor)
+const Point3D operator*(const Point3D& point, real_t factor)
 {
     return Point3D((int)(point.x * factor), (int)(point.y * factor), (int)(point.z * factor));
 }
 
-const Point3D operator*(double factor, const Point3D& point)
+const Point3D operator*(real_t factor, const Point3D& point)
 {
     return Point3D((int)(point.x * factor), (int)(point.y * factor), (int)(point.z * factor));
 }
@@ -307,7 +307,7 @@ const Point3D operator-(const Point3D& point)
     return Point3D(0 - point.x, 0 - point.y, 0 - point.z);
 }
 
-const Point3D operator/(const Point3D& point, double divisor)
+const Point3D operator/(const Point3D& point, real_t divisor)
 {
     return Point3D((int)(point.x / divisor), (int)(point.y / divisor), (int)(point.z / divisor));
 }
