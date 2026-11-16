@@ -760,6 +760,28 @@ public:
      */
     bool hasPopularimeter() const;
 
+    /** @brief Vendor auslesen (nur FLAC)
+     *
+     * Mit dieser Funktion wird der Vendor-String ausgelesen.
+     *
+     * @return Referenz auf den Vendor-String.
+     */
+    const String& getVendor() const
+    {
+        return flacVendor;
+    }
+
+    /** @brief Vendor setzen (nur FLAC)
+     *
+     * Mit dieser Funktion wird der Vendor-String gesetzt.
+     *
+     * @param vendor Referenz auf den Vendor-String.
+     */
+    void setVendor(const String& vendor)
+    {
+        flacVendor = vendor;
+    }
+
     static void copyAndDecodeText(String& s, const ID3Frame* frame, int offset, const pplib::String& charset);
     static int decode(const ID3Frame* frame, int offset, int encoding, String& target, const pplib::String& charset);
 };
