@@ -37,6 +37,8 @@
 #include <pplib/audio/audioinfo.h>
 #include <pplib/audio/id3tag.h>
 #include <pplib/audio/decoder.h>
+#include <pplib/types/bytearray.h>
+#include <atomic>
 
 namespace pplib
 {
@@ -259,6 +261,86 @@ public:
      */
     static const char* getPSYVersion();
 };
+
+class AudioEncoder_Flac
+{
+private:
+    struct FlacState;
+    FlacState* state = nullptr;
+    FileObject* out = nullptr;
+    ByteArray readcache;
+    ByteArray writecache;
+    int compressionLevel = 5;
+    uint32_t frequency = 0;
+    uint8_t channels = 0;
+    uint8_t bitsPerSample = 16;
+    bool have_firstaudio = false;
+    bool started = false;
+    std::atomic<bool> bStopEncode{false};
+    void (*progressFunc)(int progress, void* priv) = nullptr;
+    void* progressPriv = nullptr;
+
+public:
+    AudioEncoder_Flac();
+    AudioEncoder_Flac(const AudioEncoder_Flac&) = delete;
+    AudioEncoder_Flac(AudioEncoder_Flac&&) = delete;
+    AudioEncoder_Flac& operator=(const AudioEncoder_Flac&) = delete;
+    AudioEncoder_Flac& operator=(AudioEncoder_Flac&&) = delete;
+    ~AudioEncoder_Flac();
+
+    /** @brief Setzt den Kompressionslevel für den FLAC-Encoder.
+     *
+     * @param level Kompressionslevel (0-8, default=5).
+     */
+    void setCompressionLevel(int level = 5);
+
+    /** @brief Gibt den aktuellen Kompressionslevel zurück.
+     *
+     * @return Kompressionslevel (0-8).
+     */
+    int getCompressionLevel() const
+    {
+        return compressionLevel;
+    }
+
+    /** @brief Setzt die Fortschrittsfunktion für den FLAC-Encoder.
+     *
+     * @param ProgressFunc Zeiger auf die Fortschrittsfunktion.
+     * @param priv Zeiger auf private Daten, die an die Fortschrittsfunktion übergeben werden.
+     */
+    void setProgressFunction(void (*ProgressFunc)(int progress, void* priv), void* priv);
+
+    /** @brief Startet die Kodierung mit dem FLAC-Encoder.
+     *
+     * @param output Referenz auf das Ausgabedateiobjekt.
+     */
+    void startEncode(FileObject& output);
+
+    /** @brief Schreibt den ID3v2-Tag in die Ausgabedatei.
+     *
+     * @param tag Referenz auf das ID3Tag-Objekt.
+     */
+    void writeID3v2Tag(const ID3Tag& tag);
+
+    /** @brief Kodiert Audiodaten mit dem FLAC-Encoder.
+     *
+     * @param decoder Referenz auf das AudioDecoder-Objekt.
+     */
+    void encode(AudioDecoder& decoder);
+
+    /** @brief Beendet die Kodierung mit dem FLAC-Encoder.
+     */
+    void finish();
+
+    /** @brief Stoppt einen laufenden Encoder.
+     *
+     * Durch Aufruf dieser Funktion wird ein laufender Encoder gestoppt, der durch die Funktion
+     * AudioEncoder_Flac::encode() gestartet wurde. Kann zum Beispiel durch einen zweiten Thread
+     * unterbrochen werden.
+     */
+    void stopEncoder();
+};
+
 } // namespace pplib
 
 #endif // PPLIB_AUDIO_ENCODER_H

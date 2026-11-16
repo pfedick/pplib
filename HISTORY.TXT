@@ -8,6 +8,8 @@ Version 8.0.0
       als C-String verwenden, müssen die Terminierung selbst sicherstellen.
     - FileObject::tryMap() ist eine einzelne Methode mit der Signatur von map() und gibt
       bei fehlschlagendem Mapping nullptr zurück.
+  - Neuer AudioEncoder für FLAC-Dateien (AudioEncoder_Flac)
+  - Neuer AudioDecoder für FLAC-Dateien (AudioDecoder_Flac)
   
 
 Version 7.1.0 vom 07.08.2026 (Repo-Tag: REL_7_1_0)
