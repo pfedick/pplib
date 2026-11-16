@@ -35,8 +35,10 @@
 #include <pplib/core/fileobject.h>
 #include <pplib/core/baseexception.h>
 #include <pplib/audio/audioinfo.h>
+#include <cstdint>
 #include <list>
 #include <map>
+#include <vector>
 
 namespace pplib
 {
@@ -167,6 +169,14 @@ public:
     {
         PIC_COVER_FRONT = 3,
         PIC_COVER_BACK = 4,
+    };
+
+    struct FlacPicture
+    {
+        uint32_t type = 0;
+        String mime;
+        String description;
+        ByteArray data;
     };
 
 private:
@@ -781,6 +791,18 @@ public:
     {
         flacVendor = vendor;
     }
+
+    /** @brief Exportiert die Tags als Vorbis-Comment-Einträge ("KEY=VALUE" in UTF-8)
+     *
+     * @param[out] entries Vektor, in den die erzeugten Einträge angehängt werden.
+     */
+    void exportVorbisComments(std::vector<String>& entries) const;
+
+    /** @brief Exportiert eingebettete APIC-Cover-Bilder für FLAC PICTURE-Blöcke
+     *
+     * @param[out] pictures Vektor, in den die dekodierten Bilder angehängt werden.
+     */
+    void exportFlacPictures(std::vector<FlacPicture>& pictures) const;
 
     static void copyAndDecodeText(String& s, const ID3Frame* frame, int offset, const pplib::String& charset);
     static int decode(const ID3Frame* frame, int offset, int encoding, String& target, const pplib::String& charset);

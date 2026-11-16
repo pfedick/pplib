@@ -67,6 +67,7 @@ install_home:
 build_tests:
 	cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug
 	cmake --build build/debug -j --target test_core test_crypto test_all
+	ln -sf build/debug/compile_commands.json compile_commands.json
 
 test: build_tests
 	cd tests && ../build/debug/tests/test_all$(EXE) --gtest_color=yes $(TEST_ARGS)

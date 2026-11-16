@@ -2105,9 +2105,8 @@ static void appendVorbisEntry(std::vector<String>& entries, const String& key, c
     entries.push_back(key + "=" + value);
 }
 
-static void buildFlacVorbisComment(const std::list<ID3Frame>& frames, const String& flacVendor, ByteArray& out)
+static void collectFlacVorbisEntries(const std::list<ID3Frame>& frames, std::vector<String>& entries)
 {
-    std::vector<String> entries;
     bool hasTyer = false;
     for (const auto& f : frames) {
         if (f.name() == "TYER") {
@@ -2188,6 +2187,12 @@ static void buildFlacVorbisComment(const std::list<ID3Frame>& frames, const Stri
             }
         }
     }
+}
+
+static void buildFlacVorbisComment(const std::list<ID3Frame>& frames, const String& flacVendor, ByteArray& out)
+{
+    std::vector<String> entries;
+    collectFlacVorbisEntries(frames, entries);
 
     String vendor = flacVendor.isEmpty() ? String("pplib") : flacVendor;
     size_t totalSize = 4 + vendor.size() + 4;
@@ -2215,17 +2220,26 @@ static void buildFlacVorbisComment(const std::list<ID3Frame>& frames, const Stri
     }
 }
 
-static bool buildFlacPictureBlock(const ID3Frame& frame, ByteArray& out)
+static bool decodeFlacPictureFrame(const ID3Frame& frame, uint32_t& picType, String& mime, String& desc, size_t& imgOffset)
 {
     if (frame.size() < 4) return false;
-    String mime, desc;
     int enc = Peek8(frame.dataPtr());
     int offset = ID3Tag::decode(&frame, 1, 0, mime, "UTF-8");
     if (offset >= (int)frame.size()) return false;
-    uint32_t picType = Peek8(frame.dataPtr() + offset);
+    picType = Peek8(frame.dataPtr() + offset);
     offset = ID3Tag::decode(&frame, offset + 1, enc, desc, "UTF-8");
     if (offset > (int)frame.size()) return false;
-    size_t imgLen = frame.size() - (size_t)offset;
+    imgOffset = (size_t)offset;
+    return true;
+}
+
+static bool buildFlacPictureBlock(const ID3Frame& frame, ByteArray& out)
+{
+    uint32_t picType = 0;
+    String mime, desc;
+    size_t offset = 0;
+    if (!decodeFlacPictureFrame(frame, picType, mime, desc, offset)) return false;
+    size_t imgLen = frame.size() - offset;
 
     size_t totalSize = 4 + 4 + mime.size() + 4 + desc.size() + 16 + 4 + imgLen;
     char* buf = (char*)out.malloc(totalSize);
@@ -2252,6 +2266,28 @@ static bool buildFlacPictureBlock(const ID3Frame& frame, ByteArray& out)
         memcpy(buf + pos, frame.dataPtr() + offset, imgLen);
     }
     return true;
+}
+
+void ID3Tag::exportVorbisComments(std::vector<String>& entries) const
+{
+    collectFlacVorbisEntries(frames, entries);
+}
+
+void ID3Tag::exportFlacPictures(std::vector<FlacPicture>& pictures) const
+{
+    for (const auto& f : frames) {
+        if (f.name() == "APIC") {
+            FlacPicture pic;
+            size_t offset = 0;
+            if (decodeFlacPictureFrame(f, pic.type, pic.mime, pic.description, offset)) {
+                size_t imgLen = f.size() - offset;
+                if (imgLen > 0) {
+                    pic.data.copy(f.dataPtr() + offset, imgLen);
+                }
+                pictures.push_back(std::move(pic));
+            }
+        }
+    }
 }
 
 static void serializeFlacBlocks(const std::vector<FlacBlock>& blocks, ByteArray& out)

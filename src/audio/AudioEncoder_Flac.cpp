@@ -27,6 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 #include <string.h>
+#include <vector>
 #include <config_pplib.h>
 #include <pplib/core/fileobject.h>
 #include <pplib/exceptions.h>
@@ -90,6 +91,31 @@ struct AudioEncoder_Flac::FlacState
 {
     FLAC__StreamEncoder* encoder = nullptr;
     FLAC__StreamMetadata* padding = nullptr;
+    FLAC__StreamMetadata* vorbisComment = nullptr;
+    std::vector<FLAC__StreamMetadata*> pictures;
+
+#ifdef HAVE_LIBFLAC
+    void clearTagMetadata()
+    {
+        if (vorbisComment) {
+            FLAC__metadata_object_delete(vorbisComment);
+            vorbisComment = nullptr;
+        }
+        for (FLAC__StreamMetadata* pic : pictures) {
+            if (pic) FLAC__metadata_object_delete(pic);
+        }
+        pictures.clear();
+    }
+
+    void clearAllMetadata()
+    {
+        clearTagMetadata();
+        if (padding) {
+            FLAC__metadata_object_delete(padding);
+            padding = nullptr;
+        }
+    }
+#endif
 };
 
 AudioEncoder_Flac::AudioEncoder_Flac()
@@ -112,9 +138,7 @@ AudioEncoder_Flac::~AudioEncoder_Flac()
         if (state->encoder) {
             FLAC__stream_encoder_delete(state->encoder);
         }
-        if (state->padding) {
-            FLAC__metadata_object_delete(state->padding);
-        }
+        state->clearAllMetadata();
         delete state;
         state = nullptr;
     }
@@ -138,6 +162,9 @@ void AudioEncoder_Flac::setProgressFunction(void (*ProgressFunc)(int progress, v
 void AudioEncoder_Flac::startEncode(FileObject& output)
 {
     if (started) throw EncoderAlreadyStartedException();
+#ifdef HAVE_LIBFLAC
+    if (state) state->clearAllMetadata();
+#endif
     out = &output;
     bStopEncode = false;
     started = true;
@@ -168,8 +195,17 @@ void AudioEncoder_Flac::encode(AudioDecoder& decoder)
             state->padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
             if (state->padding) {
                 state->padding->length = 4096;
-                FLAC__stream_encoder_set_metadata(state->encoder, &state->padding, 1);
             }
+        }
+
+        std::vector<FLAC__StreamMetadata*> metadata;
+        if (state->vorbisComment) metadata.push_back(state->vorbisComment);
+        for (FLAC__StreamMetadata* pic : state->pictures) {
+            if (pic) metadata.push_back(pic);
+        }
+        if (state->padding) metadata.push_back(state->padding);
+        if (!metadata.empty()) {
+            FLAC__stream_encoder_set_metadata(state->encoder, metadata.data(), static_cast<uint32_t>(metadata.size()));
         }
 
         if (FLAC__stream_encoder_init_stream(state->encoder, flacWriteCb, flacSeekCb, flacTellCb, nullptr, out) !=
@@ -243,9 +279,8 @@ void AudioEncoder_Flac::finish()
             throw EncoderException("AudioEncoder_Flac: FLAC__stream_encoder_finish failed");
         }
     }
-    if (state && state->padding) {
-        FLAC__metadata_object_delete(state->padding);
-        state->padding = nullptr;
+    if (state) {
+        state->clearAllMetadata();
     }
     out = nullptr;
     have_firstaudio = false;
@@ -259,13 +294,48 @@ void AudioEncoder_Flac::stopEncoder()
     bStopEncode = true;
 }
 
-void AudioEncoder_Flac::writeID3v2Tag(const ID3Tag& tag)
+void AudioEncoder_Flac::setVorbisComments(const ID3Tag& tag)
 {
 #ifndef HAVE_LIBFLAC
     throw pplib::UnsupportedFeatureException("AudioEncoder_Flac: libFLAC");
 #else
     if (!started) throw EncoderNotStartedException();
-    (void)tag; // Suppress unused parameter warning for now
+    if (have_firstaudio) throw EncoderAlreadyStartedException();
+
+    state->clearTagMetadata();
+
+    std::vector<String> entries;
+    tag.exportVorbisComments(entries);
+    if (!entries.empty()) {
+        state->vorbisComment = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
+        if (!state->vorbisComment) {
+            throw EncoderInitializationException("AudioEncoder_Flac: failed to allocate VORBIS_COMMENT");
+        }
+        for (const String& s : entries) {
+            FLAC__StreamMetadata_VorbisComment_Entry entry;
+            entry.length = static_cast<FLAC__uint32>(s.size());
+            entry.entry = reinterpret_cast<FLAC__byte*>(const_cast<char*>(s.c_str()));
+            FLAC__metadata_object_vorbiscomment_append_comment(state->vorbisComment, entry, true);
+        }
+    }
+
+    std::vector<ID3Tag::FlacPicture> pics;
+    tag.exportFlacPictures(pics);
+    for (const ID3Tag::FlacPicture& p : pics) {
+        FLAC__StreamMetadata* pic = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE);
+        if (!pic) {
+            state->clearTagMetadata();
+            throw EncoderInitializationException("AudioEncoder_Flac: failed to allocate PICTURE");
+        }
+        pic->data.picture.type = static_cast<FLAC__StreamMetadata_Picture_Type>(p.type);
+        FLAC__metadata_object_picture_set_mime_type(pic, const_cast<char*>(p.mime.c_str()), true);
+        FLAC__metadata_object_picture_set_description(pic, reinterpret_cast<FLAC__byte*>(const_cast<char*>(p.description.c_str())), true);
+        if (!p.data.isEmpty()) {
+            FLAC__metadata_object_picture_set_data(
+                pic, reinterpret_cast<FLAC__byte*>(const_cast<void*>(p.data.ptr())), static_cast<FLAC__uint32>(p.data.size()), true);
+        }
+        state->pictures.push_back(pic);
+    }
 #endif
 }
 

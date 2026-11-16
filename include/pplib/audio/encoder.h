@@ -316,11 +316,15 @@ public:
      */
     void startEncode(FileObject& output);
 
-    /** @brief Schreibt den ID3v2-Tag in die Ausgabedatei.
+    /** @brief Übernimmt Tags und Cover-Bilder aus einem ID3Tag als Vorbis-Comments bzw. FLAC-Pictures.
+     *
+     * Die Konvertierung erfolgt sofort, das Schreiben in den FLAC-Header jedoch erst beim ersten
+     * Aufruf von encode(), sobald der FLAC-Encoder initialisiert wird. Muss nach startEncode()
+     * und vor dem ersten encode() aufgerufen werden.
      *
      * @param tag Referenz auf das ID3Tag-Objekt.
      */
-    void writeID3v2Tag(const ID3Tag& tag);
+    void setVorbisComments(const ID3Tag& tag);
 
     /** @brief Kodiert Audiodaten mit dem FLAC-Encoder.
      *
