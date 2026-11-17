@@ -89,6 +89,12 @@ private:
         int frequency;
         int channels;
     };
+    enum class EncoderMode
+    {
+        CBR,
+        VBR,
+        ABR
+    };
     void* gfp;
     FirstAudio firstAudio;
     FileObject* out;
@@ -103,9 +109,25 @@ private:
 
     bool have_firstaudio;
     bool started;
-    bool bStopEncode;
+    std::atomic<bool> bStopEncode{false};
 
     void writeEncodedBytes(const char* buffer, size_t bytes);
+
+    // Parameter für den Encoder-Modus (CBR, VBR, ABR) und Qualität
+    EncoderMode encoder_mode = EncoderMode::CBR;
+    AudioInfo::ChannelMode stereo_mode = AudioInfo::ChannelMode::JOINT_STEREO;
+    int min_bitrate = 32;
+    int max_bitrate = 320;
+    int avg_bitrate = 192;
+    int quality = 2;
+    int lowpass_freq = 0;
+    int highpass_freq = 0;
+
+    void initEncoder();
+    void initVBR();
+    void initCBR();
+    void initABR();
+    void initStereoMode();
 
 public:
     AudioEncoder_MP3();

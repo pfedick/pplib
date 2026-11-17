@@ -57,14 +57,7 @@ AudioEncoder_MP3::AudioEncoder_MP3()
     bStopEncode = false;
     ProgressFunc = NULL;
     samples = ENCODESAMPLES;
-#ifdef HAVE_LAME
-    gfp = lame_init(); // LAME initialisieren
-    if (!gfp) throw pplib::InitializationFailedException("AudioEncoder_MP3: Lame");
-
-    // LAME mit Standardwerten initialisieren
-    lame_set_bWriteVbrTag((lame_global_flags*)gfp, 0);
-    lame_set_write_id3tag_automatic((lame_global_flags*)gfp, 0);
-#endif
+    gfp = nullptr;
 }
 
 AudioEncoder_MP3::~AudioEncoder_MP3()
@@ -79,117 +72,51 @@ AudioEncoder_MP3::~AudioEncoder_MP3()
 
 void AudioEncoder_MP3::setCBR(int kbps, int quality)
 {
-#ifndef HAVE_LAME
-    throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
-#else
-    if (!started) {
-        lame_set_VBR((lame_global_flags*)gfp, vbr_off);
-        lame_set_brate((lame_global_flags*)gfp, kbps);
-        lame_set_quality((lame_global_flags*)gfp, quality);
-    }
-#endif
+    if (started) throw EncoderAlreadyStartedException("AudioEncoder_MP3::setCBR");
+    if (quality < 0 || quality > 9) throw InvalidArgumentsException("AudioEncoder_MP3::setCBR: quality must be between 0 and 9");
+    if (kbps <= 0 || kbps > 320) throw InvalidArgumentsException("AudioEncoder_MP3::setCBR: kbps must be > 0 and <= 320");
+    this->encoder_mode = EncoderMode::CBR;
+    this->min_bitrate = kbps;
+    this->max_bitrate = kbps;
+    this->quality = quality;
 }
 
 void AudioEncoder_MP3::setVBR(int min, int max, int quality)
 {
-#ifndef HAVE_LAME
-    throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
-#else
-    if (!started) {
-        int tmp;
-        if (min > max) {
-            tmp = min;
-            min = max;
-            max = tmp;
-        }
-        int preset = V2;
-        switch (quality) {
-        case 0:
-            preset = V0;
-            break;
-        case 1:
-            preset = V1;
-            break;
-        case 2:
-            preset = V2;
-            break;
-        case 3:
-            preset = V3;
-            break;
-        case 4:
-            preset = V4;
-            break;
-        case 5:
-            preset = V5;
-            break;
-        case 6:
-            preset = V6;
-            break;
-        case 7:
-            preset = V7;
-            break;
-        case 8:
-            preset = V8;
-            break;
-        case 9:
-            preset = V9;
-            break;
-        default:
-            preset = V2;
-            break;
-        }
-        // lame_set_preset((lame_global_flags*)gfp, preset);
-        lame_set_bWriteVbrTag((lame_global_flags*)gfp, 1);
-        lame_set_VBR((lame_global_flags*)gfp, vbr_mtrh);
-        lame_set_quality((lame_global_flags*)gfp, quality);
-        lame_set_VBR_q((lame_global_flags*)gfp, quality);
-        lame_set_VBR_quality((lame_global_flags*)gfp, (float)quality);
-        lame_set_brate((lame_global_flags*)gfp, min);
-        lame_set_VBR_min_bitrate_kbps((lame_global_flags*)gfp, min);
-        lame_set_VBR_max_bitrate_kbps((lame_global_flags*)gfp, max);
+    if (started) throw EncoderAlreadyStartedException("AudioEncoder_MP3::setVBR");
+    if (quality < 0 || quality > 9) throw InvalidArgumentsException("AudioEncoder_MP3::setVBR: quality must be between 0 and 9");
+    if (min <= 0 || min > 320) throw InvalidArgumentsException("AudioEncoder_MP3::setVBR: min must be > 0 and <= 320");
+    if (max <= 0 || max > 320) throw InvalidArgumentsException("AudioEncoder_MP3::setVBR: max must be > 0 and <= 320");
+    int tmp;
+    if (min > max) {
+        tmp = min;
+        min = max;
+        max = tmp;
     }
-#endif
+    this->min_bitrate = min;
+    this->max_bitrate = max;
+    this->quality = quality;
+    this->encoder_mode = EncoderMode::VBR;
 }
 
 void AudioEncoder_MP3::setABR(int avg, int quality)
 {
-#ifndef HAVE_LAME
-    throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
-#else
-    if (!started) {
-        lame_set_bWriteVbrTag((lame_global_flags*)gfp, 1);
-        lame_set_preset((lame_global_flags*)gfp, avg);
-        lame_set_quality((lame_global_flags*)gfp, quality);
-    }
-#endif
+    if (started) throw EncoderAlreadyStartedException("AudioEncoder_MP3::setABR");
+    if (quality < 0 || quality > 9) throw InvalidArgumentsException("AudioEncoder_MP3::setABR: quality must be between 0 and 9");
+    if (avg <= 0 || avg > 320) throw InvalidArgumentsException("AudioEncoder_MP3::setABR: avg must be > 0 and <= 320");
+    this->encoder_mode = EncoderMode::ABR;
+    this->avg_bitrate = avg;
+    this->quality = quality;
 }
 
 void AudioEncoder_MP3::setStereoMode(const AudioInfo::ChannelMode mode)
 {
-#ifndef HAVE_LAME
-    throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
-#else
-    if (!started) {
-        MPEG_mode m;
-        switch (mode) {
-        case AudioInfo::ChannelMode::STEREO:
-            m = STEREO;
-            break;
-        case AudioInfo::ChannelMode::JOINT_STEREO:
-            m = JOINT_STEREO;
-            break;
-        case AudioInfo::ChannelMode::DUAL_CHANNEL:
-            throw UnsupportedFeatureException("AudioEncoder_MP3::setStereoMode (AudioInfo::ChannelMode::DUAL_CHANNEL)");
-        case AudioInfo::ChannelMode::MONO:
-            m = MONO;
-            break;
-        default:
-            m = STEREO;
-            break;
-        }
-        lame_set_mode((lame_global_flags*)gfp, m);
-    }
-#endif
+    if (started) throw EncoderAlreadyStartedException("AudioEncoder_MP3::setStereoMode");
+    if (mode == AudioInfo::ChannelMode::DUAL_CHANNEL)
+        throw UnsupportedFeatureException("AudioEncoder_MP3::setStereoMode (AudioInfo::ChannelMode::DUAL_CHANNEL)");
+    if (mode != AudioInfo::ChannelMode::MONO && mode != AudioInfo::ChannelMode::STEREO && mode != AudioInfo::ChannelMode::JOINT_STEREO)
+        throw InvalidArgumentsException("AudioEncoder_MP3::setStereoMode: mode must be MONO, STEREO, or JOINT_STEREO");
+    this->stereo_mode = mode;
 }
 
 /*!Lowpass Frequenz für Filter setzen
@@ -200,13 +127,9 @@ void AudioEncoder_MP3::setStereoMode(const AudioInfo::ChannelMode mode)
  */
 void AudioEncoder_MP3::setLowpassFreq(int freq)
 {
-#ifndef HAVE_LAME
-    throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
-#else
-    if (!started) {
-        lame_set_lowpassfreq((lame_global_flags*)gfp, freq);
-    }
-#endif
+    if (started) throw EncoderAlreadyStartedException("AudioEncoder_MP3::setLowpassFreq");
+    if (freq < -1) throw InvalidArgumentsException("AudioEncoder_MP3::setLowpassFreq: freq must be -1, 0, or >0");
+    this->lowpass_freq = freq;
 }
 
 /*!Highpass Frequenz für Filter setzen
@@ -217,12 +140,129 @@ void AudioEncoder_MP3::setLowpassFreq(int freq)
  */
 void AudioEncoder_MP3::setHighpassFreq(int freq)
 {
-#ifndef HAVE_LAME
-    throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
-#else
-    if (!started) {
-        lame_set_highpassfreq((lame_global_flags*)gfp, freq);
+    if (started) throw EncoderAlreadyStartedException("AudioEncoder_MP3::setHighpassFreq");
+    if (freq < -1) throw InvalidArgumentsException("AudioEncoder_MP3::setHighpassFreq: freq must be -1, 0, or >0");
+    this->highpass_freq = freq;
+}
+
+void AudioEncoder_MP3::initCBR()
+{
+#ifdef HAVE_LAME
+    lame_set_VBR((lame_global_flags*)gfp, vbr_off);
+    lame_set_brate((lame_global_flags*)gfp, max_bitrate);
+    lame_set_quality((lame_global_flags*)gfp, quality);
+#endif
+}
+
+void AudioEncoder_MP3::initVBR()
+{
+#ifdef HAVE_LAME
+    int preset = V2;
+    switch (quality) {
+    case 0:
+        preset = V0;
+        break;
+    case 1:
+        preset = V1;
+        break;
+    case 2:
+        preset = V2;
+        break;
+    case 3:
+        preset = V3;
+        break;
+    case 4:
+        preset = V4;
+        break;
+    case 5:
+        preset = V5;
+        break;
+    case 6:
+        preset = V6;
+        break;
+    case 7:
+        preset = V7;
+        break;
+    case 8:
+        preset = V8;
+        break;
+    case 9:
+        preset = V9;
+        break;
+    default:
+        preset = V2;
+        break;
     }
+    // lame_set_preset((lame_global_flags*)gfp, preset);
+    lame_set_bWriteVbrTag((lame_global_flags*)gfp, 1);
+    lame_set_VBR((lame_global_flags*)gfp, vbr_mtrh);
+    lame_set_quality((lame_global_flags*)gfp, quality);
+    lame_set_VBR_q((lame_global_flags*)gfp, quality);
+    lame_set_VBR_quality((lame_global_flags*)gfp, (float)quality);
+    lame_set_brate((lame_global_flags*)gfp, min_bitrate);
+    lame_set_VBR_min_bitrate_kbps((lame_global_flags*)gfp, min_bitrate);
+    lame_set_VBR_max_bitrate_kbps((lame_global_flags*)gfp, max_bitrate);
+
+#endif
+}
+
+void AudioEncoder_MP3::initABR()
+{
+#ifdef HAVE_LAME
+    lame_set_bWriteVbrTag((lame_global_flags*)gfp, 1);
+    lame_set_preset((lame_global_flags*)gfp, avg_bitrate);
+    lame_set_quality((lame_global_flags*)gfp, quality);
+#endif
+}
+
+void AudioEncoder_MP3::initStereoMode()
+{
+#ifdef HAVE_LAME
+    MPEG_mode m;
+    switch (stereo_mode) {
+    case AudioInfo::ChannelMode::STEREO:
+        m = STEREO;
+        break;
+    case AudioInfo::ChannelMode::JOINT_STEREO:
+        m = JOINT_STEREO;
+        break;
+    // case AudioInfo::ChannelMode::DUAL_CHANNEL: // Kann nie vorkommen
+    case AudioInfo::ChannelMode::MONO:
+        m = MONO;
+        break;
+    default:
+        m = STEREO;
+        break;
+    }
+    lame_set_mode((lame_global_flags*)gfp, m);
+#endif
+}
+
+/**
+ * @brief Initialisiert den MP3-Encoder mit den aktuellen Einstellungen.
+ *
+ * Diese Funktion muss vor dem Start der Kodierung aufgerufen werden, um die Encoder-Parameter zu setzen.
+ */
+void AudioEncoder_MP3::initEncoder()
+{
+#ifdef HAVE_LAME
+    if (gfp) lame_close((lame_global_flags*)gfp);
+    gfp = lame_init();
+    if (!gfp) throw EncoderInitializationException();
+    // LAME mit Standardwerten initialisieren
+    lame_set_bWriteVbrTag((lame_global_flags*)gfp, 0);
+    lame_set_write_id3tag_automatic((lame_global_flags*)gfp, 0);
+    if (encoder_mode == EncoderMode::CBR) {
+        initCBR();
+    } else if (encoder_mode == EncoderMode::VBR) {
+        initVBR();
+    } else if (encoder_mode == EncoderMode::ABR) {
+        initABR();
+    }
+    initStereoMode();
+    lame_set_lowpassfreq((lame_global_flags*)gfp, lowpass_freq);
+    lame_set_highpassfreq((lame_global_flags*)gfp, highpass_freq);
+
 #endif
 }
 
@@ -232,6 +272,7 @@ void AudioEncoder_MP3::startEncode(FileObject& output)
     throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
 #else
     if (started) throw EncoderAlreadyStartedException();
+    initEncoder();
     out = &output;
     started = true;
     have_firstaudio = false;
@@ -245,6 +286,7 @@ void AudioEncoder_MP3::startEncode(int frequency, int channels)
     throw pplib::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
 #else
     if (started) throw EncoderAlreadyStartedException();
+    initEncoder();
     out = NULL;
     started = true;
     have_firstaudio = true;
