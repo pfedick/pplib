@@ -59,7 +59,9 @@ static FLAC__StreamEncoderWriteStatus flacWriteCb(
         }
         return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     } catch (...) {
+        // LCOV_EXCL_START
         return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -70,7 +72,9 @@ static FLAC__StreamEncoderSeekStatus flacSeekCb(const FLAC__StreamEncoder*, FLAC
         out->seek(absolute_byte_offset);
         return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
     } catch (...) {
+        // LCOV_EXCL_START
         return FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR;
+        // LCOV_EXCL_STOP
     }
 }
 
@@ -331,8 +335,8 @@ void AudioEncoder_Flac::setVorbisComments(const ID3Tag& tag)
         FLAC__metadata_object_picture_set_mime_type(pic, const_cast<char*>(p.mime.c_str()), true);
         FLAC__metadata_object_picture_set_description(pic, reinterpret_cast<FLAC__byte*>(const_cast<char*>(p.description.c_str())), true);
         if (!p.data.isEmpty()) {
-            FLAC__metadata_object_picture_set_data(
-                pic, reinterpret_cast<FLAC__byte*>(const_cast<void*>(p.data.ptr())), static_cast<FLAC__uint32>(p.data.size()), true);
+            FLAC__metadata_object_picture_set_data(pic, reinterpret_cast<FLAC__byte*>(const_cast<void*>(p.data.ptr())),
+                                                   static_cast<FLAC__uint32>(p.data.size()), true);
         }
         state->pictures.push_back(pic);
     }
