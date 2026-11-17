@@ -333,7 +333,7 @@ void AudioEncoder_MP3::encode(AudioDecoder& decoder)
     mp3buf = (unsigned char*)malloc(mp3bufsize);
     if (!mp3buf) throw OutOfMemoryException();
     if (readcache) free(readcache);
-    size_t readcache_size = samples * info.BytesPerSample + 100;
+    size_t readcache_size = samples * sizeof(STEREOSAMPLE16) + 100;
     readcache = (char*)malloc(readcache_size);
     if (!readcache) throw OutOfMemoryException();
     decoder.seekSample(0);
@@ -344,7 +344,17 @@ void AudioEncoder_MP3::encode(AudioDecoder& decoder)
         size_t samples_got = decoder.getSamples(current_samples, (STEREOSAMPLE16*)readcache);
         if (samples_got == 0) break;
         samples_left -= samples_got;
-        int encodedbytes = lame_encode_buffer_interleaved((lame_global_flags*)gfp, (short*)readcache, samples_got, mp3buf, mp3bufsize);
+        int encodedbytes;
+        if (firstAudio.channels == 1) {
+            STEREOSAMPLE16* src = (STEREOSAMPLE16*)readcache;
+            short* mono = (short*)readcache;
+            for (size_t i = 0; i < samples_got; ++i) {
+                mono[i] = src[i].left;
+            }
+            encodedbytes = lame_encode_buffer((lame_global_flags*)gfp, mono, NULL, samples_got, mp3buf, mp3bufsize);
+        } else {
+            encodedbytes = lame_encode_buffer_interleaved((lame_global_flags*)gfp, (short*)readcache, samples_got, mp3buf, mp3bufsize);
+        }
         if (encodedbytes > 0) {
             writeEncodedBytes((char*)mp3buf, (size_t)encodedbytes);
         } else if (encodedbytes < 0)
