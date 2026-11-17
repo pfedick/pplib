@@ -66,6 +66,12 @@ protected:
     }
 };
 
+TEST_F(AudioEncoderMp3Test, ConstructorDestructorWithoutAnyEncoding)
+{
+    pplib::AudioEncoder_MP3 enc;
+    enc.setCBR();
+}
+
 TEST_F(AudioEncoderMp3Test, VersionStrings)
 {
     const char* lameVer = pplib::AudioEncoder_MP3::getLameVersion();
@@ -425,6 +431,11 @@ TEST_F(AudioEncoderMp3Test, SetterValidationAndAlreadyStarted)
     EXPECT_THROW(enc.setVBR(0, 192, 2), pplib::InvalidArgumentsException);
     EXPECT_THROW(enc.setVBR(64, 321, 2), pplib::InvalidArgumentsException);
     EXPECT_THROW(enc.setVBR(64, 192, 10), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setVBR(64, 192, -1), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setVBR(64, 192, 10), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setVBR(321, 192, 2), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setVBR(64, 321, 2), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setVBR(64, 0, 2), pplib::InvalidArgumentsException);
 
     EXPECT_THROW(enc.setABR(0, 2), pplib::InvalidArgumentsException);
     EXPECT_THROW(enc.setABR(321, 2), pplib::InvalidArgumentsException);

@@ -34,6 +34,7 @@
 #include <pplib/core/mutex.h>
 #include <pplib/audio/audioinfo.h>
 #include <pplib/audio/encoder.h>
+#include <utility>
 
 #ifdef HAVE_LAME
 #include <lame.h>
@@ -46,25 +47,26 @@ namespace pplib
 
 AudioEncoder_MP3::AudioEncoder_MP3()
 {
-    out = NULL;
-    ProgressFunc = NULL;
-    ProgressFuncPrivData = NULL;
-    readcache = NULL;
+    out = nullptr;
+    ProgressFunc = nullptr;
+    ProgressFuncPrivData = nullptr;
+    readcache = nullptr;
     mp3bufsize = 0;
-    mp3buf = NULL;
+    mp3buf = nullptr;
     have_firstaudio = false;
     started = false;
     bStopEncode = false;
-    ProgressFunc = NULL;
+    ProgressFunc = nullptr;
     samples = ENCODESAMPLES;
     gfp = nullptr;
 }
 
 AudioEncoder_MP3::~AudioEncoder_MP3()
 {
-    if (mp3buf) free(mp3buf);
-    if (readcache) free(readcache);
-
+    free(mp3buf);
+    mp3buf = nullptr;
+    free(readcache);
+    readcache = nullptr;
 #ifdef HAVE_LAME
     if (gfp) lame_close((lame_global_flags*)gfp);
 #endif
@@ -87,12 +89,7 @@ void AudioEncoder_MP3::setVBR(int min, int max, int quality)
     if (quality < 0 || quality > 9) throw InvalidArgumentsException("AudioEncoder_MP3::setVBR: quality must be between 0 and 9");
     if (min <= 0 || min > 320) throw InvalidArgumentsException("AudioEncoder_MP3::setVBR: min must be > 0 and <= 320");
     if (max <= 0 || max > 320) throw InvalidArgumentsException("AudioEncoder_MP3::setVBR: max must be > 0 and <= 320");
-    int tmp;
-    if (min > max) {
-        tmp = min;
-        min = max;
-        max = tmp;
-    }
+    if (min > max) std::swap(min, max);
     this->min_bitrate = min;
     this->max_bitrate = max;
     this->quality = quality;
@@ -154,45 +151,15 @@ void AudioEncoder_MP3::initCBR()
 #endif
 }
 
+#ifdef HAVE_LAME
+static int preset_table[10] = {V0, V1, V2, V3, V4, V5, V6, V7, V8, V9};
+#endif
+
 void AudioEncoder_MP3::initVBR()
 {
 #ifdef HAVE_LAME
     int preset = V2;
-    switch (quality) {
-    case 0:
-        preset = V0;
-        break;
-    case 1:
-        preset = V1;
-        break;
-    case 2:
-        preset = V2;
-        break;
-    case 3:
-        preset = V3;
-        break;
-    case 4:
-        preset = V4;
-        break;
-    case 5:
-        preset = V5;
-        break;
-    case 6:
-        preset = V6;
-        break;
-    case 7:
-        preset = V7;
-        break;
-    case 8:
-        preset = V8;
-        break;
-    case 9:
-        preset = V9;
-        break;
-    default:
-        preset = V2;
-        break;
-    }
+    if (quality >= 0 && quality <= 9) preset = preset_table[quality];
     // lame_set_preset((lame_global_flags*)gfp, preset);
     lame_set_bWriteVbrTag((lame_global_flags*)gfp, 1);
     lame_set_VBR((lame_global_flags*)gfp, vbr_mtrh);
@@ -218,22 +185,11 @@ void AudioEncoder_MP3::initABR()
 void AudioEncoder_MP3::initStereoMode()
 {
 #ifdef HAVE_LAME
-    MPEG_mode m;
-    switch (stereo_mode) {
-    case AudioInfo::ChannelMode::STEREO:
+    MPEG_mode m = JOINT_STEREO;
+    if (stereo_mode == AudioInfo::ChannelMode::STEREO)
         m = STEREO;
-        break;
-    case AudioInfo::ChannelMode::JOINT_STEREO:
-        m = JOINT_STEREO;
-        break;
-    // case AudioInfo::ChannelMode::DUAL_CHANNEL: // Kann nie vorkommen
-    case AudioInfo::ChannelMode::MONO:
+    else if (stereo_mode == AudioInfo::ChannelMode::MONO)
         m = MONO;
-        break;
-    default:
-        m = STEREO;
-        break;
-    }
     lame_set_mode((lame_global_flags*)gfp, m);
 #endif
 }
@@ -303,11 +259,13 @@ void AudioEncoder_MP3::startEncode(int frequency, int channels)
 
 static inline void dispatchEncoderError(int code)
 {
+    // LCOV_EXCL_START
     if (code == -1) throw EncoderBufferTooSmallException();
     if (code == -2) throw OutOfMemoryException();
     if (code == -3) throw EncoderNotStartedException();
     if (code == -4) throw EncoderPsychoAcousticException();
     throw EncoderException("Unknown Error");
+    // LCOV_EXCL_STOP
 }
 
 int AudioEncoder_MP3::encodeBuffer(STEREOSAMPLE16* buffer, int num_samples, void* mp3buf, size_t buffersize)
