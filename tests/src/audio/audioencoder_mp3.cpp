@@ -372,6 +372,79 @@ TEST_F(AudioEncoderMp3Test, ErrorPaths)
     enc.finish();
 }
 
+TEST_F(AudioEncoderMp3Test, ReuseAfterFinish)
+{
+    pplib::File aiff_stereo;
+    aiff_stereo.open("testdata/audio/test_44kHz.aiff");
+    pplib::AudioDecoder_Aiff dec_stereo;
+    dec_stereo.open(aiff_stereo);
+
+    pplib::File aiff_mono;
+    aiff_mono.open("testdata/audio/test_44kHz_16bit_mono.aiff");
+    pplib::AudioDecoder_Aiff dec_mono;
+    dec_mono.open(aiff_mono);
+
+    pplib::AudioEncoder_MP3 enc;
+
+    pplib::MemFile first_mem;
+    enc.setCBR(192, 2);
+    enc.setStereoMode(pplib::AudioInfo::ChannelMode::JOINT_STEREO);
+    enc.startEncode(first_mem);
+    enc.encode(dec_stereo);
+    enc.finish();
+
+    pplib::MemFile second_mem;
+    enc.setCBR(128, 2);
+    enc.setStereoMode(pplib::AudioInfo::ChannelMode::MONO);
+    enc.startEncode(second_mem);
+    enc.encode(dec_mono);
+    enc.finish();
+
+    first_mem.seek(0);
+    pplib::AudioInfo first_info;
+    ASSERT_TRUE(pplib::IdentAudioFile(first_mem, first_info));
+    EXPECT_EQ(2, first_info.Channels);
+    EXPECT_EQ(192, first_info.Bitrate);
+
+    second_mem.seek(0);
+    pplib::AudioInfo second_info;
+    ASSERT_TRUE(pplib::IdentAudioFile(second_mem, second_info));
+    EXPECT_EQ(1, second_info.Channels);
+    EXPECT_EQ(128, second_info.Bitrate);
+}
+
+TEST_F(AudioEncoderMp3Test, SetterValidationAndAlreadyStarted)
+{
+    pplib::AudioEncoder_MP3 enc;
+
+    EXPECT_THROW(enc.setCBR(0, 2), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setCBR(321, 2), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setCBR(192, -1), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setCBR(192, 10), pplib::InvalidArgumentsException);
+
+    EXPECT_THROW(enc.setVBR(0, 192, 2), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setVBR(64, 321, 2), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setVBR(64, 192, 10), pplib::InvalidArgumentsException);
+
+    EXPECT_THROW(enc.setABR(0, 2), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setABR(321, 2), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setABR(192, -1), pplib::InvalidArgumentsException);
+
+    EXPECT_THROW(enc.setStereoMode(pplib::AudioInfo::ChannelMode::UNKNOWN), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setLowpassFreq(-2), pplib::InvalidArgumentsException);
+    EXPECT_THROW(enc.setHighpassFreq(-2), pplib::InvalidArgumentsException);
+
+    pplib::MemFile mp3_mem;
+    enc.startEncode(mp3_mem);
+    EXPECT_THROW(enc.setCBR(192, 2), pplib::EncoderAlreadyStartedException);
+    EXPECT_THROW(enc.setVBR(64, 192, 2), pplib::EncoderAlreadyStartedException);
+    EXPECT_THROW(enc.setABR(192, 2), pplib::EncoderAlreadyStartedException);
+    EXPECT_THROW(enc.setStereoMode(pplib::AudioInfo::ChannelMode::STEREO), pplib::EncoderAlreadyStartedException);
+    EXPECT_THROW(enc.setLowpassFreq(16000), pplib::EncoderAlreadyStartedException);
+    EXPECT_THROW(enc.setHighpassFreq(100), pplib::EncoderAlreadyStartedException);
+    enc.finish();
+}
+
 } // namespace
 
 #endif // HAVE_LAME
