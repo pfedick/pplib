@@ -55,14 +55,14 @@ static FLAC__StreamEncoderWriteStatus flacWriteCb(
     FileObject* out = static_cast<FileObject*>(client_data);
     try {
         if (out->write(buffer, bytes) != bytes) {
+            // LCOV_EXCL_START
             return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
         }
         return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
     } catch (...) {
-        // LCOV_EXCL_START
         return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-        // LCOV_EXCL_STOP
     }
+    // LCOV_EXCL_STOP
 }
 
 static FLAC__StreamEncoderSeekStatus flacSeekCb(const FLAC__StreamEncoder*, FLAC__uint64 absolute_byte_offset, void* client_data)
@@ -71,11 +71,12 @@ static FLAC__StreamEncoderSeekStatus flacSeekCb(const FLAC__StreamEncoder*, FLAC
     try {
         out->seek(absolute_byte_offset);
         return FLAC__STREAM_ENCODER_SEEK_STATUS_OK;
-    } catch (...) {
         // LCOV_EXCL_START
+    } catch (...) {
+
         return FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR;
-        // LCOV_EXCL_STOP
     }
+    // LCOV_EXCL_STOP
 }
 
 static FLAC__StreamEncoderTellStatus flacTellCb(const FLAC__StreamEncoder*, FLAC__uint64* absolute_byte_offset, void* client_data)
@@ -84,9 +85,11 @@ static FLAC__StreamEncoderTellStatus flacTellCb(const FLAC__StreamEncoder*, FLAC
     try {
         *absolute_byte_offset = out->tell();
         return FLAC__STREAM_ENCODER_TELL_STATUS_OK;
+        // LCOV_EXCL_START
     } catch (...) {
         return FLAC__STREAM_ENCODER_TELL_STATUS_ERROR;
     }
+    // LCOV_EXCL_STOP
 }
 
 #endif
@@ -128,10 +131,12 @@ AudioEncoder_Flac::AudioEncoder_Flac()
     state = new FlacState();
     state->encoder = FLAC__stream_encoder_new();
     if (!state->encoder) {
+        // LCOV_EXCL_START
         delete state;
         state = nullptr;
         throw pplib::InitializationFailedException("AudioEncoder_Flac: libFLAC");
     }
+    // LCOV_EXCL_STOP
 #endif
 }
 
@@ -183,7 +188,7 @@ void AudioEncoder_Flac::encode(AudioDecoder& decoder)
     if (!started) throw EncoderNotStartedException();
     const AudioInfo& info = decoder.getAudioInfo();
     if (info.Channels != 1 && info.Channels != 2) {
-        throw UnsupportedAudioFormatException("AudioEncoder_Flac: only mono and stereo are supported");
+        throw UnsupportedAudioFormatException("AudioEncoder_Flac: only mono and stereo are supported"); // LCOV_EXCL_LINE
     }
     if (!have_firstaudio) {
         frequency = info.Frequency;
@@ -214,7 +219,7 @@ void AudioEncoder_Flac::encode(AudioDecoder& decoder)
 
         if (FLAC__stream_encoder_init_stream(state->encoder, flacWriteCb, flacSeekCb, flacTellCb, nullptr, out) !=
             FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
-            throw EncoderInitializationException();
+            throw EncoderInitializationException(); // LCOV_EXCL_LINE
         }
         have_firstaudio = true;
     } else {
@@ -258,7 +263,7 @@ void AudioEncoder_Flac::encode(AudioDecoder& decoder)
             }
         }
         if (!FLAC__stream_encoder_process_interleaved(state->encoder, (FLAC__int32*)writecache_ptr, static_cast<uint32_t>(samples_got)))
-            throw EncoderException("AudioEncoder_Flac: FLAC__stream_encoder_process_interleaved failed");
+            throw EncoderException("AudioEncoder_Flac: FLAC__stream_encoder_process_interleaved failed"); // LCOV_EXCL_LINE
 
         samples_left -= samples_got;
         if (progressFunc) {
@@ -280,7 +285,7 @@ void AudioEncoder_Flac::finish()
     if (!started) throw EncoderNotStartedException();
     if (have_firstaudio && state && state->encoder) {
         if (!FLAC__stream_encoder_finish(state->encoder)) {
-            throw EncoderException("AudioEncoder_Flac: FLAC__stream_encoder_finish failed");
+            throw EncoderException("AudioEncoder_Flac: FLAC__stream_encoder_finish failed"); // LCOV_EXCL_LINE
         }
     }
     if (state) {
@@ -313,7 +318,7 @@ void AudioEncoder_Flac::setVorbisComments(const ID3Tag& tag)
     if (!entries.empty()) {
         state->vorbisComment = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT);
         if (!state->vorbisComment) {
-            throw EncoderInitializationException("AudioEncoder_Flac: failed to allocate VORBIS_COMMENT");
+            throw EncoderInitializationException("AudioEncoder_Flac: failed to allocate VORBIS_COMMENT"); // LCOV_EXCL_LINE
         }
         for (const String& s : entries) {
             FLAC__StreamMetadata_VorbisComment_Entry entry;
@@ -328,8 +333,10 @@ void AudioEncoder_Flac::setVorbisComments(const ID3Tag& tag)
     for (const ID3Tag::FlacPicture& p : pics) {
         FLAC__StreamMetadata* pic = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE);
         if (!pic) {
+            // LCOV_EXCL_START
             state->clearTagMetadata();
             throw EncoderInitializationException("AudioEncoder_Flac: failed to allocate PICTURE");
+            // LCOV_EXCL_STOP
         }
         pic->data.picture.type = static_cast<FLAC__StreamMetadata_Picture_Type>(p.type);
         FLAC__metadata_object_picture_set_mime_type(pic, const_cast<char*>(p.mime.c_str()), true);
