@@ -92,6 +92,11 @@ size_t SecureRandom::get(size_t min, size_t max)
 #ifdef HAVE_OPENSSL
     if (min > max) std::swap(min, max);
     if (min == max) return min;
+    if (min == 0 && max == SIZE_MAX) {
+        size_t v;
+        randBytes(reinterpret_cast<char*>(&v), sizeof(v));
+        return v;
+    }
 
     size_t span = max - min + 1;                 // Bereichsgröße
     size_t limit = SIZE_MAX - (SIZE_MAX % span); // Schwelle gegen Modulo-Bias

@@ -312,6 +312,15 @@ TEST_F(AudioEncoderFlacTest, ErrorPaths)
     flac_encoder.finish();
 }
 
+TEST_F(AudioEncoderFlacTest, SetterGetterCompressionLevel)
+{
+    pplib::AudioEncoder_Flac flac_encoder;
+    for (int i = 0; i <= 8; ++i) {
+        flac_encoder.setCompressionLevel(i);
+        EXPECT_EQ(i, flac_encoder.getCompressionLevel());
+    }
+}
+
 } // namespace
 
 #endif // HAVE_LIBFLAC
