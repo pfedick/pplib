@@ -312,7 +312,7 @@ public:
 
     /** @brief Setzt den Kompressionslevel für den FLAC-Encoder.
      *
-     * @param level Kompressionslevel (0-8, default=5).
+     * @param level Kompressionslevel (0-8, 0=fastest, 8=best, default=5).
      */
     void setCompressionLevel(int level = 5);
 
