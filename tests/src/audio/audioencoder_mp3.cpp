@@ -335,7 +335,7 @@ TEST_F(AudioEncoderMp3Test, LowLevelSplitChannelsAndBufferTooSmall)
     enc.startEncode(44100, 2);
 
     unsigned char tinyBuf[8];
-    EXPECT_THROW(enc.encodeBuffer(left.data(), right.data(), numSamples, tinyBuf, sizeof(tinyBuf)), pplib::EncoderBufferTooSmallException);
+    EXPECT_THROW(enc.encodeBuffer(left.data(), right.data(), numSamples, tinyBuf, sizeof(tinyBuf)), pplib::EncoderException);
 
     std::vector<unsigned char> okBuf(32768);
     int bytes = enc.encodeBuffer(left.data(), right.data(), numSamples, okBuf.data(), okBuf.size());

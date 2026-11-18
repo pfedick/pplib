@@ -45,9 +45,7 @@ namespace pplib
 PPLIBEXCEPTION(EncoderException, Exception);
 PPLIBEXCEPTION(EncoderAlreadyStartedException, EncoderException);
 PPLIBEXCEPTION(EncoderNotStartedException, EncoderException);
-PPLIBEXCEPTION(EncoderBufferTooSmallException, EncoderException);
-PPLIBEXCEPTION(EncoderPsychoAcousticException, EncoderException);
-PPLIBEXCEPTION(EncoderInitializationException, EncoderException);
+PPLIBEXCEPTION(EncoderInitializationException, EncoderException); // LCOV_EXCL_LINE
 PPLIBEXCEPTION(EncoderAbortedException, EncoderException);
 PPLIBEXCEPTION(EncoderAudioFormatMismatchException, EncoderException);
 

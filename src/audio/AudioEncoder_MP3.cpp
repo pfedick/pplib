@@ -260,10 +260,10 @@ void AudioEncoder_MP3::startEncode(int frequency, int channels)
 static inline void dispatchEncoderError(int code)
 {
     // LCOV_EXCL_START
-    if (code == -1) throw EncoderBufferTooSmallException();
+    if (code == -1) throw EncoderException("Buffer was too small");
     if (code == -2) throw OutOfMemoryException();
-    if (code == -3) throw EncoderNotStartedException();
-    if (code == -4) throw EncoderPsychoAcousticException();
+    if (code == -3) throw EncoderNotStartedException("Encoder not started, lame_init_params was not called");
+    if (code == -4) throw EncoderException("Psychoacoustic error");
     throw EncoderException("Unknown Error");
     // LCOV_EXCL_STOP
 }
