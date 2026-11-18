@@ -378,6 +378,22 @@ public:
 
 class AudioEncoder_Aiff
 {
+private:
+    FileObject* out = nullptr;
+    ByteArray readcache;
+    ByteArray writecache;
+    ByteArray id3TagData;
+    uint64_t formStartOffset = 0;
+    uint64_t totalSamples = 0;
+    uint32_t frequency = 0;
+    uint8_t channels = 0;
+    uint8_t bitsPerSample = 16;
+    bool have_firstaudio = false;
+    bool started = false;
+    std::atomic<bool> bStopEncode{false};
+    void (*progressFunc)(int progress, void* priv) = nullptr;
+    void* progressPriv = nullptr;
+
 public:
     AudioEncoder_Aiff();
     AudioEncoder_Aiff(const AudioEncoder_Aiff&) = delete;
@@ -386,43 +402,42 @@ public:
     AudioEncoder_Aiff& operator=(AudioEncoder_Aiff&&) = delete;
     ~AudioEncoder_Aiff();
 
-    /** @brief Setzt die Fortschrittsfunktion für den FLAC-Encoder.
+    /** @brief Setzt die Fortschrittsfunktion für den AIFF-Encoder.
      *
      * @param ProgressFunc Zeiger auf die Fortschrittsfunktion.
      * @param priv Zeiger auf private Daten, die an die Fortschrittsfunktion übergeben werden.
      */
     void setProgressFunction(void (*ProgressFunc)(int progress, void* priv), void* priv);
 
-    /** @brief Startet die Kodierung mit dem FLAC-Encoder.
+    /** @brief Startet die Kodierung mit dem AIFF-Encoder.
      *
      * @param output Referenz auf das Ausgabedateiobjekt.
      */
     void startEncode(FileObject& output);
 
-    /** @brief Schreibt den ID3v2-Tag in die Ausgabedatei.
+    /** @brief Merkt den ID3v2-Tag für die Ausgabedatei vor.
      *
-     * Die Ausgabedatei muss zuvor durch startEncode() übergeben worden sein. Muss aufgerufen
-     * werden, bevor die Kodierung beginnt, da der ID3v2-Tag An die aktuelle Position der
-     * Ausgabedatei geschrieben wird.
+     * Muss nach startEncode() und vor dem ersten Aufruf von encode() aufgerufen werden.
+     * Der ID3-Chunk wird beim Aufruf von finish() in die AIFF-Datei geschrieben.
      *
      * @param tag Referenz auf das ID3Tag-Objekt.
      */
     void writeID3v2Tag(const ID3Tag& tag);
 
-    /** @brief Kodiert Audiodaten mit dem FLAC-Encoder.
+    /** @brief Kodiert Audiodaten mit dem AIFF-Encoder.
      *
      * @param decoder Referenz auf das AudioDecoder-Objekt.
      */
     void encode(AudioDecoder& decoder);
 
-    /** @brief Beendet die Kodierung mit dem FLAC-Encoder.
+    /** @brief Beendet die Kodierung mit dem AIFF-Encoder und schreibt die finalen Header.
      */
     void finish();
 
     /** @brief Stoppt einen laufenden Encoder.
      *
      * Durch Aufruf dieser Funktion wird ein laufender Encoder gestoppt, der durch die Funktion
-     * AudioEncoder_Flac::encode() gestartet wurde. Kann zum Beispiel durch einen zweiten Thread
+     * AudioEncoder_Aiff::encode() gestartet wurde. Kann zum Beispiel durch einen zweiten Thread
      * unterbrochen werden.
      */
     void stopEncoder();
