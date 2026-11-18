@@ -284,6 +284,15 @@ public:
     static const char* getPSYVersion();
 };
 
+/** @class AudioEncoder_Flac
+ * @brief FLAC-Encoder-Klasse.
+ *
+ * Diese Klasse stellt Funktionen zum Kodieren von Audio-Daten im FLAC-Format bereit.
+ * Unterstützt das Setzen von Kompressionslevel, Fortschrittsfunktionen, Vorbis-Comments und das Kodieren von Audio-Daten.
+ * Basiert auf der libFLAC-Bibliothek.
+ * 
+ * 
+ */
 class AudioEncoder_Flac
 {
 private:
@@ -347,6 +356,58 @@ public:
      * @param tag Referenz auf das ID3Tag-Objekt.
      */
     void setVorbisComments(const ID3Tag& tag);
+
+    /** @brief Kodiert Audiodaten mit dem FLAC-Encoder.
+     *
+     * @param decoder Referenz auf das AudioDecoder-Objekt.
+     */
+    void encode(AudioDecoder& decoder);
+
+    /** @brief Beendet die Kodierung mit dem FLAC-Encoder.
+     */
+    void finish();
+
+    /** @brief Stoppt einen laufenden Encoder.
+     *
+     * Durch Aufruf dieser Funktion wird ein laufender Encoder gestoppt, der durch die Funktion
+     * AudioEncoder_Flac::encode() gestartet wurde. Kann zum Beispiel durch einen zweiten Thread
+     * unterbrochen werden.
+     */
+    void stopEncoder();
+};
+
+class AudioEncoder_Aiff
+{
+public:
+    AudioEncoder_Aiff();
+    AudioEncoder_Aiff(const AudioEncoder_Aiff&) = delete;
+    AudioEncoder_Aiff(AudioEncoder_Aiff&&) = delete;
+    AudioEncoder_Aiff& operator=(const AudioEncoder_Aiff&) = delete;
+    AudioEncoder_Aiff& operator=(AudioEncoder_Aiff&&) = delete;
+    ~AudioEncoder_Aiff();
+
+    /** @brief Setzt die Fortschrittsfunktion für den FLAC-Encoder.
+     *
+     * @param ProgressFunc Zeiger auf die Fortschrittsfunktion.
+     * @param priv Zeiger auf private Daten, die an die Fortschrittsfunktion übergeben werden.
+     */
+    void setProgressFunction(void (*ProgressFunc)(int progress, void* priv), void* priv);
+
+    /** @brief Startet die Kodierung mit dem FLAC-Encoder.
+     *
+     * @param output Referenz auf das Ausgabedateiobjekt.
+     */
+    void startEncode(FileObject& output);
+
+    /** @brief Schreibt den ID3v2-Tag in die Ausgabedatei.
+     *
+     * Die Ausgabedatei muss zuvor durch startEncode() übergeben worden sein. Muss aufgerufen
+     * werden, bevor die Kodierung beginnt, da der ID3v2-Tag An die aktuelle Position der
+     * Ausgabedatei geschrieben wird.
+     *
+     * @param tag Referenz auf das ID3Tag-Objekt.
+     */
+    void writeID3v2Tag(const ID3Tag& tag);
 
     /** @brief Kodiert Audiodaten mit dem FLAC-Encoder.
      *
