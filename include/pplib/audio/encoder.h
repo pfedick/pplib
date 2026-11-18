@@ -42,12 +42,14 @@
 
 namespace pplib
 {
+// LCOV_EXCL_START
 PPLIBEXCEPTION(EncoderException, Exception);
 PPLIBEXCEPTION(EncoderAlreadyStartedException, EncoderException);
 PPLIBEXCEPTION(EncoderNotStartedException, EncoderException);
-PPLIBEXCEPTION(EncoderInitializationException, EncoderException); // LCOV_EXCL_LINE
+PPLIBEXCEPTION(EncoderInitializationException, EncoderException);
 PPLIBEXCEPTION(EncoderAbortedException, EncoderException);
 PPLIBEXCEPTION(EncoderAudioFormatMismatchException, EncoderException);
+// LCOV_EXCL_STOP
 
 /** @class AudioEncoder_MP3
  * @brief MP3 Audio Encoder

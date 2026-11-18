@@ -44,6 +44,7 @@ void throwExceptionFromEaiError(int ecode, const String& info);
 void throwExceptionFromWinError(unsigned long err, const String& info);
 #endif
 
+// LCOV_EXCL_START
 PPLIBEXCEPTION(UnknownException, Exception);
 PPLIBEXCEPTION(OutOfMemoryException, Exception);
 PPLIBEXCEPTION(NullPointerException, Exception);
@@ -244,6 +245,8 @@ PPLIBEXCEPTION(InvalidNetworkAddressException, NetworkException);
 PPLIBEXCEPTION(InvalidNetmaskOrPrefixlenException, NetworkException);
 PPLIBEXCEPTION(ConnectionTimeoutException, NetworkException); // ETIMEDOUT
 //@}
+
+// LCOV_EXCL_STOP
 
 } // namespace pplib
 

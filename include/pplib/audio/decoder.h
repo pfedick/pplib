@@ -38,9 +38,10 @@
 
 namespace pplib
 {
-
+// LCOV_EXCL_START
 PPLIBEXCEPTION(DecoderException, Exception);
 PPLIBEXCEPTION(DecoderInitializationException, DecoderException);
+// LCOV_EXCL_STOP
 
 /** @class AudioDecoder
  * @ingroup PPLGroupSound
