@@ -292,4 +292,33 @@ void AppendOggPacketPages(std::vector<uint8_t>& out, const ByteArrayPtr& packet,
     } while (true);
 }
 
+void BuildFlacPictureBlock(const ID3Tag::FlacPicture& pic, ByteArray& out)
+{
+    const size_t imgLen = pic.data.size();
+    const size_t totalSize = 4 + 4 + pic.mime.size() + 4 + pic.description.size() + 16 + 4 + imgLen;
+    char* buf = static_cast<char*>(out.malloc(totalSize));
+    size_t pos = 0;
+    PokeN32(buf + pos, pic.type);
+    pos += 4;
+    PokeN32(buf + pos, (uint32_t)pic.mime.size());
+    pos += 4;
+    if (!pic.mime.isEmpty()) {
+        memcpy(buf + pos, pic.mime.c_str(), pic.mime.size());
+        pos += pic.mime.size();
+    }
+    PokeN32(buf + pos, (uint32_t)pic.description.size());
+    pos += 4;
+    if (!pic.description.isEmpty()) {
+        memcpy(buf + pos, pic.description.c_str(), pic.description.size());
+        pos += pic.description.size();
+    }
+    memset(buf + pos, 0, 16); // width, height, color depth, indexed colors
+    pos += 16;
+    PokeN32(buf + pos, (uint32_t)imgLen);
+    pos += 4;
+    if (imgLen > 0) {
+        memcpy(buf + pos, pic.data.ptr(), imgLen);
+    }
+}
+
 } // namespace pplib

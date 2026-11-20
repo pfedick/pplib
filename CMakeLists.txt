@@ -569,7 +569,7 @@ if(PPLIB_ENABLE_AUDIO)
         endif()
 
         if(PPLIB_WITH_VORBIS)
-            pkg_check_modules(VORBIS QUIET vorbis vorbisfile)
+            pkg_check_modules(VORBIS QUIET vorbis vorbisfile vorbisenc ogg)
             if(VORBIS_FOUND)
                 set(HAVE_LIBVORBIS 1)
                 target_include_directories(pplib_audio PRIVATE ${VORBIS_INCLUDE_DIRS})

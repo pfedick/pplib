@@ -35,6 +35,7 @@
 #include <vector>
 #include <pplib/core/fileobject.h>
 #include <pplib/types/bytearray.h>
+#include <pplib/audio/id3tag.h>
 
 namespace pplib
 {
@@ -80,6 +81,8 @@ bool FindLastOggGranulePos(FileObject& file, uint32_t serialNumber, uint64_t min
 
 void AppendOggPacketPages(std::vector<uint8_t>& out, const ByteArrayPtr& packet, uint32_t serialNumber,
                           uint32_t& sequenceNumber, int64_t granulePos, uint8_t firstPageFlags);
+
+void BuildFlacPictureBlock(const ID3Tag::FlacPicture& pic, ByteArray& out);
 
 } // namespace pplib
 

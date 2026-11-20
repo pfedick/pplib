@@ -443,6 +443,120 @@ public:
     void stopEncoder();
 };
 
+/** @class AudioEncoder_Ogg
+ * @brief Ogg-Vorbis-Encoder-Klasse
+ * @ingroup PPLGroupSound
+ *
+ * Mit diesem Encoder können Audio-Daten im Ogg-Vorbis-Format kodiert werden. Er basiert auf
+ * den Bibliotheken `libvorbisenc` und `libogg`.
+ *
+ * Unterstützt werden drei Kompressionsmodi:
+ * - **VBR (Variable Bitrate, Standard):** qualitätsbasiert über `setVBR(quality)` mit
+ *   `quality` im Bereich `-0.1f` bis `1.0f` (Standard `0.4f` entspricht ca. 128 kbps).
+ * - **ABR (Average Bitrate):** zielbitraten-basiert über `setABR(nominalKbps, minKbps, maxKbps)`.
+ * - **CBR (Constant Bitrate):** feste Bitrate über `setCBR(kbps)`.
+ */
+class AudioEncoder_Ogg
+{
+private:
+    enum class EncoderMode
+    {
+        VBR,
+        ABR,
+        CBR
+    };
+    struct OggState;
+    OggState* state = nullptr;
+    FileObject* out = nullptr;
+    ByteArray readcache;
+    EncoderMode encoder_mode = EncoderMode::VBR;
+    float quality = 0.4f;
+    int min_bitrate = -1;
+    int avg_bitrate = 192;
+    int max_bitrate = -1;
+    uint32_t frequency = 0;
+    uint8_t channels = 0;
+    bool have_firstaudio = false;
+    bool started = false;
+    std::atomic<bool> bStopEncode{false};
+    void (*progressFunc)(int progress, void* priv) = nullptr;
+    void* progressPriv = nullptr;
+
+    void initEncoder(uint32_t freq, uint8_t ch);
+    void drainPages(bool flush);
+
+public:
+    AudioEncoder_Ogg();
+    AudioEncoder_Ogg(const AudioEncoder_Ogg&) = delete;
+    AudioEncoder_Ogg(AudioEncoder_Ogg&&) = delete;
+    AudioEncoder_Ogg& operator=(const AudioEncoder_Ogg&) = delete;
+    AudioEncoder_Ogg& operator=(AudioEncoder_Ogg&&) = delete;
+    ~AudioEncoder_Ogg();
+
+    /** @brief Konfiguriert den VBR-Modus (Variable Bitrate, qualitätsbasiert).
+     *
+     * @param quality Qualitätsstufe von `-0.1f` (niedrigste Qualität/Bitrate) bis
+     *                `1.0f` (höchste Qualität/Bitrate), Standard `0.4f` (ca. 128 kbps).
+     * @exception IllegalArgumentException @p quality liegt außerhalb `[-0.1f, 1.0f]`.
+     * @exception EncoderAlreadyStartedException Encoder wurde bereits gestartet.
+     */
+    void setVBR(float quality = 0.4f);
+
+    /** @brief Konfiguriert den ABR-Modus (Average Bitrate / Bitrate-Management).
+     *
+     * @param nominalKbps Angestrebte durchschnittliche Bitrate in kbps (Standard `192`).
+     * @param minKbps Optionale minimale Bitrate in kbps (`-1` = unbegrenzt).
+     * @param maxKbps Optionale maximale Bitrate in kbps (`-1` = unbegrenzt).
+     * @exception IllegalArgumentException Ungültige oder inkonsistente Bitraten-Angaben.
+     * @exception EncoderAlreadyStartedException Encoder wurde bereits gestartet.
+     */
+    void setABR(int nominalKbps = 192, int minKbps = -1, int maxKbps = -1);
+
+    /** @brief Konfiguriert den CBR-Modus (Constant Bitrate).
+     *
+     * @param kbps Feste Zielbitrate in kbps (Standard `192`).
+     * @exception IllegalArgumentException @p kbps <= 0.
+     * @exception EncoderAlreadyStartedException Encoder wurde bereits gestartet.
+     */
+    void setCBR(int kbps = 192);
+
+    /** @brief Setzt die Fortschrittsfunktion für den Ogg-Encoder.
+     *
+     * @param ProgressFunc Zeiger auf die Fortschrittsfunktion.
+     * @param priv Zeiger auf private Daten, die an die Fortschrittsfunktion übergeben werden.
+     */
+    void setProgressFunction(void (*ProgressFunc)(int progress, void* priv), void* priv);
+
+    /** @brief Startet die Kodierung mit dem Ogg-Encoder.
+     *
+     * @param output Referenz auf das Ausgabedateiobjekt.
+     */
+    void startEncode(FileObject& output);
+
+    /** @brief Übernimmt Tags und Cover-Bilder aus einem ID3Tag als Vorbis-Comments.
+     *
+     * Cover-Bilder (`APIC`) werden Base64-kodiert als `METADATA_BLOCK_PICTURE` eingebettet.
+     * Muss nach startEncode() und vor dem ersten encode() aufgerufen werden.
+     *
+     * @param tag Referenz auf das ID3Tag-Objekt.
+     */
+    void setVorbisComments(const ID3Tag& tag);
+
+    /** @brief Kodiert Audiodaten aus einem AudioDecoder in den Ogg-Vorbis-Stream.
+     *
+     * @param decoder Referenz auf das AudioDecoder-Objekt.
+     */
+    void encode(AudioDecoder& decoder);
+
+    /** @brief Beendet die Kodierung und schreibt alle verbleibenden Ogg-Pages.
+     */
+    void finish();
+
+    /** @brief Stoppt einen laufenden Encoder (thread-sicher).
+     */
+    void stopEncoder();
+};
+
 } // namespace pplib
 
 #endif // PPLIB_AUDIO_ENCODER_H
