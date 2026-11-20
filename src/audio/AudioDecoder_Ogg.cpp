@@ -218,36 +218,6 @@ static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf, FileObject& 
 
 #endif
 
-/** \brief Prueft, ob die Datei ein Ogg-Vorbis-Stream ist, und fuellt `AudioInfo` mit den
- *         Headern des Bitstroms.
- *
- * Die Funktion lehnt nichts ab, was der Decoder spaeter nicht unterstuetzt: sie meldet
- * Kanalzahl, Abtastrate und Bitrate des ersten Bitstroms, auch bei Dateien mit mehr als
- * zwei Kanaelen. Abgeschlossen wird das Format erst in `AudioDecoder_Ogg::open()`.
- *
- * Die Funktion oeffnet und schliesst die Datei, veraendert also die Dateiposition.
- *
- * Aufgerufen wird sie von `IdentAudioFile()` in `AudioInfo.cpp`, die dort eine eigene
- * Deklaration traegt; eine Header-Deklaration ist nicht gewollt (modulintern).
- */
-bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
-{
-#ifdef HAVE_LIBVORBIS
-    OggVorbisHandle handle;
-    OggVorbis_File* vf = handle.get();
-    ov_callbacks callbacks;
-    init_callback(callbacks);
-    file.seek(0);
-    int res = ov_open_callbacks(&file, vf, NULL, 0, callbacks);
-    if (res != 0) return false; // Handle-Destruktor uebernimmt ov_clear()
-    GetVorbisAudioInfo(info, *vf, file);
-    return true;
-
-#else
-    return false;
-#endif
-}
-
 AudioDecoder_Ogg::AudioDecoder_Ogg()
 {
     // Der Handle entsteht erst in open(); NULL steht fuer "nicht geoeffnet" und die

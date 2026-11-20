@@ -34,14 +34,10 @@
 #include <pplib/audio/audioinfo.h>
 #include <pplib/audio/mp3.h>
 #include <pplib/core/functions.h>
+#include "OggVorbisHelper.h"
 
 namespace pplib
 {
-
-// Modulinterne Deklaration, bewusst ohne Header: die Definition liegt in
-// src/audio/AudioDecoder_Ogg.cpp und ist nicht Teil der offenen API.
-// Die Signatur muss mit der dortigen Definition uebereinstimmen.
-bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info);
 
 namespace
 {
@@ -432,6 +428,20 @@ bool IdentFLAC(FileObject& file, AudioInfo& info)
             bitdepth = (uint32_t)PeekBits(si, 103, 5) + 1;
             declaredSamples = PeekBits(si, 108, 36);
             haveSTREAMINFO = true;
+        } else if (type == 4 && size >= 8) {
+            const char* vcLen = file.map(payload, 4);
+            const uint64_t vendorLen = Peek32(vcLen);
+            if (4 + vendorLen + 4 <= size) {
+                const char* countPtr = file.map(payload + 4 + vendorLen, 4);
+                if (Peek32(countPtr) > 0) info.HaveVorbisComment = true;
+            }
+        } else if (type == 4 && size >= 8) {
+            const char* vcLen = file.map(payload, 4);
+            const uint64_t vendorLen = Peek32(vcLen);
+            if (4 + vendorLen + 4 <= size) {
+                const char* countPtr = file.map(payload + 4 + vendorLen, 4);
+                if (Peek32(countPtr) > 0) info.HaveVorbisComment = true;
+            }
         }
 
         p = payload + size;
@@ -482,6 +492,63 @@ bool IdentFLAC(FileObject& file, AudioInfo& info)
         info.Length = (uint32_t)((ms > UINT32_MAX) ? UINT32_MAX : ms);
         const uint64_t kbit = (audioSize * 8 / 1000) * frequency / samples;
         info.Bitrate = (uint16_t)((kbit > UINT16_MAX) ? UINT16_MAX : kbit);
+    }
+    return true;
+}
+
+/** @brief Ogg-Vorbis-Datei ohne libvorbis identifizieren */
+bool IdentOgg(FileObject& file, AudioInfo& info)
+{
+    OggVorbisHeaders hdrs;
+    if (!ReadOggVorbisHeaders(file, hdrs, true)) return false;
+
+    const uint64_t fsize = file.size();
+    info.Format = AudioInfo::AudioFormat::OGG;
+    info.FileSize = fsize;
+    info.Channels = hdrs.channels;
+    info.Frequency = hdrs.frequency;
+    info.BitsPerSample = 16;
+    info.SampleType = AudioInfo::SampleEncoding::INTEGER;
+    info.Mode = (info.Channels == 1) ? AudioInfo::ChannelMode::MONO : AudioInfo::ChannelMode::STEREO;
+    info.BytesPerSample = (uint8_t)(info.Channels * 2);
+
+    double bits = (double)hdrs.bitrateNominal;
+    if (hdrs.bitrateMin == hdrs.bitrateMax) {
+        info.IsVBR = false;
+        if (hdrs.bitrateMin > 0) bits = (double)hdrs.bitrateMin;
+    } else {
+        info.IsVBR = true;
+    }
+    if (bits < 0.0) bits = 0.0;
+    if (bits > (double)UINT16_MAX * 1000.0) bits = (double)UINT16_MAX * 1000.0;
+    info.Bitrate = (uint16_t)((uint64_t)bits / 1000);
+
+    // Option B: HaveVorbisComment nur setzen, wenn mindestens 1 Tag-Eintrag existiert
+    if (hdrs.commentPacket.size() >= 7 + 8) {
+        const char* vc = static_cast<const char*>(hdrs.commentPacket.ptr()) + 7;
+        const size_t vcSize = hdrs.commentPacket.size() - 7;
+        const uint64_t vendorLen = Peek32(vc);
+        if (4 + vendorLen + 4 <= vcSize) {
+            if (Peek32(vc + 4 + vendorLen) > 0) info.HaveVorbisComment = true;
+        }
+    }
+
+    info.AudioStart = hdrs.audioPageStart;
+    int64_t lastGranule = -1;
+    uint64_t lastPageEnd = 0;
+    if (FindLastOggGranulePos(file, hdrs.serialNumber, hdrs.audioPageStart, lastGranule, lastPageEnd)) {
+        info.Samples = (uint64_t)lastGranule;
+        if (info.Frequency > 0) {
+            const uint64_t ms = info.Samples * 1000 / info.Frequency;
+            info.Length = (uint32_t)((ms > UINT32_MAX) ? UINT32_MAX : ms);
+        }
+        if (lastPageEnd > hdrs.audioPageStart) {
+            info.AudioSize = lastPageEnd - hdrs.audioPageStart;
+            info.AudioEnd = info.AudioStart + info.AudioSize - 1;
+        }
+    } else if (fsize > hdrs.audioPageStart) {
+        info.AudioSize = fsize - hdrs.audioPageStart;
+        info.AudioEnd = fsize - 1;
     }
     return true;
 }
@@ -554,7 +621,7 @@ bool IdentAudioFile(FileObject& file, AudioInfo& info)
         ok = IdentMP3(file, result, mp3);
         break;
     case AudioInfo::AudioFormat::OGG:
-        ok = IdentOggVorbisAudioFile(file, result);
+        ok = IdentOgg(file, result);
         break;
     case AudioInfo::AudioFormat::FLAC:
         ok = IdentFLAC(file, result);
@@ -638,7 +705,9 @@ void AudioInfo::print() const
     printf("FileSize:       %llu\n", FileSize);
     printf("HaveID3v2Tag:   %s\n", HaveID3v2Tag ? "true" : "false");
     printf("ID3v2TagStart:  %llu\n", ID3v2TagStart);
+    printf("HaveVorbisComment: %s\n", HaveVorbisComment ? "true" : "false");
     printf("IsVBR:          %s\n", IsVBR ? "true" : "false");
+    printf("HaveVorbisComment: %s\n", HaveVorbisComment ? "true" : "false");
 }
 
 } // namespace pplib

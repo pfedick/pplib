@@ -162,7 +162,8 @@ public:
         AF_MP3,
         AF_AIFF,
         AF_WAVE,
-        AF_FLAC
+        AF_FLAC,
+        AF_OGG
     };
 
     enum PictureType
@@ -210,10 +211,12 @@ private:
     AudioFormat identAudioFormat(FileObject& File);
     uint64_t findId3Tag(FileObject& File);
     void loadFlac(FileObject& file);
+    void loadOgg(FileObject& file);
     void saveMP3();
     void saveAiff();
     void saveWave();
     void saveFlac();
+    void saveOgg();
     bool trySaveAiffInExistingFile(FileObject& o, const ByteArrayPtr& tagV2);
     bool trySaveWaveInExistingFile(FileObject& o, const ByteArrayPtr& tagV2);
     bool trySaveFlacInExistingFile(FileObject& o, const ByteArrayPtr& metadataBlocks, uint64_t flacStart, uint64_t audioStart);
@@ -798,11 +801,11 @@ public:
      */
     void exportVorbisComments(std::vector<String>& entries) const;
 
-    /** @brief Exportiert eingebettete APIC-Cover-Bilder für FLAC PICTURE-Blöcke
+    /** @brief Exportiert eingebettete APIC-Cover-Bilder für FLAC/Vorbis PICTURE-Blöcke
      *
      * @param[out] pictures Vektor, in den die dekodierten Bilder angehängt werden.
      */
-    void exportFlacPictures(std::vector<FlacPicture>& pictures) const;
+    void exportVorbisPictures(std::vector<FlacPicture>& pictures) const;
 
     static void copyAndDecodeText(String& s, const ID3Frame* frame, int offset, const pplib::String& charset);
     static int decode(const ID3Frame* frame, int offset, int encoding, String& target, const pplib::String& charset);

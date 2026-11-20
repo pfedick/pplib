@@ -244,9 +244,9 @@ TEST_F(AudioInfoTest, IdentOggVorbis)
     EXPECT_EQ((uint64_t)173695, info.Samples) << "Unexpected number of samples";
     EXPECT_EQ((uint32_t)3938, info.Length) << "Unexpected length";
     EXPECT_EQ((uint64_t)90768, info.FileSize) << "Unexpected filesize";
-    EXPECT_EQ((uint64_t)8060, info.AudioStart) << "Unexpected audio start";
+    EXPECT_EQ((uint64_t)3852, info.AudioStart) << "Unexpected audio start";
     EXPECT_EQ((uint64_t)90767, info.AudioEnd) << "Unexpected audio end";
-    EXPECT_EQ((uint64_t)82708, info.AudioSize) << "Unexpected audio size";
+    EXPECT_EQ((uint64_t)86916, info.AudioSize) << "Unexpected audio size";
 }
 
 //--- Helfer fuer synthetische Header (Negativ- und Edge-Faelle) -----------------
@@ -1506,6 +1506,151 @@ TEST_F(AudioInfoTest, FlacEmptyStreamIsRejected)
     pplib::MemFile file(flac.data(), flac.size());
     pplib::AudioInfo info;
     EXPECT_FALSE(pplib::IdentAudioFile(file, info));
+}
+
+static std::vector<char> MakeFlacWithVorbisComment(const std::vector<std::string>& entries, bool includeBlock)
+{
+    std::vector<char> v;
+    putTag(v, "fLaC");
+    PutFLACStreamInfo(v, 2, 16, 44100, 100, 4096, !includeBlock);
+    if (includeBlock) {
+        std::vector<char> vc;
+        const char vendor[] = "pplib";
+        put32le(vc, 5);
+        vc.insert(vc.end(), vendor, vendor + 5);
+        put32le(vc, (uint32_t)entries.size());
+        for (const auto& e : entries) {
+            put32le(vc, (uint32_t)e.size());
+            vc.insert(vc.end(), e.begin(), e.end());
+        }
+        PutFLACBlockHeader(v, 4, (uint32_t)vc.size(), true);
+        v.insert(v.end(), vc.begin(), vc.end());
+    }
+    for (size_t i = 0; i < 64; ++i)
+        put8(v, (char)i);
+    return v;
+}
+
+TEST_F(AudioInfoTest, FlacHaveVorbisCommentReflectsEntries)
+{
+    {
+        auto flac = MakeFlacWithVorbisComment({}, false);
+        pplib::MemFile file(flac.data(), flac.size());
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+        EXPECT_FALSE(info.HaveVorbisComment);
+    }
+    {
+        auto flac = MakeFlacWithVorbisComment({}, true);
+        pplib::MemFile file(flac.data(), flac.size());
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+        EXPECT_FALSE(info.HaveVorbisComment);
+    }
+    {
+        auto flac = MakeFlacWithVorbisComment({"ARTIST=Test"}, true);
+        pplib::MemFile file(flac.data(), flac.size());
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+        EXPECT_TRUE(info.HaveVorbisComment);
+    }
+}
+
+static void AppendSyntheticOggPage(std::vector<char>& out, const std::vector<uint8_t>& packet, uint8_t flags,
+                                   uint32_t serial, uint32_t seq, int64_t granule)
+{
+    std::vector<uint8_t> segs;
+    size_t rem = packet.size();
+    while (rem >= 255) {
+        segs.push_back(255);
+        rem -= 255;
+    }
+    segs.push_back((uint8_t)rem);
+
+    const size_t start = out.size();
+    putTag(out, "OggS");
+    put8(out, 0);
+    put8(out, flags);
+    put32le(out, (uint32_t)((uint64_t)granule & 0xFFFFFFFFULL));
+    put32le(out, (uint32_t)(((uint64_t)granule >> 32) & 0xFFFFFFFFULL));
+    put32le(out, serial);
+    put32le(out, seq);
+    put32le(out, 0); // CRC hier fuer Header-Tests nicht geprueft
+    put8(out, (uint8_t)segs.size());
+    for (uint8_t s : segs)
+        put8(out, s);
+    out.insert(out.end(), packet.begin(), packet.end());
+    (void)start;
+}
+
+static std::vector<char> MakeSyntheticOggHeaders(const std::vector<std::string>& entries)
+{
+    std::vector<char> out;
+    // 1. ID-Paket (30 Bytes)
+    std::vector<uint8_t> id(30, 0);
+    id[0] = 0x01;
+    memcpy(id.data() + 1, "vorbis", 6);
+    id[11] = 2; // channels
+    id[12] = 0x44;
+    id[13] = 0xAC; // 44100 Hz (0xAC44 LE)
+    id[29] = 0x01; // framing bit
+    AppendSyntheticOggPage(out, id, 0x02, 0x12345678, 0, 0);
+
+    // 2. Comment-Paket
+    std::vector<uint8_t> vc;
+    vc.push_back(0x03);
+    const char vstr[] = "vorbis";
+    vc.insert(vc.end(), vstr, vstr + 6);
+    const char vendor[] = "pplib";
+    vc.push_back(5);
+    vc.push_back(0);
+    vc.push_back(0);
+    vc.push_back(0);
+    vc.insert(vc.end(), vendor, vendor + 5);
+    uint32_t cnt = (uint32_t)entries.size();
+    vc.push_back((uint8_t)(cnt & 0xFF));
+    vc.push_back((uint8_t)((cnt >> 8) & 0xFF));
+    vc.push_back((uint8_t)((cnt >> 16) & 0xFF));
+    vc.push_back((uint8_t)((cnt >> 24) & 0xFF));
+    for (const auto& e : entries) {
+        uint32_t len = (uint32_t)e.size();
+        vc.push_back((uint8_t)(len & 0xFF));
+        vc.push_back((uint8_t)((len >> 8) & 0xFF));
+        vc.push_back((uint8_t)((len >> 16) & 0xFF));
+        vc.push_back((uint8_t)((len >> 24) & 0xFF));
+        vc.insert(vc.end(), e.begin(), e.end());
+    }
+    vc.push_back(0x01); // framing bit
+    AppendSyntheticOggPage(out, vc, 0x00, 0x12345678, 1, 0);
+
+    // 3. Setup-Paket
+    std::vector<uint8_t> setup(7, 0);
+    setup[0] = 0x05;
+    memcpy(setup.data() + 1, "vorbis", 6);
+    AppendSyntheticOggPage(out, setup, 0x00, 0x12345678, 2, 0);
+    return out;
+}
+
+TEST_F(AudioInfoTest, OggHaveVorbisCommentReflectsEntriesAndMissingTailKeepsSamplesZero)
+{
+    {
+        auto ogg = MakeSyntheticOggHeaders({});
+        pplib::MemFile file(ogg.data(), ogg.size());
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+        EXPECT_EQ(AF::OGG, info.Format);
+        EXPECT_FALSE(info.HaveVorbisComment);
+        EXPECT_EQ((uint64_t)0, info.Samples);
+        EXPECT_EQ((uint32_t)0, info.Length);
+    }
+    {
+        auto ogg = MakeSyntheticOggHeaders({"TITLE=Hello"});
+        pplib::MemFile file(ogg.data(), ogg.size());
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(file, info));
+        EXPECT_EQ(AF::OGG, info.Format);
+        EXPECT_TRUE(info.HaveVorbisComment);
+    }
 }
 
 } // namespace

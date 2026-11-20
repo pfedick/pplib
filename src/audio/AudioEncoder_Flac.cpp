@@ -329,7 +329,7 @@ void AudioEncoder_Flac::setVorbisComments(const ID3Tag& tag)
     }
 
     std::vector<ID3Tag::FlacPicture> pics;
-    tag.exportFlacPictures(pics);
+    tag.exportVorbisPictures(pics);
     for (const ID3Tag::FlacPicture& p : pics) {
         FLAC__StreamMetadata* pic = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE);
         if (!pic) {

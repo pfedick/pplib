@@ -35,6 +35,8 @@
 #include <pplib/core/functions.h>
 #include <pplib/core/memfile.h>
 #include <pplib/audio/id3tag.h>
+#include <pplib/audio/audioinfo.h>
+#include <pplib/audio/decoder.h>
 
 #include "pplib-tests.h"
 
@@ -1553,6 +1555,253 @@ TEST_F(ID3TagTest, SaveMP3ErrorHandling)
     pplib::ID3Tag tagUnknown;
     tagUnknown.tryLoad("tmp/corrupt_on_save.mp3");
     EXPECT_THROW(tagUnknown.save(), pplib::UnsupportedAudioFormatException);
+}
+
+TEST_F(ID3TagTest, LoadOggRealFileAndRejectNonVorbisOgg)
+{
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW(tag.load("testdata/audio/test_44kHz.ogg"));
+
+    pplib::ID3Tag opusTag;
+    EXPECT_THROW(opusTag.load("testdata/audio/test_48kHz.opus"), pplib::UnsupportedAudioFormatException);
+}
+
+TEST_F(ID3TagTest, LoadOggParsesVorbisCommentsAndMetadataBlockPicture)
+{
+    // Synthetische Ogg-Vorbis-Header mit Text-Tags, gueltigem METADATA_BLOCK_PICTURE und kaputtem Base64-Eintrag
+    std::vector<uint8_t> picBlock;
+    auto pushBe32 = [&](uint32_t v) {
+        picBlock.push_back((uint8_t)((v >> 24) & 0xFF));
+        picBlock.push_back((uint8_t)((v >> 16) & 0xFF));
+        picBlock.push_back((uint8_t)((v >> 8) & 0xFF));
+        picBlock.push_back((uint8_t)(v & 0xFF));
+    };
+    pushBe32(3); // PIC_COVER_FRONT
+    const char mime[] = "image/jpeg";
+    pushBe32(10);
+    picBlock.insert(picBlock.end(), mime, mime + 10);
+    pushBe32(0); // empty description
+    pushBe32(0);
+    pushBe32(0);
+    pushBe32(0);
+    pushBe32(0);
+    pushBe32(4); // image len
+    picBlock.push_back(0xFF);
+    picBlock.push_back(0xD8);
+    picBlock.push_back(0xFF);
+    picBlock.push_back(0xE0);
+
+    pplib::ByteArray picBa(picBlock.data(), picBlock.size());
+    pplib::String picB64 = picBa.toBase64();
+
+    std::vector<std::string> entries = {
+        "ARTIST=Ogg Artist",
+        "TITLE=Ogg Title",
+        "ALBUM=Ogg Album",
+        "DATE=2026",
+        "TRACKNUMBER=3",
+        "TRACKTOTAL=12",
+        std::string("METADATA_BLOCK_PICTURE=") + picB64.c_str(),
+        "METADATA_BLOCK_PICTURE=!!!not-valid-base64!!!"
+    };
+
+    std::vector<uint8_t> ogg;
+    auto appendPage = [&](const std::vector<uint8_t>& pkt, uint8_t flags, uint32_t seq) {
+        std::vector<uint8_t> segs;
+        size_t rem = pkt.size();
+        while (rem >= 255) {
+            segs.push_back(255);
+            rem -= 255;
+        }
+        segs.push_back((uint8_t)rem);
+        ogg.insert(ogg.end(), {'O', 'g', 'g', 'S', 0, flags, 0, 0, 0, 0, 0, 0, 0, 0,
+                               0x01, 0x02, 0x03, 0x04});
+        ogg.push_back((uint8_t)(seq & 0xFF));
+        ogg.push_back((uint8_t)((seq >> 8) & 0xFF));
+        ogg.push_back((uint8_t)((seq >> 16) & 0xFF));
+        ogg.push_back((uint8_t)((seq >> 24) & 0xFF));
+        ogg.insert(ogg.end(), {0, 0, 0, 0});
+        ogg.push_back((uint8_t)segs.size());
+        ogg.insert(ogg.end(), segs.begin(), segs.end());
+        ogg.insert(ogg.end(), pkt.begin(), pkt.end());
+    };
+
+    std::vector<uint8_t> id(30, 0);
+    id[0] = 0x01;
+    memcpy(id.data() + 1, "vorbis", 6);
+    id[11] = 2;
+    id[12] = 0x44;
+    id[13] = 0xAC;
+    id[29] = 0x01;
+    appendPage(id, 0x02, 0);
+
+    std::vector<uint8_t> vc;
+    vc.push_back(0x03);
+    const char vstr[] = "vorbis";
+    vc.insert(vc.end(), vstr, vstr + 6);
+    const char vendor[] = "test-vendor";
+    auto pushLe32 = [&](uint32_t v) {
+        vc.push_back((uint8_t)(v & 0xFF));
+        vc.push_back((uint8_t)((v >> 8) & 0xFF));
+        vc.push_back((uint8_t)((v >> 16) & 0xFF));
+        vc.push_back((uint8_t)((v >> 24) & 0xFF));
+    };
+    pushLe32(11);
+    vc.insert(vc.end(), vendor, vendor + 11);
+    pushLe32((uint32_t)entries.size());
+    for (const auto& e : entries) {
+        pushLe32((uint32_t)e.size());
+        vc.insert(vc.end(), e.begin(), e.end());
+    }
+    vc.push_back(0x01);
+    appendPage(vc, 0x00, 1);
+
+    std::vector<uint8_t> setup(7, 0);
+    setup[0] = 0x05;
+    memcpy(setup.data() + 1, "vorbis", 6);
+    appendPage(setup, 0x00, 2);
+
+    pplib::MemFile mf(ogg.data(), ogg.size());
+    pplib::ID3Tag tag;
+    ASSERT_NO_THROW(tag.load(mf));
+    EXPECT_EQ(pplib::String("Ogg Artist"), tag.getArtist());
+    EXPECT_EQ(pplib::String("Ogg Title"), tag.getTitle());
+    EXPECT_EQ(pplib::String("Ogg Album"), tag.getAlbum());
+    EXPECT_EQ(pplib::String("2026"), tag.getYear());
+    EXPECT_EQ(pplib::String("3/12"), tag.getTrack());
+
+    std::vector<pplib::ID3Tag::FlacPicture> pics;
+    tag.exportVorbisPictures(pics);
+    ASSERT_EQ((size_t)1, pics.size());
+    EXPECT_EQ((uint32_t)3, pics[0].type);
+    EXPECT_EQ(pplib::String("image/jpeg"), pics[0].mime);
+    EXPECT_EQ((size_t)4, pics[0].data.size());
+}
+
+TEST_F(ID3TagTest, OggRoundtripTextTagsAndIdentAudioInfo)
+{
+    const pplib::String target("tmp/ogg_roundtrip.ogg");
+    pplib::File::copy("testdata/audio/test_44kHz.ogg", target);
+
+    {
+        pplib::ID3Tag tag;
+        ASSERT_NO_THROW(tag.load(target));
+        tag.setArtist("Patrick Fedick");
+        tag.setTitle("Ogg Roundtrip");
+        tag.setAlbum("PPLIB Suite");
+        tag.setYear("2026");
+        tag.setTrack("4/10");
+        tag.setGenre("Electronic");
+        tag.setComment("Test Comment");
+        tag.setRemixer("Remix Artist");
+        tag.setLabel("PPL Records");
+        tag.setBPM("138");
+        tag.setKey("8A");
+        tag.setEnergyLevel("7");
+        tag.setUserDefinedText("CUSTOM_KEY", "CustomVal");
+        ASSERT_NO_THROW(tag.save());
+    }
+
+    {
+        pplib::File f;
+        f.open(target);
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(f, info));
+        EXPECT_EQ(pplib::AudioInfo::AudioFormat::OGG, info.Format);
+        EXPECT_TRUE(info.HaveVorbisComment);
+        EXPECT_EQ((uint64_t)173695, info.Samples);
+
+#ifdef HAVE_LIBVORBIS
+        pplib::AudioDecoder_Ogg dec;
+        ASSERT_NO_THROW(dec.open(f));
+        EXPECT_EQ((uint64_t)173695, dec.getAudioInfo().Samples);
+        std::vector<pplib::STEREOSAMPLE16> pcm(1024);
+        EXPECT_EQ((size_t)1024, dec.getSamples(1024, pcm.data()));
+#endif
+    }
+
+    {
+        pplib::ID3Tag tag;
+        ASSERT_NO_THROW(tag.load(target));
+        EXPECT_EQ(pplib::String("Patrick Fedick"), tag.getArtist());
+        EXPECT_EQ(pplib::String("Ogg Roundtrip"), tag.getTitle());
+        EXPECT_EQ(pplib::String("PPLIB Suite"), tag.getAlbum());
+        EXPECT_EQ(pplib::String("2026"), tag.getYear());
+        EXPECT_EQ(pplib::String("4/10"), tag.getTrack());
+        EXPECT_EQ(pplib::String("Electronic"), tag.getGenre());
+        EXPECT_EQ(pplib::String("Test Comment"), tag.getComment());
+        EXPECT_EQ(pplib::String("Remix Artist"), tag.getRemixer());
+        EXPECT_EQ(pplib::String("PPL Records"), tag.getLabel());
+        EXPECT_EQ(pplib::String("138"), tag.getBPM());
+        EXPECT_EQ(pplib::String("8A"), tag.getKey());
+        EXPECT_EQ(pplib::String("7"), tag.getEnergyLevel());
+        EXPECT_EQ(pplib::String("CustomVal"), tag.getUserDefinedText("CUSTOM_KEY"));
+
+        // Alle Tags entfernen -> HaveVorbisComment wird false
+        tag.clearTags();
+        ASSERT_NO_THROW(tag.save());
+    }
+
+    {
+        pplib::File f;
+        f.open(target);
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(f, info));
+        EXPECT_EQ(pplib::AudioInfo::AudioFormat::OGG, info.Format);
+        EXPECT_FALSE(info.HaveVorbisComment);
+        EXPECT_EQ((uint64_t)173695, info.Samples);
+    }
+}
+
+TEST_F(ID3TagTest, OggRoundtripWithLargeMultiPageCoverPicture)
+{
+    const pplib::String target("tmp/ogg_cover.ogg");
+    pplib::File::copy("testdata/audio/test_44kHz.ogg", target);
+
+    // > 65 KB Bild erzwingt Multi-Page-Splitting im Ogg-Comment-Header
+    pplib::ByteArray cover;
+    uint8_t* p = static_cast<uint8_t*>(cover.malloc(70000));
+    for (size_t i = 0; i < 70000; ++i)
+        p[i] = (uint8_t)((i * 37) & 0xFF);
+
+    {
+        pplib::ID3Tag tag;
+        ASSERT_NO_THROW(tag.load(target));
+        tag.setArtist("Cover Artist");
+        tag.setPicture(3, cover, "image/png");
+        ASSERT_NO_THROW(tag.save());
+    }
+
+    {
+        pplib::ID3Tag tag;
+        ASSERT_NO_THROW(tag.load(target));
+        EXPECT_EQ(pplib::String("Cover Artist"), tag.getArtist());
+        std::vector<pplib::ID3Tag::FlacPicture> pics;
+        tag.exportVorbisPictures(pics);
+        ASSERT_EQ((size_t)1, pics.size());
+        EXPECT_EQ((uint32_t)3, pics[0].type);
+        EXPECT_EQ(pplib::String("image/png"), pics[0].mime);
+        ASSERT_EQ(cover.size(), pics[0].data.size());
+        EXPECT_EQ(0, memcmp(cover.ptr(), pics[0].data.ptr(), cover.size()));
+    }
+
+    {
+        pplib::File f;
+        f.open(target);
+        pplib::AudioInfo info;
+        ASSERT_TRUE(pplib::IdentAudioFile(f, info));
+        EXPECT_EQ(pplib::AudioInfo::AudioFormat::OGG, info.Format);
+        EXPECT_TRUE(info.HaveVorbisComment);
+        EXPECT_EQ((uint64_t)173695, info.Samples);
+
+#ifdef HAVE_LIBVORBIS
+        pplib::AudioDecoder_Ogg dec;
+        ASSERT_NO_THROW(dec.open(f));
+        EXPECT_EQ((uint64_t)173695, dec.getAudioInfo().Samples);
+        std::vector<pplib::STEREOSAMPLE16> pcm(1024);
+        EXPECT_EQ((size_t)1024, dec.getSamples(1024, pcm.data()));
+#endif
+    }
 }
 
 /*

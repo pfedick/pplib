@@ -122,24 +122,25 @@ public:
         FLOAT = 1    //!< IEEE-754-Fliesskomma (WAV Format-Tag 3 und AIFF-C mit `FL32`, je 32 Bit)
     };
 
+    uint64_t ID3v2TagStart = 0; //!< Offset des ID3v2-Tags (MP3: Tag beginnt bei 0)
+    uint64_t FileSize = 0;      //!< Groesse der Datei in Bytes
+    uint64_t AudioStart = 0;    //!< erster Byte der Audiodaten
+    uint64_t AudioEnd = 0;      //!< letzter Byte der Audiodaten (inklusive); es gilt immer AudioEnd - AudioStart + 1 == AudioSize
+    uint64_t AudioSize = 0;     //!< Groesse der Audiodaten in Bytes (frame-aligniert, bei WAV/AIFF immer > 0)
+    uint64_t Samples = 0;       //!< Anzahl Samples (nicht Kanal-Samples); bei WAV/AIFF Samples * BytesPerSample == AudioSize
+    uint32_t Length = 0;        //!< Spieldauer in Millisekunden
+    uint32_t Frequency = 0;     //!< Sample-Rate in Hz
+    uint16_t Bitrate = 0;       //!< Datenrate in kbit/s (bei PCM aus Frequency und BytesPerSample, bei Ueberlauf auf uint16_t-Max begrenzt)
     AudioFormat Format = AudioFormat::UNKNOWN; //!< erkanntes Audioformat
-    bool HaveID3v2Tag = false;                 //!< Datei enthaelt einen ID3v2-Tag
-    bool IsVBR = false;                        //!< Variable Bitrate (nur MP3)
-    uint64_t ID3v2TagStart = 0;                //!< Offset des ID3v2-Tags (MP3: Tag beginnt bei 0)
-    uint64_t FileSize = 0;                     //!< Groesse der Datei in Bytes
-    uint64_t AudioStart = 0;                   //!< erster Byte der Audiodaten
-    uint64_t AudioEnd = 0;     //!< letzter Byte der Audiodaten (inklusive); es gilt immer AudioEnd - AudioStart + 1 == AudioSize
-    uint64_t AudioSize = 0;    //!< Groesse der Audiodaten in Bytes (frame-aligniert, bei WAV/AIFF immer > 0)
-    uint64_t Samples = 0;      //!< Anzahl Samples (nicht Kanal-Samples); bei WAV/AIFF Samples * BytesPerSample == AudioSize
-    uint32_t Length = 0;       //!< Spieldauer in Millisekunden
-    uint32_t Frequency = 0;    //!< Sample-Rate in Hz
-    uint16_t Bitrate = 0;      //!< Datenrate in kbit/s (bei PCM aus Frequency und BytesPerSample, bei Ueberlauf auf uint16_t-Max begrenzt)
     uint8_t BitsPerSample = 0; //!< Aufloesung eines Kanal-Samples in Bits (bei SampleType FLOAT: Bitbreite des Fliesskomma-Samples)
     uint8_t BytesPerSample =
         0; //!< Bytes pro Sample-Frame, also alle Kanaele eines Sample-Zeitpunkts (AIFF/WAV: je Kanal auf volle Byte aufgerundet, dann mal Kanaele; 20 bit stereo => 6)
     uint8_t Channels = 0;                                //!< Anzahl Kanaele
     ChannelMode Mode = ChannelMode::UNKNOWN;             //!< Kanalmodus; bei unbekanntem Format ohne Aussage
     SampleEncoding SampleType = SampleEncoding::INTEGER; //!< Zahlenformat der Samples; alle bisher erkannten WAV/AIFF-Dateien sind INTEGER
+    bool HaveID3v2Tag = false;                           //!< Datei enthaelt einen ID3v2-Tag
+    bool HaveVorbisComment = false;                      //!< Datei enthaelt einen Vorbis-Comment (Flac, Ogg)
+    bool IsVBR = false;                                  //!< Variable Bitrate (nur MP3)
 
     void print() const;
     static String formatToString(AudioFormat format);

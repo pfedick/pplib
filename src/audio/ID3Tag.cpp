@@ -37,6 +37,7 @@
 #include <pplib/audio/id3tag.h>
 #include <pplib/audio/audioinfo.h>
 #include <pplib/audio/mp3.h>
+#include "OggVorbisHelper.h"
 
 #include <vector>
 
@@ -435,6 +436,10 @@ ID3Tag::AudioFormat ID3Tag::identAudioFormat(FileObject& File)
     // printf ("PeekN32(adr+4)=%ud, File.Size=%d\n",pplib::PeekN32(adr+4), (uint32_t)File.size() );
     if (PeekN32(adr + 4) < File.size() && PeekN32(adr + 0) == 0x464F524D && PeekN32(adr + 8) == 0x41494646) return AF_AIFF;
     if (Peek32(adr + 4) <= File.size() - 8 && strncmp(adr + 0, "RIFF", 4) == 0 && strncmp(adr + 8, "WAVE", 4) == 0) return AF_WAVE;
+    if (memcmp(adr, "OggS", 4) == 0) {
+        OggVorbisHeaders hdrs;
+        return ReadOggVorbisHeaders(File, hdrs, false) ? AF_OGG : AF_UNKNOWN;
+    }
 
     if (IdentMPEG(File, nullptr)) return AF_MP3;
     return AF_UNKNOWN;
@@ -514,6 +519,10 @@ void ID3Tag::load(FileObject& file)
     }
     if (myAudioFormat == AF_FLAC) {
         loadFlac(file);
+        return;
+    }
+    if (myAudioFormat == AF_OGG) {
+        loadOgg(file);
         return;
     }
 
@@ -994,6 +1003,8 @@ void ID3Tag::save()
         saveWave();
     else if (myAudioFormat == AF_FLAC)
         saveFlac();
+    else if (myAudioFormat == AF_OGG)
+        saveOgg();
     else
         throw UnsupportedAudioFormatException("FormatId=%d", myAudioFormat);
 }
@@ -1909,6 +1920,166 @@ static void setApicRawUtf8(std::list<ID3Frame>& frames, int picType, const char*
     frame->setData(data);
 }
 
+static void parseFlacPictureBlock(const char* data, size_t bsize, std::list<ID3Frame>& frames)
+{
+    if (bsize < 32) return;
+    size_t pos = 0;
+    uint32_t picType = PeekN32(data + pos);
+    pos += 4;
+    uint32_t mimeLen = PeekN32(data + pos);
+    pos += 4;
+    if (pos + mimeLen + 4 > bsize) return;
+    const char* mime = data + pos;
+    pos += mimeLen;
+    uint32_t descLen = PeekN32(data + pos);
+    pos += 4;
+    if (pos + descLen + 20 > bsize) return;
+    const char* desc = data + pos;
+    pos += descLen;
+    pos += 16; // width, height, color depth, colors
+    uint32_t imgLen = PeekN32(data + pos);
+    pos += 4;
+    if (pos + imgLen > bsize) return;
+    setApicRawUtf8(frames, (int)picType, mime, mimeLen, desc, descLen, data + pos, imgLen);
+}
+
+static void parseVorbisCommentPayload(const char* data, size_t bsize, String& vendorOut, std::list<ID3Frame>& frames,
+                                      bool parsePictures)
+{
+    if (bsize < 8) return;
+    size_t pos = 0;
+    uint32_t vlen = Peek32(data + pos);
+    pos += 4;
+    if (pos + vlen + 4 > bsize) return;
+    vendorOut.set(data + pos, vlen);
+    pos += vlen;
+    uint32_t count = Peek32(data + pos);
+    pos += 4;
+
+    bool hasPrimaryDate = false;
+    bool hasPrimaryKey = false;
+    bool hasPrimaryLabel = false;
+    bool hasPrimaryComment = false;
+    String trackTotal;
+
+    auto setPopularimeterUtf8 = [&](unsigned char rating) {
+        ID3Frame* frame = nullptr;
+        for (auto& f : frames) {
+            if (f.name() == "POPM") {
+                frame = &f;
+                break;
+            }
+        }
+        String email("Windows Media Player 9 Series");
+        size_t sz = email.size() + 1 + 1;
+        ByteArray ba;
+        char* p = (char*)ba.malloc(sz);
+        memcpy(p, email.c_str(), email.size());
+        p[email.size()] = 0;
+        p[email.size() + 1] = (char)rating;
+        if (frame) {
+            frame->setData(ba);
+        } else {
+            frames.emplace_back("POPM", 0, ba);
+        }
+    };
+
+    for (uint32_t i = 0; i < count && pos + 4 <= bsize; ++i) {
+        uint32_t clen = Peek32(data + pos);
+        pos += 4;
+        if (pos + clen > bsize) break;
+        const char* entry = data + pos;
+        pos += clen;
+
+        const char* eq = (const char*)memchr(entry, '=', clen);
+        if (!eq) continue;
+        String key(entry, (size_t)(eq - entry));
+        const char* val = eq + 1;
+        size_t valLen = clen - (size_t)(val - entry);
+
+        if (parsePictures && key.strCaseCmp("METADATA_BLOCK_PICTURE") == 0) {
+            try {
+                ByteArray bin = ByteArray::fromBase64(String(val, valLen));
+                parseFlacPictureBlock(static_cast<const char*>(bin.ptr()), bin.size(), frames);
+            } catch (...) {
+                // Ungueltige Base64-Bilddaten tolerant ueberspringen
+            }
+        } else if (key.strCaseCmp("ARTIST") == 0) {
+            setFrameRawUtf8(frames, "TPE1", val, valLen);
+        } else if (key.strCaseCmp("TITLE") == 0) {
+            setFrameRawUtf8(frames, "TIT2", val, valLen);
+        } else if (key.strCaseCmp("ALBUM") == 0) {
+            setFrameRawUtf8(frames, "TALB", val, valLen);
+        } else if (key.strCaseCmp("GENRE") == 0) {
+            setFrameRawUtf8(frames, "TCON", val, valLen);
+        } else if (key.strCaseCmp("TRACKNUMBER") == 0) {
+            setFrameRawUtf8(frames, "TRCK", val, valLen);
+        } else if (key.strCaseCmp("TRACKTOTAL") == 0) {
+            trackTotal.set(val, valLen);
+        } else if (key.strCaseCmp("DATE") == 0) {
+            setFrameRawUtf8(frames, "TYER", val, valLen);
+            hasPrimaryDate = true;
+        } else if (key.strCaseCmp("YEAR") == 0) {
+            if (!hasPrimaryDate) setFrameRawUtf8(frames, "TYER", val, valLen);
+        } else if (key.strCaseCmp("BPM") == 0) {
+            setFrameRawUtf8(frames, "TBPM", val, valLen);
+        } else if (key.strCaseCmp("INITIALKEY") == 0) {
+            setFrameRawUtf8(frames, "TKEY", val, valLen);
+            hasPrimaryKey = true;
+        } else if (key.strCaseCmp("INITIAL_KEY") == 0) {
+            if (!hasPrimaryKey) {
+                setFrameRawUtf8(frames, "TKEY", val, valLen);
+            } else {
+                setTxxxRawUtf8(frames, "INITIAL_KEY", val, valLen);
+            }
+        } else if (key.strCaseCmp("LABEL") == 0) {
+            setFrameRawUtf8(frames, "TPUB", val, valLen);
+            hasPrimaryLabel = true;
+        } else if (key.strCaseCmp("ORGANIZATION") == 0) {
+            if (!hasPrimaryLabel) {
+                setFrameRawUtf8(frames, "TPUB", val, valLen);
+            } else {
+                setTxxxRawUtf8(frames, "ORGANIZATION", val, valLen);
+            }
+        } else if (key.strCaseCmp("REMIXER") == 0) {
+            setFrameRawUtf8(frames, "TPE4", val, valLen);
+        } else if (key.strCaseCmp("COMMENT") == 0) {
+            setCommRawUtf8(frames, val, valLen);
+            hasPrimaryComment = true;
+        } else if (key.strCaseCmp("DESCRIPTION") == 0) {
+            if (!hasPrimaryComment) {
+                setCommRawUtf8(frames, val, valLen);
+            } else {
+                setTxxxRawUtf8(frames, "DESCRIPTION", val, valLen);
+            }
+        } else if (key.strCaseCmp("ENERGYLEVEL") == 0) {
+            setTxxxRawUtf8(frames, "EnergyLevel", val, valLen);
+        } else if (key.strCaseCmp("RATING WMP") == 0) {
+            String rstr(val, valLen);
+            int r = rstr.toInt();
+            if (r < 0) r = 0;
+            if (r > 255) r = 255;
+            setPopularimeterUtf8((unsigned char)r);
+        } else {
+            setTxxxRawUtf8(frames, key, val, valLen);
+        }
+    }
+
+    if (!trackTotal.isEmpty()) {
+        String curTrack;
+        for (const auto& f : frames) {
+            if (f.name() == "TRCK") {
+                ID3Tag::decode(&f, 1, 0, curTrack, "UTF-8");
+                break;
+            }
+        }
+        if (!curTrack.isEmpty() && curTrack.instr("/") < 0) {
+            String combined = curTrack + "/" + trackTotal;
+            setFrameRawUtf8(frames, "TRCK", combined.c_str(), combined.size());
+        }
+    }
+}
+
 void ID3Tag::loadFlac(FileObject& file)
 {
     uint64_t fsize = file.size();
@@ -1939,126 +2110,10 @@ void ID3Tag::loadFlac(FileObject& file)
             haveStreamInfo = true;
         } else if (btype == 4 && bsize >= 8) {
             const char* data = file.map(payload, bsize);
-            size_t pos = 0;
-            uint32_t vlen = Peek32(data + pos);
-            pos += 4;
-            if (pos + vlen + 4 <= bsize) {
-                flacVendor.set(data + pos, vlen);
-                pos += vlen;
-                uint32_t count = Peek32(data + pos);
-                pos += 4;
-
-                bool hasPrimaryDate = false;
-                bool hasPrimaryKey = false;
-                bool hasPrimaryLabel = false;
-                bool hasPrimaryComment = false;
-                String trackTotal;
-
-                for (uint32_t i = 0; i < count && pos + 4 <= bsize; ++i) {
-                    uint32_t clen = Peek32(data + pos);
-                    pos += 4;
-                    if (pos + clen > bsize) break;
-                    const char* entry = data + pos;
-                    pos += clen;
-
-                    const char* eq = (const char*)memchr(entry, '=', clen);
-                    if (!eq) continue;
-                    String key(entry, (size_t)(eq - entry));
-                    const char* val = eq + 1;
-                    size_t valLen = clen - (size_t)(val - entry);
-
-                    if (key.strCaseCmp("ARTIST") == 0) {
-                        setFrameRawUtf8(frames, "TPE1", val, valLen);
-                    } else if (key.strCaseCmp("TITLE") == 0) {
-                        setFrameRawUtf8(frames, "TIT2", val, valLen);
-                    } else if (key.strCaseCmp("ALBUM") == 0) {
-                        setFrameRawUtf8(frames, "TALB", val, valLen);
-                    } else if (key.strCaseCmp("GENRE") == 0) {
-                        setFrameRawUtf8(frames, "TCON", val, valLen);
-                    } else if (key.strCaseCmp("TRACKNUMBER") == 0) {
-                        setFrameRawUtf8(frames, "TRCK", val, valLen);
-                    } else if (key.strCaseCmp("TRACKTOTAL") == 0) {
-                        trackTotal.set(val, valLen);
-                    } else if (key.strCaseCmp("DATE") == 0) {
-                        setFrameRawUtf8(frames, "TYER", val, valLen);
-                        hasPrimaryDate = true;
-                    } else if (key.strCaseCmp("YEAR") == 0) {
-                        if (!hasPrimaryDate) setFrameRawUtf8(frames, "TYER", val, valLen);
-                    } else if (key.strCaseCmp("BPM") == 0) {
-                        setFrameRawUtf8(frames, "TBPM", val, valLen);
-                    } else if (key.strCaseCmp("INITIALKEY") == 0) {
-                        setFrameRawUtf8(frames, "TKEY", val, valLen);
-                        hasPrimaryKey = true;
-                    } else if (key.strCaseCmp("INITIAL_KEY") == 0) {
-                        if (!hasPrimaryKey) {
-                            setFrameRawUtf8(frames, "TKEY", val, valLen);
-                        } else {
-                            setTxxxRawUtf8(frames, "INITIAL_KEY", val, valLen);
-                        }
-                    } else if (key.strCaseCmp("LABEL") == 0) {
-                        setFrameRawUtf8(frames, "TPUB", val, valLen);
-                        hasPrimaryLabel = true;
-                    } else if (key.strCaseCmp("ORGANIZATION") == 0) {
-                        if (!hasPrimaryLabel) {
-                            setFrameRawUtf8(frames, "TPUB", val, valLen);
-                        } else {
-                            setTxxxRawUtf8(frames, "ORGANIZATION", val, valLen);
-                        }
-                    } else if (key.strCaseCmp("REMIXER") == 0) {
-                        setFrameRawUtf8(frames, "TPE4", val, valLen);
-                    } else if (key.strCaseCmp("COMMENT") == 0) {
-                        setCommRawUtf8(frames, val, valLen);
-                        hasPrimaryComment = true;
-                    } else if (key.strCaseCmp("DESCRIPTION") == 0) {
-                        if (!hasPrimaryComment) {
-                            setCommRawUtf8(frames, val, valLen);
-                        } else {
-                            setTxxxRawUtf8(frames, "DESCRIPTION", val, valLen);
-                        }
-                    } else if (key.strCaseCmp("ENERGYLEVEL") == 0) {
-                        setTxxxRawUtf8(frames, "EnergyLevel", val, valLen);
-                    } else if (key.strCaseCmp("RATING WMP") == 0) {
-                        String rstr(val, valLen);
-                        int r = rstr.toInt();
-                        if (r < 0) r = 0;
-                        if (r > 255) r = 255;
-                        setPopularimeter("Windows Media Player 9 Series", (unsigned char)r);
-                    } else {
-                        setTxxxRawUtf8(frames, key, val, valLen);
-                    }
-                }
-
-                if (!trackTotal.isEmpty()) {
-                    String curTrack = getTrack();
-                    if (!curTrack.isEmpty() && curTrack.instr("/") < 0) {
-                        String combined = curTrack + "/" + trackTotal;
-                        setFrameRawUtf8(frames, "TRCK", combined.c_str(), combined.size());
-                    }
-                }
-            }
+            parseVorbisCommentPayload(data, bsize, flacVendor, frames, false);
         } else if (btype == 6 && bsize >= 32) {
             const char* data = file.map(payload, bsize);
-            size_t pos = 0;
-            uint32_t picType = PeekN32(data + pos);
-            pos += 4;
-            uint32_t mimeLen = PeekN32(data + pos);
-            pos += 4;
-            if (pos + mimeLen + 4 <= bsize) {
-                const char* mime = data + pos;
-                pos += mimeLen;
-                uint32_t descLen = PeekN32(data + pos);
-                pos += 4;
-                if (pos + descLen + 20 <= bsize) {
-                    const char* desc = data + pos;
-                    pos += descLen;
-                    pos += 16; // width, height, color depth, colors
-                    uint32_t imgLen = PeekN32(data + pos);
-                    pos += 4;
-                    if (pos + imgLen <= bsize) {
-                        setApicRawUtf8(frames, (int)picType, mime, mimeLen, desc, descLen, data + pos, imgLen);
-                    }
-                }
-            }
+            parseFlacPictureBlock(data, bsize, frames);
         }
 
         p = payload + bsize;
@@ -2273,7 +2328,7 @@ void ID3Tag::exportVorbisComments(std::vector<String>& entries) const
     collectFlacVorbisEntries(frames, entries);
 }
 
-void ID3Tag::exportFlacPictures(std::vector<FlacPicture>& pictures) const
+void ID3Tag::exportVorbisPictures(std::vector<FlacPicture>& pictures) const
 {
     for (const auto& f : frames) {
         if (f.name() == "APIC") {
@@ -2457,6 +2512,138 @@ void ID3Tag::saveFlac()
         copyFlacToNewFile(o, n, serialized, flacStart, audioStart);
     }
     catch (...) {
+        n.close();
+        o.close();
+        File::remove(tmpfile);
+        throw;
+    }
+    o.close();
+    n.close();
+    File::rename(tmpfile, Filename);
+}
+
+void ID3Tag::loadOgg(FileObject& file)
+{
+    OggVorbisHeaders hdrs;
+    if (!ReadOggVorbisHeaders(file, hdrs, true)) {
+        throw pplib::UnsupportedAudioFormatException();
+    }
+    if (hdrs.commentPacket.size() < 7 + 8) {
+        throw pplib::UnsupportedAudioFormatException();
+    }
+    const char* vc = static_cast<const char*>(hdrs.commentPacket.ptr()) + 7;
+    const size_t vcSize = hdrs.commentPacket.size() - 7;
+    parseVorbisCommentPayload(vc, vcSize, flacVendor, frames, true);
+}
+
+void ID3Tag::saveOgg()
+{
+    File o;
+    o.open(Filename, File::FileMode::READ);
+    const uint64_t fsize = o.size();
+
+    OggVorbisHeaders hdrs;
+    if (!ReadOggVorbisHeaders(o, hdrs, true)) {
+        throw pplib::UnsupportedAudioFormatException();
+    }
+
+    std::vector<String> entries;
+    collectFlacVorbisEntries(frames, entries);
+    for (const auto& f : frames) {
+        if (f.name() == "APIC") {
+            ByteArray picData;
+            if (buildFlacPictureBlock(f, picData)) {
+                entries.push_back(String("METADATA_BLOCK_PICTURE=") + picData.toBase64());
+            }
+        }
+    }
+
+    String vendor = flacVendor.isEmpty() ? String("pplib") : flacVendor;
+    size_t commentSize = 7 + 4 + vendor.size() + 4 + 1; // "0x03vorbis" + vendor + count + framing bit
+    for (const auto& e : entries) {
+        commentSize += 4 + e.size();
+    }
+
+    ByteArray commentPacket;
+    char* cbuf = (char*)commentPacket.malloc(commentSize);
+    size_t pos = 0;
+    cbuf[pos++] = 0x03;
+    memcpy(cbuf + pos, "vorbis", 6);
+    pos += 6;
+    Poke32(cbuf + pos, (uint32_t)vendor.size());
+    pos += 4;
+    if (!vendor.isEmpty()) {
+        memcpy(cbuf + pos, vendor.c_str(), vendor.size());
+        pos += vendor.size();
+    }
+    Poke32(cbuf + pos, (uint32_t)entries.size());
+    pos += 4;
+    for (const auto& e : entries) {
+        Poke32(cbuf + pos, (uint32_t)e.size());
+        pos += 4;
+        if (!e.isEmpty()) {
+            memcpy(cbuf + pos, e.c_str(), e.size());
+            pos += e.size();
+        }
+    }
+    cbuf[pos++] = 0x01; // Vorbis framing bit
+
+    std::vector<uint8_t> newHeaders;
+    uint32_t seq = 0;
+    AppendOggPacketPages(newHeaders, hdrs.idPacket, hdrs.serialNumber, seq, 0, 0x02);
+    AppendOggPacketPages(newHeaders, commentPacket, hdrs.serialNumber, seq, 0, 0x00);
+    AppendOggPacketPages(newHeaders, hdrs.setupPacket, hdrs.serialNumber, seq, 0, 0x00);
+
+    String tmpfile = Filename + ".rename.tmp";
+    File n;
+    n.touch(tmpfile);
+    n.open(tmpfile, File::FileMode::READWRITE);
+    try {
+        if (!newHeaders.empty()) {
+            n.write(newHeaders.data(), newHeaders.size());
+        }
+
+        uint64_t p = hdrs.audioPageStart;
+        if (seq == hdrs.nextSequenceNumber) {
+            // Sequenznummern unveraendert -> Audio-Pages direkt kopieren
+            const size_t bufSize = 65536;
+            ByteArray copyBuf;
+            void* ptr = copyBuf.malloc(bufSize);
+            o.seek(p);
+            while (p < fsize) {
+                size_t toRead = (size_t)((fsize - p > bufSize) ? bufSize : (fsize - p));
+                size_t got = o.read(ptr, toRead);
+                if (got == 0) break;
+                n.write(ptr, got);
+                p += got;
+            }
+        } else {
+            // Header-Page-Anzahl geaendert -> page_sequence_number + Ogg-CRC32 der Audio-Pages anpassen
+            while (p < fsize) {
+                OggPageHeader ph;
+                if (!ReadOggPageHeader(o, p, fsize, ph)) {
+                    // Restbytes unveraendert uebernehmen
+                    const size_t rem = (size_t)(fsize - p);
+                    const char* restPtr = o.tryMap(p, rem);
+                    if (restPtr) n.write(restPtr, rem);
+                    break;
+                }
+                const size_t totalPage = (size_t)ph.headerSize + (size_t)ph.payloadSize;
+                const char* pagePtr = o.map(p, totalPage);
+                if (ph.serialNumber == hdrs.serialNumber) {
+                    std::vector<uint8_t> pageBuf(pagePtr, pagePtr + totalPage);
+                    Poke32(pageBuf.data() + 18, seq++);
+                    Poke32(pageBuf.data() + 22, 0);
+                    const uint32_t crc = OggCrc32(pageBuf.data(), pageBuf.size());
+                    Poke32(pageBuf.data() + 22, crc);
+                    n.write(pageBuf.data(), pageBuf.size());
+                } else {
+                    n.write(pagePtr, totalPage);
+                }
+                p += totalPage;
+            }
+        }
+    } catch (...) {
         n.close();
         o.close();
         File::remove(tmpfile);
